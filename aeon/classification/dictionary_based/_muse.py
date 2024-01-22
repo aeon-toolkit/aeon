@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """WEASEL+MUSE classifier.
 
 multivariate dictionary based classifier based on SFA transform, dictionaries
@@ -26,7 +25,7 @@ class MUSE(BaseClassifier):
     MUSE (MUltivariate Symbolic Extension).
 
     Also known as WEASEL-MUSE: implementation of multivariate version of WEASEL,
-    referred to as just MUSE from [1].
+    referred to as just MUSE from [1]_.
 
     Overview: Input n series length m
     WEASEL+MUSE is a multivariate  dictionary classifier that builds a

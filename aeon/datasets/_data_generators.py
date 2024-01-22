@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Data generators."""
 
 __author__ = ["MatthewMiddlehurst", "TonyBagnall"]
@@ -15,7 +13,7 @@ from typing import Dict, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from aeon.utils._testing.collection import make_2d_test_data, make_3d_test_data
+from aeon.testing.utils.collection import make_2d_test_data, make_3d_test_data
 
 
 def make_example_3d_numpy(
@@ -231,7 +229,7 @@ def _convert_tsf_to_hierarchical(
     Returns
     -------
     pd.DataFrame
-        aeon pd_multiindex_hier mtype
+        hierarchical multiindex pd.Dataframe
     """
     df = data.copy()
 

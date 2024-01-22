@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Symbolic Aggregate approXimation (SAX) transformer."""
 
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
@@ -61,6 +60,12 @@ class SAX(BaseCollectionTransformer):
     >>> X_train = sax.fit_transform(X_train)
     >>> X_test = sax.fit_transform(X_test)
     """
+
+    _tags = {
+        "capability:multivariate": True,
+        "fit_is_empty": True,
+        "algorithm_type": "dictionary",
+    }
 
     def __init__(
         self,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Machine type converters for Panel scitype.
 
 Exports conversion and mtype dictionary for Panel scitype:
@@ -35,7 +34,7 @@ __all__ = [
 ]
 
 from aeon.datatypes._convert_utils._convert import _extend_conversions
-from aeon.datatypes._panel._registry import MTYPE_LIST_PANEL
+from aeon.datatypes._panel._registry import TYPE_LIST_PANEL
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # dictionary indexed by triples of types
@@ -52,7 +51,7 @@ def convert_identity(obj, store=None):
 
 
 # assign identity function to type conversion to self
-for tp in MTYPE_LIST_PANEL:
+for tp in TYPE_LIST_PANEL:
     convert_dict[(tp, tp, "Panel")] = convert_identity
 
 
@@ -287,7 +286,7 @@ def from_nested_to_2d_np_array(obj, store=None):
 
 convert_dict[("nested_univ", "pd-wide", "Panel")] = from_nested_to_pdwide
 
-convert_dict[("nested_univ", "numpyflat", "Panel")] = from_nested_to_2d_np_array
+convert_dict[("nested_univ", "numpy2D", "Panel")] = from_nested_to_2d_np_array
 
 
 def from_2d_array_to_nested(
@@ -368,76 +367,12 @@ def convert_from_dictionary(ts_dict):
     return from_2d_array_to_nested(panda)
 
 
-def _concat_nested_arrays(arrs, cells_as_numpy=False):
-    """Nest tabular arrays from nested list.
-
-    Helper function to nest tabular arrays from nested list of arrays.
-
-    Parameters
-    ----------
-    arrs : list of numpy arrays
-        Arrays must have the same number of rows, but can have varying
-        number of columns.
-
-    cells_as_numpy : bool, default = False
-        If True, then nested cells contain NumPy array
-        If False, then nested cells contain pandas Series
-
-    Returns
-    -------
-    Xt : pandas DataFrame
-        Transformed dataframe with nested column for each input array.
-    """
-    if cells_as_numpy:
-        Xt = pd.DataFrame(
-            np.column_stack(
-                [pd.Series([np.array(vals) for vals in interval]) for interval in arrs]
-            )
-        )
-    else:
-        Xt = pd.DataFrame(
-            np.column_stack(
-                [pd.Series([pd.Series(vals) for vals in interval]) for interval in arrs]
-            )
-        )
-    return Xt
-
-
 def _get_index(x):
     if hasattr(x, "index"):
         return x.index
     else:
         # select last dimension for time index
         return pd.RangeIndex(x.shape[-1])
-
-
-def _get_time_index(X):
-    """Get index of time series data, helper function.
-
-    Parameters
-    ----------
-    X : pd.DataFrame
-
-    Returns
-    -------
-    time_index : pandas Index
-        Index of time series
-    """
-    # assumes that all samples share the same the time index, only looks at
-    # first row
-    if isinstance(X, pd.DataFrame):
-        return _get_index(X.iloc[0, 0])
-
-    elif isinstance(X, pd.Series):
-        return _get_index(X.iloc[0])
-
-    elif isinstance(X, np.ndarray):
-        return _get_index(X)
-
-    else:
-        raise ValueError(
-            f"X must be a pandas DataFrame or Series, but found: {type(X)}"
-        )
 
 
 def _make_column_names(column_count):
@@ -1113,7 +1048,7 @@ def from_dflist_to_nested_adp(obj, store=None):
 convert_dict[("df-list", "nested_univ", "Panel")] = from_dflist_to_nested_adp
 
 
-def from_numpy3d_to_numpyflat(obj, store=None):
+def from_numpy3d_to_numpy2d(obj, store=None):
     if not isinstance(obj, np.ndarray) or len(obj.shape) != 3:
         raise TypeError("obj must be a 3D numpy.ndarray")
 
@@ -1128,10 +1063,10 @@ def from_numpy3d_to_numpyflat(obj, store=None):
     return obj_in_2D
 
 
-convert_dict[("numpy3D", "numpyflat", "Panel")] = from_numpy3d_to_numpyflat
+convert_dict[("numpy3D", "numpy2D", "Panel")] = from_numpy3d_to_numpy2d
 
 
-def from_numpyflat_to_numpy3d(obj, store=None):
+def from_numpy2d_to_numpy3d(obj, store=None):
     if not isinstance(obj, np.ndarray) or len(obj.shape) != 2:
         raise TypeError("obj must be a 2D numpy.ndarray")
 
@@ -1154,11 +1089,9 @@ def from_numpyflat_to_numpy3d(obj, store=None):
     return obj_in_3D
 
 
-convert_dict[("numpyflat", "numpy3D", "Panel")] = from_numpyflat_to_numpy3d
+convert_dict[("numpy2D", "numpy3D", "Panel")] = from_numpy2d_to_numpy3d
 
-_extend_conversions(
-    "numpyflat", "numpy3D", convert_dict, mtype_universe=MTYPE_LIST_PANEL
-)
+_extend_conversions("numpy2D", "numpy3D", convert_dict, mtype_universe=TYPE_LIST_PANEL)
 
 
 if _check_soft_dependencies("dask", severity="none"):
@@ -1178,5 +1111,5 @@ if _check_soft_dependencies("dask", severity="none"):
     convert_dict[("pd-multiindex", "dask_panel", "Panel")] = convert_pd_to_dask_as_panel
 
     _extend_conversions(
-        "dask_panel", "pd-multiindex", convert_dict, mtype_universe=MTYPE_LIST_PANEL
+        "dask_panel", "pd-multiindex", convert_dict, mtype_universe=TYPE_LIST_PANEL
     )

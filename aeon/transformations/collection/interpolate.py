@@ -1,14 +1,14 @@
-# -*- coding: utf-8 -*-
 """Time series interpolator/re-sampler."""
-import numpy as np
-
-from aeon.transformations.base import BaseTransformer
 
 __all__ = ["TSInterpolator"]
 __author__ = ["mloning", "TonyBagnall"]
 
+import numpy as np
 
-class TSInterpolator(BaseTransformer):
+from aeon.transformations.collection import BaseCollectionTransformer
+
+
+class TSInterpolator(BaseCollectionTransformer):
     """Time series interpolator/re-sampler.
 
     Transformer that rescales series for another number of points.
@@ -38,10 +38,7 @@ class TSInterpolator(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": ["np-list", "numpy3D"],
-        "y_inner_mtype": "None",
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "fit_is_empty": True,
@@ -58,7 +55,7 @@ class TSInterpolator(BaseTransformer):
             raise ValueError("resizing length must be integer and > 0")
 
         self.length = length
-        super(TSInterpolator, self).__init__(_output_convert=False)
+        super(TSInterpolator, self).__init__()
 
     def _transform(self, X, y=None):
         """Take series in each cell, train linear interpolation and samples n.

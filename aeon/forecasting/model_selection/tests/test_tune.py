@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Test grid search CV."""
 
 __author__ = ["mloning"]
@@ -26,9 +23,9 @@ from aeon.performance_metrics.forecasting import (
     MeanAbsolutePercentageError,
     MeanSquaredError,
 )
-from aeon.tests.test_all_estimators import PR_TESTING
-from aeon.transformations.series.detrend import Detrender
-from aeon.utils._testing.hierarchical import _make_hierarchical
+from aeon.testing.test_config import PR_TESTING
+from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.transformations.detrend import Detrender
 
 NAIVE = NaiveForecaster(strategy="mean")
 NAIVE_GRID = {"window_length": TEST_WINDOW_LENGTHS_INT}

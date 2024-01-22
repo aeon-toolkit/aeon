@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements reconciled forecasters for hierarchical data."""
 
 __all__ = ["ReconcilerForecaster"]
@@ -8,7 +5,6 @@ __author__ = [
     "ciaran-g",
 ]
 
-# todo: top down historical proportions? -> new _get_g_matrix_prop(self)
 
 from warnings import warn
 
@@ -67,7 +63,7 @@ class ReconcilerForecaster(BaseForecaster):
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.reconcile import ReconcilerForecaster
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.utils._testing.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.utils.hierarchical import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -83,16 +79,16 @@ class ReconcilerForecaster(BaseForecaster):
     """
 
     _tags = {
-        "scitype:y": "univariate",  # which y are fine? univariate/multivariate/both
+        "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
-        "y_inner_mtype": [
+        "y_inner_type": [
             "pd.DataFrame",
             "pd.Series",
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "X_inner_mtype": [
+        "X_inner_type": [
             "pd.DataFrame",
             "pd.Series",
             "pd-multiindex",

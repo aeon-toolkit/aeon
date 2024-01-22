@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implement dataset splitting for model evaluation and selection."""
 
 __all__ = [
@@ -522,7 +519,7 @@ class BaseSplitter(BaseObject):
             "np.ndarray",
             "nested_univ",
             "numpy3D",
-            # "numpyflat",
+            # "numpy2D",
             "pd-multiindex",
             # "pd-wide",
             # "pd-long",

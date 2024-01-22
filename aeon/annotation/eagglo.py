@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """E-Agglo: agglomerative clustering algorithm that preserves observation order."""
 
 import warnings
@@ -12,8 +11,16 @@ from aeon.transformations.base import BaseTransformer
 
 __author__ = ["KatieBuc", "patrickzib"]
 __all__ = ["EAgglo"]
+from deprecated.sphinx import deprecated
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="EAgglo will be removed from annotation in v0.8.0, it has been replaced by "
+    "EAggloSegmenter in the segmentation module.",
+    category=FutureWarning,
+)
 class EAgglo(BaseTransformer):
     """
     Hierarchical agglomerative estimation of multiple change points.
@@ -111,7 +118,7 @@ class EAgglo(BaseTransformer):
         X : pd.DataFrame
             Data for anomaly detection (time series).
         y : pd.Series, optional
-            Not used for this unsupervsed method.
+            Not used for this unsupervised method.
 
         Returns
         -------
@@ -188,9 +195,9 @@ class EAgglo(BaseTransformer):
 
         Parameters
         ----------
-        X : Series of mtype X_inner_mtype
+        X : Series of mtype X_inner_type
             Data to be transformed
-        y : Series of mtype y_inner_mtype, default=None
+        y : Series of type y_inner_type, default=None
             Not required for this unsupervised transform.
 
         Returns
@@ -472,13 +479,13 @@ def get_distance_matrix(X, Y, alpha) -> float:
     return np.power(dist, alpha).mean()
 
 
-@njit(nopython=True, fastmath=True)
+@njit(fastmath=True, cache=True)
 def get_distance_single(X, Y, alpha) -> float:
     dist = euclidean(X, Y)
     return np.power(dist, alpha)  # .mean()
 
 
-@njit(nopython=True, fastmath=True)
+@njit(fastmath=True, cache=True)
 def euclidean_matrix_to_matrix(a, b):
     """Compute the Euclidean distances between the rows of two matrices."""
     n, m = a.shape[0], b.shape[0]

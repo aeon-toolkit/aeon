@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 from sklearn.pipeline import Pipeline
 
@@ -70,13 +69,7 @@ class _AddTime(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "capability:multivariate": True,
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
     }
 
@@ -101,13 +94,7 @@ class _InvisibilityReset(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "capability:multivariate": True,
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
     }
 
@@ -147,14 +134,8 @@ class _LeadLag(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "capability:multivariate": True,
+        "fit_is_empty": True,
     }
 
     def _transform(self, X, y=None):
@@ -186,14 +167,8 @@ class _CumulativeSum(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "fit_is_empty": True,
+        "capability:multivariate": True,
     }
 
     def __init__(self, append_zero=False):
@@ -214,14 +189,8 @@ class _BasePoint(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "fit_is_empty": True,
+        "capability:multivariate": True,
     }
 
     def _transform(self, X, y=None):

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Dummy time series classifier."""
 
 __author__ = ["ZiyaoWei"]
@@ -65,7 +64,7 @@ class DummyClassifier(BaseClassifier):
         "capability:missing_values": True,
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     VALID_STRATEGIES = ["most_frequent", "prior", "stratified", "uniform", "constant"]
@@ -84,8 +83,10 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-        y : array-like, shape = [n_instances] - the class labels
+        X : np.ndarray
+            training data shape ``(n_instances, n_channels, series_length)``
+        y : np.ndarray
+            class labels, shape ``(n_instances)`` - the class labels
 
         Returns
         -------
@@ -112,7 +113,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
 
         Returns
         -------

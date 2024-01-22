@@ -12,7 +12,7 @@
 :link-type: ref
 :text-align: center
 
-Forecasting overview
+Overview of forecasting
 
 :::
 
@@ -39,13 +39,24 @@ Hierarchical, global, and panel forecasting
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
 :class-img-top: aeon-card-image-m
 :link: /examples/forecasting/forecasting_sklearn.ipynb
 :link-type: ref
 :text-align: center
 
-Forecasting with aeon and scikit learn
+Forecasting with aeon and scikit-learn
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/forecasting/img/splitter.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/window_splitters.ipynb
+:link-type: ref
+:text-align: center
+
+Window splitters for forecasting
 
 :::
 
@@ -379,6 +390,51 @@ Distance functions
 Using aeon distances with scikit-learn
 
 ::::
+
+
+
+## Similarity search
+
+::::{grid} 2 4 4 4
+:gutter: 1
+
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/similarity_search.ipynb
+:link-type: ref
+:text-align: center
+
+Intro to similarity search
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/distance_profiles.ipynb
+:link-type: ref
+:text-align: center
+
+Deep dive into distance profiles
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/similarity_search/code_speed.ipynb
+:link-type: ref
+:text-align: center
+
+Benchmarking of similarity search speed-ups
+
+:::
+
+
+::::
+
 
 ## Data Formatting and Loading
 

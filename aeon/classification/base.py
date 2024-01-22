@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Abstract base class for time series classifiers.
 
@@ -92,9 +91,9 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         ClassifierPipeline object, concatenation of `other` (first) with `self` (last).
         """
         from aeon.classification.compose import ClassifierPipeline
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
         from aeon.transformations.compose import TransformerPipeline
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
 
         # behaviour is implemented only if other inherits from BaseTransformer
         #  in that case, distinctions arise from whether self or other is a pipeline
@@ -114,12 +113,12 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return NotImplemented
 
     @final
-    def fit(self, X, y):
+    def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series classifier to training data.
 
         Parameters
         ----------
-        X : 3D np.array
+        X : np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -128,7 +127,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
-        np.array
+        np.ndarray
             shape ``(n_instances)`` - class labels for fitting indices correspond to
             instance indices in X.
 
@@ -162,11 +161,11 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     @final
     def predict(self, X) -> np.ndarray:
-        """Predicts labels for time series in X.
+        """Predicts class labels for time series in X.
 
         Parameters
         ----------
-        X : 3D np.ndarray
+        X : np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -178,7 +177,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Returns
         -------
-        np.array
+        np.ndarray
             shape ``[n_instances]`` - predicted class labels indices correspond to
             instance indices in X
         """
@@ -192,11 +191,11 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     @final
     def predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
+        """Predicts class label probabilities for time series in X.
 
         Parameters
         ----------
-        X : 3D np.array
+        X : np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -228,15 +227,17 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
-            or 2D np.array (univariate, equal length series)
-                of shape (n_instances, n_timepoints)
+        X : np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i.
-            other types are allowed and converted into one of the above.
-        y : 1D np.ndarray of shape [n_instances] - class labels (ground truth)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. other types are
+            allowed and converted into one of the above.
+        y : np.ndarray
+            array shape ``(n_instances)`` - class labels (ground truth)
             indices correspond to instance indices in X.
 
         Returns
@@ -278,12 +279,14 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
-                list of 2D np.ndarray of shape = [n_instances]
-        y : 1D np.array of int, of shape (n_instances,) - class labels for fitting
+        X : Train data
+            guaranteed to be of a type in self.get_tag("X_inner_type")
+            if ``self.get_tag("X_inner_type")`` equals "numpy3D":
+                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+            if ``self.get_tag("X_inner_type")`` equals "np-list":
+                list of 2D np.ndarray of shape ``(n_instances)``
+        y : np.array
+            1D of int, of shape ``(n_instances,)`` - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -306,11 +309,12 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
-                list of 2D np.ndarray of length = [n_instances]
+        X : Train data
+            guaranteed to be of a type in self.get_tag("X_inner_type")
+            if ``self.get_tag("X_inner_type")`` equals "numpy3D":
+                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+            if ``self.get_tag("X_inner_type")`` equals "np-list":
+                list of 2D np.ndarray of shape ``(n_instances)``
 
         Returns
         -------
@@ -328,11 +332,12 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
-                list of 2D np.ndarray of shape = (n_instances,)
+        X : Train data
+            guaranteed to be of a type in self.get_tag("X_inner_type")
+            if ``self.get_tag("X_inner_type")`` equals "numpy3D":
+                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+            if ``self.get_tag("X_inner_type")`` equals "np-list":
+                list of 2D np.ndarray of shape ``(n_instances)``
 
         Returns
         -------

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Bootstrapping methods for time series."""
 
 __author__ = ["ltsaprounis"]
@@ -12,7 +10,7 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.series.boxcox import BoxCoxTransformer
+from aeon.transformations.boxcox import BoxCoxTransformer
 
 
 class STLBootstrapTransformer(BaseTransformer):
@@ -143,7 +141,7 @@ class STLBootstrapTransformer(BaseTransformer):
     --------
     >>> from aeon.transformations.bootstrap import STLBootstrapTransformer
     >>> from aeon.datasets import load_airline
-    >>> from aeon.utils.plotting import plot_series  # doctest: +SKIP
+    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
     >>> y = load_airline()  # doctest: +SKIP
     >>> transformer = STLBootstrapTransformer(10)  # doctest: +SKIP
     >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
@@ -166,16 +164,13 @@ class STLBootstrapTransformer(BaseTransformer):
     """
 
     _tags = {
-        # todo: what is the scitype of X: Series, or Panel
-        "scitype:transform-input": "Series",
-        # todo: what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-output": "Panel",
-        # todo: what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
-        # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "input_data_type": "Series",
+        "output_data_type": "Panel",
+        "transform_labels": "None",
+        "instancewise": True,  # is this an instance-wise transform?
+        "X_inner_type": "pd.DataFrame",
+        # X_inner_type can be Panel mtype even if transform-input is Series, vectorized
+        "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": True,  # can the transformer handle multivariate X?
@@ -457,7 +452,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
     --------
     >>> from aeon.transformations.bootstrap import MovingBlockBootstrapTransformer
     >>> from aeon.datasets import load_airline
-    >>> from aeon.utils.plotting import plot_series  # doctest: +SKIP
+    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
     >>> y = load_airline()
     >>> transformer = MovingBlockBootstrapTransformer(10)
     >>> y_hat = transformer.fit_transform(y)
@@ -480,16 +475,13 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
     """
 
     _tags = {
-        # todo: what is the scitype of X: Series, or Panel
-        "scitype:transform-input": "Series",
-        # todo: what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-output": "Panel",
-        # todo: what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
-        # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "input_data_type": "Series",
+        "output_data_type": "Panel",
+        "transform_labels": "None",
+        "instancewise": True,  # is this an instance-wise transform?
+        "X_inner_type": "pd.DataFrame",
+        # X_inner_type can be Panel mtype even if transform-input is Series, vectorized
+        "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": True,  # can the transformer handle multivariate X?
@@ -523,10 +515,10 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
+        X: data structure of type X_inner_type
+            if X_inner_type is list, _transform must support all types in it
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : data structure of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns

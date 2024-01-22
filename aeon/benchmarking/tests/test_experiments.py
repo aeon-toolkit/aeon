@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Functions to test the functions in experiments.py."""
 
 from aeon.benchmarking.experiments import (
@@ -6,7 +5,7 @@ from aeon.benchmarking.experiments import (
     run_clustering_experiment,
 )
 from aeon.classification import DummyClassifier
-from aeon.clustering.k_means import TimeSeriesKMeans
+from aeon.clustering import TimeSeriesKMeans
 from aeon.datasets import load_unit_test
 
 

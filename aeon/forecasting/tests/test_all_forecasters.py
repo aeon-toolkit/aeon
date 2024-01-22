@@ -1,7 +1,5 @@
-# -*- coding: utf-8 -*-
 """Tests for BaseForecaster API points.
 
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 
 __author__ = ["mloning", "kejsitake", "fkiraly"]
@@ -28,8 +26,8 @@ from aeon.forecasting.tests import (
     VALID_INDEX_FH_COMBINATIONS,
 )
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
-from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.forecasting import (
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.testing.utils.forecasting import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,
     _get_expected_index_for_update_predict,
@@ -37,7 +35,7 @@ from aeon.utils._testing.forecasting import (
     _make_fh,
     make_forecasting_problem,
 )
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation.forecasting import check_fh
 
 # get all forecasters
@@ -98,9 +96,9 @@ class ForecasterFixtureGenerator(BaseFixtureGenerator):
             ranges over 1 and 2 for forecasters which are both uni/multivariate
         """
         if "estimator_class" in kwargs.keys():
-            scitype_tag = kwargs["estimator_class"].get_class_tag("scitype:y")
+            scitype_tag = kwargs["estimator_class"].get_class_tag("y_input_type")
         elif "estimator_instance" in kwargs.keys():
-            scitype_tag = kwargs["estimator_instance"].get_tag("scitype:y")
+            scitype_tag = kwargs["estimator_instance"].get_tag("y_input_type")
         else:
             return []
 
@@ -150,7 +148,6 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         except NotImplementedError:
             pass
 
-    # todo: should these not be checked in test_all_estimators?
     def test_raises_not_fitted_error(self, estimator_instance):
         """Test that calling post-fit methods before fit raises error."""
         # We here check extra method of the forecaster API: update and update_predict.
@@ -169,24 +166,22 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
 
     def test_y_multivariate_raises_error(self, estimator_instance):
         """Test that wrong y scitype raises error (uni/multivariate not supported)."""
-        if estimator_instance.get_tag("scitype:y") == "multivariate":
+        if estimator_instance.get_tag("y_input_type") == "multivariate":
             y = _make_series(n_columns=1)
             with pytest.raises(ValueError, match=r"two or more variables"):
                 estimator_instance.fit(y, fh=FH0)
 
-        if estimator_instance.get_tag("scitype:y") in ["univariate", "both"]:
+        if estimator_instance.get_tag("y_input_type") in ["univariate", "both"]:
             # this should pass since "both" allows any number of variables
             # and "univariate" automatically vectorizes, behaves multivariate
             pass
 
-    # todo: should these not be "negative scenarios", tested in test_all_estimators?
     @pytest.mark.parametrize("y", INVALID_y_INPUT_TYPES)
     def test_y_invalid_type_raises_error(self, estimator_instance, y):
         """Test that invalid y input types raise error."""
         with pytest.raises(TypeError, match=r"type"):
             estimator_instance.fit(y, fh=FH0)
 
-    # todo: should these not be "negative scenarios", tested in test_all_estimators?
     @pytest.mark.parametrize("X", INVALID_X_INPUT_TYPES)
     def test_X_invalid_type_raises_error(self, estimator_instance, n_columns, X):
         """Test that invalid X input types raise error."""
@@ -210,11 +205,6 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         if fh_type == "timedelta":
             # workaround to ensure check_estimator without breaking e.g. debugging
             return None
-            # todo: ensure check_estimator works with pytest.skip like below
-            # pytest.skip(
-            #    "ForecastingHorizon with timedelta values "
-            #     "is currently experimental and not supported everywhere"
-            # )
         y_train = _make_series(
             n_columns=n_columns, index_type=index_type, n_timepoints=50
         )
@@ -246,11 +236,6 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         index_type, fh_type, is_relative = index_fh_comb
         if fh_type == "timedelta":
             return None
-            # todo: ensure check_estimator works with pytest.skip like below
-            # pytest.skip(
-            #    "ForecastingHorizon with timedelta values "
-            #     "is currently experimental and not supported everywhere"
-            # )
         z, X = make_forecasting_problem(index_type=index_type, make_X=True)
 
         # Some estimators may not support all time index types and fh types, hence we
@@ -280,11 +265,6 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         index_type, fh_type, is_relative = index_fh_comb
         if fh_type == "timedelta":
             return None
-            # todo: ensure check_estimator works with pytest.skip like below
-            # pytest.skip(
-            #    "ForecastingHorizon with timedelta values "
-            #     "is currently experimental and not supported everywhere"
-            # )
         y_train = _make_series(n_columns=n_columns, index_type=index_type)
         cutoff = get_cutoff(y_train, return_index=True)
         steps = -np.arange(len(y_train))
@@ -422,8 +402,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
     def test_pred_int_tag(self, estimator_instance):
         """Checks whether the capability:pred_int tag is correctly set.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         estimator_instance : instance of BaseForecaster
 
         Raises
@@ -619,8 +599,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
     def test_hierarchical_with_exogeneous(self, estimator_instance, n_columns):
         """Check that hierarchical forecasting works, also see bug #3961.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         estimator_instance : instance of BaseForecaster
         n_columns : number of columns, of the endogeneous data y_train
 
@@ -632,7 +612,7 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         """
         from aeon.datatypes import check_is_mtype
         from aeon.datatypes._utilities import get_window
-        from aeon.utils._testing.hierarchical import _make_hierarchical
+        from aeon.testing.utils.hierarchical import _make_hierarchical
 
         y_train = _make_hierarchical(
             hierarchy_levels=(2, 4),

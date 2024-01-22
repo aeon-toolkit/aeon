@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests for ForecastingHorizon object."""
 
 __author__ = ["mloning", "khrapovs"]
@@ -28,8 +26,9 @@ from aeon.forecasting.tests import (
     TEST_FHS_TIMEDELTA,
     VALID_INDEX_FH_COMBINATIONS,
 )
-from aeon.utils._testing.forecasting import _make_fh, make_forecasting_problem
-from aeon.utils._testing.series import _make_index
+from aeon.testing.mock_estimators import MockForecaster
+from aeon.testing.utils.forecasting import _make_fh, make_forecasting_problem
+from aeon.testing.utils.series import _make_index
 from aeon.utils.datetime import (
     _coerce_duration_to_int,
     _get_duration,
@@ -38,7 +37,6 @@ from aeon.utils.datetime import (
     _shift,
     infer_freq,
 )
-from aeon.utils.estimators import MockForecaster
 from aeon.utils.validation.series import is_in_valid_index_types, is_integer_index
 
 

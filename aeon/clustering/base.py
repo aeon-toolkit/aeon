@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 """Base class for clustering."""
 __author__ = ["chrisholder", "TonyBagnall"]
 __all__ = ["BaseClusterer"]
 
 import time
 from abc import ABC, abstractmethod
+from typing import final
 
 import numpy as np
 
@@ -22,17 +22,20 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
     """
 
     def __init__(self, n_clusters: int = None):
-        self.fit_time_ = 0
         self.n_clusters = n_clusters
+        # required for compatibility with some sklearn interfaces e.g.
+        # CalibratedClassifierCV
+        self._estimator_type = "clusterer"
         super(BaseClusterer, self).__init__()
         _check_estimator_deps(self)
 
+    @final
     def fit(self, X, y=None) -> BaseCollectionEstimator:
         """Fit time series clusterer to training data.
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or 2D np.array (univariate, equal length series)
                 of shape (n_instances, n_timepoints)
@@ -55,20 +58,28 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return self
 
+    @final
     def predict(self, X, y=None) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_instances, series_length) or shape
-            (n_instances, n_channels, series_length)).
-            Time series instances to predict their cluster indexes.
+        X : 3D np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
         y: ignored, exists for API consistency reasons.
 
         Returns
         -------
-        np.ndarray (1d array of shape (n_instances,))
-            Index of the cluster each time series in X belongs to.
+        np.array
+            shape ``(n_instances)`, index of the cluster each time series in X.
+            belongs to.
         """
         self.check_is_fitted()
         X = self._preprocess_collection(X)
@@ -95,6 +106,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         self.fit(X)
         return self.predict(X)
 
+    @final
     def predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
@@ -104,10 +116,15 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
+        X : 3D np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
 
         Returns
         -------
@@ -149,10 +166,15 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            for list of other mtypes, see datatypes.SCITYPE_REGISTER
+        X : 3D np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
 
         Returns
         -------
@@ -165,7 +187,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         n_instances = len(preds)
         n_clusters = self.n_clusters
         if n_clusters is None:
-            n_clusters = max(preds) + 1
+            n_clusters = int(max(preds)) + 1
         dists = np.zeros((X.shape[0], n_clusters))
         for i in range(n_instances):
             dists[i, preds[i]] = 1

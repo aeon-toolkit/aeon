@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements automatic and manually exponential time series smoothing models."""
 
 
@@ -433,7 +430,7 @@ class AutoETS(_StatsModelsAdapter):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 import multiprocessing
 
 import numpy as np
 import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.datatypes import convert
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
@@ -73,9 +71,8 @@ class MultiRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
-        "fit_is_empty": False,
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
+        "algorithm_type": "convolution",
     }
 
     def __init__(
@@ -106,7 +103,7 @@ class MultiRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -115,7 +112,7 @@ class MultiRocket(BaseCollectionTransformer):
         self
         """
         X = X.astype(np.float64)
-        X = convert(X, from_type="numpy3D", to_type="numpyflat", as_scitype="Panel")
+        X = X.squeeze()
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
@@ -133,7 +130,7 @@ class MultiRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -142,7 +139,7 @@ class MultiRocket(BaseCollectionTransformer):
         pandas DataFrame, transformed features
         """
         X = X.astype(np.float64)
-        X = convert(X, from_type="numpy3D", to_type="numpyflat", as_scitype="Panel")
+        X = X.squeeze()
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8

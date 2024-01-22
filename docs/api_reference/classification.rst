@@ -1,14 +1,13 @@
 .. _classification_ref:
 
-Time series classification
-==========================
+Classification
+==============
 
 The :mod:`aeon.classification` module contains algorithms and composition tools for time series classification.
 
-All classifiers in ``aeon`` can be listed using the ``aeon.registry
-.all_estimators`` utility,
+All classifiers in `aeon`  can be listed using the `aeon.registry.all_estimators` utility,
 using ``estimator_types="classifier"``, optionally filtered by tags.
-Valid tags can be listed using ``aeon.registry.all_tags``.
+Valid tags can be listed by calling the function `aeon.registry.all_tags`.
 
 Convolution-based
 -----------------
@@ -37,6 +36,8 @@ Deep learning
     InceptionTimeClassifier
     IndividualInceptionClassifier
     TapNetClassifier
+    EncoderClassifier
+    LITETimeClassifier
 
 Dictionary-based
 ----------------
@@ -55,6 +56,7 @@ Dictionary-based
     TemporalDictionaryEnsemble
     WEASEL
     WEASEL_V2
+    REDCOMETS
 
 Distance-based
 --------------
@@ -106,9 +108,9 @@ Interval-based
     :toctree: auto_generated/
     :template: class.rst
 
-    CanonicalIntervalForest
-    DrCIF
-    RandomIntervalSpectralEnsemble
+    CanonicalIntervalForestClassifier
+    DrCIFClassifier
+    RandomIntervalSpectralEnsembleClassifier
     SupervisedTimeSeriesForest
     TimeSeriesForestClassifier
     RandomIntervalClassifier
@@ -125,6 +127,7 @@ Shapelet-based
     ShapeletTransformClassifier
     MrSQMClassifier
     RDSTClassifier
+    SASTClassifier
 
 sklearn
 -------

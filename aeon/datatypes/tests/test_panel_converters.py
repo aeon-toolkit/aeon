@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Testing collection converters - internal functions and more extensive fixtures."""
 import numpy as np
 import pandas as pd
@@ -29,7 +28,7 @@ from aeon.datatypes._panel._convert import (
     from_nplist_to_nested,
     from_numpy3d_to_dflist,
 )
-from aeon.utils._testing.collection import (
+from aeon.testing.utils.collection import (
     make_nested_dataframe_data,
     make_unequal_length_test_data,
 )

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ShapeDTW classifier.
 
 Nearest neighbour classifier that extracts shape features.
@@ -31,7 +30,7 @@ class ShapeDTW(BaseClassifier):
     """
     ShapeDTW classifier.
 
-    ShapeDTW [1] extracts a set of subseries describing local neighbourhoods around
+    ShapeDTW [1]_ extracts a set of subseries describing local neighbourhoods around
     each data point in a time series. These subseries are then passed into a
     shape descriptor function that transforms these local neighbourhoods into a new
     representation. This new representation is then used for nearest neighbour
@@ -116,7 +115,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -165,7 +164,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
         y - training data classes of shape [n_instances].
         """
         self._metric_params = {k.lower(): v for k, v in self._metric_params.items()}

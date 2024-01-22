@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """RandOm Convolutional KErnel Transform (Rocket).
 
 Pipeline classifier using the ROCKET transformer and an sklearn classifier.
@@ -31,8 +30,8 @@ class RocketClassifier(BaseClassifier):
     transformer, performs a Standard scaling and fits a sklearn classifier,
     using the transformed data (default classifier is RidgeClassifierCV).
 
-    The classifier can be configured to use Rocket [1]_, MiniRocket [2] or
-    MultiRocket [3].
+    The classifier can be configured to use Rocket [1]_, MiniRocket [2]_ or
+    MultiRocket [3]_.
 
     Parameters
     ----------
@@ -131,9 +130,9 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array
+        X : 3D np.ndarray
             The training data of shape = (n_instances, n_channels, n_timepoints).
-        y : 3D np.array
+        y : 3D np.ndarray
             The class labels shape = (n_instances,).
 
         Returns
@@ -147,14 +146,14 @@ class RocketClassifier(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
-
-        if self.rocket_transform == "rocket":
+        rocket_transform = self.rocket_transform.lower()
+        if rocket_transform == "rocket":
             self._transformer = Rocket(
                 num_kernels=self.num_kernels,
                 n_jobs=self.n_jobs,
                 random_state=self.random_state,
             )
-        elif self.rocket_transform == "minirocket":
+        elif rocket_transform == "minirocket":
             if self.n_dims_ > 1:
                 self._transformer = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
@@ -169,7 +168,7 @@ class RocketClassifier(BaseClassifier):
                     n_jobs=self.n_jobs,
                     random_state=self.random_state,
                 )
-        elif self.rocket_transform == "multirocket":
+        elif rocket_transform == "multirocket":
             if self.n_dims_ > 1:
                 self._transformer = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
@@ -208,7 +207,7 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -223,7 +222,7 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

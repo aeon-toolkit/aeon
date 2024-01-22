@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """BOSS classifiers.
 
 Dictionary based BOSS classifiers based on SFA transform.
@@ -28,7 +27,7 @@ class BOSSEnsemble(BaseClassifier):
     """
     Ensemble of Bag of Symbolic Fourier Approximation Symbols (BOSS).
 
-    Implementation of BOSS Ensemble from Schäfer (2015). [1]_
+    Implementation of BOSS Ensemble from [1]_.
 
     Overview: Input *n* series of length *m* and BOSS performs a grid search over
     a set of parameter values, evaluating each with a LOOCV. It then retains
@@ -588,7 +587,7 @@ class IndividualBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -626,7 +625,7 @@ class IndividualBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns

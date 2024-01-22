@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Catch22 Classifier.
 
 Pipeline classifier using the Catch22 transformer and an estimator.
@@ -13,14 +11,14 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
-from aeon.transformations.collection.catch22 import Catch22
+from aeon.transformations.collection.feature_based import Catch22
 
 
 class Catch22Classifier(BaseClassifier):
     """
     Canonical Time-series Characteristics (catch22) classifier.
 
-    This classifier simply transforms the input data using the Catch22 [1]
+    This classifier simply transforms the input data using the Catch22 [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters
@@ -114,7 +112,7 @@ class Catch22Classifier(BaseClassifier):
     """
 
     _tags = {
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:multithreading": True,
@@ -150,7 +148,7 @@ class Catch22Classifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
@@ -194,7 +192,7 @@ class Catch22Classifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
@@ -212,7 +210,7 @@ class Catch22Classifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where

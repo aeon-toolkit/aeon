@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """BOSS test code."""
 import numpy as np
 from sklearn.metrics import accuracy_score

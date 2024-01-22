@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Extension template for time series classifiers.
 
@@ -82,7 +81,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
     # optional todo: override base class estimator default tags here if necessary
     # these are the default values, only add if different to these.
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict accept, usually
+        "X_inner_type": "numpy3D",  # which type do _fit/_predict accept, usually
         # this is usually "numpy3D" for equal length time series, np-list for unequal
         # length time series, see datatypes/panel/_registry.py for options.
         "capability:multivariate": False,
@@ -119,8 +118,8 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
                 3D np.ndarray of shape = [n_instances, n_channels, series_length]
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
@@ -147,10 +146,10 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
+            if self.get_tag("X_inner_type") = "np-list":
                 list of 2D np.ndarray of shape = (n_instances,)
 
         Returns
@@ -176,10 +175,10 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
+            if self.get_tag("X_inner_type") = "np-list":
                 list of 2D np.ndarray of shape = (n_instances,)
 
         Returns

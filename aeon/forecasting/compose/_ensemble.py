@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 """Implements ensemble forecasters.
 
 Creates univariate (optionally weighted)
@@ -108,7 +105,7 @@ class AutoEnsembleForecaster(_HeterogenousEnsembleForecaster):
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
     }
 
     def __init__(
@@ -312,9 +309,9 @@ class EnsembleForecaster(_HeterogenousEnsembleForecaster):
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "scitype:y": "both",
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_input_type": "both",
     }
 
     def __init__(self, forecasters, n_jobs=None, aggfunc="mean", weights=None):

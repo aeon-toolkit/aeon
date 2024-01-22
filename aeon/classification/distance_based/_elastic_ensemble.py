@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """The Elastic Ensemble (EE).
 
 An ensemble of elastic nearest neighbour classifiers.
@@ -7,6 +6,7 @@ An ensemble of elastic nearest neighbour classifiers.
 __author__ = ["jasonlines", "TonyBagnall"]
 __all__ = ["ElasticEnsemble"]
 
+import math
 import time
 from itertools import product
 
@@ -28,9 +28,9 @@ from aeon.utils.numba.general import slope_derivative_2d
 
 
 class ElasticEnsemble(BaseClassifier):
-    """The Elastic Ensemble (EE).
+    """The Elastic Ensemble (EE) of time series distance measures.
 
-    The Elastic Ensemble [1] is an ensemble of 1-NN classifiers using elastic
+    The Elastic Ensemble [1]_ is an ensemble of 1-NN classifiers using elastic
     distances (as defined in aeon.distances). By default, each 1-NN classifier
     is tuned over 100 parameter values and the ensemble vote is weighted by
     an estimate of accuracy formed on the train set.
@@ -67,7 +67,7 @@ class ElasticEnsemble(BaseClassifier):
 
     Notes
     -----
-    ..[1] Jason Lines and Anthony Bagnall,
+    .. [1] Jason Lines and Anthony Bagnall,
           "Time Series Classification with Ensembles of Elastic Distance Measures",
               Data Mining and Knowledge Discovery, 29(3), 2015.
     https://link.springer.com/article/10.1007/s10618-014-0361-2
@@ -94,7 +94,7 @@ class ElasticEnsemble(BaseClassifier):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "algorithm_type": "distance",
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def __init__(
@@ -244,13 +244,13 @@ class ElasticEnsemble(BaseClassifier):
                     or self._distance_measures[dm] == "wddtw"
                 ):
                     print(  # noqa: T201
-                        f"Currently evaluating{self._distance_measures[dm]} "
+                        f"Currently evaluating {self._distance_measures[dm]} "
                         f"implemented as {this_measure} with pre-transformed "
                         f"derivative data)"
                     )
                 else:
                     print(  # noqa: T201
-                        "Currently evaluating {self._distance_measures[dm]}"
+                        f"Currently evaluating {self._distance_measures[dm]}"
                     )
 
             # If 100 parameter options are being considered per measure,
@@ -280,7 +280,7 @@ class ElasticEnsemble(BaseClassifier):
                     param_distributions=ElasticEnsemble._get_100_param_options(
                         self._distance_measures[dm], X
                     ),
-                    n_iter=100 * self.proportion_of_param_options,
+                    n_iter=math.ceil(100 * self.proportion_of_param_options),
                     cv=LeaveOneOut(),
                     scoring="accuracy",
                     n_jobs=self._n_jobs,
@@ -334,7 +334,7 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = (n_cases, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             or list of [n_cases] numpy arrays size n_channels, n_timepoints_i)
 
         Returns

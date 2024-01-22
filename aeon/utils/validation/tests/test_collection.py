@@ -1,15 +1,29 @@
-# -*- coding: utf-8 -*-
 """Unit tests for aeon.utils.validation.collection check/convert functions."""
 import numpy as np
 import pandas as pd
 import pytest
 
 from aeon.datasets import make_example_multi_index_dataframe
-from aeon.utils._testing.tests.test_collection import make_nested_dataframe_data
+from aeon.testing.utils.tests.test_collection import make_nested_dataframe_data
+from aeon.utils.validation import is_nested_univ_dataframe
 from aeon.utils.validation._convert_collection import (
     _equal_length,
-    _is_nested_univ_dataframe,
+    _from_nested_univ_to_numpy2d,
+    _from_nested_univ_to_pd_multiindex,
+    _from_numpy2d_to_df_list,
+    _from_numpy2d_to_nested_univ,
+    _from_numpy2d_to_np_list,
+    _from_numpy2d_to_numpy3d,
+    _from_numpy2d_to_pd_multiindex,
+    _from_numpy2d_to_pd_wide,
+    _from_numpy3d_to_df_list,
+    _from_numpy3d_to_nested_univ,
+    _from_numpy3d_to_np_list,
+    _from_numpy3d_to_numpy2d,
+    _from_numpy3d_to_pd_multiindex,
+    _from_numpy3d_to_pd_wide,
     _is_pd_wide,
+    _nested_univ_is_equal,
 )
 from aeon.utils.validation.collection import (
     COLLECTIONS_DATA_TYPES,
@@ -38,7 +52,7 @@ EQUAL_LENGTH_UNIVARIATE = {
     "numpy3D": np.random.random(size=(10, 1, 20)),
     "np-list": np_list,
     "df-list": df_list,
-    "numpyflat": np.zeros(shape=(10, 20)),
+    "numpy2D": np.zeros(shape=(10, 20)),
     "pd-wide": pd.DataFrame(np.zeros(shape=(10, 20))),
     "nested_univ": nested,
     "pd-multiindex": multiindex,
@@ -100,15 +114,21 @@ def test_convert_collection(input_data, output_data):
     assert get_type(X) == output_data
     # Test with multivariate
     if input_data in EQUAL_LENGTH_MULTIVARIATE:
-        X = convert_collection(EQUAL_LENGTH_MULTIVARIATE[input_data], output_data)
-        assert get_type(X) == output_data
+        if output_data in EQUAL_LENGTH_MULTIVARIATE:
+            X = convert_collection(EQUAL_LENGTH_MULTIVARIATE[input_data], output_data)
+            assert get_type(X) == output_data
+        else:
+            with pytest.raises(TypeError, match="Cannot convert multivariate"):
+                X = convert_collection(
+                    EQUAL_LENGTH_MULTIVARIATE[input_data], output_data
+                )
     # Test with unequal length
     if input_data in UNEQUAL_LENGTH_UNIVARIATE:
         if output_data in UNEQUAL_LENGTH_UNIVARIATE or output_data == "pd-multiindex":
             X = convert_collection(UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data)
             assert get_type(X) == output_data
         else:
-            with pytest.raises(TypeError):
+            with pytest.raises(TypeError, match="Cannot convert unequal"):
                 X = convert_collection(
                     UNEQUAL_LENGTH_UNIVARIATE[input_data], output_data
                 )
@@ -189,7 +209,6 @@ def test_has_missing(data):
     assert not has_missing(EQUAL_LENGTH_UNIVARIATE[data])
     X = np.random.random(size=(10, 2, 20))
     X[5][1][12] = np.NAN
-    # TODO: Test others with missing when converters complete
     assert has_missing(X)
 
 
@@ -203,9 +222,9 @@ def test_is_univariate(data):
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test__is_nested_univ_dataframe(data):
     if data == "nested_univ":
-        assert _is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
+        assert is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
     else:
-        assert not _is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
+        assert not is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -214,3 +233,87 @@ def test__is_pd_wide(data):
         assert _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
     else:
         assert not _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
+
+
+NUMPY3D = [
+    _from_numpy3d_to_pd_wide,
+    _from_numpy3d_to_np_list,
+    _from_numpy3d_to_df_list,
+    _from_numpy3d_to_pd_wide,
+    _from_numpy3d_to_numpy2d,
+    _from_numpy3d_to_nested_univ,
+    _from_numpy3d_to_pd_multiindex,
+]
+
+
+@pytest.mark.parametrize("function", NUMPY3D)
+def test_numpy3D_error(function):
+    X = np.random.random(size=(10, 20))
+    with pytest.raises(TypeError, match="Input should be 3-dimensional NumPy array"):
+        function(X)
+
+
+NUMPY2D = [
+    _from_numpy2d_to_numpy3d,
+    _from_numpy2d_to_np_list,
+    _from_numpy2d_to_df_list,
+    _from_numpy2d_to_pd_wide,
+    _from_numpy2d_to_nested_univ,
+    _from_numpy2d_to_pd_multiindex,
+]
+
+
+@pytest.mark.parametrize("function", NUMPY2D)
+def test_numpy2D_error(function):
+    """Test numpy flat converters only work with 2D numpy"""
+    X = np.random.random(size=(10, 2, 20))
+    with pytest.raises(TypeError, match="Error: Input numpy not of type numpy2D"):
+        function(X)
+
+
+def test__nested_univ_is_equal():
+    """Test _nested_univ_is_equal function for pd.DataFrame.
+
+    Note that the function _nested_univ_is_equal assumes series are equal length
+    over channels so only tests the first channel.
+    """
+
+    data = {
+        "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "C": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+    }
+    X = pd.DataFrame(data)
+    assert not _nested_univ_is_equal(X)
+    X, _ = make_nested_dataframe_data(n_cases=10, n_channels=1, n_timepoints=20)
+    assert _nested_univ_is_equal(X)
+
+
+def test_from_nested():
+    """Test with multiple nested columns and non-nested columns."""
+    data = {
+        "A": [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
+        "B": [pd.Series(["a", "b", "c"]), pd.Series(["x", "y", "z"])],
+        "C": [7, 8],
+    }
+    X = pd.DataFrame(data)
+    result = _from_nested_univ_to_pd_multiindex(X)
+    assert isinstance(result, pd.DataFrame)
+    data = {
+        "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "C": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+    }
+    X = pd.DataFrame(data)
+    with pytest.raises(
+        TypeError, match="Cannot convert unequal length series to " "numpy2D"
+    ):
+        _from_nested_univ_to_numpy2d(X)
+    X, _ = make_nested_dataframe_data(n_cases=10, n_channels=1, n_timepoints=20)
+    result = _from_nested_univ_to_numpy2d(X)
+    assert result.shape == (10, 20)
+    X, _ = make_nested_dataframe_data(n_cases=10, n_channels=2, n_timepoints=20)
+    with pytest.raises(
+        TypeError, match="Cannot convert multivariate nested into " "numpy2D"
+    ):
+        _from_nested_univ_to_numpy2d(X)

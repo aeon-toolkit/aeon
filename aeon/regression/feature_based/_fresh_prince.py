@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """FreshPRINCERegressor.
 
 Pipeline regressor using the full set of TSFresh features and a RotationForestRegressor
@@ -12,7 +11,7 @@ import numpy as np
 
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
-from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
 
@@ -106,7 +105,7 @@ class FreshPRINCERegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -150,7 +149,7 @@ class FreshPRINCERegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns

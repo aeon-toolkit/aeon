@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Implementation of a SignatureClassifier.
 
 Utilises the signature method of feature extraction.
@@ -29,8 +28,7 @@ class SignatureClassifier(BaseClassifier):
     the feature extraction pipeline, then creates a new pipeline by
     appending a classifier after the feature extraction step.
 
-    The default parameters are set to best practice parameters found in
-    "A Generalised Signature Method for Multivariate TimeSeries" [1]
+    The default parameters are set to best practice parameters found in [1]_.
 
     Note that the final classifier used on the UEA datasets involved tuning
     the hyper-parameters:
@@ -89,7 +87,7 @@ class SignatureClassifier(BaseClassifier):
     ----------
     .. [1] Morrill, James, et al. "A generalised signature method for multivariate time
         series feature extraction." arXiv preprint arXiv:2006.00873 (2020).
-        https://arxiv.org/pdf/2006.00873.pdf
+        [https://arxiv.org/pdf/2006.00873.pdf]
     """
 
     _tags = {

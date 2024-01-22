@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """FreshPRINCEClassifier.
 
 Pipeline classifier using the full set of TSFresh features and a
@@ -12,7 +11,7 @@ import numpy as np
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
 

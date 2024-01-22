@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Summary Classifier.
 
 Pipeline classifier using the basic summary statistics and an estimator.
@@ -12,26 +11,27 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.series.summarize import SummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
 
 
 class SummaryClassifier(BaseClassifier):
     """
     Summary statistic classifier.
 
-    This classifier simply transforms the input data using the SummaryTransformer
-    transformer and builds a provided estimator using the transformed data.
+    This classifier simply transforms the input data using the
+    SevenNumberSummaryTransformer transformer and builds a provided estimator using the
+    transformed data.
 
     Parameters
     ----------
-    summary_functions : str, list, tuple, default=("mean", "std", "min", "max")
-        Either a string, or list or tuple of strings indicating the pandas
-        summary functions that are used to summarize each column of the dataset.
-        Must be one of ("mean", "min", "max", "median", "sum", "skew", "kurt",
-        "var", "std", "mad", "sem", "nunique", "count").
-    summary_quantiles : str, list, tuple or None, default=(0.25, 0.5, 0.75)
-        Optional list of series quantiles to calculate. If None, no quantiles
-        are calculated.
+    summary_stats : ["default", "percentiles", "bowley", "tukey"], default="default"
+        The summary statistics to compute.
+        The options are as follows, with float denoting the percentile value extracted
+        from the series:
+            - "default": mean, std, min, max, 0.25, 0.5, 0.75
+            - "percentiles": 0.215, 0.887, 0.25, 0.5, 0.75, 0.9113, 0.9785
+            - "bowley": min, max, 0.1, 0.25, 0.5, 0.75, 0.9
+            - "tukey": min, max, 0.125, 0.25, 0.5, 0.75, 0.875
     estimator : sklearn classifier, default=None
         An sklearn estimator to be built using the transformed data. Defaults to a
         Random Forest with 200 trees.
@@ -73,14 +73,12 @@ class SummaryClassifier(BaseClassifier):
 
     def __init__(
         self,
-        summary_functions=("mean", "std", "min", "max"),
-        summary_quantiles=(0.25, 0.5, 0.75),
+        summary_stats="default",
         estimator=None,
         n_jobs=1,
         random_state=None,
     ):
-        self.summary_functions = summary_functions
-        self.summary_quantiles = summary_quantiles
+        self.summary_stats = summary_stats
         self.estimator = estimator
 
         self.n_jobs = n_jobs
@@ -97,7 +95,7 @@ class SummaryClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -112,9 +110,8 @@ class SummaryClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = SummaryTransformer(
-            summary_function=self.summary_functions,
-            quantiles=self.summary_quantiles,
+        self._transformer = SevenNumberSummaryTransformer(
+            summary_stats=self.summary_stats,
         )
 
         self._estimator = _clone_estimator(
@@ -143,7 +140,7 @@ class SummaryClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -163,7 +160,7 @@ class SummaryClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -211,7 +208,4 @@ class SummaryClassifier(BaseClassifier):
         if parameter_set == "results_comparison":
             return {"estimator": RandomForestClassifier(n_estimators=10)}
         else:
-            return {
-                "estimator": RandomForestClassifier(n_estimators=2),
-                "summary_functions": ("mean", "min", "max"),
-            }
+            return {"estimator": RandomForestClassifier(n_estimators=2)}

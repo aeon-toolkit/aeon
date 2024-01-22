@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 __author__ = ["chrisholder", "tonybagnall"]
 
 import numpy as np
@@ -76,13 +75,14 @@ def squared_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints) or (n_timepoints,)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
-        A collection of time series instances.
-
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+        If None, then the squared pairwise distance between the instances of X is
+        calculated.
 
     Returns
     -------

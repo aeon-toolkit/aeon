@@ -20,7 +20,6 @@ comparison.
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series forecasting.
 
 +++
@@ -39,7 +38,6 @@ Forecasting
 :img-top: examples/img/tsc.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series classification.
 
@@ -60,7 +58,6 @@ Classification
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series extrinsic regression.
 
 +++
@@ -79,7 +76,6 @@ Regression
 :img-top: examples/img/tscl.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series clustering.
 
@@ -100,7 +96,6 @@ Clustering
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series transformations.
 
 +++
@@ -119,7 +114,6 @@ Transformations
 :img-top: examples/distances/img/dtw_vis.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series distances.
 
@@ -159,7 +153,6 @@ Networks
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Annotation
 
 +++
@@ -170,6 +163,26 @@ Annotation
 :expand:
 
 Annotation
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/similarity_search/img/sim_search.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+
+Similarity search
+
++++
+
+```{button-ref} /examples/similarity_search/similarity_search.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Similarity search
 ```
 
 :::
@@ -230,8 +243,7 @@ Benchmarking
 
 installation.md
 getting_started.md
-user_guide
-api_reference
+api_reference.md
 examples.md
 ```
 
@@ -239,8 +251,8 @@ examples.md
 :caption: Developing aeon
 :hidden:
 
-get_involved
-developers
+contributing.md
+developer_guide.md
 ```
 
 ```{toctree}
@@ -249,6 +261,8 @@ developers
 
 contributors.md
 about.md
+governance.md
+code_of_conduct.md
 ```
 
 ```{toctree}

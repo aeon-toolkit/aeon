@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tests for dilated shapelet transform functions."""
 
 __author__ = ["baraline"]
@@ -25,59 +24,60 @@ from aeon.utils.numba.stats import is_prime
 
 DATATYPES = ["int64", "float64"]
 
+
 # The following test fail on MacOS due to an issue with the random seed.
-"""
-shapelet_transform_unit_test_data = np.array(
-    [
-        [1.90317756, 8.0, 2.0, 2.87919021, 10.0, 3.0, 0.0, 1.0, 1.0],
-        [2.16550181, 8.0, 2.0, 0.0, 10.0, 2.0, 1.52148128, 3.0, 1.0],
-        [0.0, 8.0, 1.0, 3.41218663, 10.0, 2.0, 1.00243477, 1.0, 2.0],
-        [2.76771406, 8.0, 2.0, 5.75682976, 10.0, 1.0, 1.66589725, 3.0, 1.0],
-        [2.95206323, 8.0, 2.0, 2.82417348, 10.0, 3.0, 0.91588726, 1.0, 1.0],
-    ]
-)
-
-
-def test_rdst_on_unit_test():
-    Test of ShapeletTransform on unit test data.
-    # load unit test data
-    X_train, y_train = load_unit_test(split="train")
-    indices = np.random.RandomState(0).choice(len(y_train), 5, replace=False)
-
-    # fit the shapelet transform
-    st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
-    st.fit(X_train[indices], y_train[indices])
-
-    # assert transformed data is the same
-    data = st.transform(X_train[indices])
-    assert_array_almost_equal(data, shapelet_transform_unit_test_data, decimal=4)
-
-
-shapelet_transform_basic_motions_data = np.array(
-    [
-        [32.45712774, 25.0, 5.0, 58.52357949, 5.0, 0.0, 56.32267413, 21.0, 4.0],
-        [59.8154656, 69.0, 0.0, 64.16747582, 37.0, 0.0, 0.0, 18.0, 5.0],
-        [58.27369761, 11.0, 0.0, 67.49320392, 53.0, 0.0, 61.18423956, 31.0, 1.0],
-        [62.49300933, 13.0, 0.0, 0.0, 13.0, 5.0, 59.51080993, 34.0, 3.0],
-        [0.0, 12.0, 12.0, 64.73843849, 13.0, 0.0, 62.52577812, 8.0, 0.0],
-    ]
-)
-
-
-def test_rdst_on_basic_motions():
-    Test of ShapeletTransform on basic motions data.
-    # load basic motions data
-    X_train, y_train = load_basic_motions(split="train")
-    indices = np.random.RandomState(4).choice(len(y_train), 5, replace=False)
-
-    # fit the shapelet transform
-    st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
-    st.fit(X_train[indices], y_train[indices])
-
-    # assert transformed data is the same
-    data = st.transform(X_train[indices])
-    assert_array_almost_equal(data, shapelet_transform_basic_motions_data, decimal=4)
-"""
+#
+# shapelet_transform_unit_test_data = np.array(
+#     [
+#         [1.90317756, 8.0, 2.0, 2.87919021, 10.0, 3.0, 0.0, 1.0, 1.0],
+#         [2.16550181, 8.0, 2.0, 0.0, 10.0, 2.0, 1.52148128, 3.0, 1.0],
+#         [0.0, 8.0, 1.0, 3.41218663, 10.0, 2.0, 1.00243477, 1.0, 2.0],
+#         [2.76771406, 8.0, 2.0, 5.75682976, 10.0, 1.0, 1.66589725, 3.0, 1.0],
+#         [2.95206323, 8.0, 2.0, 2.82417348, 10.0, 3.0, 0.91588726, 1.0, 1.0],
+#     ]
+# )
+#
+#
+# def test_rdst_on_unit_test():
+#     Test of ShapeletTransform on unit test data.
+#     # load unit test data
+#     X_train, y_train = load_unit_test(split="train")
+#     indices = np.random.RandomState(0).choice(len(y_train), 5, replace=False)
+#
+#     # fit the shapelet transform
+#     st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
+#     st.fit(X_train[indices], y_train[indices])
+#
+#     # assert transformed data is the same
+#     data = st.transform(X_train[indices])
+#     assert_array_almost_equal(data, shapelet_transform_unit_test_data, decimal=4)
+#
+#
+# shapelet_transform_basic_motions_data = np.array(
+#     [
+#         [32.45712774, 25.0, 5.0, 58.52357949, 5.0, 0.0, 56.32267413, 21.0, 4.0],
+#         [59.8154656, 69.0, 0.0, 64.16747582, 37.0, 0.0, 0.0, 18.0, 5.0],
+#         [58.27369761, 11.0, 0.0, 67.49320392, 53.0, 0.0, 61.18423956, 31.0, 1.0],
+#         [62.49300933, 13.0, 0.0, 0.0, 13.0, 5.0, 59.51080993, 34.0, 3.0],
+#         [0.0, 12.0, 12.0, 64.73843849, 13.0, 0.0, 62.52577812, 8.0, 0.0],
+#     ]
+# )
+#
+#
+# def test_rdst_on_basic_motions():
+#     Test of ShapeletTransform on basic motions data.
+#     # load basic motions data
+#     X_train, y_train = load_basic_motions(split="train")
+#     indices = np.random.RandomState(4).choice(len(y_train), 5, replace=False)
+#
+#     # fit the shapelet transform
+#     st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
+#     st.fit(X_train[indices], y_train[indices])
+#
+#     # assert transformed data is the same
+#     data = st.transform(X_train[indices])
+#     assert_array_almost_equal(data, shapelet_transform_basic_motions_data, decimal=4)
+#
 
 
 def test_shapelet_prime_dilation():

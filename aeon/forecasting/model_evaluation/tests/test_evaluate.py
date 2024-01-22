@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests for model evaluation module.
 
 In particular, function `evaluate`, that performs time series
@@ -34,9 +31,9 @@ from aeon.performance_metrics.forecasting import (
     MeanAbsolutePercentageError,
     MeanAbsoluteScaledError,
 )
-from aeon.tests.test_all_estimators import PR_TESTING
-from aeon.utils._testing.forecasting import make_forecasting_problem
-from aeon.utils._testing.hierarchical import _make_hierarchical
+from aeon.testing.test_config import PR_TESTING
+from aeon.testing.utils.forecasting import make_forecasting_problem
+from aeon.testing.utils.hierarchical import _make_hierarchical
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if PR_TESTING:

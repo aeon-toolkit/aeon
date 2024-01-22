@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Piecewise Aggregate Approximation Transformer (PAA)."""
 
 
@@ -38,6 +37,12 @@ class PAA(BaseCollectionTransformer):
     >>> X_train_paa = paa.fit_transform(X_train)
     >>> X_test_paa = paa.transform(X_test)
     """
+
+    _tags = {
+        "capability:multivariate": True,
+        "fit_is_empty": True,
+        "algorithm_type": "dictionary",
+    }
 
     def __init__(self, n_segments=8):
         self.n_segments = n_segments

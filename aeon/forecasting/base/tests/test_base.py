@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Testing advanced functionality of the base class."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["fkiraly"]
 
@@ -15,9 +13,9 @@ from aeon.datatypes import check_is_mtype, convert
 from aeon.datatypes._panel._convert import from_nested_to_multi_index
 from aeon.datatypes._utilities import get_cutoff, get_window
 from aeon.forecasting.arima import ARIMA
-from aeon.utils._testing.collection import make_3d_test_data, make_nested_dataframe_data
-from aeon.utils._testing.hierarchical import _make_hierarchical
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.collection import make_3d_test_data, make_nested_dataframe_data
+from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 COLLECTION_TYPES = ["pd-multiindex", "nested_univ", "numpy3D"]
@@ -293,12 +291,12 @@ def test_dynamic_tags_reset_properly():
     from aeon.forecasting.theta import ThetaForecaster
     from aeon.forecasting.var import VAR
 
-    # this forecaster will have the scitype:y tag set to "univariate"
+    # this forecaster will have the y_input_type tag set to "univariate"
     f = MultiplexForecaster([("foo", ThetaForecaster()), ("var", VAR())])
     f.set_params(selected_forecaster="var")
 
     X_multivariate = _make_series(n_columns=2)
-    # fit should reset the estimator, and set scitype:y tag to "multivariate"
+    # fit should reset the estimator, and set y_input_type tag to "multivariate"
     # the fit will cause an error if this is not happening properly
     f.fit(X_multivariate)
 

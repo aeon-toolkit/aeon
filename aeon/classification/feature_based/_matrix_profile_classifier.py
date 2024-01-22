@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Matrix Profile classifier.
 
 Pipeline classifier using the Matrix Profile transformer and an estimator.
@@ -8,6 +7,7 @@ __author__ = ["MatthewMiddlehurst"]
 __all__ = ["MatrixProfileClassifier"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.neighbors import KNeighborsClassifier
 
 from aeon.base._base import _clone_estimator
@@ -15,11 +15,17 @@ from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.matrix_profile import MatrixProfile
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="MatrixProfileClassifier will be removed in v0.8.0.",
+    category=FutureWarning,
+)
 class MatrixProfileClassifier(BaseClassifier):
     """
     Matrix Profile (MP) classifier.
 
-    This classifier simply transforms the input data using the MatrixProfile [1]
+    This classifier simply transforms the input data using the MatrixProfile [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters

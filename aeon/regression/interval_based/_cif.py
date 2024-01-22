@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """CIF regressor.
 
 Interval-based CIF regressor extracting catch22 features from random intervals.
@@ -9,7 +7,7 @@ import numpy as np
 
 from aeon.base.estimator.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
-from aeon.transformations.collection import Catch22
+from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 

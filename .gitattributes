@@ -1,2 +1,1 @@
-aeon/datasets/data/** linguist-vendored
-jquery.js -linguist-vendored
+*.ts linguist-detectable=false

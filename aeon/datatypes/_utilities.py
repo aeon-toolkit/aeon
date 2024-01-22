@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Eclectic utilities for the datatypes module."""
 
 import numpy as np
@@ -27,7 +25,7 @@ def get_time_index(X):
     in one of the following aeon mtype specifications for Series, Panel, Hierarchical:
     pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, nested_univ, pd_multiindex_hier
     assumes all time series have equal length and equal index set
-    will *not* work for list-of-df, pd-wide, pd-long, numpyflat
+    will *not* work for list-of-df, pd-wide, pd-long, numpy2D
 
     Returns
     -------
@@ -90,7 +88,7 @@ def get_index_for_series(obj, cutoff=0):
     return pd.RangeIndex(cutoff, cutoff + obj.shape[0])
 
 
-GET_CUTOFF_SUPPORTED_MTYPES = [
+GET_CUTOFF_SUPPORTED_TYPES = [
     "pd.DataFrame",
     "pd.Series",
     "np.ndarray",
@@ -187,7 +185,7 @@ def get_cutoff(
     obj : aeon compatible time series data container or pandas.Index
         if aeon time series, must be of Series, Panel, or Hierarchical scitype
         all mtypes are supported via conversion to internally supported types
-        to avoid conversions, pass data in one of GET_CUTOFF_SUPPORTED_MTYPES
+        to avoid conversions, pass data in one of GET_CUTOFF_SUPPORTED_TYPES
         if pandas.Index, it is assumed that last level is time-like or integer,
         e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier mtypes
     cutoff : int, optional, default=0
@@ -203,7 +201,7 @@ def get_cutoff(
         whether to check input for validity, i.e., is it one of the scitypes
     convert_input : bool, optional, default=True
         whether to convert the input (True), or skip conversion (False)
-        if skipped, function assumes that inputs are one of GET_CUTOFF_SUPPORTED_MTYPES
+        if skipped, function assumes that inputs are one of GET_CUTOFF_SUPPORTED_TYPES
 
     Returns
     -------
@@ -232,7 +230,7 @@ def get_cutoff(
             raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
 
     if convert_input:
-        obj = convert_to(obj, GET_CUTOFF_SUPPORTED_MTYPES)
+        obj = convert_to(obj, GET_CUTOFF_SUPPORTED_TYPES)
 
     if cutoff is None:
         cutoff = 0

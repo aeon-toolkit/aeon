@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """A shapelet transform classifier (STC).
 
 Shapelet transform classifier pipeline that simply performs a (configurable) shapelet
@@ -23,7 +22,7 @@ class ShapeletTransformClassifier(BaseClassifier):
     A shapelet transform classifier (STC).
 
     Implementation of the binary shapelet transform classifier pipeline along the lines
-    of [1][2] but with random shapelet sampling. Transforms the data using the
+    of [1]_[2]_ but with random shapelet sampling. Transforms the data using the
     configurable `RandomShapeletTransform` and then builds a `RotationForestClassifier`
     classifier.
 
@@ -181,7 +180,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -248,7 +247,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -265,7 +264,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

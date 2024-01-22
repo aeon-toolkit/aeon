@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
 """Tests for check_estimator."""
 
 __author__ = ["fkiraly"]
 
 import pytest
 
-from aeon.classification import DummyClassifier
-from aeon.transformations.series.exponent import ExponentTransformer
+from aeon.testing.mock_estimators import MockClassifier, MockForecaster
+from aeon.transformations.exponent import ExponentTransformer
 from aeon.utils.estimator_checks import check_estimator
-from aeon.utils.estimators import MockForecaster
 
-EXAMPLE_CLASSES = [DummyClassifier, MockForecaster, ExponentTransformer]
+EXAMPLE_CLASSES = [MockClassifier, MockForecaster]
 
 
 @pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)

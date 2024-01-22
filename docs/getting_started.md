@@ -5,10 +5,10 @@ If installation is required, please see our [installation guide](installation) f
 installing `aeon`.
 
 We assume basic familiarity with the [scikit-learn](https://scikit-learn.org/stable/index.html)
-package. If you are confused, you may want to view
+package. If you want help with scikit-learn you may want to view
 [their getting started guides](https://scikit-learn.org/stable/getting_started.html).
 
-`aeon` is an open source toolkit for learning from time series. It provides access to
+`aeon` is an open-source toolkit for learning from time series. It provides access to
 the very latest algorithms for time series machine learning, in addition to a range of
 classical techniques for the following learning tasks:
 
@@ -22,13 +22,16 @@ instance are used to predict a continuous target value.
 instances with similar time series.
 - {term}`Time series annotation` which is focused on outlier detection, anomaly
 detection, change point detection and segmentation.
+- {term}`Time series similarity search` where the goal is to evaluate the similarity
+between a time series against a collection of other time series.
 
 Additionally, it provides numerous algorithms for {term}`time series transformation`,
 altering time series into different representations and domains or processing
 time series data into tabular data.
 
-The following provides introductory examples for each of these modules. In the examples
-used the datatypes most commonly used for the task, but a variety of input types for
+The following provides introductory examples for each of these modules. The examples
+use the datatypes most commonly used for the task in question, but a variety of input
+types for
 data are available. See [here](/examples/datasets/data_structures.ipynb) for
 more information on input data structures. For more information on the variety of
 estimators
@@ -189,12 +192,13 @@ extensive [user guide notebook](./examples/forecasting/forecasting.ipynb).
 
 ## Time Series Classification (TSC)
 
-Classification generally use numpy arrays to store time series. We recommend storing
-time series for classification in 3D numpy arrays even if each time series is
-univariate. Classifiers will work with 2D input as you would expect from `scikit-learn`,
-but other packages may treat 2D input as a single multivariate series. This is the case
-for non-collection transformers, and you may find unexpected outputs if you input a 2D
-array treating it as multiple time series.
+Classification generally uses numpy arrays to store time series. We recommend storing
+time series for classification in 3D numpy arrays of shape `(n_cases, n_channels,
+n_timepoints)` even if each time series is univariate (i.e. `n_channels == 1`).
+Classifiers will work with 2D input of shape `(n_cases, n_timepoints)` as you would
+expect from `scikit-learn`, but other packages may treat 2D input as a single
+multivariate series. This is the case for non-collection transformers, and you may
+find unexpected outputs if you input a 2D array treating it as multiple time series.
 
 Note we assume series length is always the same for all channels of a single series
 regardless of input type. The target variable should be a `numpy` array of type `float`,
@@ -233,9 +237,8 @@ algorithm types available in `aeon` in the [classification notebooks](examples.m
 
 Time series extrinsic regression assumes that the target variable is continuous rather
 than discrete, as for classification. The same input data considerations apply from the
-classification section, and the modules function similarly.
-
-The target variable should be a `numpy` array of type `float`.
+classification section, and the modules function similarly. The target variable
+should be a `numpy` array of type `float`.
 
 "Time series regression" is a term commonly used in forecasting. To avoid confusion,
 the term "time series extrinsic regression" is commonly used to refer to the traditional
@@ -263,13 +266,14 @@ KNeighborsTimeSeriesRegressor()
 ## Time Series Clustering (TSCL)
 
 Like classification and regression, time series clustering aims to follow the
-`scikit-learn` interface where possible. The same input data format is used as the
-modules. This example fits a [TimeSeriesKMeans](clustering.k_means.TimeSeriesKMeans)
-clusterer on the [ArrowHead](http://www.timeseriesclassification.com/description.php?Dataset=ArrowHead)
+`scikit-learn` interface where possible. The same input data format is used as in
+the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering._k_means.TimeSeriesKMeans)
+clusterer on the
+[ArrowHead](http://www.timeseriesclassification.com/description.php?Dataset=ArrowHead)
 dataset.
 
 ```{code-block} python
->>> from aeon.clustering.k_means import TimeSeriesKMeans
+>>> from aeon.clustering import TimeSeriesKMeans
 >>> from aeon.datasets import load_arrow_head
 >>> from sklearn.metrics import rand_score
 >>> X, y = load_arrow_head()
@@ -315,20 +319,21 @@ Freq: M, dtype: int32
 The transformations module in `aeon` contains a range of transformers for time series
 data. These transformers can be used standalone or as parts of pipelines.
 
-Transfromers inheriting from the [BaseTransformer](transformations.base.BaseTransformer)
+Transformers inheriting from the [BaseTransformer](transformations.base.BaseTransformer)
 class accept both series and collection input types. However, 2D input types can be
 ambiguous in what they are storing. As such, we give the following warning for
 `aeon` transformers: <span style="color:red">**2D input data types such as numpy arrays
 and dataframes will be treated as a single multivariate series rather than a collection
 of univariate series**</span>.
 
+
 The following example shows how to use the
-[Differencer](transformations.series.difference.Differencer) class to extract the first
+[Differencer](transformations.difference.Differencer) class to extract the first
 order difference of a time series. Usage is the same for both single series and
 collection input types.
 
 ```{code-block} python
->>> from aeon.transformations.series.difference import Differencer
+>>> from aeon.transformations.difference import Differencer
 >>> from aeon.datasets import load_airline
 >>> from aeon.datasets import load_italy_power_demand
 >>> diff = Differencer(lags=1)
@@ -363,11 +368,11 @@ Freq: M, Name: Number of airline passengers, Length: 144, dtype: float64
 
 As well as series-to-series transformations, the transformations module also contains
 features which transform series into a feature vector. The following example shows how
-to use the [SummaryTransformer](transformations.series.summarize.SummaryTransformer)
+to use the [SummaryTransformer](transformations.summarize.SummaryTransformer)
 class to extract summary statistics from a time series.
 
 ```{code-block} python
->>> from aeon.transformations.series.summarize import SummaryTransformer
+>>> from aeon.transformations.summarize import SummaryTransformer
 >>> from aeon.datasets import load_airline
 >>> y = load_airline()  # load single series airline dataset
 >>> summary = SummaryTransformer()
@@ -387,11 +392,11 @@ Most time series classification and regression algorithms are based on some form
 transformation into an alternative feature space. For example, we might extract some
 summary time series features from each series, and fit a traditional classifier or
 regressor on these features. For example, we could use
-[Catch22](transformations.collection.catch22.Catch22), which calculates 22 summary
+[Catch22](transformations.collection.feauture_based), which calculates 22 summary
 statistics for each series.
 
 ```{code-block} python
->>> from aeon.transformations.collection.catch22 import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> import numpy as np
 >>> X = np.random.RandomState().random(size=(4, 1, 10))  # four cases of 10 timepoints
 >>> c22 = Catch22(replace_nans=True)  # transform to four cases of 22 features
@@ -410,7 +415,7 @@ series and process unequal length collections.
 
 ```{code-block} python
 >>> from aeon.transformations.collection.pad import PaddingTransformer
->>> from aeon.utils._testing.collection import make_unequal_length_test_data
+>>> from aeon.testing.utils.collection import make_unequal_length_test_data
 >>> X, _ = make_unequal_length_test_data(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
 ...     min_series_length=8,
@@ -439,7 +444,7 @@ multivariate series and automatically convert output.
 
 ```{code-block} python
 >>> from aeon.transformations.collection import CollectionToSeriesWrapper
->>> from aeon.transformations.collection.catch22 import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> from aeon.datasets import load_airline
 >>> y = load_airline()  # load single series airline dataset
 >>> c22 = Catch22(replace_nans=True)
@@ -458,16 +463,16 @@ transformations and estimators together. The simplest pipeline for forecasting i
 [TransformedTargetForecaster](forecasting.compose.TransformedTargetForecaster).
 
 In the following example, we chain together a
-[BoxCoxTransformer](transformations.series.boxcox.BoxCoxTransformer),
-[Deseasonalizer](transformations.series.detrend.Deseasonalizer) and
+[BoxCoxTransformer](transformations.boxcox.BoxCoxTransformer),
+[Deseasonalizer](transformations.detrend.Deseasonalizer) and
 [ARIMA](forecasting.arima.ARIMA) forecaster to make a forecast (if you want to run this
 yourself, you will need to `pip install statsmodels` and `pip install pmdarima`).
 
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.datasets import load_airline
->>> from aeon.transformations.series.boxcox import BoxCoxTransformer
->>> from aeon.transformations.series.detrend import Deseasonalizer
+>>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.detrend import Deseasonalizer
 >>> from aeon.forecasting.arima import ARIMA
 >>> from aeon.forecasting.compose import TransformedTargetForecaster
 ...
@@ -521,7 +526,7 @@ feature extraction transformer and a random forest classifier to classify.
 
 ```{code-block} python
 >>> from aeon.datasets import load_italy_power_demand
->>> from aeon.transformations.collection import Catch22
+>>> from aeon.transformations.collection.feature_based import Catch22
 >>> from sklearn.ensemble import RandomForestClassifier
 >>> from sklearn.pipeline import make_pipeline
 >>> from sklearn.metrics import accuracy_score
@@ -562,8 +567,8 @@ to ARIMA order values for the forecasting pipeline we created in the previous ex
 ...     ForecastingGridSearchCV,
 ... )
 >>> from aeon.forecasting.arima import ARIMA
->>> from aeon.transformations.series.boxcox import BoxCoxTransformer
->>> from aeon.transformations.series.detrend import Deseasonalizer
+>>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.detrend import Deseasonalizer
 ...
 >>> y = load_airline()
 ...
@@ -629,3 +634,48 @@ the available `scikit-learn` functionality.
 >>> gscv.best_params_
 {'distance': 'euclidean', 'n_neighbors': 5}
 ```
+
+## Time series similarity search
+
+The similarity search module in `aeon` offers a set of functions and estimators to solve
+tasks related to time series similarity search. The estimators can be used standalone
+or as parts of pipelines, while the functions give you the tools to build your own
+estimators that would rely on similarity search at some point.
+
+The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
+class accepts as inputs 3D time series (n_instances, n_channels, n_timepoints) for the
+fit method. Univariate and single series can still be used, but will need to be reshaped
+to this format.
+
+This collection, asked for the fit method, is stored as a database. It will be used in
+the predict method, which expects a single 2D time series as input
+(n_channels, query_length), which will be used as a query to search for in the database.
+Note that the length of the time series in the 3D  collection should be superior or
+equal to the length of the 2D time series given in the predict method.
+
+Given those two inputs, the predict method should return the set of most similar
+candidates to the 2D series in the 3D collection. The following example shows how to use
+the [TopKSimilaritySearch](similarity_search.top_k_similarity.TopKSimilaritySearch)
+class to extract the best `k` matches, using the Euclidean distance as similarity
+function.
+
+```{code-block} python
+>>> import numpy as np
+>>> from aeon.similarity_search import TopKSimilaritySearch
+>>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
+...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
+>>> X = np.array(X) # X is of shape (2, 1, 7) : (n_instances, n_channels, n_timepoints)
+>>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
+>>> topk.fit(X)  # fit the estimator on train data
+...
+>>> q = np.array([[4, 5, 6]]) # q is of shape (1,3) :
+>>> topk.predict(q)  # Identify the two (k=2) most similar subsequences of length 3 in X
+[(0, 3), (1, 2)]
+```
+The output of predict gives a list of size `k`, where each element is a set indicating
+the location of the best matches in X as `(id_sample, id_timestamp)`. This is equivalent
+to the subsequence `X[id_sample, :, id_timestamps:id_timestamp + q.shape[0]]`.
+
+Note that you can still use univariate time series as inputs, you will just have to
+convert them to multivariate time series with one feature prior to using the similarity
+search module.

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ContractableBOSS classifier.
 
 Dictionary based cBOSS classifier based on SFA transform. Improves the ensemble
@@ -25,8 +24,8 @@ class ContractableBOSS(BaseClassifier):
     """
     Contractable Bag of Symbolic Fourier Approximation Symbols (cBOSS).
 
-    Implementation of BOSS Ensemble from Schäfer (2015) with refinements
-    described in Middlehurst, Vickers and Bagnall (2019). [1, 2]_
+    Implementation of BOSS Ensemble from [1]_ with refinements
+    described in [2]_.
 
     Overview: Input "n" series of length "m" and cBOSS randomly samples
     `n_parameter_samples` parameter sets, evaluting each with LOOCV. It then

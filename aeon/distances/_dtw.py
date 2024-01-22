@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""Dynamic time warping (DTW) between two time series."""
 __author__ = ["chrisholder", "TonyBagnall"]
 
@@ -253,6 +252,8 @@ def dtw_pairwise_distance(
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        If None, then the dtw pairwise distance between the instances of X is
+        calculated.
     window : float or None, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.

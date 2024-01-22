@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
-
 __all__ = [
     "convert_dict",
 ]
 
 from aeon.datatypes._convert_utils._convert import _extend_conversions
-from aeon.datatypes._hierarchical._registry import MTYPE_LIST_HIERARCHICAL
+from aeon.datatypes._hierarchical._registry import TYPE_LIST_HIERARCHICAL
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # dictionary indexed by triples of types
@@ -22,7 +20,7 @@ def convert_identity(obj, store=None):
 
 
 # assign identity function to type conversion to self
-for tp in MTYPE_LIST_HIERARCHICAL:
+for tp in TYPE_LIST_HIERARCHICAL:
     convert_dict[(tp, tp, "Hierarchical")] = convert_identity
 
 
@@ -50,5 +48,5 @@ if _check_soft_dependencies("dask", severity="none"):
         "dask_hierarchical",
         "pd_multiindex_hier",
         convert_dict,
-        mtype_universe=MTYPE_LIST_HIERARCHICAL,
+        mtype_universe=TYPE_LIST_HIERARCHICAL,
     )

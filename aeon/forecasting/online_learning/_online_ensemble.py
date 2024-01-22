@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements framework for applying online ensembling algorithms to forecasters."""
 
 __author__ = ["magittan, mloning"]
@@ -28,8 +25,8 @@ class OnlineEnsembleForecaster(EnsembleForecaster):
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
-        "y_inner_mtype": ["pd.Series"],
-        "scitype:y": "univariate",
+        "y_inner_type": ["pd.Series"],
+        "y_input_type": "univariate",
     }
 
     def __init__(self, forecasters, ensemble_algorithm=None, n_jobs=None):

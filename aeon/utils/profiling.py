@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Utilities to profile computational and memory performance of estimators."""
 
 from inspect import isclass
@@ -7,7 +6,7 @@ from timeit import default_timer as timer
 
 import pandas as pd
 
-from aeon.utils._testing.collection import make_nested_dataframe_data
+from aeon.testing.utils.collection import make_nested_dataframe_data
 
 
 def profile_classifier(

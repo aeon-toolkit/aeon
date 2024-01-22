@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Test extraction of features across (shifted) windows."""
 __author__ = ["danbartl"]
 
@@ -21,8 +20,8 @@ from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.compose import make_reduction
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
-from aeon.transformations.series.summarize import WindowSummarizer
-from aeon.utils._testing.hierarchical import _make_hierarchical
+from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.transformations.summarize import WindowSummarizer
 
 # Load data that will be the basis of tests
 y = load_airline()

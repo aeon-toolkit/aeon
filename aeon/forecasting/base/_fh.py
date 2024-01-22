@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements functionality for specifying forecast horizons in aeon."""
 
 __author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]
@@ -689,24 +686,7 @@ def _to_relative(fh: ForecastingHorizon, cutoff=None) -> ForecastingHorizon:
             # time deltas
             absolute = _coerce_to_period(absolute, freq=fh.freq)
             cutoff = _coerce_to_period(cutoff, freq=fh.freq)
-
-        # TODO: Replace when we upgrade our lower pandas bound
-        #  to a version where this is fixed
-        # Compute relative values
-        # The following line circumvents the bug in pandas
-        # periods = pd.period_range(start="2021-01-01", periods=3, freq="2H")
-        # periods - periods[0]
-        # Out: Index([<0 * Hours>, <4 * Hours>, <8 * Hours>], dtype = 'object')
-        # [v - periods[0] for v in periods]
-        # Out: Index([<0 * Hours>, <2 * Hours>, <4 * Hours>], dtype='object')
-        # TODO: 0.17.0: Check if this comment below can be removed,
-        # so check if pandas has released the fix to PyPI:
-        # This bug was reported: https://github.com/pandas-dev/pandas/issues/45999
-        # and fixed: https://github.com/pandas-dev/pandas/pull/46006
-        # Most likely it will be released with pandas 1.5
-        # Once the bug is fixed the line should simply be:
-        # relative = absolute - cutoff
-        relative = pd.Index([date - cutoff for date in absolute])
+        relative = absolute - cutoff
 
         # Coerce durations (time deltas) into integer values for given frequency
         if isinstance(absolute, (pd.PeriodIndex, pd.DatetimeIndex)):

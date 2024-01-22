@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """KNN time series regression.
 
 This class is a KNN regressor which supports time series distance measures.
@@ -19,7 +18,7 @@ WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
     """
-    KNN Time Series Regressor.
+    K-Nearest Neighbour Time Series Regressor.
 
     An adapted K-Neighbors Regressor for time series data.
 
@@ -63,7 +62,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     _tags = {
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "algorithm_type": "distance",
     }
 

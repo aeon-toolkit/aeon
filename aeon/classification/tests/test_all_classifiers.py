@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Unit tests for classifier/regressor input output."""
 
 __author__ = ["mloning", "TonyBagnall", "fkiraly"]
@@ -6,15 +5,16 @@ __author__ = ["mloning", "TonyBagnall", "fkiraly"]
 import inspect
 
 import numpy as np
+from sklearn.utils._testing import set_random_state
 
-from aeon.classification.tests._expected_outputs import (
+from aeon.datasets import load_basic_motions, load_unit_test
+from aeon.testing.expected_results.expected_classifier_outputs import (
     basic_motions_proba,
     unit_test_proba,
 )
-from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
-from aeon.utils._testing.scenarios_classification import ClassifierFitPredict
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
+from aeon.testing.utils.scenarios_classification import ClassifierFitPredict
 from aeon.utils.validation.collection import get_n_cases
 
 
@@ -43,7 +43,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
     """Module level tests for all aeon classifiers."""
 
     def test_classifier_output(self, estimator_instance, scenario):
-        """BASE CLASS TEST. Test classifier outputs the correct data types and values.
+        """Test classifier outputs the correct data types and values.
 
         Test predict produces a np.array or pd.Series with only values seen in the train
         data, and that predict_proba probability estimates add up to one.
@@ -67,49 +67,10 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         assert y_proba.shape == (n_cases, n_classes)
         np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
-    def test_classifier_on_unit_test_data(self, estimator_class):
-        """Test classifier on unit test data."""
+    def test_classifier_against_expected_results(self, estimator_class):
+        """Test classifier against stored results."""
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
-
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in unit_test_proba.keys():
-            expected_probas = unit_test_proba[classname]
-        else:
-            # skip test if no expected probas are registered
-            return None
-
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        if "random_state" in estimator_instance.get_params().keys():
-            estimator_instance.set_params(random_state=0)
-
-        # load unit test data
-        X_train, y_train = load_unit_test(split="train")
-        X_test, _ = load_unit_test(split="test")
-        indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
-
-        # train classifier and predict probas
-        estimator_instance.fit(X_train, y_train)
-        y_proba = estimator_instance.predict_proba(X_test[indices])
-
-        # assert probabilities are the same
-        _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
-
-    def test_classifier_on_basic_motions(self, estimator_class):
-        """Test classifier on basic motions data."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in basic_motions_proba.keys():
-            expected_probas = basic_motions_proba[classname]
-        else:
-            # skip test if no expected probas are registered
-            return None
 
         # the test currently fails when numba is disabled. See issue #622
         import os
@@ -117,25 +78,42 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
             return None
 
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        if "random_state" in estimator_instance.get_params().keys():
-            estimator_instance.set_params(random_state=0)
+        for data_name, data_dict, data_loader, data_seed in [
+            ["UnitTest", unit_test_proba, load_unit_test, 0],
+            ["BasicMotions", basic_motions_proba, load_basic_motions, 4],
+        ]:
+            # retrieve expected predict_proba output, and skip test if not available
+            if classname in data_dict.keys():
+                expected_probas = data_dict[classname]
+            else:
+                # skip test if no expected probas are registered
+                continue
 
-        # load unit test data
-        X_train, y_train = load_basic_motions(split="train")
-        X_test, _ = load_basic_motions(split="test")
-        indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
+            # we only use the first estimator instance for testing
+            estimator_instance = estimator_class.create_test_instance(
+                parameter_set="results_comparison"
+            )
+            # set random seed if possible
+            set_random_state(estimator_instance, 0)
 
-        # train classifier and predict probas
-        estimator_instance.fit(X_train[indices], y_train[indices])
-        y_proba = estimator_instance.predict_proba(X_test[indices])
+            # load test data
+            X_train, y_train = data_loader(split="train")
+            X_test, _ = data_loader(split="test")
+            indices = np.random.RandomState(data_seed).choice(
+                len(y_train), 10, replace=False
+            )
 
-        # assert probabilities are the same
-        _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
+            # train classifier and predict probas
+            estimator_instance.fit(X_train[indices], y_train[indices])
+            y_proba = estimator_instance.predict_proba(X_test[indices])
+
+            # assert probabilities are the same
+            _assert_array_almost_equal(
+                y_proba,
+                expected_probas,
+                decimal=2,
+                err_msg=f"Failed to reproduce results for {classname} on {data_name}",
+            )
 
     def test_contracted_classifier(self, estimator_class):
         """Test classifiers that can be contracted."""
@@ -219,15 +197,24 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
             return None
 
     def test_classifier_tags_consistent(self, estimator_class):
-        """Test the tag x_inner_type is consistent with capability:unequal_length."""
+        """Test the tag X_inner_type is consistent with capability:unequal_length."""
         valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
-        multi = estimator_class.get_class_tag("capability:unequal_length")
-        if multi:  # one of x_inner_types must be capable of storing unequal length
-            internal_types = estimator_class.get_class_tag("X_inner_mtype")
+        unequal = estimator_class.get_class_tag("capability:unequal_length")
+        if unequal:  # one of X_inner_types must be capable of storing unequal length
+            internal_types = estimator_class.get_class_tag("X_inner_type")
             if isinstance(internal_types, str):
                 assert internal_types in valid_types
             else:  # must be a list
                 assert bool(set(internal_types) & valid_types)
+        # Test can actually fit/predict with multivariate if tag is set
+        multivariate = estimator_class.get_class_tag("capability:multivariate")
+        if multivariate:
+            X = np.random.random((10, 2, 20))
+            y = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
+            inst = estimator_class.create_test_instance(parameter_set="default")
+            inst.fit(X, y)
+            inst.predict(X)
+            inst.predict_proba(X)
 
     def test_does_not_override_final_methods(self, estimator_class):
         """Test does not override final methods."""

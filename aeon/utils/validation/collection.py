@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# -*- coding: utf-8 -*-
 """Validation and checking functions for collections of time series."""
 
 __author__ = ["TonyBagnall"]
@@ -17,7 +14,7 @@ COLLECTIONS_DATA_TYPES = [
     # each of shape (n_channels, n_timepoints_i)
     "df-list",  # python list of 2D pd.DataFrames of length [n_cases], each a of
     # shape (n_timepoints_i, n_channels)
-    "numpyflat",  # 2D np.ndarray of shape (n_cases, n_channels*n_timepoints)
+    "numpy2D",  # 2D np.ndarray of shape (n_cases, n_channels*n_timepoints)
     "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
     "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
     "pd-multiindex",  # pd.DataFrame with multi-index,
@@ -32,37 +29,35 @@ for x in COLLECTIONS_DATA_TYPES:
 convert_dictionary[("numpy3D", "np-list")] = conv._from_numpy3d_to_np_list
 convert_dictionary[("numpy3D", "df-list")] = conv._from_numpy3d_to_df_list
 convert_dictionary[("numpy3D", "pd-wide")] = conv._from_numpy3d_to_pd_wide
-convert_dictionary[("numpy3D", "numpyflat")] = conv._from_numpy3d_to_numpyflat
+convert_dictionary[("numpy3D", "numpy2D")] = conv._from_numpy3d_to_numpy2d
 convert_dictionary[("numpy3D", "nested_univ")] = conv._from_numpy3d_to_nested_univ
 convert_dictionary[("numpy3D", "pd-multiindex")] = conv._from_numpy3d_to_pd_multiindex
 # np-list-> *
 convert_dictionary[("np-list", "numpy3D")] = conv._from_np_list_to_numpy3d
 convert_dictionary[("np-list", "df-list")] = conv._from_np_list_to_df_list
 convert_dictionary[("np-list", "pd-wide")] = conv._from_np_list_to_pd_wide
-convert_dictionary[("np-list", "numpyflat")] = conv._from_np_list_to_numpyflat
+convert_dictionary[("np-list", "numpy2D")] = conv._from_np_list_to_numpy2d
 convert_dictionary[("np-list", "nested_univ")] = conv._from_np_list_to_nested_univ
 convert_dictionary[("np-list", "pd-multiindex")] = conv._from_np_list_to_pd_multiindex
 # df-list-> *
 convert_dictionary[("df-list", "numpy3D")] = conv._from_df_list_to_numpy3d
 convert_dictionary[("df-list", "np-list")] = conv._from_df_list_to_np_list
 convert_dictionary[("df-list", "pd-wide")] = conv._from_df_list_to_pd_wide
-convert_dictionary[("df-list", "numpyflat")] = conv._from_df_list_to_numpyflat
+convert_dictionary[("df-list", "numpy2D")] = conv._from_df_list_to_numpy2d
 convert_dictionary[("df-list", "nested_univ")] = conv._from_df_list_to_nested_univ
 convert_dictionary[("df-list", "pd-multiindex")] = conv._from_df_list_to_pd_multiindex
-# numpyflat -> *: NOTE ASSUMES n_channels == 1 for this conversion.
-convert_dictionary[("numpyflat", "numpy3D")] = conv._from_numpyflat_to_numpy3d
-convert_dictionary[("numpyflat", "np-list")] = conv._from_numpyflat_to_np_list
-convert_dictionary[("numpyflat", "df-list")] = conv._from_numpyflat_to_df_list
-convert_dictionary[("numpyflat", "pd-wide")] = conv._from_numpyflat_to_pd_wide
-convert_dictionary[("numpyflat", "nested_univ")] = conv._from_numpyflat_to_nested_univ
-convert_dictionary[
-    ("numpyflat", "pd-multiindex")
-] = conv._from_numpyflat_to_pd_multiindex
+# numpy2D -> *: NOTE ASSUMES n_channels == 1 for this conversion.
+convert_dictionary[("numpy2D", "numpy3D")] = conv._from_numpy2d_to_numpy3d
+convert_dictionary[("numpy2D", "np-list")] = conv._from_numpy2d_to_np_list
+convert_dictionary[("numpy2D", "df-list")] = conv._from_numpy2d_to_df_list
+convert_dictionary[("numpy2D", "pd-wide")] = conv._from_numpy2d_to_pd_wide
+convert_dictionary[("numpy2D", "nested_univ")] = conv._from_numpy2d_to_nested_univ
+convert_dictionary[("numpy2D", "pd-multiindex")] = conv._from_numpy2d_to_pd_multiindex
 # pd-wide -> *: NOTE ASSUMES n_channels == 1 for this conversion.
 convert_dictionary[("pd-wide", "numpy3D")] = conv._from_pd_wide_to_numpy3d
 convert_dictionary[("pd-wide", "np-list")] = conv._from_pd_wide_to_np_list
 convert_dictionary[("pd-wide", "df-list")] = conv._from_pd_wide_to_df_list
-convert_dictionary[("pd-wide", "numpyflat")] = conv._from_pd_wide_to_numpyflat
+convert_dictionary[("pd-wide", "numpy2D")] = conv._from_pd_wide_to_numpy2d
 convert_dictionary[("pd-wide", "nested_univ")] = conv._from_pd_wide_to_nested_univ
 convert_dictionary[("pd-wide", "pd-multiindex")] = conv._pd_wide_to_pd_multiindex
 # nested_univ -> *
@@ -70,7 +65,7 @@ convert_dictionary[("nested_univ", "numpy3D")] = conv._from_nested_univ_to_numpy
 convert_dictionary[("nested_univ", "np-list")] = conv._from_nested_univ_to_np_list
 convert_dictionary[("nested_univ", "df-list")] = conv._from_nested_univ_to_df_list
 convert_dictionary[("nested_univ", "pd-wide")] = conv._from_nested_univ_to_pd_wide
-convert_dictionary[("nested_univ", "numpyflat")] = conv._from_nested_univ_to_numpyflat
+convert_dictionary[("nested_univ", "numpy2D")] = conv._from_nested_univ_to_numpy2d
 convert_dictionary[
     ("nested_univ", "pd-multiindex")
 ] = conv._from_nested_univ_to_pd_multiindex
@@ -79,9 +74,7 @@ convert_dictionary[("pd-multiindex", "numpy3D")] = conv._from_pd_multiindex_to_n
 convert_dictionary[("pd-multiindex", "np-list")] = conv._from_pd_multiindex_to_np_list
 convert_dictionary[("pd-multiindex", "df-list")] = conv._from_pd_multiindex_to_df_list
 convert_dictionary[("pd-multiindex", "pd-wide")] = conv._from_pd_multiindex_to_pd_wide
-convert_dictionary[
-    ("pd-multiindex", "numpyflat")
-] = conv._from_pd_multiindex_to_numpyflat
+convert_dictionary[("pd-multiindex", "numpy2D")] = conv._from_pd_multiindex_to_numpy2d
 convert_dictionary[
     ("pd-multiindex", "nested_univ")
 ] = conv._from_pd_multiindex_to_nested_univ
@@ -134,8 +127,8 @@ def resolve_equal_length_inner_type(inner_type):
         return "numpy3D"
     if "np-list" in inner_type:
         return "np-list"
-    if "numpyflat" in inner_type:
-        return "numpyflat"
+    if "numpy2D" in inner_type:
+        return "numpy2D"
     if "pd-multiindex" in inner_type:
         return "pd-multiindex"
     if "df-list" in inner_type:
@@ -208,11 +201,11 @@ def get_type(X):
     >>> get_type( np.zeros(shape=(10, 3, 20)))
     'numpy3D'
     """
-    if isinstance(X, np.ndarray):  # “numpy3D” or numpyflat
+    if isinstance(X, np.ndarray):  # "numpy3D" or numpy2D
         if X.ndim == 3:
             return "numpy3D"
         elif X.ndim == 2:
-            return "numpyflat"
+            return "numpy2D"
         else:
             raise ValueError(
                 f"ERROR np.ndarray must be either 2D or 3D but found " f"{X.ndim}"
@@ -237,7 +230,7 @@ def get_type(X):
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
-        if conv._is_nested_univ_dataframe(X):
+        if conv.is_nested_univ_dataframe(X):
             return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
             return "pd-multiindex"
@@ -301,7 +294,7 @@ def has_missing(X):
     False
     """
     type = get_type(X)
-    if type == "numpy3D" or type == "numpyflat":
+    if type == "numpy3D" or type == "numpy2D":
         return np.any(np.isnan(np.min(X)))
     if type == "np-list":
         for x in X:
@@ -330,7 +323,7 @@ def has_missing(X):
 def is_univariate(X):
     """Check if X is multivariate."""
     type = get_type(X)
-    if type == "numpyflat" or type == "pd-wide":
+    if type == "numpy2D" or type == "pd-wide":
         return True
     if type == "numpy3D" or type == "nested_univ":
         return X.shape[1] == 1
