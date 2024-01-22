@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.series import VALID_DATA_TYPES
 from aeon.visualisation import plot_correlations, plot_lags, plot_series
