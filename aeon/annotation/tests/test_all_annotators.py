@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from aeon.registry import all_estimators
-from aeon.utils._testing.annotation import make_annotation_problem
+from aeon.testing.utils.annotation import make_annotation_problem
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 ALL_ANNOTATORS = all_estimators(estimator_types="series-annotator", return_names=False)

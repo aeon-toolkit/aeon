@@ -1,10 +1,12 @@
+"""Annotation testing utils."""
+
 __author__ = []
 __all__ = []
 
 from sklearn.utils import check_random_state
 
 from aeon.annotation.datagen import piecewise_poisson
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
 
 
 def make_annotation_problem(

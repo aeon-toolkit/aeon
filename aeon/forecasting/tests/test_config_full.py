@@ -3,7 +3,7 @@ __author__ = ["mloning"]
 import numpy as np
 import pandas as pd
 
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
 
 # We here define the parameter values for unit testing.
 TEST_CUTOFFS_INT_LIST = [[21, 22], [3, 7, 10]]

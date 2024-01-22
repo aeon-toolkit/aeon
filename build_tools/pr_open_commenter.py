@@ -17,6 +17,9 @@ repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
 
+if "[bot]" in pr.user.login:
+    sys.exit(0)
+
 print(sys.argv[2:])  # noqa
 title_labels = sys.argv[2][1:-1].split(",")
 title_labels_new = sys.argv[3][1:-1].split(",")
