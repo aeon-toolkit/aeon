@@ -126,7 +126,28 @@ Implement and evaluate matrix profile based anomaly detection
 
 6. Clustering: feature based or deep learning based algorithms
 --------------------------------------------------------------
+
+Mentors : Tony Bagnall (@TonyBagnall) and Ali Ismail-Fawaz (@hadifawaz1999) @Chris?
+***********************************************************************************
+
 Implement and evaluate some of the recently proposed clustering algorithms
+
+The clustering module in Aeon, up until now, primarily consists of distance-based algorithms
+like kmeans, kmedoids, and clara, among others. Recently, we introduced an initial deep
+clustering module featuring an FCN auto-encoder, incorporating distance-based algorithms
+in the latent space. However, there is currently a shortage of feature-based clustering algorithms.
+
+The objective of this project is to enhance Aeon by incorporating more deep learning approaches
+for time series clustering. This involves adapting the FCN auto-encoder to leverage the ResNet model.
+Additionally, the project aims to integrate feature-based algorithms for time series clustering into
+the system.
+
+References
+**********
+[1]  Lafabregue, Baptiste, et al. "End-to-end deep representation learning
+     for time series clustering: a comparative study." Data Mining and Knowledge
+     Discovery 36.1 (2022): 29-81.
+propositions ?
 
 7. Channel selection for classification
 ---------------------------------------
@@ -136,6 +157,12 @@ dimensional data
 
 8. ROCKET transformers
 ----------------------
+
+Mentors : Ali Ismail-Fawaz (@hadifawaz1999) and ?
+*************************************************
+Note on mentoring: it would be more on making sure the code is more compact,
+already started and have a TF-GPU ROCKET version, so maybe the internship can stay with
+cpu implementation ?
 
 Sort out the implementation of ROCKET transformers
 
@@ -148,3 +175,12 @@ Port in QUANT, assess for regression
 ------------------------------------------
 
 Work on aeon-neuro, implement some of the recent EEG classification algorithms
+
+11. Deep Learning for Time Series Forecasting
+*********************************************
+
+Mentors : For deep learning side if am needed Ali Ismail-Fawaz (@hadifawaz1999) and ??
+**************************************************************************************
+
+Implement and evaluate some models from the literature, maybe benchmark them as well
+to non-deep models
