@@ -1,1 +1,1 @@
-"""Plotting  tools for time series data."""
+"""Plotting tools for time series data."""

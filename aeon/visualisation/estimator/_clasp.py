@@ -1,99 +1,45 @@
-"""Utility class for ploting functionality."""
-
-import numpy as np
-
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.forecasting import check_X
-
 __all__ = [
-    "plot_time_series_with_change_points",
-    "plot_time_series_with_profiles",
+    "plot_series_with_profiles",
 ]
 
 __author__ = ["patrickzib"]
 
+import numpy as np
 
-def plot_time_series_with_change_points(ts_name, ts, true_cps, font_size=16):
-    """Plot the time series with the known change points.
-
-    Parameters
-    ----------
-    ts_name: str
-        the name of the time series (dataset) to be annotated
-    ts: array-like, shape = [n]
-        the univariate time series of length n to be annotated
-    true_cps: array-like, dtype=int
-        the known change points
-        these are highlighted in the time series as vertical lines
-    font_size: int
-        for plotting
-
-    Returns
-    -------
-    fig : matplotlib.figure.Figure
-
-    axes : np.ndarray
-        Array of the figure's Axe objects
-
-    """
-    # Checks availability of plotting libraries
-    _check_soft_dependencies("matplotlib")
-    import matplotlib.pyplot as plt
-
-    ts = check_X(ts)
-
-    fig = plt.figure(figsize=(20, 5))
-    true_cps = np.sort(true_cps)
-    segments = [0] + list(true_cps) + [ts.shape[0]]
-
-    for idx in np.arange(0, len(segments) - 1):
-        plt.plot(
-            range(segments[idx], segments[idx + 1]),
-            ts[segments[idx] : segments[idx + 1]],
-        )
-
-    lim1 = plt.ylim()[0]
-    lim2 = plt.ylim()[1]
-
-    ax = plt.gca()
-    for i, idx in enumerate(true_cps):
-        ax.vlines(idx, lim1, lim2, linestyles="--", label=f"{i}-th-CPT")
-
-    plt.legend(loc="best")
-    plt.title(ts_name, fontsize=font_size)
-    return fig, ax
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+from aeon.utils.validation.forecasting import check_y
 
 
-def plot_time_series_with_profiles(
-    ts_name,
+def plot_series_with_profiles(
     ts,
     profiles,
     true_cps=None,
     found_cps=None,
     score_name="ClaSP Score",
+    title=None,
     font_size=16,
 ):
     """Plot the TS with the known and found change points and profiles.
 
     Parameters
     ----------
-    ts_name: str
-        the name of the time series (dataset) to be annotated
     ts: array-like, shape=[n]
         the univariate time series of length n to be annotated.
         the time series is plotted as the first subplot.
     profiles: array-like, shape=[n-m+1, n_cpts], dtype=float
         the n_cpts profiles computed by the method used
         the profiles are plotted as subsequent subplots to the time series.
-    true_cps: array-like, dtype=int
+    true_cps: array-like, dtype=int, default=None
         the known change points.
         these are highlighted in the time series subplot as vertical lines
-    found_cps: array-like, shape=[n_cpts], dtype=int
+    found_cps: array-like, shape=[n_cpts], dtype=int, default=None
         the found change points
         these are highlighted in the profiles subplot as vertical lines
-    score_name: str
+    score_name: str, default="ClaSP Score
         name of the scoring method used, i.e. 'ClaSP'
-    font_size: int
+    title: str, default=None
+        the name of the time series (dataset) to be annotated
+    font_size: int, default=16
         for plotting
 
     Returns
@@ -108,7 +54,7 @@ def plot_time_series_with_profiles(
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
 
-    ts = check_X(ts)
+    ts = check_y(ts)
 
     fig, ax = plt.subplots(
         len(profiles) + 1,
@@ -134,7 +80,10 @@ def plot_time_series_with_profiles(
         ax[i + 1].set_ylabel(f"{score_name} {i}. Split", fontsize=font_size)
 
     ax[-1].set_xlabel("split point $s$", fontsize=font_size)
-    ax[0].set_title(ts_name, fontsize=font_size)
+
+    # Set the figure's title
+    if title is not None:
+        fig.suptitle(title, fontsize=font_size)
 
     for a in ax:
         for tick in a.xaxis.get_major_ticks():
