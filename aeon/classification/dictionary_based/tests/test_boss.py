@@ -1,10 +1,11 @@
 """BOSS test code."""
+
 import numpy as np
 from sklearn.metrics import accuracy_score
 
 from aeon.classification.dictionary_based import BOSSEnsemble, ContractableBOSS
 from aeon.datasets import load_unit_test
-from aeon.utils._testing.collection import make_2d_test_data
+from aeon.testing.utils.collection import make_2d_test_data
 
 
 def test_boss_train_estimate():
@@ -25,7 +26,7 @@ def test_boss_train_estimate():
     assert accuracy_score(y_train, train_preds) >= 0.6
 
 
-def test_boss_small_train():
+def test_cboss_small_train():
     """Test with a small amount of train cases, subsampling can cause issues."""
     X, y = make_2d_test_data(n_cases=3, n_timepoints=20, n_labels=2)
     cboss = ContractableBOSS()
