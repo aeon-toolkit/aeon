@@ -39,7 +39,7 @@ def test_plot_pairwise_scatter():
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     fig, ax = plot_pairwise_scatter(
-        res, cls[0], cls[1], metric="accuracy", statistic_tests=True
+        res[0], res[1], cls[0], cls[1], metric="accuracy", statistic_tests=True
     )
     plt.gcf().canvas.draw_idle()
 
@@ -52,7 +52,7 @@ def test_plot_pairwise_scatter():
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     fig, ax = plot_pairwise_scatter(
-        res, cls[0], cls[1], metric="accuracy", title="test"
+        res[0], res[1], cls[0], cls[1], metric="accuracy", title="test"
     )
     plt.gcf().canvas.draw_idle()
 
@@ -65,7 +65,8 @@ def test_plot_pairwise_scatter():
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     fig = plot_pairwise_scatter(
-        1 - res,
+        1 - res[0],
+        1 - res[1],
         cls[0],
         cls[1],
         metric="error",
@@ -77,7 +78,8 @@ def test_plot_pairwise_scatter():
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
     fig = plot_pairwise_scatter(
-        1 - res,
+        1 - res[0],
+        1 - res[1],
         cls[0],
         cls[1],
         metric="error",
@@ -89,9 +91,13 @@ def test_plot_pairwise_scatter():
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
     with pytest.raises(ValueError):
-        plot_pairwise_scatter(res, cls[0], cls[1], metric="error", lower_better=False)
+        plot_pairwise_scatter(
+            res[0], res[1], cls[0], cls[1], metric="error", lower_better=False
+        )
     with pytest.raises(ValueError):
-        plot_pairwise_scatter(res, cls[0], cls[1], metric="accuracy", lower_better=True)
+        plot_pairwise_scatter(
+            res[0], res[1], cls[0], cls[1], metric="accuracy", lower_better=True
+        )
 
 
 @pytest.mark.skipif(

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.segmentation import ClaSPSegmenter
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_series_with_profiles
 
