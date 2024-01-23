@@ -86,11 +86,12 @@ class TimeSeriesScaler(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray (any number of channels, equal length series)
+                of shape ``(n_instances, n_channels, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
+                of shape ``[n_instances]``, 2D np.ndarray `
+                `(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length
+                of series i.
 
         Returns
         -------

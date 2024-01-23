@@ -1,9 +1,10 @@
 .. _similarity_search_ref:
 
-Time series Similarity Search
-==========================
+Similarity search
+=================
 
-The :mod:`aeon.similarity_search` module contains algorithms and tools for similarity search tasks.
+The :mod:`aeon.similarity_search` module contains algorithms and tools for similarity
+search tasks.
 
 
 Similarity search with a known query

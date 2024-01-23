@@ -82,7 +82,7 @@ Extension templates typically have the following ``todo``:
     Other tags determine the format of inputs seen in the "inner" methods ``_fit``
 etc, these tags are usually called ``X_inner_type`` or similar.
     This is useful in case the inner functionality assumes ``numpy.ndarray``, or ``pandas.DataFrame``, and helps avoid conversion boilerplate.
-    The type strings can be found in ``datatypes.MTYPE_REGISTER``. For a tutorial on data type conventions, see ``examples/AA_datatypes_and_datasets``.
+    The type strings can be found in ``datatypes.TYPE_REGISTER``. For a tutorial on data type conventions, see ``examples/AA_datatypes_and_datasets``.
 *   Filling in the "inner" methods, e.g., ``_fit`` and ``_predict``. The docstrings and comments in the extension template should be followed here.
     The docstrings also describe the guarantees on the inputs to the "inner" methods, which are typically stronger than the guarantees on
     inputs to the public methods, and determined by values of tags that have been set.

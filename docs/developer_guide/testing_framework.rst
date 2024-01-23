@@ -22,8 +22,8 @@ Module conventions are as follows:
 * Each module contains a ``tests`` folder, which contains tests specific to that module.
 * Sub-modules may also contain ``tests`` folders.
 * ``tests`` folders may contain ``_config.py`` files to collect test configuration settings for that module
-* generic utilities for tests are located in the module ``utils._testing``.
-* Tests for these utilities should be contained in the ``utils._testing.tests`` folder.
+* generic utilities for tests are located in the module ``testing.utils``.
+* Tests for these utilities should be contained in the ``testing.utils.tests`` folder.
 * Each test module corresponding to a learning task and estimator scitype should containmodule level tests in a test ``test_all_[name_of_scitype].py`` file that tests   interface compliance of all estimators adhering to the scitype.
   For instance, ``forecasting/tests/test_all_forecasters.py``, or    ``distances/tests/test_all_dist_kernels.py``.
 * Learning task specific tests should not duplicate package level, generic estimator tests in ``test_all_estimators.py``
@@ -105,7 +105,7 @@ via ``mark.parameterize`` for the following fixtures, in module level tests:
 * In the package level tests ``test_all_estimators``, that base class is ``BaseEstimator``.
 * ``estimator_instance``: all estimator test instances, obtained from all ``aeon`` estimators via ``create_test_instances_and_names``
 * ``scenario``: test scenarios, applicable to ``estimator`` or ``estimator_instance``.
-*  The scenarios are specified in ``utils/_testing/scenarios_[estimator_scitype]``.
+*  The scenarios are specified in ``testing.utils/scenarios_[estimator_scitype]``.
 
 Further parameterization may happen for individual tests, the scope is usually explained in the test docstrings.
 
@@ -114,7 +114,7 @@ Scenarios
 
 The ``scenario`` fixtures contain arguments for method calls, and a sequence for method calls.
 
-An example scenario specification, from ``utils/_testing/scenarios_forecasting``:
+An example scenario specification, from ``testing.utils/scenarios_forecasting``:
 
 .. code-block::
 
@@ -262,7 +262,7 @@ The two main options are:
   This is the common case when a new method or method sequence should be covered.
   For this, args cshould be added to the scenarios' ``args`` key of an existing scenario.
 
-Scenarios for a specific estimator scitype are found in ``utils/_testing/scenarios_[estimator_scitype]``.
+Scenarios for a specific estimator scitype are found in ``testing.utils/scenarios_[estimator_scitype]``.
 All scenarios inherit from a base class for that scitype, e.g., ``ForecasterTestScenario``.
 This base class defines generics such as ``is_applicable``, or tag handling, for all scenarios of the same type.
 
@@ -282,7 +282,7 @@ Scenarios should usually define:
   For instance, comparing whether both scenario and estimator are multivariate.
 
 For further details and expected signature, consult the docstring of ``TestScenario``
-(`link <https://github.com/aeon-toolkit/aeon/blob/main/aeon/utils/_testing/scenarios.py>`_),
+(`link <https://github.com/aeon-toolkit/aeon/blob/main/aeon/testing.utils/scenarios.py>`_),
 and/or inspect any of the scenarios base classes, e.g., ``ForecasterTestScenario``.
 
 Creating tests for a new estimator type
@@ -291,9 +291,9 @@ Creating tests for a new estimator type
 If a module for a new estimator type is added, multiple things need to be created for module level tests:
 
 * scenarios to cover the specified base class interface behaviour, in
-  ``utils/_testing/scenarios_[estimator_scitype]``.
-  This can be modelled on ``utils/_testing/scenarios_forecasting``, or the other scenarios files.
-* a line in the dispatch dictionary in ``utils/_testing/scenarios_getter`` which links
+  ``testing.utils/scenarios_[estimator_scitype]``.
+  This can be modelled on ``testing.utils/scenarios_forecasting``, or the other scenarios files.
+* a line in the dispatch dictionary in ``testing.utils/scenarios_getter`` which links
   the scenarios to the scenario retrieval function, e.g., ``scenarios["forecaster"] = scenarios_forecasting``
 * a ``tests/test_all_[estimator_scitype].py``, from the root of the module.
 * in this file, appropriate fixture generation via ``pytest_generate_fixtures``.

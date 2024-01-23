@@ -26,7 +26,6 @@ from typing import List, Union
 
 import numpy as np
 
-from aeon.datatypes._alignment import check_dict_Alignment
 from aeon.datatypes._hierarchical import check_dict_Hierarchical
 from aeon.datatypes._panel import check_dict_Panel
 from aeon.datatypes._proba import check_dict_Proba
@@ -39,7 +38,6 @@ check_dict = dict()
 check_dict.update(check_dict_Series)
 check_dict.update(check_dict_Panel)
 check_dict.update(check_dict_Hierarchical)
-check_dict.update(check_dict_Alignment)
 check_dict.update(check_dict_Table)
 check_dict.update(check_dict_Proba)
 
@@ -104,7 +102,7 @@ def check_is_mtype(
     ----------
     obj - object to check
     mtype: str or list of str, mtype to check obj as
-        valid mtype strings are in datatypes.MTYPE_REGISTER (1st column)
+        valid mtype strings are in datatypes.TYPE_REGISTER (1st column)
     scitype: str, optional, scitype to check obj as; default = inferred from mtype
         if inferred from mtype, list elements of mtype need not have same scitype
         valid mtype strings are in datatypes.DATATYPE_REGISTER (1st column)
@@ -143,8 +141,6 @@ def check_is_mtype(
             "is_empty": bool, True iff table has no variables or no instances
             "has_nans": bool, True iff the panel contains NaN values
             "n_instances": int, number of instances/rows in the table
-        For scitype "Alignment":
-            currently none
 
     Raises
     ------
@@ -216,7 +212,7 @@ def check_raise(obj, mtype: str, scitype: str = None, var_name: str = "input"):
     ----------
     obj - object to check
     mtype: str or list of str, mtype to check obj as
-        valid mtype strings are in datatypes.MTYPE_REGISTER (1st column)
+        valid mtype strings are in datatypes.TYPE_REGISTER (1st column)
     scitype: str, optional, scitype to check obj as; default = inferred from mtype
         if inferred from mtype, list elements of mtype need not have same scitype
         valid mtype strings are in datatypes.DATATYPE_REGISTER (1st column)
@@ -272,7 +268,7 @@ def mtype(
     -------
     str - the inferred mtype of "obj", a valid mtype string
             or None, if obj is None
-        mtype strings with explanation are in datatypes.MTYPE_REGISTER
+        mtype strings with explanation are in datatypes.TYPE_REGISTER
 
     Raises
     ------
@@ -367,7 +363,7 @@ def check_is_scitype(
         Fields depend on scitpe.
         Always returned:
             "mtype": str, mtype of obj (assumed or inferred)
-                mtype strings with explanation are in datatypes.MTYPE_REGISTER
+                mtype strings with explanation are in datatypes.TYPE_REGISTER
             "scitype": str, scitype of obj (assumed or inferred)
                 scitype strings with explanation are in datatypes.DATATYPE_REGISTER
         For scitype "Series":
@@ -387,8 +383,7 @@ def check_is_scitype(
             "is_univariate": bool, True iff table has one variable
             "is_empty": bool, True iff table has no variables or no instances
             "has_nans": bool, True iff the panel contains NaN values
-        For scitype "Alignment":
-            currently none
+
     Raises
     ------
     TypeError if scitype input argument is not of expected type
@@ -456,7 +451,7 @@ def scitype(obj, candidate_scitypes=SCITYPE_LIST, exclude_mtypes=AMBIGUOUS_MTYPE
         valid scitype strings are in datatypes.DATATYPE_REGISTER
     exclude_mtypes : list of str, default = AMBIGUOUS_MTYPES
         which mtypes to ignore in inferring mtype, default = ambiguous ones
-        valid mtype strings are in datatypes.MTYPE_REGISTER
+        valid mtype strings are in datatypes.TYPE_REGISTER
 
     Returns
     -------

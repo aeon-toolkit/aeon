@@ -2178,7 +2178,8 @@
       "profile": "https://github.com/hedeershowk",
       "contributions": [
         "bug",
-        "doc"
+        "doc",
+        "code"
       ]
     },
     {
@@ -2211,10 +2212,57 @@
       ]
     },
     {
+      "login": "akshatvishu",
+      "name": "Akshat Nayak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33392262?v=4",
+      "profile": "https://github.com/akshatvishu",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
       "login": "PaulRabich",
       "name": "Paul Rabich",
       "avatar_url": "https://avatars.githubusercontent.com/u/78356939?v=4",
       "profile": "https://github.com/PaulRabich",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "xiaopu222",
+      "name": "xiaopu222",
+      "avatar_url": "https://avatars.githubusercontent.com/u/118000577?v=4",
+      "profile": "https://github.com/xiaopu222",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "frankl1",
+      "name": "Michael F. Mbouopda",
+      "avatar_url": "https://avatars.githubusercontent.com/u/23366578?s=96&v=4",
+      "profile": "https://github.com/frankl1",
+      "contributions": [
+        "code",
+        "bug",
+        "doc"
+      ]
+    },
+    {
+      "login": "andregdmitri",
+      "name": "André Guarnier De Mitri",
+      "avatar_url": "https://avatars.githubusercontent.com/u/51839703?v=4",
+      "profile": "https://www.linkedin.com/in/andre-de-mitri/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "jose-gilberto",
+      "name": "Gilberto Barbosa",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32587935?v=4",
+      "profile": "https://jose-gilberto.github.io/",
       "contributions": [
         "code"
       ]

@@ -33,7 +33,7 @@ __all__ = ["convert_dict"]
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes._proba._registry import MTYPE_LIST_PROBA
+from aeon.datatypes._proba._registry import TYPE_LIST_PROBA
 
 ##############################################################
 # methods to convert one machine type to another machine type
@@ -47,7 +47,7 @@ def convert_identity(obj, store=None):
 
 
 # assign identity function to type conversion to self
-for tp in MTYPE_LIST_PROBA:
+for tp in TYPE_LIST_PROBA:
     convert_dict[(tp, tp, "Proba")] = convert_identity
 
 
@@ -86,7 +86,6 @@ def convert_pred_interval_to_quantiles(y_pred, inplace=False):
     var_names = idx.get_level_values(0)
 
     # treat univariate default name
-    # todo: maybe not a good idea, remove this...
     # here because it's in the current specification
     var_names = ["Quantiles" if x == "Coverage" else x for x in var_names]
 
@@ -153,7 +152,6 @@ def convert_pred_quantiles_to_interval(y_pred, inplace=False):
     var_names = idx.get_level_values(0)
 
     # treat univariate default name
-    # todo: maybe not a good idea, remove this...
     # here because it's in the current specification
     var_names = ["Coverage" if x == "Quantiles" else x for x in var_names]
 

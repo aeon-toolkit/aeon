@@ -40,11 +40,19 @@ check_tag_is_valid(tag_name, tag_value) - checks whether tag_value is valid for 
 
 """
 
-__author__ = ["fkiraly", "victordremov"]
+__author__ = ["fkiraly", "victordremov", "TonyBagnall"]
 
 import pandas as pd
 
 ESTIMATOR_TAG_REGISTER = [
+    (
+        "returns_dense",
+        "segmenter",
+        "bool",
+        "does segmenter return a list of change points/start index of each "
+        "segmenter (dense format) or a list indicating which segment each time point "
+        "belongs to.",
+    ),
     (
         "ignores-exogeneous-X",
         "forecaster",
@@ -119,9 +127,10 @@ ESTIMATOR_TAG_REGISTER = [
             [
                 "pd.Series",
                 "pd.DataFrame",
-                "np.array",
+                "np.ndarray",
                 "nested_univ",
                 "pd-multiindex",
+                "pd_multiindex_hier",
                 "numpy3D",
                 "df-list",
             ],
@@ -130,13 +139,13 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "X_inner_type",
-        ["forecaster"],
+        ["forecaster", "classifier", "regressor", "transformer", "clusterer"],
         (
             "list",
             [
                 "pd.Series",
                 "pd.DataFrame",
-                "np.array",
+                "np.ndarray",
                 "nested_univ",
                 "pd-multiindex",
                 "numpy3D",
@@ -209,6 +218,7 @@ ESTIMATOR_TAG_REGISTER = [
             "regressor",
             "transformer",
             "similarity-search",
+            "segmenter",
         ],
         "bool",
         "can the estimator classify time series with 2 or more variables?",
@@ -221,6 +231,7 @@ ESTIMATOR_TAG_REGISTER = [
             "early_classifier",
             "regressor",
             "transformer",
+            "segmenter",
         ],
         "bool",
         "can the estimator handle unequal length time series?",

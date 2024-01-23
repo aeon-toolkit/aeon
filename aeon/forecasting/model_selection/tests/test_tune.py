@@ -23,9 +23,9 @@ from aeon.performance_metrics.forecasting import (
     MeanAbsolutePercentageError,
     MeanSquaredError,
 )
-from aeon.tests.test_all_estimators import PR_TESTING
-from aeon.transformations.series.detrend import Detrender
-from aeon.utils._testing.hierarchical import _make_hierarchical
+from aeon.testing.test_config import PR_TESTING
+from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.transformations.detrend import Detrender
 
 NAIVE = NaiveForecaster(strategy="mean")
 NAIVE_GRID = {"window_length": TEST_WINDOW_LENGTHS_INT}

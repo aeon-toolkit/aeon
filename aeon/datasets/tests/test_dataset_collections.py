@@ -7,7 +7,7 @@ from aeon.datasets.dataset_collections import (
     list_available_tsf_datasets,
     list_downloaded_tsf_datasets,
 )
-from aeon.tests.test_config import PR_TESTING
+from aeon.testing.test_config import PR_TESTING
 
 
 @pytest.mark.skipif(
@@ -33,7 +33,7 @@ def test_downloaded_tsf_datasets():
 def test_list_available_tsc_datasets():
     """Test recovering lists of available data sets."""
     res = list_available_tsc_datasets()
-    assert len(res) == 161
+    assert len(res) == 158
     res = list_available_tsc_datasets("FOO")
     assert not res
     res = list_available_tsc_datasets("Chinatown")
