@@ -14,7 +14,7 @@ __all__ = [
     "plot_critical_difference",
     "plot_boxplot_median",
     "plot_scatter_predictions",
-    "plot_pairwise_scatter",
+    "plot_scatter",
     # Estimator plotting
     "plot_series_with_profiles",
     "plot_cluster_algorithm",
@@ -32,10 +32,7 @@ from aeon.visualisation.learning_task._segmentation import (
 )
 from aeon.visualisation.results._boxplot import plot_boxplot_median
 from aeon.visualisation.results._critical_difference import plot_critical_difference
-from aeon.visualisation.results._scatter import (
-    plot_pairwise_scatter,
-    plot_scatter_predictions,
-)
+from aeon.visualisation.results._scatter import plot_scatter, plot_scatter_predictions
 from aeon.visualisation.series._collections import (
     plot_collection_by_class,
     plot_series_collection,
