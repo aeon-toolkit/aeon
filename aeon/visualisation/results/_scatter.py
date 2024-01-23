@@ -1,9 +1,9 @@
-"""Functions for plotting results scatter diagrams."""
+"""Functions for plotting results boxplot diagrams."""
 
 __author__ = ["dguijo"]
 
 __all__ = [
-    "plot_pairwise_scatter",
+    "plot_scatter",
     "plot_scatter_predictions",
 ]
 
@@ -14,7 +14,7 @@ import numpy as np
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-def plot_pairwise_scatter(
+def plot_scatter(
     results,
     method_A,
     method_B,
@@ -55,12 +55,11 @@ def plot_pairwise_scatter(
 
     Example
     -------
-    >>> from aeon.visualisation import plot_pairwise_scatter
+    >>> from aeon.visualisation import plot_scatter
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["InceptionTimeClassifier", "WEASEL-Dilation"]
     >>> results = get_estimator_results_as_array(estimators=methods)
-    >>> plot = plot_pairwise_scatter(  # doctest: +SKIP
-    ...     results[0], methods[0], methods[1])  # doctest: +SKIP
+    >>> plot = plot_scatter(results[0], methods[0], methods[1])  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
     >>> plot.savefig("scatterplot.pdf")  # doctest: +SKIP
     """
