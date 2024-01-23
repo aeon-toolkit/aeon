@@ -11,34 +11,25 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import (
+    get_dataset_meta_data,
     load_classification,
     load_forecasting,
     load_from_arff_file,
-    load_from_long_to_dataframe,
-    load_from_tsf_file,
     load_from_tsfile,
     load_from_tsv_file,
     load_regression,
-    load_tsf_to_dataframe,
-    load_uschange,
-)
-from aeon.datasets._data_generators import (
-    _convert_tsf_to_hierarchical,
-    make_example_long_table,
 )
 from aeon.datasets._data_loaders import (
-    DIRNAME,
-    MODULE,
     _alias_datatype_check,
+    _get_channel_strings,
     _load_data,
     _load_header_info,
     _load_saved_dataset,
 )
-from aeon.tests.test_config import PR_TESTING
+from aeon.testing.test_config import PR_TESTING
 
 
 @pytest.mark.skipif(
@@ -52,7 +43,7 @@ def test_load_forecasting_from_repo():
     ):
         load_forecasting(name)
     name = "m1_quarterly_dataset"
-    data, meta = load_forecasting(name)
+    data, meta = load_forecasting(name, return_metadata=True)
     assert isinstance(data, pd.DataFrame)
     assert isinstance(meta, dict)
     assert meta["frequency"] == "quarterly"
@@ -101,6 +92,8 @@ def test_load_regression_from_repo():
     ):
         load_regression(name)
     name = "FloodModeling1"
+    name2 = "ParkingBirmingham"
+    name3 = "AcousticContaminationMadrid"
     with tempfile.TemporaryDirectory() as tmp:
         X, y, meta = load_regression(name, extract_path=tmp, return_metadata=True)
         assert isinstance(X, np.ndarray)
@@ -112,9 +105,28 @@ def test_load_regression_from_repo():
         assert not meta["timestamps"]
         assert meta["univariate"]
         assert meta["equallength"]
+        assert not meta["missing"]
         assert not meta["classlabel"]
         assert meta["targetlabel"]
         assert meta["class_values"] == []
+        # Test load equal length
+        X, y, meta = load_regression(
+            name2, extract_path=tmp, return_metadata=True, load_equal_length=True
+        )
+        assert meta["equallength"]
+        X, y, meta = load_regression(
+            name2, extract_path=tmp, return_metadata=True, load_equal_length=False
+        )
+        assert not meta["equallength"]
+        # Test load no missing values
+        X, y, meta = load_regression(
+            name3, extract_path=tmp, return_metadata=True, load_no_missing=True
+        )
+        assert not meta["missing"]
+        X, y, meta = load_regression(
+            name3, extract_path=tmp, return_metadata=True, load_no_missing=False
+        )
+        assert meta["missing"]
 
 
 @pytest.mark.skipif(
@@ -137,9 +149,9 @@ def test_load_fails():
 def test__alias_datatype_check():
     """Test the alias check"""
     assert _alias_datatype_check("FOO") == "FOO"
-    assert _alias_datatype_check("np2d") == "numpyflat"
-    assert _alias_datatype_check("numpy2d") == "numpyflat"
-    assert _alias_datatype_check("numpy2D") == "numpyflat"
+    assert _alias_datatype_check("np2d") == "numpy2D"
+    assert _alias_datatype_check("numpy2d") == "numpy2D"
+    assert _alias_datatype_check("numpyflat") == "numpy2D"
     assert _alias_datatype_check("numpy3d") == "numpy3D"
     assert _alias_datatype_check("np3d") == "numpy3D"
     assert _alias_datatype_check("np3D") == "numpy3D"
@@ -150,8 +162,11 @@ def test__alias_datatype_check():
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test__load_header_info():
+    path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_TRAIN.ts",
+    )
     """Test loading a header."""
-    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
     with open(path, "r", encoding="utf-8") as file:
         # Read in headers
         meta_data = _load_header_info(file)
@@ -194,20 +209,29 @@ def test__load_header_info():
 )
 def test__load_data():
     """Test loading after header."""
-    path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_TRAIN.ts")
+    path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_TRAIN.ts",
+    )
     with open(path, "r", encoding="utf-8") as file:
         meta_data = _load_header_info(file)
         X, y, _ = _load_data(file, meta_data)
         assert X.shape == (20, 1, 24)
         assert len(y) == 20
-    path = os.path.join(MODULE, DIRNAME, "BasicMotions", "BasicMotions_TRAIN.ts")
+    path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/BasicMotions/BasicMotions_TRAIN.ts",
+    )
     with open(path, "r", encoding="utf-8") as file:
         meta_data = _load_header_info(file)
         # Check raise error for incorrect univariate test
         meta_data["univariate"] = True
         with pytest.raises(IOError):
             X, y, _ = _load_data(file, meta_data)
-    path = os.path.join(MODULE, DIRNAME, "JapaneseVowels", "JapaneseVowels_TRAIN.ts")
+    path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/JapaneseVowels/JapaneseVowels_TRAIN.ts",
+    )
     with open(path, "r", encoding="utf-8") as file:
         meta_data = _load_header_info(file)
         # Check raise error for incorrect univariate test
@@ -278,7 +302,6 @@ def test_load_provided_dataset(return_X_y, return_type):
         assert isinstance(X, np.ndarray) and X.ndim == 3
     elif return_type == "numpy2D":
         assert isinstance(X, np.ndarray) and X.ndim == 2
-    # Check whether object is same mtype or not, via bool
 
 
 @pytest.mark.skipif(
@@ -293,10 +316,14 @@ def test_load_from_tsfile():
     2. Multivariate equal length (BasicMotions) returns 3D numpy X, 1D numpy y
     3. Univariate and multivariate unequal length (PLAID) return X as list of numpy
     """
-    data_path = MODULE + "/" + DIRNAME + "/UnitTest/UnitTest_TRAIN.ts"
+
     # Test 1.1: load univariate equal length (UnitTest), should return 2D array and 1D
     # array, test first and last data
     # Test 1.2: Load a problem without y values (UnitTest),  test first and last data.
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/UnitTest/UnitTest_TRAIN.ts",
+    )
     X, y = load_from_tsfile(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.ndim == 3
@@ -310,7 +337,10 @@ def test_load_from_tsfile():
 
     # Test 2: load multivare equal length (BasicMotions), should return 3D array and 1D
     # array, test first and last data.
-    data_path = MODULE + "/data/BasicMotions/BasicMotions_TRAIN.ts"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/BasicMotions/BasicMotions_TRAIN.ts",
+    )
     X, y = load_from_tsfile(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.shape == (40, 6, 100) and y.shape == (40,)
@@ -323,357 +353,23 @@ def test_load_from_tsfile():
 
     # Test 3.1: load univariate unequal length (PLAID), should return a one column
     # dataframe,
-    data_path = MODULE + "/data/PLAID/PLAID_TRAIN.ts"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/PLAID/PLAID_TRAIN.ts",
+    )
+
     X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
     assert isinstance(X, list) and isinstance(y, np.ndarray)
     assert len(X) == 537 and y.shape == (537,)
     # Test 3.2: load multivariate unequal length (JapaneseVowels), should return a X
     # columns dataframe,
-    data_path = MODULE + "/data/JapaneseVowels/JapaneseVowels_TRAIN.ts"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/JapaneseVowels/JapaneseVowels_TRAIN.ts",
+    )
     X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
     assert isinstance(X, list) and isinstance(y, np.ndarray)
     assert len(X) == 270 and y.shape == (270,)
-
-
-_CHECKS = {
-    "uschange": {
-        "columns": ["Income", "Production", "Savings", "Unemployment"],
-        "len_y": 187,
-        "len_X": 187,
-        "data_types_X": {
-            "Income": "float64",
-            "Production": "float64",
-            "Savings": "float64",
-            "Unemployment": "float64",
-        },
-        "data_type_y": "float64",
-        "data": load_uschange(),
-    },
-}
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
-@pytest.mark.parametrize("dataset", sorted(_CHECKS.keys()))
-def test_forecasting_data_loaders(dataset):
-    """
-    Assert if datasets are loaded correctly.
-
-    dataset: dictionary with values to assert against should contain:
-        'columns' : list with column names in correct order,
-        'len_y'   : lenght of the y series (int),
-        'len_X'   : lenght of the X series/dataframe (int),
-        'data_types_X' : dictionary with column name keys and dtype as value,
-        'data_type_y'  : dtype if y column (string)
-        'data'    : tuple with y series and X series/dataframe if one is not
-                    applicable fill with None value,
-    """
-    checks = _CHECKS[dataset]
-    y = checks["data"][0]
-    X = checks["data"][1]
-
-    if y is not None:
-        assert isinstance(y, pd.Series)
-        assert len(y) == checks["len_y"]
-        assert y.dtype == checks["data_type_y"]
-
-    if X is not None:
-        if len(checks["data_types_X"]) > 1:
-            assert isinstance(X, pd.DataFrame)
-        else:
-            assert isinstance(X, pd.Series)
-
-        assert X.columns.values.tolist() == checks["columns"]
-
-        for col, dt in checks["data_types_X"].items():
-            assert X[col].dtype == dt
-
-        assert len(X) == checks["len_X"]
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
-def test_load_from_long_to_dataframe(tmpdir):
-    """Test for loading from long to dataframe."""
-    # create and save a example long-format file to csv
-    test_dataframe = make_example_long_table()
-    dataframe_path = tmpdir.join("data.csv")
-    test_dataframe.to_csv(dataframe_path, index=False)
-    # load and convert the csv to aeon-formatted data
-    nested_dataframe = load_from_long_to_dataframe(dataframe_path)
-    assert isinstance(nested_dataframe, pd.DataFrame)
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
-def test_load_from_long_incorrect_format(tmpdir):
-    """Test for loading from long with incorrect format."""
-    with pytest.raises(ValueError):
-        dataframe = make_example_long_table()
-        dataframe.drop(dataframe.columns[[3]], axis=1, inplace=True)
-        dataframe_path = tmpdir.join("data.csv")
-        dataframe.to_csv(dataframe_path, index=False)
-        load_from_long_to_dataframe(dataframe_path)
-
-
-@pytest.mark.parametrize(
-    "input_path, return_type, output_df",
-    [
-        (
-            "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
-            "default_tsf",
-            pd.DataFrame(
-                {
-                    "series_name": ["T1", "T2", "T3"],
-                    "start_timestamp": [
-                        pd.Timestamp(year=1979, month=1, day=1),
-                        pd.Timestamp(year=1979, month=1, day=1),
-                        pd.Timestamp(year=1973, month=1, day=1),
-                    ],
-                    "series_value": [
-                        [
-                            25092.2284,
-                            24271.5134,
-                            25828.9883,
-                            27697.5047,
-                            27956.2276,
-                            29924.4321,
-                            30216.8321,
-                        ],
-                        [887896.51, 887068.98, 971549.04],
-                        [227921, 230995, 183635, 238605, 254186],
-                    ],
-                }
-            ),
-        ),
-        (
-            "datasets/data/UnitTest/UnitTest_Tsf_Loader_hierarchical.tsf",
-            "pd_multiindex_hier",
-            pd.DataFrame(
-                data=[
-                    25092.2284,
-                    24271.5134,
-                    25828.9883,
-                    27697.5047,
-                    27956.2276,
-                    29924.4321,
-                    30216.8321,
-                    887896.51,
-                    887068.98,
-                    971549.04,
-                    227921,
-                    230995,
-                    183635,
-                    238605,
-                    254186,
-                ],
-                index=pd.MultiIndex.from_tuples(
-                    [
-                        ("G1", "T1", pd.Timestamp(year=1979, month=1, day=1)),
-                        ("G1", "T1", pd.Timestamp(year=1980, month=1, day=1)),
-                        ("G1", "T1", pd.Timestamp(year=1981, month=1, day=1)),
-                        ("G1", "T1", pd.Timestamp(year=1982, month=1, day=1)),
-                        ("G1", "T1", pd.Timestamp(year=1983, month=1, day=1)),
-                        ("G1", "T1", pd.Timestamp(year=1984, month=1, day=1)),
-                        ("G1", "T1", pd.Timestamp(year=1985, month=1, day=1)),
-                        ("G1", "T2", pd.Timestamp(year=1979, month=1, day=1)),
-                        ("G1", "T2", pd.Timestamp(year=1980, month=1, day=1)),
-                        ("G1", "T2", pd.Timestamp(year=1981, month=1, day=1)),
-                        ("G2", "T3", pd.Timestamp(year=1973, month=1, day=1)),
-                        ("G2", "T3", pd.Timestamp(year=1974, month=1, day=1)),
-                        ("G2", "T3", pd.Timestamp(year=1975, month=1, day=1)),
-                        ("G2", "T3", pd.Timestamp(year=1976, month=1, day=1)),
-                        ("G2", "T3", pd.Timestamp(year=1977, month=1, day=1)),
-                    ],
-                    names=["series_group", "series_name", "timestamp"],
-                ),
-                columns=["series_value"],
-            ),
-        ),
-        (
-            "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
-            "pd-multiindex",
-            pd.DataFrame(
-                data=[
-                    25092.2284,
-                    24271.5134,
-                    25828.9883,
-                    27697.5047,
-                    27956.2276,
-                    29924.4321,
-                    30216.8321,
-                    887896.51,
-                    887068.98,
-                    971549.04,
-                    227921,
-                    230995,
-                    183635,
-                    238605,
-                    254186,
-                ],
-                index=pd.MultiIndex.from_tuples(
-                    [
-                        ("T1", pd.Timestamp(year=1979, month=1, day=1)),
-                        ("T1", pd.Timestamp(year=1980, month=1, day=1)),
-                        ("T1", pd.Timestamp(year=1981, month=1, day=1)),
-                        ("T1", pd.Timestamp(year=1982, month=1, day=1)),
-                        ("T1", pd.Timestamp(year=1983, month=1, day=1)),
-                        ("T1", pd.Timestamp(year=1984, month=1, day=1)),
-                        ("T1", pd.Timestamp(year=1985, month=1, day=1)),
-                        ("T2", pd.Timestamp(year=1979, month=1, day=1)),
-                        ("T2", pd.Timestamp(year=1980, month=1, day=1)),
-                        ("T2", pd.Timestamp(year=1981, month=1, day=1)),
-                        ("T3", pd.Timestamp(year=1973, month=1, day=1)),
-                        ("T3", pd.Timestamp(year=1974, month=1, day=1)),
-                        ("T3", pd.Timestamp(year=1975, month=1, day=1)),
-                        ("T3", pd.Timestamp(year=1976, month=1, day=1)),
-                        ("T3", pd.Timestamp(year=1977, month=1, day=1)),
-                    ],
-                    names=["series_name", "timestamp"],
-                ),
-                columns=["series_value"],
-            ),
-        ),
-        (
-            "datasets/data/UnitTest/UnitTest_Tsf_Loader_no_start_timestamp.tsf",
-            "default_tsf",
-            pd.DataFrame(
-                {
-                    "series_name": ["T1", "T2", "T3"],
-                    "series_value": [
-                        [
-                            25092.2284,
-                            24271.5134,
-                            25828.9883,
-                            27697.5047,
-                            27956.2276,
-                            29924.4321,
-                            30216.8321,
-                        ],
-                        [887896.51, 887068.98, 971549.04],
-                        [227921, 230995, 183635, 238605, 254186],
-                    ],
-                }
-            ),
-        ),
-        (
-            "datasets/data/UnitTest/UnitTest_Tsf_Loader_no_start_timestamp.tsf",
-            "pd-multiindex",
-            pd.DataFrame(
-                data=[
-                    25092.2284,
-                    24271.5134,
-                    25828.9883,
-                    27697.5047,
-                    27956.2276,
-                    29924.4321,
-                    30216.8321,
-                    887896.51,
-                    887068.98,
-                    971549.04,
-                    227921,
-                    230995,
-                    183635,
-                    238605,
-                    254186,
-                ],
-                index=pd.MultiIndex.from_tuples(
-                    [
-                        ("T1", 0),
-                        ("T1", 1),
-                        ("T1", 2),
-                        ("T1", 3),
-                        ("T1", 4),
-                        ("T1", 5),
-                        ("T1", 6),
-                        ("T2", 0),
-                        ("T2", 1),
-                        ("T2", 2),
-                        ("T3", 0),
-                        ("T3", 1),
-                        ("T3", 2),
-                        ("T3", 3),
-                        ("T3", 4),
-                    ],
-                    names=["series_name", "timestamp"],
-                ),
-                columns=["series_value"],
-            ),
-        ),
-    ],
-)
-def test_load_tsf_to_dataframe(input_path, return_type, output_df):
-    """Test function for loading tsf format."""
-    data_path = os.path.join(
-        os.path.dirname(aeon.__file__),
-        input_path,
-    )
-    expected_metadata = {
-        "frequency": "yearly",
-        "forecast_horizon": 4,
-        "contain_missing_values": False,
-        "contain_equal_length": False,
-    }
-
-    df, metadata = load_tsf_to_dataframe(data_path, return_type=return_type)
-    assert isinstance(df, pd.DataFrame)
-    assert isinstance(metadata, dict)
-    assert_frame_equal(df, output_df, check_dtype=False)
-    assert metadata == expected_metadata
-    # default_tsf"
-    #    assert check_is_mtype(obj=df, mtype=return_type)
-    if return_type == "default_tsf":
-        assert isinstance(df, pd.DataFrame)
-    elif return_type == "pd-multiindex":
-        assert isinstance(df.index, pd.MultiIndex)
-    elif return_type == "pd_multiindex_hier":
-        assert df.index.nlevels > 1
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
-def test_load_from_tsf_file():
-    """Test the tsf loader that has no conversions."""
-    data_path = os.path.join(
-        os.path.dirname(aeon.__file__),
-        "datasets/data/UnitTest/UnitTest_Tsf_Loader.tsf",
-    )
-    expected_metadata = {
-        "frequency": "yearly",
-        "forecast_horizon": 4,
-        "contain_missing_values": False,
-        "contain_equal_length": False,
-    }
-    df, metadata = load_from_tsf_file(data_path)
-    assert metadata == expected_metadata
-    assert df.shape == (3, 3)
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
-def test_load_forecasting():
-    """Test load forecasting for baked in data."""
-    expected_metadata = {
-        "frequency": "yearly",
-        "forecast_horizon": 6,
-        "contain_missing_values": False,
-        "contain_equal_length": False,
-    }
-    df, meta = load_forecasting("m1_yearly_dataset", return_metadata=True)
-    assert meta == expected_metadata
-    assert df.shape == (181, 3)
-    df = load_forecasting("m1_yearly_dataset", return_metadata=False)
-    assert df.shape == (181, 3)
 
 
 @pytest.mark.skipif(
@@ -728,95 +424,13 @@ def test_load_classification():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.parametrize("freq", [None, "YS"])
-def test_convert_tsf_to_multiindex(freq):
-    input_df = pd.DataFrame(
-        {
-            "series_name": ["T1", "T2", "T3"],
-            "start_timestamp": [
-                pd.Timestamp(year=1979, month=1, day=1),
-                pd.Timestamp(year=1979, month=1, day=1),
-                pd.Timestamp(year=1973, month=1, day=1),
-            ],
-            "series_value": [
-                [
-                    25092.2284,
-                    24271.5134,
-                    25828.9883,
-                    27697.5047,
-                    27956.2276,
-                    29924.4321,
-                    30216.8321,
-                ],
-                [887896.51, 887068.98, 971549.04],
-                [227921, 230995, 183635, 238605, 254186],
-            ],
-        }
-    )
-
-    output_df = pd.DataFrame(
-        data=[
-            25092.2284,
-            24271.5134,
-            25828.9883,
-            27697.5047,
-            27956.2276,
-            29924.4321,
-            30216.8321,
-            887896.51,
-            887068.98,
-            971549.04,
-            227921,
-            230995,
-            183635,
-            238605,
-            254186,
-        ],
-        index=pd.MultiIndex.from_tuples(
-            [
-                ("T1", pd.Timestamp(year=1979, month=1, day=1)),
-                ("T1", pd.Timestamp(year=1980, month=1, day=1)),
-                ("T1", pd.Timestamp(year=1981, month=1, day=1)),
-                ("T1", pd.Timestamp(year=1982, month=1, day=1)),
-                ("T1", pd.Timestamp(year=1983, month=1, day=1)),
-                ("T1", pd.Timestamp(year=1984, month=1, day=1)),
-                ("T1", pd.Timestamp(year=1985, month=1, day=1)),
-                ("T2", pd.Timestamp(year=1979, month=1, day=1)),
-                ("T2", pd.Timestamp(year=1980, month=1, day=1)),
-                ("T2", pd.Timestamp(year=1981, month=1, day=1)),
-                ("T3", pd.Timestamp(year=1973, month=1, day=1)),
-                ("T3", pd.Timestamp(year=1974, month=1, day=1)),
-                ("T3", pd.Timestamp(year=1975, month=1, day=1)),
-                ("T3", pd.Timestamp(year=1976, month=1, day=1)),
-                ("T3", pd.Timestamp(year=1977, month=1, day=1)),
-            ],
-            names=["series_name", "timestamp"],
-        ),
-        columns=["series_value"],
-    )
-
-    metadata = {
-        "frequency": "yearly",
-        "forecast_horizon": 4,
-        "contain_missing_values": False,
-        "contain_equal_length": False,
-    }
-
-    assert_frame_equal(
-        output_df,
-        _convert_tsf_to_hierarchical(input_df, metadata, freq=freq),
-        check_dtype=False,
-    )
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
 def test_load_from_ucr_tsv():
     """Test that GunPoint is the same when loaded from .ts and .tsv"""
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
-    data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.tsv"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/GunPoint/GunPoint_TRAIN.tsv",
+    )
     X2, y2 = load_from_tsv_file(data_path)
     y = y.astype(float)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
@@ -830,7 +444,10 @@ def test_load_from_ucr_tsv():
 def test_load_from_arff():
     """Test that GunPoint is the same when loaded from .ts and .arff"""
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
-    data_path = MODULE + "/" + DIRNAME + "/GunPoint/GunPoint_TRAIN.arff"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/GunPoint/GunPoint_TRAIN.arff",
+    )
     X2, y2 = load_from_arff_file(data_path)
     assert isinstance(X2, np.ndarray)
     assert isinstance(y2, np.ndarray)
@@ -839,8 +456,38 @@ def test_load_from_arff():
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
     assert np.array_equal(y, y2)
     X, y = _load_saved_dataset("BasicMotions", split="TRAIN")
-    data_path = MODULE + "/" + DIRNAME + "/BasicMotions/BasicMotions_TRAIN.arff"
+    data_path = os.path.join(
+        os.path.dirname(aeon.__file__),
+        "datasets/data/BasicMotions/BasicMotions_TRAIN.arff",
+    )
     X2, y2 = load_from_arff_file(data_path)
     assert isinstance(X, np.ndarray)
     assert isinstance(y2, np.ndarray)
     np.testing.assert_array_almost_equal(X, X2, decimal=4)
+
+
+def test__get_channel_strings():
+    line = "(2007-01-01 00:00:00,241.97),(2007-01-01 00:01:00,241.75):1"
+    channel_strings = _get_channel_strings(line)
+    assert len(channel_strings) == 2
+    assert channel_strings[0] == "241.97,241.75"
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_get_meta_data():
+    """Test the get_dataset_meta_data function."""
+    df = get_dataset_meta_data()
+    assert isinstance(df, pd.DataFrame)
+    df = get_dataset_meta_data(features="TrainSize")
+    assert df.shape[1] == 2
+    df = get_dataset_meta_data(data_names=["Adiac", "Chinatown"])
+    assert df.shape[0] == 2
+    df = get_dataset_meta_data(
+        data_names=["Adiac", "Chinatown"], features=["TestSize", "Channels"]
+    )
+    assert df.shape == (2, 3)
+    with pytest.raises(ValueError):
+        df = get_dataset_meta_data(url="FOOBAR")

@@ -247,10 +247,10 @@ def _np_list_transposed2D_array_and_len_list(
 
     Returns
     -------
-    np.array: 2D array of shape =
+    np.ndarray: 2D array of shape =
         [n_channels, sum(length_series(i) for i in n_instances)],
         np.float32
-    np.array: 1D array of shape = [n_instances]
+    np.ndarray: 1D array of shape = [n_instances]
         with length of each series, np.int32
 
     Raises

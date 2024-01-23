@@ -26,11 +26,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 
-#TSC results
-results/
-
-MANIFEST
-
 #downloaded datasets
 aeon/datasets/local_data/
 

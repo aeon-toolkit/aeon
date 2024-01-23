@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeon"
-version = "0.5.0"
+version = "0.6.0"
 description = "A toolkit for conducting machine learning tasks with time series data"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
@@ -68,7 +68,6 @@ all_extras = [
     "mne",
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
-    "pyod>=0.8.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
     "statsforecast>=0.5.2",
@@ -77,7 +76,7 @@ all_extras = [
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
     "tensorflow<2.16.0",
-    "tensorflow-probability<0.23.0",
+    "tensorflow-probability",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
@@ -87,7 +86,7 @@ all_extras = [
 dl = [
     "keras-self-attention",
     "tensorflow<2.16.0",
-    "tensorflow-probability<0.23.0",
+    "tensorflow-probability",
 ]
 unstable_extras = [
     "pycatch22<=0.4.3",  # known to fail installation on some setups
@@ -102,6 +101,7 @@ dev = [
     "pytest-randomly",
     "pytest-timeout",
     "pytest-xdist",
+    "pytest-rerunfailures",
     "wheel",
     "boto3",  # mlflow related
     "botocore",  # mlflow related
@@ -173,6 +173,8 @@ addopts = '''
     --timeout 600
     --showlocals
     --numprocesses auto
+    --reruns 2
+    --only-rerun "crashed while running"
 '''
 filterwarnings = '''
     ignore::UserWarning

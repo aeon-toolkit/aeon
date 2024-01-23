@@ -416,7 +416,7 @@ class ForecastingGridSearchCV(BaseGridSearch):
     >>> from aeon.forecasting.model_selection import ForecastingGridSearchCV
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> from aeon.forecasting.theta import ThetaForecaster
-    >>> from aeon.transformations.series.impute import Imputer
+    >>> from aeon.transformations.impute import Imputer
     >>> y = load_shampoo_sales()
     >>> pipe = TransformedTargetForecaster(steps=[
     ...     ("imputer", Imputer()),

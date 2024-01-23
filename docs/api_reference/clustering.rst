@@ -1,8 +1,7 @@
-
 .. _clustering_ref:
 
-Time series clustering
-======================
+Clustering
+==========
 
 The :mod:`aeon.clustering` module contains algorithms for time series clustering.
 

@@ -1,4 +1,4 @@
-__author__ = ["chrisholder", "TonyBagnall"]
+__author__ = ["chrisholder", "TonyBagnall", "akshatvishu"]
 
 from typing import Any, Callable, List, Tuple, Union
 
@@ -42,6 +42,7 @@ from aeon.distances._lcss import (
     lcss_pairwise_distance,
 )
 from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
+from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
 from aeon.distances._msm import (
     msm_alignment_path,
     msm_cost_matrix,
@@ -103,7 +104,8 @@ def distance(
     metric : str or Callable
         The distance metric to use.
         A list of valid distance metrics can be found in the documentation for
-        :func:`aeon.distances.get_distance_function`.
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
@@ -134,6 +136,8 @@ def distance(
         return euclidean_distance(x, y)
     elif metric == "manhattan":
         return manhattan_distance(x, y)
+    elif metric == "minkowski":
+        return minkowski_distance(x, y)
     elif metric == "dtw":
         return dtw_distance(x, y, kwargs.get("window"), kwargs.get("itakura_max_slope"))
     elif metric == "ddtw":
@@ -242,8 +246,9 @@ def pairwise_distance(
        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``
     metric : str or Callable
         The distance metric to use.
-        A list of valid pairwise distance metrics can be found in the documentation for
-        :func:`aeon.distances.get_pairwise_distance_function`.
+        A list of valid distance metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
         Extra arguments for metric. Refer to each metric documentation for a list of
         possible arguments.
@@ -292,6 +297,8 @@ def pairwise_distance(
         return euclidean_pairwise_distance(x, y)
     elif metric == "manhattan":
         return manhattan_pairwise_distance(x, y)
+    elif metric == "minkowski":
+        return minkowski_pairwise_distance(x, y)
     elif metric == "dtw":
         return dtw_pairwise_distance(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
@@ -445,9 +452,10 @@ def alignment_path(
         Second time series.
     metric : str
         The distance metric to use.
-        A list of valid alignment path metrics can be found in the documentation for
-        :func:`aeon.distances.get_alignment_path_function`.
-    kwargs : Any
+        A list of valid distance metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
+    kwargs : any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
 
@@ -579,8 +587,9 @@ def cost_matrix(
         Second time series.
     metric : str or Callable
         The distance metric to use.
-        A list of valid alignment path metrics can be found in the documentation for
-        :func:`aeon.distances.get_cost_matrix_function`.
+        A list of valid distance metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function` or by calling  the function
+        :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
         Arguments for metric. Refer to each metrics documentation for a list of
         possible arguments.
@@ -702,25 +711,53 @@ def cost_matrix(
         raise ValueError("Metric must be one of the supported strings")
 
 
+def get_distance_function_names() -> List[str]:
+    """Get a list of distance function names in aeon.
+
+    All distance function names have two associated functions:
+        name_distance
+        name_pairwise_distance
+    Elastic distances have two additional functions associated with them:
+        name_alignment_path
+        name_cost_matrix
+
+    Returns
+    -------
+    List[str]
+        List of distance function names in aeon.
+
+    Examples
+    --------
+    >>> from aeon.distances import get_distance_function_names
+    >>> names = get_distance_function_names()
+    >>> names[0]
+    'adtw'
+
+    """
+    return sorted(DISTANCES_DICT.keys())
+
+
 def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunction:
     """Get the distance function for a given metric string or callable.
 
     =============== ========================================
     metric          Distance Function
     =============== ========================================
-    'dtw'           distance.dtw_distance
-    'shape_dtw'     distance.shape_dtw_distance
-    'ddtw'          distance.ddtw_distance
-    'wdtw'          distance.wdtw_distance
-    'wddtw'         distance.wddtw_distance
-    'adtw'          distance.adtw_distance
-    'erp'           distance.erp_distance
-    'edr'           distance.edr_distance
-    'msm'           distance.msm_distance
-    'twe'           distance.twe_distance
-    'lcss'          distance.lcss_distance
-    'euclidean'     distance.euclidean_distance
-    'squared'       distance.squared_distance
+    'dtw'           distances.dtw_distance
+    'shape_dtw'     distances.shape_dtw_distance
+    'ddtw'          distances.ddtw_distance
+    'wdtw'          distances.wdtw_distance
+    'wddtw'         distances.wddtw_distance
+    'adtw'          distances.adtw_distance
+    'erp'           distances.erp_distance
+    'edr'           distances.edr_distance
+    'msm'           distances.msm_distance
+    'twe'           distances.twe_distance
+    'lcss'          distances.lcss_distance
+    'euclidean'     distances.euclidean_distance
+    'squared'       distances.squared_distance
+    'manhattan'     distances.manhattan_distance
+    'minkowski'     distances.minkowski_distance
     =============== ========================================
 
     Parameters
@@ -762,19 +799,21 @@ def get_pairwise_distance_function(
     =============== ========================================
     metric          Distance Function
     =============== ========================================
-    'dtw'           distance.dtw_pairwise_distance
-    'shape_dtw'     distance.shape_dtw_pairwise_distance
-    'ddtw'          distance.ddtw_pairwise_distance
-    'wdtw'          distance.wdtw_pairwise_distance
-    'wddtw'         distance.wddtw_pairwise_distance
-    'adtw'          distance.adtw_pairwise_distance
-    'erp'           distance.erp_pairwise_distance
-    'edr'           distance.edr_pairwise_distance
-    'msm'           distance.msm_pairiwse_distance
-    'twe'           distance.twe_pairwise_distance
-    'lcss'          distance.lcss_pairwise_distance
-    'euclidean'     distance.euclidean_pairwise_distance
-    'squared'       distance.squared_pairwise_distance
+    'dtw'           distances.dtw_pairwise_distance
+    'shape_dtw'     distances.shape_dtw_pairwise_distance
+    'ddtw'          distances.ddtw_pairwise_distance
+    'wdtw'          distances.wdtw_pairwise_distance
+    'wddtw'         distances.wddtw_pairwise_distance
+    'adtw'          distances.adtw_pairwise_distance
+    'erp'           distances.erp_pairwise_distance
+    'edr'           distances.edr_pairwise_distance
+    'msm'           distances.msm_pairiwse_distance
+    'twe'           distances.twe_pairwise_distance
+    'lcss'          distances.lcss_pairwise_distance
+    'euclidean'     distances.euclidean_pairwise_distance
+    'squared'       distances.squared_pairwise_distance
+    'manhattan'     distances.manhattan_pairwise_distance
+    'minkowski'     distances.minkowski_pairwise_distance
     =============== ========================================
 
     Parameters
@@ -817,17 +856,17 @@ def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
     =============== ========================================
     metric          Distance Function
     =============== ========================================
-    'dtw'           distance.dtw_alignment_path
-    'shape_dtw'     distance.shape_dtw_alignment_path
-    'ddtw'          distance.ddtw_alignment_path
-    'wdtw'          distance.wdtw_alignment_path
-    'wddtw'         distance.wddtw_alignment_path
-    'adtw'          distance.adtw_alignment_path
-    'erp'           distance.erp_alignment_path
-    'edr'           distance.edr_alignment_path
-    'msm'           distance.msm_alignment_path
-    'twe'           distance.twe_alignment_path
-    'lcss'          distance.lcss_alignment_path
+    'dtw'           distances.dtw_alignment_path
+    'shape_dtw'     distances.shape_dtw_alignment_path
+    'ddtw'          distances.ddtw_alignment_path
+    'wdtw'          distances.wdtw_alignment_path
+    'wddtw'         distances.wddtw_alignment_path
+    'adtw'          distances.adtw_alignment_path
+    'erp'           distances.erp_alignment_path
+    'edr'           distances.edr_alignment_path
+    'msm'           distances.msm_alignment_path
+    'twe'           distances.twe_alignment_path
+    'lcss'          distances.lcss_alignment_path
     =============== ========================================
 
     Parameters
@@ -865,17 +904,17 @@ def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
     =============== ========================================
     metric          Distance Function
     =============== ========================================
-    'dtw'           distance.dtw_cost_matrix
-    'shape_dtw'     distance.shape_dtw_cost_matrix
-    'ddtw'          distance.ddtw_cost_matrix
-    'wdtw'          distance.wdtw_cost_matrix
-    'wddtw'         distance.wddtw_cost_matrix
-    'adtw'          distance.adtw_cost_matrix
-    'erp'           distance.erp_cost_matrix
-    'edr'           distance.edr_cost_matrix
-    'msm'           distance.msm_cost_matrix
-    'twe'           distance.twe_cost_matrix
-    'lcss'          distance.lcss_cost_matrix
+    'dtw'           distances.dtw_cost_matrix
+    'shape_dtw'     distances.shape_dtw_cost_matrix
+    'ddtw'          distances.ddtw_cost_matrix
+    'wdtw'          distances.wdtw_cost_matrix
+    'wddtw'         distances.wddtw_cost_matrix
+    'adtw'          distances.adtw_cost_matrix
+    'erp'           distances.erp_cost_matrix
+    'edr'           distances.edr_cost_matrix
+    'msm'           distances.msm_cost_matrix
+    'twe'           distances.twe_cost_matrix
+    'lcss'          distances.lcss_cost_matrix
     =============== ========================================
 
     Parameters
@@ -935,6 +974,16 @@ DISTANCES = [
         "name": "squared",
         "distance": squared_distance,
         "pairwise_distance": squared_pairwise_distance,
+    },
+    {
+        "name": "manhattan",
+        "distance": manhattan_distance,
+        "pairwise_distance": manhattan_pairwise_distance,
+    },
+    {
+        "name": "minkowski",
+        "distance": minkowski_distance,
+        "pairwise_distance": minkowski_pairwise_distance,
     },
     {
         "name": "dtw",

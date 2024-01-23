@@ -16,7 +16,7 @@ from aeon.forecasting.model_selection import (
 )
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.transformations.compose import MultiplexTransformer
-from aeon.transformations.series.exponent import ExponentTransformer
+from aeon.transformations.exponent import ExponentTransformer
 from aeon.utils.validation.forecasting import check_scoring
 
 

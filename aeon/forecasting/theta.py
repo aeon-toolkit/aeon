@@ -15,8 +15,8 @@ from aeon.forecasting.compose._ensemble import _aggregate
 from aeon.forecasting.compose._pipeline import TransformedTargetForecaster
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.transformations.series.detrend import Deseasonalizer
-from aeon.transformations.series.theta import ThetaLinesTransformer
+from aeon.transformations.detrend import Deseasonalizer
+from aeon.transformations.theta import ThetaLinesTransformer
 from aeon.utils.slope_and_trend import _fit_trend
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_sp
@@ -226,9 +226,6 @@ class ThetaForecaster(ExponentialSmoothing):
         # we assume normal additive noise with sem variance
         for a in alpha:
             pred_quantiles[("Quantiles", a)] = y_pred + norm.ppf(a) * sem
-        # todo: should this not increase with the horizon?
-        # i.e., sth like norm.ppf(a) * sem * fh.to_absolute(cutoff) ?
-        # I've just refactored this so will leave it for now
 
         return pred_quantiles
 
@@ -298,7 +295,7 @@ class ThetaModularForecaster(BaseForecaster):
 
     Overview: Input :term:`univariate series <Univariate time series>` of length
     "n" and decompose with :class:`ThetaLinesTransformer
-    <aeon.transformations.series.theta>` by modifying the local curvature of
+    <aeon.transformations.theta>` by modifying the local curvature of
     the time series using Theta-coefficient values - `theta_values` parameter.
     Thansformation gives a pd.DataFrame of shape `len(input series) * len(theta)`.
 

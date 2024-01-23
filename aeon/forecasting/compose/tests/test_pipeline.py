@@ -26,18 +26,18 @@ from aeon.forecasting.model_selection import (
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.sarimax import SARIMAX
 from aeon.forecasting.trend import PolynomialTrendForecaster
+from aeon.testing.mock_estimators import MockForecaster
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
+from aeon.testing.utils.series import _make_series
+from aeon.transformations.adapt import TabularToSeriesAdaptor
+from aeon.transformations.boxcox import LogTransformer
 from aeon.transformations.compose import OptionalPassthrough
+from aeon.transformations.detrend import Detrender
+from aeon.transformations.difference import Differencer
+from aeon.transformations.exponent import ExponentTransformer
 from aeon.transformations.hierarchical.aggregate import Aggregator
-from aeon.transformations.series.adapt import TabularToSeriesAdaptor
-from aeon.transformations.series.boxcox import LogTransformer
-from aeon.transformations.series.detrend import Detrender
-from aeon.transformations.series.difference import Differencer
-from aeon.transformations.series.exponent import ExponentTransformer
-from aeon.transformations.series.impute import Imputer
-from aeon.transformations.series.outlier_detection import HampelFilter
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
-from aeon.utils._testing.series import _make_series
-from aeon.utils.estimators import MockForecaster
+from aeon.transformations.impute import Imputer
+from aeon.transformations.outlier_detection import HampelFilter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -105,12 +105,12 @@ def test_skip_inverse_transform():
 def test_nesting_pipelines():
     """Test that nesting of pipelines works."""
     from aeon.forecasting.ets import AutoETS
-    from aeon.transformations.compose import OptionalPassthrough
-    from aeon.transformations.series.boxcox import LogTransformer
-    from aeon.transformations.series.detrend import Detrender
-    from aeon.utils._testing.scenarios_forecasting import (
+    from aeon.testing.utils.scenarios_forecasting import (
         ForecasterFitPredictUnivariateWithX,
     )
+    from aeon.transformations.boxcox import LogTransformer
+    from aeon.transformations.compose import OptionalPassthrough
+    from aeon.transformations.detrend import Detrender
 
     pipe = ForecastingPipeline(
         steps=[

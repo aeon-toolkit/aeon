@@ -257,12 +257,14 @@ def twe_pairwise_distance(
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
-        A collection of time series instances.
+    X : np.ndarray
+        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
+        or ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        If None, then the twe pairwise distance between the instances of X is
+        calculated.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.

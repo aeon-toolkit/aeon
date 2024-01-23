@@ -18,10 +18,7 @@ import pandas as pd
 from numpy.testing import assert_array_equal
 
 from aeon.datatypes import check_is_scitype, get_examples, mtype_to_scitype
-from aeon.transformations.base import BaseTransformer
-from aeon.transformations.compose import FitInTransform
-from aeon.transformations.series.boxcox import BoxCoxTransformer
-from aeon.utils._testing.scenarios_transformers import (
+from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
     TransformerFitTransformHierarchicalUnivariate,
     TransformerFitTransformPanelUnivariate,
@@ -29,7 +26,10 @@ from aeon.utils._testing.scenarios_transformers import (
     TransformerFitTransformSeriesMultivariate,
     TransformerFitTransformSeriesUnivariate,
 )
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
+from aeon.transformations.base import BaseTransformer
+from aeon.transformations.boxcox import BoxCoxTransformer
+from aeon.transformations.compose import FitInTransform
 
 
 def inner_X_scitypes(est):
@@ -303,7 +303,7 @@ class _DummyThree(BaseTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
-        "X_inner_type": "np.ndarray",  # which mtypes do _fit/_predict support for X?
+        "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
     }
 
@@ -442,7 +442,7 @@ def test_vectorize_reconstruct_correct_hierarchy():
     ------
     AssertionError if output index is not as expected.
     """
-    from aeon.utils._testing.hierarchical import _make_hierarchical
+    from aeon.testing.utils.hierarchical import _make_hierarchical
 
     # hierarchical data with 2 variables and 2 levels
     X = _make_hierarchical(n_columns=2)
@@ -579,8 +579,8 @@ def test_vectorize_reconstruct_unique_columns():
     ------
     AssertionError if output columns are not as expected.
     """
-    from aeon.transformations.series.detrend import Detrender
-    from aeon.transformations.series.theta import ThetaLinesTransformer
+    from aeon.transformations.detrend import Detrender
+    from aeon.transformations.theta import ThetaLinesTransformer
 
     X = pd.DataFrame({"a": [1, 2], "b": [3, 4], "c": [5, 6]})
     X_mi = get_examples("pd_multiindex_hier")[0]

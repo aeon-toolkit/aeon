@@ -1,10 +1,10 @@
-.. _annotation_ref:
+.. _segmentation_ref:
 
-Time Series Segmentation
-========================
+Segmentation
+============
 
-Time Series Segmentation aims to discover regions of a time series that are
-semantically dissimilar to neighboring regions. The :mod:`aeon.segmentation` module
+Time series segmentation involves partitioning a series into regions
+that are dissimilar to neighboring regions. The :mod:`aeon.segmentation` module
 contains algorithms and tools for time series segmentation.
 
 .. currentmodule:: aeon.segmentation
@@ -13,6 +13,11 @@ contains algorithms and tools for time series segmentation.
     :toctree: auto_generated/
     :template: class.rst
 
-    ClaSPSegmentation
-    InformationGainSegmentation
-    GreedyGaussianSegmentation
+    BaseSegmenter
+    ClaSPSegmentater
+    InformationGainSegmenter
+    GreedyGaussianSegmenter
+    DummySegmenter
+    EAggloSegmenter
+    HMMSegmenter
+    HidalgoSegmenter
