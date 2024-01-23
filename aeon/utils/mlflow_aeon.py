@@ -47,6 +47,7 @@ import pickle
 
 import pandas as pd
 import yaml
+from deprecated.sphinx import deprecated
 
 import aeon
 from aeon import utils
@@ -83,6 +84,12 @@ SUPPORTED_SERIALIZATION_FORMATS = [
 _logger = logging.getLogger(__name__)
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="get_default_pip_requirements will be removed in v0.8.0.",
+    category=FutureWarning,
+)
 def get_default_pip_requirements(include_cloudpickle=False):
     """Create list of default pip requirements for MLflow Models.
 
@@ -102,6 +109,12 @@ def get_default_pip_requirements(include_cloudpickle=False):
     return pip_deps
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="get_default_conda_env will be removed in v0.8.0.",
+    category=FutureWarning,
+)
 def get_default_conda_env(include_cloudpickle=False):
     """Return default Conda environment for MLflow Models.
 
@@ -118,6 +131,12 @@ def get_default_conda_env(include_cloudpickle=False):
     )
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="save_model will be removed in v0.8.0.",
+    category=FutureWarning,
+)
 def save_model(
     estimator,
     path,
@@ -305,6 +324,12 @@ def save_model(
     _PythonEnv.current().to_yaml(os.path.join(path, _PYTHON_ENV_FILE_NAME))
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="log_model will be removed in v0.8.0.",
+    category=FutureWarning,
+)
 def log_model(
     estimator,
     artifact_path,
@@ -443,6 +468,12 @@ def log_model(
     )
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="load_model will be removed in v0.8.0.",
+    category=FutureWarning,
+)
 def load_model(model_uri, dst_path=None):
     """
     Load a aeon model from a local file or a run.
