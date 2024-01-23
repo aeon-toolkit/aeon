@@ -17,7 +17,7 @@ def test_weasel_train_estimate():
     weasel.fit(X_train, y_train)
     score = weasel.score(X_test, y_test)
 
-    assert isinstance(score, np.float_)
+    assert isinstance(score, np.float64)
     np.testing.assert_almost_equal(score, 0.727272, decimal=4)
 
 
@@ -32,5 +32,5 @@ def test_weasel_v2_train_estimate():
     weasel.fit(X_train, y_train)
     score = weasel.score(X_test, y_test)
 
-    assert isinstance(score, np.float_)
+    assert isinstance(score, np.float64)
     np.testing.assert_almost_equal(score, 0.90909, decimal=4)
