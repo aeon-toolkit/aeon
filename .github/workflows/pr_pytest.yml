@@ -41,7 +41,7 @@ jobs:
         run: |
           python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
           python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
-          python -m pytest --pyargs aeon.tests.test_softdeps
+          python -m pytest --pyargs aeon.testing.test_softdeps
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps

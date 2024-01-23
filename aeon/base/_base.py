@@ -82,7 +82,7 @@ class BaseObject(_BaseEstimator):
 
         Nested BaseObject descendants from get_params are compared via __eq__ as well.
         """
-        from aeon.utils._testing.deep_equals import deep_equals
+        from aeon.testing.utils.deep_equals import deep_equals
 
         if not isinstance(other, BaseObject):
             return False
@@ -410,7 +410,7 @@ class BaseObject(_BaseEstimator):
 
         Notes
         -----
-        Changes object state by settting tag values in tag_dict as dynamic tags
+        Changes object state by setting tag values in tag_dict as dynamic tags
         in self.
         """
         tag_update = deepcopy(tag_dict)

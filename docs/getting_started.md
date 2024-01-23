@@ -415,7 +415,7 @@ series and process unequal length collections.
 
 ```{code-block} python
 >>> from aeon.transformations.collection.pad import PaddingTransformer
->>> from aeon.utils._testing.collection import make_unequal_length_test_data
+>>> from aeon.testing.utils.collection import make_unequal_length_test_data
 >>> X, _ = make_unequal_length_test_data(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
 ...     min_series_length=8,

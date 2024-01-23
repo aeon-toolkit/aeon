@@ -6,16 +6,16 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.transformations.collection import (
-    BaseCollectionTransformer,
-    CollectionToSeriesWrapper,
-)
-from aeon.utils._testing.collection import (
+from aeon.testing.utils.collection import (
     make_2d_test_data,
     make_3d_test_data,
     make_unequal_length_test_data,
 )
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.series import _make_series
+from aeon.transformations.collection import (
+    BaseCollectionTransformer,
+    CollectionToSeriesWrapper,
+)
 
 
 @pytest.mark.parametrize(

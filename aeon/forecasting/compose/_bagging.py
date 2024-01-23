@@ -13,12 +13,12 @@ from sklearn.utils._testing import set_random_state
 from aeon.datatypes._utilities import update_data
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.ets import AutoETS
+from aeon.testing.mock_estimators import MockForecaster
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.bootstrap import (
     MovingBlockBootstrapTransformer,
     STLBootstrapTransformer,
 )
-from aeon.utils.estimators import MockForecaster
 
 
 class BaggingForecaster(BaseForecaster):
