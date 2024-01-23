@@ -29,11 +29,15 @@ algorithms.
 
 #### 2. Forecasting as time series regression
 
+Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
+
+##### Description
+
 Evaluate TSER algorithms for TSFR
 
 #### 3. Deep Learning for Time Series Forecasting
 
-Mentors : For deep learning side if am needed Ali Ismail-Fawaz (@hadifawaz1999) and ??
+Mentors: For deep learning side if am needed Ali Ismail-Fawaz (@hadifawaz1999) and ??
 
 ##### Description
 
@@ -44,13 +48,13 @@ to non-deep models
 
 #### 1. Optimizing the Shapelet Transform
 
-Mentors : Antoine Guillaume (@baraline)
+Mentors : Antoine Guillaume ({user}`baraline`)
 
 ##### Description
 
 A shapelet is defined as a time series subsequence representing a pattern of interest
-that we wish to search for in time series data. Shapelet-based algorithm can be used
-for a wide range of time series task, in this project, we will focus on its core
+that we wish to search for in time series data. Shapelet-based algorithms can be used
+for a wide range of time series tasks. In this project, we will focus on its core
 application, which is to create an embedding of the input time series.
 
 Our goal in this project will be to optimize the code related to the shapelet
@@ -67,16 +71,23 @@ in order to achieve significant speed-ups.
 
 ##### Project stages
 
-To achieve this goal, with the assistance of the mentor, we identify the following steps for the future GSoC Contributor:
+To achieve this goal, with the assistance of the mentor, we identify the following
+steps for the mentee:
 
 1. Learn about aeon best practices, coding standards and testing policies.
-2. Study the shapelet transform algorithm and how it is related to the task of similarity search.
-3. Study the similarity search algorithms for the Euclidean distance and the computational optimization they use.
-4. Propose a candidate implementation for to increase the performance of the computations made by a single shapelet. This can be made with the help of the existing implementation of the similarity search module in aeon.
-5. Measure the performance of this first candidate implementation against the current approach.
-6. Implement this solution to the shapelet transform algorithm, which use multiple shapelets.
+2. Study the shapelet transform algorithm and how it is related to the task of
+similarity search.
+3. Study the similarity search algorithms for the Euclidean distance and the
+computational optimization they use.
+4. Propose a candidate implementation for to increase the performance of the
+computations made by a single shapelet. This can be made with the help of the existing
+implementation of the similarity search module in `aeon`.
+5. Measure the performance of this first candidate implementation against the current
+approach.
+6. Implement this solution to the shapelet transform algorithm, which uses multiple
+shapelets.
 7. Benchmark the implementation against the original shapelet transform algorithm.
-8. If time, generalize this new algorithm to the case of dilated shapelets (see [5])
+8. If time, generalize this new algorithm to the case of dilated shapelets (see [5]).
 
 ##### Project evaluation
 
@@ -102,10 +113,13 @@ ICPRAI 2022.
 
 #### 2. Channel selection for classification
 
-Try some simple channel filters for high
-dimensional data
+Try some simple channel filters for high dimensional data
 
 #### 3. EEG classification: work on aeon-neuro
+
+Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
+
+##### Description
 
 Work on aeon-neuro, implement some of the recent EEG classification algorithms
 
@@ -119,21 +133,23 @@ Port in QUANT, assess for regression
 
 #### 1. Clustering: feature based or deep learning based algorithms
 
-Mentors : Tony Bagnall (@TonyBagnall) and Ali Ismail-Fawaz (@hadifawaz1999) @Chris?
+Mentors: Tony Bagnall ({user}`TonyBagnall`), Ali Ismail-Fawaz ({user}`hadifawaz1999`)
+and @Chris?
 
 ##### Description
 
 Implement and evaluate some of the recently proposed clustering algorithms
 
-The clustering module in Aeon, up until now, primarily consists of distance-based algorithms
-like kmeans, kmedoids, and clara, among others. Recently, we introduced an initial deep
-clustering module featuring an FCN auto-encoder, incorporating distance-based algorithms
-in the latent space. However, there is currently a shortage of feature-based clustering algorithms.
+The clustering module in `aeon`, up until now, primarily consists of distance-based
+algorithms like K-Means, K-Medoids, and Clara, among others. Recently, we introduced an
+initial deep clustering module featuring an FCN auto-encoder, incorporating
+distance-based algorithms in the latent space. However, there is currently a shortage
+of feature-based clustering algorithms.
 
-The objective of this project is to enhance Aeon by incorporating more deep learning approaches
-for time series clustering. This involves adapting the FCN auto-encoder to leverage the ResNet model.
-Additionally, the project aims to integrate feature-based algorithms for time series clustering into
-the system.
+The objective of this project is to enhance `aeon` by incorporating more deep learning
+approaches for time series clustering. This involves adapting the FCN auto-encoder to
+leverage the ResNet model. Additionally, the project aims to integrate feature-based
+algorithms for time series clustering into the system.
 
 ##### References
 
@@ -143,27 +159,38 @@ Discovery 36.1 (2022): 29-81.
 
 ### Anomaly detection
 
-#### 1. Anomaly detection with matrix profile
+#### 1. Anomaly detection with the Matrix Profile and Merlin
+
+Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
+
+##### Description
 
 Implement and evaluate matrix profile based anomaly detection
+
+##### Project stages
+
+##### Project evaluation
+
+##### References
 
 ### Segmentation
 
 #### 1. Time series segmentation
 
-Mentors : Tony Bagnall (@TonyBagnall) and ??
+Mentors: Tony Bagnall ({user}`TonyBagnall`) and ??
 
 ##### Description
 
-The time series segmentation module contains a range of algorithms for segmenting time series.
-The goal of this project is to extend the functionality of segmentation in aeon
-and develop tools for comparing segmentation algorithms.
+The time series segmentation module contains a range of algorithms for segmenting time
+series. The goal of this project is to extend the functionality of segmentation in
+`aeon` and develop tools for comparing segmentation algorithms.
 
 ##### Project stages
 
 1. Learn about aeon best practices, coding standards and testing policies.
-2. Study the existing segmentation algorithms in aeon.
-3. Implement exsiting segmentation algorithms, e.g. https://github.com/aeon-toolkit/aeon/issues/948
+2. Study the existing segmentation algorithms in `aeon`.
+3. Implement exsiting segmentation algorithms, e.g.
+https://github.com/aeon-toolkit/aeon/issues/948
 4. Implement tools for comparing segmentation algorithms, e.g.
 5. Conduct a bake off of segmentation algorithms on a range of datasets.
 
@@ -171,29 +198,29 @@ and develop tools for comparing segmentation algorithms.
 
 As with all research programming based projects, progress can be hindered by many
 unforseen circumstances. Success will be measured by engagement, effort and
-willingness to join the community.
+willingness to join the community rather than performance of the algorithms.
 
 ##### References
 
-[1] Allegra, Michele, et al. "Data segmentation based on the local intrinsic
+1. Allegra, Michele, et al. "Data segmentation based on the local intrinsic
 dimension." Scientific reports 10.1 (2020): 1-12.
-[2] Ermshaus, Arik, Sch"afer, Patrick and Leser, Ulf. ClaSP: parameter-free
-    time series segmentation. Data Mining and Knowledge Discovery, 37, 2023.
-[3]  Hallac, D., Nystrup, P. & Boyd, S.
-   "Greedy Gaussian segmentation of multivariate time series.",
-    Adv Data Anal Classif 13, 727–751 (2019).
-[4]  S. Matteson, David S., and Nicholas A. James. "A nonparametric approach for
-    multiple change point analysis of multivariate data." Journal of the American
-    Statistical Association 109.505 (2014): 334-345.
-[5] Sadri, Amin, Yongli Ren, and Flora D. Salim.
-       "Information gain-based metric for recognizing transitions in human activities.",
-       Pervasive and Mobile Computing, 38, 92-109, (2017).
+2. Ermshaus, Arik, Sch"afer, Patrick and Leser, Ulf. ClaSP: parameter-free
+time series segmentation. Data Mining and Knowledge Discovery, 37, 2023.
+3. Hallac, D., Nystrup, P. & Boyd, S. "Greedy Gaussian segmentation of multivariate
+time series.", Adv Data Anal Classif 13, 727–751 (2019).
+4. S. Matteson, David S., and Nicholas A. James. "A nonparametric approach for
+multiple change point analysis of multivariate data." Journal of the American
+Statistical Association 109.505 (2014): 334-345.
+5. Sadri, Amin, Yongli Ren, and Flora D. Salim. "Information gain-based metric for
+recognizing transitions in human activities.", Pervasive and Mobile Computing, 38,
+92-109, (2017).
 
 ### Transformation
 
 #### 1. ROCKET transformers
 
-Mentors : Ali Ismail-Fawaz (@hadifawaz1999) and ?
+Mentors: Ali Ismail-Fawaz ({user}`hadifawaz1999`) and Matthew Middlehurst
+({user}`MatthewMiddlehurst`)
 
 ##### Description
 
@@ -202,9 +229,3 @@ already started and have a TF-GPU ROCKET version, so maybe the internship can st
 cpu implementation ?
 
 Sort out the implementation of ROCKET transformers
-
-
-##### Description
-
-Implement and evaluate some models from the literature, maybe benchmark them as well
-to non-deep models
