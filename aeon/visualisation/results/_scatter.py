@@ -5,6 +5,7 @@ __author__ = ["dguijo"]
 __all__ = [
     "plot_pairwise_scatter",
     "plot_scatter_predictions",
+    "plot_score_vs_time_scatter",
 ]
 
 import warnings
@@ -13,27 +14,45 @@ import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
+accuracy_metrics = [
+    "accuracy",
+    "acc",
+    "balanced accuracy",
+    "balacc",
+    "R2",
+    "CCR",
+    "AUC",
+    "AUROC",
+    "F1",
+    "Kappa",
+    "AUPRC",
+]
+error_metrics = ["error", "LogLoss", "RMSE", "MSE", "MAE", "AMAE", "MAPE", "SMAPE"]
+
 
 def plot_pairwise_scatter(
-    results,
-    method_A,
-    method_B,
+    results_a,
+    results_b,
+    method_a,
+    method_b,
     metric="accuracy",
     lower_better=False,
     statistic_tests=True,
     title=None,
-    figsize=(10, 6),
+    figsize=(8, 8),
     color_palette="tab10",
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
     Parameters
     ----------
-    results : np.array
-        Scores (either accuracies or errors) of dataset x strategy.
-    method_A : str
+    results_a : np.array
+        Scores (either accuracies or errors) per dataset for the first approach.
+    results_b : np.array
+        Scores (either accuracies or errors) per dataset for the second approach.
+    method_a : str
         Method name of the first approach.
-    method_B : str
+    method_b : str
         Method name of the second approach.
     metric : str, default = "accuracy"
         Metric to be used for the comparison.
@@ -65,47 +84,56 @@ def plot_pairwise_scatter(
     >>> plot.savefig("scatterplot.pdf")  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
+
     import matplotlib.pyplot as plt
     import seaborn as sns
     from matplotlib.offsetbox import AnchoredText
 
     palette = sns.color_palette(color_palette, n_colors=3)
 
-    if results.shape[1] != 2:
-        raise ValueError("Please provide a results array only for 2 methods.")
+    if isinstance(results_a, list):
+        results_a = np.array(results_a)
+    if isinstance(results_b, list):
+        results_b = np.array(results_b)
+
+    if len(results_a.shape) != 1:
+        raise ValueError("results_a must be a 1D array.")
+    if len(results_b.shape) != 1:
+        raise ValueError("results_b must be a 1D array.")
 
     if statistic_tests:
         fig, ax = plt.subplots(figsize=figsize, gridspec_kw=dict(bottom=0.2))
     else:
         fig, ax = plt.subplots(figsize=figsize)
 
-    min_value = max(results.min() * 0.97, 0)
-    max_value = results.max() * 1.03
+    results_all = np.concatenate((results_a, results_b))
+    min_value = results_all.min() * 0.97
+    max_value = results_all.max() * 1.03
 
-    if metric in ["accuracy", "R2", "CCR", "AUC", "F1", "Kappa", "AUPRC"]:
+    if any([metric.lower() == i.lower() for i in accuracy_metrics]):
         max_value = min(max_value, 1.001)
         if lower_better:
-            raise ValueError("lower_better must be False when metric is 'accuracy'.")
-    elif metric in ["error", "RMSE", "MSE", "MAE", "AMAE", "MAPE", "SMAPE"]:
+            raise ValueError(f"lower_better must be False when metric is {metric}.")
+    elif any([metric.lower() == i.lower() for i in error_metrics]):
         if not lower_better:
-            raise ValueError("lower_better must be True when metric is 'error'.")
+            raise ValueError(f"lower_better must be True when metric is {metric}.")
 
     x, y = [min_value, max_value], [min_value, max_value]
-    plt.plot(x, y, color="black", alpha=0.5, zorder=1)
+    ax.plot(x, y, color="black", alpha=0.5, zorder=1)
 
     # Choose the appropriate order for the methods. Best method is shown in the y-axis.
-    if (results[:, 0].mean() <= results[:, 1].mean() and not lower_better) or (
-        results[:, 0].mean() >= results[:, 1].mean() and lower_better
+    if (results_a.mean() <= results_b.mean() and not lower_better) or (
+        results_a.mean() >= results_b.mean() and lower_better
     ):
-        first = results[:, 1]
-        first_method = method_B
-        second = results[:, 0]
-        second_method = method_A
+        first = results_b
+        first_method = method_b
+        second = results_a
+        second_method = method_a
     else:
-        first = results[:, 0]
-        first_method = method_A
-        second = results[:, 1]
-        second_method = method_B
+        first = results_a
+        first_method = method_a
+        second = results_b
+        second_method = method_b
 
     differences = [
         0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in zip(first, second)
@@ -130,7 +158,7 @@ def plot_pairwise_scatter(
     )
 
     # Draw the median value per method as a dashed line from 0 to the median value.
-    plt.plot(
+    ax.plot(
         [first_median, min_value] if not lower_better else [first_median, max_value],
         [first_median, first_median],
         linestyle="--",
@@ -138,7 +166,7 @@ def plot_pairwise_scatter(
         zorder=3,
     )
 
-    plt.plot(
+    ax.plot(
         [second_median, second_median],
         [second_median, min_value] if not lower_better else [second_median, max_value],
         linestyle="--",
@@ -224,10 +252,10 @@ def plot_pairwise_scatter(
 
     # Adding p-value if desired.
     if statistic_tests:
-        if np.all(results[:, 0] == results[:, 1]):
+        if np.all(results_a == results_b):
             # raise warning
             warnings.warn(
-                f"Estimators {method_A} and {method_B} have the same performance"
+                f"Estimators {method_a} and {method_b} have the same performance"
                 "on all datasets. This may cause problems when forming cliques.",
                 stacklevel=2,
             )
@@ -269,8 +297,7 @@ def plot_pairwise_scatter(
             ),
         )
 
-    fig.tight_layout()
-    return fig
+    return fig, ax
 
 
 def plot_scatter_predictions(
@@ -318,7 +345,17 @@ def plot_scatter_predictions(
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    fig = plt.figure(figsize=(10, 6), layout="tight")
+    if isinstance(y, list):
+        y = np.array(y)
+    if isinstance(y_pred, list):
+        y_pred = np.array(y_pred)
+
+    if len(y.shape) != 1:
+        raise ValueError("y must be a 1D array.")
+    if len(y_pred.shape) != 1:
+        raise ValueError("y_pred must be a 1D array.")
+
+    fig, ax = plt.subplots(figsize=(6, 6), layout="tight")
     min_value = min(y.min(), y_pred.min()) * 0.97
     max_value = max(y.max(), y_pred.max()) * 1.03
 
@@ -335,41 +372,64 @@ def plot_scatter_predictions(
     )
 
     # Setting x and y limits
-    plot.set_ylim(min_value, max_value)
-    plot.set_xlim(min_value, max_value)
+    ax.set_ylim(min_value, max_value)
+    ax.set_xlim(min_value, max_value)
 
     # Setting labels for x and y axis
-    plot.set_xlabel("Actual values")
-    plot.set_ylabel("Predicted values")
+    ax.set_xlabel("Actual values")
+    ax.set_ylabel("Predicted values")
 
     if title is not None:
         plot.set_title(rf"{title}")
 
-    return fig
+    return fig, ax
 
 
-def plot_score_vs_time_scatter(rank, time, names=None, title=None, log_time=False):
+def plot_score_vs_time_scatter(scores, time, names=None, title=None, log_time=False):
     """
-    Final version of the function that plots a scatter diagram of rank against time.
-    This version allows optional log scale for time and ensures that original time values are preserved on the axis.
+    Plot a scatter that compares scores and timings for a set of estimators.
 
-    :param rank: An array of ranks.
-    :param time: An array of time values.
-    :param names: An optional list of names for labeling each point.
-    :param title: An optional title for the plot. Defaults to 'Rank vs Time Scatter Plot'.
-    :param log_time: If True, plots time on a log10 scale, preserving original time values on the axis.
+    Parameters
+    ----------
+    scores : np.array
+        Scores achieved by the estimators.
+    time : np.array
+        Time taken by the estimators.
+    names : list, default=None
+        Names of the estimators.
+    title : str, default=None
+        Title to be shown in the top of the plot.
+    log_time : bool, default=False
+        If True, time will be plotted in log scale.
+
+    Returns
+    -------
+    fig: matplotlib.figure
+        Figure created.
     """
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
 
-    scatter = plt.scatter(time, rank, c=range(len(time)), marker="o")
+    if isinstance(scores, list):
+        scores = np.array(scores)
+    if isinstance(time, list):
+        time = np.array(time)
+
+    if len(scores.shape) != 1:
+        raise ValueError("rank must be a 1D array.")
+    if len(time.shape) != 1:
+        raise ValueError("time must be a 1D array.")
+
+    fig, ax = plt.subplots(figsize=(6, 6), layout="tight")
+
+    plt.scatter(time, scores, c=range(len(time)), marker="o")
 
     # Label points if names are provided
     if names is not None:
         for i, name in enumerate(names):
             plt.annotate(
                 name,
-                (time[i], rank[i]),
+                (time[i], scores[i]),
                 textcoords="offset points",
                 xytext=(0, 10),
                 ha="center",
@@ -377,11 +437,14 @@ def plot_score_vs_time_scatter(rank, time, names=None, title=None, log_time=Fals
 
     # Set x-axis to log scale if log_time is True
     if log_time:
-        plt.xscale("log")
-        plt.xlabel("Time (log scale)")
+        ax.set_xscale("log")
+        ax.set_xlabel("Time (log scale)")
     else:
-        plt.xlabel("Time")
+        ax.set_xlabel("Time")
 
-    plt.ylabel("Rank")
-    plt.title(title)
-    plt.show()
+    ax.set_ylabel("Rank")
+
+    if title is not None:
+        ax.set_title(title)
+
+    return fig, ax

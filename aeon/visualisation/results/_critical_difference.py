@@ -156,16 +156,22 @@ def plot_critical_difference(
 
     import matplotlib.pyplot as plt
 
+    if isinstance(scores, list):
+        scores = np.array(scores)
+
     n_datasets, n_estimators = scores.shape
     if isinstance(test, str):
         test = test.lower()
     if isinstance(correction, str):
         correction = correction.lower()
-    if return_p_values and test == "nemenyi":
+
+    p_values = None
+    if return_p_values and test != "wilcoxon":
         raise ValueError(
             "Cannot return p values for the Nemenyi test, since it does "
             "not calculate p-values."
         )
+
     # Step 1: rank data: in case of ties average ranks are assigned
     if lower_better:  # low is good -> rank 1
         ranks = rankdata(scores, axis=1)
@@ -213,7 +219,8 @@ def plot_critical_difference(
             raise ValueError("tests available are only nemenyi and wilcoxon.")
     # If Friedman test is not significant everything has to be one clique
     else:
-        p_values = np.triu(np.ones((n_estimators, n_estimators)))
+        if return_p_values and test == "wilcoxon":
+            p_values = _wilcoxon_test(ordered_scores, ordered_labels, lower_better)
         cliques = [[1] * n_estimators]
 
     # Step 6 create the diagram:
@@ -430,7 +437,6 @@ def plot_critical_difference(
     start = cline + 0.2
     side = -0.02 if reverse else 0.02
     height = 0.1
-    i = 1
     for clq in cliques:
         positions = np.where(np.array(clq) == 1)[0]
         min_idx = np.array(positions).min()
@@ -443,10 +449,11 @@ def plot_critical_difference(
             linewidth=linewidth_sign,
         )
         start += height
+
     if return_p_values:
-        return fig, p_values
+        return fig, ax, p_values
     else:
-        return fig
+        return fig, ax
 
 
 def _check_friedman(ranks):

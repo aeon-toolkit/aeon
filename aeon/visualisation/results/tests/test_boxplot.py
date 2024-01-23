@@ -17,11 +17,14 @@ data_path = os.path.join(
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("matplotlib", severity="none"),
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_plot_boxplot_median():
-    from matplotlib.figure import Figure
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
 
@@ -30,14 +33,25 @@ def test_plot_boxplot_median():
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
 
-    fig = plot_boxplot_median(res, cls, plot_type="violin")
-    assert isinstance(fig, Figure)
-    fig = plot_boxplot_median(res, cls, plot_type="boxplot", outliers=False)
-    assert isinstance(fig, Figure)
-    fig = plot_boxplot_median(res, cls, plot_type="swarm")
-    assert isinstance(fig, Figure)
-    fig = plot_boxplot_median(res, cls, plot_type="strip")
-    assert isinstance(fig, Figure)
+    fig, ax = plot_boxplot_median(res, cls, plot_type="violin")
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+    fig, ax = plot_boxplot_median(res, cls, plot_type="boxplot", outliers=False)
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+    fig, ax = plot_boxplot_median(res, cls, plot_type="swarm")
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+    fig, ax = plot_boxplot_median(res, cls, plot_type="strip")
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
     with pytest.raises(ValueError):
         plot_boxplot_median(res, cls, plot_type="error")
