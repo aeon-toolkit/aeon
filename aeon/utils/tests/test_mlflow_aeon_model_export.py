@@ -195,7 +195,10 @@ def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path
     model_predict_interval = auto_arima_model.predict_interval(coverage=[0.1, 0.9])
     model_predict_interval.columns = flatten_multiindex(model_predict_interval)
     model_predict_proba_dist = auto_arima_model.predict_proba()
-    model_predict_proba = pd.DataFrame(model_predict_proba_dist.ppf([0.1, 0.9]))
+    preds = []
+    preds.append(model_predict_proba_dist.ppf(0.1))
+    preds.append(model_predict_proba_dist.ppf(0.9))
+    model_predict_proba = pd.DataFrame(preds)
     # model_predict_proba.index = model_predict_proba_dist.parameters["loc"].index
     model_predict_quantiles = auto_arima_model.predict_quantiles(alpha=[0.1, 0.9])
     model_predict_quantiles.columns = flatten_multiindex(model_predict_quantiles)
