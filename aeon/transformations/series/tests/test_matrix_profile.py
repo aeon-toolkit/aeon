@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.transformations.series import MatrixProfileTransformer
+from aeon.transformations.series import MatrixProfileSeriesTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -14,7 +14,7 @@ def test_matrix_profile():
     """Test on example in stumpy documentation."""
     series = np.array([584.0, -11.0, 23.0, 79.0, 1001.0, 0.0, -19.0])
     series2 = pd.Series([584.0, -11.0, 23.0, 79.0, 1001.0, 0.0, -19.0])
-    mp = MatrixProfileTransformer(window_length=3)
+    mp = MatrixProfileSeriesTransformer(window_length=3)
     res1 = mp.fit_transform(series)
     res2 = mp.fit_transform(series2)
     expected = np.array(

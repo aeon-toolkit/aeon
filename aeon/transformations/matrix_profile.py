@@ -11,8 +11,8 @@ from aeon.transformations.base import BaseTransformer
 # TODO: remove in v0.8.0
 @deprecated(
     version="0.6.0",
-    reason="MatrixProfileTransformer will be removed from the base directory of "
-    "transformations in v0.8.0, it has been replaced by MatrixProfileTransformer"
+    reason="MatrixProfileSeriesTransformer will be removed from the base directory of "
+    "transformations in v0.8.0, it has been replaced by MatrixProfileSeriesTransformer"
     "in the transformations.series module.",
     category=FutureWarning,
 )
@@ -39,10 +39,10 @@ class MatrixProfileTransformer(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.matrix_profile import \
-    MatrixProfileTransformer
+    MatrixProfileSeriesTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> transformer = MatrixProfileTransformer()  # doctest: +SKIP
+    >>> transformer = MatrixProfileSeriesTransformer()  # doctest: +SKIP
     >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
     """
 
