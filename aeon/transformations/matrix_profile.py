@@ -39,10 +39,10 @@ class MatrixProfileTransformer(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.matrix_profile import \
-    MatrixProfileSeriesTransformer
+    MatrixProfileTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> transformer = MatrixProfileSeriesTransformer()  # doctest: +SKIP
+    >>> transformer = MatrixProfileTransformer()  # doctest: +SKIP
     >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
     """
 
