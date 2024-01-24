@@ -64,7 +64,7 @@ def test_plot_pairwise_scatter():
     res = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
-    fig = plot_pairwise_scatter(
+    fig, ax = plot_pairwise_scatter(
         1 - res[0],
         1 - res[1],
         cls[0],
@@ -77,7 +77,7 @@ def test_plot_pairwise_scatter():
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
-    fig = plot_pairwise_scatter(
+    fig, ax = plot_pairwise_scatter(
         1 - res[0],
         1 - res[1],
         cls[0],
