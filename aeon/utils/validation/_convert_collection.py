@@ -447,7 +447,7 @@ def _from_nested_univ_to_pd_multiindex(X):
     for c in nested_cols:
         X_col = X[[c]].explode(c)
         X_col = X_col.infer_objects()
-        idx_df = X[[c]].applymap(lambda x: x.index).explode(c)
+        idx_df = X[[c]].map(lambda x: x.index).explode(c)
         index = pd.MultiIndex.from_arrays([idx_df.index, idx_df[c].values])
         index = index.set_names([instance_index, time_index])
         X_col.index = index
