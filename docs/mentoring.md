@@ -127,6 +127,10 @@ Work on aeon-neuro, implement some of the recent EEG classification algorithms
 
 #### 1. QUANT transformer for regression
 
+Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
+
+##### Description
+
 Port in QUANT, assess for regression
 
 ### Clustering
@@ -189,7 +193,7 @@ series. The goal of this project is to extend the functionality of segmentation 
 
 1. Learn about aeon best practices, coding standards and testing policies.
 2. Study the existing segmentation algorithms in `aeon`.
-3. Implement exsiting segmentation algorithms, e.g.
+3. Implement existing segmentation algorithms, e.g.
 https://github.com/aeon-toolkit/aeon/issues/948
 4. Implement tools for comparing segmentation algorithms, e.g.
 5. Conduct a bake off of segmentation algorithms on a range of datasets.
@@ -217,15 +221,70 @@ recognizing transitions in human activities.", Pervasive and Mobile Computing, 3
 
 ### Transformation
 
-#### 1. ROCKET transformers
+#### 1. Improve ROCKET transformers
 
 Mentors: Ali Ismail-Fawaz ({user}`hadifawaz1999`) and Matthew Middlehurst
 ({user}`MatthewMiddlehurst`)
 
 ##### Description
 
-Note on mentoring: it would be more on making sure the code is more compact,
-already started and have a TF-GPU ROCKET version, so maybe the internship can stay with
-cpu implementation ?
+The ROCKET algorithm [1] is a very fast and accurate time series classification
+algorithm. It is based on a randomly initialised convolutional kernels that are applied
+to the time series and used to extract summary statistics. ROCKET has applications to
+time series classification, extrinsic regression and anomaly detection, but as a fast
+and unsupervised transformation, it has potential to a wide range of other time series
+tasks.
 
-Sort out the implementation of ROCKET transformers
+`aeon` has implementations of the ROCKET transformation and its variants, including
+MiniROCKET [2] and MultiROCKET [3]. However, these implementations have room for
+improvement ([#208](https://github.com/aeon-toolkit/aeon/issues/208)). There is scope
+to speed up the implementations, and the amount of varients is likely unnecessary and
+could be condensed into higher quality estimators.
+
+This projects involves improving the existing ROCKET implementations in `aeon` or
+implementing new ROCKET variants. The project will involve benchmarking to ensure that
+the new implementations are as fast and accurate as the original ROCKET algorithm and
+potentially to compare to other implementations ([#214](https://github.com/aeon-toolkit/aeon/issues/214)).
+Besides improving the existing implementations, there is scope to implement the HYDRA
+algorithm [4] or implement GPU compatible versions of the algorithms.
+
+##### Project stages
+
+1. Learn about `aeon` best practices, coding standards and testing policies.
+2. Study the ROCKET, MiniROCKET, MultiROCKET algorithms.
+3. Study the existing ROCKET implementations in `aeon`.
+4. Tidy up the existing ROCKET implementations in `aeon`, with the aim being to
+familiarise the mentee with the `aeon` pull request process.
+5. Implement one (or more) of the proposed ROCKET implementation improvements:
+   * Significantly alter the current ROCKET implementations with the goal of
+   speeding up the implementation on CPU processing.
+   * Implement a GPU version of some of the ROCKET transformers, using either
+   `tensorflow` or `pytorch`.
+   * Extend the existing ROCKET implementations to allow for the use of unequal length
+   series.
+   * Implement the HYDRA algorithm.
+6. Benchmark the implementation against the original ROCKET implementations, looking at
+booth speed of the transform and accuracy in a classification setting.
+
+##### Project evaluation
+
+Success of the project will be assessed by the quality of the code produced and an
+evaluation of the transformers in a classification setting. None of the implementations
+should significantly degrade the performance of the original ROCKET algorithm in terms
+of accuracy and speed. Regardless, effort and engagement with the project and the
+`aeon` community are more important factors in evaluating success.
+
+##### References
+
+1. Dempster, A., Petitjean, F. and Webb, G.I., 2020. ROCKET: exceptionally fast and
+accurate time series classification using random convolutional kernels.
+Data Mining and Knowledge Discovery, 34(5), pp.1454-1495.
+2. Dempster, A., Schmidt, D.F. and Webb, G.I., 2021, August. Minirocket: A very fast
+(almost) deterministic transform for time series classification. In Proceedings of the
+27th ACM SIGKDD conference on knowledge discovery & data mining (pp. 248-257).
+3. Tan, C.W., Dempster, A., Bergmeir, C. and Webb, G.I., 2022. MultiRocket: multiple
+pooling operators and transformations for fast and effective time series classification.
+Data Mining and Knowledge Discovery, 36(5), pp.1623-1646.
+4. Dempster, A., Schmidt, D.F. and Webb, G.I., 2023. Hydra: Competing convolutional
+kernels for fast and accurate time series classification. Data Mining and Knowledge
+Discovery, pp.1-27.
