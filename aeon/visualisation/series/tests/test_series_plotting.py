@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.series import VALID_DATA_TYPES
 from aeon.visualisation import plot_correlations, plot_lags, plot_series
@@ -29,14 +30,10 @@ univariate_plots = [plot_correlations, plot_lags]
 # Need to use _plot_series to make it easy for test cases to pass either a
 # single series or a tuple of multiple series to be unpacked as argss
 def _plot_series(series, ax=None, **kwargs):
-    if isinstance(series, tuple):
+    if isinstance(series, (tuple, list)):
         return plot_series(*series, ax=ax, **kwargs)
     else:
         return plot_series(series, ax=ax, **kwargs)
-
-
-# Can be used with pytest.mark.parametrize to run a test on all plots
-all_plots = univariate_plots + [_plot_series]
 
 
 @pytest.fixture
@@ -50,24 +47,53 @@ def valid_data_types():
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("series_to_plot", series_to_test)
-def test_plot_series_runs_without_error(series_to_plot):
+def test_plot_series():
     """Test whether plot_series runs without error."""
     import matplotlib
     import matplotlib.pyplot as plt
 
     matplotlib.use("Agg")
 
-    _plot_series(series_to_plot)
+    series = _make_series()
+
+    fig, ax = _plot_series(series)
     plt.gcf().canvas.draw_idle()
 
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
     # Test with labels specified
-    if isinstance(series_to_plot, pd.Series):
-        labels = ["Series 1"]
-    elif isinstance(series_to_plot, tuple):
-        labels = [f"Series {i+1}" for i in range(len(series_to_plot))]
-    _plot_series(series_to_plot, labels=labels)
+    fig, ax = _plot_series(series, labels=["Series 1"])
     plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+    plt.close()
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+def test_plot_series_multiple_series():
+    """Test whether plot_series runs without error with multiple series."""
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
+
+    series = [_make_series() for _ in range(3)]
+
+    fig, ax = _plot_series(series)
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+    # Test with labels specified
+    fig, ax = _plot_series(series, labels=[f"Series {i}" for i in range(3)])
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
     plt.close()
 
 
@@ -155,38 +181,18 @@ def test_plot_series_invalid_label_kwarg_len_raises_error(series_to_plot):
     reason="skip test if required soft dependency not available",
 )
 @pytest.mark.parametrize("series_to_plot", series_to_test)
-def test_plot_series_output_type(series_to_plot):
-    """Tests whether plot_series returns plt.fig and plt.ax."""
+def test_plot_series_existing_axes(series_to_plot):
+    """Tests whether plot_series works with existing axes as input."""
     import matplotlib
     import matplotlib.pyplot as plt
 
     matplotlib.use("Agg")
 
-    # Test output case where kwarg ax=None
-    fig, ax = _plot_series(series_to_plot)
-
-    is_fig_figure = isinstance(fig, plt.Figure)
-    is_ax_axis = isinstance(ax, plt.Axes)
-
-    assert is_fig_figure and is_ax_axis, "".join(
-        [
-            "plot_series with kwarg ax=None should return plt.Figure and plt.Axes,",
-            f"but returned: {type(fig)} and {type(ax)}",
-        ]
-    )
-
     # Test output case where an existing plt.Axes object is passed to kwarg ax
     fig, ax = plt.subplots(1, figsize=plt.figaspect(0.25))
     ax = _plot_series(series_to_plot, ax=ax)
 
-    is_ax_axis = isinstance(ax, plt.Axes)
-
-    assert is_ax_axis, "".join(
-        [
-            "plot_series with plt.Axes object passed to kwarg ax",
-            f"should return plt.Axes, but returned: {type(ax)}",
-        ]
-    )
+    assert isinstance(ax, plt.Axes)
 
 
 @pytest.mark.skipif(
@@ -206,12 +212,12 @@ def test_plot_series_uniform_treatment_of_int64_range_index_types():
     y2 = pd.Series(np.random.normal(size=10))
     y1.index = pd.Index(y1.index, dtype=int)
     y2.index = pd.RangeIndex(y2.index)
+
     plot_series(y1, y2)
     plt.gcf().canvas.draw_idle()
     plt.close()
 
 
-# Generically test whether plots only accepting univariate input run
 @pytest.mark.skipif(
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
@@ -219,19 +225,28 @@ def test_plot_series_uniform_treatment_of_int64_range_index_types():
 @pytest.mark.parametrize("series_to_plot", [y_airline])
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_run_without_error(series_to_plot, plot_func):
-    """Tests whether plots that accept univariate series run without error."""
+    """Tests whether plots that accept univariate series run without error.
+
+    Generically test whether plots only accepting univariate input and outputting
+    an array of axes run. Currently only plot_lags and plot_correlations are tested.
+    """
     import matplotlib
     import matplotlib.pyplot as plt
 
     matplotlib.use("Agg")
 
-    plot_func(series_to_plot)
+    fig, ax = plot_func(series_to_plot)
     plt.gcf().canvas.draw_idle()
+
+    assert (
+        isinstance(fig, plt.Figure)
+        and isinstance(ax, np.ndarray)
+        and all([isinstance(ax_, plt.Axes) for ax_ in ax])
+    )
+
     plt.close()
 
 
-# Generically test whether plots only accepting univariate input
-# raise an error when invalid input type is found
 @pytest.mark.skipif(
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
@@ -241,7 +256,12 @@ def test_univariate_plots_run_without_error(series_to_plot, plot_func):
 def test_univariate_plots_invalid_input_type_raises_error(
     series_to_plot, plot_func, valid_data_types
 ):
-    """Tests whether plots that accept univariate series run without error."""
+    """Tests whether plots that accept univariate series run without error.
+
+    Generically test whether plots only accepting univariate input raise an error when
+    invalid input type is found. Currently only plot_lags and plot_correlations are
+    tested.
+    """
     if not isinstance(series_to_plot, (pd.Series, pd.DataFrame)):
         series_type = type(series_to_plot)
         match = (
@@ -253,34 +273,6 @@ def test_univariate_plots_invalid_input_type_raises_error(
         match = "input must be univariate, but found 2 variables."
         with pytest.raises(ValueError, match=match):
             plot_func(series_to_plot)
-
-
-# Generically test output of plots only accepting univariate input
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-@pytest.mark.parametrize("series_to_plot", [y_airline])
-@pytest.mark.parametrize("plot_func", univariate_plots)
-def test_univariate_plots_output_type(series_to_plot, plot_func):
-    """Tests whether plots accepting univariate series have correct output types."""
-    import matplotlib
-    import matplotlib.pyplot as plt
-
-    matplotlib.use("Agg")
-
-    fig, ax = plot_func(series_to_plot)
-
-    is_fig_figure = isinstance(fig, plt.Figure)
-    is_ax_array = isinstance(ax, np.ndarray)
-    is_ax_array_axis = all([isinstance(ax_, plt.Axes) for ax_ in ax])
-
-    assert is_fig_figure and is_ax_array and is_ax_array_axis, "".join(
-        [
-            f"{plot_func.__name__} should return plt.Figure and array of plt.Axes,",
-            f"but returned: {type(fig)} and {type(ax)}",
-        ]
-    )
 
 
 # For plots that only accept univariate input, from here onwards are
@@ -310,7 +302,7 @@ def test_plot_lags_arguments(series_to_plot, lags):
 @pytest.mark.parametrize("series_to_plot", [y_airline])
 @pytest.mark.parametrize("lags", [6, 24])
 def test_plot_correlations_arguments(series_to_plot, lags):
-    """Tests whether plot_lags run with different input arguments."""
+    """Tests whether plot_correlations run with different input arguments."""
     import matplotlib
     import matplotlib.pyplot as plt
 

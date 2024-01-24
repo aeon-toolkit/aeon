@@ -8,6 +8,7 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
+from sklearn.utils import check_array
 
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.compose import ColumnEnsembleForecaster
@@ -17,9 +18,50 @@ from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.transformations.detrend import Deseasonalizer
 from aeon.transformations.theta import ThetaLinesTransformer
-from aeon.utils.slope_and_trend import _fit_trend
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_sp
+
+
+def _fit_trend(x, order=0):
+    """Fit linear regression with polynomial terms of given order.
+
+        x : array_like, shape=[n_samples, n_obs]
+        Time series data, each sample is fitted separately
+    order : int
+        The polynomial order of the trend, zero is constant (mean), one is
+        linear trend, two is quadratic trend, and so on.
+
+    Returns
+    -------
+    coefs : ndarray, shape=[n_samples, order + 1]
+        Fitted coefficients of polynomial order for each sample, one column
+        means order zero, two columns mean order 1
+        (linear), three columns mean order 2 (quadratic), etc
+
+    See Also
+    --------
+    add_trend
+    remove_trend
+    """
+    x = check_array(x)
+
+    if order == 0:
+        coefs = np.mean(x, axis=1).reshape(-1, 1)
+
+    else:
+        n_obs = x.shape[1]
+        index = np.arange(n_obs)
+        poly_terms = np.vander(index, N=order + 1)
+
+        # linear least squares fitting using numpy's optimised routine,
+        # assuming samples in columns
+        # coefs = np.linalg.pinv(poly_terms).dot(x.T).T
+        coefs, _, _, _ = np.linalg.lstsq(poly_terms, x.T, rcond=None)
+
+        # returning fitted coefficients in expected format with samples in rows
+        coefs = coefs.T
+
+    return coefs
 
 
 class ThetaForecaster(ExponentialSmoothing):
