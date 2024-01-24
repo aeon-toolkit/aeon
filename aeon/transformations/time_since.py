@@ -9,6 +9,7 @@ from string import digits
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_any_real_numeric_dtype
 from pandas.tseries.frequencies import get_period_alias
 
 from aeon.transformations.base import BaseTransformer
@@ -128,7 +129,7 @@ class TimeSince(BaseTransformer):
         """
         time_index = _get_time_index(X)
 
-        if time_index.is_numeric():
+        if is_any_real_numeric_dtype(time_index):
             if self.freq:
                 warnings.warn(
                     "Index is integer type. `freq` will be ignored.", stacklevel=2
@@ -185,7 +186,9 @@ class TimeSince(BaseTransformer):
                     f"Period index. Check that `start` is of type "
                     f"pd.Period or a pd.Period parsable string."
                 )
-            elif time_index.is_numeric() and not isinstance(start_, (int, np.integer)):
+            elif is_any_real_numeric_dtype(time_index) and not isinstance(
+                start_, (int, np.integer)
+            ):
                 raise ValueError(
                     f"start_={start_} incompatible with a numeric index."
                     f"Check that `start` is an integer."
@@ -272,7 +275,7 @@ class TimeSince(BaseTransformer):
                     # Compute time differences.
                     time_deltas = _get_period_diff_as_int(time_index, start_period)
 
-                elif time_index.is_numeric():
+                elif is_any_real_numeric_dtype(time_index):
                     time_deltas = time_index - start_
             else:
                 time_deltas = time_index - start_
