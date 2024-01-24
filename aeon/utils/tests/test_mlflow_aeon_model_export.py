@@ -180,7 +180,6 @@ def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path
         "predict_method": {
             "predict": {},
             "predict_interval": {"coverage": [0.1, 0.9]},
-            "predict_proba": {"quantiles": [0.1, 0.9], "marginal": True},
             "predict_quantiles": {"alpha": [0.1, 0.9]},
             "predict_var": {"cov": True},
         }
@@ -194,12 +193,6 @@ def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path
     model_predict = auto_arima_model.predict()
     model_predict_interval = auto_arima_model.predict_interval(coverage=[0.1, 0.9])
     model_predict_interval.columns = flatten_multiindex(model_predict_interval)
-    model_predict_proba_dist = auto_arima_model.predict_proba()
-    preds = []
-    preds.append(model_predict_proba_dist.ppf(0.1))
-    preds.append(model_predict_proba_dist.ppf(0.9))
-    model_predict_proba = pd.DataFrame(preds)
-    # model_predict_proba.index = model_predict_proba_dist.parameters["loc"].index
     model_predict_quantiles = auto_arima_model.predict_quantiles(alpha=[0.1, 0.9])
     model_predict_quantiles.columns = flatten_multiindex(model_predict_quantiles)
     model_predict_var = auto_arima_model.predict_var(cov=True)
@@ -207,7 +200,6 @@ def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path
         [
             model_predict,
             model_predict_interval,
-            model_predict_proba,
             model_predict_quantiles,
             model_predict_var,
         ],
@@ -215,7 +207,6 @@ def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path
         keys=[
             "model_predict",
             "model_predict_interval",
-            "model_predict_proba",
             "model_predict_quantiles",
             "model_predict_var",
         ],
@@ -237,7 +228,6 @@ def test_auto_arima_model_pyfunc_without_params_output(auto_arima_model, model_p
         "predict_method": {
             "predict": {},
             "predict_interval": {},
-            "predict_proba": {"quantiles": [0.1, 0.9]},
             "predict_quantiles": {},
             "predict_var": {},
         }
@@ -251,9 +241,6 @@ def test_auto_arima_model_pyfunc_without_params_output(auto_arima_model, model_p
     model_predict = auto_arima_model.predict()
     model_predict_interval = auto_arima_model.predict_interval()
     model_predict_interval.columns = flatten_multiindex(model_predict_interval)
-    model_predict_proba_dist = auto_arima_model.predict_proba()
-    model_predict_proba = pd.DataFrame(model_predict_proba_dist.ppf([0.1, 0.9]))
-    # model_predict_proba.index = model_predict_proba_dist.parameters["loc"].index
     model_predict_quantiles = auto_arima_model.predict_quantiles()
     model_predict_quantiles.columns = flatten_multiindex(model_predict_quantiles)
     model_predict_var = auto_arima_model.predict_var()
@@ -261,7 +248,6 @@ def test_auto_arima_model_pyfunc_without_params_output(auto_arima_model, model_p
         [
             model_predict,
             model_predict_interval,
-            model_predict_proba,
             model_predict_quantiles,
             model_predict_var,
         ],
@@ -269,7 +255,6 @@ def test_auto_arima_model_pyfunc_without_params_output(auto_arima_model, model_p
         keys=[
             "model_predict",
             "model_predict_interval",
-            "model_predict_proba",
             "model_predict_quantiles",
             "model_predict_var",
         ],
@@ -666,53 +651,5 @@ def test_pyfunc_raises_invalid_dict_value(auto_arima_model, model_path):
     with pytest.raises(
         MlflowException,
         match=f"The provided {mlflow_aeon.PYFUNC_PREDICT_CONF_KEY} values must be ",
-    ):
-        loaded_pyfunc.predict(pd.DataFrame())
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("mlflow", severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_pyfunc_predict_proba_raises_invalid_attribute_type(
-    auto_arima_model, model_path
-):
-    """Test pyfunc predict_proba raises exception with invalid attribute type."""
-    from mlflow.exceptions import MlflowException
-
-    from aeon.utils import mlflow_aeon
-
-    auto_arima_model.pyfunc_predict_conf = {"predict_method": ["predict_proba"]}
-    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
-    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
-
-    with pytest.raises(
-        MlflowException,
-        match=f"Method {mlflow_aeon.AEON_PREDICT_PROBA} requires passing a "
-        f"dictionary.",
-    ):
-        loaded_pyfunc.predict(pd.DataFrame())
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("mlflow", severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_pyfunc_predict_proba_raises_invalid_dict_value(auto_arima_model, model_path):
-    """Test pyfunc predict_proba raises exception with invalid dict value."""
-    from mlflow.exceptions import MlflowException
-
-    from aeon.utils import mlflow_aeon
-
-    auto_arima_model.pyfunc_predict_conf = {
-        "predict_method": {"predict_proba": {"marginal": True}}
-    }
-    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
-    loaded_pyfunc = mlflow_aeon.pyfunc.load_model(model_uri=model_path)
-
-    with pytest.raises(
-        MlflowException,
-        match=f"Method {mlflow_aeon.AEON_PREDICT_PROBA} requires passing "
-        f"quantile values.",
     ):
         loaded_pyfunc.predict(pd.DataFrame())
