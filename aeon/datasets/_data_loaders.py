@@ -794,7 +794,7 @@ def load_from_tsf_file(
                                 else:
                                     contain_missing_values = False
                             elif line.startswith("@equallength"):
-                                if line_content[1].lower == "false":
+                                if line_content[1].lower() == "false":
                                     contain_equal_length = False
                                 else:
                                     contain_equal_length = True
