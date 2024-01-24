@@ -15,8 +15,8 @@ __author__ = ["hadifawaz1999"]
     not _check_soft_dependencies("tensorflow", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_dummy_deep_clusterer():
-    with tempfile.TemporaryDirectory():
+def test_base_deep_clusterer():
+    with tempfile.TemporaryDirectory() as tmp:
         last_file_name = "temp"
         # create a dummy deep classifier
         dummy_deep_clr = MockDeepClusterer(last_file_name=last_file_name)
@@ -25,7 +25,7 @@ def test_dummy_deep_clusterer():
         # test fit function on random data
         dummy_deep_clr.fit(X=X)
         # test save last model to file than delete it
-        dummy_deep_clr.save_last_model_to_file()
+        dummy_deep_clr.save_last_model_to_file(file_path=tmp)
 
         # test summary of model
         assert dummy_deep_clr.summary() is not None
