@@ -9,7 +9,7 @@ ALL_CLUSTERERS = all_estimators("clusterer", return_names=False)
 
 
 @pytest.mark.parametrize("clst", ALL_CLUSTERERS)
-def test_classifier_tags_consistent(clst):
+def test_clusterer_tags_consistent(clst):
     """Test all estimators capability tags reflect their capabilities."""
     if not soft_deps_installed(clst):
         return

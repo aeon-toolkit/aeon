@@ -369,6 +369,6 @@ class TimeSeriesKMeans(BaseClusterer):
             "n_clusters": 2,
             "distance": "euclidean",
             "n_init": 1,
-            "max_iter": 10,
+            "max_iter": 1,
             "random_state": 0,
         }
