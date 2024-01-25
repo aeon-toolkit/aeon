@@ -72,7 +72,7 @@ COMPOSITE_ESTIMATORS = [
         ]
     ),
     CalibratedClassifierCV(
-        base_estimator=CanonicalIntervalForestClassifier.create_test_instance(),
+        estimator=CanonicalIntervalForestClassifier.create_test_instance(),
         cv=3,
     ),
 ]
