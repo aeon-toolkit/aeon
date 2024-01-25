@@ -315,7 +315,7 @@ def test_get_duration(n_timepoints, index_type):
             _make_index(n_timepoints, index_type)
 
 
-FIXED_FREQUENCY_STRINGS = ["10T", "H", "D", "2D"]
+FIXED_FREQUENCY_STRINGS = ["10min", "h", "D", "2D"]
 NON_FIXED_FREQUENCY_STRINGS = ["W-WED", "W-SUN", "W-SAT", "M"]
 FREQUENCY_STRINGS = [*FIXED_FREQUENCY_STRINGS, *NON_FIXED_FREQUENCY_STRINGS]
 
@@ -328,7 +328,7 @@ def test_to_absolute_freq(freqstr):
     fh = ForecastingHorizon([1, 2, 3])
 
     abs_fh = fh.to_absolute(cutoff)
-    assert abs_fh._values.freqstr == freqstr
+    assert abs_fh._values.freqstr == "ME" if freqstr == "M" else freqstr
 
 
 @pytest.mark.parametrize("freqstr", FREQUENCY_STRINGS)
@@ -342,7 +342,7 @@ def test_absolute_to_absolute_with_integer_horizon(freqstr):
 
     converted_abs_fh = abs_fh.to_relative(cutoff).to_absolute(cutoff)
     assert_array_equal(abs_fh, converted_abs_fh)
-    assert converted_abs_fh._values.freqstr == freqstr
+    assert converted_abs_fh._values.freqstr == "ME" if freqstr == "M" else freqstr
 
 
 @pytest.mark.parametrize("freqstr", FIXED_FREQUENCY_STRINGS)
@@ -464,10 +464,10 @@ def test_frequency_setter(freqstr):
     assert fh.freq is None
 
     fh.freq = freqstr
-    assert fh.freq == freqstr
+    assert fh.freq == "ME" if freqstr == "M" else freqstr
 
     fh = ForecastingHorizon([1, 2, 3], freq=freqstr)
-    assert fh.freq == freqstr
+    assert fh.freq == "ME" if freqstr == "M" else freqstr
 
 
 def test_special_case_failure1():
