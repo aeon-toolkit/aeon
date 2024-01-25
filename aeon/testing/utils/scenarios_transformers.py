@@ -16,10 +16,14 @@ import pandas as pd
 
 from aeon.base import BaseObject
 from aeon.datatypes import mtype_to_scitype
-from aeon.testing.utils.collection import _make_classification_y, _make_collection_X
-from aeon.testing.utils.estimator_checks import _make_primitives, _make_tabular_X
-from aeon.testing.utils.forecasting import make_series
-from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.data_gen import (
+    _make_classification_y,
+    _make_collection_X,
+    _make_hierarchical,
+    _make_primitives,
+    _make_tabular_X,
+    make_series,
+)
 from aeon.testing.utils.scenarios import TestScenario
 from aeon.transformations.collection.base import BaseCollectionTransformer
 

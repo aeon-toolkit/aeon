@@ -11,8 +11,7 @@ from aeon.performance_metrics.forecasting import (
     _classes,
     make_forecasting_scorer,
 )
-from aeon.testing.utils.data_gen import make_series
-from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.data_gen import _make_hierarchical, make_series
 
 metric_classes = getmembers(_classes, isclass)
 

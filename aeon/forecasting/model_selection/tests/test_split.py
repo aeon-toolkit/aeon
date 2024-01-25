@@ -27,9 +27,7 @@ from aeon.forecasting.tests import (
     TEST_YS,
     VALID_INDEX_FH_COMBINATIONS,
 )
-from aeon.testing.utils.data_gen import make_series
-from aeon.testing.utils.forecasting import _make_fh
-from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.data_gen import _make_fh, _make_hierarchical, make_series
 from aeon.utils.datetime import _coerce_duration_to_int
 from aeon.utils.validation import (
     array_is_datetime64,

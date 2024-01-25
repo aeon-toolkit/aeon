@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
-from aeon.testing.utils.collection import make_2d_test_data
+from aeon.testing.utils.data_gen import make_2d_test_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["hadifawaz1999"]

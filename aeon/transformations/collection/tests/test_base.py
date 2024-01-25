@@ -6,12 +6,12 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.testing.utils.collection import (
+from aeon.testing.utils.data_gen import (
     make_2d_test_data,
     make_3d_test_data,
+    make_series,
     make_unequal_length_test_data,
 )
-from aeon.testing.utils.data_gen import make_series
 from aeon.transformations.collection import (
     BaseCollectionTransformer,
     CollectionToSeriesWrapper,

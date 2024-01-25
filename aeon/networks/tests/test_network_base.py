@@ -1,7 +1,7 @@
 import pytest
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.testing.utils.collection import make_3d_test_data
+from aeon.testing.utils.data_gen import make_3d_test_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["hadifawaz1999"]

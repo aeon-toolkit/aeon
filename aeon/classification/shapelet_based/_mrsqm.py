@@ -63,7 +63,7 @@ class MrSQMClassifier(BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.shapelet_based import MrSQMClassifier
-    >>> from aeon.testing.utils.collection import make_3d_test_data
+    >>> from aeon.testing.utils.data_gen import make_3d_test_data
     >>> X, y = make_3d_test_data(random_state=0)
     >>> clf = MrSQMClassifier(random_state=0) # doctest: +SKIP
     >>> clf.fit(X, y) # doctest: +SKIP

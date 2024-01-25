@@ -5,8 +5,8 @@ __all__ = []
 
 from sklearn.utils import check_random_state
 
-from aeon.annotation.datagen import piecewise_poisson
 from aeon.testing.utils.data_gen import make_series
+from aeon.testing.utils.data_gen.segmentation import piecewise_poisson
 
 
 def make_annotation_problem(
