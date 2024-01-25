@@ -13,6 +13,10 @@ def test_clusterer_tags_consistent(clst):
     """Test all estimators capability tags reflect their capabilities."""
     if not soft_deps_installed(clst):
         return
+    # Skip the MockDeepClusterer, its for testing only
+    if clst.__name__ == "MockDeepClusterer":
+        return
+
     # Test the tag X_inner_type is consistent with capability:unequal_length
     unequal_length = clst.get_class_tag("capability:unequal_length")
     valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
