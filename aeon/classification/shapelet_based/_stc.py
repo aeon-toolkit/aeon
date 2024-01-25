@@ -14,7 +14,6 @@ from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
 from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
-from aeon.utils.validation.panel import check_X_y
 
 
 class ShapeletTransformClassifier(BaseClassifier):
@@ -82,7 +81,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         The time (in milliseconds) for ``fit`` to run.
     n_instances_ : int
         The number of train cases in the training set.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case in the training set.
     series_length_ : int
         The length of each series in the training set.
@@ -164,7 +163,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         self.n_jobs = n_jobs
 
         self.n_instances_ = 0
-        self.n_dims_ = 0
+        self.n_channels_ = 0
         self.series_length_ = 0
         self.transformed_data_ = []
 
@@ -195,7 +194,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_instances_, self.n_channels_, self.series_length_ = X.shape
 
         if self.time_limit_in_minutes > 0:
             # contracting 2/3 transform (with 1/5 of that taken away for final
@@ -286,17 +285,13 @@ class ShapeletTransformClassifier(BaseClassifier):
 
     def _get_train_probs(self, X, y) -> np.ndarray:
         self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_pandas=True)
-
-        n_instances, n_dims = X.shape
-
-        if n_instances != self.n_instances_ or n_dims != self.n_dims_:
+        n_instances, n_channels, _ = X.shape
+        if n_instances != self.n_instances_ or n_channels != self.n_channels_:
             raise ValueError(
                 "n_instances, n_dims mismatch. X should be "
                 "the same as the training data used in fit for generating train "
                 "probabilities."
             )
-
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 

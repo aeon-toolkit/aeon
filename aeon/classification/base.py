@@ -29,9 +29,11 @@ from typing import final
 
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
+from aeon.base._base import _clone_estimator
 from aeon.utils.sklearn import is_sklearn_transformer
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import get_n_cases
@@ -222,6 +224,41 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         X = self._preprocess_collection(X)
         return self._predict_proba(X)
 
+    @final
+    def get_train_probs(self, X, y) -> np.ndarray:
+        """Predicts class label probabilities for time series in train set X.
+
+        Default behaviour is to estimate probabilities using 10x cross-validation.
+        Bespoke behaviour implemented through overriding method _get_train_probs.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. other types are
+            allowed and converted into one of the above.
+
+        Returns
+        -------
+        np.ndarray
+            2D array of shape ``(n_cases, n_classes)`` - predicted class probabilities
+            First dimension indices correspond to instance indices in X,
+            second dimension indices correspond to class labels, (i, j)-th entry is
+            estimated probability that i-th instance is of class j
+        """
+        # handle the single-class-label case
+        if len(self._class_dictionary) == 1:
+            n_instances = get_n_cases(X)
+            return np.repeat([[1]], n_instances, axis=0)
+        X = self._preprocess_collection(X)
+        y = self._check_y(y, self.metadata_["n_cases"])
+        return self._get_train_probs(X, y)
+
     def score(self, X, y) -> float:
         """Scores predicted labels against ground truth labels on X.
 
@@ -353,6 +390,23 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             dists[i, self._class_dictionary[preds[i]]] = 1
 
         return dists
+
+    def _get_train_probs(self, X, y) -> np.ndarray:
+        """By default do a 10x CV on train."""
+        cv_size = 10
+        _, counts = np.unique(y, return_counts=True)
+        min_class = np.min(counts)
+        if min_class < cv_size:
+            cv_size = min_class
+        estimator = _clone_estimator(self, self.random_state)
+        return cross_val_predict(
+            estimator,
+            X=X,
+            y=y,
+            cv=cv_size,
+            method="predict_proba",
+            n_jobs=self._n_jobs,
+        )
 
     def _check_y(self, y, n_cases):
         # Check y valid input for classification task
