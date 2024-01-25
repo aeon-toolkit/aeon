@@ -164,8 +164,8 @@ class HampelFilter(BaseTransformer):
 def _hampel_filter(Z, cv, n_sigma, half_window_length, k):
     for i in cv.split(Z):
         cv_window = i[0]
-        cv_median = np.nanmedian(Z[cv_window])
-        cv_sigma = k * np.nanmedian(np.abs(Z[cv_window] - cv_median))
+        cv_median = np.nanmedian(Z.iloc[cv_window])
+        cv_sigma = k * np.nanmedian(np.abs(Z.iloc[cv_window] - cv_median))
 
         # find outliers at start and end of z
         if (

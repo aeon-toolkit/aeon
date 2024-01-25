@@ -38,7 +38,7 @@ __all__ = [
 ]
 
 if not PR_TESTING:
-    from aeon.forecasting.tests.test_config_full import (
+    from aeon.testing._forecasting_config_full import (
         INDEX_TYPE_LOOKUP,
         TEST_ALPHAS,
         TEST_CUTOFFS,
@@ -69,7 +69,7 @@ if not PR_TESTING:
         VALID_INDEX_FH_COMBINATIONS,
     )
 else:
-    from aeon.forecasting.tests.test_config import (
+    from aeon.testing._forecasting_config import (
         INDEX_TYPE_LOOKUP,
         TEST_ALPHAS,
         TEST_CUTOFFS,

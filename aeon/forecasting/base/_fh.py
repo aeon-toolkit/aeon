@@ -737,7 +737,8 @@ def _to_absolute(fh: ForecastingHorizon, cutoff) -> ForecastingHorizon:
                 [pd.PeriodIndex([cutoff]).shift(x)[0] for x in relative]
             )
             # coerce back to DatetimeIndex after operation
-            absolute = absolute.to_timestamp(fh.freq)
+            freq = "M" if fh.freq == "ME" else fh.freq
+            absolute = absolute.to_timestamp(freq)
         else:
             absolute = cutoff + relative
 
@@ -788,8 +789,9 @@ def _coerce_to_period(x, freq=None):
     index : pd.Period or pd.PeriodIndex
         Index or index element coerced to period based format.
     """
+    freq = "M" if freq == "ME" else freq
+
     if isinstance(x, pd.Timestamp) and freq is None:
-        freq = x.freq
         raise ValueError(
             "_coerce_to_period requires freq argument to be passed if x is pd.Timestamp"
         )

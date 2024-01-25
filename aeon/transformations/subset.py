@@ -83,7 +83,7 @@ class IndexSubset(BaseTransformer):
             Xt = X.loc[ind_X_and_y]
         elif index_treatment == "keep":
             Xt = X.loc[ind_X_and_y]
-            y_idx_frame = type(X)(index=y.index)
+            y_idx_frame = type(X)(index=y.index, dtype="float64")
             Xt = Xt.combine_first(y_idx_frame)
         else:
             raise ValueError(
@@ -206,10 +206,7 @@ class ColumnSelect(BaseTransformer):
         if index_treatment == "remove":
             Xt = X[col_X_and_cols]
         elif index_treatment == "keep":
-            Xt = X[col_X_and_cols]
-            X_idx_frame = type(X)(columns=columns)
-            Xt = Xt.combine_first(X_idx_frame)
-            Xt = Xt[columns]
+            Xt = X.reindex(columns=columns)
         else:
             raise ValueError(
                 f'index_treatment must be one of "remove", "keep", but found'
