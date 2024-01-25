@@ -11,7 +11,7 @@ from aeon.testing.utils.collection import (
     make_3d_test_data,
     make_unequal_length_test_data,
 )
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import make_series
 from aeon.transformations.collection import (
     BaseCollectionTransformer,
     CollectionToSeriesWrapper,
@@ -37,7 +37,7 @@ def test_collection_transformer_valid_input(data_gen):
 @pytest.mark.parametrize("dtype", ["pd.Series"])
 def test_collection_transformer_invalid_input(dtype):
     """Test that BaseCollectionTransformer fails with series input."""
-    y = (_make_series(),)
+    y = (make_series(),)
     t = _Dummy()
     with pytest.raises(TypeError):
         t.fit_transform(y)
@@ -47,9 +47,9 @@ def test_collection_transformer_invalid_input(dtype):
 def test_collection_transformer_wrapper_series(dtype):
     """Test that the wrapper for regular transformers works with series input."""
     if dtype == "np.ndarray":
-        y = _make_series(return_numpy=True)
+        y = make_series(return_numpy=True)
     else:
-        y = _make_series()
+        y = make_series()
         if dtype == "pd.DataFrame":
             y = y.to_frame(name="series1")
     wrap = CollectionToSeriesWrapper(transformer=_Dummy())

@@ -11,8 +11,8 @@ from aeon.performance_metrics.forecasting import (
     _classes,
     make_forecasting_scorer,
 )
+from aeon.testing.utils.data_gen import make_series
 from aeon.testing.utils.hierarchical import _make_hierarchical
-from aeon.testing.utils.series import _make_series
 
 metric_classes = getmembers(_classes, isclass)
 
@@ -32,10 +32,10 @@ def test_metric_output_direct(metric, multioutput, n_columns):
         1. using the __call__ dunder
         2. calling the evaluate method
     """
-    y_pred = _make_series(n_columns=n_columns, n_timepoints=20, random_state=21)
-    y_true = _make_series(n_columns=n_columns, n_timepoints=20, random_state=42)
+    y_pred = make_series(n_columns=n_columns, n_timepoints=20, random_state=21)
+    y_true = make_series(n_columns=n_columns, n_timepoints=20, random_state=42)
 
-    # coerce to DataFrame since _make_series does not return consisten output type
+    # coerce to DataFrame since make_series does not return consisten output type
     y_pred = pd.DataFrame(y_pred)
     y_true = pd.DataFrame(y_true)
 
