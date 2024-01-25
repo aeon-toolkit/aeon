@@ -45,6 +45,7 @@ import logging
 import os
 import pickle
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -732,10 +733,10 @@ class _aeonModelWrapper:
                 y_pred_dist = self.estimator.predict_proba(X=X, marginal=marginal)
                 y_pred_dist_quantiles = []
                 for q in quantiles:
-                    y_pred_dist_quantiles.append(y_pred_dist.ppf(q)[0])
-                y_pred_dist_quantiles = pd.DataFrame(y_pred_dist_quantiles)
+                    y_pred_dist_quantiles.append(np.diag(y_pred_dist.ppf(q)))
+                y_pred_dist_quantiles = pd.DataFrame(y_pred_dist_quantiles).T
                 y_pred_dist_quantiles.columns = [f"Quantiles_{q}" for q in quantiles]
-                y_pred_dist_quantiles.index = y_pred_dist.parameters["loc"].index
+                # y_pred_dist_quantiles.index = y_pred_dist.parameters["loc"].index
 
                 raw_predictions[AEON_PREDICT_PROBA] = y_pred_dist_quantiles
 
