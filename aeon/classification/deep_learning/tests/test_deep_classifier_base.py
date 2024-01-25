@@ -6,7 +6,7 @@ import time
 import pytest
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.utils._testing.collection import make_2d_test_data
+from aeon.testing.utils.collection import make_2d_test_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["achieveordie", "hadifawaz1999"]

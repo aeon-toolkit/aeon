@@ -1,6 +1,6 @@
 <!--
 Thanks for contributing a pull request! Please ensure you have taken a look at our
-contribution guide: https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md
+contribution guide: https://www.aeon-toolkit.org/en/stable/contributing.html
 
 Feel free to delete sections of this template if they do not apply to your PR,
 avoid submitting a blank template or empty sections.

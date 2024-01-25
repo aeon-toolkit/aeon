@@ -126,7 +126,7 @@ class ResNetClassifier(BaseDeepClassifier):
         loss="categorical_crossentropy",
         metrics=None,
         batch_size=64,
-        use_mini_batch_size=True,
+        use_mini_batch_size=False,
         random_state=None,
         file_path="./",
         save_best_model=False,

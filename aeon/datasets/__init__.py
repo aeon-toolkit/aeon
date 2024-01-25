@@ -46,6 +46,7 @@ __all__ = [
     "load_from_arff_to_dataframe",
     "load_from_ucr_tsv_to_dataframe",
     "load_from_tsfile_to_dataframe",
+    "get_dataset_meta_data",
 ]
 
 from aeon.datasets._data_generators import (
@@ -56,6 +57,7 @@ from aeon.datasets._data_generators import (
 )
 from aeon.datasets._data_loaders import (
     download_all_regression,
+    get_dataset_meta_data,
     load_classification,
     load_forecasting,
     load_from_arff_file,

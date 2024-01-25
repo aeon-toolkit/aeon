@@ -141,7 +141,7 @@ class STLBootstrapTransformer(BaseTransformer):
     --------
     >>> from aeon.transformations.bootstrap import STLBootstrapTransformer
     >>> from aeon.datasets import load_airline
-    >>> from `aeon.visualisation import plot_series  # doctest: +SKIP
+    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
     >>> y = load_airline()  # doctest: +SKIP
     >>> transformer = STLBootstrapTransformer(10)  # doctest: +SKIP
     >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
@@ -452,7 +452,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
     --------
     >>> from aeon.transformations.bootstrap import MovingBlockBootstrapTransformer
     >>> from aeon.datasets import load_airline
-    >>> from `aeon.visualisation import plot_series  # doctest: +SKIP
+    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
     >>> y = load_airline()
     >>> transformer = MovingBlockBootstrapTransformer(10)
     >>> y_hat = transformer.fit_transform(y)

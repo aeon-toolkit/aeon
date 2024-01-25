@@ -58,7 +58,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
     >>> from aeon.forecasting.compose import HierarchyEnsembleForecaster
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster, TrendForecaster
-    >>> from aeon.utils._testing.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.utils.hierarchical import _bottom_hier_datagen
     >>> y = _bottom_hier_datagen(
     ...         no_bottom_nodes=7,
     ...         no_levels=2,

@@ -8,8 +8,8 @@ import pytest
 
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.forecasting.tests import TEST_SPS
+from aeon.testing.utils.forecasting import make_forecasting_problem
 from aeon.transformations.detrend import Deseasonalizer
-from aeon.utils._testing.forecasting import make_forecasting_problem
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 MODELS = ["additive", "multiplicative"]
