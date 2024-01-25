@@ -35,11 +35,11 @@ References
 
 import logging
 import math
+from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from attrs import asdict, define, field
 from sklearn.utils.validation import check_random_state
 
 from aeon.segmentation.base import BaseSegmenter
@@ -47,7 +47,7 @@ from aeon.segmentation.base import BaseSegmenter
 logger = logging.getLogger(__name__)
 
 
-@define
+@dataclass
 class _GGS:
     """
     Greedy Gaussian Segmentation.
@@ -116,9 +116,11 @@ class _GGS:
     verbose: bool = False
     random_state: int = None
 
-    change_points_: npt.ArrayLike = field(init=False, default=[])
-    _intermediate_change_points: List[List[int]] = field(init=False, default=[])
-    _intermediate_ll: List[float] = field(init=False, default=[])
+    change_points_: npt.ArrayLike = field(init=False, default_factory=list)
+    _intermediate_change_points: List[List[int]] = field(
+        init=False, default_factory=list
+    )
+    _intermediate_ll: List[float] = field(init=False, default_factory=list)
 
     def initialize_intermediates(self) -> None:
         """Initialize the state fo the estimator."""
