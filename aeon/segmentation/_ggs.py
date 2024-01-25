@@ -35,8 +35,8 @@ References
 
 import logging
 import math
-from dataclasses import asdict, dataclass, field
-from typing import Dict, List, Tuple
+from dataclasses import dataclass, field
+from typing import List, Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -510,58 +510,3 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         ):
             labels[start:stop] = i
         return labels
-
-    def fit_predict(self, X, y=None):
-        """Perform segmentation.
-
-        Parameters
-        ----------
-        X: np.ndarray
-            Time series shape (n_timepoints, n_channels).
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
-
-        Returns
-        -------
-        y_pred : array_like
-            1D array with predicted segmentation of the same size as the first
-            dimension of X. The numerical values represent distinct segments
-            labels for each of the data points.
-        """
-        return self.fit(X, y).predict(X)
-
-    def get_params(self, deep: bool = True) -> Dict:
-        """Return initialization parameters.
-
-        Parameters
-        ----------
-        deep: bool
-            Dummy argument for compatibility with sklearn-api, not used.
-
-        Returns
-        -------
-        params: dict
-            Dictionary with the estimator's initialization parameters, with
-            keys being argument names and values being argument values.
-        """
-        return asdict(self.ggs, filter=lambda attr, value: attr.init is True)
-
-    def set_params(self, **parameters):
-        """Set the parameters of this object.
-
-        Parameters
-        ----------
-        parameters : dict
-            Initialization parameters for the estimator.
-
-        Returns
-        -------
-        self : reference to self (after parameters have been set)
-        """
-        for key, value in parameters.items():
-            setattr(self.ggs, key, value)
-        return self
-
-    def __repr__(self) -> str:
-        """Return a string representation of the estimator."""
-        return self.ggs.__repr__()
