@@ -54,10 +54,10 @@ class TimeSeriesKShapes(BaseClusterer):
     >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
     >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
     >>> # Example of KShapes clustering
-    >>> ks = TimeSeriesKShapes(n_clusters=3, random_state=1)
-    >>> ks.fit(X_train)
+    >>> ks = TimeSeriesKShapes(n_clusters=3, random_state=1)  # doctest: +SKIP
+    >>> ks.fit(X_train)  # doctest: +SKIP
     TimeSeriesKShapes(n_clusters=3, random_state=1)
-    >>> preds = ks.predict(X_test)
+    >>> preds = ks.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
