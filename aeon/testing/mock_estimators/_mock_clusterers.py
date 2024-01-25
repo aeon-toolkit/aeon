@@ -6,7 +6,7 @@ from aeon.clustering.deep_learning.base import BaseDeepClusterer
 class MockDeepClusterer(BaseDeepClusterer):
     """Mock Deep Clusterer for testing empty base deep class save utilities."""
 
-    def __init__(self, last_file_name):
+    def __init__(self, last_file_name="last_file"):
         self.last_file_name = last_file_name
         super(MockDeepClusterer, self).__init__(
             n_clusters=2, last_file_name=last_file_name
