@@ -213,7 +213,6 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         if len(self._class_dictionary) == 1:
             n_instances = get_n_cases(X)
             return np.repeat([[1]], n_instances, axis=0)
-
         X = self._preprocess_collection(X)
         return self._predict_proba(X)
 
