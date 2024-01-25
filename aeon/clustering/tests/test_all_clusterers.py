@@ -13,9 +13,6 @@ def test_clusterer_tags_consistent(clst):
     """Test all estimators capability tags reflect their capabilities."""
     if not soft_deps_installed(clst):
         return
-    # Skip the MockDeepClusterer, its for testing only
-    if clst.__name__ == "MockDeepClusterer":
-        return
 
     # Test the tag X_inner_type is consistent with capability:unequal_length
     unequal_length = clst.get_class_tag("capability:unequal_length")
@@ -29,7 +26,7 @@ def test_clusterer_tags_consistent(clst):
     # Test can actually fit/predict with multivariate if tag is set
     multivariate = clst.get_class_tag("capability:multivariate")
     if multivariate:
-        X = np.random.random((10, 2, 20))
+        X = np.random.random((10, 2, 10))
         inst = clst.create_test_instance(parameter_set="default")
         inst.fit(X)
         inst.predict(X)
