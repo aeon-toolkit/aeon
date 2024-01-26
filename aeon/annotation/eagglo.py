@@ -80,7 +80,7 @@ class EAgglo(BaseTransformer):
 
     Examples
     --------
-    >>> from from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
     ... random_state = 10)
     >>> from aeon.annotation.eagglo import EAgglo

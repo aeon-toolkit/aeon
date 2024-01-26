@@ -118,7 +118,7 @@ def make_example_2d_numpy(
 
     Examples
     --------
-    >>> from aeon.datasets import make_example_2d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
     >>> data, labels = make_example_2d_numpy(n_cases=2, n_timepoints=6,
     ...                                      return_y=True, n_labels=2, random_state=0)
     >>> print(data)
