@@ -345,6 +345,4 @@ class AEFCNClusterer(BaseDeepClusterer):
             },
         }
 
-        test_params = [param1]
-
-        return test_params
+        return [param1]
