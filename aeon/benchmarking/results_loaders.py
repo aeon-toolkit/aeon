@@ -15,7 +15,7 @@ from aeon.datasets.tsc_data_lists import univariate as UCR
 VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 
 VALID_RESULT_MEASURES = {
-    "classification": ["accuracy", "auroc", "balancedaccuracy", "nll"],
+    "classification": ["accuracy", "auroc", "balacc", "f1", "logloss"],
     "clustering": ["accuracy", "ami", "ari", "mi", "nmi", "ri"],
     "regression": ["mse", "mae", "r2", "mape", "rmse"],
 }
@@ -28,6 +28,7 @@ NAME_ALIASES = {
     "CNN": {"cnn", "CNNClassifier", "CNNRegressor"},
     "Catch22": {"catch22", "Catch22Classifier"},
     "DrCIF": {"DrCIF", "DrCIFClassifier", "DrCIFRegressor"},
+    "EE": {"ElasticEnsemble", "EEClassifier", "ElasticEnsembleClassifier"},
     "FreshPRINCE": {
         "FP",
         "freshPrince",
@@ -35,9 +36,16 @@ NAME_ALIASES = {
         "FreshPRINCEClassifier",
         "FreshPRINCERegressor",
     },
+    "GRAIL": {"GRAILClassifier", "grail"},
     "HC1": {"HIVECOTE1", "HIVECOTEV1", "hc", "HIVE-COTEv1"},
     "HC2": {"HIVECOTE2", "HIVECOTEV2", "hc2", "HIVE-COTE", "HIVE-COTEv2"},
-    "Hydra-MultiROCKET": {"Hydra-MR", "MultiROCKET-Hydra", "MR-Hydra", "HydraMR"},
+    "Hydra": {"hydra", "HydraClassifier"},
+    "H-InceptionTime": {
+        "H-IT",
+        "H-InceptionT",
+        "h-inceptiontime",
+        "H-InceptionTimeClassifier",
+    },
     "InceptionTime": {
         "IT",
         "InceptionT",
@@ -45,24 +53,32 @@ NAME_ALIASES = {
         "InceptionTimeClassifier",
         "InceptionTimeRegressor",
     },
+    "LiteTime": {"LiteTimeClassifier", "litetime", "LITE"},
+    "MR": {"multirocket", "MultiROCKET", "MultiRocket", "MRClassifier"},
     "MiniROCKET": {"MiniRocket", "MiniROCKETClassifier"},
     "MrSQM": {"mrsqm", "MrSQMClassifier"},
+    "MR-Hydra": {"Hydra-MultiROCKET", "Hydra-MR", "MultiROCKET-Hydra", "HydraMR"},
     "MultiROCKET": {"MultiRocket", "MultiROCKETClassifier", "MultiROCKETRegressor"},
-    "ProximityForest": {"PF", "ProximityForestV1", "PFV1"},
+    "PF": {"ProximityForest", "ProximityForestV1", "PFV1"},
+    "QUANT": {"quant", "QuantileForestClassifier"},
+    "R-STSF": {"RSTSF"},
     "RDST": {"rdst", "RandomDilationShapeletTransform", "RDSTClassifier"},
     "RISE": {"RISEClassifier", "rise"},
+    "RIST": {"RISTClassifier", "rist"},
     "ROCKET": {"Rocket", "RocketClassifier", "ROCKETClassifier", "ROCKETRegressor"},
     "RSF": {"rsf", "RSFClassifier"},
     "RSTSF": {"R_RSTF", "RandomSTF", "RSTFClassifier"},
     "ResNet": {"resnet", "ResNetClassifier", "ResNetRegressor"},
     "STC": {"ShapeletTransform", "STCClassifier", "RandomShapeletTransformClassifier"},
     "STSF": {"stsf", "STSFClassifier"},
+    "ShapeDTW": {"ShapeDTWClassifier"},
     "Signatures": {"SignaturesClassifier"},
     "TDE": {"tde", "TDEClassifier"},
     "TS-CHIEF": {"TSCHIEF", "TS_CHIEF"},
     "TSF": {"tsf", "TimeSeriesForest"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
-    "WEASEL-Dilation": {"WEASEL", "WEASEL-D", "Weasel-D", "WEASEL2"},
+    "WEASEL-1.0": {"WEASEL", "WEASEL2", "weasel", "WEASEL 1.0"},
+    "WEASEL-2.0": {"WEASEL-D", "Weasel-D", "WEASEL2", "weasel 2.0"},
     "1NN-DTW": {
         "1NNDTW",
         "1nn-dtw",
@@ -183,7 +199,7 @@ def _load_results(
                 f"Cannot connect to {url} website down or results not present"
             )
         cls_results = {}
-        problems = data[probs_names]
+        problems = data[probs_names].str.replace(r"_.*", "", regex=True)
         results = data.iloc[:, 1:].to_numpy()
         p = list(problems)
         for problem in datasets:
@@ -253,10 +269,10 @@ def get_estimator_results(
             f"results"
         )
     # Temporarily split until format standardisation on tsc.com
-    if task == "classification":
-        suffix = "_TESTFOLDS.csv"
-        probs_names = "folds:"
-    elif task == "regression":
+    #    if ":
+    #        suffix = "_TESTFOLDS.csv"
+    #        probs_names = "folds:"
+    elif task == "regression" or task == "classification":
         suffix = "_" + measure + ".csv"
         probs_names = "Resamples:"
     else:  # task == "clustering":
