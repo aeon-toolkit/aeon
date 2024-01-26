@@ -6,6 +6,7 @@ An ensemble of elastic nearest neighbour classifiers.
 __author__ = ["jasonlines", "TonyBagnall"]
 __all__ = ["ElasticEnsemble"]
 
+import math
 import time
 from itertools import product
 
@@ -93,7 +94,7 @@ class ElasticEnsemble(BaseClassifier):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "algorithm_type": "distance",
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def __init__(
@@ -279,7 +280,7 @@ class ElasticEnsemble(BaseClassifier):
                     param_distributions=ElasticEnsemble._get_100_param_options(
                         self._distance_measures[dm], X
                     ),
-                    n_iter=100 * self.proportion_of_param_options,
+                    n_iter=math.ceil(100 * self.proportion_of_param_options),
                     cv=LeaveOneOut(),
                     scoring="accuracy",
                     n_jobs=self._n_jobs,
@@ -333,7 +334,7 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = (n_cases, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             or list of [n_cases] numpy arrays size n_channels, n_timepoints_i)
 
         Returns

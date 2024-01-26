@@ -10,7 +10,7 @@ from numba import njit
 def create_bounding_matrix(
     x_size: int, y_size: int, window: float = None, itakura_max_slope: float = None
 ):
-    """Create a bounding matrix for a elastic distance.
+    """Create a bounding matrix for an elastic distance.
 
     Parameters
     ----------

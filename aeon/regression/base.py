@@ -23,6 +23,7 @@ __all__ = [
 __author__ = ["MatthewMiddlehurst", "TonyBagnll", "mloning", "fkiraly"]
 import time
 from abc import ABC, abstractmethod
+from typing import final
 
 import numpy as np
 import pandas as pd
@@ -75,9 +76,9 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         RegressorPipeline object, concatenation of `other` (first) with `self` (last).
         """
         from aeon.regression.compose import RegressorPipeline
+        from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
         from aeon.transformations.compose import TransformerPipeline
-        from aeon.transformations.series.adapt import TabularToSeriesAdaptor
 
         # behaviour is implemented only if other inherits from BaseTransformer
         #  in that case, distinctions arise from whether self or other is a pipeline
@@ -96,6 +97,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         else:
             return NotImplemented
 
+    @final
     def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series regressor to training data.
 
@@ -132,8 +134,9 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return self
 
+    @final
     def predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
+        """Predicts target variable for time series in X.
 
         Parameters
         ----------
@@ -191,8 +194,8 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
         y : 1D np.array of float, of shape (n_instances) - regression labels for
         fitting indices correspond to instance indices in X
@@ -215,8 +218,8 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
                 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
 
         Returns

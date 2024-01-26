@@ -13,9 +13,10 @@ from aeon.datatypes import check_is_mtype, convert
 from aeon.datatypes._panel._convert import from_nested_to_multi_index
 from aeon.datatypes._utilities import get_cutoff, get_window
 from aeon.forecasting.arima import ARIMA
-from aeon.utils._testing.collection import make_3d_test_data, make_nested_dataframe_data
-from aeon.utils._testing.hierarchical import _make_hierarchical
-from aeon.utils._testing.series import _make_series
+from aeon.forecasting.base._base import _format_moving_cutoff_predictions
+from aeon.testing.utils.collection import make_3d_test_data, make_nested_dataframe_data
+from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 COLLECTION_TYPES = ["pd-multiindex", "nested_univ", "numpy3D"]
@@ -291,12 +292,12 @@ def test_dynamic_tags_reset_properly():
     from aeon.forecasting.theta import ThetaForecaster
     from aeon.forecasting.var import VAR
 
-    # this forecaster will have the scitype:y tag set to "univariate"
+    # this forecaster will have the y_input_type tag set to "univariate"
     f = MultiplexForecaster([("foo", ThetaForecaster()), ("var", VAR())])
     f.set_params(selected_forecaster="var")
 
     X_multivariate = _make_series(n_columns=2)
-    # fit should reset the estimator, and set scitype:y tag to "multivariate"
+    # fit should reset the estimator, and set y_input_type tag to "multivariate"
     # the fit will cause an error if this is not happening properly
     f.fit(X_multivariate)
 
@@ -322,3 +323,35 @@ def test_predict_residuals():
     y_pred_2 = forecaster.predict()
     assert_series_equal(y_pred_1, y_pred_2)
     assert y_resid.index.equals(y_train.index)
+
+
+def test_format_moving_cutoff_predictions():
+    with pytest.raises(ValueError, match="`y_preds` must be a list"):
+        _format_moving_cutoff_predictions("foo", "bar")
+    with pytest.raises(
+        ValueError, match="y_preds must be a list of pd.Series or pd.DataFrame"
+    ):
+        _format_moving_cutoff_predictions([1, 2, 3], "bar")
+    res = pd.DataFrame([1, 2, 3])
+    preds = [res, "foo"]
+    with pytest.raises(
+        ValueError, match="all elements of y_preds must be of the same type"
+    ):
+        _format_moving_cutoff_predictions(preds, "bar")
+    res2 = pd.DataFrame([1, 2, 2, 3, 4, 4])
+    preds = [res, res2]
+    with pytest.raises(
+        ValueError, match="all elements of y_preds must be of the same length"
+    ):
+        _format_moving_cutoff_predictions(preds, "bar")
+    res = pd.DataFrame({"Column1": [1, 2, 3], "Column2": [3, 4, 5]})
+    res2 = pd.DataFrame({"Col1": [1, 2, 3], "Col2": [3, 4, 5]})
+    preds = [res, res2]
+    with pytest.raises(
+        ValueError, match="all elements of y_preds must have the same columns"
+    ):
+        _format_moving_cutoff_predictions(preds, "bar")
+    res = pd.DataFrame({"Col1": [1, 2, 3], "Col2": [3, 4, 5]})
+    preds = [res, res2]
+    r = _format_moving_cutoff_predictions(preds, "bar")
+    assert isinstance(r, pd.DataFrame)

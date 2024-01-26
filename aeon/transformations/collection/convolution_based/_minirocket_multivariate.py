@@ -59,8 +59,9 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "algorithm_type": "convolution",
     }
 
     def __init__(

@@ -21,3 +21,4 @@ Deep learning networks
     MLPNetwork
     ResNetNetwork
     TapNetNetwork
+    AEFCNNetwork

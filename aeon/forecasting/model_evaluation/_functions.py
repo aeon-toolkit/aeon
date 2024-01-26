@@ -153,7 +153,7 @@ def _evaluate_window(
             metric_args = scoring.metric_args
 
         try:
-            scitype = scoring.get_tag("scitype:y_pred")
+            scitype = scoring.get_tag("y_input_type_pred")
         except ValueError:
             # If no scitype exists then metric is not proba and no args needed
             scitype = None

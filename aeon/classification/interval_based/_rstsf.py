@@ -11,8 +11,8 @@ from aeon.classification import BaseClassifier
 from aeon.transformations.collection import (
     ARCoefficientTransformer,
     PeriodogramTransformer,
-    SupervisedIntervals,
 )
+from aeon.transformations.collection.interval_based import SupervisedIntervals
 from aeon.utils.numba.general import first_order_differences_3d
 from aeon.utils.validation import check_n_jobs
 

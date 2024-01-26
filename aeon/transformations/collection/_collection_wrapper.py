@@ -32,7 +32,7 @@ class CollectionToSeriesWrapper(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection import CollectionToSeriesWrapper
-    >>> from aeon.transformations.collection.catch22 import Catch22
+    >>> from aeon.transformations.collection.feature_based import Catch22
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> wrap = CollectionToSeriesWrapper(Catch22())
@@ -44,7 +44,7 @@ class CollectionToSeriesWrapper(BaseTransformer):
     """
 
     _tags = {
-        "X_inner_mtype": BaseCollectionTransformer.ALLOWED_INPUT_TYPES,
+        "X_inner_type": BaseCollectionTransformer.ALLOWED_INPUT_TYPES,
     }
 
     def __init__(

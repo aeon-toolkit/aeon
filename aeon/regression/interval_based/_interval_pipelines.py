@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection import RandomIntervals
+from aeon.transformations.collection.interval_based import RandomIntervals
 
 
 class RandomIntervalRegressor(BaseRegressor):
@@ -126,7 +126,7 @@ class RandomIntervalRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
         y : 1D np.array, of shape [n_instances] - target labels for fitting
             indices correspond to instance indices in X
@@ -170,7 +170,7 @@ class RandomIntervalRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
 
         Returns

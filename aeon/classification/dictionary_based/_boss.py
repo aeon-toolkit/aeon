@@ -587,7 +587,7 @@ class IndividualBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -625,7 +625,7 @@ class IndividualBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -687,6 +687,8 @@ class IndividualBOSS(BaseClassifier):
         return new_boss
 
     def _clean(self):
+        if self._transformer is None:
+            return
         self._transformer.words = None
         self._transformer.save_words = False
 
