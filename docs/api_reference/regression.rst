@@ -1,7 +1,7 @@
 .. _regression_ref:
 
-Time series regression
-======================
+Regression
+==========
 
 The :mod:`aeon.regression` module contains algorithms and composition tools for time series regression.
 
@@ -30,9 +30,11 @@ Deep learning
     :template: class.rst
 
     CNNRegressor
+    FCNRegressor
     TapNetRegressor
     InceptionTimeRegressor
     IndividualInceptionRegressor
+    ResNetRegressor
 
 Distance-based
 --------------

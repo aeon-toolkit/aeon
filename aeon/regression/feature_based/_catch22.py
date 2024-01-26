@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.catch22 import Catch22
+from aeon.transformations.collection.feature_based import Catch22
 
 
 class Catch22Regressor(BaseRegressor):
@@ -99,7 +99,7 @@ class Catch22Regressor(BaseRegressor):
     """
 
     _tags = {
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:multithreading": True,
@@ -135,7 +135,7 @@ class Catch22Regressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
@@ -179,7 +179,7 @@ class Catch22Regressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where

@@ -13,7 +13,7 @@ from aeon.base.estimator.interval_based import BaseIntervalForest
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn._continuous_interval_tree import ContinuousIntervalTree
 from aeon.transformations.collection import PeriodogramTransformer
-from aeon.transformations.collection.catch22 import Catch22
+from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.numba.general import first_order_differences_3d
 from aeon.utils.numba.stats import (
     row_iqr,

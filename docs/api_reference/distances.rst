@@ -1,7 +1,7 @@
 .. _distances_ref:
 
-Time series distances
-=====================
+Distances
+=========
 
 The :mod:`aeon.distances` module contains time series specific distance functions
 that can be used in aeon and scikit learn estimators. It also contains tools for
@@ -101,6 +101,18 @@ Manhattan
 
     manhattan_distance
     manhattan_pairwise_distance
+
+Minkowski
+---------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    minkowski_distance
+    minkowski_pairwise_distance
 
 Move-Split-Merge (MSM)
 ----------------------
@@ -211,5 +223,6 @@ General methods to recover distance functions
 
     get_distance_function
     get_pairwise_distance_function
+    get_distance_function_names
     get_cost_matrix_function
     get_alignment_path_function

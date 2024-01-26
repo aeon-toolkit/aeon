@@ -19,7 +19,7 @@ class _ProphetAdapter(BaseForecaster):
         "capability:pred_int": True,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
-        "y_inner_mtype": "pd.DataFrame",
+        "y_inner_type": "pd.DataFrame",
         "python_dependencies": "prophet",
     }
 
@@ -86,9 +86,9 @@ class _ProphetAdapter(BaseForecaster):
 
         # Add seasonality/seasonalities
         if self.add_seasonality:
-            if type(self.add_seasonality) == dict:
+            if isinstance(self.add_seasonality, dict):
                 self._forecaster.add_seasonality(**self.add_seasonality)
-            elif type(self.add_seasonality) == list:
+            elif isinstance(self.add_seasonality, list):
                 for seasonality in self.add_seasonality:
                     self._forecaster.add_seasonality(**seasonality)
 

@@ -32,7 +32,7 @@ class _DummyHandlesAllInput(BaseRegressor):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def _fit(self, X, y):
@@ -51,7 +51,7 @@ class _TestHandlesAllInput(BaseRegressor):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def _fit(self, X, y):

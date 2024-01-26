@@ -58,7 +58,8 @@ class MiniRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
+        "algorithm_type": "convolution",
     }
 
     def __init__(
@@ -111,7 +112,7 @@ class MiniRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 

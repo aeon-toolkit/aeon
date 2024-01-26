@@ -7,7 +7,6 @@ __all__ = [
     # transformers
     "AutocorrelationFunctionTransformer",
     "ARCoefficientTransformer",
-    "Catch22",
     "ElbowClassSum",
     "ElbowClassPairwise",
     "DWTTransformer",
@@ -16,31 +15,21 @@ __all__ = [
     "MatrixProfile",
     "PaddingTransformer",
     "PeriodogramTransformer",
-    "RandomIntervals",
     "Tabularizer",
-    "TimeBinner",
     "IntervalSegmenter",
-    "SlidingWindowSegmenter",
     "RandomIntervalSegmenter",
-    "RandomShapeletTransform",
-    "RandomDilatedShapeletTransform",
+    "SlidingWindowSegmenter",
     "SlopeTransformer",
-    "SevenNumberSummaryTransformer",
-    "SupervisedIntervals",
     "TimeSeriesScaler",
     "TruncationTransformer",
-    "TSFreshFeatureExtractor",
-    "TSFreshRelevantFeatureExtractor",
 ]
 
 from aeon.transformations.collection._collection_wrapper import (
     CollectionToSeriesWrapper,
 )
-from aeon.transformations.collection._scaler import TimeSeriesScaler
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.collection.catch22 import Catch22
 from aeon.transformations.collection.channel_selection import (
     ElbowClassPairwise,
     ElbowClassSum,
@@ -51,22 +40,12 @@ from aeon.transformations.collection.interpolate import TSInterpolator
 from aeon.transformations.collection.matrix_profile import MatrixProfile
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.collection.periodogram import PeriodogramTransformer
-from aeon.transformations.collection.random_intervals import RandomIntervals
-from aeon.transformations.collection.reduce import Tabularizer, TimeBinner
+from aeon.transformations.collection.reduce import Tabularizer
+from aeon.transformations.collection.scaler import TimeSeriesScaler
 from aeon.transformations.collection.segment import (
     IntervalSegmenter,
     RandomIntervalSegmenter,
     SlidingWindowSegmenter,
 )
-from aeon.transformations.collection.shapelet_based import (
-    RandomDilatedShapeletTransform,
-    RandomShapeletTransform,
-)
 from aeon.transformations.collection.slope import SlopeTransformer
-from aeon.transformations.collection.summary import SevenNumberSummaryTransformer
-from aeon.transformations.collection.supervised_intervals import SupervisedIntervals
 from aeon.transformations.collection.truncate import TruncationTransformer
-from aeon.transformations.collection.tsfresh import (
-    TSFreshFeatureExtractor,
-    TSFreshRelevantFeatureExtractor,
-)

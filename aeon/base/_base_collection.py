@@ -29,7 +29,7 @@ class BaseCollectionEstimator(BaseEstimator):
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:multithreading": False,
         "python_version": None,  # PEP 440 python version specifier to limit versions
     }
@@ -57,7 +57,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         Returns
         -------
-        Data structure of type self.tags["x_inner_mtype"]
+        Data structure of type self.tags["X_inner_type"]
 
         See Also
         --------
@@ -152,7 +152,7 @@ class BaseCollectionEstimator(BaseEstimator):
         return metadata
 
     def _convert_X(self, X):
-        """Convert X to type defined by tag X_inner_mtype.
+        """Convert X to type defined by tag X_inner_type.
 
         if self.metadata_ has not been set, it is set here from X, because we need to
         know if the data is unequal length in order to choose between different
@@ -168,7 +168,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         Returns
         -------
-        data structure of type one of self.get_tag("X_inner_mtype").
+        data structure of type one of self.get_tag("X_inner_type").
 
 
         See Also
@@ -184,7 +184,7 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> get_type(X)
         'np-list'
         >>> hc = HIVECOTEV2()
-        >>> hc.get_tag("X_inner_mtype")
+        >>> hc.get_tag("X_inner_type")
         'numpy3D'
         >>> X = hc._convert_X(X)
         >>> get_type(X)
@@ -194,9 +194,9 @@ class BaseCollectionEstimator(BaseEstimator):
             metadata = self._get_metadata(X)
         else:
             metadata = self.metadata_
-        # Convert X to X_inner_mtype if possible
-        inner_type = self.get_tag("X_inner_mtype")
-        if type(inner_type) == list:
+        # Convert X to X_inner_type if possible
+        inner_type = self.get_tag("X_inner_type")
+        if isinstance(inner_type, list):
             # If self can handle more than one internal type, resolve correct conversion
             # If unequal, choose data structure that can hold unequal
             if metadata["unequal_length"]:

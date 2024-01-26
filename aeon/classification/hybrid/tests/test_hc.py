@@ -2,8 +2,8 @@
 import pytest
 
 from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2
-from aeon.tests._config import PR_TESTING
-from aeon.utils._testing.collection import make_2d_test_data
+from aeon.testing.test_config import PR_TESTING
+from aeon.testing.utils.collection import make_2d_test_data
 
 
 @pytest.mark.skipif(PR_TESTING, reason="slow test, run overnight only")

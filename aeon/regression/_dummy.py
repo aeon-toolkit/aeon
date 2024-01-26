@@ -48,7 +48,7 @@ class DummyRegressor(BaseRegressor):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:missing_values": True,
         "capability:unequal_length": False,
         "capability:multivariate": True,
@@ -68,7 +68,7 @@ class DummyRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape [n_instances, n_channels, series_length]
         y : array-like, shape = [n_instances] - the target values
 
         Returns
@@ -83,7 +83,7 @@ class DummyRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape [n_instances, n_channels, series_length]
 
         Returns
         -------

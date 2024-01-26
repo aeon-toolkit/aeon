@@ -27,9 +27,9 @@ from aeon.forecasting.tests import (
     TEST_YS,
     VALID_INDEX_FH_COMBINATIONS,
 )
-from aeon.utils._testing.forecasting import _make_fh
-from aeon.utils._testing.hierarchical import _make_hierarchical
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.forecasting import _make_fh
+from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.series import _make_series
 from aeon.utils.datetime import _coerce_duration_to_int
 from aeon.utils.validation import (
     array_is_datetime64,
@@ -475,11 +475,6 @@ def test_split_by_fh(index_type, fh_type, is_relative, values):
     """Test temporal_train_test_split."""
     if fh_type == "timedelta":
         return None
-        # todo: ensure check_estimator works with pytest.skip like below
-        # pytest.skip(
-        #    "ForecastingHorizon with timedelta values "
-        #     "is currently experimental and not supported everywhere"
-        # )
     y = _make_series(20, index_type=index_type)
     cutoff = get_cutoff(y.iloc[:10], return_index=True)
     fh = _make_fh(cutoff, values, fh_type, is_relative)

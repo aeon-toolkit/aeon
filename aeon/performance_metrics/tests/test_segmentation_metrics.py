@@ -2,7 +2,7 @@
 
 import pytest
 
-from aeon.performance_metrics.annotation.metrics import (
+from aeon.performance_metrics.segmentation.metrics import (
     count_error,
     hausdorff_error,
     prediction_ratio,

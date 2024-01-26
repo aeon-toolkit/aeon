@@ -3,13 +3,13 @@
 import pandas as pd
 
 __all__ = [
-    "MTYPE_REGISTER_PANEL",
-    "MTYPE_LIST_PANEL",
-    "MTYPE_SOFT_DEPS_PANEL",
+    "TYPE_REGISTER_PANEL",
+    "TYPE_LIST_PANEL",
+    "TYPE_SOFT_DEPS_PANEL",
 ]
 
 
-MTYPE_REGISTER_PANEL = [
+TYPE_REGISTER_PANEL = [
     (
         "nested_univ",
         "Panel",
@@ -21,9 +21,9 @@ MTYPE_REGISTER_PANEL = [
         "3D np.ndarray of format (n_cases, n_channels, n_timepoints)",
     ),
     (
-        "numpyflat",
+        "numpy2D",
         "Panel",
-        "2D np.ndarray of format (n_cases, n_channels*n_timepoints)",
+        "2D np.ndarray of format (n_cases, n_timepoints)",
     ),
     ("pd-multiindex", "Panel", "pd.DataFrame with multi-index (instances, timepoints)"),
     ("pd-wide", "Panel", "pd.DataFrame in wide format, cols = (instance*timepoints)"),
@@ -46,6 +46,6 @@ MTYPE_REGISTER_PANEL = [
     ),
 ]
 
-MTYPE_SOFT_DEPS_PANEL = {"xr.DataArray": "xarray", "dask_panel": "dask"}
+TYPE_SOFT_DEPS_PANEL = {"xr.DataArray": "xarray", "dask_panel": "dask"}
 
-MTYPE_LIST_PANEL = pd.DataFrame(MTYPE_REGISTER_PANEL)[0].values
+TYPE_LIST_PANEL = pd.DataFrame(TYPE_REGISTER_PANEL)[0].values

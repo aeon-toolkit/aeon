@@ -63,7 +63,7 @@ class MrSQMClassifier(BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.shapelet_based import MrSQMClassifier
-    >>> from aeon.utils._testing.collection import make_3d_test_data
+    >>> from aeon.testing.utils.collection import make_3d_test_data
     >>> X, y = make_3d_test_data(random_state=0)
     >>> clf = MrSQMClassifier(random_state=0) # doctest: +SKIP
     >>> clf.fit(X, y) # doctest: +SKIP
@@ -94,7 +94,7 @@ class MrSQMClassifier(BaseClassifier):
         super(MrSQMClassifier, self).__init__()
 
     _tags = {
-        "X_inner_mtype": "nested_univ",  # we don't like this, but it's the only input!
+        "X_inner_type": "nested_univ",  # we don't like this, but it's the only input!
         "algorithm_type": "shapelet",
         "cant-pickle": True,
         "python_dependencies": "mrsqm",

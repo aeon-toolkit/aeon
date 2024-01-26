@@ -3,10 +3,10 @@ import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator
 from aeon.classification.base import BaseClassifier
-from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
 from aeon.utils.sklearn import is_sklearn_classifier
+from aeon.utils.validation.collection import convert_collection
 
 __author__ = ["fkiraly"]
 __all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
@@ -129,7 +129,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         self.set_tags(**tags_to_set)
         if unequal:
             tags_to_set = {
-                "X_inner_mtype": ["np-list", "numpy3D"],
+                "X_inner_type": ["np-list", "numpy3D"],
             }
             self.set_tags(**tags_to_set)
 
@@ -172,7 +172,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -195,7 +195,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -213,7 +213,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_mtype")
+        X : data to predict y with, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -287,19 +287,12 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         # imports
         from aeon.classification import DummyClassifier
-        from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-        c = KNeighborsTimeSeriesClassifier()
+        t = Rocket(num_kernels=200)
+        cls = DummyClassifier()
 
-        another_c = DummyClassifier()
-
-        params1 = {"transformers": [t1, t2], "classifier": c}
-        params2 = {"transformers": [t1], "classifier": another_c}
-
-        return [params1, params2]
+        return {"transformers": [t], "classifier": cls}
 
 
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
@@ -320,8 +313,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `clf.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpyflat` mtype if `X` is of `Panel` scitype;
-        `X` is converted to `numpy2D` mtype if `X` is of `Table` scitype.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `clf.predict` on the numpy converted output of `trafoN.transform`,
@@ -369,8 +360,8 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from sklearn.neighbors import KNeighborsClassifier
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
-    >>> from aeon.transformations.series.summarize import SummaryTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
+    >>> from aeon.transformations.summarize import SummaryTransformer
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import SklearnClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
@@ -451,22 +442,9 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             return NotImplemented
 
     def _convert_X_to_sklearn(self, X):
-        """Convert a Table or Panel X to 2D numpy required by sklearn."""
-        X_scitype = self.transformers_.get_tag("scitype:transform-output")
-        # if X_scitype is Primitives, output is Table, convert to 2D numpy array
-        if X_scitype == "Primitives":
-            Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
-        # if X_scitype is Series, output is Panel, convert to 2D numpy array (numpyflat)
-        elif X_scitype == "Series":
-            Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
-        else:
-            raise TypeError(
-                f"unexpected X output type in {type(self.classifier).__name__}, "
-                f'in tag "scitype:transform-output", found "{X_scitype}", '
-                'expected one of "Primitives" or "Series"'
-            )
-
-        return Xt
+        """Convert X to 2D numpy required by sklearn."""
+        Xt = convert_collection(X, "numpy3D")
+        return np.reshape(Xt, (Xt.shape[0], Xt.shape[1] * Xt.shape[2]))
 
     def _fit(self, X, y):
         """Fit time series classifier to training data.
@@ -475,7 +453,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -499,7 +477,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -518,7 +496,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_mtype")
+        X : data to predict y with, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -588,26 +566,11 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from sklearn.neighbors import KNeighborsClassifier
 
-        from aeon.transformations.series.exponent import ExponentTransformer
-        from aeon.transformations.series.summarize import SummaryTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        # example with series-to-series transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
+        t1 = Rocket(num_kernels=200, random_state=49)
         c = KNeighborsClassifier()
-        params1 = {"transformers": [t1, t2], "classifier": c}
-
-        # example with series-to-primitive transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = SummaryTransformer()
-        c = KNeighborsClassifier()
-        params2 = {"transformers": [t1, t2], "classifier": c}
-
-        # construct without names
-        return [params1, params2]
+        return {"transformers": [t1], "classifier": c}
