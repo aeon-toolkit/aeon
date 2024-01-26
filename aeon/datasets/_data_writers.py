@@ -260,7 +260,7 @@ def write_to_arff_file(
 
     Parameters
     ----------
-    X : np.ndarray (n_cases, n_channels, series_length)
+    X : np.ndarray (n_cases, n_channels, n_timepoints)
         Collection of univariate time series with equal length.
     y: ndarray
         Discrete response variable.
