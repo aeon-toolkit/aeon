@@ -430,7 +430,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import GreedyGaussianSegmenter
     >>> X = piecewise_normal_multivariate(
