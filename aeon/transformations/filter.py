@@ -4,10 +4,17 @@ __author__ = ["sveameyer13"]
 __all__ = ["Filter"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="Filter transformer will be removed from v0.8.0.",
+    category=FutureWarning,
+)
 class Filter(BaseTransformer):
     """Transformer that filters Series data.
 

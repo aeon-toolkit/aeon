@@ -183,7 +183,7 @@ def _load_results(
                 f"Cannot connect to {url} website down or results not present"
             )
         cls_results = {}
-        problems = data[probs_names]
+        problems = data[probs_names].str.replace(r"_.*", "", regex=True)
         results = data.iloc[:, 1:].to_numpy()
         p = list(problems)
         for problem in datasets:
