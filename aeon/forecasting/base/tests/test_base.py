@@ -11,7 +11,6 @@ from pandas.testing import assert_series_equal
 
 from aeon.datatypes import check_is_mtype, convert
 from aeon.datatypes._panel._convert import from_nested_to_multi_index
-from aeon.datatypes._utilities import get_cutoff, get_window
 from aeon.forecasting.arima import ARIMA
 from aeon.testing.utils.data_gen import (
     _make_hierarchical,
@@ -19,6 +18,7 @@ from aeon.testing.utils.data_gen import (
     make_nested_dataframe_data,
     make_series,
 )
+from aeon.utils.index_functions import get_cutoff, get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 COLLECTION_TYPES = ["pd-multiindex", "nested_univ", "numpy3D"]
