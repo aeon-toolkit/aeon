@@ -37,19 +37,39 @@ import os
 
 import aeon
 from aeon.datasets.tsc_data_lists import multivariate, univariate
-from aeon.datasets.tser_data_lists import tser_monash
+from aeon.datasets.tser_data_lists import tser_monash, tser_soton
 from aeon.datasets.tsf_data_lists import tsf_all
 
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
 
-def list_available_tser_datasets(name=None):
-    """List available tser data."""
-    if name is None:  # List them all
-        return sorted(list(tser_monash))
-    if name in tser_monash:
-        return True
-    return False
+def list_available_tser_datasets(name="tser_soton", return_list=True):
+    """List available tser data.
+
+    Parameters
+    ----------
+    name : str or None, default = "tser_soton"
+        One of the names in tser_soton or tser_monash, or None to list all.
+
+    return_list : bool, default = True
+        Whether to return problems as a list or a set.
+
+    Returns
+    -------
+        list
+            List of available datasets.
+    """
+    if name == "tser_soton":  # List them all
+        if return_list:
+            return sorted(list(tser_soton.union(tser_monash)))
+        else:
+            return tser_soton
+    if name == "tser_monash":
+        if return_list:
+            return sorted(list(tser_monash))
+        else:
+            return tser_monash
+    return []
 
 
 def list_available_tsf_datasets(name=None):

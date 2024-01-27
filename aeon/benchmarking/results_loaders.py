@@ -16,7 +16,7 @@ VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 
 VALID_RESULT_MEASURES = {
     "classification": ["accuracy", "auroc", "balacc", "f1", "logloss"],
-    "clustering": ["accuracy", "ami", "ari", "mi", "nmi", "ri"],
+    "clustering": ["clacc", "ami", "ari", "mi", "ri"],
     "regression": ["mse", "mae", "r2", "mape", "rmse"],
 }
 
@@ -78,7 +78,7 @@ NAME_ALIASES = {
     "TSF": {"tsf", "TimeSeriesForest"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
     "WEASEL-1.0": {"WEASEL", "WEASEL2", "weasel", "WEASEL 1.0"},
-    "WEASEL-2.0": {"WEASEL-D", "Weasel-D", "WEASEL2", "weasel 2.0"},
+    "WEASEL-2.0": {"WEASEL-D", "WEASEL-Dilation", "WEASEL2", "weasel 2.0"},
     "1NN-DTW": {
         "1NNDTW",
         "1nn-dtw",
@@ -97,14 +97,27 @@ NAME_ALIASES = {
         "5nned",
     },
     # Clustering
+    "dtw-dba": {"DTW-DBA"},
     "kmeans-ed": {"ed-kmeans", "kmeans-euclidean", "k-means-ed", "KMeans-ED"},
     "kmeans-dtw": {"dtw-kmeans", "k-means-dtw", "KMeans-DTW"},
     "kmeans-msm": {"msm-kmeans", "k-means-msm", "KMeans-MSM"},
     "kmeans-twe": {"twe-kmeans", "k-means-twe", "KMeans-TWE"},
+    "kmeans-ddtw": {"ddtw-kmeans"},
+    "kmeans-edr": {"edr-kmeans"},
+    "kmeans-erp": {"erp-kmeans"},
+    "kmeans-lcss": {"lcss-kmeans"},
+    "kmeans-wdtw": {"wdtw-kmeans"},
+    "kmeans-wddtw": {"msm-kmeans"},
     "kmedoids-ed": {"ed-kmedoids", "k-medoids-ed", "KMedoids-ED"},
     "kmedoids-dtw": {"dtw-kmedoids", "k-medoids-dtw", "KMedoids-DTW"},
     "kmedoids-msm": {"msm-kmedoids", "k-medoids-msm", "KMedoids-MSM"},
     "kmedoids-twe": {"twe-kmedoids", "k-medoids-twe", "KMedoids-TWE"},
+    "kmedoids-ddtw": {"ddtw-kmeans"},
+    "kmedoids-edr": {"edr-kmedoids"},
+    "kmedoids-erp": {"erp-kmedoids"},
+    "kmedoids-lcss": {"lcss-kmedoids"},
+    "kmedoids-wdtw": {"wdtw-kmedoids"},
+    "kmedoids-wddtw": {"msm-kmedoids"},
     # Regression only
     "FCN": {"fcn", "FCNRegressor"},
     "FPCR": {"fpcr", "FPCRRegressor"},
@@ -148,7 +161,7 @@ def estimator_alias(name: str) -> str:
     )
 
 
-def get_available_estimators(task="classification") -> pd.DataFrame:
+def get_available_estimators(task="classification", return_dataframe=True):
     """Get a list of estimators avialable for a specific task.
 
     Parameters
@@ -156,10 +169,12 @@ def get_available_estimators(task="classification") -> pd.DataFrame:
     task : str, default="classification"
         Should be one of "classification","clustering","regression". This is not case
         sensitive.
+    return_dataframe : boolean, default = True
+        If false, returns a list.
 
     Returns
     -------
-    str
+    pd.DataFrame or List
         Standardised name as defined by NAME_ALIASES.
 
     Example
@@ -180,7 +195,10 @@ def get_available_estimators(task="classification") -> pd.DataFrame:
         data = pd.read_csv(path)
     except Exception:
         raise ValueError(f"{path} is unavailable right now, try later")
-    return data
+    if return_dataframe:
+        return data
+    else:
+        return data.iloc[:, 0].tolist()
 
 
 # temporary function due to legacy format
@@ -266,18 +284,10 @@ def get_estimator_results(
     if measure not in VALID_RESULT_MEASURES[task]:
         raise ValueError(
             f"Error in get_estimator_results, {measure} is not a valid type of "
-            f"results"
+            f"results for task {task}"
         )
-    # Temporarily split until format standardisation on tsc.com
-    #    if ":
-    #        suffix = "_TESTFOLDS.csv"
-    #        probs_names = "folds:"
-    elif task == "regression" or task == "classification":
-        suffix = "_" + measure + ".csv"
-        probs_names = "Resamples:"
-    else:  # task == "clustering":
-        suffix = "_TESTFOLDS.csv"
-        probs_names = "folds:"
+    suffix = "_" + measure + ".csv"
+    probs_names = "Resamples:"
 
     return _load_results(
         estimators=estimators,
