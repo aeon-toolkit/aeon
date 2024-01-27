@@ -2,7 +2,7 @@
 import pytest
 
 from aeon.classification.convolution_based import RocketClassifier
-from aeon.testing.utils.collection import make_2d_test_data, make_3d_test_data
+from aeon.testing.utils.data_gen import make_2d_test_data, make_3d_test_data
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,

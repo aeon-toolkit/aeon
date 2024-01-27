@@ -13,7 +13,7 @@ from typing import Dict, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from aeon.testing.utils.collection import make_2d_test_data, make_3d_test_data
+from aeon.testing.utils.data_gen import make_2d_test_data, make_3d_test_data
 
 
 def make_example_3d_numpy(
@@ -56,7 +56,7 @@ def make_example_3d_numpy(
 
     Examples
     --------
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> data, labels = make_example_3d_numpy(n_cases=2, n_channels=2, n_timepoints=6,
     ...                                      return_y=True, n_labels=2, random_state=0)
     >>> print(data)
@@ -118,7 +118,7 @@ def make_example_2d_numpy(
 
     Examples
     --------
-    >>> from aeon.datasets import make_example_2d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
     >>> data, labels = make_example_2d_numpy(n_cases=2, n_timepoints=6,
     ...                                      return_y=True, n_labels=2, random_state=0)
     >>> print(data)

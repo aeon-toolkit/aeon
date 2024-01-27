@@ -13,11 +13,6 @@ __all__ = [
     # Write functions
     "write_to_tsfile",
     "write_results_to_uea_format",
-    # Data generators
-    "make_example_3d_numpy",
-    "make_example_2d_numpy",
-    "make_example_long_table",
-    "make_example_multi_index_dataframe",
     # Single problem loaders
     "load_airline",
     "load_arrow_head",
@@ -48,13 +43,6 @@ __all__ = [
     "load_from_tsfile_to_dataframe",
     "get_dataset_meta_data",
 ]
-
-from aeon.datasets._data_generators import (
-    make_example_2d_numpy,
-    make_example_3d_numpy,
-    make_example_long_table,
-    make_example_multi_index_dataframe,
-)
 from aeon.datasets._data_loaders import (
     download_all_regression,
     get_dataset_meta_data,
