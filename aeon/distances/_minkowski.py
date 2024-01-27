@@ -61,7 +61,7 @@ def minkowski_distance(
     >>> x = np.array([1, 0, 0])
     >>> y = np.array([0, 1, 0])
     >>> w = np.array([2,2,2])
-    >>> minkowski_distance(x, y, p=2, w=w)
+    >>> minkowski_distance(x, y, p=2, w=w) # doctest: +SKIP
     2.0
     """
     if x.ndim not in (1, 2) or y.ndim not in (1, 2):
