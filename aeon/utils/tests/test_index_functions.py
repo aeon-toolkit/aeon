@@ -1,4 +1,4 @@
-"""Testing utilities in the datatype module."""
+"""Testing index functions."""
 
 __author__ = ["fkiraly"]
 
@@ -25,54 +25,86 @@ SCITYPE_MTYPE_PAIRS = [
     ("Panel", "pd-multiindex"),
     ("Panel", "numpy3D"),
     ("Panel", "nested_univ"),
-    ("Panel", "df-list"),
     ("Hierarchical", "pd_multiindex_hier"),
 ]
+multi_index = pd.MultiIndex.from_tuples(
+    [
+        ("0/0", 1),
+        ("0/1", 2),
+        ("0/2", 3),
+        ("1/0", 1),
+        ("1/1", 2),
+        ("1/2", 3),
+        ("2/0", 1),
+        ("2/1", 2),
+        ("2/2", 3),
+    ]
+)
+data = {"var_0": np.random.rand(9), "var_1": np.random.rand(9)}
+
+X_multi = pd.DataFrame(data, index=multi_index)
+
+multi_index_hier = pd.MultiIndex.from_tuples(
+    [
+        ("a", "0/0", 1),
+        ("a", "0/1", 2),
+        ("a", "0/2", 3),
+        ("a", "1/0", 1),
+        ("a", "1/1", 2),
+        ("a", "1/2", 3),
+        ("a", "2/0", 1),
+        ("a", "2/1", 2),
+        ("a", "2/2", 3),
+        ("b", "0/0", 1),
+        ("b", "0/1", 2),
+        ("b", "0/2", 3),
+        ("b", "1/0", 1),
+        ("b", "1/1", 2),
+        ("b", "1/2", 3),
+        ("b", "2/0", 1),
+        ("b", "2/1", 2),
+        ("b", "2/2", 3),
+    ]
+)
+X_hi = pd.DataFrame(
+    np.random.randint(1, 100, size=(18, 2)),
+    index=multi_index_hier,
+    columns=["var_0", "var_1"],
+)
+X_hi["var_0"] = [1, 2, 3] * 6
+
+EXAMPLE_DATA = {
+    "pd.Series": pd.Series(np.random.rand(4)),
+    "pd.DataFrame": pd.DataFrame(np.random.rand(4, 2)),
+    "np.ndarray": np.random.rand(4, 2),
+    "numpy3D": np.random.rand(4, 2, 3),
+    "pd-multiindex": X_multi,
+    "pd-multiindex-hier": X_hi,
+}
 
 
-@pytest.mark.parametrize("scitype,mtype", SCITYPE_MTYPE_PAIRS)
-def test_get_time_index(scitype, mtype):
-    """Tests that conversions for scitype agree with from/to example fixtures.
+@pytest.mark.parametrize("datatype", EXAMPLE_DATA.keys())
+def test_get_time_index(datatype):
+    """Tests that conversions agree with input data."""
+    data = EXAMPLE_DATA[datatype]
+    idx = get_time_index(data)
 
-    Parameters
-    ----------
-    scitype : str - scitype of input
-    mtype : str - mtype of input
+    msg = f"get_time_index should return pd.Index, but found {type(idx)}"
+    assert isinstance(idx, pd.Index), msg
 
-    Raises
-    ------
-    AssertionError if get_cutoff does not return a length 1 pandas.index
-        for any fixture example of given scitype, mtype
-    """
-    # get_time_index currently does not work for df-list type, skip
-    if mtype == "df-list":
-        return None
+    if datatype in ["pd.Series", "pd.DataFrame"]:
+        assert (idx == data.index).all()
 
-    # retrieve example fixture
-    fixtures = get_examples(mtype=mtype, as_scitype=scitype, return_lossy=False)
+    if datatype in ["np.ndarray", "numpy3D"]:
+        assert isinstance(idx, pd.RangeIndex)
+        if datatype == "np.ndarray":
+            assert len(idx) == data.shape[0]
+        else:
+            assert len(idx) == data.shape[-1]
 
-    for fixture in fixtures.values():
-        if fixture is None:
-            continue
-
-        idx = get_time_index(fixture)
-
-        msg = f"get_time_index should return pd.Index, but found {type(idx)}"
-        assert isinstance(idx, pd.Index), msg
-
-        if mtype in ["pd.Series", "pd.DataFrame"]:
-            assert (idx == fixture.index).all()
-
-        if mtype in ["np.ndarray", "numpy3D"]:
-            assert isinstance(idx, pd.RangeIndex)
-            if mtype == "np.ndarray":
-                assert len(idx) == fixture.shape[0]
-            else:
-                assert len(idx) == fixture.shape[-1]
-
-        if mtype in ["pd-multiindex", "pd_multiindex_hier"]:
-            exp_idx = fixture.index.get_level_values(-1).unique()
-            assert (idx == exp_idx).all()
+    if datatype in ["pd-multiindex", "pd_multiindex_hier"]:
+        exp_idx = data.index.get_level_values(-1).unique()
+        assert (idx == exp_idx).all()
 
 
 @pytest.mark.parametrize("convert_input", [True, False])
@@ -180,8 +212,7 @@ def test_get_cutoff_from_index(reverse_order):
         assert idx == pd.Timestamp("2000-01-01")
     else:
         assert idx == pd.Timestamp("2000-01-12")
-
-    series_fixture = get_examples("pd.Series")[0]
+    series_fixture = EXAMPLE_DATA["pd.Series"]
     series_idx = series_fixture.index
 
     cutoff = _get_cutoff_from_index(
@@ -248,14 +279,8 @@ def test_get_window_output_type(scitype, mtype, window_length, lag):
 
 
 def test_get_window_expected_result():
-    """Tests that get_window produces return of the right length.
-
-    Raises
-    ------
-    Exception if get_window raises one
-    AssertionError if get_window output shape is not as expected
-    """
-    X_df = get_examples(mtype="pd.DataFrame")[0]
+    """Tests that get_window produces return of the right length."""
+    X_df = EXAMPLE_DATA["pd.DataFrame"]
     assert len(get_window(X_df, 2, 1)) == 2
     assert len(get_window(X_df, 3, 1)) == 3
     assert len(get_window(X_df, 1, 2)) == 1
@@ -263,8 +288,7 @@ def test_get_window_expected_result():
     assert len(get_window(X_df, 3, None)) == 3
     assert len(get_window(X_df, None, 2)) == 2
     assert len(get_window(X_df, None, None)) == 4
-
-    X_mi = get_examples(mtype="pd-multiindex")[0]
+    X_mi = EXAMPLE_DATA["pd-multiindex"]
     assert len(get_window(X_mi, 3, 1)) == 6
     assert len(get_window(X_mi, 2, 0)) == 6
     assert len(get_window(X_mi, 2, 4)) == 0
@@ -272,8 +296,7 @@ def test_get_window_expected_result():
     assert len(get_window(X_mi, 2, None)) == 6
     assert len(get_window(X_mi, None, 2)) == 3
     assert len(get_window(X_mi, None, None)) == 9
-
-    X_hi = get_examples(mtype="pd_multiindex_hier")[0]
+    X_hi = EXAMPLE_DATA["pd-multiindex-hier"]
     assert len(get_window(X_hi, 3, 1)) == 12
     assert len(get_window(X_hi, 2, 0)) == 12
     assert len(get_window(X_hi, 2, 4)) == 0
@@ -281,8 +304,7 @@ def test_get_window_expected_result():
     assert len(get_window(X_hi, 2, None)) == 12
     assert len(get_window(X_hi, None, 2)) == 6
     assert len(get_window(X_hi, None, None)) == 18
-
-    X_np3d = get_examples(mtype="numpy3D")[0]
+    X_np3d = np.random.rand(3, 2, 3)
     assert get_window(X_np3d, 3, 1).shape == (2, 2, 3)
     assert get_window(X_np3d, 2, 0).shape == (2, 2, 3)
     assert get_window(X_np3d, 2, 4).shape == (0, 2, 3)
