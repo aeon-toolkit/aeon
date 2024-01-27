@@ -31,8 +31,8 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseCollectionEstimator
-from aeon.datatypes import update_data
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.index_functions import update_data
 
 
 class BaseCollectionTransformer(

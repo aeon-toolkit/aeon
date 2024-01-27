@@ -85,8 +85,8 @@ def test_reconciler_fit_predict(method, flatten, no_levels):
 @pytest.mark.parametrize("n_columns", [1, 2])
 def test_reconcilerforecaster_exog(n_columns):
     """Test that ReconcilerForecaster works without aggregated input, see #3980."""
-    from aeon.datatypes._utilities import get_window
     from aeon.forecasting.reconcile import ReconcilerForecaster
+    from aeon.utils.index_functions import get_window
 
     y = _make_hierarchical(
         hierarchy_levels=(2, 4),

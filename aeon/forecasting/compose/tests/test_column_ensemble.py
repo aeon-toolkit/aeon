@@ -80,10 +80,10 @@ def test_column_ensemble_multivariate_and_int():
 def test_column_ensemble_hierarchical():
     """Tests column ensemble with hierarchical reconciliation, see bug #3784."""
     from aeon.datatypes import get_examples
-    from aeon.datatypes._utilities import get_window
     from aeon.forecasting.sarimax import SARIMAX
     from aeon.transformations.hierarchical.aggregate import Aggregator
     from aeon.transformations.hierarchical.reconcile import Reconciler
+    from aeon.utils.index_functions import get_window
 
     X = get_examples("pd_multiindex_hier")[0]
     y = get_examples("pd_multiindex_hier")[1]

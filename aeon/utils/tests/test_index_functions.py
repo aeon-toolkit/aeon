@@ -9,14 +9,14 @@ from pandas.api.types import is_integer_dtype
 
 from aeon.datatypes._check import check_is_mtype
 from aeon.datatypes._examples import get_examples
-from aeon.datatypes._utilities import (
+from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.utils.index_functions import (
     _get_cutoff_from_index,
     get_cutoff,
     get_slice,
     get_time_index,
     get_window,
 )
-from aeon.testing.utils.hierarchical import _make_hierarchical
 
 SCITYPE_MTYPE_PAIRS = [
     ("Series", "pd.Series"),

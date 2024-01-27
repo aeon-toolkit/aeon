@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import check_array
 
-from aeon.datatypes._utilities import get_cutoff, update_data
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.index_functions import get_cutoff, update_data
 from aeon.utils.validation import is_int
 
 

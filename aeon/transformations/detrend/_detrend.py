@@ -5,10 +5,10 @@ __author__ = ["mloning", "SveaMeyer13", "KishManani", "fkiraly"]
 
 import pandas as pd
 
-from aeon.datatypes import update_data
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.index_functions import update_data
 
 
 class Detrender(BaseTransformer):

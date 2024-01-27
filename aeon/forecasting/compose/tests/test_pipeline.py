@@ -11,7 +11,6 @@ from sklearn.svm import SVR
 
 from aeon.datasets import load_airline, load_longley
 from aeon.datatypes import get_examples
-from aeon.datatypes._utilities import get_window
 from aeon.forecasting.compose import (
     ForecastingPipeline,
     TransformedTargetForecaster,
@@ -38,6 +37,7 @@ from aeon.transformations.exponent import ExponentTransformer
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.impute import Imputer
 from aeon.transformations.outlier_detection import HampelFilter
+from aeon.utils.index_functions import get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
