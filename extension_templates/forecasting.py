@@ -167,7 +167,7 @@ class MyForecaster(BaseForecaster):
         self.paramc = paramc
 
         # todo: change "MyForecaster" to the name of the class
-        super(MyForecaster, self).__init__()
+        super().__init__()
 
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc
@@ -504,9 +504,6 @@ class MyForecaster(BaseForecaster):
                 i-th (event dim 1) distribution is forecast for i-th entry of fh
                 j-th (event dim 1) index is j-th variable, order as y in `fit`/`update`
         """
-        # import tensorflow_probability as tfp
-        # tensorflow probability import should happen inside this function
-        #
         # implement here
         # implementing the marginal=False case is optional and can be omitted
 

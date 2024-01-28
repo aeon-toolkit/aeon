@@ -127,7 +127,7 @@ class REDCOMETS(BaseClassifier):
         self.sax_clfs = []
         self.sax_transforms = []
 
-        super(REDCOMETS, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Build a REDCOMETS classifier from the training set (X, y).

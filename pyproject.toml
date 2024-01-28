@@ -43,14 +43,13 @@ classifiers = [
 ]
 requires-python = ">=3.8,<3.12"
 dependencies = [
-    "attrs>=19.2.0", # see #282
     "deprecated>=1.2.13",
-    "numba>=0.55",
+    "numba>=0.55,<0.59.0",
     "numpy>=1.21.0,<1.27.0",
     "packaging>=20.0",
     "pandas>=1.5.3,<2.1.0",
     "scikit-learn>=1.0.0,<1.5.0",
-    "scipy>=1.2.0,<2.0.0",
+    "scipy>=1.2.0,<1.13.0",
 ]
 
 [project.optional-dependencies]
@@ -71,12 +70,10 @@ all_extras = [
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
     "statsforecast>=0.5.2",
-    "plotly-resampler>=0.9.0", # from statsforecast, needed for pandas2
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
     "tensorflow<2.16.0",
-    "tensorflow-probability",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
@@ -86,7 +83,6 @@ all_extras = [
 dl = [
     "keras-self-attention",
     "tensorflow<2.16.0",
-    "tensorflow-probability",
 ]
 unstable_extras = [
     "pycatch22<=0.4.3",  # known to fail installation on some setups

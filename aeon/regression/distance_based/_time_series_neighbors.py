@@ -88,7 +88,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         if self._distance_params is None:
             self._distance_params = {}
 
-        super(KNeighborsTimeSeriesRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the model using X as training data and y as target values.
