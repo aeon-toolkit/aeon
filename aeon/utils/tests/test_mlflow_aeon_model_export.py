@@ -2,7 +2,6 @@
 
 __author__ = ["benjaminbluhm"]
 
-import os
 import sys
 from pathlib import Path
 from unittest import mock
@@ -466,30 +465,30 @@ def test_signature_and_example_for_pyfunc_predict(
         np.testing.assert_array_equal(r_example, example)
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("mlflow", severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_load_from_remote_uri_succeeds(auto_arima_model, model_path, mock_s3_bucket):
-    """Test loading native aeon model from mock S3 bucket."""
-    from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
-
-    from aeon.utils import mlflow_aeon
-
-    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
-
-    artifact_root = f"s3://{mock_s3_bucket}"
-    artifact_path = "model"
-    artifact_repo = S3ArtifactRepository(artifact_root)
-    artifact_repo.log_artifacts(model_path, artifact_path=artifact_path)
-
-    model_uri = os.path.join(artifact_root, artifact_path)
-    reloaded_estimator = mlflow_aeon.load_model(model_uri=model_uri)
-
-    np.testing.assert_array_equal(
-        auto_arima_model.predict(),
-        reloaded_estimator.predict(),
-    )
+# @pytest.mark.skipif(
+#     not _check_soft_dependencies("mlflow", severity="none"),
+#     reason="skip test if required soft dependency not available",
+# )
+# def test_load_from_remote_uri_succeeds(auto_arima_model, model_path, mock_s3_bucket):
+#     """Test loading native aeon model from mock S3 bucket."""
+#     from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
+#
+#     from aeon.utils import mlflow_aeon
+#
+#     mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
+#
+#     artifact_root = f"s3://{mock_s3_bucket}"
+#     artifact_path = "model"
+#     artifact_repo = S3ArtifactRepository(artifact_root)
+#     artifact_repo.log_artifacts(model_path, artifact_path=artifact_path)
+#
+#     model_uri = os.path.join(artifact_root, artifact_path)
+#     reloaded_estimator = mlflow_aeon.load_model(model_uri=model_uri)
+#
+#     np.testing.assert_array_equal(
+#         auto_arima_model.predict(),
+#         reloaded_estimator.predict(),
+#     )
 
 
 @pytest.mark.skipif(

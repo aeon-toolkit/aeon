@@ -185,7 +185,7 @@ class SFA(BaseCollectionTransformer):
         self.level_bits = 0
         self.level_max = 0
 
-        super(SFA, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
@@ -998,7 +998,7 @@ class SFA(BaseCollectionTransformer):
         """Convert a bag of SFA words into a string."""
         s = "{"
         for word, value in bag.items():
-            s += "{0}: {1}, ".format(
+            s += "{}: {}, ".format(
                 self.word_list_typed(word)
                 if self._typed_dict
                 else self.word_list(word),

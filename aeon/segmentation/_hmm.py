@@ -143,7 +143,7 @@ class HMMSegmenter(BaseSegmenter):
         self.emission_funcs = emission_funcs
         self.transition_prob_mat = transition_prob_mat
         self._validate_init()
-        super(HMMSegmenter, self).__init__()
+        super().__init__()
 
     def _validate_init(self):
         """Verify the parameters passed to init.

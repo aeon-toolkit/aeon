@@ -123,7 +123,7 @@ class BaseForecastingErrorMetric(BaseMetric):
         if not hasattr(self, "name"):
             self.name = type(self).__name__
 
-        super(BaseForecastingErrorMetric, self).__init__()
+        super().__init__()
 
     def __call__(self, y_true, y_pred, **kwargs):
         """Calculate metric value using underlying metric function.
@@ -551,9 +551,7 @@ class _DynamicForecastingErrorMetric(BaseForecastingErrorMetricFunc):
         self.name = name
         self.lower_is_better = lower_is_better
 
-        super(_DynamicForecastingErrorMetric, self).__init__(
-            multioutput=multioutput, multilevel=multilevel
-        )
+        super().__init__(multioutput=multioutput, multilevel=multilevel)
 
         self.set_tags(**{"lower_is_better": lower_is_better})
 

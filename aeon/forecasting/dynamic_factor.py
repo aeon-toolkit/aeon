@@ -113,9 +113,9 @@ class DynamicFactor(_StatsModelsAdapter):
 
     Examples
     --------
-    >>> from aeon.testing.utils.series import _make_series
+    >>> from aeon.testing.utils.data_gen import make_series
     >>> from aeon.forecasting.dynamic_factor import DynamicFactor
-    >>> y = _make_series(n_columns=4)
+    >>> y = make_series(n_columns=4)
     >>> forecaster = DynamicFactor()  # doctest: +SKIP
     >>> forecaster.fit(y)  # doctest: +SKIP
     DynamicFactor(...)
@@ -185,7 +185,7 @@ class DynamicFactor(_StatsModelsAdapter):
         self.flags = flags
         self.low_memory = low_memory
 
-        super(DynamicFactor, self).__init__()
+        super().__init__()
 
     def _predict(self, fh, X=None):
         """Make forecasts.

@@ -116,7 +116,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import SupervisedTimeSeriesForest
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = SupervisedTimeSeriesForest(n_estimators=10, random_state=0)
@@ -167,7 +167,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
             row_numba_max,
         ]
 
-        super(SupervisedTimeSeriesForest, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="supervised",
