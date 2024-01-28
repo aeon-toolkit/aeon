@@ -145,7 +145,7 @@ class HIVECOTEV2(BaseClassifier):
         self._arsenal = None
         self._tde = None
 
-        super(HIVECOTEV2, self).__init__()
+        super().__init__()
 
     _DEFAULT_N_TREES = 500
     _DEFAULT_N_SHAPELETS = 10000

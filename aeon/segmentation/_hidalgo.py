@@ -125,7 +125,7 @@ class HidalgoSegmenter(BaseSegmenter):
         self.f = f
         self.seed = seed
 
-        super(HidalgoSegmenter, self).__init__(axis=1)
+        super().__init__(axis=1)
 
     def _get_neighbourhood_params(self, X):
         """

@@ -124,7 +124,7 @@ class FourierFeatures(BaseTransformer):
                 "needs to be lower from the corresponding element of the sp_list"
             )
 
-        super(FourierFeatures, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.

@@ -59,7 +59,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         random_state=None,
         last_file_name="last_model",
     ):
-        super(BaseDeepClassifier, self).__init__()
+        super().__init__()
 
         self.batch_size = batch_size
         self.random_state = random_state
@@ -145,7 +145,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         installed_version = sklearn.__version__
         # Compare the installed version with the target version
         # categories='auto' to get rid of FutureWarning
-        if version.parse(installed_version) < version.parse("1.1"):
+        if version.parse(installed_version) < version.parse("1.2"):
             self.onehot_encoder = OneHotEncoder(sparse=False)
         else:
             self.onehot_encoder = OneHotEncoder(sparse_output=False)

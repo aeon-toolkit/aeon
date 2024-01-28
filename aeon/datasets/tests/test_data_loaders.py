@@ -167,7 +167,7 @@ def test__load_header_info():
         "datasets/data/UnitTest/UnitTest_TRAIN.ts",
     )
     """Test loading a header."""
-    with open(path, "r", encoding="utf-8") as file:
+    with open(path, encoding="utf-8") as file:
         # Read in headers
         meta_data = _load_header_info(file)
         assert meta_data["problemname"] == "unittest"
@@ -187,7 +187,7 @@ def test__load_header_info():
             temp_file = open(load_path, "w", encoding="utf-8")
             temp_file.write(name)
             temp_file.close()
-            with open(load_path, "r", encoding="utf-8") as file:
+            with open(load_path, encoding="utf-8") as file:
                 with pytest.raises(IOError):
                     _load_header_info(file)
             count = count + 1
@@ -197,7 +197,7 @@ def test__load_header_info():
         temp_file = open(load_path, "w", encoding="utf-8")
         temp_file.write(name)
         temp_file.close()
-        with open(load_path, "r", encoding="utf-8") as file:
+        with open(load_path, encoding="utf-8") as file:
             meta = _load_header_info(file)
             assert meta["missing"] is True
             assert meta["classlabel"] is True
@@ -213,7 +213,7 @@ def test__load_data():
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/UnitTest_TRAIN.ts",
     )
-    with open(path, "r", encoding="utf-8") as file:
+    with open(path, encoding="utf-8") as file:
         meta_data = _load_header_info(file)
         X, y, _ = _load_data(file, meta_data)
         assert X.shape == (20, 1, 24)
@@ -222,7 +222,7 @@ def test__load_data():
         os.path.dirname(aeon.__file__),
         "datasets/data/BasicMotions/BasicMotions_TRAIN.ts",
     )
-    with open(path, "r", encoding="utf-8") as file:
+    with open(path, encoding="utf-8") as file:
         meta_data = _load_header_info(file)
         # Check raise error for incorrect univariate test
         meta_data["univariate"] = True
@@ -232,7 +232,7 @@ def test__load_data():
         os.path.dirname(aeon.__file__),
         "datasets/data/JapaneseVowels/JapaneseVowels_TRAIN.ts",
     )
-    with open(path, "r", encoding="utf-8") as file:
+    with open(path, encoding="utf-8") as file:
         meta_data = _load_header_info(file)
         # Check raise error for incorrect univariate test
         meta_data["equallength"] = True
@@ -256,7 +256,7 @@ def test__load_data():
             temp_file = open(load_path, "w", encoding="utf-8")
             temp_file.write(data)
             temp_file.close()
-            with open(load_path, "r", encoding="utf-8") as file:
+            with open(load_path, encoding="utf-8") as file:
                 with pytest.raises(IOError):
                     _load_data(file, meta_data)
             count = count + 1
@@ -272,7 +272,7 @@ def test__load_data():
         temp_file = open(load_path, "w", encoding="utf-8")
         temp_file.write(data)
         temp_file.close()
-        with open(load_path, "r", encoding="utf-8") as file:
+        with open(load_path, encoding="utf-8") as file:
             X, y, meta_data = _load_data(file, meta_data)
             assert isinstance(X, np.ndarray)
 

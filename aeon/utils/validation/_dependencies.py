@@ -206,13 +206,11 @@ def _check_dl_dependencies(msg=None, severity="error"):
     """
     if not isinstance(msg, str):
         msg = (
-            "tensorflow and tensorflow-probability are required for "
-            "deep learning and probabilistic functionality in `aeon`. "
-            "To install these dependencies, run: `pip install aeon[dl]`"
+            "tensorflow is required for deep learning in `aeon`. "
+            "To install this dependency, run: `pip install aeon[dl]`"
         )
     try:
         import_module("tensorflow")
-        import_module("tensorflow_probability")
         return True
     except ModuleNotFoundError as e:
         if severity == "error":
