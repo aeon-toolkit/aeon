@@ -5,7 +5,6 @@ __all__ = [
     "_get_expected_index_for_update_predict",
     "_generate_polynomial_series",
     "make_forecasting_problem",
-    "_make_series",
     "_get_expected_index_for_update_predict",
     "make_forecasting_problem",
 ]
@@ -14,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.forecasting.base import ForecastingHorizon
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen._series import make_series
 from aeon.utils.validation.forecasting import check_fh
 
 
@@ -105,7 +104,7 @@ def make_forecasting_problem(
         y, if not make_X
         y, X if make_X
     """
-    y = _make_series(
+    y = make_series(
         n_timepoints=n_timepoints,
         n_columns=n_columns,
         all_positive=all_positive,
@@ -116,7 +115,7 @@ def make_forecasting_problem(
     if not make_X:
         return y
 
-    X = _make_series(
+    X = make_series(
         n_timepoints=n_timepoints,
         n_columns=2,
         all_positive=all_positive,

@@ -45,6 +45,19 @@ class TimeSeriesKShapes(BaseClusterer):
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
+
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesKShapes
+    >>> from aeon.datasets import load_basic_motions
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
+    >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
+    >>> # Example of KShapes clustering
+    >>> ks = TimeSeriesKShapes(n_clusters=3, random_state=1)  # doctest: +SKIP
+    >>> ks.fit(X_train)  # doctest: +SKIP
+    TimeSeriesKShapes(n_clusters=3, random_state=1)
+    >>> preds = ks.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {

@@ -35,11 +35,11 @@ References
 
 import logging
 import math
-from typing import Dict, List, Tuple
+from dataclasses import dataclass, field
+from typing import List, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from attrs import asdict, define, field
 from sklearn.utils.validation import check_random_state
 
 from aeon.segmentation.base import BaseSegmenter
@@ -47,7 +47,7 @@ from aeon.segmentation.base import BaseSegmenter
 logger = logging.getLogger(__name__)
 
 
-@define
+@dataclass
 class _GGS:
     """
     Greedy Gaussian Segmentation.
@@ -116,9 +116,11 @@ class _GGS:
     verbose: bool = False
     random_state: int = None
 
-    change_points_: npt.ArrayLike = field(init=False, default=[])
-    _intermediate_change_points: List[List[int]] = field(init=False, default=[])
-    _intermediate_ll: List[float] = field(init=False, default=[])
+    change_points_: npt.ArrayLike = field(init=False, default_factory=list)
+    _intermediate_change_points: List[List[int]] = field(
+        init=False, default_factory=list
+    )
+    _intermediate_ll: List[float] = field(init=False, default_factory=list)
 
     def initialize_intermediates(self) -> None:
         """Initialize the state fo the estimator."""
@@ -430,7 +432,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import GreedyGaussianSegmenter
     >>> X = piecewise_normal_multivariate(
@@ -508,58 +510,3 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         ):
             labels[start:stop] = i
         return labels
-
-    def fit_predict(self, X, y=None):
-        """Perform segmentation.
-
-        Parameters
-        ----------
-        X: np.ndarray
-            Time series shape (n_timepoints, n_channels).
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
-
-        Returns
-        -------
-        y_pred : array_like
-            1D array with predicted segmentation of the same size as the first
-            dimension of X. The numerical values represent distinct segments
-            labels for each of the data points.
-        """
-        return self.fit(X, y).predict(X)
-
-    def get_params(self, deep: bool = True) -> Dict:
-        """Return initialization parameters.
-
-        Parameters
-        ----------
-        deep: bool
-            Dummy argument for compatibility with sklearn-api, not used.
-
-        Returns
-        -------
-        params: dict
-            Dictionary with the estimator's initialization parameters, with
-            keys being argument names and values being argument values.
-        """
-        return asdict(self.ggs, filter=lambda attr, value: attr.init is True)
-
-    def set_params(self, **parameters):
-        """Set the parameters of this object.
-
-        Parameters
-        ----------
-        parameters : dict
-            Initialization parameters for the estimator.
-
-        Returns
-        -------
-        self : reference to self (after parameters have been set)
-        """
-        for key, value in parameters.items():
-            setattr(self.ggs, key, value)
-        return self
-
-    def __repr__(self) -> str:
-        """Return a string representation of the estimator."""
-        return self.ggs.__repr__()

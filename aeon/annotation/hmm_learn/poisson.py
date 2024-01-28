@@ -68,7 +68,7 @@ class PoissonHMM(BaseHMMLearn):
     Examples
     --------
     >>> from aeon.annotation.hmm_learn import PoissonHMM # doctest: +SKIP
-    >>> from aeon.annotation.datagen import piecewise_poisson # doctest: +SKIP
+    >>> from from aeon.testing.utils.data_gen import piecewise_poisson # doctest: +SKIP
     >>> data = piecewise_poisson( # doctest: +SKIP
     ...    lambdas=[1, 2, 3], lengths=[2, 4, 8], random_state=7
     ...    ).reshape((-1, 1))
