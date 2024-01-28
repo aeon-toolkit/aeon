@@ -14,9 +14,12 @@ from aeon.datatypes._panel._convert import from_nested_to_multi_index
 from aeon.datatypes._utilities import get_cutoff, get_window
 from aeon.forecasting.arima import ARIMA
 from aeon.forecasting.base._base import _format_moving_cutoff_predictions
-from aeon.testing.utils.collection import make_3d_test_data, make_nested_dataframe_data
-from aeon.testing.utils.hierarchical import _make_hierarchical
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import (
+    _make_hierarchical,
+    make_3d_test_data,
+    make_nested_dataframe_data,
+    make_series,
+)
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 COLLECTION_TYPES = ["pd-multiindex", "nested_univ", "numpy3D"]
@@ -296,7 +299,7 @@ def test_dynamic_tags_reset_properly():
     f = MultiplexForecaster([("foo", ThetaForecaster()), ("var", VAR())])
     f.set_params(selected_forecaster="var")
 
-    X_multivariate = _make_series(n_columns=2)
+    X_multivariate = make_series(n_columns=2)
     # fit should reset the estimator, and set y_input_type tag to "multivariate"
     # the fit will cause an error if this is not happening properly
     f.fit(X_multivariate)
@@ -312,7 +315,7 @@ def test_predict_residuals():
     from aeon.forecasting.model_selection import temporal_train_test_split
     from aeon.forecasting.theta import ThetaForecaster
 
-    y = _make_series(n_columns=1)
+    y = make_series(n_columns=1)
     y_train, y_test = temporal_train_test_split(y)
     fh = ForecastingHorizon(y_test.index, is_relative=False)
     forecaster = ThetaForecaster(sp=12)

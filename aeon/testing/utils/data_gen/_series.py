@@ -8,7 +8,7 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 
-def _make_series(
+def make_series(
     n_timepoints=50,
     n_columns=1,
     all_positive=True,
