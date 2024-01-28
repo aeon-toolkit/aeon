@@ -73,7 +73,7 @@ def test_passthrough_does_not_broadcast_variables():
 )
 def test_passthrough_does_not_broadcast_instances():
     """Test that OptionalPassthrough does not itself vectorize/broadcast rows."""
-    from aeon.testing.utils.hierarchical import _make_hierarchical
+    from aeon.testing.utils.data_gen import _make_hierarchical
     from aeon.transformations.compose import OptionalPassthrough
     from aeon.transformations.detrend import Deseasonalizer
 

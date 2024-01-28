@@ -131,7 +131,7 @@ class InceptionNetwork(BaseDeepNetwork):
         self.use_custom_filters = use_custom_filters
         self.random_state = random_state
 
-        super(InceptionNetwork, self).__init__()
+        super().__init__()
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of cutom filters.

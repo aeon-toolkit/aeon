@@ -116,7 +116,7 @@ class SignatureClassifier(BaseClassifier):
         self.depth = depth
         self.random_state = random_state
 
-        super(SignatureClassifier, self).__init__()
+        super().__init__()
 
         self.signature_method = SignatureTransformer(
             augmentation_list,
