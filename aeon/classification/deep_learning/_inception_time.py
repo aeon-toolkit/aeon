@@ -227,7 +227,7 @@ class InceptionTimeClassifier(BaseClassifier):
 
         self.classifers_ = []
 
-        super(InceptionTimeClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the ensemble of IndividualInceptionClassifier models.
@@ -508,9 +508,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow", severity="error")
-        super(IndividualInceptionClassifier, self).__init__(
-            last_file_name=last_file_name
-        )
+        super().__init__(last_file_name=last_file_name)
         # predefined
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer

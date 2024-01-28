@@ -60,7 +60,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
         self.n_lags = n_lags
         self.min_values = min_values
 
-        super(AutocorrelationFunctionTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         n_instances, n_channels, n_timepoints = X.shape

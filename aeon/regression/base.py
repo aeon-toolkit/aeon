@@ -58,7 +58,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
     def __init__(self):
         self._estimator_type = "regressor"
 
-        super(BaseRegressor, self).__init__()
+        super().__init__()
 
     def __rmul__(self, other):
         """Magic * method, return concatenated RegressorPipeline, transformers on left.

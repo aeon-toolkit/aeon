@@ -125,7 +125,7 @@ class RandomIntervalClassifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(RandomIntervalClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit RandomIntervalClassifier to training data.
@@ -362,7 +362,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(SupervisedIntervalClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit SupervisedIntervalClassifier to training data.

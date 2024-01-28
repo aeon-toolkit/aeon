@@ -172,7 +172,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         else:
             replace_nan = 0
 
-        super(TimeSeriesForestClassifier, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",

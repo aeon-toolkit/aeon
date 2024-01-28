@@ -176,7 +176,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         self.steps = steps
         self.steps_ = self._check_estimators(self.steps, cls_type=BaseTransformer)
 
-        super(TransformerPipeline, self).__init__()
+        super().__init__()
 
         # abbreviate for readability
         ests = self.steps_
@@ -502,7 +502,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         self.transformer_weights = transformer_weights
         self.flatten_transform_index = flatten_transform_index
 
-        super(FeatureUnion, self).__init__()
+        super().__init__()
 
         # abbreviate for readability
         ests = self.transformer_list_
@@ -712,7 +712,7 @@ class FitInTransform(BaseTransformer):
     def __init__(self, transformer, skip_inverse_transform=True):
         self.transformer = transformer
         self.skip_inverse_transform = skip_inverse_transform
-        super(FitInTransform, self).__init__()
+        super().__init__()
         self.clone_tags(transformer, None)
         self.set_tags(
             **{
@@ -918,7 +918,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
         transformers: list,
         selected_transformer=None,
     ):
-        super(MultiplexTransformer, self).__init__()
+        super().__init__()
         self.selected_transformer = selected_transformer
 
         self.transformers = transformers
@@ -1096,7 +1096,7 @@ class InvertTransform(_DelegatedTransformer):
     def __init__(self, transformer):
         self.transformer = transformer
 
-        super(InvertTransform, self).__init__()
+        super().__init__()
 
         self.transformer_ = transformer.clone()
 
@@ -1352,7 +1352,7 @@ class OptionalPassthrough(_DelegatedTransformer):
         self.transformer = transformer
         self.passthrough = passthrough
 
-        super(OptionalPassthrough, self).__init__()
+        super().__init__()
 
         # should be all tags, but not fit_is_empty
         #   (_fit should not be skipped)
@@ -1455,7 +1455,7 @@ class ColumnwiseTransformer(BaseTransformer):
     def __init__(self, transformer, columns=None):
         self.transformer = transformer
         self.columns = columns
-        super(ColumnwiseTransformer, self).__init__()
+        super().__init__()
 
         tags_to_clone = [
             "y_inner_type",
@@ -1718,7 +1718,7 @@ class YtoX(BaseTransformer):
     def __init__(self, subset_index=False):
         self.subset_index = subset_index
 
-        super(YtoX, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

@@ -151,7 +151,7 @@ class GMMHMM(BaseHMMLearn):
         self.params = params
         self.init_params = init_params
         self.implementation = implementation
-        super(GMMHMM, self).__init__()
+        super().__init__()
 
     def _fit(self, X, Y=None):
         # import inside _fit to avoid hard dependency.
@@ -178,7 +178,7 @@ class GMMHMM(BaseHMMLearn):
             self.init_params,
             self.implementation,
         )
-        return super(GMMHMM, self)._fit(X, Y)
+        return super()._fit(X, Y)
 
     @classmethod
     def get_test_params(cls, parameter_set: str = "default") -> Dict:

@@ -119,7 +119,7 @@ class RandomIntervalRegressor(BaseRegressor):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(RandomIntervalRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit RandomIntervalRegressor to training data.

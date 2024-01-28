@@ -136,7 +136,7 @@ class CNNRegressor(BaseDeepRegressor):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(CNNRegressor, self).__init__(
+        super().__init__(
             batch_size=batch_size,
         )
         self.n_layers = n_layers

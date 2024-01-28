@@ -13,10 +13,11 @@ from aeon.datatypes import check_is_mtype, convert
 from aeon.forecasting.arima import ARIMA
 from aeon.testing.utils.data_gen import (
     _make_hierarchical,
+    get_cutoff,
+    get_window,
     make_3d_test_data,
     make_series,
 )
-from aeon.utils.index_functions import get_cutoff, get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.collection import convert_collection, get_n_cases, get_type
 
