@@ -82,7 +82,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self.normalize = normalize
         self.store_distance_profile = store_distance_profile
         self.speed_up = speed_up
-        super(BaseSimiliaritySearch, self).__init__()
+        super().__init__()
 
     @final
     def fit(self, X, y=None):

@@ -124,7 +124,7 @@ An example scenario specification, from ``testing.utils/scenarios_forecasting``:
       _tags = {"univariate_y": True, "fh_passed_in_fit": False}
 
       args = {
-         "fit": {"y": _make_series(n_timepoints=20, random_state=RAND_SEED)},
+         "fit": {"y": make_series(n_timepoints=20, random_state=RAND_SEED)},
          "predict": {"fh": 1},
       }
       default_method_sequence = ["fit", "predict"]
@@ -133,7 +133,7 @@ The scenario ``ForecasterFitPredictUnivariateNoXLateFh`` encodes instructions
 applied to an ``estimator_instance``, via instances ``scenario``.
 A call ``result = scenario.run(estimator_instance)`` will:
 
-1. first, call ``estimator_instance.fit(y=_make_series(n_timepoints=20, random_state=RAND_SEED))``
+1. first, call ``estimator_instance.fit(y=make_series(n_timepoints=20, random_state=RAND_SEED))``
 2. then, call ``estimator_instance.predict(fh=1)`` and return the  output too ``result``.
 
 The abstraction of "scenario" allows to specify multiple argument combinations across multiple methods.

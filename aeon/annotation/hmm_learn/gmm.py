@@ -101,7 +101,7 @@ class GMMHMM(BaseHMMLearn):
     Examples
     --------
     >>> from aeon.annotation.hmm_learn import GMMHMM # doctest: +SKIP
-    >>> from aeon.annotation.datagen import piecewise_normal # doctest: +SKIP
+    >>> from from aeon.testing.utils.data_gen import piecewise_normal # doctest: +SKIP
     >>> data = piecewise_normal( # doctest: +SKIP
     ...    means=[2, 4, 1], lengths=[10, 35, 40], random_state=7
     ...    ).reshape((-1, 1))
@@ -151,7 +151,7 @@ class GMMHMM(BaseHMMLearn):
         self.params = params
         self.init_params = init_params
         self.implementation = implementation
-        super(GMMHMM, self).__init__()
+        super().__init__()
 
     def _fit(self, X, Y=None):
         # import inside _fit to avoid hard dependency.
@@ -178,7 +178,7 @@ class GMMHMM(BaseHMMLearn):
             self.init_params,
             self.implementation,
         )
-        return super(GMMHMM, self)._fit(X, Y)
+        return super()._fit(X, Y)
 
     @classmethod
     def get_test_params(cls, parameter_set: str = "default") -> Dict:
