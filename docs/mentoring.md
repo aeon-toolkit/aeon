@@ -1,3 +1,6 @@
+
+[//]: # (Try to put references in harvard style for consistency.)
+
 # Mentoring and Projects
 
 `aeon` runs a range of short projects interacting with the community and the code
@@ -96,22 +99,28 @@ performance gains of the new shapelet transform and the success of this project.
 
 ##### References
 
-1. Jon Hills et al., "Classification of time series by shapelet transformation",
-Data Mining and Knowledge Discovery, 28(4), 851--881, 2014.
-2. A. Bostrom and A. Bagnall, "Binary Shapelet Transform for Multiclass Time
-Series Classification", Transactions on Large-Scale Data and Knowledge Centered
-Systems, 32, 2017.
-3. Chin-Chia Michael Yeh et al., "Matrix Profile I: All Pairs Similarity Joins for
-Time Series: A Unifying View that Includes Motifs, Discords and Shapelets",
-IEEE ICDM, 2016
-4. Yan Zhu et al., "Matrix Profile II: Exploiting a Novel Algorithm and GPUs to
-break the one Hundred Million Barrier for Time Series Motifs and Joins",
-IEEE ICDM, 2016.
-5. Antoine Guillaume et al. "Random Dilated Shapelet Transform: A New Approach
-for Time Series Shapelets", Pattern Recognition and Artificial Intelligence.
-ICPRAI 2022.
+1. Hills, J., Lines, J., Baranauskas, E., Mapp, J. and Bagnall, A., 2014.
+Classification of time series by shapelet transformation. Data mining and knowledge
+discovery, 28, pp.851-881.
+2. Bostrom, A. and Bagnall, A., 2017. Binary shapelet transform for multiclass time
+series classification. Transactions on Large-Scale Data-and Knowledge-Centered Systems
+XXXII: Special Issue on Big Data Analytics and Knowledge Discovery, pp.24-46.
+3. Yeh, C.C.M., Zhu, Y., Ulanova, L., Begum, N., Ding, Y., Dau, H.A., Silva, D.F.,
+Mueen, A. and Keogh, E., 2016, December. Matrix profile I: all pairs similarity joins
+for time series: a unifying view that includes motifs, discords and shapelets. In 2016
+IEEE 16th international conference on data mining (ICDM) (pp. 1317-1322). Ieee.
+4. Zhu, Y., Zimmerman, Z., Senobari, N.S., Yeh, C.C.M., Funning, G., Mueen, A., Brisk,
+P. and Keogh, E., 2016, December. Matrix profile ii: Exploiting a novel algorithm and
+gpus to break the one hundred million barrier for time series motifs and joins. In 2016
+IEEE 16th international conference on data mining (ICDM) (pp. 739-748). IEEE.
+5. Guillaume, A., Vrain, C. and Elloumi, W., 2022, June. Random dilated shapelet
+transform: A new approach for time series shapelets. In International Conference on
+Pattern Recognition and Artificial Intelligence (pp. 653-664). Cham: Springer
+International Publishing.
 
 #### 2. Channel selection for classification
+
+##### Description
 
 Try some simple channel filters for high dimensional data
 
@@ -122,6 +131,67 @@ Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
 ##### Description
 
 Work on aeon-neuro, implement some of the recent EEG classification algorithms
+
+#### 4. Improved Proximity Forest for classification
+
+Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`) and Tony Bagnall
+({user}`TonyBagnall`)
+
+##### Description
+
+Distance-based classifiers are a popular approach to time series classification. They
+primarily use elastic distance measures to compare time series. The Proximity Forest
+algorithm [1] is a distance-based classifier for time series. The classifier creates
+a forest of decision trees, where the tree splits are based on the distance between
+time series using various distance measures. A recent review of time series
+classification algorithms [2] found that Proximity Forest was the most accurate
+distance-based algorithm.
+
+`aeon` had an implementation of the Proximity Forest algorithm, but it was not as
+accurate as the original implementation (the one used in the study) and crashes on
+some benchmark datasets. The goal of this project is to improve the previous
+implementation of Proximity Forest in `aeon` to match the accuracy of the original
+algorithm. This will involve comparing against the authors' Java implementation of the
+algorithm as well as the previous implementation in `aeon`. The mentors will provide
+results for both to help with the evaluation. While knowing Java is not a requirement
+for this project, it could be beneficial.
+
+Recent work has proposed a new version of the Proximity Forest algorithm, Proximity
+Forest 2.0 [3]. This algorithm is more accurate than the original Proximity Forest
+algorithm, and does not currently have an implementation in `aeon`. If time, the
+project could also involve implementing the Proximity Forest 2.0 algorithm.
+
+##### Project stages
+
+1. Learn about `aeon` best practices, coding standards and testing policies.
+2. Study the Proximity Forest algorithm and `aeon` implementation.
+3. Improve/re-implement the existing Proximity Forest implementation in `aeon`, with
+the aim being to have an implementation that is as accurate as the original algorithm,
+while remaining feasible to run.
+4. Evaluate the improved implementation against the original `aeon` Proximity Forest
+and the authors' Java implementation.
+5. If time, implement the Proximity Forest 2.0 algorithm and repeat the above
+evaluation.
+
+##### Project evaluation
+
+Success of the project will be assessed by the quality of the code produced and an
+evaluation of the classifier. The new implementation should be comparable with the
+authors implementation in performance. Engagement with the project and the
+`aeon` community are factors in evaluating success.
+
+##### References
+
+1. Lucas, B., Shifaz, A., Pelletier, C., O’Neill, L., Zaidi, N., Goethals,
+B., Petitjean, F. and Webb, G.I., 2019. Proximity forest: an effective and scalable
+distance-based classifier for time series. Data Mining and Knowledge Discovery, 33(3),
+pp.607-635.
+2. Middlehurst, M., Schäfer, P. and Bagnall, A., 2023. Bake off redux: a review and
+experimental evaluation of recent time series classification algorithms. arXiv preprint
+arXiv:2304.13029.
+3. Herrmann, M., Tan, C.W., Salehi, M. and Webb, G.I., 2023. Proximity Forest 2.0: A
+new effective and scalable similarity-based classifier for time series. arXiv
+preprint arXiv:2304.05800.
 
 ### Regression
 
@@ -135,7 +205,7 @@ Port in QUANT, assess for regression
 
 ### Clustering
 
-#### 1. Clustering: feature based or deep learning based algorithms
+#### 1. Feature based or deep learning based algorithms
 
 Mentors: Tony Bagnall ({user}`TonyBagnall`), Ali Ismail-Fawaz ({user}`hadifawaz1999`)
 and @Chris?
@@ -157,25 +227,64 @@ algorithms for time series clustering into the system.
 
 ##### References
 
-1. Lafabregue, Baptiste, et al. "End-to-end deep representation learning
-for time series clustering: a comparative study." Data Mining and Knowledge
-Discovery 36.1 (2022): 29-81.
+1. Lafabregue, B., Weber, J., Gançarski, P. and Forestier, G., 2022. End-to-end deep
+representation learning for time series clustering: a comparative study. Data Mining
+and Knowledge Discovery, 36(1), pp.29-81.
 
 ### Anomaly detection
 
-#### 1. Anomaly detection with the Matrix Profile and Merlin
+#### 1. Anomaly detection with the Matrix Profile and MERLIN
 
 Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
 
 ##### Description
 
-Implement and evaluate matrix profile based anomaly detection
+`aeon` is looking to introduce a new module for time series anomaly detection. The
+end goal of this project is to implement the Matrix Profile [1][2] and MERLIN [3]
+algorithms, but suitable framework for anomaly detection in `aeon` will need to be
+designed first. The mentee will help design the API for the anomaly detection module
+and implement the Matrix Profile and MERLIN algorithms.
+
+Usage of external libraries such as `stumpy` [4] is possible for the algorithm
+implementations, or the mentee can implement the algorithms from scratch using `numba`.
+There is also scope to benchmark the implementations, but as there is no existing
+anomaly detection module in `aeon`, this will require some infrastructure to be
+developed and is subject to time and interest.
 
 ##### Project stages
 
+1. Learn about `aeon` best practices, coding standards and testing policies.
+2. Familiarise yourself with similar single series experimental modules in `aeon` such
+as segmentation and similarity search.
+3. Help design the API for the anomaly detection module.
+4. Study and implement the Matrix Profile for anomaly detection and MERLIN algorithms
+using the new API.
+5. If time allows and there is interest, benchmark the implementations against the
+original implementations or other anomaly detection algorithms.
+
 ##### Project evaluation
 
+As the anomaly detection is a new module in `aeon`, there is very little existing code
+to compare against and little infrastructure to evluate anomaly detection algorithms.
+The success of the project will be evaluated by the quality of the code produced and
+engagement with the project and the `aeon` community.
+
 ##### References
+
+1. Yeh, C.C.M., Zhu, Y., Ulanova, L., Begum, N., Ding, Y., Dau, H.A., Silva, D.F.,
+Mueen, A. and Keogh, E., 2016, December. Matrix profile I: all pairs similarity joins
+for time series: a unifying view that includes motifs, discords and shapelets. In 2016
+IEEE 16th international conference on data mining (ICDM) (pp. 1317-1322). Ieee.
+2. Lu, Y., Wu, R., Mueen, A., Zuluaga, M.A. and Keogh, E., 2022, August.
+Matrix profile XXIV: scaling time series anomaly detection to trillions of datapoints
+and ultra-fast arriving data streams. In Proceedings of the 28th ACM SIGKDD Conference
+on Knowledge Discovery and Data Mining (pp. 1173-1182).
+3. Nakamura, T., Imamura, M., Mercer, R. and Keogh, E., 2020, November. Merlin:
+Parameter-free discovery of arbitrary length anomalies in massive time series archives.
+In 2020 IEEE international conference on data mining (ICDM) (pp. 1190-1195). IEEE.
+4. Law, S.M., 2019. STUMPY: A powerful and scalable Python library for time series data
+mining. Journal of Open Source Software, 4(39), p.1504.
+
 
 ### Segmentation
 
@@ -191,7 +300,7 @@ series. The goal of this project is to extend the functionality of segmentation 
 
 ##### Project stages
 
-1. Learn about aeon best practices, coding standards and testing policies.
+1. Learn about `aeon` best practices, coding standards and testing policies.
 2. Study the existing segmentation algorithms in `aeon`.
 3. Implement existing segmentation algorithms, e.g.
 https://github.com/aeon-toolkit/aeon/issues/948
@@ -206,18 +315,19 @@ willingness to join the community rather than performance of the algorithms.
 
 ##### References
 
-1. Allegra, Michele, et al. "Data segmentation based on the local intrinsic
-dimension." Scientific reports 10.1 (2020): 1-12.
-2. Ermshaus, Arik, Sch"afer, Patrick and Leser, Ulf. ClaSP: parameter-free
-time series segmentation. Data Mining and Knowledge Discovery, 37, 2023.
-3. Hallac, D., Nystrup, P. & Boyd, S. "Greedy Gaussian segmentation of multivariate
-time series.", Adv Data Anal Classif 13, 727–751 (2019).
-4. S. Matteson, David S., and Nicholas A. James. "A nonparametric approach for
-multiple change point analysis of multivariate data." Journal of the American
-Statistical Association 109.505 (2014): 334-345.
-5. Sadri, Amin, Yongli Ren, and Flora D. Salim. "Information gain-based metric for
-recognizing transitions in human activities.", Pervasive and Mobile Computing, 38,
-92-109, (2017).
+1. Allegra, M., Facco, E., Denti, F., Laio, A. and Mira, A., 2020. Data segmentation
+based on the local intrinsic dimension. Scientific Reports, 10(1), p.16449.
+2. Ermshaus, A., Schäfer, P. and Leser, U., 2023. ClaSP: parameter-free time series
+segmentation. Data Mining and Knowledge Discovery, 37(3), pp.1262-1300.
+3. Hallac, D., Nystrup, P. and Boyd, S., 2019. Greedy Gaussian segmentation of
+multivariate time series. Advances in Data Analysis and Classification, 13(3),
+pp.727-751.
+4. Matteson, D.S. and James, N.A., 2014. A nonparametric approach for multiple change
+point analysis of multivariate data. Journal of the American Statistical Association,
+109(505), pp.334-345.
+5. Sadri, A., Ren, Y. and Salim, F.D., 2017. Information gain-based metric for
+recognizing transitions in human activities. Pervasive and Mobile Computing, 38,
+pp.92-109.
 
 ### Transformation
 
@@ -228,12 +338,12 @@ Mentors: Ali Ismail-Fawaz ({user}`hadifawaz1999`) and Matthew Middlehurst
 
 ##### Description
 
-The ROCKET algorithm [1] is a very fast and accurate time series classification
-algorithm. It is based on a randomly initialised convolutional kernels that are applied
-to the time series and used to extract summary statistics. ROCKET has applications to
-time series classification, extrinsic regression and anomaly detection, but as a fast
-and unsupervised transformation, it has potential to a wide range of other time series
-tasks.
+The ROCKET algorithm [1] is a very fast and accurate transformation designed for time
+series classification. It is based on a randomly initialised convolutional kernels that
+are applied to the time series and used to extract summary statistics. ROCKET has
+applications to time series classification, extrinsic regression and anomaly detection,
+but as a fast and unsupervised transformation, it has potential to a wide range of
+other time series tasks.
 
 `aeon` has implementations of the ROCKET transformation and its variants, including
 MiniROCKET [2] and MultiROCKET [3]. However, these implementations have room for
@@ -253,8 +363,8 @@ algorithm [4] or implement GPU compatible versions of the algorithms.
 1. Learn about `aeon` best practices, coding standards and testing policies.
 2. Study the ROCKET, MiniROCKET, MultiROCKET algorithms.
 3. Study the existing ROCKET implementations in `aeon`.
-4. Tidy up the existing ROCKET implementations in `aeon`, with the aim being to
-familiarise the mentee with the `aeon` pull request process.
+4. Merge and tidy the ROCKET implementations, with the aim being to familiarise the
+mentee with the `aeon` pull request process.
 5. Implement one (or more) of the proposed ROCKET implementation improvements:
    * Significantly alter the current ROCKET implementations with the goal of
    speeding up the implementation on CPU processing.
