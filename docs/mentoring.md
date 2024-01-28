@@ -148,13 +148,13 @@ classification algorithms [2] found that Proximity Forest was the most accurate
 distance-based algorithm.
 
 `aeon` had an implementation of the Proximity Forest algorithm, but it was not as
-accurate as the original implementation (the one used in the study) and crashes on
+accurate as the original implementation (the one used in the study) and crashed on
 some benchmark datasets. The goal of this project is to improve the previous
-implementation of Proximity Forest in `aeon` to match the accuracy of the original
-algorithm. This will involve comparing against the authors' Java implementation of the
-algorithm as well as the previous implementation in `aeon`. The mentors will provide
-results for both to help with the evaluation. While knowing Java is not a requirement
-for this project, it could be beneficial.
+implementation or re-implement Proximity Forest in `aeon` to match the accuracy of the
+original algorithm. This will involve comparing against the authors' Java
+implementation of the algorithm as well as alternate Python versions. The mentors will
+provide results for both to help with the evaluation. While knowing Java is not a
+requirement for this project, it could be beneficial.
 
 Recent work has proposed a new version of the Proximity Forest algorithm, Proximity
 Forest 2.0 [3]. This algorithm is more accurate than the original Proximity Forest
