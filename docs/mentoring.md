@@ -9,7 +9,7 @@ undergraduate/postgraduate projects at academic institutions, and as options for
 programs such as [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com/).
 
 For those interested in undertaking a project outside these scenarios, we recommend
-joining the [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA))
+joining the [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
 and discussing with the project mentors. We aim to run schemes to
 help new contributors to become more familiar with `aeon`, time series machine learning
 research, and open-source software development.
@@ -27,16 +27,44 @@ We will more widely advertise funding opportunities as and when they become avai
 
 #### 1. Machine Learning
 
+Mentors: ?
+
+##### Description
+
 Implement and evaluate some of the recently proposed machine learning ree based
 algorithms.
 
+##### Project stages
+
+?
+
+##### Project evaluation
+
+?
+
+##### References
+
+?
+
 #### 2. Forecasting as time series regression
 
-Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
+Mentors: ?
 
 ##### Description
 
 Evaluate TSER algorithms for TSFR
+
+##### Project stages
+
+?
+
+##### Project evaluation
+
+?
+
+##### References
+
+?
 
 #### 3. Deep Learning for Time Series Forecasting
 
@@ -120,17 +148,44 @@ International Publishing.
 
 #### 2. Channel selection for classification
 
+Mentors: ?
+
 ##### Description
 
 Try some simple channel filters for high dimensional data
 
+##### Project stages
+
+?
+
+##### Project evaluation
+
+?
+
+##### References
+
+?
+
 #### 3. EEG classification: work on aeon-neuro
 
-Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
+Mentors: Tony Bagnall ({user}`TonyBagnall`) and Matthew Middlehurst
+({user}`MatthewMiddlehurst`)
 
 ##### Description
 
 Work on aeon-neuro, implement some of the recent EEG classification algorithms
+
+##### Project stages
+
+?
+
+##### Project evaluation
+
+?
+
+##### References
+
+?
 
 #### 4. Improved Proximity Forest for classification
 
@@ -193,16 +248,6 @@ arXiv:2304.13029.
 new effective and scalable similarity-based classifier for time series. arXiv
 preprint arXiv:2304.05800.
 
-### Regression
-
-#### 1. QUANT transformer for regression
-
-Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
-
-##### Description
-
-Port in QUANT, assess for regression
-
 ### Clustering
 
 #### 1. Feature based or deep learning based algorithms
@@ -224,6 +269,14 @@ The objective of this project is to enhance `aeon` by incorporating more deep le
 approaches for time series clustering. This involves adapting the FCN auto-encoder to
 leverage the ResNet model. Additionally, the project aims to integrate feature-based
 algorithms for time series clustering into the system.
+
+##### Project stages
+
+?
+
+##### Project evaluation
+
+?
 
 ##### References
 
@@ -284,7 +337,6 @@ Parameter-free discovery of arbitrary length anomalies in massive time series ar
 In 2020 IEEE international conference on data mining (ICDM) (pp. 1190-1195). IEEE.
 4. Law, S.M., 2019. STUMPY: A powerful and scalable Python library for time series data
 mining. Journal of Open Source Software, 4(39), p.1504.
-
 
 ### Segmentation
 
