@@ -34,7 +34,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection import AutocorrelationFunctionTransformer
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=2, n_timepoints=20,
     ...                           random_state=0)
     >>> tnf = AutocorrelationFunctionTransformer(n_lags=10)
@@ -60,7 +60,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
         self.n_lags = n_lags
         self.min_values = min_values
 
-        super(AutocorrelationFunctionTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         n_instances, n_channels, n_timepoints = X.shape

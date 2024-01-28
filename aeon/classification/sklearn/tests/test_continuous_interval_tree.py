@@ -5,7 +5,7 @@ import pytest
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.classification.sklearn._continuous_interval_tree import _TreeNode
 from aeon.exceptions import NotFittedError
-from aeon.testing.utils.collection import make_2d_test_data, make_3d_test_data
+from aeon.testing.utils.data_gen import make_2d_test_data, make_3d_test_data
 
 
 def test_predict_proba():
