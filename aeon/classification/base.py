@@ -434,7 +434,6 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         # reset estimator at the start of fit
         self.reset()
 
-        # All of this can move up to BaseCollection
         X = self._preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
 
