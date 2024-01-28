@@ -111,7 +111,7 @@ class RocketRegressor(BaseRegressor):
         self.estimator = estimator
         self.n_jobs = n_jobs
 
-        super(RocketRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Rocket variant to training data.

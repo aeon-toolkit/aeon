@@ -84,7 +84,6 @@ class HidalgoSegmenter(BaseSegmenter):
     """
 
     _tags = {
-        "capability:univariate": False,
         "capability:multivariate": True,
         "fit_is_empty": False,
         "returns_dense": False,
@@ -126,7 +125,7 @@ class HidalgoSegmenter(BaseSegmenter):
         self.f = f
         self.seed = seed
 
-        super(HidalgoSegmenter, self).__init__(axis=0)
+        super().__init__(axis=1)
 
     def _get_neighbourhood_params(self, X):
         """
@@ -377,7 +376,7 @@ class HidalgoSegmenter(BaseSegmenter):
             if use_Potts and estimate_zeta:
                 for zeta_candidates in range(10):
                     zeta1 = 0.5 + 0.05 * zeta_candidates
-                    ZZ = [_partition_function(N, NN[k], zeta1, q) for k in range(K)]
+                    ZZ = [partition_function(N, NN[k], zeta1, q) for k in range(K)]
                     h = [NN[k] * np.log(ZZ[k]) for k in range(K)]
                     val = (
                         (f1[0] - 1) * np.log(zeta1)
@@ -392,7 +391,7 @@ class HidalgoSegmenter(BaseSegmenter):
                     r1 = _rng.random()  # random sample for zeta
                     r2 = _rng.random()  # random number for accepting
 
-                    ZZ = [_partition_function(N, NN[k], r1, q) for k in range(K)]
+                    ZZ = [partition_function(N, NN[k], r1, q) for k in range(K)]
                     h = [NN[k] * np.log(ZZ[k]) for k in range(K)]
                     val = (f1[0] - 1) * np.log(r1) + (f1[1] - 1) * np.log(1 - r1) - h
                     frac = np.exp(val - maxval)
@@ -445,11 +444,11 @@ class HidalgoSegmenter(BaseSegmenter):
                         )
 
                         g = (n_in + m_in) * np.log(zeta / (1 - zeta)) - np.log(
-                            _partition_function(N, NN[k1], zeta, q)
+                            partition_function(N, NN[k1], zeta, q)
                         )
-                        var = _partition_function(
+                        var = partition_function(
                             N, NN[k1] - 1, zeta, q
-                        ) / _partition_function(N, NN[k1], zeta, q)
+                        ) / partition_function(N, NN[k1], zeta, q)
                         assert var > 0
                         g = g + np.log(var) * (NN[k1] - 1)
 
@@ -498,7 +497,7 @@ class HidalgoSegmenter(BaseSegmenter):
             lik1 = lik0 + np.log(zeta / (1 - zeta)) * N_in
 
             for k1 in range(K):
-                lik1 = lik1 - (NN[k1] * np.log(_partition_function(N, NN[k1], zeta, q)))
+                lik1 = lik1 - (NN[k1] * np.log(partition_function(N, NN[k1], zeta, q)))
 
             return lik0, lik1
 
@@ -693,13 +692,13 @@ class HidalgoSegmenter(BaseSegmenter):
         }
 
 
-def _binom(N: Union[int, float], q: Union[int, float]):
+def binom(N: Union[int, float], q: Union[int, float]):
     """Calculate the binomial coefficient.
 
     Parameters
     ----------
     N : int, float
-        number of fixed elements from which q is chosen
+        number of fixed elements from qhich q is chosen
     q : int, float
         number of subset q elements chosen from N
     """
@@ -710,7 +709,7 @@ def _binom(N: Union[int, float], q: Union[int, float]):
     return reduce(lambda x, y: x * y, [(N - q1) / (q1 + 1) for q1 in range(q)])
 
 
-def _partition_function(N, N1, zeta, q):
+def partition_function(N, N1, zeta, q):
     """Partition function for Z.
 
     Parameters
@@ -726,8 +725,8 @@ def _partition_function(N, N1, zeta, q):
     """
     return sum(
         [
-            _binom(N1 - 1, q1)
-            * _binom(N - N1, q - q1)
+            binom(N1 - 1, q1)
+            * binom(N - N1, q - q1)
             * zeta ** (q1)
             * (1 - zeta) ** (q - q1)
             for q1 in range(q + 1)

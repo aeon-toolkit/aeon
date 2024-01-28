@@ -105,7 +105,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
         self.param_c = param_c
 
         # todo: change "MyTimeSeriesClassifier" to the name of the class
-        super(MyTimeSeriesClassifier, self).__init__()
+        super().__init__()
 
     # todo: implement this abstract function
     def _fit(self, X, y):

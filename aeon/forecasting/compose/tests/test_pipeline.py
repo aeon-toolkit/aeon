@@ -27,8 +27,8 @@ from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.sarimax import SARIMAX
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.testing.mock_estimators import MockForecaster
+from aeon.testing.utils.data_gen import make_series
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
-from aeon.testing.utils.series import _make_series
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.boxcox import LogTransformer
 from aeon.transformations.compose import OptionalPassthrough
@@ -313,9 +313,9 @@ def test_forecasting_pipeline_dunder_endog():
 )
 def test_forecasting_pipeline_dunder_exog():
     """Test forecasting pipeline dunder for exogeneous transformation."""
-    y = _make_series()
+    y = make_series()
     y_train, y_test = temporal_train_test_split(y)
-    X = _make_series(n_columns=2)
+    X = make_series(n_columns=2)
     X_train, X_test = temporal_train_test_split(X)
 
     forecaster = (
@@ -380,7 +380,7 @@ def test_tag_handles_missing_data():
     # make sure that test forecaster cant handle missing data
     forecaster.set_tags(**{"capability:missing_values": False})
 
-    y = _make_series()
+    y = make_series()
     y[10] = np.nan
 
     # test only TransformedTargetForecaster
@@ -403,10 +403,10 @@ def test_tag_handles_missing_data():
 )
 def test_subset_getitem():
     """Test subsetting using the [ ] dunder, __getitem__."""
-    y = _make_series(n_columns=3)
+    y = make_series(n_columns=3)
     y.columns = ["x", "y", "z"]
     y_train, _ = temporal_train_test_split(y)
-    X = _make_series(n_columns=3)
+    X = make_series(n_columns=3)
     X.columns = ["a", "b", "c"]
     X_train, X_test = temporal_train_test_split(X)
 

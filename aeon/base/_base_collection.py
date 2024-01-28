@@ -37,7 +37,7 @@ class BaseCollectionEstimator(BaseEstimator):
         self.metadata_ = {}  # metadata/properties of data seen in fit
         self.fit_time_ = 0  # time elapsed in last fit call
         self._n_jobs = 1
-        super(BaseCollectionEstimator, self).__init__()
+        super().__init__()
         _check_estimator_deps(self)
 
     def _preprocess_collection(self, X):
