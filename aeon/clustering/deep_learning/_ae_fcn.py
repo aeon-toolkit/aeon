@@ -139,7 +139,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         callbacks=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(AEFCNClusterer, self).__init__(
+        super().__init__(
             n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
@@ -345,6 +345,4 @@ class AEFCNClusterer(BaseDeepClusterer):
             },
         }
 
-        test_params = [param1]
-
-        return test_params
+        return [param1]

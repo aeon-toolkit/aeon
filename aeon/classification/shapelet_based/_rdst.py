@@ -152,7 +152,7 @@ class RDSTClassifier(BaseClassifier):
         self._transformer = None
         self._estimator = None
 
-        super(RDSTClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Classifier to training data.

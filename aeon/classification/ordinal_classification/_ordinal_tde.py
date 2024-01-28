@@ -200,7 +200,7 @@ class OrdinalTDE(BaseClassifier):
         self._prev_parameters_x = []
         self._prev_parameters_y = []
 
-        super(OrdinalTDE, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit an ensemble on cases (X,y), where y is the target variable.
@@ -772,7 +772,7 @@ class IndividualOrdinalTDE(BaseClassifier):
         self._subsample = []
         self._train_predictions = []
 
-        super(IndividualOrdinalTDE, self).__init__()
+        super().__init__()
 
     # todo remove along with BOSS and SFA workarounds when Dict becomes serialisable.
     def __getstate__(self):

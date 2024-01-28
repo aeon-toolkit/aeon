@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datasets import make_example_long_table, make_example_multi_index_dataframe
 from aeon.datatypes._adapter import convert_from_multiindex_to_listdataset
 from aeon.datatypes._panel._check import (
     are_columns_nested,
@@ -28,7 +27,9 @@ from aeon.datatypes._panel._convert import (
     from_nplist_to_nested,
     from_numpy3d_to_dflist,
 )
-from aeon.testing.utils.collection import (
+from aeon.testing.utils.data_gen import (
+    make_example_long_table,
+    make_example_multi_index_dataframe,
     make_nested_dataframe_data,
     make_unequal_length_test_data,
 )
