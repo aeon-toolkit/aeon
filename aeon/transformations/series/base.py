@@ -30,7 +30,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
     def __init__(self, axis=1):
         self.axis = axis
-        super(BaseSeriesTransformer, self).__init__(axis=axis)
+        super().__init__(axis=axis)
 
     @final
     def fit(self, X, y=None, axis=None):

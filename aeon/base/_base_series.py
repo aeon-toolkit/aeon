@@ -64,7 +64,7 @@ class BaseSeriesEstimator(BaseEstimator):
     def __init__(self, axis=0):
         self.axis = axis
         self.metadata_ = {}  # metadata/properties of data seen in fit
-        super(BaseSeriesEstimator, self).__init__()
+        super().__init__()
         _check_estimator_deps(self)
 
     def _check_X(self, X):
