@@ -240,7 +240,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             row_numba_max,
         ]
 
-        super(DrCIFClassifier, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",

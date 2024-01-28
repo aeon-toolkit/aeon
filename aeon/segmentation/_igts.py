@@ -365,7 +365,7 @@ class InformationGainSegmenter(BaseSegmenter):
             k_max=k_max,
             step=step,
         )
-        super(InformationGainSegmenter, self).__init__(n_segments=k_max + 1, axis=0)
+        super().__init__(n_segments=k_max + 1, axis=0)
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         """Perform segmentation.

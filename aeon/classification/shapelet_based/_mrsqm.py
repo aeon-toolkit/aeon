@@ -91,7 +91,7 @@ class MrSQMClassifier(BaseClassifier):
         self.custom_config = custom_config
         self.random_state = random_state
 
-        super(MrSQMClassifier, self).__init__()
+        super().__init__()
 
     _tags = {
         "X_inner_type": "nested_univ",  # we don't like this, but it's the only input!

@@ -190,7 +190,7 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         n_jobs=1,
         parallel_backend=None,
     ):
-        super(IntervalForestRegressor, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method=interval_selection_method,

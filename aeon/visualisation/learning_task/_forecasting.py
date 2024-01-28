@@ -83,7 +83,7 @@ def plot_series_windows(y, cv, title=""):
         fig.suptitle(title, size="xx-large")
 
     # remove duplicate labels/handles
-    handles, labels = [(leg[:2]) for leg in ax.get_legend_handles_labels()]
+    handles, labels = ((leg[:2]) for leg in ax.get_legend_handles_labels())
     ax.legend(handles, labels)
 
     return fig, ax

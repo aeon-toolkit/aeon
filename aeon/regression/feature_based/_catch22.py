@@ -128,7 +128,7 @@ class Catch22Regressor(BaseRegressor):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(Catch22Regressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Catch22Regressor to training data.
