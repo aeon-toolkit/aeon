@@ -68,9 +68,8 @@ def test_series_in_series_out_not_supported_but_panel():
         "output_data_type" = "Series"
         "fit_is_empty" = False
         "X_inner_type" does not support "Series" but does support "Panel"
-            i.e., none of the mtypes in the list is "Series" but some are "Panel"
 
-    X input to fit/transform has Series scitype
+    X input to fit/transform has Series type
     X output from fit/transform should be Series
     """
     cls = _DummyOne

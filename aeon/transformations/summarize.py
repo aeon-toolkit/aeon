@@ -609,7 +609,7 @@ class SummaryTransformer(BaseTransformer):
     flatten_transform_index : bool, optional (default=True)
         if True, columns of return DataFrame are flat, by "variablename__feature"
         if False, columns are MultiIndex (variablename__feature)
-        has no effect if return mtype is one without column names
+        has no effect if return type is one without column names
 
     See Also
     --------

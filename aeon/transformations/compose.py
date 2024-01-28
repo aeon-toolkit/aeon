@@ -582,7 +582,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
         Parameters
         ----------
-        X : pd.DataFrame, Series, Panel, or Hierarchical mtype format
+        X : pd.DataFrame
             Data to fit transform to
         y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
@@ -607,7 +607,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
         Parameters
         ----------
-        X : pd.DataFrame, Series, Panel, or Hierarchical mtype format
+        X : pd.DataFrame
             Data to be transformed
         y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
@@ -1215,7 +1215,6 @@ class Id(BaseTransformer):
         "capability:inverse_transform": True,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_type": CORE_TYPES,
-        # this can be a Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "None",
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": True,
