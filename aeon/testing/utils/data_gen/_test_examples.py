@@ -1,4 +1,4 @@
-"""Move into util once #1105 is in."""
+"""Generate test examples."""
 import numpy as np
 import pandas as pd
 
