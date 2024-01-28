@@ -33,16 +33,16 @@ from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import FitInTransform
 
 
-def inner_X_scitypes(est):
-    """Return list of scitypes supported by class est, as list of str."""
+def inner_X_types(est):
+    """Return list of types supported by class est, as list of str."""
     if isclass(est):
         X_inner_type = est.get_class_tag("X_inner_type")
     else:
         X_inner_type = est.get_tag("X_inner_type")
-    X_inner_scitypes = mtype_to_scitype(
+    X_inner_types = mtype_to_scitype(
         X_inner_type, return_unique=True, coerce_to_list=True
     )
-    return X_inner_scitypes
+    return X_inner_types
 
 
 class _DummyOne(BaseTransformer):
@@ -75,8 +75,8 @@ def test_series_in_series_out_not_supported_but_panel():
     """
     cls = _DummyOne
     est = cls.create_test_instance()
-    assert "Panel" in inner_X_scitypes(est)
-    assert "Series" not in inner_X_scitypes(est)
+    assert "Panel" in inner_X_types(est)
+    assert "Series" not in inner_X_types(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
@@ -101,7 +101,7 @@ def test_panel_in_panel_out_supported():
     """
     cls = _DummyOne
     est = cls.create_test_instance()
-    assert "Panel" in inner_X_scitypes(est)
+    assert "Panel" in inner_X_types(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
@@ -138,7 +138,7 @@ def test_series_in_series_out_supported():
     """
     cls = _DummyTwo
     est = cls.create_test_instance()
-    assert "Series" in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
@@ -162,9 +162,9 @@ def test_panel_in_panel_out_not_supported_but_series():
     """
     cls = _DummyTwo
     est = cls.create_test_instance()
-    assert "Series" in inner_X_scitypes(est)
-    assert "Panel" not in inner_X_scitypes(est)
-    assert "Hierarchical" not in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
+    assert "Panel" not in inner_X_types(est)
+    assert "Hierarchical" not in inner_X_types(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
@@ -192,7 +192,7 @@ def test_vectorization_multivariate_no_row_vectorization_empty_fit():
     # one example for a transformer which supports Series internally
     cls = _DummyTwo
     est = FitInTransform(cls.create_test_instance())
-    assert "Series" in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
     assert est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
@@ -220,9 +220,9 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series():
     """
     cls = _DummyTwo
     est = cls.create_test_instance()
-    assert "Series" in inner_X_scitypes(est)
-    assert "Panel" not in inner_X_scitypes(est)
-    assert "Hierarchical" not in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
+    assert "Panel" not in inner_X_types(est)
+    assert "Hierarchical" not in inner_X_types(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
@@ -251,9 +251,9 @@ def test_vectorization_multivariate_and_hierarchical():
     """
     cls = _DummyTwo
     est = cls.create_test_instance()
-    assert "Series" in inner_X_scitypes(est)
-    assert "Panel" not in inner_X_scitypes(est)
-    assert "Hierarchical" not in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
+    assert "Panel" not in inner_X_types(est)
+    assert "Hierarchical" not in inner_X_types(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
@@ -284,9 +284,9 @@ def test_vectorization_multivariate_and_hierarchical_empty_fit():
     """
     cls = _DummyTwo
     est = FitInTransform(cls.create_test_instance())
-    assert "Series" in inner_X_scitypes(est)
-    assert "Panel" not in inner_X_scitypes(est)
-    assert "Hierarchical" not in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
+    assert "Panel" not in inner_X_types(est)
+    assert "Hierarchical" not in inner_X_types(est)
     assert est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
@@ -326,7 +326,7 @@ def test_series_in_series_out_supported_fit_in_transform():
     """
     cls = _DummyThree
     est = cls.create_test_instance()
-    assert "Series" in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
     assert est.get_class_tag("fit_is_empty")
     assert est.get_class_tag("input_data_type") == "Series"
     assert est.get_class_tag("output_data_type") == "Series"
@@ -350,9 +350,9 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series_fit_in_transf
     """
     cls = _DummyThree
     est = cls.create_test_instance()
-    assert "Series" in inner_X_scitypes(est)
-    assert "Panel" not in inner_X_scitypes(est)
-    assert "Hierarchical" not in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
+    assert "Panel" not in inner_X_types(est)
+    assert "Hierarchical" not in inner_X_types(est)
     assert est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
@@ -391,7 +391,7 @@ def test_series_in_primitives_out_supported_fit_in_transform():
     """
     cls = _DummyFour
     est = cls.create_test_instance()
-    assert "Series" in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
     assert est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Primitives"
@@ -417,9 +417,9 @@ def test_panel_in_primitives_out_not_supported_fit_in_transform():
     """
     cls = _DummyFour
     est = cls.create_test_instance()
-    assert "Series" in inner_X_scitypes(est)
-    assert "Panel" not in inner_X_scitypes(est)
-    assert "Hierarchical" not in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
+    assert "Panel" not in inner_X_types(est)
+    assert "Hierarchical" not in inner_X_types(est)
     assert est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Primitives"
@@ -484,8 +484,8 @@ def test_series_in_primitives_out_not_supported_fit_in_transform():
     """
     cls = _DummyFive
     est = cls.create_test_instance()
-    assert "Panel" in inner_X_scitypes(est)
-    assert "Series" not in inner_X_scitypes(est)
+    assert "Panel" in inner_X_types(est)
+    assert "Series" not in inner_X_types(est)
     assert est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Primitives"
@@ -525,7 +525,7 @@ def test_panel_in_primitives_out_supported_with_y_in_fit_but_not_transform():
     """
     cls = _DummySix
     est = cls.create_test_instance()
-    assert "Panel" in inner_X_scitypes(est)
+    assert "Panel" in inner_X_types(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("requires_y")
     assert est.get_tag("input_data_type") == "Series"
@@ -555,7 +555,7 @@ def test_vectorization_multivariate_no_row_vectorization():
     """
     cls = _DummyTwo
     est = cls.create_test_instance()
-    assert "Series" in inner_X_scitypes(est)
+    assert "Series" in inner_X_types(est)
     assert not est.get_tag("fit_is_empty")
     assert est.get_tag("input_data_type") == "Series"
     assert est.get_tag("output_data_type") == "Series"
