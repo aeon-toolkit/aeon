@@ -7,7 +7,7 @@ import itertools
 import pandas as pd
 import pytest
 
-from aeon.datatypes import get_examples
+from aeon.testing.get_test_examples import get_examples
 from aeon.testing.utils.data_gen import make_series
 from aeon.transformations.lag import Lag
 
