@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 
-from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.data_gen import _make_hierarchical
 from aeon.transformations.time_since import TimeSince
 
 

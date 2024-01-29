@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
-from aeon.testing.utils.collection import make_nested_dataframe_data
+from aeon.testing.utils.data_gen import make_nested_dataframe_data
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.exponent import ExponentTransformer

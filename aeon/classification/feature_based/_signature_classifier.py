@@ -6,6 +6,7 @@ and methodologies described in the paper:
     "A Generalised Signature Method for Time Series"
     [arxiv](https://arxiv.org/pdf/2006.00873.pdf).
 """
+
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
@@ -121,7 +122,7 @@ class SignatureClassifier(BaseClassifier):
         self.depth = depth
         self.random_state = random_state
 
-        super(SignatureClassifier, self).__init__()
+        super().__init__()
 
         self.signature_method = SignatureTransformer(
             augmentation_list,

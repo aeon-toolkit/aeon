@@ -81,7 +81,7 @@ class CNNNetwork(BaseDeepNetwork):
         self.dilation_rate = dilation_rate
         self.use_bias = use_bias
 
-        super(CNNNetwork, self).__init__()
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         """

@@ -1,4 +1,5 @@
 """Time series kmedoids."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 import warnings
@@ -175,7 +176,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self._fit_method = None
 
         self._distance_params = {}
-        super(TimeSeriesKMedoids, self).__init__(n_clusters)
+        super().__init__(n_clusters)
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)

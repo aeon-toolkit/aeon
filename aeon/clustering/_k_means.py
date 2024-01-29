@@ -1,4 +1,5 @@
 """Time series kmeans."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import Callable, Union
@@ -183,7 +184,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self._averaging_method = None
         self._average_params = None
 
-        super(TimeSeriesKMeans, self).__init__(n_clusters)
+        super().__init__(n_clusters)
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
@@ -369,6 +370,7 @@ class TimeSeriesKMeans(BaseClusterer):
             "n_clusters": 2,
             "distance": "euclidean",
             "n_init": 1,
-            "max_iter": 10,
+            "max_iter": 1,
             "random_state": 0,
+            "averaging_method": "mean",
         }

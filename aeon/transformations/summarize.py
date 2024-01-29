@@ -210,7 +210,7 @@ class WindowSummarizer(BaseTransformer):
         self.target_cols = target_cols
         self.truncate = truncate
 
-        super(WindowSummarizer, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -651,7 +651,7 @@ class SummaryTransformer(BaseTransformer):
         self.quantiles = quantiles
         self.flatten_transform_index = flatten_transform_index
 
-        super(SummaryTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -758,7 +758,7 @@ class PlateauFinder(BaseTransformer):
     def __init__(self, value=np.nan, min_length=2):
         self.value = value
         self.min_length = min_length
-        super(PlateauFinder, self).__init__(_output_convert=False)
+        super().__init__(_output_convert=False)
 
     def _transform(self, X, y=None):
         """Transform X.
@@ -803,7 +803,7 @@ class PlateauFinder(BaseTransformer):
 
         # put into dataframe
         Xt = pd.DataFrame()
-        column_prefix = "%s_%s" % (
+        column_prefix = "{}_{}".format(
             "channel_",
             "nan" if np.isnan(self.value) else str(self.value),
         )
@@ -852,7 +852,7 @@ class FittedParamExtractor(BaseTransformer):
         self.forecaster = forecaster
         self.param_names = param_names
         self.n_jobs = n_jobs
-        super(FittedParamExtractor, self).__init__(_output_convert=True)
+        super().__init__(_output_convert=True)
 
     def _transform(self, X, y=None):
         """Transform X.

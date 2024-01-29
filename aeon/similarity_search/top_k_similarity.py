@@ -78,7 +78,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
                 "integer superior or equal to 1"
             )
         self.k = k
-        super(TopKSimilaritySearch, self).__init__(
+        super().__init__(
             distance=distance,
             distance_args=distance_args,
             normalize=normalize,

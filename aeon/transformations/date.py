@@ -1,4 +1,5 @@
 """Extract calendar features from datetimeindex."""
+
 __author__ = ["danbartl", "KishManani"]
 __all__ = ["DateTimeFeatures"]
 
@@ -142,7 +143,7 @@ class DateTimeFeatures(BaseTransformer):
         self.dummies = _prep_dummies(_RAW_DUMMIES)
         self.keep_original_columns = keep_original_columns
 
-        super(DateTimeFeatures, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -337,9 +338,9 @@ def _prep_dummies(DUMMIES):
     DUMMIES["fourier"] = DUMMIES["child"] + "_in_" + DUMMIES["parent"]
     DUMMIES["dummy"] = DUMMIES["child"] + "_of_" + DUMMIES["parent"]
     DUMMIES.loc[DUMMIES["dummy"] == "year_of_year", "dummy"] = "year"
-    DUMMIES.loc[
-        DUMMIES["dummy_func"] == "is_weekend", ["dummy", "fourier"]
-    ] = "is_weekend"
+    DUMMIES.loc[DUMMIES["dummy_func"] == "is_weekend", ["dummy", "fourier"]] = (
+        "is_weekend"
+    )
 
     DUMMIES["child"] = (
         DUMMIES["child"].astype("category").cat.reorder_categories(date_order)

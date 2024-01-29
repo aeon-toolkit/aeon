@@ -4,7 +4,6 @@ A Random Dilated Shapelet Transform classifier pipeline that simply performs a r
 shapelet dilated transform and build (by default) a ridge classifier on the output.
 """
 
-
 __author__ = ["baraline"]
 __all__ = ["RDSTClassifier"]
 
@@ -152,7 +151,7 @@ class RDSTClassifier(BaseClassifier):
         self._transformer = None
         self._estimator = None
 
-        super(RDSTClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Classifier to training data.

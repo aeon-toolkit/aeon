@@ -210,7 +210,7 @@ class MatrixProfile(BaseCollectionTransformer):
 
     def __init__(self, m=10):
         self.m = m  # subsequence length
-        super(MatrixProfile, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Return the matrix profile for each single time series of the dataset.

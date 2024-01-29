@@ -34,7 +34,7 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer  # noqa
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=10,
     ...                           random_state=0)
     >>> tnf = SevenNumberSummaryTransformer()
@@ -59,7 +59,7 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
     ):
         self.summary_stats = summary_stats
 
-        super(SevenNumberSummaryTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         n_instances = len(X)

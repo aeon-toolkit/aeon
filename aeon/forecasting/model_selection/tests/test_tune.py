@@ -24,7 +24,7 @@ from aeon.performance_metrics.forecasting import (
     mean_squared_error,
 )
 from aeon.testing.test_config import PR_TESTING
-from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.data_gen import _make_hierarchical
 from aeon.transformations.detrend import Detrender
 
 NAIVE = NaiveForecaster(strategy="mean")

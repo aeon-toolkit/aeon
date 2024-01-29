@@ -8,10 +8,12 @@ Time Series Classification.
 __author__ = ["patrickzib"]
 __all__ = ["WEASEL_V2", "WEASELTransformerV2"]
 
+import warnings
+
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse import hstack
-from sklearn.linear_model import RidgeClassifierCV
+from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -68,6 +70,17 @@ class WEASEL_V2(BaseClassifier):
         If the array contains True, words are computed over first order differences.
         If the array contains False, words are computed over the raw time series.
         If both are set, words are computed for both.
+    support_probabilities : str or bool, default="deprecated"
+         Old parameter to support probabilities, no longer needed as probabilities
+         are supported by default.
+
+         If set to False or "deprecated", a RidgeClassifierCV will be trained,
+         which has higher accuracy and is faster. Now also supports probabilities.
+         If set to True, a LogisticRegression will be trained, which supports better
+         probabilities, yet is slower and typically less accurate. Probabilities are
+         needed, for example in Early-Classification like TEASER.
+
+         Deprecated and will be removed in v0.8.0.
     feature_selection : str, default = "chi2_top_k"
         Sets the feature selections strategy to be used. Options from {"chi2_top_k",
         "none", "random"}. Large amounts of memory may be needed depending on the
@@ -126,6 +139,7 @@ class WEASEL_V2(BaseClassifier):
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
+        support_probabilities="deprecated",
         n_jobs=4,
     ):
         self.norm_options = norm_options
@@ -142,7 +156,16 @@ class WEASEL_V2(BaseClassifier):
         self.clf = None
         self.n_jobs = n_jobs
 
-        super(WEASEL_V2, self).__init__()
+        # TODO remove 'support_probabilities' in v0.8.0
+        self.support_probabilities = support_probabilities
+        if support_probabilities == "deprecated":
+            warnings.warn(
+                "the support_probabilities parameter is deprecated and will be"
+                "removed in v0.8.0",
+                stacklevel=2,
+            )
+
+        super().__init__()
 
     def _fit(self, X, y):
         """Build a WEASEL classifiers from the training set (X, y).
@@ -175,7 +198,24 @@ class WEASEL_V2(BaseClassifier):
         )
         words = self.transform.fit_transform(X, y)
 
-        self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
+        if (self.support_probabilities == "deprecated") or (
+            not self.support_probabilities
+        ):
+            # use RidgeClassifierCV for classification,
+            # if support_probabilities is not set to True
+            self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
+        else:
+            # TODO remove 'support_probabilities' in v0.8.0
+            # Use legacy classifier, if support_probabilities is set to True
+            self.clf = LogisticRegression(
+                max_iter=5000,
+                solver="liblinear",
+                dual=True,
+                penalty="l2",
+                random_state=self.random_state,
+                n_jobs=self.n_jobs,
+            )
+
         self.clf.fit(words, y)
 
         if hasattr(self.clf, "best_score_"):
@@ -215,13 +255,10 @@ class WEASEL_V2(BaseClassifier):
         """
         m = getattr(self.clf, "predict_proba", None)
         if callable(m):
-            return self.clf.predict_proba(X)
+            bag = self.transform.transform(X)
+            return self.clf.predict_proba(bag)
         else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._predict(X)
-            for i in range(0, X.shape[0]):
-                dists[i, np.where(self.classes_ == preds[i])] = 1
-            return dists
+            return super()._predict_proba(X)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
