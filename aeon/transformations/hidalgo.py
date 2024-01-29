@@ -137,7 +137,7 @@ class Hidalgo(BaseTransformer):
         self.f = f
         self.seed = seed
 
-        super(Hidalgo, self).__init__()
+        super().__init__()
 
     def _get_neighbourhood_params(self, X):
         """

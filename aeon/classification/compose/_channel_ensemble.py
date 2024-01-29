@@ -27,7 +27,7 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
         self.verbose = verbose
         self.estimators = estimators
         self.remainder = "drop"
-        super(_BaseChannelEnsembleClassifier, self).__init__()
+        super().__init__()
         self._anytagis_then_set(
             "capability:unequal_length", False, True, self._estimators
         )
@@ -246,7 +246,7 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
 
     def __init__(self, estimators, remainder="drop", verbose=False):
         self.remainder = remainder
-        super(ChannelEnsembleClassifier, self).__init__(estimators, verbose=verbose)
+        super().__init__(estimators, verbose=verbose)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

@@ -176,7 +176,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
             ),
         ]
 
-        super(RandomIntervalSpectralEnsembleClassifier, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",

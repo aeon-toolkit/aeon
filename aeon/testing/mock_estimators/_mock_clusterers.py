@@ -8,7 +8,7 @@ class MockDeepClusterer(BaseDeepClusterer):
 
     def __init__(self, last_file_name="last_file"):
         self.last_file_name = last_file_name
-        super(MockDeepClusterer, self).__init__(
+        super().__init__(
             n_clusters=2,
             last_file_name=last_file_name,
             clustering_params={"n_init": 1, "averaging_method": "mean"},

@@ -105,7 +105,7 @@ class _Dummy(BaseCollectionTransformer):
     }
 
     def __init__(self):
-        super(_Dummy, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         assert isinstance(X, np.ndarray) or isinstance(X, list)

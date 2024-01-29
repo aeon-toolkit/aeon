@@ -468,7 +468,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             verbose=verbose,
             random_state=random_state,
         )
-        super(GreedyGaussianSegmenter, self).__init__(n_segments=k_max + 1, axis=0)
+        super().__init__(n_segments=k_max + 1, axis=0)
 
     def _fit(self, X: np.ndarray, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.
