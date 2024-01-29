@@ -42,6 +42,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from scipy.stats import norm
 
 from aeon.base import BaseEstimator
 from aeon.datatypes import (
@@ -55,10 +56,7 @@ from aeon.datatypes import (
 )
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
-from aeon.utils.validation._dependencies import (
-    _check_dl_dependencies,
-    _check_estimator_deps,
-)
+from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index
 
@@ -111,7 +109,7 @@ class BaseForecaster(BaseEstimator):
 
         self._converter_store_y = dict()  # storage dictionary for in/output conversion
 
-        super(BaseForecaster, self).__init__()
+        super().__init__()
         _check_estimator_deps(self)
 
     def __mul__(self, other):
@@ -766,12 +764,6 @@ class BaseForecaster(BaseEstimator):
                 "automated vectorization for predict_proba is not implemented"
             )
 
-        msg = (
-            "tensorflow-probability must be installed for fully probabilistic forecasts"
-            "install `aeon` deep learning dependencies by `pip install aeon[dl]`"
-        )
-        _check_dl_dependencies(msg)
-
         self.check_is_fitted()
         # input checks
         fh = self._check_fh(fh)
@@ -1221,7 +1213,7 @@ class BaseForecaster(BaseEstimator):
         """
         # if self is not vectorized, run the default get_fitted_params
         if not getattr(self, "_is_vectorized", False):
-            return super(BaseForecaster, self).get_fitted_params(deep=deep)
+            return super().get_fitted_params(deep=deep)
 
         # otherwise, we delegate to the instances' get_fitted_params
         # instances' parameters are returned at dataframe-slice-like keys
@@ -2189,8 +2181,6 @@ class BaseForecaster(BaseEstimator):
                 i-th (event dim 1) distribution is forecast for i-th entry of fh
                 j-th (event dim 1) index is j-th variable, order as y in `fit`/`update`
         """
-        import tensorflow_probability as tfp
-
         # default behaviour is implemented if one of the following three is implemented
         implements_interval = self._has_implementation_of("_predict_interval")
         implements_quantiles = self._has_implementation_of("_predict_quantiles")
@@ -2210,14 +2200,7 @@ class BaseForecaster(BaseEstimator):
         pred_var = self._predict_var(fh=fh, X=X)
         pred_std = np.sqrt(pred_var)
         pred_mean = self.predict(fh=fh, X=X)
-        # ensure that pred_mean is a pd.DataFrame
-        df_types = ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
-        pred_mean = convert_to(pred_mean, to_type=df_types)
-        # pred_mean and pred_var now have the same format
-
-        d = tfp.distributions.Normal
-        pred_dist = d(loc=pred_mean, scale=pred_std)
-
+        pred_dist = norm(loc=pred_mean, scale=pred_std)
         return pred_dist
 
     def _predict_moving_cutoff(

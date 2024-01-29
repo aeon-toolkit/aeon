@@ -36,7 +36,7 @@ class Aggregator(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.utils._testing.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -70,7 +70,7 @@ class Aggregator(BaseTransformer):
     def __init__(self, flatten_single_levels=True):
         self.flatten_single_levels = flatten_single_levels
 
-        super(Aggregator, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

@@ -32,6 +32,7 @@ __all__ = [  # Load functions
     "load_forecasting",
     "load_regression",
     "download_all_regression",
+    "get_dataset_meta_data",
 ]
 
 
@@ -77,12 +78,12 @@ def _load_header_info(file):
             key = tokens[0][1:]
             if key == "data":
                 if line != "@data":
-                    raise IOError("data tag should not have an associated value")
+                    raise OSError("data tag should not have an associated value")
                 return meta_data
             if key in meta_data.keys():
                 if key in boolean_keys:
                     if token_len != 2:
-                        raise IOError(f"{tokens[0]} tag requires a boolean value")
+                        raise OSError(f"{tokens[0]} tag requires a boolean value")
                     if tokens[1] == "true":
                         meta_data[key] = True
                     elif tokens[1] == "false":
@@ -93,14 +94,14 @@ def _load_header_info(file):
                     if tokens[1] == "true":
                         meta_data["classlabel"] = True
                         if token_len == 2:
-                            raise IOError(
+                            raise OSError(
                                 "if the classlabel tag is true then class values "
                                 "must be supplied"
                             )
                     elif tokens[1] == "false":
                         meta_data["classlabel"] = False
                     else:
-                        raise IOError("invalid class label value")
+                        raise OSError("invalid class label value")
                     meta_data["class_values"] = [token.strip() for token in tokens[2:]]
         if meta_data["targetlabel"]:
             meta_data["classlabel"] = False
@@ -172,13 +173,13 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
                 series_length = len(channels[0].split(","))
         else:
             if current_channels != n_channels:
-                raise IOError(
+                raise OSError(
                     f"Inconsistent number of dimensions in case {n_cases}. "
                     f"Expecting {n_channels} but have read {current_channels}"
                 )
             if meta_data["univariate"]:
                 if current_channels > 1:
-                    raise IOError(
+                    raise OSError(
                         f"Seen {current_channels} in case {n_cases}."
                         f"Expecting univariate from meta data"
                     )
@@ -193,7 +194,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             data_series = [float(x) for x in data_series]
             if len(data_series) != current_length:
                 equal_length = meta_data["equallength"]
-                raise IOError(
+                raise OSError(
                     f"channel {i} in case {n_cases} has a different number of "
                     f"observations to the other channels. "
                     f"Saw {current_length} in the first channel but"
@@ -253,7 +254,7 @@ def load_from_tsfile(
     if not full_file_path_and_name.endswith(".ts"):
         full_file_path_and_name = full_file_path_and_name + ".ts"
     # Open file
-    with open(full_file_path_and_name, "r", encoding="utf-8") as file:
+    with open(full_file_path_and_name, encoding="utf-8") as file:
         # Read in headers
         meta_data = _load_header_info(file)
         # load into list of numpy
@@ -571,7 +572,7 @@ def load_from_arff_file(
     is_first_case = True
     n_cases = 0
     n_channels = 1
-    with open(full_file_path_and_name, "r", encoding="utf-8") as f:
+    with open(full_file_path_and_name, encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 if (
@@ -761,7 +762,7 @@ def load_from_tsf_file(
     found_data_section = False
     started_reading_data_section = False
 
-    with open(full_file_path_and_name, "r", encoding="cp1252") as file:
+    with open(full_file_path_and_name, encoding="cp1252") as file:
         for line in file:
             # Strip white space from start/end of line
             line = line.strip()
@@ -1263,3 +1264,75 @@ def download_all_regression(extract_path=None):
                 f"Unable to download {file_save} from {url}",
             )
     zipfile.ZipFile(file_save, "r").extractall(f"{local_module}/{local_dirname}/")
+
+
+PROBLEM_TYPES = [
+    "AUDIO",
+    "DEVICE",
+    "ECG",
+    "EEG",
+    "EMG",
+    "EOG",
+    "EPG",
+    "FINANCIAL",
+    "HAR",
+    "HEMODYNAMICS",
+    "IMAGE",
+    "MEG",
+    "MOTION",
+    "OTHER",
+    "SENSOR",
+    "SIMULATED",
+    "SPECTRO",
+]
+
+
+def get_dataset_meta_data(
+    data_names=None,
+    features=None,
+    url="https://timeseriesclassification.com/aeon-toolkit/metadata.csv",
+):
+    """Retrieve dataset meta data from timeseriesclassification.com.
+
+    Metadata includes the following information for each dataset:
+    - Dataset: name of the problem, set the lists in tsc_data_lists for valid names.
+    - TrainSize: number of series in the default train set.
+    - TestSize:	number of series in the default train set.
+    - Length: length of the series. If the series are not all the same length,
+        this is set to 0.
+    - NumberClasses: number of classes in the problem.
+    - Type: nature of the problem, one of PROBLEM_TYPES
+    - Channels: number of channels. If univariate, this is 1.
+
+
+    Parameters
+    ----------
+    data_names : list, default=None
+        List of dataset names to retrieve meta data for. If None, all datasets are
+        retrieved.
+    features : String or List, default=None
+        List of features to retrieve meta data for. Should be a subset of features
+        listed above. Dataset field is always returned.
+    url : String
+        default = "https://timeseriesclassification.com/aeon-toolkit/metadata.csv"
+        Location of the csv metadata file.
+
+    Returns
+    -------
+     Pandas dataframe containing meta data for each dataset.
+    """
+    if isinstance(features, str):
+        features = [features]
+    try:
+        if features is None:
+            df = pd.read_csv(url)
+        else:
+            features.append("Dataset")
+            df = pd.read_csv(url, usecols=features)
+        if data_names is not None:
+            df = df[df["Dataset"].isin(data_names)]
+        return df
+    except Exception as e:
+        raise ValueError(
+            f"Unable to access website {url} to retrieve meta data",
+        ) from e

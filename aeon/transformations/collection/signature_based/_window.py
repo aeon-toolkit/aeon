@@ -9,6 +9,7 @@ Introduces the Window module that is used when splitting the path over:
 window types.
 Code based on window code written by Patrick Kidger.
 """
+
 import collections as co
 
 import numpy as np
@@ -103,7 +104,7 @@ class _ExpandingSliding(_Window):
         start_step: int, Initial step size.
         end_step: int, Final step size.
         """
-        super(_ExpandingSliding, self).__init__()
+        super().__init__()
         self.initial_length = initial_length
         self.start_step = start_step
         self.end_step = end_step
@@ -119,9 +120,7 @@ class _ExpandingSliding(_Window):
 
         windows = list(_call())
         if len(windows) == 0:
-            raise ValueError(
-                "Length {} too short for given window parameters.".format(length)
-            )
+            raise ValueError(f"Length {length} too short for given window parameters.")
         return [windows]
 
 
@@ -140,9 +139,7 @@ class _Sliding(_ExpandingSliding):
         length: int, The length of the window.
         step: int, The sliding step size.
         """
-        super(_Sliding, self).__init__(
-            initial_length=length, start_step=step, end_step=step
-        )
+        super().__init__(initial_length=length, start_step=step, end_step=step)
 
 
 class _Expanding(_ExpandingSliding):
@@ -156,9 +153,7 @@ class _Expanding(_ExpandingSliding):
         length: int, The length of each window.
         step: int, The step size.
         """
-        super(_Expanding, self).__init__(
-            initial_length=length, start_step=0, end_step=step
-        )
+        super().__init__(initial_length=length, start_step=0, end_step=step)
 
 
 class _Dyadic(_Window):
@@ -185,7 +180,7 @@ class _Dyadic(_Window):
     """
 
     def __init__(self, depth):
-        super(_Dyadic, self).__init__()
+        super().__init__()
         self.depth = depth
 
     def __call__(self, length):

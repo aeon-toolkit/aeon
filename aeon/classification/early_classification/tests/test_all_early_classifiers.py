@@ -11,7 +11,7 @@ from aeon.testing.expected_results.expected_classifier_outputs import (
     unit_test_proba,
 )
 from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 
 
 class EarlyClassifierFixtureGenerator(BaseFixtureGenerator):

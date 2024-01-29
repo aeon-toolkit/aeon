@@ -33,19 +33,19 @@ from aeon.testing.test_config import (
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
 )
-from aeon.transformations.base import BaseTransformer
-from aeon.utils._testing._conditional_fixtures import (
+from aeon.testing.utils._conditional_fixtures import (
     create_conditional_fixtures_and_names,
 )
-from aeon.utils._testing.deep_equals import deep_equals
-from aeon.utils._testing.estimator_checks import (
+from aeon.testing.utils.deep_equals import deep_equals
+from aeon.testing.utils.estimator_checks import (
     _assert_array_almost_equal,
     _assert_array_equal,
     _get_args,
     _has_capability,
     _list_required_methods,
 )
-from aeon.utils._testing.scenarios_getter import retrieve_scenarios
+from aeon.testing.utils.scenarios_getter import retrieve_scenarios
+from aeon.transformations.base import BaseTransformer
 from aeon.utils.sampling import random_partition
 from aeon.utils.validation._dependencies import (
     _check_dl_dependencies,

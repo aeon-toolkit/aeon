@@ -18,10 +18,8 @@ import pandas as pd
 from numpy.testing import assert_array_equal
 
 from aeon.datatypes import check_is_scitype, get_examples, mtype_to_scitype
-from aeon.transformations.base import BaseTransformer
-from aeon.transformations.boxcox import BoxCoxTransformer
-from aeon.transformations.compose import FitInTransform
-from aeon.utils._testing.scenarios_transformers import (
+from aeon.testing.utils.data_gen import make_series
+from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
     TransformerFitTransformHierarchicalUnivariate,
     TransformerFitTransformPanelUnivariate,
@@ -29,7 +27,9 @@ from aeon.utils._testing.scenarios_transformers import (
     TransformerFitTransformSeriesMultivariate,
     TransformerFitTransformSeriesUnivariate,
 )
-from aeon.utils._testing.series import _make_series
+from aeon.transformations.base import BaseTransformer
+from aeon.transformations.boxcox import BoxCoxTransformer
+from aeon.transformations.compose import FitInTransform
 
 
 def inner_X_scitypes(est):
@@ -53,7 +53,7 @@ class _DummyOne(BaseTransformer):
     }
 
     def __init__(self):
-        super(_DummyOne, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         return X
@@ -442,7 +442,7 @@ def test_vectorize_reconstruct_correct_hierarchy():
     ------
     AssertionError if output index is not as expected.
     """
-    from aeon.utils._testing.hierarchical import _make_hierarchical
+    from aeon.testing.utils.data_gen import _make_hierarchical
 
     # hierarchical data with 2 variables and 2 levels
     X = _make_hierarchical(n_columns=2)
@@ -586,13 +586,13 @@ def test_vectorize_reconstruct_unique_columns():
     X_mi = get_examples("pd_multiindex_hier")[0]
     t = ThetaLinesTransformer()
     X_t_cols = t.fit_transform(X).columns
-    assert set(X_t_cols) == set(["a__0", "a__2", "b__0", "b__2", "c__0", "c__2"])
+    assert set(X_t_cols) == {"a__0", "a__2", "b__0", "b__2", "c__0", "c__2"}
     X_mi_cols = t.fit_transform(X_mi)
-    assert set(X_mi_cols) == set(["var_0__0", "var_0__2", "var_1__0", "var_1__2"])
-    X = _make_series(n_columns=2, n_timepoints=15)
+    assert set(X_mi_cols) == {"var_0__0", "var_0__2", "var_1__0", "var_1__2"}
+    X = make_series(n_columns=2, n_timepoints=15)
     t = Detrender.create_test_instance()
     Xt = t.fit_transform(X)
-    assert set(Xt.columns) == set([0, 1])
+    assert set(Xt.columns) == {0, 1}
 
 
 def test_numpy_format_outputs():

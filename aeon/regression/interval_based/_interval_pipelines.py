@@ -75,7 +75,7 @@ class RandomIntervalRegressor(BaseRegressor):
     --------
     >>> from aeon.regression.interval_based import RandomIntervalRegressor
     >>> from sklearn.ensemble import RandomForestRegressor
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -119,7 +119,7 @@ class RandomIntervalRegressor(BaseRegressor):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(RandomIntervalRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit RandomIntervalRegressor to training data.
@@ -150,9 +150,11 @@ class RandomIntervalRegressor(BaseRegressor):
         )
 
         self._estimator = _clone_estimator(
-            RandomForestRegressor(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestRegressor(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 

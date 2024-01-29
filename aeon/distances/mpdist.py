@@ -1,4 +1,5 @@
 """Matrix Profile Distances."""
+
 import numpy as np
 
 

@@ -1,4 +1,5 @@
 """Tests for KNeighborsTimeSeriesRegressor."""
+
 import numpy as np
 
 from aeon.regression.distance_based._time_series_neighbors import (

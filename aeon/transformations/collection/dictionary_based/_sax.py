@@ -98,7 +98,7 @@ class SAX(BaseCollectionTransformer):
             distribution_params=self.distribution_params_,
         )
 
-        super(SAX, self).__init__()
+        super().__init__()
 
     def _get_paa(self, X):
         """Transform the input time series to PAA segments.
