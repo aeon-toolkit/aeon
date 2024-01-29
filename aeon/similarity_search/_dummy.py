@@ -46,7 +46,7 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
     def __init__(
         self, distance="euclidean", normalize=False, store_distance_profile=False
     ):
-        super().__init__(
+        super(DummySimilaritySearch, self).__init__(
             distance=distance,
             normalize=normalize,
             store_distance_profile=store_distance_profile,

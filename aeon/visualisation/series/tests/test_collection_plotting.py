@@ -1,7 +1,10 @@
 import numpy as np
 import pytest
 
-from aeon.testing.utils.data_gen import make_3d_test_data, make_unequal_length_test_data
+from aeon.testing.utils.collection import (
+    make_3d_test_data,
+    make_unequal_length_test_data,
+)
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_collection_by_class, plot_series_collection
 

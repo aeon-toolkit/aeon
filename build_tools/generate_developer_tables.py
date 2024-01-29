@@ -65,12 +65,12 @@ def get_contributors(auth):
             lst.extend(reply.json())
 
     # keep only the logins
-    cocw = {c["login"] for c in cocw}
-    cw = {c["login"] for c in cw}
-    cd = {c["login"] for c in cd}
-    fw = {c["login"] for c in fw}
-    iw = {c["login"] for c in iw}
-    rmw = {c["login"] for c in rmw}
+    cocw = set(c["login"] for c in cocw)
+    cw = set(c["login"] for c in cw)
+    cd = set(c["login"] for c in cd)
+    fw = set(c["login"] for c in fw)
+    iw = set(c["login"] for c in iw)
+    rmw = set(c["login"] for c in rmw)
 
     # add missing contributors with GitHub accounts
     cocw |= {"KatieBuc"}
@@ -103,7 +103,7 @@ def get_contributors(auth):
 
 def get_profile(login, auth):
     """Get the GitHub profile from login."""
-    print(f"get profile for {login}")  # noqa: T201
+    print("get profile for %s" % (login,))  # noqa: T201
     try:
         profile = get("https://api.github.com/users/%s" % login, auth).json()
     except requests.exceptions.HTTPError:

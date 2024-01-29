@@ -66,7 +66,7 @@ class SignatureTransformer(BaseCollectionTransformer):
         self.sig_tfm = sig_tfm
         self.depth = depth
 
-        super().__init__()
+        super(SignatureTransformer, self).__init__()
         self.setup_feature_pipeline()
 
     def setup_feature_pipeline(self):

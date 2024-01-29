@@ -138,7 +138,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         else:
             self._metric = metric
 
-        super().__init__()
+        super(WeightedEnsembleClassifier, self).__init__()
 
         # set property tags based on tags of components
         ests = self.classifiers_

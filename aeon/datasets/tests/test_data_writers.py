@@ -6,19 +6,17 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-from numpy.testing import assert_array_equal
 
-from aeon.datasets import load_from_arff_file, load_from_tsfile, write_to_tsfile
+from aeon.datasets import load_from_tsfile, write_to_tsfile
 from aeon.datasets._data_writers import (
     _write_data_to_tsfile,
     _write_dataframe_to_tsfile,
     _write_header,
     write_results_to_uea_format,
-    write_to_arff_file,
 )
 from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
 from aeon.testing.test_config import PR_TESTING
-from aeon.testing.utils.data_gen import (
+from aeon.testing.utils.collection import (
     make_3d_test_data,
     make_nested_dataframe_data,
     make_unequal_length_test_data,
@@ -100,20 +98,6 @@ def test_write_to_tsfile_unequal_length(problem_name):
         assert np.array_equal(y, newy)
 
 
-def test_write_data_to_tsfile():
-    with pytest.raises(TypeError, match="Wrong input data type"):
-        write_to_tsfile("A string", "path")
-    with pytest.raises(TypeError, match="Data provided must be a ndarray or a list"):
-        _write_data_to_tsfile("AFC", "49", "undefeated")
-    X, _ = make_3d_test_data(n_cases=6, n_timepoints=10, n_channels=1)
-    y = np.ndarray([0, 1, 1, 0, 1])
-    with pytest.raises(
-        IndexError,
-        match="The number of cases in X does not match the number of values in y",
-    ):
-        _write_data_to_tsfile(X, "temp", "temp", y=y)
-
-
 @pytest.mark.skipif(
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
@@ -141,36 +125,18 @@ def test_write_dataframe_to_ts(tsfile_writer):
         pd.testing.assert_series_equal(y, y2)
 
 
-def test__write_header():
-    with tempfile.TemporaryDirectory() as tmp:
-        problem_name = "header.csv"
-        with pytest.raises(
-            ValueError, match="Cannot have class_labels true for a regression problem"
-        ):
-            _write_header(tmp, problem_name, class_labels=True, regression=True)
-    _write_header(
-        tmp,
-        problem_name,
-        suffix="_TRAIN",
-        extension=".csv",
-        comment="Hello",
-        regression=True,
-    )
-
-
-def test_write_to_arff_file():
-    X, y = make_3d_test_data()
-
-    with tempfile.TemporaryDirectory() as tmp:
-        write_to_arff_file(X, y, tmp, problem_name="Test_arff", header="Description")
-
-        load_path = os.path.join(tmp, "Test_arff.arff")
-        X_new, y_new = load_from_arff_file(full_file_path_and_name=load_path)
-
-        assert isinstance(X_new, np.ndarray)
-        assert X.shape == X_new.shape
-        assert_array_equal(X, X_new)
-        assert_array_equal(y.astype(str), y_new)
+def test_write_data_to_tsfile():
+    with pytest.raises(TypeError, match="Wrong input data type"):
+        write_to_tsfile("A string", "path")
+    with pytest.raises(TypeError, match="Data provided must be a ndarray or a list"):
+        _write_data_to_tsfile("AFC", "49", "undefeated")
+    X, _ = make_3d_test_data(n_cases=6, n_timepoints=10, n_channels=1)
+    y = np.ndarray([0, 1, 1, 0, 1])
+    with pytest.raises(
+        IndexError,
+        match="The number of cases in X does not match the number of values in y",
+    ):
+        _write_data_to_tsfile(X, "temp", "temp", y=y)
 
 
 def test_write_results_to_uea_format():
@@ -208,3 +174,20 @@ def test_write_results_to_uea_format():
             first_line_comment="Hello",
             predicted_probs=probs,
         )
+
+
+def test__write_header():
+    with tempfile.TemporaryDirectory() as tmp:
+        problem_name = "header.csv"
+        with pytest.raises(
+            ValueError, match="Cannot have class_labels true for a regression problem"
+        ):
+            _write_header(tmp, problem_name, class_labels=True, regression=True)
+    _write_header(
+        tmp,
+        problem_name,
+        suffix="_TRAIN",
+        extension=".csv",
+        comment="Hello",
+        regression=True,
+    )

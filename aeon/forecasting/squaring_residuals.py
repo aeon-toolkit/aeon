@@ -107,7 +107,7 @@ class SquaringResiduals(BaseForecaster):
         self.initial_window = initial_window
         self.distr = distr
         self.distr_kwargs = distr_kwargs
-        super().__init__()
+        super(SquaringResiduals, self).__init__()
 
         assert self.distr in ["norm", "laplace", "t", "cauchy"]
         assert self.strategy in ["square", "abs"]

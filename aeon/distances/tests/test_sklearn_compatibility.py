@@ -6,8 +6,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.svm import SVC
 
+from aeon.datasets import make_example_3d_numpy
 from aeon.distances._distance import DISTANCES
-from aeon.testing.utils.data_gen import make_example_3d_numpy
 
 
 @pytest.mark.parametrize("dist", DISTANCES)

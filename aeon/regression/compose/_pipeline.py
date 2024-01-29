@@ -103,7 +103,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         self.transformers = transformers
         self.transformers_ = TransformerPipeline(transformers)
 
-        super().__init__()
+        super(RegressorPipeline, self).__init__()
 
         # can handle multivariate iff: both regressor and all transformers can
         multivariate = regressor.get_tag("capability:multivariate", False)
@@ -375,7 +375,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         self.transformers = transformers
         self.transformers_ = TransformerPipeline(transformers)
 
-        super().__init__()
+        super(SklearnRegressorPipeline, self).__init__()
 
         # can handle multivariate iff all transformers can
         # sklearn transformers always support multivariate

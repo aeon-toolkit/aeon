@@ -80,7 +80,7 @@ class ResNetNetwork(BaseDeepNetwork):
         random_state=0,
     ):
         _check_soft_dependencies("tensorflow")
-        super().__init__()
+        super(ResNetNetwork, self).__init__()
 
         self.n_filters = n_filters
         self.kernel_size = kernel_size

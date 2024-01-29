@@ -367,7 +367,7 @@ class AutoARIMA(_PmdArimaAdapter):
         for key in self.SARIMAX_KWARGS_KEYS:
             setattr(self, key, eval(key))
 
-        super().__init__()
+        super(AutoARIMA, self).__init__()
 
         self._sp = sp if sp else 1
 
@@ -708,7 +708,7 @@ class ARIMA(_PmdArimaAdapter):
         for key in self.SARIMAX_KWARGS_KEYS:
             setattr(self, key, eval(key))
 
-        super().__init__()
+        super(ARIMA, self).__init__()
 
     def _instantiate_model(self):
         # import inside method to avoid hard dependency

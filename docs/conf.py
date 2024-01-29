@@ -171,7 +171,7 @@ def linkcode_resolve(domain, info):
         filename = "aeon/%s#L%d-L%d" % find_source()
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
-    return "https://github.com/aeon-toolkit/aeon/blob/{}/{}".format(
+    return "https://github.com/aeon-toolkit/aeon/blob/%s/%s" % (
         github_tag,
         filename,
     )

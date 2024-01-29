@@ -12,7 +12,7 @@ from aeon.testing.utils.deep_equals import deep_equals
 EXAMPLES = [
     42,
     [],
-    (()),
+    ((((())))),
     [([([([()])])])],
     np.array([2, 3, 4]),
     np.array([2, 4, 5]),

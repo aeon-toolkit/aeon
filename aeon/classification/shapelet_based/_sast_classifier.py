@@ -73,7 +73,7 @@ class SASTClassifier(BaseClassifier):
         classifier=None,
         n_jobs=-1,
     ):
-        super().__init__()
+        super(SASTClassifier, self).__init__()
         self.length_list = length_list
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class

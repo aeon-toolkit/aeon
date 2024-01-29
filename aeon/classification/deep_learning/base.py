@@ -59,7 +59,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         random_state=None,
         last_file_name="last_model",
     ):
-        super().__init__()
+        super(BaseDeepClassifier, self).__init__()
 
         self.batch_size = batch_size
         self.random_state = random_state

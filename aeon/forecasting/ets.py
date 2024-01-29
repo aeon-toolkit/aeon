@@ -233,7 +233,7 @@ class AutoETS(_StatsModelsAdapter):
         self.ignore_inf_ic = ignore_inf_ic
         self.n_jobs = n_jobs
 
-        super().__init__(random_state=random_state)
+        super(AutoETS, self).__init__(random_state=random_state)
 
     def _fit_forecaster(self, y, X=None):
         from statsmodels.tsa.exponential_smoothing.ets import ETSModel as _ETSModel

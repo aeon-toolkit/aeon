@@ -31,7 +31,7 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection import ARCoefficientTransformer
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.datasets import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=2, n_timepoints=20,
     ...                           random_state=0)
     >>> tnf = ARCoefficientTransformer(order=5)  # doctest: +SKIP
@@ -57,7 +57,7 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
         self.min_values = min_values
         self.replace_nan = replace_nan
 
-        super().__init__()
+        super(ARCoefficientTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         from statsmodels.regression.linear_model import burg

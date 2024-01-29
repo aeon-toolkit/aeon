@@ -121,7 +121,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         self.n_dims_ = 0
         self.series_length_ = 0
 
-        super().__init__()
+        super(ProbabilityThresholdEarlyClassifier, self).__init__()
 
     def _fit(self, X, y):
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape

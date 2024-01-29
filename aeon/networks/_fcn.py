@@ -58,7 +58,7 @@ class FCNNetwork(BaseDeepNetwork):
         use_bias=True,
         random_state=0,
     ):
-        super().__init__()
+        super(FCNNetwork, self).__init__()
         _check_soft_dependencies("tensorflow")
 
         self.n_layers = n_layers

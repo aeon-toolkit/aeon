@@ -1,6 +1,6 @@
 """Interval extraction test code."""
 
-from aeon.testing.utils.data_gen import make_3d_test_data
+from aeon.testing.utils.collection import make_3d_test_data
 from aeon.transformations.collection.feature_based import (
     Catch22,
     SevenNumberSummaryTransformer,

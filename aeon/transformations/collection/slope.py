@@ -42,7 +42,7 @@ class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
 
     def __init__(self, n_intervals=8):
         self.n_intervals = n_intervals
-        super().__init__()
+        super(SlopeTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

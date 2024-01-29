@@ -8,7 +8,7 @@ from sklearn.tree import DecisionTreeClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification.interval_based._interval_forest import IntervalForestClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
-from aeon.testing.utils.data_gen import make_3d_test_data
+from aeon.testing.utils.collection import make_3d_test_data
 from aeon.transformations.collection import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.feature_based import (
     Catch22,

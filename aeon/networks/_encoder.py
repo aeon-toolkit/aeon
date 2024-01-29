@@ -74,7 +74,7 @@ class EncoderNetwork(BaseDeepNetwork):
         self.dropout_proba = dropout_proba
         self.fc_units = fc_units
 
-        super().__init__()
+        super(EncoderNetwork, self).__init__()
 
     def build_network(self, input_shape, **kwargs):
         """

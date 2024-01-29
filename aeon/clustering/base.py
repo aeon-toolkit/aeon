@@ -26,7 +26,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV
         self._estimator_type = "clusterer"
-        super().__init__()
+        super(BaseClusterer, self).__init__()
         _check_estimator_deps(self)
 
     @final

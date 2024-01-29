@@ -102,7 +102,7 @@ class TabularToSeriesAdaptor(BaseTransformer):
         self.transformer_ = clone(self.transformer)
         self.fit_in_transform = fit_in_transform
 
-        super().__init__()
+        super(TabularToSeriesAdaptor, self).__init__()
 
         if hasattr(transformer, "inverse_transform"):
             self.set_tags(**{"capability:inverse_transform": True})
@@ -289,7 +289,7 @@ class PandasTransformAdaptor(BaseTransformer):
                 f'but found "{apply_to}"'
             )
 
-        super().__init__()
+        super(PandasTransformAdaptor, self).__init__()
 
         if apply_to in ["all", "all_subset"]:
             self.set_tags(**{"remember_data": True})

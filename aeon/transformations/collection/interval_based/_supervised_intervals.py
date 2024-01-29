@@ -121,7 +121,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.interval_based import SupervisedIntervals
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=20,
     ...                              return_y=True, random_state=0)
     >>> tnf = SupervisedIntervals(n_intervals=1, random_state=0)
@@ -162,7 +162,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super().__init__()
+        super(SupervisedIntervals, self).__init__()
 
     # if features contains a transformer, it must contain a parameter name from
     # transformer_feature_selection and an attribute name (or property) from

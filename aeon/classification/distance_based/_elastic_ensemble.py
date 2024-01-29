@@ -120,7 +120,7 @@ class ElasticEnsemble(BaseClassifier):
         self.train_accs_by_classifier_ = None
         self.constituent_build_times_ = None
 
-        super().__init__()
+        super(ElasticEnsemble, self).__init__()
 
     def _fit(self, X, y):
         """Build an ensemble of 1-NN classifiers from the training set (X, y).

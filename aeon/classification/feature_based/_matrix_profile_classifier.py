@@ -94,7 +94,7 @@ class MatrixProfileClassifier(BaseClassifier):
         self._transformer = None
         self._estimator = None
 
-        super().__init__()
+        super(MatrixProfileClassifier, self).__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.

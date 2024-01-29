@@ -139,7 +139,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self._random_state = None
         self._kmedoids_instance = None
 
-        super().__init__(n_clusters)
+        super(TimeSeriesCLARA, self).__init__(n_clusters)
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         return self._kmedoids_instance.predict(X)

@@ -94,7 +94,7 @@ class SAST(BaseCollectionTransformer):
         seed=None,
         n_jobs=-1,
     ):
-        super().__init__()
+        super(SAST, self).__init__()
         self.lengths = lengths
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class

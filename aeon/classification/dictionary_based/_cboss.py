@@ -173,7 +173,7 @@ class ContractableBOSS(BaseClassifier):
         self._norm_options = [True, False]
         self._alphabet_size = 4
 
-        super().__init__()
+        super(ContractableBOSS, self).__init__()
 
     def _fit(self, X, y):
         """Fit a cBOSS ensemble on cases (X,y), where y is the target variable.

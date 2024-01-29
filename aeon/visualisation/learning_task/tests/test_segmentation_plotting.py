@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_series_with_change_points
 
@@ -17,7 +17,7 @@ def test_plot_series_with_change_points():
 
     matplotlib.use("Agg")
 
-    series = make_series()
+    series = _make_series()
     chp = np.random.randint(0, len(series), 3)
 
     fig, ax = plot_series_with_change_points(series, chp)

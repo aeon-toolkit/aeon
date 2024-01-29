@@ -123,7 +123,7 @@ class RocketClassifier(BaseClassifier):
         self.n_dims_ = 0
         self.series_length_ = 0
         self.n_jobs = n_jobs
-        super().__init__()
+        super(RocketClassifier, self).__init__()
 
     def _fit(self, X, y):
         """Fit Rocket variant to training data.

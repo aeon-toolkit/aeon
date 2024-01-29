@@ -6,7 +6,7 @@ import time
 import pytest
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.testing.utils.data_gen import make_2d_test_data
+from aeon.testing.utils.collection import make_2d_test_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["achieveordie", "hadifawaz1999"]
@@ -17,7 +17,7 @@ class _DummyDeepClassifier(BaseDeepClassifier):
 
     def __init__(self, last_file_name):
         self.last_file_name = last_file_name
-        super().__init__(last_file_name=last_file_name)
+        super(_DummyDeepClassifier, self).__init__(last_file_name=last_file_name)
 
     def build_model(self, input_shape, n_classes):
         import tensorflow as tf

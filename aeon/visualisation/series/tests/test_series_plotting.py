@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.utils.series import _make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.series import VALID_DATA_TYPES
 from aeon.visualisation import plot_correlations, plot_lags, plot_series
@@ -54,7 +54,7 @@ def test_plot_series():
 
     matplotlib.use("Agg")
 
-    series = make_series()
+    series = _make_series()
 
     fig, ax = _plot_series(series)
     plt.gcf().canvas.draw_idle()
@@ -81,7 +81,7 @@ def test_plot_series_multiple_series():
 
     matplotlib.use("Agg")
 
-    series = [make_series() for _ in range(3)]
+    series = [_make_series() for _ in range(3)]
 
     fig, ax = _plot_series(series)
     plt.gcf().canvas.draw_idle()

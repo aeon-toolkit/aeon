@@ -10,7 +10,7 @@ from aeon.datatypes._utilities import get_cutoff
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.tests import TEST_OOS_FHS, TEST_SPS, TEST_WINDOW_LENGTHS_INT
-from aeon.testing.utils.data_gen import _assert_correct_pred_time_index
+from aeon.testing.utils.forecasting import _assert_correct_pred_time_index
 from aeon.utils.validation.forecasting import check_fh
 
 n_timepoints = 30

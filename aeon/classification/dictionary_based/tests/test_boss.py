@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score
 
 from aeon.classification.dictionary_based import BOSSEnsemble, ContractableBOSS
 from aeon.datasets import load_unit_test
-from aeon.testing.utils.data_gen import make_2d_test_data
+from aeon.testing.utils.collection import make_2d_test_data
 
 
 def test_boss_train_estimate():

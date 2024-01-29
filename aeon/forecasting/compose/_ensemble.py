@@ -117,7 +117,7 @@ class AutoEnsembleForecaster(_HeterogenousEnsembleForecaster):
         random_state=None,
         n_jobs=None,
     ):
-        super().__init__(
+        super(AutoEnsembleForecaster, self).__init__(
             forecasters=forecasters,
             n_jobs=n_jobs,
         )
@@ -315,7 +315,7 @@ class EnsembleForecaster(_HeterogenousEnsembleForecaster):
     }
 
     def __init__(self, forecasters, n_jobs=None, aggfunc="mean", weights=None):
-        super().__init__(forecasters=forecasters, n_jobs=n_jobs)
+        super(EnsembleForecaster, self).__init__(forecasters=forecasters, n_jobs=n_jobs)
         self.aggfunc = aggfunc
         self.weights = weights
 

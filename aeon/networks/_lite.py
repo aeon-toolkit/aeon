@@ -54,7 +54,7 @@ class LITENetwork(BaseDeepNetwork):
         self.strides = strides
         self.random_state = random_state
 
-        super().__init__()
+        super(LITENetwork, self).__init__()
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of cutom filters.

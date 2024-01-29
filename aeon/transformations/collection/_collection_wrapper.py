@@ -52,7 +52,7 @@ class CollectionToSeriesWrapper(BaseTransformer):
         self.transformer = transformer
         self.transformer_ = _clone_estimator(self.transformer)
 
-        super().__init__(_output_convert=_output_convert)
+        super(CollectionToSeriesWrapper, self).__init__(_output_convert=_output_convert)
         self.clone_tags(transformer)
 
     def _fit_transform(self, X, y=None):

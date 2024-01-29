@@ -139,7 +139,7 @@ class TEASER(BaseEarlyClassifier):
         self._svm_nu = 0.05
         self._svm_tol = 1e-4
 
-        super().__init__()
+        super(TEASER, self).__init__()
 
     def _fit(self, X, y):
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape

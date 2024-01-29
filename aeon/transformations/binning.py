@@ -91,7 +91,7 @@ class TimeBinAggregate(BaseTransformer):
                 )
             self._aggfunc = self.aggfunc
 
-        super().__init__()
+        super(TimeBinAggregate, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

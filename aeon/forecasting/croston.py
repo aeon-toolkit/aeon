@@ -75,7 +75,7 @@ class Croston(BaseForecaster):
         # hyperparameter
         self.smoothing = smoothing
         self._f = None
-        super().__init__()
+        super(Croston, self).__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.

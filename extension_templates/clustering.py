@@ -84,7 +84,7 @@ class MyClusterer(BaseClusterer):
         self.paramc = paramc
 
         # todo: change "MyClusterer" to the name of the class
-        super().__init__()
+        super(MyClusterer, self).__init__()
 
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc

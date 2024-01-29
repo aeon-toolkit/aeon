@@ -96,7 +96,7 @@ class FeatureSelection(BaseTransformer):
         self.random_state = random_state
         self.columns = columns
 
-        super().__init__()
+        super(FeatureSelection, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.

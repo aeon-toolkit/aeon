@@ -27,7 +27,7 @@ class _StatsForecastAdapter(BaseForecaster):
 
     def __init__(self):
         self._forecaster = None
-        super().__init__()
+        super(_StatsForecastAdapter, self).__init__()
 
     def _instantiate_model(self):
         raise NotImplementedError("abstract method")

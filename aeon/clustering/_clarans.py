@@ -111,7 +111,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     ):
         self.max_neighbours = max_neighbours
 
-        super().__init__(
+        super(TimeSeriesCLARANS, self).__init__(
             n_clusters=n_clusters,
             init_algorithm=init_algorithm,
             distance=distance,

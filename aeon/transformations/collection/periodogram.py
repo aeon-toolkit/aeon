@@ -36,7 +36,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection import PeriodogramTransformer
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.datasets import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=2, n_timepoints=20,
     ...                           random_state=0)
     >>> tnf = PeriodogramTransformer()
@@ -72,7 +72,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
         if use_pyfftw:
             self.set_tags(**{"python_dependencies": "pyfftw"})
 
-        super().__init__()
+        super(PeriodogramTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         threads_to_use = check_n_jobs(self.n_jobs)

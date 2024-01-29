@@ -114,7 +114,7 @@ class TapNetClassifier(BaseDeepClassifier):
         verbose=False,
     ):
         _check_soft_dependencies("tensorflow")
-        super().__init__()
+        super(TapNetClassifier, self).__init__()
 
         self.batch_size = batch_size
         self.random_state = random_state

@@ -344,7 +344,7 @@ def _merge_X(df, X):
     return df, X
 
 
-class _suppress_stdout_stderr:
+class _suppress_stdout_stderr(object):
     """Context manager for doing  a "deep suppression" of stdout and stderr.
 
     A context manager for doing a "deep suppression" of stdout and stderr in

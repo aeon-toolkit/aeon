@@ -97,7 +97,7 @@ class ExponentTransformer(BaseTransformer):
                 f"Expected `offset` to be int or float, but found {type(self.offset)}."
             )
 
-        super().__init__()
+        super(ExponentTransformer, self).__init__()
 
         if abs(power) < 1e-6:
             warn(

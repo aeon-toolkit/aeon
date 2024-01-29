@@ -132,7 +132,7 @@ class CNNClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super().__init__(last_file_name=last_file_name)
+        super(CNNClassifier, self).__init__(last_file_name=last_file_name)
 
         self.n_layers = n_layers
         self.kernel_size = kernel_size

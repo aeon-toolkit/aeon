@@ -17,12 +17,13 @@ References
 
 """
 
-from dataclasses import dataclass, field
-from typing import List
+from dataclasses import dataclass
+from typing import Dict, List
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from attrs import asdict, define, field
 
 from aeon.segmentation.base import BaseSegmenter
 
@@ -102,7 +103,7 @@ def generate_segments_pandas(X: npt.ArrayLike, change_points: List) -> npt.Array
         yield X[interval.left : interval.right, :]
 
 
-@dataclass
+@define
 class _IGTS:
     """
     Information Gain based Temporal Segmentation (GTS).
@@ -156,7 +157,7 @@ class _IGTS:
 
     Example
     -------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
@@ -173,7 +174,7 @@ class _IGTS:
     step: int = 5
 
     # computed attributes
-    intermediate_results_: List = field(init=False, default_factory=list)
+    intermediate_results_: List = field(init=False, default=[])
 
     def identity(self, X: npt.ArrayLike) -> List[int]:
         """Return identity segmentation, i.e. terminal indexes of the data."""
@@ -336,7 +337,7 @@ class InformationGainSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(
@@ -365,7 +366,7 @@ class InformationGainSegmenter(BaseSegmenter):
             k_max=k_max,
             step=step,
         )
-        super().__init__(n_segments=k_max + 1, axis=0)
+        super(InformationGainSegmenter, self).__init__(n_segments=k_max + 1, axis=0)
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         """Perform segmentation.
@@ -385,6 +386,42 @@ class InformationGainSegmenter(BaseSegmenter):
         self.change_points_ = self._igts.find_change_points(X)
         self.intermediate_results_ = self._igts.intermediate_results_
         return self.to_clusters(self.change_points_)
+
+    def get_params(self, deep: bool = True) -> Dict:
+        """Return initialization parameters.
+
+        Parameters
+        ----------
+        deep: bool
+            Dummy argument for compatibility with sklearn-api, not used.
+
+        Returns
+        -------
+        params: dict
+            Dictionary with the estimator's initialization parameters, with
+            keys being argument names and values being argument values.
+        """
+        return asdict(self._igts, filter=lambda attr, value: attr.init is True)
+
+    def set_params(self, **parameters):
+        """Set the parameters of this object.
+
+        Parameters
+        ----------
+        parameters : dict
+            Initialization parameters for th estimator.
+
+        Returns
+        -------
+        self : reference to self (after parameters have been set)
+        """
+        for key, value in parameters.items():
+            setattr(self._igts, key, value)
+        return self
+
+    def __repr__(self) -> str:
+        """Return a string representation of the estimator."""
+        return self._igts.__repr__()
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

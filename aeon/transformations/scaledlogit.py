@@ -107,7 +107,7 @@ class ScaledLogitTransformer(BaseTransformer):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
-        super().__init__()
+        super(ScaledLogitTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

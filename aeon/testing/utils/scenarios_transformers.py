@@ -16,14 +16,10 @@ import pandas as pd
 
 from aeon.base import BaseObject
 from aeon.datatypes import mtype_to_scitype
-from aeon.testing.utils.data_gen import (
-    _make_classification_y,
-    _make_collection_X,
-    _make_hierarchical,
-    _make_primitives,
-    _make_tabular_X,
-    make_series,
-)
+from aeon.testing.utils.collection import _make_classification_y, _make_collection_X
+from aeon.testing.utils.estimator_checks import _make_primitives, _make_tabular_X
+from aeon.testing.utils.forecasting import _make_series
+from aeon.testing.utils.hierarchical import _make_hierarchical
 from aeon.testing.utils.scenarios import TestScenario
 from aeon.transformations.collection.base import BaseCollectionTransformer
 
@@ -163,7 +159,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
             if s2p:
                 args = {"X": _make_primitives(random_state=RAND_SEED)}
             elif s2s:
-                args = {"X": make_series(n_timepoints=N_T, random_state=RAND_SEED)}
+                args = {"X": _make_series(n_timepoints=N_T, random_state=RAND_SEED)}
             elif p2t:
                 args = {"X": _make_tabular_X(n_instances=7, random_state=RAND_SEED)}
             elif p2p:
@@ -188,7 +184,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
         return args
 
 
-X_series = make_series(n_timepoints=N_T, random_state=RAND_SEED)
+X_series = _make_series(n_timepoints=N_T, random_state=RAND_SEED)
 X_panel = _make_collection_X(
     n_instances=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
 )
@@ -206,9 +202,9 @@ class TransformerFitTransformSeriesUnivariate(TransformerTestScenario):
     }
 
     args = {
-        "fit": {"X": make_series(n_timepoints=N_T + 1, random_state=RAND_SEED)},
-        "transform": {"X": make_series(n_timepoints=N_T + 1, random_state=RAND_SEED2)},
-        # "inverse_transform": {"X": make_series(n_timepoints=N_T)},
+        "fit": {"X": _make_series(n_timepoints=N_T + 1, random_state=RAND_SEED)},
+        "transform": {"X": _make_series(n_timepoints=N_T + 1, random_state=RAND_SEED2)},
+        # "inverse_transform": {"X": _make_series(n_timepoints=N_T)},
     }
     default_method_sequence = ["fit", "transform"]
 
@@ -225,10 +221,10 @@ class TransformerFitTransformSeriesMultivariate(TransformerTestScenario):
 
     args = {
         "fit": {
-            "X": make_series(n_columns=2, n_timepoints=N_T, random_state=RAND_SEED),
+            "X": _make_series(n_columns=2, n_timepoints=N_T, random_state=RAND_SEED),
         },
         "transform": {
-            "X": make_series(n_columns=2, n_timepoints=N_T, random_state=RAND_SEED)
+            "X": _make_series(n_columns=2, n_timepoints=N_T, random_state=RAND_SEED)
         },
     }
     default_method_sequence = ["fit", "transform"]
@@ -247,12 +243,12 @@ class TransformerFitTransformSeriesUnivariateWithY(TransformerTestScenario):
 
     args = {
         "fit": {
-            "X": make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
-            "y": make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
+            "X": _make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
+            "y": _make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
         },
         "transform": {
-            "X": make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
-            "y": make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
+            "X": _make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
+            "y": _make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
         },
     }
     default_method_sequence = ["fit", "transform"]

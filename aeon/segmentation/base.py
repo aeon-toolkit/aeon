@@ -114,7 +114,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         self.n_segments = n_segments
         self.axis = axis
         self._is_fitted = False
-        super().__init__()
+        super(BaseSegmenter, self).__init__()
 
     @final
     def fit(self, X, y=None, axis=None):

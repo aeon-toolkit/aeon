@@ -82,7 +82,7 @@ class Catch22Regressor(BaseRegressor):
     --------
     >>> from aeon.regression.feature_based import Catch22Regressor
     >>> from sklearn.ensemble import RandomForestRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -128,7 +128,7 @@ class Catch22Regressor(BaseRegressor):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super().__init__()
+        super(Catch22Regressor, self).__init__()
 
     def _fit(self, X, y):
         """Fit Catch22Regressor to training data.

@@ -67,7 +67,7 @@ class IntervalSegmenter(BaseCollectionTransformer):
         self.intervals = intervals
         self._time_index = []
         self.input_shape_ = ()
-        super().__init__()
+        super(IntervalSegmenter, self).__init__()
 
     def _fit(self, X, y=None):
         """
@@ -220,7 +220,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
         self.min_length = min_length
         self.max_length = max_length
         self.random_state = random_state
-        super().__init__()
+        super(RandomIntervalSegmenter, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer, generating random interval indices.
@@ -420,7 +420,7 @@ class SlidingWindowSegmenter(BaseCollectionTransformer):
 
     def __init__(self, window_length=5):
         self.window_length = window_length
-        super().__init__()
+        super(SlidingWindowSegmenter, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform time series.

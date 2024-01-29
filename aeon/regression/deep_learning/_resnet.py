@@ -105,7 +105,7 @@ class ResNetRegressor(BaseDeepRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import ResNetRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -148,7 +148,7 @@ class ResNetRegressor(BaseDeepRegressor):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super().__init__(last_file_name=last_file_name)
+        super(ResNetRegressor, self).__init__(last_file_name=last_file_name)
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.n_filters = n_filters

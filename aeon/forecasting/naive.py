@@ -114,7 +114,7 @@ class NaiveForecaster(_BaseWindowForecaster):
     }
 
     def __init__(self, strategy="last", window_length=None, sp=1):
-        super().__init__()
+        super(NaiveForecaster, self).__init__()
         self.strategy = strategy
         self.sp = sp
         self.window_length = window_length
@@ -329,7 +329,7 @@ class NaiveForecaster(_BaseWindowForecaster):
         X : pd.DataFrame, optional (default=None)
             Exogenous time series
         """
-        y_pred = super()._predict(fh=fh, X=X)
+        y_pred = super(NaiveForecaster, self)._predict(fh=fh, X=X)
 
         # test_predict_time_index_in_sample_full[ForecastingPipeline-0-int-int-True]
         #   causes a pd.DataFrame to appear as y_pred, which upsets the next lines
@@ -594,7 +594,7 @@ class NaiveVariance(BaseForecaster):
         self.forecaster = forecaster
         self.initial_window = initial_window
         self.verbose = verbose
-        super().__init__()
+        super(NaiveVariance, self).__init__()
 
         tags_to_clone = [
             "requires-fh-in-fit",

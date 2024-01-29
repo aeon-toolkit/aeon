@@ -183,7 +183,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self._averaging_method = None
         self._average_params = None
 
-        super().__init__(n_clusters)
+        super(TimeSeriesKMeans, self).__init__(n_clusters)
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)

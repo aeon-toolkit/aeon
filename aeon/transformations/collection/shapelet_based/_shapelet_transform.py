@@ -194,7 +194,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._class_dictionary = {}
         self._sorted_indicies = []
 
-        super().__init__()
+        super(RandomShapeletTransform, self).__init__()
 
     def _fit(self, X, y):
         """Fit the shapelet transform to a specified X and y.

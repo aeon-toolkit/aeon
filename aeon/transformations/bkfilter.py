@@ -91,7 +91,7 @@ class BKFilter(BaseTransformer):
         self.low = low
         self.high = high
         self.K = K
-        super().__init__()
+        super(BKFilter, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

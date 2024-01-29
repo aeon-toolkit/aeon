@@ -47,7 +47,7 @@ class PAA(BaseCollectionTransformer):
     def __init__(self, n_segments=8):
         self.n_segments = n_segments
 
-        super().__init__()
+        super(PAA, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform the input time series to PAA segments.

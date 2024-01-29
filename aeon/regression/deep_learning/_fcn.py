@@ -89,7 +89,7 @@ class FCNRegressor(BaseDeepRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import FCNRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.datasets import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -131,7 +131,7 @@ class FCNRegressor(BaseDeepRegressor):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super().__init__(last_file_name=last_file_name)
+        super(FCNRegressor, self).__init__(last_file_name=last_file_name)
 
         self.n_layers = n_layers
         self.kernel_size = kernel_size

@@ -98,7 +98,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         self._rotf = None
         self._tsfresh = None
 
-        super().__init__()
+        super(FreshPRINCEClassifier, self).__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.

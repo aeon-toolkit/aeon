@@ -37,17 +37,17 @@ for i, label in enumerate(content_labels):
 
 labels = [(label.name, label.color) for label in repo.get_labels()]
 title_labels = [
-    f"$\\color{{#{color}}}{{\\textsf{{{label}}}}}$"
+    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
     for label, color in labels
     if label in title_labels
 ]
 title_labels_new = [
-    f"$\\color{{#{color}}}{{\\textsf{{{label}}}}}$"
+    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
     for label, color in labels
     if label in title_labels_new
 ]
 content_labels = [
-    f"$\\color{{#{color}}}{{\\textsf{{{label}}}}}$"
+    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
     for label, color in labels
     if label in content_labels
 ]

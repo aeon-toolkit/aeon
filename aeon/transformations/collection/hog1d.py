@@ -41,7 +41,7 @@ class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
         self.n_intervals = n_intervals
         self.n_bins = n_bins
         self.scaling_factor = scaling_factor
-        super().__init__()
+        super(HOG1DTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

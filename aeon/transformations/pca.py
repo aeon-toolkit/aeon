@@ -137,7 +137,7 @@ class PCATransformer(BaseTransformer):
         self.power_iteration_normalizer = power_iteration_normalizer
         self.iterated_power = iterated_power
         self.random_state = random_state
-        super().__init__()
+        super(PCATransformer, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.

@@ -98,7 +98,7 @@ class FreshPRINCERegressor(BaseRegressor):
         self._rotf = None
         self._tsfresh = None
 
-        super().__init__()
+        super(FreshPRINCERegressor, self).__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.

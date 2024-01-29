@@ -66,7 +66,7 @@ class BaseSeriesAnnotator(BaseEstimator):
         self._X = None
         self._Y = None
 
-        super().__init__()
+        super(BaseSeriesAnnotator, self).__init__()
 
     def fit(self, X, Y=None):
         """Fit to training data.

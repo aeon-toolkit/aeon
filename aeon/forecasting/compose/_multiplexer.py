@@ -105,7 +105,7 @@ class MultiplexForecaster(_HeterogenousMetaEstimator, _DelegatedForecaster):
         forecasters: list,
         selected_forecaster=None,
     ):
-        super().__init__()
+        super(MultiplexForecaster, self).__init__()
         self.selected_forecaster = selected_forecaster
 
         self.forecasters = forecasters

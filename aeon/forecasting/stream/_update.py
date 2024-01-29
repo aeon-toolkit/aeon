@@ -65,7 +65,7 @@ class UpdateRefitsEvery(_DelegatedForecaster):
         self.refit_window_size = refit_window_size
         self.refit_window_lag = refit_window_lag
 
-        super().__init__()
+        super(UpdateRefitsEvery, self).__init__()
 
         self.clone_tags(forecaster, TAGS_TO_CLONE)
 
@@ -246,7 +246,7 @@ class UpdateEvery(_DelegatedForecaster):
 
         self.update_interval = update_interval
 
-        super().__init__()
+        super(UpdateEvery, self).__init__()
 
         self.clone_tags(forecaster, TAGS_TO_KEEP)
 
@@ -409,7 +409,7 @@ class DontUpdate(_DelegatedForecaster):
         self.forecaster = forecaster
         self.forecaster_ = forecaster.clone()
 
-        super().__init__()
+        super(DontUpdate, self).__init__()
 
         self.clone_tags(forecaster, TAGS_TO_CLONE)
 

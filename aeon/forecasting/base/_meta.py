@@ -22,7 +22,7 @@ class _HeterogenousEnsembleForecaster(_HeterogenousMetaEstimator, BaseForecaster
         self.forecasters = forecasters
         self.forecasters_ = None
         self.n_jobs = n_jobs
-        super().__init__()
+        super(_HeterogenousEnsembleForecaster, self).__init__()
 
     def _check_forecasters(self):
         if (

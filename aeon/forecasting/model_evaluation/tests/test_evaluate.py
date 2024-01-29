@@ -32,7 +32,8 @@ from aeon.performance_metrics.forecasting import (
     mean_absolute_scaled_error,
 )
 from aeon.testing.test_config import PR_TESTING
-from aeon.testing.utils.data_gen import _make_hierarchical, make_forecasting_problem
+from aeon.testing.utils.forecasting import make_forecasting_problem
+from aeon.testing.utils.hierarchical import _make_hierarchical
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if PR_TESTING:

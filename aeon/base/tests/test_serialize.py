@@ -5,7 +5,7 @@ import pytest
 
 from aeon.base import load
 from aeon.classification import DummyClassifier
-from aeon.testing.utils.data_gen import make_3d_test_data
+from aeon.testing.utils.collection import make_3d_test_data
 
 
 def test_save_and_load():

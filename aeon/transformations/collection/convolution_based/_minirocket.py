@@ -74,7 +74,7 @@ class MiniRocket(BaseCollectionTransformer):
 
         self.n_jobs = n_jobs
         self.random_state = random_state
-        super().__init__()
+        super(MiniRocket, self).__init__()
 
     def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.
@@ -97,8 +97,10 @@ class MiniRocket(BaseCollectionTransformer):
         _, n_timepoints = X.shape
         if n_timepoints < 9:
             raise ValueError(
-                f"n_timepoints must be >= 9, but found {n_timepoints};"
-                " zero pad shorter series so that n_timepoints == 9"
+                (
+                    f"n_timepoints must be >= 9, but found {n_timepoints};"
+                    " zero pad shorter series so that n_timepoints == 9"
+                )
             )
         self.parameters = _fit(
             X, self.num_kernels, self.max_dilations_per_kernel, random_state

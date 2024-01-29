@@ -75,7 +75,7 @@ class AEFCNNetwork(BaseDeepNetwork):
         use_bias=True,
         random_state=0,
     ):
-        super().__init__()
+        super(AEFCNNetwork, self).__init__()
         _check_soft_dependencies("tensorflow")
 
         self.latent_space_dim = latent_space_dim

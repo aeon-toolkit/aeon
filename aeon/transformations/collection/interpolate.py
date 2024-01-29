@@ -55,7 +55,7 @@ class TSInterpolator(BaseCollectionTransformer):
             raise ValueError("resizing length must be integer and > 0")
 
         self.length = length
-        super().__init__()
+        super(TSInterpolator, self).__init__()
 
     def _transform(self, X, y=None):
         """Take series in each cell, train linear interpolation and samples n.

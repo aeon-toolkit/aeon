@@ -75,7 +75,7 @@ class TapNetNetwork(BaseDeepNetwork):
         )
         _check_soft_dependencies("tensorflow")
 
-        super().__init__()
+        super(TapNetNetwork, self).__init__()
 
         self.random_state = random_state
         self.kernel_size = kernel_size

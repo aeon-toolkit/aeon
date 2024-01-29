@@ -163,7 +163,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-        super().__init__()
+        super(RandomDilatedShapeletTransform, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit the random dilated shapelet transform to a specified X and y.
@@ -204,8 +204,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         if any(self.shapelet_lengths_ > self.min_series_length_):
             raise ValueError(
                 "Shapelets lengths can't be superior to input length,",
-                f"but got shapelets_lengths = {self.shapelet_lengths_} ",
-                f"with an input length = {self.min_series_length_}",
+                "but got shapelets_lengths = {} ".format(self.shapelet_lengths_),
+                "with an input length = {}".format(self.min_series_length_),
             )
         self.shapelets_ = random_dilated_shapelet_extraction(
             X,
@@ -272,12 +272,12 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     def _check_input_params(self):
         if isinstance(self.max_shapelets, bool):
             raise TypeError(
-                f"'max_shapelets' must be an integer, got {self.max_shapelets}."
+                "'max_shapelets' must be an integer, got {}.".format(self.max_shapelets)
             )
 
         if not isinstance(self.max_shapelets, (int, np.integer)):
             raise TypeError(
-                f"'max_shapelets' must be an integer, got {self.max_shapelets}."
+                "'max_shapelets' must be an integer, got {}.".format(self.max_shapelets)
             )
         self.shapelet_lengths_ = self.shapelet_lengths
         if self.shapelet_lengths_ is None:
@@ -355,7 +355,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             params = {"max_shapelets": 10}
         else:
             raise NotImplementedError(
-                f"The parameter set {parameter_set} is not yet implemented"
+                "The parameter set {} is not yet implemented".format(parameter_set)
             )
         return params
 

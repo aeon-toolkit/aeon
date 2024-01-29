@@ -91,7 +91,7 @@ class DOBIN(BaseTransformer):
     ):
         self.frac = frac
         self.k = k
-        super().__init__()
+        super(DOBIN, self).__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.

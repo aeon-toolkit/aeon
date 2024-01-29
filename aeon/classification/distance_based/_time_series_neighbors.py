@@ -91,7 +91,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             )
         self.weights = weights
 
-        super().__init__()
+        super(KNeighborsTimeSeriesClassifier, self).__init__()
 
     def _fit(self, X, y):
         """Fit the model using X as training data and y as target values.

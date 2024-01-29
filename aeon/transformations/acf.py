@@ -87,7 +87,7 @@ class AutoCorrelationTransformer(BaseTransformer):
         self.n_lags = n_lags
         self.fft = fft
         self.missing = missing
-        super().__init__()
+        super(AutoCorrelationTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -215,7 +215,7 @@ class PartialAutoCorrelationTransformer(BaseTransformer):
     ):
         self.n_lags = n_lags
         self.method = method
-        super().__init__()
+        super(PartialAutoCorrelationTransformer, self).__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
