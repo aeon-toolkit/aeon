@@ -1,4 +1,5 @@
 """Tests the SARIMAX model."""
+
 __author__ = ["TNTran92"]
 
 import pytest

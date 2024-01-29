@@ -30,6 +30,7 @@ Testing - implement if aeon classifier (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 
 """
+
 import numpy as np
 
 from aeon.classification.base import BaseClassifier

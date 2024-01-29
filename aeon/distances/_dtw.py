@@ -1,4 +1,5 @@
 r"""Dynamic time warping (DTW) between two time series."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple

@@ -177,9 +177,11 @@ class RocketRegressor(BaseRegressor):
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
-            RidgeCV(alphas=np.logspace(-3, 3, 10))
-            if self.estimator is None
-            else self.estimator,
+            (
+                RidgeCV(alphas=np.logspace(-3, 3, 10))
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
         self.pipeline_ = make_pipeline(

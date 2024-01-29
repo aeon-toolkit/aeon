@@ -1,4 +1,5 @@
 """Pipeline with a classifier."""
+
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator

@@ -1,4 +1,5 @@
 """Base class for clustering."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 __all__ = ["BaseClusterer"]
 
@@ -194,8 +195,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         return dists
 
     @abstractmethod
-    def _score(self, X, y=None):
-        ...
+    def _score(self, X, y=None): ...
 
     @abstractmethod
     def _predict(self, X, y=None) -> np.ndarray:

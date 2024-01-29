@@ -1,4 +1,5 @@
 """TDE test code."""
+
 import numpy as np
 
 from aeon.classification.dictionary_based._tde import TemporalDictionaryEnsemble

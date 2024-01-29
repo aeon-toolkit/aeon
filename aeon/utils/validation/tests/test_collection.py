@@ -1,4 +1,5 @@
 """Unit tests for aeon.utils.validation.collection check/convert functions."""
+
 import numpy as np
 import pandas as pd
 import pytest
