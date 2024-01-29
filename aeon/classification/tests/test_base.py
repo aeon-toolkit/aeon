@@ -144,7 +144,7 @@ def test_unequal_length_input(data):
 
     # Able to handle unequal length series
     dummy = MockClassifierFullTags()
-    _assert_fit_predict(dummy, X, y)
+    _assert_fit_and_predict(dummy, X, y)
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -155,11 +155,11 @@ def test_univariate_equal_length_input(data):
 
     # Default capabilities
     dummy = MockClassifier()
-    _assert_fit_predict(dummy, X, y)
+    _assert_fit_and_predict(dummy, X, y)
 
     # All capabiltiies
     dummy = MockClassifierFullTags()
-    _assert_fit_predict(dummy, X, y)
+    _assert_fit_and_predict(dummy, X, y)
 
 
 @pytest.mark.parametrize("data", EQUAL_LENGTH_MULTIVARIATE.keys())
@@ -175,10 +175,10 @@ def test_multivariate_equal_length_input(data):
 
     # Able to handle multivariate series
     dummy = MockClassifierFullTags()
-    _assert_fit_predict(dummy, X, y)
+    _assert_fit_and_predict(dummy, X, y)
 
 
-def _assert_fit_predict(dummy, X, y):
+def _assert_fit_and_predict(dummy, X, y):
     result = dummy.fit(X, y)
 
     # Fit returns self
@@ -226,7 +226,7 @@ def test_predict_single_class():
     assert all(list(y_pred_proba == 1))
 
 
-def test_predict_proba():
+def test_predict_proba_default():
     """Test default _predict_proba."""
     X = np.random.random(size=(5, 1, 10))
     y = np.array([1, 0, 1, 0, 1])
@@ -243,7 +243,7 @@ def test_predict_proba():
 
 
 def test_fit_predict():
-    """Test fit_predict."""
+    """Test fit_predict and fit_predict_proba."""
     X = np.random.random(size=(5, 1, 10))
     y = np.array([1, 0, 1, 0, 1])
     cls = MockClassifier()
@@ -251,12 +251,41 @@ def test_fit_predict():
     p = cls.fit_predict(X, y)
     assert p.shape == (5,)
 
-
-def test_fit_predict_proba():
-    """Test fit_predict_proba."""
-    cls = MockClassifier()
-    X = np.random.random(size=(5, 1, 10))
-    y = np.array([1, 0, 1, 0, 1])
-
     p = cls.fit_predict_proba(X, y)
     assert p.shape == (5, 2)
+
+
+def test_fit_predict_single_class():
+    """Test return of fit_predict/fit_predict_proba in case only single class."""
+    X = np.ones(shape=(10, 20))
+    y = np.ones(10)
+    clf = MockClassifierPredictProba()
+
+    y_pred = clf.fit_predict(X, y)
+    assert y_pred.ndim == 1
+    assert y_pred.shape == (10,)
+    assert all(list(y_pred == 1))
+
+    y_pred_proba = clf.fit_predict_proba(X, y)
+    assert y_pred_proba.ndim == 2
+    assert y_pred_proba.shape == (10, 1)
+    assert all(list(y_pred_proba == 1))
+
+
+def test_fit_predict_default():
+    """Test fit_predict and fit_predict_proba."""
+    cls = MockClassifier()
+
+    # test default fit_predict cv size
+    X = np.random.random(size=(20, 1, 10))
+    y = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
+    p = cls._fit_predict_default(X, y, "predict")
+    assert p.shape == (20,)
+
+    # test default fit_predict cv size
+    X = np.random.random(size=(2, 1, 10))
+    y = np.array([1, 0])
+
+    with pytest.raises(ValueError, match=r"All classes must have at least 2 values"):
+        cls._fit_predict_default(X, y, "predict")

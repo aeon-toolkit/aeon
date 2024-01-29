@@ -222,6 +222,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Default behaviour is to estimate predictions using 10x cross-validation.
         Bespoke behaviour implemented through overriding method _fit_predict.
+        Classifiers which override _fit_predict will have the
+        ``capability:train_estimate`` tag set to True.
+
+        This is very unlikely to be equivalent to calling ``.fit(X, y).predict(X)``.
 
         Parameters
         ----------
@@ -259,6 +263,11 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Default behaviour is to estimate probabilities using 10x cross-validation.
         Bespoke behaviour implemented through overriding method _fit_predict_proba.
+        Classifiers which override _fit_predict_proba will have the
+        ``capability:train_estimate`` tag set to True.
+
+        This is very unlikely to be equivalent to calling
+        ``.fit(X, y).predict_proba(X)``.
 
         Parameters
         ----------
