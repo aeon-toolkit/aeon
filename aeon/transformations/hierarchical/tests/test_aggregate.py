@@ -4,7 +4,7 @@ __author__ = ["ciaran-g"]
 
 import pytest
 
-from aeon.testing.utils.hierarchical import _bottom_hier_datagen
+from aeon.testing.utils.data_gen import _bottom_hier_datagen
 from aeon.transformations.hierarchical.aggregate import Aggregator
 
 

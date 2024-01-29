@@ -4,6 +4,7 @@ Abstract base class for the Keras neural network classifiers.
 The reason for this class between BaseClassifier and deep_learning classifiers is
 because we can generalise tags, _predict and _predict_proba
 """
+
 __author__ = [
     "James-Large",
     "ABostrom",
@@ -59,7 +60,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         random_state=None,
         last_file_name="last_model",
     ):
-        super(BaseDeepClassifier, self).__init__()
+        super().__init__()
 
         self.batch_size = batch_size
         self.random_state = random_state

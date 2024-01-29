@@ -1,4 +1,5 @@
 """MultiRocketMultivariate test code."""
+
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.metrics import accuracy_score

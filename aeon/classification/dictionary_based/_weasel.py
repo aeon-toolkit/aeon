@@ -157,7 +157,7 @@ class WEASEL(BaseClassifier):
         self.n_jobs = n_jobs
         self.support_probabilities = support_probabilities
         set_num_threads(n_jobs)
-        super(WEASEL, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Build a WEASEL classifiers from the training set (X, y).
@@ -216,7 +216,7 @@ class WEASEL(BaseClassifier):
         if type(all_words[0]) is np.ndarray:
             all_words = np.concatenate(all_words, axis=1)
         else:
-            all_words = hstack((all_words))
+            all_words = hstack(all_words)
 
         # Ridge Classifier does not give probabilities
         if not self.support_probabilities:
@@ -288,7 +288,7 @@ class WEASEL(BaseClassifier):
         return (
             np.concatenate(all_words, axis=1)
             if type(all_words[0]) is np.ndarray
-            else hstack((all_words))
+            else hstack(all_words)
         )
 
     def _compute_window_inc(self):

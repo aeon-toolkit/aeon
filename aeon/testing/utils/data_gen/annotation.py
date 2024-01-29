@@ -5,8 +5,8 @@ __all__ = []
 
 from sklearn.utils import check_random_state
 
-from aeon.annotation.datagen import piecewise_poisson
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import make_series
+from aeon.testing.utils.data_gen.segmentation import piecewise_poisson
 
 
 def make_annotation_problem(
@@ -29,7 +29,7 @@ def make_annotation_problem(
         )
         return y
 
-    y = _make_series(
+    y = make_series(
         n_timepoints=n_timepoints,
         n_columns=1,
         all_positive=all_positive,
@@ -40,7 +40,7 @@ def make_annotation_problem(
     if not make_X:
         return y
 
-    X = _make_series(
+    X = make_series(
         n_timepoints=n_timepoints,
         n_columns=n_columns,
         all_positive=all_positive,

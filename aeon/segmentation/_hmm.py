@@ -5,6 +5,7 @@ Implements a basic Hidden Markov Model (HMM) as a segmentor.
 To read more about the algorithm, check out the `HMM wikipedia page
 <https://en.wikipedia.org/wiki/Hidden_Markov_model>`_.
 """
+
 import warnings
 from typing import Tuple
 
@@ -143,7 +144,7 @@ class HMMSegmenter(BaseSegmenter):
         self.emission_funcs = emission_funcs
         self.transition_prob_mat = transition_prob_mat
         self._validate_init()
-        super(HMMSegmenter, self).__init__()
+        super().__init__()
 
     def _validate_init(self):
         """Verify the parameters passed to init.

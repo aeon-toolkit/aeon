@@ -1,6 +1,5 @@
 """RandomSegmenter class, randomly segments a series."""
 
-
 import random
 
 from aeon.segmentation.base import BaseSegmenter
@@ -22,7 +21,7 @@ class RandomSegmenter(BaseSegmenter):
     def __init__(self, random_state=None, n_segments=2):
         self.random_state = random_state
         self.breakpoints_ = []
-        super(RandomSegmenter, self).__init__(n_segments=n_segments, axis=1)
+        super().__init__(n_segments=n_segments, axis=1)
 
     def _fit(self, X, y=None):
         """Fit the dummy segmenter.
