@@ -1,4 +1,5 @@
 """Test functions for dataset collections."""
+
 import pytest
 
 from aeon.datasets.dataset_collections import (

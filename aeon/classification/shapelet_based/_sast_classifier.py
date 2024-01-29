@@ -107,9 +107,11 @@ class SASTClassifier(BaseClassifier):
         )
 
         self._classifier = _clone_estimator(
-            RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
-            if self.classifier is None
-            else self.classifier,
+            (
+                RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+                if self.classifier is None
+                else self.classifier
+            ),
             self.seed,
         )
 

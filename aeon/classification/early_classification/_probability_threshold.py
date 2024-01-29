@@ -294,9 +294,11 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         probas = np.array(
             [
-                probas[max(0, state_info[i][0] - last_idx)][i]
-                if accept_decision[i]
-                else [-1 for _ in range(self.n_classes_)]
+                (
+                    probas[max(0, state_info[i][0] - last_idx)][i]
+                    if accept_decision[i]
+                    else [-1 for _ in range(self.n_classes_)]
+                )
                 for i in range(len(accept_decision))
             ]
         )
@@ -328,9 +330,11 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         # record consecutive class decisions
         state_info = np.array(
             [
-                self._update_state_info(accept_decision, preds, state_info, i, idx)
-                if not finished[i]
-                else state_info[i]
+                (
+                    self._update_state_info(accept_decision, preds, state_info, i, idx)
+                    if not finished[i]
+                    else state_info[i]
+                )
                 for i in range(n_instances)
             ]
         )
@@ -398,11 +402,13 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         rng = check_random_state(self.random_state)
         preds = np.array(
             [
-                self.classes_[
-                    int(rng.choice(np.flatnonzero(out[0][i] == out[0][i].max())))
-                ]
-                if out[1][i]
-                else -1
+                (
+                    self.classes_[
+                        int(rng.choice(np.flatnonzero(out[0][i] == out[0][i].max())))
+                    ]
+                    if out[1][i]
+                    else -1
+                )
                 for i in range(len(out[0]))
             ]
         )

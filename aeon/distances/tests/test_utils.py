@@ -1,4 +1,5 @@
 """Tests for distance utility function."""
+
 import numpy as np
 import pytest
 
