@@ -611,8 +611,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
             and does not have expected row and column indices
         """
         from aeon.datatypes import check_is_mtype
-        from aeon.datatypes._utilities import get_window
         from aeon.testing.utils.data_gen import _make_hierarchical
+        from aeon.utils.index_functions import get_window
 
         y_train = _make_hierarchical(
             hierarchy_levels=(2, 4),
