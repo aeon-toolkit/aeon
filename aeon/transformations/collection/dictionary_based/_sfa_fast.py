@@ -207,7 +207,7 @@ class SFAFast(BaseCollectionTransformer):
         self.return_pandas_data_series = return_pandas_data_series
 
         self.random_state = random_state
-        super(SFAFast, self).__init__()
+        super().__init__()
 
         if not return_pandas_data_series:
             self._output_convert = "off"

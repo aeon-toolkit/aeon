@@ -1,4 +1,5 @@
 """Tests for ElasticEnsemble."""
+
 import numpy as np
 import pytest
 

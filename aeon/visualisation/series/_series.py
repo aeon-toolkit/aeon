@@ -1,10 +1,10 @@
 """Common timeseries plotting functionality."""
 
-__all__ = ["plot_series", "plot_correlations", "plot_windows"]
+__all__ = ["plot_series", "plot_lags", "plot_correlations"]
 __author__ = ["mloning", "RNKuhns", "Drishti Bhasin", "chillerobscuro"]
 
 import math
-from warnings import simplefilter, warn
+from warnings import warn
 
 import numpy as np
 import pandas as pd
@@ -150,14 +150,15 @@ def plot_series(
         ax.legend()
     if pred_interval is not None:
         check_interval_df(pred_interval, series[-1].index)
-        ax = plot_interval(ax, pred_interval)
+        ax = _plot_interval(ax, pred_interval)
+
     if _ax_kwarg_is_none:
         return fig, ax
     else:
         return ax
 
 
-def plot_interval(ax, interval_df):
+def _plot_interval(ax, interval_df):
     cov = interval_df.columns.levels[1][0]
     ax.fill_between(
         ax.get_lines()[-1].get_xdata(),
@@ -171,8 +172,23 @@ def plot_interval(ax, interval_df):
     return ax
 
 
+def _check_colors(colors, n_series):
+    """Verify color list is correct length and contains only colors."""
+    from matplotlib.colors import is_color_like
+
+    if n_series == len(colors) and all([is_color_like(c) for c in colors]):
+        return True
+    warn(
+        "Color list must be same length as `series` and contain only matplotlib colors"
+    )
+    return False
+
+
 def plot_lags(series, lags=1, suptitle=None):
     """Plot one or more lagged versions of a time series.
+
+    A lag plot is a scatter plot of a time series against a lag of itself.
+    It is normally used to check for autocorrelation.
 
     Parameters
     ----------
@@ -183,7 +199,6 @@ def plot_lags(series, lags=1, suptitle=None):
 
         - int plots the specified lag
         - array-like  plots specified lags in the array/list
-
     suptitle : str, default=None
         The text to use as the Figure's suptitle. If None, then the title
         will be "Plot of series against lags {lags}"
@@ -191,7 +206,6 @@ def plot_lags(series, lags=1, suptitle=None):
     Returns
     -------
     fig : matplotlib.figure.Figure
-
     axes : np.ndarray
         Array of the figure's Axe objects
 
@@ -264,45 +278,34 @@ def plot_correlations(
     ----------
     series : pd.Series
         A time series.
-
     lags : int, default = 24
         Number of lags to include in ACF and PACF plots
-
     alpha : int, default = 0.05
         Alpha value used to set confidence intervals. Alpha = 0.05 results in
         95% confidence interval with standard deviation calculated via
         Bartlett's formula.
-
     zero_lag : bool, default = True
         If True, start ACF and PACF plots at 0th lag
-
     acf_fft : bool,  = False
         Whether to compute ACF via FFT.
-
     acf_adjusted : bool, default = True
         If True, denonimator of ACF calculations uses n-k instead of n, where
         n is number of observations and k is the lag.
-
     pacf_method : str, default = 'ywadjusted'
         Method to use in calculation of PACF.
-
     suptitle : str, default = None
         The text to use as the Figure's suptitle.
-
     series_title : str, default = None
         Used to set the title of the series plot if provided. Otherwise, series
         plot has no title.
-
     acf_title : str, default = 'Autocorrelation'
         Used to set title of ACF plot.
-
     pacf_title : str, default = 'Partial Autocorrelation'
         Used to set title of PACF plot.
 
     Returns
     -------
     fig : matplotlib.figure.Figure
-
     axes : np.ndarray
         Array of the figure's Axe objects
 
@@ -353,92 +356,3 @@ def plot_correlations(
         fig.suptitle(suptitle, size="xx-large")
 
     return fig, np.array(fig.get_axes())
-
-
-def _check_colors(colors, n_series):
-    """Verify color list is correct length and contains only colors."""
-    from matplotlib.colors import is_color_like
-
-    if n_series == len(colors) and all([is_color_like(c) for c in colors]):
-        return True
-    warn(
-        "Color list must be same length as `series` and contain only matplotlib colors"
-    )
-    return False
-
-
-def _get_windows(cv, y):
-    """Generate cv split windows, utility function."""
-    train_windows = []
-    test_windows = []
-    for train, test in cv.split(y):
-        train_windows.append(train)
-        test_windows.append(test)
-    return train_windows, test_windows
-
-
-def plot_windows(cv, y, title=""):
-    """Plot training and test windows.
-
-    Parameters
-    ----------
-    y : pd.Series
-        Time series to split
-    cv : temporal cross-validation iterator object
-        Temporal cross-validation iterator
-    title : str
-        Plot title
-    """
-    _check_soft_dependencies("matplotlib", "seaborn")
-    import matplotlib.pyplot as plt
-    import seaborn as sns
-    from matplotlib.ticker import MaxNLocator
-
-    simplefilter("ignore", category=UserWarning)
-
-    train_windows, test_windows = _get_windows(cv, y)
-
-    def get_y(length, split):
-        # Create a constant vector based on the split for y-axis."""
-        return np.ones(length) * split
-
-    n_splits = len(train_windows)
-    n_timepoints = len(y)
-    len_test = len(test_windows[0])
-
-    train_color, test_color = sns.color_palette("colorblind")[:2]
-
-    fig, ax = plt.subplots(figsize=plt.figaspect(0.3))
-
-    for i in range(n_splits):
-        train = train_windows[i]
-        test = test_windows[i]
-
-        ax.plot(
-            np.arange(n_timepoints), get_y(n_timepoints, i), marker="o", c="lightgray"
-        )
-        ax.plot(
-            train,
-            get_y(len(train), i),
-            marker="o",
-            c=train_color,
-            label="Window",
-        )
-        ax.plot(
-            test,
-            get_y(len_test, i),
-            marker="o",
-            c=test_color,
-            label="Forecasting horizon",
-        )
-    ax.invert_yaxis()
-    ax.yaxis.set_major_locator(MaxNLocator(integer=True))
-    ax.set(
-        title=title,
-        ylabel="Window number",
-        xlabel="Time",
-        xticklabels=y.index,
-    )
-    # remove duplicate labels/handles
-    handles, labels = [(leg[:2]) for leg in ax.get_legend_handles_labels()]
-    ax.legend(handles, labels)

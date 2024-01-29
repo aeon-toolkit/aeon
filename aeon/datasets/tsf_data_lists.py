@@ -1,6 +1,5 @@
 """Datasets in the Monash tser data archives."""
 
-
 tsf_all = {
     "nn5_daily_dataset_with_missing_values": 4656110,
     "nn5_daily_dataset_without_missing_values": 4656117,

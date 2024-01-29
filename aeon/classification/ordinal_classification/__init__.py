@@ -1,4 +1,5 @@
 """Ordinal time series classifiers."""
+
 __all__ = [
     "OrdinalTDE",
     "IndividualOrdinalTDE",

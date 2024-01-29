@@ -23,6 +23,7 @@ Datasets
     download_all_regression
     write_to_tsfile
     write_results_to_uea_format
+    write_to_arff_file
     load_airline
     load_arrow_head
     load_gunpoint

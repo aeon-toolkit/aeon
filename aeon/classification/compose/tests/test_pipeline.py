@@ -9,7 +9,6 @@ from sklearn.preprocessing import StandardScaler
 from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline, SklearnClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
-from aeon.testing.utils.collection import make_3d_test_data
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection import PaddingTransformer
 from aeon.transformations.exponent import ExponentTransformer

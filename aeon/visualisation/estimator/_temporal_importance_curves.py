@@ -12,7 +12,24 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def plot_temporal_importance_curves(
     curves, curve_names, top_curves_shown=None, plot_mean=True
 ):
-    """Temporal importance curve diagram generator for interval forests."""
+    """Temporal importance curve diagram generator for interval forests.
+
+    Parameters
+    ----------
+    curves : larray-like of shape (n_curves, n_timepoints)
+        The temporal importance curves for each attribute.
+    curve_names : list of str of shape (n_curves)
+        The names of the attributes.
+    top_curves_shown : int, default=None
+        The number of curves to show. If None, all curves are shown.
+    plot_mean : bool, default=True
+        Whether to plot the mean temporal importance curve.
+
+    Returns
+    -------
+    fig : plt.Figure
+    ax : plt.Axis
+    """
     # find attributes to display by max information gain for any time point.
     _check_soft_dependencies("matplotlib")
 
@@ -27,28 +44,30 @@ def plot_temporal_importance_curves(
     top_curves = [curves[i] for i in top]
     top_names = [curve_names[i] for i in top]
 
+    fig, ax = plt.subplots(1, figsize=plt.figaspect(0.7))
+
     # plot curves with highest max and the mean information gain for each time point if
     # enabled.
     for i in range(0, top_curves_shown):
-        plt.plot(
+        ax.plot(
             top_curves[i],
             label=top_names[i],
         )
     if plot_mean:
-        plt.plot(
+        ax.plot(
             list(np.mean(curves, axis=0)),
             "--",
             linewidth=3,
             label="Mean Information Gain",
         )
-    plt.legend(
+    ax.legend(
         bbox_to_anchor=(0.0, 1.02, 1.0, 0.102),
         loc="lower left",
         ncol=2,
         mode="expand",
         borderaxespad=0.0,
     )
-    plt.xlabel("Time Point")
-    plt.ylabel("Information Gain")
+    ax.set_xlabel("Time Point")
+    ax.set_ylabel("Information Gain")
 
-    plt.show()
+    return fig, ax
