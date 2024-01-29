@@ -1,4 +1,5 @@
 """Test functionality of summary transformer."""
+
 __author__ = ["RNKuhns"]
 import re
 

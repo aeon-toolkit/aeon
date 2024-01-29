@@ -127,18 +127,16 @@ def _normalized_squared_distance_profile(
     distance_profile = np.full(QX.shape, np.inf)
 
     for i_instance in range(len(QX)):
-        distance_profile[i_instance][
-            :, mask[i_instance]
-        ] = _normalized_eucldiean_dist_profile_one_series(
-            QX[i_instance],
-            X_means[i_instance],
-            X_stds[i_instance],
-            q_means,
-            q_stds,
-            query_length,
-        )[
-            :, mask[i_instance]
-        ]
+        distance_profile[i_instance][:, mask[i_instance]] = (
+            _normalized_eucldiean_dist_profile_one_series(
+                QX[i_instance],
+                X_means[i_instance],
+                X_stds[i_instance],
+                q_means,
+                q_stds,
+                query_length,
+            )[:, mask[i_instance]]
+        )
     return distance_profile
 
 

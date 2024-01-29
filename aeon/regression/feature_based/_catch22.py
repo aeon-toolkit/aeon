@@ -128,7 +128,7 @@ class Catch22Regressor(BaseRegressor):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(Catch22Regressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Catch22Regressor to training data.
@@ -159,9 +159,11 @@ class Catch22Regressor(BaseRegressor):
         )
 
         self._estimator = _clone_estimator(
-            RandomForestRegressor(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestRegressor(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 

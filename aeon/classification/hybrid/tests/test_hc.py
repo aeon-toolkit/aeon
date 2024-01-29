@@ -1,4 +1,5 @@
 """Tests for HC1."""
+
 import pytest
 
 from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2

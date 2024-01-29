@@ -1,4 +1,5 @@
 """Arsenal test code."""
+
 import pytest
 
 from aeon.classification.convolution_based import Arsenal

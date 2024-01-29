@@ -88,7 +88,7 @@ class SummaryClassifier(BaseClassifier):
         self._estimator = None
         self._transform_atts = 0
 
-        super(SummaryClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
@@ -115,9 +115,11 @@ class SummaryClassifier(BaseClassifier):
         )
 
         self._estimator = _clone_estimator(
-            RandomForestClassifier(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestClassifier(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 
