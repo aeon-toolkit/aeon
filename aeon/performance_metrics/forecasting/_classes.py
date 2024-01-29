@@ -4,6 +4,7 @@ Classes named as ``*Score`` return a value to maximize: the higher the better.
 Classes named as ``*Error`` or ``*Loss`` return a value to minimize:
 the lower the better.
 """
+
 from copy import deepcopy
 from inspect import getfullargspec, isfunction, signature
 from warnings import warn
