@@ -1,4 +1,5 @@
 """Mock segmenters for testing."""
+
 import numpy as np
 
 from aeon.segmentation import BaseSegmenter

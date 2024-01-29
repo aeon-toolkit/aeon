@@ -1,4 +1,5 @@
 """"Test the base series transformer."""
+
 import numpy as np
 
 from aeon.segmentation import BaseSegmenter

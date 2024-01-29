@@ -1,4 +1,5 @@
 """Base class for estimators that fit collections of time series."""
+
 from aeon.base._base import BaseEstimator
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_estimator_deps
