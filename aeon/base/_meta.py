@@ -85,7 +85,7 @@ class _HeterogenousMetaEstimator:
 
         Returns
         -------
-        composite: bool, whether self contains a parameter which is BaseObject
+        composite: bool, whether self contains a BaseObject
         """
         # children of this class are always composite
         return True
