@@ -93,4 +93,4 @@ class CollectionToSeriesWrapper(BaseTransformer):
         """
         from aeon.transformations.collection.convolution_based import Rocket
 
-        return {"transformer": Rocket(num_kernels=50, random_state=42)}
+        return {"transformer": Rocket(num_kernels=50)}
