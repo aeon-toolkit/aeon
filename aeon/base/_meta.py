@@ -106,7 +106,7 @@ class _HeterogenousMetaEstimator:
             for name, estimator in estimators:
                 if hasattr(estimator, "get_params"):
                     for key, value in getattr(estimator, method)(**deepkw).items():
-                        out["{}__{}".format(name, key)] = value
+                        out[f"{name}__{key}"] = value
         return out
 
     def _set_params(self, attr, **params):

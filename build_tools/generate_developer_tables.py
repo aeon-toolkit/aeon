@@ -103,7 +103,7 @@ def get_contributors(auth):
 
 def get_profile(login, auth):
     """Get the GitHub profile from login."""
-    print("get profile for {}".format(login))  # noqa: T201
+    print(f"get profile for {login}")  # noqa: T201
     try:
         profile = get("https://api.github.com/users/%s" % login, auth).json()
     except requests.exceptions.HTTPError:
