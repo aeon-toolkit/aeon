@@ -1042,7 +1042,7 @@ class BaseTransformer(BaseEstimator):
                 store=_converter_store_X,
                 store_behaviour="freeze",
             )
-        elif output_scitype == "Primitives":
+        elif output_scitype == "Tabular" or output_scitype == "Primitives":
             # we ensure the output is pd_DataFrame_Table
             # & ensure the returned index is sensible
             # for return index, we need to deal with last level, constant 0
