@@ -84,6 +84,7 @@ class HidalgoSegmenter(BaseSegmenter):
     """
 
     _tags = {
+        "capability:univariate": False,
         "capability:multivariate": True,
         "fit_is_empty": False,
         "returns_dense": False,
@@ -125,7 +126,7 @@ class HidalgoSegmenter(BaseSegmenter):
         self.f = f
         self.seed = seed
 
-        super().__init__(axis=1)
+        super().__init__(axis=0)
 
     def _get_neighbourhood_params(self, X):
         """
@@ -698,7 +699,7 @@ def _binom(N: Union[int, float], q: Union[int, float]):
     Parameters
     ----------
     N : int, float
-        number of fixed elements from qhich q is chosen
+        number of fixed elements from which q is chosen
     q : int, float
         number of subset q elements chosen from N
     """

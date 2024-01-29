@@ -7,20 +7,11 @@ from abc import ABC, abstractmethod
 from typing import List, final
 
 import numpy as np
-import pandas as pd
 
-from aeon.base import BaseEstimator
-
-# allowed input and internal data types for Segmenters
-VALID_INNER_TYPES = [
-    "ndarray",
-    "Series",
-    "DataFrame",
-]
-VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
+from aeon.base import BaseSeriesEstimator
 
 
-class BaseSegmenter(BaseEstimator, ABC):
+class BaseSegmenter(BaseSeriesEstimator, ABC):
     """Base class for segmentation algorithms.
 
     Segmenters take a single time series of length $m$ and returns a segmentation.
@@ -49,7 +40,8 @@ class BaseSegmenter(BaseEstimator, ABC):
 
     Conversion between numpy and pandas is handled by the base class. Sub classses
     can assume the data is in the correct format (determined by
-    ``"X_inner_type"``, one of ``VALID_INNER_TYPES)`` and represented with the expected
+    ``"X_inner_type"``, one of ``aeon.base._base_series.VALID_INNER_TYPES)`` and
+    represented with the expected
     axis.
 
     Multivariate series are segmented along an axis determined by ``self.axis``. Axis
@@ -100,11 +92,7 @@ class BaseSegmenter(BaseEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_type": "ndarray",  # One of VALID_INNER_TYPES
-        "capability:unequal_length": False,
-        "capability:multivariate": False,
-        "capability:missing_values": False,
-        "capability:multithreading": False,
+        "X_inner_type": "np.ndarray",  # One of VALID_INNER_TYPES
         "fit_is_empty": True,
         "requires_y": False,
         "returns_dense": True,
@@ -114,7 +102,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         self.n_segments = n_segments
         self.axis = axis
         self._is_fitted = False
-        super().__init__()
+        super().__init__(axis=axis)
 
     @final
     def fit(self, X, y=None, axis=None):
@@ -130,10 +118,10 @@ class BaseSegmenter(BaseEstimator, ABC):
         X : One of ``VALID_INPUT_TYPES``
             Input time series
         y : One of ``VALID_INPUT_TYPES`` or None, default None
-            Training time series, labeled series same length as X for supervised
+            Training time series, a labeled 1D series same length as X for supervised
             segmentation.
         axis : int, default = None
-            Axis along which to segment if passed a multivariate series (2D input).
+            Axis along which to segment if passed a multivariate X series (2D input).
             If axis is 0, it is assumed each column is a time series and each row is
             a time point. i.e. the shape of the data is ``(n_timepoints,
             n_channels)``.
@@ -156,11 +144,9 @@ class BaseSegmenter(BaseEstimator, ABC):
         self.reset()
         if axis is None:  # If none given, assume it is correct.
             axis = self.axis
-        self._check_input_series(X)
-        self._check_capabilities(X, axis)
-        X = self._convert_series(X, axis)
+        X = self._preprocess_series(X, axis)
         if y is not None:
-            self._check_input_series(y)
+            y = self._check_y(y)
         self._fit(X=X, y=y)
         self._is_fitted = True
         return self
@@ -192,16 +178,15 @@ class BaseSegmenter(BaseEstimator, ABC):
         self.check_is_fitted()
         if axis is None:
             axis = self.axis
-        self._check_input_series(X)
-        self._check_capabilities(X, axis)
-        X = self._convert_series(X, axis)
+        X = self._preprocess_series(X, axis)
         return self._predict(X)
 
-    def fit_predict(self, X, y=None):
+    def fit_predict(self, X, y=None, axis=None):
         """Fit segmentation to data and return it."""
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
-        return self.fit(X, y).predict(X)
+        self.fit(X, y, axis=axis)
+        return self.predict(X, axis=axis)
 
     def _fit(self, X, y):
         """Fit time series classifier to training data."""
@@ -212,64 +197,7 @@ class BaseSegmenter(BaseEstimator, ABC):
         """Create and return a segmentation of X."""
         ...
 
-    def _check_input_series(self, X):
-        """Check input is one of ``VALID_INPUT_TYPES`` only containing floats."""
-        # Checks: check valid type and axis
-        if type(X) not in VALID_INPUT_TYPES:
-            raise ValueError(
-                f" Error in input type should be one onf "
-                f" {VALID_INNER_TYPES}, saw {type(X)}"
-            )
-        if isinstance(X, np.ndarray):
-            # Check valid shape
-            if X.ndim > 2:
-                raise ValueError(" Should be 1D or 2D")
-            if not (
-                issubclass(X.dtype.type, np.integer)
-                or issubclass(X.dtype.type, np.floating)
-            ):
-                raise ValueError(" array must contain floats or ints")
-        elif isinstance(X, pd.Series):
-            if not pd.api.types.is_numeric_dtype(X):
-                raise ValueError("pd.Series must be numeric")
-        else:
-            if not all(pd.api.types.is_numeric_dtype(X[col]) for col in X.columns):
-                raise ValueError("pd.DataFrame must be numeric")
-
-    def _check_capabilities(self, X, axis):
-        """Check self can handle multivariate series if X is multivariate."""
-        if self.get_class_tag("capability:multivariate") is False:
-            if X.ndim > 1:
-                raise ValueError("Multivariate data not supported")
-
-    def _convert_series(self, X, axis):
-        """Convert X into "X_inner_type" data structure."""
-        inner = self.get_class_tag("X_inner_type")
-        input = "ndarray"
-        if isinstance(X, pd.Series):
-            input = "Series"
-        elif isinstance(X, pd.DataFrame):
-            input = "DataFrame"
-        if inner != input:
-            if inner == "ndarray":
-                X = X.to_numpy()
-            elif inner == "Series":
-                if input == "ndarray":
-                    X = pd.Series(X)
-            elif inner == "DataFrame":
-                X = pd.DataFrame(X)
-        if axis > 1 or axis < 0:
-            raise ValueError(" Axis should be 0 or 1")
-        if self.get_class_tag("capability:multivariate") and X.ndim == 1:
-            X = X.reshape(1, -1)
-        else:
-            X = X.squeeze()
-        if X.ndim > 1:
-            if self.axis != axis:
-                X = X.T
-        return X
-
-    def to_classification(self, change_points: List[int]):
+    def to_classification(self, change_points: List[int], length: int):
         """Convert change point locations to a classification vector.
 
         Change point detection results can be treated as classification
@@ -280,9 +208,11 @@ class BaseSegmenter(BaseEstimator, ABC):
         For example change points [2, 8] for a time series of length 10
         would result in: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0].
         """
-        return np.bincount(change_points[1:-1], minlength=change_points[-1])
+        labels = np.zeros(length, dtype=int)
+        labels[change_points] = 1
+        return labels
 
-    def to_clusters(self, change_points: List[int]):
+    def to_clusters(self, change_points: List[int], length: int):
         """Convert change point locations to a clustering vector.
 
         Change point detection results can be treated as clustering
@@ -292,7 +222,24 @@ class BaseSegmenter(BaseEstimator, ABC):
         For example change points [2, 8] for a time series of length 10
         would result in: [0, 0, 1, 1, 1, 1, 1, 1, 2, 2].
         """
-        labels = np.zeros(change_points[-1], dtype=np.int32)
-        for i, (start, stop) in enumerate(zip(change_points[:-1], change_points[1:])):
-            labels[start:stop] = i
+        labels = np.zeros(length, dtype=int)
+        for cp in change_points:
+            labels[cp:] += 1
         return labels
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class.
+        """
+        # default parameters = empty dict
+        return {"n_segments": 2, "axis": 1}
