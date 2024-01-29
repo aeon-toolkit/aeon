@@ -1,4 +1,5 @@
 """Base classes for defining estimators and other objects in aeon."""
+
 from aeon.base._base import BaseEstimator, BaseObject
 from aeon.base._base_collection import BaseCollectionEstimator
 from aeon.base._meta import _HeterogenousMetaEstimator

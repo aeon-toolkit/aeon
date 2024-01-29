@@ -1,4 +1,5 @@
 """Generate test examples."""
+
 import numpy as np
 import pandas as pd
 
