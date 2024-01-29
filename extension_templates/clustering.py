@@ -30,6 +30,7 @@ Optional implements:
 Testing - implement if aeon forecaster (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
+
 import numpy as np
 
 from aeon.clustering import BaseClusterer

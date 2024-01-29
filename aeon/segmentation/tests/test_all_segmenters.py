@@ -1,4 +1,5 @@
 """Tests for all segmenters."""
+
 import numpy as np
 import pytest
 

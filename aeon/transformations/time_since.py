@@ -1,4 +1,5 @@
 """A transformer to compute the time elapsed since a reference time."""
+
 from __future__ import annotations
 
 __author__ = ["KishManani"]

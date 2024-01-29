@@ -1,6 +1,5 @@
 """Datasets in the Monash tser data archives."""
 
-
 tser_monash = {
     "AppliancesEnergy": 3902637,
     "HouseholdPowerConsumption1": 3902704,

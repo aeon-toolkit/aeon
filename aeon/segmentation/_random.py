@@ -1,6 +1,5 @@
 """RandomSegmenter class, randomly segments a series."""
 
-
 import random
 
 import numpy as np

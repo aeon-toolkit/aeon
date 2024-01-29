@@ -1,4 +1,5 @@
 """LITE Network."""
+
 __author__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork

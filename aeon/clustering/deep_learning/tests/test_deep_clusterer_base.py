@@ -1,4 +1,5 @@
 """Unit tests for clusterer deep learning base class functionality."""
+
 import tempfile
 
 import numpy as np

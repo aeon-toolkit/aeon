@@ -1,4 +1,5 @@
 """Test cluster plotting."""
+
 import numpy as np
 import pytest
 

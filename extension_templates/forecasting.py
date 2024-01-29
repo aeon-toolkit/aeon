@@ -35,6 +35,7 @@ Optional implements:
 Testing - implement if aeon forecaster (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
+
 # todo: write an informative docstring for the file or module, remove the above
 
 # todo: uncomment the following line, enter authors' GitHub IDs
@@ -148,7 +149,7 @@ class MyForecaster(BaseForecaster):
         # raises exception at construction if local python veresion is incompatible
         #
         # soft dependency requirement
-        "python_dependencies": None
+        "python_dependencies": None,
         # valid values: str or list of str
         # raises exception at construction if modules at strings cannot be imported
     }
