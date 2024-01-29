@@ -1,4 +1,5 @@
 """Benchmarking."""
+
 __all__ = [
     "get_available_estimators",
     "get_estimator_results",

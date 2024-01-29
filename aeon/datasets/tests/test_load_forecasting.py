@@ -1,4 +1,5 @@
 """Test function for loading forecasting data."""
+
 import os
 
 import pandas as pd

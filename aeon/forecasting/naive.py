@@ -486,9 +486,9 @@ class NaiveForecaster(_BaseWindowForecaster):
         # Formulas from:
         # https://otexts.com/fpp3/prediction-intervals.html (Table 5.2)
         partial_se_formulas = {
-            "last": lambda h: np.sqrt(h)
-            if sp == 1
-            else np.sqrt(np.floor((h - 1) / sp) + 1),
+            "last": lambda h: (
+                np.sqrt(h) if sp == 1 else np.sqrt(np.floor((h - 1) / sp) + 1)
+            ),
             "mean": lambda h: np.repeat(np.sqrt(1 + (1 / window_length)), len(h)),
             "drift": lambda h: np.sqrt(h * (1 + (h / (T - 1)))),
         }

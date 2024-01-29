@@ -289,9 +289,11 @@ def test_auto_arima_model_pyfunc_without_conf_output(auto_arima_model, model_pat
     """Test auto arima prediction of loaded pyfunc model without config."""
     from aeon.utils import mlflow_aeon
 
-    delattr(auto_arima_model, "pyfunc_predict_conf") if hasattr(
-        auto_arima_model, "pyfunc_predict_conf"
-    ) else None
+    (
+        delattr(auto_arima_model, "pyfunc_predict_conf")
+        if hasattr(auto_arima_model, "pyfunc_predict_conf")
+        else None
+    )
     mlflow_aeon.save_model(
         estimator=auto_arima_model,
         path=model_path,

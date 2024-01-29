@@ -33,6 +33,7 @@ Optional implements:
 Testing - implement if aeon early classifier (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
+
 from typing import Tuple
 
 import numpy as np

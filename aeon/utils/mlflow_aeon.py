@@ -691,9 +691,9 @@ class _aeonModelWrapper:
                 else:
                     coverage = 0.9
 
-                raw_predictions[
-                    AEON_PREDICT_INTERVAL
-                ] = self.estimator.predict_interval(X=X, coverage=coverage)
+                raw_predictions[AEON_PREDICT_INTERVAL] = (
+                    self.estimator.predict_interval(X=X, coverage=coverage)
+                )
 
             if AEON_PREDICT_PROBA in predict_methods:
                 if not isinstance(
@@ -754,9 +754,9 @@ class _aeonModelWrapper:
                     )
                 else:
                     alpha = None
-                raw_predictions[
-                    AEON_PREDICT_QUANTILES
-                ] = self.estimator.predict_quantiles(X=X, alpha=alpha)
+                raw_predictions[AEON_PREDICT_QUANTILES] = (
+                    self.estimator.predict_quantiles(X=X, alpha=alpha)
+                )
 
             if AEON_PREDICT_VAR in predict_methods:
                 if predict_params:

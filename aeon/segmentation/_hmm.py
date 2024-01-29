@@ -5,6 +5,7 @@ Implements a basic Hidden Markov Model (HMM) as a segmentor.
 To read more about the algorithm, check out the `HMM wikipedia page
 <https://en.wikipedia.org/wiki/Hidden_Markov_model>`_.
 """
+
 import warnings
 from typing import Tuple
 
