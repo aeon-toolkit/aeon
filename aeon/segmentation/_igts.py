@@ -17,13 +17,12 @@ References
 
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from attrs import define, field
 
 from aeon.segmentation.base import BaseSegmenter
 
@@ -103,7 +102,7 @@ def generate_segments_pandas(X: npt.ArrayLike, change_points: List) -> npt.Array
         yield X[interval.left : interval.right, :]
 
 
-@define
+@dataclass
 class _IGTS:
     """
     Information Gain based Temporal Segmentation (GTS).
@@ -157,7 +156,7 @@ class _IGTS:
 
     Example
     -------
-    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
@@ -174,7 +173,7 @@ class _IGTS:
     step: int = 5
 
     # computed attributes
-    intermediate_results_: List = field(init=False, default=[])
+    intermediate_results_: List = field(init=False, default_factory=list)
 
     def identity(self, X: npt.ArrayLike) -> List[int]:
         """Return identity segmentation, i.e. terminal indexes of the data."""
@@ -337,7 +336,7 @@ class InformationGainSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(
