@@ -1,6 +1,5 @@
 """VECM Forecaster."""
 
-
 __all__ = ["VECM"]
 __author__ = ["thayeylolu", "AurumnPegasus"]
 

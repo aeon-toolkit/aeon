@@ -1,4 +1,5 @@
 """Test save and load."""
+
 import os
 
 import pytest

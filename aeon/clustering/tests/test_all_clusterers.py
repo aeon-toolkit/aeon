@@ -1,4 +1,5 @@
 """Test all clusterers comply to interface."""
+
 import numpy as np
 import pytest
 

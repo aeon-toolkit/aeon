@@ -1,4 +1,5 @@
 """Tests for all segmenters."""
+
 import pytest
 
 from aeon.registry import all_estimators
