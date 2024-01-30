@@ -14,6 +14,9 @@ and discussing with the project mentors. We aim to run schemes to
 help new contributors to become more familiar with `aeon`, time series machine learning
 research, and open-source software development.
 
+All the projects listed will require knowledge of Python 3 and Git/GitHub. The
+majority of them will require some knowledge of machine learning and time series.
+
 ## Current aeon projects
 
 This is a list of some of the projects we are interested in running in 2024. Feel
@@ -48,36 +51,48 @@ SETAR-Tree [3].
 4. Implement a machine learning forecasting algorithm [3]
 
 ##### Expected Outcomes
+
 1. Contributions to the aeon forecasting module
 2. Implementation of a machine learning forecasting alg
-2. Help write up results for a technical report/academic paper (dependning on outcomes.)
+3. Help write up results for a technical report/academic paper (dependning on outcomes.)
 
 ##### Skills Required
 
 1. Python 3
-2. Some machine learning and/or forecasting background (e.g. taught courses or
+2. Git and GitHub
+3. Some machine learning and/or forecasting background (e.g. taught courses or
    practical experience)
-
 
 ##### References
 
-[1] Guijo-Rubio, D.,Middlehurst, M., Arcencio, G., Furtado, D. and Bagnall, A.
+1. Guijo-Rubio, D.,Middlehurst, M., Arcencio, G., Furtado, D. and Bagnall, A.
 Unsupervised Feature Based Algorithms for Time Series Extrinsic Regression,
 arXiv2305.01429, 2023
-[2] https://forecasters.org/resources/time-series-data/
-[3] Godahewa, R., Webb, G.I., Schmidt, D. et al. SETAR-Tree: a novel and accurate
+2. https://forecasters.org/resources/time-series-data/
+3. Godahewa, R., Webb, G.I., Schmidt, D. et al. SETAR-Tree: a novel and accurate
 tree algorithm for global time series forecasting. Mach Learn 112, 2555–2591 (2023).
 https://link.springer.com/article/10.1007/s10994-023-06316-x
 
+#### 2. Deep Learning for Time Series Forecasting
 
-#### 3. Deep Learning for Time Series Forecasting
-
-Mentors: Ali Ismail-Fawaz (@hadifawaz1999)
+Mentors: Ali Ismail-Fawaz ({user}`hadifawaz1999`)
 
 ##### Description
 
 Implement and evaluate some models from the literature, maybe benchmark them as well
 to non-deep models
+
+##### Project stages
+
+?
+
+##### Project evaluation
+
+?
+
+##### References
+
+?
 
 ### Classification
 
@@ -150,7 +165,6 @@ transform: A new approach for time series shapelets. In International Conference
 Pattern Recognition and Artificial Intelligence (pp. 653-664). Cham: Springer
 International Publishing.
 
-
 #### 2. EEG classification with aeon-neuro
 
 Mentors: Tony Bagnall ({user}`TonyBagnall`) and Aiden Rushbrooke
@@ -174,40 +188,42 @@ Work on aeon-neuro, implement some of the recent EEG classification algorithms
 
 ?
 
-#### 4. Improved Proximity Forest for classification
+#### 3. Improved Proximity Forest for classification
 
 Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`) and Tony Bagnall
 ({user}`TonyBagnall`)
 
 ##### Description
 
-Distance-based classifiers are a popular approach to time series classification. They
-primarily use elastic distance measures to compare time series. The Proximity Forest
-algorithm [1] is a distance-based classifier for time series. The classifier creates
-a forest of decision trees, where the tree splits are based on the distance between
-time series using various distance measures. A recent review of time series
-classification algorithms [2] found that Proximity Forest was the most accurate
-distance-based algorithm.
+Distance-based classifiers such as k-Nearest Neighbours are popular approaches to time
+series classification. They primarily use elastic distance measures such as Dynamic Time
+Warping (DTW) to compare two series. The Proximity Forest algorithm [1] is a
+distance-based classifier for time series. The classifier creates a forest of decision
+trees, where the tree splits are based on the distance between time series using
+various distance measures. A recent review of time series classification algorithms [2]
+found that Proximity Forest was the most accurate distance-based algorithm of those
+compared.
 
-`aeon` had an implementation of the Proximity Forest algorithm, but it was not as
-accurate as the original implementation (the one used in the study) and crashed on
-some benchmark datasets. The goal of this project is to improve the previous
-implementation or re-implement Proximity Forest in `aeon` to match the accuracy of the
-original algorithm. This will involve comparing against the authors' Java
-implementation of the algorithm as well as alternate Python versions. The mentors will
-provide results for both to help with the evaluation. While knowing Java is not a
-requirement for this project, it could be beneficial.
+`aeon` previously had an implementation of the Proximity Forest algorithm, but it was
+not as accurate as the original implementation (the one used in the study) and was
+unstable on benchmark datasets. The goal of this project is to significantly overhaul
+the previous implementation or completely re-implement Proximity Forest in `aeon` to
+match the accuracy of the original algorithm. This will involve comparing against the
+authors' Java implementation of the algorithm as well as alternate Python versions.
+The mentors will provide results for both for alternative methods. While knowing
+Java is not a requirement for this project, it could be beneficial.
 
-Recent work has proposed a new version of the Proximity Forest algorithm, Proximity
-Forest 2.0 [3]. This algorithm is more accurate than the original Proximity Forest
-algorithm, and does not currently have an implementation in `aeon`. If time, the
-project could also involve implementing the Proximity Forest 2.0 algorithm.
+Recently, the group which published the algorithm has proposed a new version of the
+Proximity Forest algorithm, Proximity Forest 2.0 [3]. This algorithm is more accurate
+than the original Proximity Forest algorithm, and does not currently have an
+implementation in `aeon` or elsewhere in Python. If time allows, the project could also
+involve implementing and evaluating the Proximity Forest 2.0 algorithm.
 
 ##### Project stages
 
 1. Learn about `aeon` best practices, coding standards and testing policies.
-2. Study the Proximity Forest algorithm and `aeon` implementation.
-3. Improve/re-implement the existing Proximity Forest implementation in `aeon`, with
+2. Study the Proximity Forest algorithm and previous `aeon` implementation.
+3. Improve/re-implement the Proximity Forest implementation in `aeon`, with
 the aim being to have an implementation that is as accurate as the original algorithm,
 while remaining feasible to run.
 4. Evaluate the improved implementation against the original `aeon` Proximity Forest
