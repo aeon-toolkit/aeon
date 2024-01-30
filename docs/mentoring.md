@@ -25,46 +25,50 @@ We will more widely advertise funding opportunities as and when they become avai
 
 ### Forecasting
 
-#### 1. Machine Learning
+#### 1. Machine Learning for Time Series Forecasting
 
-Mentors: ?
-
-##### Description
-
-Implement and evaluate some of the recently proposed machine learning ree based
-algorithms.
-
-##### Project stages
-
-?
-
-##### Project evaluation
-
-?
-
-##### References
-
-?
-
-#### 2. Forecasting as time series regression
-
-Mentors: ?
+Mentors: Tony Bagnall ({user}`TonyBagnall`)
 
 ##### Description
 
-Evaluate TSER algorithms for TSFR
+This project will investigate algorithms for forecasting based on traditional machine
+learning (tree based) and time series machine learning (transformation based). Note
+this project will not involve deep learning based forecasting. It will involve
+helping develop the `aeon` framework to work more transparently with ML algorithms,
+evaluating regression algorithms already in `aeon`[1] for forecasting problems and
+implementing at least one algorithm from the literature not already in aeon, such as
+SETAR-Tree [3].
 
 ##### Project stages
 
-?
+1. Learn about aeon best practices, coding standards and testing policies.
+2. Work through existing forecasting workflow and experimental reproduction.
+3. Adapt the M competition set up [2] for ML experimental framework to assess time
+   series regression algorithms [1].
+4. Implement a machine learning forecasting algorithm [3]
 
-##### Project evaluation
+##### Expected Outcomes
+1. Contributions to the aeon forecasting module
+2. Implementation of a machine learning forecasting alg
+2. Help write up results for a technical report/academic paper (dependning on outcomes.)
 
-?
+##### Skills Required
+
+1. Python 3
+2. Some machine learning and/or forecasting background (e.g. taught courses or
+   practical experience)
+
 
 ##### References
 
-?
+[1] Guijo-Rubio, D.,Middlehurst, M., Arcencio, G., Furtado, D. and Bagnall, A.
+Unsupervised Feature Based Algorithms for Time Series Extrinsic Regression,
+arXiv2305.01429, 2023
+[2] https://forecasters.org/resources/time-series-data/
+[3] Godahewa, R., Webb, G.I., Schmidt, D. et al. SETAR-Tree: a novel and accurate
+tree algorithm for global time series forecasting. Mach Learn 112, 2555–2591 (2023).
+https://link.springer.com/article/10.1007/s10994-023-06316-x
+
 
 #### 3. Deep Learning for Time Series Forecasting
 
@@ -77,7 +81,7 @@ to non-deep models
 
 ### Classification
 
-#### 1. Optimizing the Shapelet Transform
+#### 1. Optimizing the Shapelet Transform for Classification and Similarity Search
 
 Mentors : Antoine Guillaume ({user}`baraline`)
 
@@ -356,7 +360,7 @@ series. The goal of this project is to extend the functionality of segmentation 
 2. Study the existing segmentation algorithms in `aeon`.
 3. Implement existing segmentation algorithms, e.g.
 https://github.com/aeon-toolkit/aeon/issues/948
-4. Implement tools for comparing segmentation algorithms, e.g.
+4. Implement tools for comparing segmentation algorithms
 5. Conduct a bake off of segmentation algorithms on a range of datasets.
 
 ##### Project evaluation
