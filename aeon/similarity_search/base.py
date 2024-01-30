@@ -422,12 +422,10 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         return distance_profile
 
     @abstractmethod
-    def _fit(self, X, y):
-        ...
+    def _fit(self, X, y): ...
 
     @abstractmethod
-    def _predict(self, distance_profile, exclusion_size=None):
-        ...
+    def _predict(self, distance_profile, exclusion_size=None): ...
 
 
 _SIM_SEARCH_SPEED_UP_DICT = {

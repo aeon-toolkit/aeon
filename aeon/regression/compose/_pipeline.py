@@ -1,4 +1,5 @@
 """Pipeline with a regressor."""
+
 import numpy as np
 
 from aeon.base import _HeterogenousMetaEstimator

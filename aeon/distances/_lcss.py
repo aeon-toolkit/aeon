@@ -1,4 +1,5 @@
 r"""Longest common subsequence (LCSS) between two time series."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple

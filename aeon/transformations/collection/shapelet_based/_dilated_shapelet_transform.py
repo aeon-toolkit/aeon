@@ -594,12 +594,12 @@ def random_dilated_shapelet_extraction(
                 # Update the mask in two directions from the sampling point
                 alpha_size = length - int(max(1, (1 - alpha_similarity) * min_len))
                 for j in range(alpha_size):
-                    alpha_mask[
-                        norm, idx_sample, (idx_timestamp - (j * dilation))
-                    ] = False
-                    alpha_mask[
-                        norm, idx_sample, (idx_timestamp + (j * dilation))
-                    ] = False
+                    alpha_mask[norm, idx_sample, (idx_timestamp - (j * dilation))] = (
+                        False
+                    )
+                    alpha_mask[norm, idx_sample, (idx_timestamp + (j * dilation))] = (
+                        False
+                    )
 
                 # Extract the values of shapelet
                 if norm:
@@ -710,10 +710,10 @@ def dilated_shapelet_transform(X, shapelets):
             X_subs = get_all_subsequences(X[i_x], length, dilation)
             idx_no_norm = id_shps[np.where(~normalize[id_shps])[0]]
             for i_shp in idx_no_norm:
-                X_new[
-                    i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)
-                ] = compute_shapelet_features(
-                    X_subs, values[i_shp], length, threshold[i_shp]
+                X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
+                    compute_shapelet_features(
+                        X_subs, values[i_shp], length, threshold[i_shp]
+                    )
                 )
 
             idx_norm = id_shps[np.where(normalize[id_shps])[0]]
@@ -721,10 +721,10 @@ def dilated_shapelet_transform(X, shapelets):
                 X_means, X_stds = sliding_mean_std_one_series(X[i_x], length, dilation)
                 X_subs = normalize_subsequences(X_subs, X_means, X_stds)
                 for i_shp in idx_norm:
-                    X_new[
-                        i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)
-                    ] = compute_shapelet_features(
-                        X_subs, values[i_shp], length, threshold[i_shp]
+                    X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
+                        compute_shapelet_features(
+                            X_subs, values[i_shp], length, threshold[i_shp]
+                        )
                     )
     return X_new
 

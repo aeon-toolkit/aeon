@@ -1,4 +1,5 @@
 """Class to iteratively apply differences to a time series."""
+
 __author__ = ["RNKuhns", "fkiraly"]
 __all__ = ["Differencer"]
 

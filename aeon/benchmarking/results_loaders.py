@@ -1,4 +1,5 @@
 """Functions to load and collate results from timeseriesclassification.com."""
+
 __all__ = [
     "get_estimator_results",
     "get_estimator_results_as_array",

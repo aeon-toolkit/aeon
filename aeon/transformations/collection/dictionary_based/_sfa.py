@@ -999,9 +999,11 @@ class SFA(BaseCollectionTransformer):
         s = "{"
         for word, value in bag.items():
             s += "{}: {}, ".format(
-                self.word_list_typed(word)
-                if self._typed_dict
-                else self.word_list(word),
+                (
+                    self.word_list_typed(word)
+                    if self._typed_dict
+                    else self.word_list(word)
+                ),
                 value,
             )
         s = s[:-2]

@@ -1,4 +1,5 @@
 """Tests for TSInterpolator."""
+
 import numpy as np
 
 from aeon.transformations.collection.interpolate import TSInterpolator
