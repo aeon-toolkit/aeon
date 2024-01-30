@@ -72,7 +72,7 @@ https://link.springer.com/article/10.1007/s10994-023-06316-x
 
 #### 3. Deep Learning for Time Series Forecasting
 
-Mentors: For deep learning side if am needed Ali Ismail-Fawaz (@hadifawaz1999) and ??
+Mentors: Ali Ismail-Fawaz (@hadifawaz1999)
 
 ##### Description
 
@@ -150,33 +150,16 @@ transform: A new approach for time series shapelets. In International Conference
 Pattern Recognition and Artificial Intelligence (pp. 653-664). Cham: Springer
 International Publishing.
 
-#### 2. Channel selection for classification
 
-Mentors: ?
+#### 2. EEG classification with aeon-neuro
 
-##### Description
-
-Try some simple channel filters for high dimensional data
-
-##### Project stages
-
-?
-
-##### Project evaluation
-
-?
-
-##### References
-
-?
-
-#### 3. EEG classification: work on aeon-neuro
-
-Mentors: Tony Bagnall ({user}`TonyBagnall`) and Matthew Middlehurst
-({user}`MatthewMiddlehurst`)
+Mentors: Tony Bagnall ({user}`TonyBagnall`) and Aiden Rushbrooke
 
 ##### Description
 
+EEG (Electroencephalogram) data are high dimensional time series that are used in
+medical, psychology and brain computer interface research. For example, EEG are
+used to detect epilepsy and to control decvices such as mice.
 Work on aeon-neuro, implement some of the recent EEG classification algorithms
 
 ##### Project stages
