@@ -5,7 +5,6 @@ import tempfile
 import urllib
 import zipfile
 from datetime import datetime
-from distutils.util import strtobool
 from urllib.request import urlretrieve
 
 import numpy as np
@@ -790,12 +789,15 @@ def load_from_tsf_file(
                             elif line.startswith("@horizon"):
                                 forecast_horizon = int(line_content[1])
                             elif line.startswith("@missing"):
-                                contain_missing_values = bool(
-                                    strtobool(line_content[1])
-                                )
+                                if line_content[1].lower() == "true":
+                                    contain_missing_values = True
+                                else:
+                                    contain_missing_values = False
                             elif line.startswith("@equallength"):
-                                contain_equal_length = bool(strtobool(line_content[1]))
-
+                                if line_content[1].lower() == "false":
+                                    contain_equal_length = False
+                                else:
+                                    contain_equal_length = True
                     else:
                         if len(col_names) == 0:
                             raise Exception(
