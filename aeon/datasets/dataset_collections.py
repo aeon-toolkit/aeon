@@ -28,10 +28,10 @@ Forecasting
 
 __author__ = ["Tony Bagnall"]
 __all__ = [
-    "list_downloaded_tsc_tsr_datasets",
-    "list_downloaded_tsf_datasets",
-    "list_available_tser_datasets",
-    "list_available_tsf_datasets",
+    "get_downloaded_tsc_tsr_datasets",
+    "get_downloaded_tsf_datasets",
+    "get_available_tser_datasets",
+    "get_available_tsf_datasets",
 ]
 import os
 
@@ -43,7 +43,7 @@ from aeon.datasets.tsf_data_lists import tsf_all
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
 
-def list_available_tser_datasets(name="tser_soton", return_list=True):
+def get_available_tser_datasets(name="tser_soton", return_list=True):
     """List available tser data.
 
     Parameters
@@ -72,7 +72,7 @@ def list_available_tser_datasets(name="tser_soton", return_list=True):
     return []
 
 
-def list_available_tsf_datasets(name=None):
+def get_available_tsf_datasets(name=None):
     """List available tsf data."""
     if name is None:  # List them all
         return sorted(list(tsf_all))
@@ -81,7 +81,7 @@ def list_available_tsf_datasets(name=None):
     return False
 
 
-def list_available_tsc_datasets(name=None):
+def get_available_tsc_datasets(name=None):
     """List available local TSC data.
 
     Parameters
@@ -104,7 +104,7 @@ def list_available_tsc_datasets(name=None):
     return False
 
 
-def list_downloaded_tsc_tsr_datasets(extract_path=None):
+def get_downloaded_tsc_tsr_datasets(extract_path=None):
     """Return a list of all the currently downloaded datasets.
 
     To count as available, each directory in extract_path <dir_name> in the
@@ -135,7 +135,7 @@ def list_downloaded_tsc_tsr_datasets(extract_path=None):
     return datasets
 
 
-def list_downloaded_tsf_datasets(extract_path=None):
+def get_downloaded_tsf_datasets(extract_path=None):
     """Return a list of all the currently downloaded datasets.
 
     To count as available, each directory in extract_path <dir_name> in the
