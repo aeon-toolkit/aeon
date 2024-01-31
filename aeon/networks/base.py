@@ -1,10 +1,11 @@
 """Abstract base class for deep learning networks."""
 
-__author__ = ["Withington", "TonyBagnall"]
+__author__ = ["hadifawaz1999", "Withington", "TonyBagnall"]
 
 from abc import ABC, abstractmethod
 
 from aeon.base import BaseObject
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class BaseDeepNetwork(BaseObject, ABC):
@@ -41,6 +42,7 @@ class BaseDeepNetwork(BaseObject, ABC):
         -------
         None
         """
+        _check_soft_dependencies("tensorflow")
         import tensorflow as tf
 
         input_layer, output_layer = self.build_network(input_shape=input_shape)
