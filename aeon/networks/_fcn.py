@@ -91,7 +91,7 @@ class FCNNetwork(BaseDeepNetwork):
         self._kernel_size_ = [8, 5, 3] if self.kernel_size is None else self.kernel_size
 
         if isinstance(self._n_filters_, list):
-            assert len(self._n_filters) == self.n_layers
+            assert len(self._n_filters_) == self.n_layers
             self._n_filters = self._n_filters_
         else:
             self._n_filters = [self._n_filters_] * self.n_layers
