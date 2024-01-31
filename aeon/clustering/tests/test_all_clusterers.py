@@ -1,4 +1,5 @@
 """Test all clusterers comply to interface."""
+
 import numpy as np
 import pytest
 
@@ -9,10 +10,11 @@ ALL_CLUSTERERS = all_estimators("clusterer", return_names=False)
 
 
 @pytest.mark.parametrize("clst", ALL_CLUSTERERS)
-def test_classifier_tags_consistent(clst):
+def test_clusterer_tags_consistent(clst):
     """Test all estimators capability tags reflect their capabilities."""
     if not soft_deps_installed(clst):
         return
+
     # Test the tag X_inner_type is consistent with capability:unequal_length
     unequal_length = clst.get_class_tag("capability:unequal_length")
     valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
@@ -25,7 +27,7 @@ def test_classifier_tags_consistent(clst):
     # Test can actually fit/predict with multivariate if tag is set
     multivariate = clst.get_class_tag("capability:multivariate")
     if multivariate:
-        X = np.random.random((10, 2, 20))
+        X = np.random.random((10, 2, 10))
         inst = clst.create_test_instance(parameter_set="default")
         inst.fit(X)
         inst.predict(X)

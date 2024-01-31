@@ -233,7 +233,7 @@ class _Reducer(_BaseWindowForecaster):
         transformers=None,
         pooling="local",
     ):
-        super(_Reducer, self).__init__(window_length=window_length)
+        super().__init__(window_length=window_length)
         self.transformers = transformers
         self.transformers_ = None
         self.estimator = estimator
@@ -427,7 +427,7 @@ class _DirectReducer(_Reducer):
         windows_identical=True,
     ):
         self.windows_identical = windows_identical
-        super(_DirectReducer, self).__init__(
+        super().__init__(
             estimator=estimator,
             window_length=window_length,
             transformers=transformers,
@@ -1805,7 +1805,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
         self.impute_method = impute_method
         self.pooling = pooling
         self._lags = list(range(window_length))
-        super(DirectReductionForecaster, self).__init__()
+        super().__init__()
 
         warn(
             "DirectReductionForecaster is experimental, and interfaces may change. "
@@ -2141,7 +2141,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         self.impute_method = impute_method
         self.pooling = pooling
         self._lags = list(range(window_length))
-        super(RecursiveReductionForecaster, self).__init__()
+        super().__init__()
 
         warn(
             "RecursiveReductionForecaster is experimental, and interfaces may change. "

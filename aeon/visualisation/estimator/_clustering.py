@@ -25,12 +25,8 @@ def plot_cluster_algorithm(model: BaseClusterer, X, k: int):
 
     Returns
     -------
-    fig: matplotlib.figure
-        Figure created.
-
-    Example
-    -------
-    >>> pass
+    fig : plt.Figure
+    ax : plt.Axis
     """
     _check_soft_dependencies("matplotlib")
 
@@ -61,7 +57,8 @@ def plot_cluster_algorithm(model: BaseClusterer, X, k: int):
         ncol=5,
     )
     plt.tight_layout()
-    plt.show()
+
+    return fig, axes
 
 
 def _plot(cluster_values, center, axes):

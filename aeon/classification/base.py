@@ -29,9 +29,11 @@ from typing import final
 
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
+from aeon.base._base import _clone_estimator
 from aeon.utils.sklearn import is_sklearn_transformer
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import get_n_cases
@@ -72,7 +74,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         # CalibratedClassifierCV
         self._estimator_type = "classifier"
 
-        super(BaseClassifier, self).__init__()
+        super().__init__()
         _check_estimator_deps(self)
 
     def __rmul__(self, other):
@@ -140,20 +142,12 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        # reset estimator at the start of fit
-        self.reset()
-
-        # All of this can move up to BaseCollection
         start = int(round(time.time() * 1000))
-        X = self._preprocess_collection(X)
-        y = self._check_y(y, self.metadata_["n_cases"])
-        # escape early and do not fit if only one class label has been seen
-        #   in this case, we later predict the single class label seen
-        if len(self.classes_) == 1:
-            self.fit_time_ = int(round(time.time() * 1000)) - start
-            self._is_fitted = True
-            return self
-        self._fit(X, y)
+        X, y, single_class = self._fit_setup(X, y)
+
+        if not single_class:
+            self._fit(X, y)
+
         self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
         self._is_fitted = True
@@ -221,6 +215,82 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return np.repeat([[1]], n_instances, axis=0)
         X = self._preprocess_collection(X)
         return self._predict_proba(X)
+
+    @final
+    def fit_predict(self, X, y) -> np.ndarray:
+        """Fits the classifier and predicts class labels for X.
+
+        Default behaviour is to estimate predictions using 10x cross-validation.
+        Bespoke behaviour implemented through overriding method _fit_predict.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. other types are
+            allowed and converted into one of the above.
+
+        Returns
+        -------
+        np.ndarray
+            shape ``[n_instances]`` - predicted class labels indices correspond to
+            instance indices in
+        """
+        X, y, single_class = self._fit_setup(X, y)
+
+        if single_class:
+            n_instances = get_n_cases(X)
+            y_pred = np.repeat(list(self._class_dictionary.keys()), n_instances)
+        else:
+            y_pred = self._fit_predict(X, y)
+
+        # this should happen last
+        self._is_fitted = True
+        return y_pred
+
+    @final
+    def fit_predict_proba(self, X, y) -> np.ndarray:
+        """Fits the classifier and predicts class label probabilities for X.
+
+        Default behaviour is to estimate probabilities using 10x cross-validation.
+        Bespoke behaviour implemented through overriding method _fit_predict_proba.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. other types are
+            allowed and converted into one of the above.
+
+        Returns
+        -------
+        np.ndarray
+            2D array of shape ``(n_cases, n_classes)`` - predicted class probabilities
+            First dimension indices correspond to instance indices in X,
+            second dimension indices correspond to class labels, (i, j)-th entry is
+            estimated probability that i-th instance is of class j
+        """
+        X, y, single_class = self._fit_setup(X, y)
+
+        if single_class:
+            n_instances = get_n_cases(X)
+            y_proba = np.repeat([[1]], n_instances, axis=0)
+        else:
+            y_proba = self._fit_predict_proba(X, y)
+
+        # this should happen last
+        self._is_fitted = True
+        return y_proba
 
     def score(self, X, y) -> float:
         """Scores predicted labels against ground truth labels on X.
@@ -354,6 +424,23 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         return dists
 
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return self._fit_predict_default(X, y, "predict")
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        return self._fit_predict_default(X, y, "predict_proba")
+
+    def _fit_setup(self, X, y):
+        # reset estimator at the start of fit
+        self.reset()
+
+        # All of this can move up to BaseCollection
+        X = self._preprocess_collection(X)
+        y = self._check_y(y, self.metadata_["n_cases"])
+
+        # return processed X and y, and whether there is only one class
+        return X, y, len(self.classes_) == 1
+
     def _check_y(self, y, n_cases):
         # Check y valid input for classification task
         if not isinstance(y, (pd.Series, np.ndarray)):
@@ -384,3 +471,27 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         for index, class_val in enumerate(self.classes_):
             self._class_dictionary[class_val] = index
         return y
+
+    def _fit_predict_default(self, X, y, method):
+        cv_size = 10
+        _, counts = np.unique(y, return_counts=True)
+        min_class = np.min(counts)
+        if min_class < cv_size:
+            cv_size = min_class
+            if cv_size < 2:
+                raise ValueError(
+                    f"All classes must have at least 2 values to run the "
+                    f"_fit_{method} cross-validation."
+                )
+
+        random_state = getattr(self, "random_state", None)
+        estimator = _clone_estimator(self, random_state)
+
+        return cross_val_predict(
+            estimator,
+            X=X,
+            y=y,
+            cv=cv_size,
+            method=method,
+            n_jobs=self._n_jobs,
+        )

@@ -128,7 +128,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
                 f"{reference_length}"
             )
 
-        super(MiniRocketMultivariateVariable, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.
@@ -168,11 +168,9 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         if lengths_1darray.min() < 9:
             failed_index = np.where(lengths_1darray < 9)[0]
             raise ValueError(
-                (
-                    f"X must be >= 9 for all samples, but found miniumum to be "
-                    f"{lengths_1darray.min()}; at index {failed_index}, pad shorter "
-                    "series so that n_timepoints >= 9 for all samples."
-                )
+                f"X must be >= 9 for all samples, but found miniumum to be "
+                f"{lengths_1darray.min()}; at index {failed_index}, pad shorter "
+                "series so that n_timepoints >= 9 for all samples."
             )
 
         if lengths_1darray.min() == lengths_1darray.max():

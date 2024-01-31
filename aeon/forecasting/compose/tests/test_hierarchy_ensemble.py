@@ -9,7 +9,7 @@ from aeon.datatypes._utilities import get_window
 from aeon.forecasting.compose import HierarchyEnsembleForecaster
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.testing.utils.hierarchical import _bottom_hier_datagen, _make_hierarchical
+from aeon.testing.utils.data_gen import _bottom_hier_datagen, _make_hierarchical
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 

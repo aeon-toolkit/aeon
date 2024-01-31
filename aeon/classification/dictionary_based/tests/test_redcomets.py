@@ -14,9 +14,9 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
         package_import_alias={"imbalanced-learn": "imblearn"},
         severity="none",
     ),
-    reason="skip test if required soft dependency esig not available",
+    reason="skip test if required soft dependency imbalanced-learn not available",
 )
-def test_redcomets_train_estimate_univariate():
+def test_redcomets_score_univariate():
     """Test of REDCOMETS train estimate on unit test data."""
     # load unit test data
     X_train, y_train = load_unit_test(split="train")
@@ -29,7 +29,7 @@ def test_redcomets_train_estimate_univariate():
 
         score = redcomets.score(X_test, y_test)
 
-        assert isinstance(score, np.float_)
+        assert isinstance(score, float)
         np.testing.assert_almost_equal(score, 0.818181, decimal=4)
 
     test_variant(1)
@@ -43,9 +43,9 @@ def test_redcomets_train_estimate_univariate():
         package_import_alias={"imbalanced-learn": "imblearn"},
         severity="none",
     ),
-    reason="skip test if required soft dependency esig not available",
+    reason="skip test if required soft dependency imbalanced-learn not available",
 )
-def test_redcomets_train_estimate_multivariate():
+def test_redcomets_score_multivariate():
     """Test of REDCOMETS train estimate on unit test data."""
     # load unit test data
     X_train, y_train = load_basic_motions(split="train")
@@ -58,7 +58,7 @@ def test_redcomets_train_estimate_multivariate():
 
         score = redcomets.score(X_test, y_test)
 
-        assert isinstance(score, np.float_)
+        assert isinstance(score, float)
         np.testing.assert_almost_equal(score, expected_result, decimal=4)
 
     test_variant(1, 0.95)
@@ -79,7 +79,7 @@ def test_redcomets_train_estimate_multivariate():
         package_import_alias={"imbalanced-learn": "imblearn"},
         severity="none",
     ),
-    reason="skip test if required soft dependency esig not available",
+    reason="skip test if required soft dependency imbalanced-learn not available",
 )
 def test_redcomets_lens_generation():
     """Test of REDCOMETS random lens generation"""
