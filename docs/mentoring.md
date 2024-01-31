@@ -453,3 +453,41 @@ Data Mining and Knowledge Discovery, 36(5), pp.1623-1646.
 4. Dempster, A., Schmidt, D.F. and Webb, G.I., 2023. Hydra: Competing convolutional
 kernels for fast and accurate time series classification. Data Mining and Knowledge
 Discovery, pp.1-27.
+
+### Documentation
+
+#### 1. Improve automated API documentation
+
+Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
+
+##### Description
+
+`aeon` uses `sphinx` and `numpydoc` to generate API documentation from docstrings.
+Many of the docstrings are incomplete or missing sections, and could be improved to
+make the API documentation more useful. The goal of this project is to generally
+improve the API documentation. A specific goal is to automatically generate links to
+examples which use the function/class, similar to the `scikit-learn` documentation.
+The way this is achieved is up to the mentee, but should include a new section in the
+relevant API page. I.e., the API page for
+`aeon.transformers.collection.convolution_based.Rocket` should have a section called
+"Examples" which links to the examples which use the class (such as the Rocket
+notebook).
+
+##### Project stages
+
+1. Learn about `aeon` best practices and project documentation.
+2. Familiarise with `sphinx` documentation generation and `numpydoc` docstring
+standards.
+3. Improve the API documentation for a few classes/functions and go through the Pull
+Request and review process.
+4. Implement a function or improve the API template to automatically generate links
+to examples which use the function/class.
+5. The main bulk of work is done, but the API documentation is vast and can always be
+improved! If time allows, continue to enhance the API documentation through individual
+docstrings, API landing page and template improvements at the mentees discretion.
+
+##### Project evaluation
+
+Success of the project will be assessed by the quality of the documentation produced
+and engagement with the project and the `aeon` community. Automatically generating
+links to examples is the primary goal.
