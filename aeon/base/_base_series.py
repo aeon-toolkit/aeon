@@ -166,7 +166,7 @@ class BaseSeriesEstimator(BaseEstimator):
         elif isinstance(y, pd.Series):
             if not pd.api.types.is_numeric_dtype(y):
                 raise ValueError(
-                    "Error in input type for y: y input as pd.Series " "must be numeric"
+                    "Error in input type for y: y input as pd.Series must be numeric"
                 )
         else:  # pd.DataFrame
             if y.shape[1] > 2:
