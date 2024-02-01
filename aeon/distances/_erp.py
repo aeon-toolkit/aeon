@@ -1,4 +1,5 @@
 r"""Edit real penalty (erp) distance between two time series."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple, Union

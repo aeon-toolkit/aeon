@@ -123,7 +123,7 @@ class RocketClassifier(BaseClassifier):
         self.n_dims_ = 0
         self.series_length_ = 0
         self.n_jobs = n_jobs
-        super(RocketClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Rocket variant to training data.
@@ -189,9 +189,11 @@ class RocketClassifier(BaseClassifier):
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
-            RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
-            if self.estimator is None
-            else self.estimator,
+            (
+                RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
         self.pipeline_ = make_pipeline(

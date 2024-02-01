@@ -140,15 +140,15 @@ def _naive_distance_profile(
         for i_candidate in range(profile_size):
             if mask[i_instance, i_candidate]:
                 for i_channel in range(n_channels):
-                    distance_profile[
-                        i_instance, i_channel, i_candidate
-                    ] = numba_distance_function(
-                        q[i_channel],
-                        X[
-                            i_instance,
-                            i_channel,
-                            i_candidate : i_candidate + query_length,
-                        ],
+                    distance_profile[i_instance, i_channel, i_candidate] = (
+                        numba_distance_function(
+                            q[i_channel],
+                            X[
+                                i_instance,
+                                i_channel,
+                                i_candidate : i_candidate + query_length,
+                            ],
+                        )
                     )
 
     return distance_profile
@@ -190,8 +190,8 @@ def _normalized_naive_distance_profile(
                         X_means[i_instance, i_channel, i_candidate],
                         X_stds[i_instance, i_channel, i_candidate],
                     )
-                    distance_profile[
-                        i_instance, i_channel, i_candidate
-                    ] = numba_distance_function(q[i_channel], _C)
+                    distance_profile[i_instance, i_channel, i_candidate] = (
+                        numba_distance_function(q[i_channel], _C)
+                    )
 
     return distance_profile

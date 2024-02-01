@@ -401,26 +401,14 @@ class BaseFixtureGenerator:
 class QuickTester:
     """Mixin class which adds the run_tests method to run tests on one estimator."""
 
-    # todo 0.17.0:
-    # * remove the return_exceptions arg
-    # * move the raise_exceptions arg to 2nd place
-    # * change its default to False, from None
-    # * update the docstring - remove return_exceptions
-    # * update the docstring - move raise_exceptions block to 2nd place
-    # * update the docstring - remove deprecation references
-    # * update the docstring - condition in return block, refer only to raise_exceptions
-    # * update the docstring - condition in raises block, refer only to raise_exceptions
-    # * remove the code block for input handling
-    # * remove import of warn
     def run_tests(
         self,
         estimator,
-        return_exceptions=None,
+        raise_exceptions=False,
         tests_to_run=None,
         fixtures_to_run=None,
         tests_to_exclude=None,
         fixtures_to_exclude=None,
-        raise_exceptions=None,
     ):
         """Run all tests on one single estimator.
 
@@ -436,13 +424,10 @@ class QuickTester:
         Parameters
         ----------
         estimator : estimator class or estimator instance
-        return_exceptions : bool, optional, default=True
-            whether to return exceptions/failures, or raise them
-                if True: returns exceptions in returned `results` dict
-                if False: raises exceptions as they occur
-            deprecated in 0.15.1, and will be replaced by `raise_exceptions` in 0.17.0.
-            Overridden to `False` if `raise_exceptions=True`.
-            For safe deprecation, use `raise_exceptions` instead of `return_exceptions`.
+        raise_exceptions : bool, optional, default=False
+            whether to return exceptions/failures in the results dict, or raise them
+                if False: returns exceptions in returned `results` dict
+                if True: raises exceptions as they occur
         tests_to_run : str or list of str, names of tests to run. default = all tests
             sub-sets tests that are run to the tests given here.
         fixtures_to_run : str or list of str, pytest test-fixture combination codes.
@@ -456,10 +441,6 @@ class QuickTester:
         fixtures_to_exclude : str or list of str, fixtures to exclude. default = None
             removes test-fixture combinations that should not be run.
             This is done after subsetting via fixtures_to_run.
-        raise_exceptions : bool, optional, default=False
-            whether to return exceptions/failures in the results dict, or raise them
-                if False: returns exceptions in returned `results` dict
-                if True: raises exceptions as they occur
             Overrides `return_exceptions` if used as a keyword argument.
             both `raise_exceptions=True` and `return_exceptions=True`.
             Will move to replace `return_exceptions` as 2nd arg in 0.17.0.
@@ -471,11 +452,10 @@ class QuickTester:
             entries are the string "PASSED" if the test passed,
                 or the exception raised if the test did not pass
             returned only if all tests pass,
-            or both return_exceptions=True and raise_exceptions=False
 
         Raises
         ------
-        if return_exceptions=False, or raise_exceptions=True,
+        if raise_exceptions=True,
         raises any exception produced by the tests directly
 
         Examples
