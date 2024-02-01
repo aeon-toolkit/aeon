@@ -25,14 +25,14 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from aeon.utils.validation._convert_collection import is_nested_univ_dataframe
-from aeon.utils.validation.collection import (
+from aeon.utils.conversion.collection import (
     get_n_cases,
     get_type,
     has_missing,
     is_equal_length,
     is_univariate,
 )
+from aeon.utils.validation._convert_collection import is_nested_univ_dataframe
 
 ACCEPTED_DATETIME_TYPES = np.datetime64, pd.Timestamp
 ACCEPTED_TIMEDELTA_TYPES = pd.Timedelta, timedelta, np.timedelta64
