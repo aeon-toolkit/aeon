@@ -39,10 +39,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         State change:
             Changes state to "fitted".
 
-        Writes to self:
-        _is_fitted : flag is set to True.
-        model attributes (ending in "_") : dependent on estimator
-
         Parameters
         ----------
         X : Input data
@@ -50,6 +46,14 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             ``pd.DataFrame``.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
+        axis : int, default = None
+            Axis along which to segment if passed a multivariate X series (2D input).
+            If axis is 0, it is assumed each column is a time series and each row is
+            a time point. i.e. the shape of the data is ``(n_timepoints,
+            n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
 
         Returns
         -------
@@ -80,17 +84,20 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         State required:
             Requires state to be "fitted".
 
-        Accesses in self:
-        _is_fitted : must be True
-        _X : optionally accessed, only available if remember_data tag is True
-        fitted model attributes (ending in "_") : must be set, accessed by _transform
-
         Parameters
         ----------
         X : Input data
             Data to fit transform to, of valid collection type.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
+        axis : int, default = None
+            Axis along which to segment if passed a multivariate X series (2D input).
+            If axis is 0, it is assumed each column is a time series and each row is
+            a time point. i.e. the shape of the data is ``(n_timepoints,
+            n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
 
         Returns
         -------
@@ -111,15 +118,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
         Fits the transformer to X and y and returns a transformed version of X.
 
-        State change:
-            Changes state to "fitted".
-
-        Writes to self:
-        _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
-        model attributes (ending in "_") : dependent on estimator.
+        Changes state to "fitted". Model attributes (ending in "_") : dependent on
+        estimator.
 
         Parameters
         ----------
@@ -127,6 +127,14 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             Data to fit transform to, of valid collection type.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
+        axis : int, default = None
+            Axis along which to segment if passed a multivariate X series (2D input).
+            If axis is 0, it is assumed each column is a time series and each row is
+            a time point. i.e. the shape of the data is ``(n_timepoints,
+            n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
 
         Returns
         -------
@@ -145,11 +153,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
         State required:
              Requires state to be "fitted".
-
-        Accesses in self:
-         _is_fitted : must be True
-         _X : optionally accessed, only available if remember_data tag is True
-         fitted model attributes (ending in "_") : accessed by _inverse_transform
 
         Parameters
         ----------

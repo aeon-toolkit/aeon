@@ -97,18 +97,18 @@ class BaseSeriesEstimator(BaseEstimator):
         # Checks: check valid type and axis
         if type(X) not in VALID_INPUT_TYPES:
             raise ValueError(
-                f" Error in input type should be one of "
+                f"Error in input type should be one of "
                 f" {VALID_INNER_TYPES}, saw {type(X)}"
             )
         if isinstance(X, np.ndarray):
             # Check valid shape
             if X.ndim > 2:
-                raise ValueError(" Should be 1D or 2D")
+                raise ValueError("Should be 1D or 2D")
             if not (
                 issubclass(X.dtype.type, np.integer)
                 or issubclass(X.dtype.type, np.floating)
             ):
-                raise ValueError(" array must contain floats or ints")
+                raise ValueError("np.ndarray must contain floats or ints")
         elif isinstance(X, pd.Series):
             if not pd.api.types.is_numeric_dtype(X):
                 raise ValueError("pd.Series must be numeric")
@@ -133,11 +133,11 @@ class BaseSeriesEstimator(BaseEstimator):
         allow_univariate = self.get_tag("capability:univariate")
         allow_missing = self.get_tag("capability:missing_values")
         if metadata["missing_values"] and not allow_missing:
-            raise ValueError(" Missing values not supported")
+            raise ValueError("Missing values not supported")
         if metadata["multivariate"] and not allow_multivariate:
-            raise ValueError(" Multivariate data not supported")
+            raise ValueError("Multivariate data not supported")
         if not metadata["multivariate"] and not allow_univariate:
-            raise ValueError(" Univariate data not supported")
+            raise ValueError("Univariate data not supported")
         return metadata
 
     def _check_y(self, y: VALID_INPUT_TYPES):
@@ -147,8 +147,8 @@ class BaseSeriesEstimator(BaseEstimator):
         """
         if type(y) not in VALID_INPUT_TYPES:
             raise ValueError(
-                f" Error in input type for y: it should be one of "
-                f" {VALID_INPUT_TYPES}, saw {type(y)}"
+                f"Error in input type for y: it should be one of "
+                f"{VALID_INPUT_TYPES}, saw {type(y)}"
             )
         if isinstance(y, np.ndarray):
             # Check valid shape
@@ -197,7 +197,7 @@ class BaseSeriesEstimator(BaseEstimator):
                 tag = self.get_tag("X_inner_type")
                 raise ValueError(f"Unknown inner type {inner} derived from {tag}")
         if axis > 1 or axis < 0:
-            raise ValueError(" Axis should be 0 or 1")
+            raise ValueError("Axis should be 0 or 1")
         if not self.get_tag("capability:multivariate"):
             X = X.squeeze()
         elif X.ndim == 1:  # np.ndarray case make 2D

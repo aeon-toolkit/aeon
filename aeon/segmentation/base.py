@@ -17,65 +17,64 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
     Segmenters take a single time series of length $m$ and returns a segmentation.
     Series can be univariate (single series) or multivariate, with $d$ dimensions.
 
-    input and internal data format
-        Univariate series:
-            Numpy array:
-            shape `(m,)`, `(m, 1)` or `(1, m)`. if ``self`` has no multivariate
-            capability, i.e.``self.get_tag(
-            ""capability:multivariate") == False``, all are converted to 1D
-            numpy `(m,)`
-            if ``self`` has multivariate capability, converted to 2D numpy `(m,1)` or
-            `(1, m)` depending on axis
-            pandas DataFrame or Series:
-            DataFrame single column shape `(m,1)`, `(1,m)` or Series shape `(m,)`
-            if ``self`` has no multivariate capability, all converted to Series `(m,)`
-            if ``self`` has multivariate capability, all converted to Pandas DataFrame
-            shape `(m,1)`, `(1,m)` depending on axis
+    Expected input types for univariate series:
+            np.ndarray of shape `(m,)`, `(m, 1)` or `(1, m)`
+                If ``self`` has no multivariate capability, i.e.``self.get_tag(
+                ""capability:multivariate") == False``, all are converted to 1D
+                numpy `(m,)`.
+                If ``self`` has multivariate capability, converted to 2D numpy `(m,
+                1)` or `(1, m)` depending on axis.
+            np.ndarray, shape `(m,d)` or `(d,m)
+                If ``self.axis == 0`` converted to shape `(m,d)`.
+                Else ``self.axis == 1`` converted to shape `(d,m)`.
+            pd.Series shape `(m,)`
+                If ``self`` has multivariate capability, converted to Pandas DataFrame
+                shape `(m,1)`, `(1,m)` depending on axis.
+            pd.DataFrame of shape `(m,1)`, `(1,m)`
+                If ``self`` has no multivariate capability, all converted to pd.Series
+                `(m,)`
+                Else If ``self.axis == 0`` converted to shape `(m,d)`.
+                Else ``self.axis == 1`` converted to shape `(d,m)` (wide format).
 
-    Multivariate series:
-        Numpy array, shape `(m,d)` or `(d,m)`.
-        pandas DataFrame `(m,d)` or `(d,m)`
+    Conversion and axis resolution for multivariate
 
-    2. Conversion and axis resolution for multivariate
+        Conversion between numpy and pandas is handled by the base class. Sub classses
+        can assume the data is in the correct format (determined by
+        ``"X_inner_type"``, one of ``aeon.base._base_series.VALID_INNER_TYPES)`` and
+        represented with the expected
+        axis.
 
-    Conversion between numpy and pandas is handled by the base class. Sub classses
-    can assume the data is in the correct format (determined by
-    ``"X_inner_type"``, one of ``aeon.base._base_series.VALID_INNER_TYPES)`` and
-    represented with the expected
-    axis.
+        Multivariate series are segmented along an axis determined by ``self.axis``.
+        Axis plays two roles:
 
-    Multivariate series are segmented along an axis determined by ``self.axis``. Axis
-    plays two roles:
+        1) the axis the segmenter expects the data to be in for its internal methods
+        ``_fit`` and ``_predict``: 0 means each column is a time series, and the data is
+        shaped `(m,d)`, axis equal to 1 means each row is a time series, sometimes
+        called wide format, and the whole series is shape `(d,m)`. This should be set
+        for a given child class through the BaseSegmenter constructor.
 
-    1) the axis the segmenter expects the data to be in for its internal methods
-    ``_fit`` and ``_predict``: 0 means each column is a time series, and the data is
-    shaped `(m,d)`, axis equal to 1 means each row is a time series, sometimes
-    called wide format, and the whole series is shape `(d,m)`. This should be set for a
-    given child class through the BaseSegmenter constructor.
-
-
-    2) The optional ``axis`` argument passed to the base class ``fit`` and ``predict``
-    methods. If the data ``axis`` is different to the ``axis`` expected (i.e. value
-    stored in ``self.axis``, then it is transposed in this base class if self has
-    multivariate capability.
+        2) The optional ``axis`` argument passed to the base class ``fit`` and
+        ``predict`` methods. If the data ``axis`` is different to the ``axis``
+        expected (i.e. value stored in ``self.axis``, then it is transposed in this
+        base class if self has multivariate capability.
 
     Segmentation representation
 
-    Given a time series of 10 points with two change points found in position 4 and 8
-    (lets index from 1 for clarity)
+        Given a time series of 10 points with two change points found in position 4
+        and 8 (lets index from 1 for clarity)
 
-    The segmentation can be output in two forms:
-    a) A list of change points: output example [4,8].
-        This dense representation is the default behaviour, as it is the minimal
-        representation. Indicated by tag "return_dense" being set to True.
-    b) A list of integers of length m indicating the segment of each time point:
-        output [0,0,0,1,1,1,1,2,2,2] or output [0,0,0,1,1,1,1,0,0,0]
-        This sparse representation can be used to indicate shared segments (indicating
-        segment 1 is somehow the same (perhaps in generative process) as segment 3.
-        Indicated by tag "return_dense" being set to False.
+        The segmentation can be output in two forms:
+        a) A list of change points: output example [4,8].
+            This dense representation is the default behaviour, as it is the minimal
+            representation. Indicated by tag "return_dense" being set to True.
+        b) A list of integers of length m indicating the segment of each time point:
+            output [0,0,0,1,1,1,1,2,2,2] or output [0,0,0,1,1,1,1,0,0,0]
+            This sparse representation can be used to indicate shared segments (
+            indicating segment 1 is somehow the same (perhaps in generative process)
+            as segment 3. Indicated by tag ``return_dense`` being set to False.
 
-    Multivariate series are always segmented at the same points. If independent
-    segmentation is required, fit a different segmenter to each channel.
+        Multivariate series are always segmented at the same points. If independent
+        segmentation is required, fit a different segmenter to each channel.
 
     Parameters
     ----------
