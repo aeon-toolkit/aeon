@@ -17,24 +17,24 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
     Segmenters take a single time series of length $m$ and returns a segmentation.
     Series can be univariate (single series) or multivariate, with $d$ dimensions.
 
-    Expected input types for univariate series:
-            np.ndarray of shape `(m,)`, `(m, 1)` or `(1, m)`
-                If ``self`` has no multivariate capability, i.e.``self.get_tag(
-                ""capability:multivariate") == False``, all are converted to 1D
-                numpy `(m,)`.
-                If ``self`` has multivariate capability, converted to 2D numpy `(m,
-                1)` or `(1, m)` depending on axis.
-            np.ndarray, shape `(m,d)` or `(d,m)
-                If ``self.axis == 0`` converted to shape `(m,d)`.
-                Else ``self.axis == 1`` converted to shape `(d,m)`.
-            pd.Series shape `(m,)`
-                If ``self`` has multivariate capability, converted to Pandas DataFrame
-                shape `(m,1)`, `(1,m)` depending on axis.
-            pd.DataFrame of shape `(m,1)`, `(1,m)`
-                If ``self`` has no multivariate capability, all converted to pd.Series
-                `(m,)`
-                Else If ``self.axis == 0`` converted to shape `(m,d)`.
-                Else ``self.axis == 1`` converted to shape `(d,m)` (wide format).
+    Input and internal data format
+        Univariate series:
+            Numpy array:
+            shape `(m,)`, `(m, 1)` or `(1, m)`. if ``self`` has no multivariate
+            capability, i.e.``self.get_tag(
+            ""capability:multivariate") == False``, all are converted to 1D
+            numpy `(m,)`
+            if ``self`` has multivariate capability, converted to 2D numpy `(m,1)` or
+            `(1, m)` depending on axis
+            pandas DataFrame or Series:
+            DataFrame single column shape `(m,1)`, `(1,m)` or Series shape `(m,)`
+            if ``self`` has no multivariate capability, all converted to Series `(m,)`
+            if ``self`` has multivariate capability, all converted to Pandas DataFrame
+            shape `(m,1)`, `(1,m)` depending on axis
+
+        Multivariate series:
+            Numpy array, shape `(m,d)` or `(d,m)`.
+            pandas DataFrame `(m,d)` or `(d,m)`
 
     Conversion and axis resolution for multivariate
 
