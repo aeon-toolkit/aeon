@@ -16,22 +16,21 @@ from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import PaddingTransformer, Tabularizer
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
-from aeon.transformations.exponent import ExponentTransformer
 from aeon.transformations.impute import Imputer
 
 
 @pytest.mark.parametrize(
     "transformers",
     [
-        ExponentTransformer(power=2),
+        PaddingTransformer(pad_length=15),
         SevenNumberSummaryTransformer(),
         TabularToSeriesAdaptor(StandardScaler()),
-        [ExponentTransformer(power=2), Tabularizer(), StandardScaler()],
-        [ExponentTransformer(power=2), SevenNumberSummaryTransformer()],
+        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
+        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
         [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
         [
             TabularToSeriesAdaptor(StandardScaler()),
-            ExponentTransformer(power=2),
+            PaddingTransformer(pad_length=15),
             SevenNumberSummaryTransformer(),
         ],
     ],
@@ -63,15 +62,15 @@ def test_classifier_pipeline(transformers):
 @pytest.mark.parametrize(
     "transformers",
     [
-        [ExponentTransformer(power=2), Tabularizer()],
+        [PaddingTransformer(pad_length=15), Tabularizer()],
         SevenNumberSummaryTransformer(),
         [Tabularizer(), StandardScaler()],
-        [ExponentTransformer(power=2), Tabularizer(), StandardScaler()],
-        [ExponentTransformer(power=2), SevenNumberSummaryTransformer()],
+        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
+        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
         [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
         [
             TabularToSeriesAdaptor(StandardScaler()),
-            ExponentTransformer(power=2),
+            PaddingTransformer(pad_length=15),
             SevenNumberSummaryTransformer(),
         ],
     ],
