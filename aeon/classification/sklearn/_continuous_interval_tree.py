@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Continuous interval tree (CIT) vector classifier (aka Time Series Tree).
 
 Continuous Interval Tree aka Time Series Tree, base classifier originally used
@@ -19,15 +18,14 @@ from sklearn.base import BaseEstimator
 from sklearn.utils import check_random_state
 
 from aeon.exceptions import NotFittedError
-from aeon.utils.numba.stats import iqr, mean, numba_max, numba_min, slope, std
 
 
 class ContinuousIntervalTree(BaseEstimator):
     """Continuous interval tree (CIT) vector classifier (aka Time Series Tree).
 
-    The `Time Series Tree` described in the Time Series Forest (TSF) paper Deng et al
-    (2013) [1]. A simple information gain based tree for continuous attributes using a
-    bespoke margin gain metric for tie breaking.
+    The `Time Series Tree` described in the Time Series Forest (TSF) [1]_. A simple
+    information gain based tree for continuous attributes using a bespoke margin gain
+    metric for tie breaking.
 
     Implemented as a bade classifier for interval based time series classifiers such as
     `CanonicalIntervalForest` and `DrCIF`.
@@ -93,7 +91,7 @@ class ContinuousIntervalTree(BaseEstimator):
         self.thresholds = thresholds
         self.random_state = random_state
 
-        super(ContinuousIntervalTree, self).__init__()
+        super().__init__()
 
     def fit(self, X, y):
         """Fit a tree on cases (X,y), where y is the target variable.
@@ -205,7 +203,7 @@ class ContinuousIntervalTree(BaseEstimator):
         y : array-like, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        if not self._is_fitted:
+        if not hasattr(self, "_is_fitted") or not self._is_fitted:
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
                 f"been fitted yet; please call `fit` first."
@@ -228,56 +226,6 @@ class ContinuousIntervalTree(BaseEstimator):
         dists = np.zeros((X.shape[0], self.n_classes_))
         for i in range(X.shape[0]):
             dists[i] = self._root.predict_proba(X[i], self.n_classes_)
-        return dists
-
-    def _predict_proba_cif(self, X, c22, intervals, dims, atts):
-        """Embedded predict proba for the CIF classifier."""
-        if not self._is_fitted:
-            raise NotFittedError(
-                f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
-            )
-        n_instances, n_dims, series_length = X.shape
-
-        dists = np.zeros((n_instances, self.n_classes_))
-        for i in range(n_instances):
-            dists[i] = self._root.predict_proba_cif(
-                X[i].reshape((1, n_dims, series_length)),
-                c22,
-                intervals,
-                dims,
-                atts,
-                self.n_classes_,
-            )
-        return dists
-
-    def _predict_proba_drcif(
-        self, X, X_p, X_d, c22, n_intervals, intervals, dims, atts
-    ):
-        """Embedded predict proba for the DrCIF classifier."""
-        if not self._is_fitted:
-            raise NotFittedError(
-                f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
-            )
-        n_instances, n_dims, series_length = X.shape
-
-        dists = np.zeros((n_instances, self.n_classes_))
-        for i in range(n_instances):
-            r = [
-                X[i].reshape((1, n_dims, series_length)),
-                X_p[i].reshape((1, n_dims, X_p.shape[2])),
-                X_d[i].reshape((1, n_dims, X_d.shape[2])),
-            ]
-            dists[i] = self._root.predict_proba_drcif(
-                r,
-                c22,
-                n_intervals,
-                intervals,
-                dims,
-                atts,
-                self.n_classes_,
-            )
         return dists
 
     def tree_node_splits_and_gain(self):
@@ -468,107 +416,6 @@ class _TreeNode:
         else:
             return self.leaf_distribution
 
-    def predict_proba_cif(self, X, c22, intervals, dims, atts, n_classes):
-        if self.best_split > -1:
-            interval = int(self.best_split / len(atts))
-            att = self.best_split % len(atts)
-            value = _drcif_feature(
-                X, intervals[interval], dims[interval], atts[att], c22
-            )
-            value = value.round(8)
-            value = np.nan_to_num(value, False, posinf=np.nan, neginf=np.nan)
-
-            if value <= self.best_threshold:
-                return self.children[0].predict_proba_cif(
-                    X,
-                    c22,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-            elif value > self.best_threshold:
-                return self.children[1].predict_proba_cif(
-                    X,
-                    c22,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-            else:
-                return self.children[2].predict_proba_cif(
-                    X,
-                    c22,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-        else:
-            return self.leaf_distribution
-
-    def predict_proba_drcif(
-        self,
-        X,
-        c22,
-        n_intervals,
-        intervals,
-        dims,
-        atts,
-        n_classes,
-    ):
-        if self.best_split > -1:
-            rep = -1
-            rep_sum = 0
-            for i in range(len(X)):
-                rep_sum += n_intervals[i] * len(atts)
-                if self.best_split < rep_sum:
-                    rep = i
-                    break
-
-            interval = int(self.best_split / len(atts))
-            att = self.best_split % len(atts)
-
-            value = _drcif_feature(
-                X[rep], intervals[interval], dims[interval], atts[att], c22
-            )
-            value = value.round(8)
-            value = np.nan_to_num(value, False, posinf=np.nan, neginf=np.nan)
-
-            if value <= self.best_threshold:
-                return self.children[0].predict_proba_drcif(
-                    X,
-                    c22,
-                    n_intervals,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-            elif value > self.best_threshold:
-                return self.children[1].predict_proba_drcif(
-                    X,
-                    c22,
-                    n_intervals,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-            else:
-                return self.children[2].predict_proba_drcif(
-                    X,
-                    c22,
-                    n_intervals,
-                    intervals,
-                    dims,
-                    atts,
-                    n_classes,
-                )
-        else:
-            return self.leaf_distribution
-
     @staticmethod
     @njit(fastmath=True, cache=True)
     def information_gain(X, y, attribute, threshold, parent_entropy, n_classes):
@@ -660,33 +507,3 @@ def _entropy(x, s):
         p = i / s if s > 0 else 0
         e += -(p * math.log(p) / 0.6931471805599453) if p > 0 else 0
     return e
-
-
-def _drcif_feature(X, interval, dim, att, c22, case_id=None):
-    if att > 21:
-        return _summary_stat(X[:, dim, interval[0] : interval[1]], att)
-    else:
-        return c22._transform_single_feature(
-            X[:, dim, interval[0] : interval[1]], att, case_id=case_id
-        )
-
-
-def _summary_stat(X, att):
-    if att == 22:
-        function = mean
-    elif att == 23:
-        function = std
-    elif att == 24:
-        function = slope
-    elif att == 25:
-        function = np.median
-    elif att == 26:
-        function = iqr
-    elif att == 27:
-        function = numba_min
-    elif att == 28:
-        function = numba_max
-    else:
-        raise ValueError("Invalid summary stat ID.")
-
-    return np.array([function(i) for i in X])

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Implements base class for defining performance metric in aeon."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["rnkuhns", "fkiraly"]
 __all__ = ["BaseMetric"]
@@ -15,7 +13,7 @@ class BaseMetric(BaseObject):
     """
 
     def __init__(self):
-        super(BaseMetric, self).__init__()
+        super().__init__()
 
     def __call__(self, y_true, y_pred, **kwargs):
         """Calculate metric value using underlying metric function.

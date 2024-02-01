@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """Benchmarking for forecasting estimators."""
+
 import functools
 from typing import Callable, Dict, List, Optional, Union
 

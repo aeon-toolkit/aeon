@@ -1,15 +1,13 @@
-# -*- coding: utf-8 -*-
 """Rocket transformer."""
 
 __author__ = ["angus924"]
 __all__ = ["Rocket"]
 
-import multiprocessing
-
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 class Rocket(BaseCollectionTransformer):
@@ -63,8 +61,9 @@ class Rocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
+        "capability:multivariate": True,
+        "algorithm_type": "convolution",
     }
 
     def __init__(self, num_kernels=10_000, normalise=True, n_jobs=1, random_state=None):
@@ -72,7 +71,7 @@ class Rocket(BaseCollectionTransformer):
         self.normalise = normalise
         self.n_jobs = n_jobs
         self.random_state = random_state
-        super(Rocket, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Generate random kernels adjusted to time series shape.
@@ -82,7 +81,7 @@ class Rocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
 
@@ -119,10 +118,9 @@ class Rocket(BaseCollectionTransformer):
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
         prev_threads = get_num_threads()
-        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
-            n_jobs = multiprocessing.cpu_count()
-        else:
-            n_jobs = self.n_jobs
+
+        n_jobs = check_n_jobs(self.n_jobs)
+
         set_num_threads(n_jobs)
         X_ = _apply_kernels(X.astype(np.float32), self.kernels)
         set_num_threads(prev_threads)

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 r"""Longest common subsequence (LCSS) between two time series."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -15,9 +15,13 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def lcss_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    epsilon: float = 1.0,
+    itakura_max_slope: float = None,
 ) -> float:
-    r"""Return the lcss distance between x and y.
+    r"""Return the LCSS distance between x and y.
 
     The LCSS distance for time series is based on the solution to the
     longest common subsequence problem in pattern matching [1]_. The typical problem
@@ -34,15 +38,16 @@ def lcss_distance(
     series length), then calculating
 
     :: math..
-        if(|a_i - b_j| < espilon) \\
-            &L_{i,j} \leftarrow L_{i-1,j-1}+1 \\
+        if(|a_i - b_j| < \espilon) \\
+            & L_{i,j} = L_{i-1,j-1}+1 \\
         else\\
-            &L_{i,j} \leftarrow \max(L_{i,j-1}, L_{i-1,j})\\
+            &L_{i,j} = \max(L_{i,j-1}, L_{i-1,j})\\
 
-    The distance is an inverse function of the final LCSS.
+    The distance is an inverse function of the longest common subsequence
+    length, :math:`L_{n,m}`.
 
     :: math..
-        d_{LCSS}({\bf a,b}) = 1- \frac{LCSS({\bf a,b})}{m}.
+        d_{LCSS}({\bfx,by}) = 1- \frac{L_{n,m}.
 
     Note that series a and b need not be equal length.
 
@@ -56,21 +61,26 @@ def lcss_distance(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     epsilon : float, default=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
     float
-        The lcss distance between x and y.
+        The LCSS distance between x and y.
 
     Raises
     ------
@@ -94,37 +104,50 @@ def lcss_distance(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _lcss_distance(_x, _y, bounding_matrix, epsilon)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         return _lcss_distance(x, y, bounding_matrix, epsilon)
     raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
 def lcss_cost_matrix(
-    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    epsilon: float = 1.0,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
-    r"""Return the lcss cost matrix between x and y.
+    r"""Return the LCSS cost matrix between x and y.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     epsilon : float, default=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
     np.ndarray
-        The lcss cost matrix between x and y.
+        The LCSS cost matrix between x and y.
 
     Raises
     ------
@@ -153,10 +176,14 @@ def lcss_cost_matrix(
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(_x.shape[1], _y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
         return _lcss_cost_matrix(_x, _y, bounding_matrix, epsilon)
     if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(x.shape[1], y.shape[1], window)
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
         return _lcss_cost_matrix(x, y, bounding_matrix, epsilon)
     raise ValueError("x and y must be 1D or 2D")
 
@@ -192,29 +219,38 @@ def _lcss_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def lcss_pairwise_distance(
-    X: np.ndarray, y: np.ndarray = None, window: float = None, epsilon: float = 1.0
+    X: np.ndarray,
+    y: np.ndarray = None,
+    window: float = None,
+    epsilon: float = 1.0,
+    itakura_max_slope: float = None,
 ) -> np.ndarray:
-    """Compute the lcss pairwise distance between a set of time series.
+    """Compute the LCSS pairwise distance between a set of time series.
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
-        A collection of time series instances
+    X : np.ndarray
+        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
+        or ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        If None, then the lcss pairwise distance between the instances of X is
+        calculated.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     epsilon : float, default=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        lcss pairwise matrix between the instances of X.
+        LCSS pairwise matrix between the instances of X.
 
     Raises
     ------
@@ -251,20 +287,26 @@ def lcss_pairwise_distance(
     if y is None:
         # To self
         if X.ndim == 3:
-            return _lcss_pairwise_distance(X, window, epsilon)
+            return _lcss_pairwise_distance(X, window, epsilon, itakura_max_slope)
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _lcss_pairwise_distance(_X, window, epsilon)
+            return _lcss_pairwise_distance(_X, window, epsilon, itakura_max_slope)
         raise ValueError("x and y must be 2D or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _lcss_from_multiple_to_multiple_distance(_x, _y, window, epsilon)
+    return _lcss_from_multiple_to_multiple_distance(
+        _x, _y, window, epsilon, itakura_max_slope
+    )
 
 
 @njit(cache=True, fastmath=True)
-def _lcss_pairwise_distance(X: np.ndarray, window: float, epsilon: float) -> np.ndarray:
+def _lcss_pairwise_distance(
+    X: np.ndarray, window: float, epsilon: float, itakura_max_slope: float
+) -> np.ndarray:
     n_instances = X.shape[0]
     distances = np.zeros((n_instances, n_instances))
-    bounding_matrix = create_bounding_matrix(X.shape[2], X.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        X.shape[2], X.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(i + 1, n_instances):
@@ -276,12 +318,18 @@ def _lcss_pairwise_distance(X: np.ndarray, window: float, epsilon: float) -> np.
 
 @njit(cache=True, fastmath=True)
 def _lcss_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, epsilon: float
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float,
+    epsilon: float,
+    itakura_max_slope: float,
 ) -> np.ndarray:
     n_instances = x.shape[0]
     m_instances = y.shape[0]
     distances = np.zeros((n_instances, m_instances))
-    bounding_matrix = create_bounding_matrix(x.shape[2], y.shape[2], window)
+    bounding_matrix = create_bounding_matrix(
+        x.shape[2], y.shape[2], window, itakura_max_slope
+    )
 
     for i in range(n_instances):
         for j in range(m_instances):
@@ -291,23 +339,29 @@ def _lcss_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def lcss_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None, epsilon: float = 1.0
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float = None,
+    epsilon: float = 1.0,
+    itakura_max_slope: float = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the lcss alignment path between two time series.
+    """Compute the LCSS alignment path between two time series.
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, shape ``(n_channels, n_timepoints)`` or ``(n_timepoints,)``.
+    y : np.ndarray
+        Second time series, shape ``(m_channels, m_timepoints)`` or ``(m_timepoints,)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
     epsilon : float, default=1.
         Matching threshold to determine if two subsequences are considered close
         enough to be considered 'common'. The default is 1.
-
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
 
     Returns
     -------
@@ -316,7 +370,7 @@ def lcss_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The lcss distance between the two time series.
+        The LCSS distance between the two time series.
 
     Raises
     ------
@@ -335,7 +389,7 @@ def lcss_alignment_path(
     """
     x_size = x.shape[-1]
     y_size = y.shape[-1]
-    bounding_matrix = create_bounding_matrix(x_size, y_size, window)
+    bounding_matrix = create_bounding_matrix(x_size, y_size, window, itakura_max_slope)
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))

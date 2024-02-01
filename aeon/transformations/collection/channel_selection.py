@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Channel Selection techniques for Multivariate Time Series Classification.
 
 A transformer that selects a subset of channels/dimensions for time series
@@ -123,9 +122,9 @@ class ClassPrototype:
 
     References
     ----------
-    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
-    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
-    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    ..[1]: Bhaskar Dhariyal et al. "Fast Channel Selection for Scalable Multivariate
+    Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
 
     """
@@ -271,9 +270,9 @@ class ElbowClassSum(BaseCollectionTransformer):
 
     References
     ----------
-    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
-    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
-    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    ..[1]: Bhaskar Dhariyal et al. "Fast Channel Selection for Scalable Multivariate
+    Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
 
     Examples
@@ -289,15 +288,10 @@ class ElbowClassSum(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "numpy1D",  # which mtypes do _fit/_predict support for y?
-        "requires_y": True,  # does y need to be passed in fit?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
-        "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "capability:unequal_length": False,
-        # can the transformer handle unequal length time series (if passed Panel)?
+        "capability:multivariate": True,
+        "skip-inverse-transform": True,
+        "y_inner_type": "numpy1D",
+        "requires_y": True,
     }
 
     def __init__(
@@ -311,7 +305,7 @@ class ElbowClassSum(BaseCollectionTransformer):
         self.prototype_type = prototype_type
         self._is_fitted = False
 
-        super(ElbowClassSum, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit ECS to a specified X and y.
@@ -410,9 +404,9 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
     References
     ----------
-    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
-    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
-    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    ..[1]: Bhaskar Dhariyal et al. "Fast Channel Selection for Scalable Multivariate
+    Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
 
     Examples
@@ -428,16 +422,8 @@ class ElbowClassPairwise(BaseCollectionTransformer):
     """
 
     _tags = {
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "numpy1D",  # which mtypes do _fit/_predict support for y?
-        "requires_y": True,  # does y need to be passed in fit?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
-        "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "capability:unequal_length": False,
-        # can the transformer handle unequal length time series (if passed Panel)?
+        "requires_y": True,
+        "capability:multivariate": True,
     }
 
     def __init__(
@@ -451,7 +437,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
         self.mean_center = mean_center
         self._is_fitted = False
 
-        super(ElbowClassPairwise, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """
@@ -459,7 +445,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: pandas DataFrame or np.ndarray
+        X: np.ndarray
             The training input samples.
         y: array-like or list
             The class values for X.

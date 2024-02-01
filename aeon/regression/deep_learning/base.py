@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Abstract base class for the Keras neural network regressors.
 
@@ -30,15 +29,10 @@ class BaseDeepRegressor(BaseRegressor, ABC):
     last_file_name      : str, default = "last_model"
         The name of the file of the last model, used
         only if save_last_model_to_file is used
-
-    Arguments
-    ---------
-    self.model = None
-
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
         "non-deterministic": True,
@@ -47,7 +41,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
     }
 
     def __init__(self, batch_size=40, last_file_name="last_model"):
-        super(BaseDeepRegressor, self).__init__()
+        super().__init__()
 
         self.batch_size = batch_size
         self.last_file_name = last_file_name
@@ -87,7 +81,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_dimensions, series_length)
+        X : an np.ndarray of shape = (n_instances, n_channels, series_length)
             The training input samples.
 
         Returns

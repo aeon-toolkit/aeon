@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Periodogram transformer."""
 
 __author__ = ["MatthewMiddlehurst"]
@@ -38,7 +36,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection import PeriodogramTransformer
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=2, n_timepoints=20,
     ...                           random_state=0)
     >>> tnf = PeriodogramTransformer()
@@ -52,6 +50,10 @@ class PeriodogramTransformer(BaseCollectionTransformer):
        4.33906385  0.36544821  2.28769936  3.67702091  1.45018642  1.26838712
        3.36395549  2.69146494  2.27041859  3.9023142 ]]
     """
+
+    _tags = {
+        "capability:multivariate": True,
+    }
 
     def __init__(
         self,
@@ -70,7 +72,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
         if use_pyfftw:
             self.set_tags(**{"python_dependencies": "pyfftw"})
 
-        super(PeriodogramTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         threads_to_use = check_n_jobs(self.n_jobs)

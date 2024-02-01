@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 List of datasets available for classification, regression and forecasting archives.
 
@@ -29,29 +28,51 @@ Forecasting
 
 __author__ = ["Tony Bagnall"]
 __all__ = [
-    "list_downloaded_tsc_tsr_datasets",
-    "list_downloaded_tsf_datasets",
-    "list_available_tser_datasets",
-    "list_available_tsf_datasets",
+    "get_downloaded_tsc_tsr_datasets",
+    "get_downloaded_tsf_datasets",
+    "get_available_tser_datasets",
+    "get_available_tsf_datasets",
 ]
 import os
 
-from aeon.datasets._dataframe_loaders import MODULE
+import aeon
 from aeon.datasets.tsc_data_lists import multivariate, univariate
-from aeon.datasets.tser_data_lists import tser_all
+from aeon.datasets.tser_data_lists import tser_monash, tser_soton
 from aeon.datasets.tsf_data_lists import tsf_all
 
-
-def list_available_tser_datasets(name=None):
-    """List available tser data."""
-    if name is None:  # List them all
-        return sorted(list(tser_all))
-    if name in tser_all:
-        return True
-    return False
+MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
 
-def list_available_tsf_datasets(name=None):
+def get_available_tser_datasets(name="tser_soton", return_list=True):
+    """List available tser data.
+
+    Parameters
+    ----------
+    name : str or None, default = "tser_soton"
+        One of the names in tser_soton or tser_monash, or None to list all.
+
+    return_list : bool, default = True
+        Whether to return problems as a list or a set.
+
+    Returns
+    -------
+        list
+            List of available datasets.
+    """
+    if name == "tser_soton":  # List them all
+        if return_list:
+            return sorted(list(tser_soton.union(tser_monash)))
+        else:
+            return tser_soton
+    if name == "tser_monash":
+        if return_list:
+            return sorted(list(tser_monash))
+        else:
+            return tser_monash
+    return []
+
+
+def get_available_tsf_datasets(name=None):
     """List available tsf data."""
     if name is None:  # List them all
         return sorted(list(tsf_all))
@@ -60,8 +81,8 @@ def list_available_tsf_datasets(name=None):
     return False
 
 
-def list_available_tsc_datasets(name=None):
-    """List available tsf data.
+def get_available_tsc_datasets(name=None):
+    """List available local TSC data.
 
     Parameters
     ----------
@@ -83,7 +104,7 @@ def list_available_tsc_datasets(name=None):
     return False
 
 
-def list_downloaded_tsc_tsr_datasets(extract_path=None):
+def get_downloaded_tsc_tsr_datasets(extract_path=None):
     """Return a list of all the currently downloaded datasets.
 
     To count as available, each directory in extract_path <dir_name> in the
@@ -114,7 +135,7 @@ def list_downloaded_tsc_tsr_datasets(extract_path=None):
     return datasets
 
 
-def list_downloaded_tsf_datasets(extract_path=None):
+def get_downloaded_tsf_datasets(extract_path=None):
     """Return a list of all the currently downloaded datasets.
 
     To count as available, each directory in extract_path <dir_name> in the

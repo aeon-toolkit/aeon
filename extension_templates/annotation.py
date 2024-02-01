@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Extension template for series annotation.
 
@@ -90,7 +89,7 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
         self.paramc = paramc
 
         # todo: change "MySeriesAnnotator" to the name of the class
-        super(MySeriesAnnotator, self).__init__(fmt=fmt, labels=labels)
+        super().__init__(fmt=fmt, labels=labels)
 
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc

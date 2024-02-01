@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """Functions to perform classification and clustering experiments.
 
 Results are saved a standardised format used by both tsml and aeon.
 """
+
 __author__ = ["TonyBagnall"]
 __all__ = [
     "run_clustering_experiment",

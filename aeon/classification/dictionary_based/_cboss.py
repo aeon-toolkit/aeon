@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ContractableBOSS classifier.
 
 Dictionary based cBOSS classifier based on SFA transform. Improves the ensemble
@@ -25,8 +24,8 @@ class ContractableBOSS(BaseClassifier):
     """
     Contractable Bag of Symbolic Fourier Approximation Symbols (cBOSS).
 
-    Implementation of BOSS Ensemble from Schäfer (2015) with refinements
-    described in Middlehurst, Vickers and Bagnall (2019). [1, 2]_
+    Implementation of BOSS Ensemble from [1]_ with refinements
+    described in [2]_.
 
     Overview: Input "n" series of length "m" and cBOSS randomly samples
     `n_parameter_samples` parameter sets, evaluting each with LOOCV. It then
@@ -174,7 +173,7 @@ class ContractableBOSS(BaseClassifier):
         self._norm_options = [True, False]
         self._alphabet_size = 4
 
-        super(ContractableBOSS, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a cBOSS ensemble on cases (X,y), where y is the target variable.
@@ -337,6 +336,9 @@ class ContractableBOSS(BaseClassifier):
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 
+        if self.n_estimators_ == 0:
+            return sums + 1 / self.n_classes_
+
         for n, clf in enumerate(self.estimators_):
             preds = clf.predict(X)
             for i in range(X.shape[0]):
@@ -410,8 +412,12 @@ class ContractableBOSS(BaseClassifier):
         correct = 0
         required_correct = int(lowest_acc * train_size)
 
-        # there may be no words if feature selection is too aggressive
-        if boss._transformed_data.shape[1] > 0:
+        # there may be no words if feature selection is too aggressive or
+        # subsampling is too small
+        if (
+            not isinstance(boss._transformed_data, list)
+            and boss._transformed_data.shape[1] > 0
+        ):
             distance_matrix = pairwise_distances(
                 boss._transformed_data, n_jobs=self.n_jobs
             )

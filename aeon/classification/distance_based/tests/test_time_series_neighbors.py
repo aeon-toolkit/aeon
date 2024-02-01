@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """Tests for KNeighborsTimeSeriesClassifier."""
+
 import pytest
 
 from aeon.classification.distance_based._time_series_neighbors import (

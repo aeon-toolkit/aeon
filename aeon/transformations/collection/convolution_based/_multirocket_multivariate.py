@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import multiprocessing
 
 import numpy as np
@@ -72,8 +71,9 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
+        "capability:multivariate": True,
+        "algorithm_type": "convolution",
     }
 
     def __init__(
@@ -95,14 +95,14 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
         self.parameter = None
         self.parameter1 = None
 
-        super(MultiRocketMultivariate, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit dilations and biases to input time series.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -137,7 +137,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 

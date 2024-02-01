@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements AutoARIMA model from statsforecast by Nixtla."""
 
 __author__ = ["FedericoGarza"]
@@ -233,7 +231,7 @@ class StatsForecastAutoARIMA(_StatsForecastAdapter):
         self.blambda = blambda
         self.biasadj = biasadj
         self.parallel = parallel
-        super(StatsForecastAutoARIMA, self).__init__()
+        super().__init__()
 
     def _instantiate_model(self):
         # import inside method to avoid hard dependency

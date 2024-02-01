@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements online algorithms for prediction weighted ensembles."""
 
 import numpy as np
@@ -31,7 +28,7 @@ class _PredictionWeightedEnsembler:
         self.n_estimators = n_estimators
         self.weights = np.ones(n_estimators) / n_estimators
         self.loss_func = loss_func
-        super(_PredictionWeightedEnsembler, self).__init__()
+        super().__init__()
 
     def _predict(self, y_pred):
         """Make predictions by taking weighted average of forecaster predictions.

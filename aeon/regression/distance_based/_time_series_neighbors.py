@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """KNN time series regression.
 
 This class is a KNN regressor which supports time series distance measures.
@@ -19,7 +18,7 @@ WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
     """
-    KNN Time Series Regressor.
+    K-Nearest Neighbour Time Series Regressor.
 
     An adapted K-Neighbors Regressor for time series data.
 
@@ -50,10 +49,10 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> regressor = KNeighborsTimeSeriesRegressor(distance="euclidean")
     >>> regressor.fit(X_train, y_train)
     KNeighborsTimeSeriesRegressor(distance='euclidean')
@@ -63,7 +62,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     _tags = {
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "algorithm_type": "distance",
     }
 
@@ -89,7 +88,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         if self._distance_params is None:
             self._distance_params = {}
 
-        super(KNeighborsTimeSeriesRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the model using X as training data and y as target values.

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """TSFresh Classifier.
 
 Pipeline classifier using the TSFresh transformer and an estimator.
@@ -14,7 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.tsfresh import (
+from aeon.transformations.collection.feature_based import (
     TSFreshFeatureExtractor,
     TSFreshRelevantFeatureExtractor,
 )
@@ -24,7 +23,7 @@ class TSFreshClassifier(BaseClassifier):
     """
     Time Series Feature Extraction based on Scalable Hypothesis Tests classifier.
 
-    This classifier simply transforms the input data using the TSFresh [1]
+    This classifier simply transforms the input data using the TSFresh [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters
@@ -98,14 +97,14 @@ class TSFreshClassifier(BaseClassifier):
         self._return_majority_class = False
         self._majority_class = 0
 
-        super(TSFreshClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -134,9 +133,11 @@ class TSFreshClassifier(BaseClassifier):
             )
         )
         self._estimator = _clone_estimator(
-            RandomForestClassifier(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestClassifier(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 
@@ -172,7 +173,7 @@ class TSFreshClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -190,7 +191,7 @@ class TSFreshClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

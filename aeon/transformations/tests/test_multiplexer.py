@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests for MultiplexTransformer and associated dunders."""
 
 __author__ = ["miraep8"]
@@ -19,7 +16,7 @@ from aeon.forecasting.model_selection import (
 )
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.transformations.compose import MultiplexTransformer
-from aeon.transformations.series.exponent import ExponentTransformer
+from aeon.transformations.exponent import ExponentTransformer
 from aeon.utils.validation.forecasting import check_scoring
 
 

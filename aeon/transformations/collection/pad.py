@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
 """Padding transformer, pad unequal length time series to max length or fixed length."""
-import numpy as np
-
-from aeon.transformations.base import BaseTransformer
 
 __all__ = ["PaddingTransformer"]
 __author__ = ["abostrom", "TonyBagnall"]
+
+import numpy as np
+
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
 def _get_max_length(X):
@@ -17,7 +17,7 @@ def _get_max_length(X):
     return max_length
 
 
-class PaddingTransformer(BaseTransformer):
+class PaddingTransformer(BaseCollectionTransformer):
     """Pad unequal length time series to equal, fixed length.
 
     Pads the input dataset to either fixed length (at least as long as the longest
@@ -47,11 +47,9 @@ class PaddingTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": ["np-list", "numpy3D"],
-        "y_inner_mtype": "None",
+        "X_inner_type": ["np-list", "numpy3D"],
         "fit_is_empty": False,
+        "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:unequal_length:removes": True,
     }
@@ -59,7 +57,7 @@ class PaddingTransformer(BaseTransformer):
     def __init__(self, pad_length=None, fill_value=0):
         self.pad_length = pad_length
         self.fill_value = fill_value
-        super(PaddingTransformer, self).__init__(_output_convert=False)
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit padding transformer to X and y.

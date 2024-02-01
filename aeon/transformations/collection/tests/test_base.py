@@ -1,23 +1,21 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Test input for the BaseCollectionTransformer."""
 
-__author__ = ["MatthewMiddlehurst"]
+__author__ = ["MatthewMiddlehurst", "TonyBagnall"]
 
 import numpy as np
 import pytest
+from numpy.testing import assert_almost_equal
 
-from aeon.datatypes import convert_to
+from aeon.testing.utils.data_gen import (
+    make_2d_test_data,
+    make_3d_test_data,
+    make_series,
+    make_unequal_length_test_data,
+)
 from aeon.transformations.collection import (
     BaseCollectionTransformer,
     CollectionToSeriesWrapper,
 )
-from aeon.utils._testing.collection import (
-    make_2d_test_data,
-    make_3d_test_data,
-    make_unequal_length_test_data,
-)
-from aeon.utils._testing.series import _make_series
 
 
 @pytest.mark.parametrize(
@@ -28,23 +26,19 @@ def test_collection_transformer_valid_input(data_gen):
     X, y = data_gen()
 
     t = _Dummy()
-    Xt = t.fit_transform(X, y)
+    t.fit(X, y)
+    Xt = t.transform(X)
 
     assert isinstance(Xt, list)
     assert isinstance(Xt[0], np.ndarray)
     assert Xt[0].ndim == 2
 
 
-@pytest.mark.parametrize("dtype", ["pd.Series", "pd.DataFrame"])
+@pytest.mark.parametrize("dtype", ["pd.Series"])
 def test_collection_transformer_invalid_input(dtype):
     """Test that BaseCollectionTransformer fails with series input."""
-    y = convert_to(
-        _make_series(),
-        to_type=dtype,
-    )
-
+    y = (make_series(),)
     t = _Dummy()
-
     with pytest.raises(TypeError):
         t.fit_transform(y)
 
@@ -52,11 +46,12 @@ def test_collection_transformer_invalid_input(dtype):
 @pytest.mark.parametrize("dtype", ["pd.Series", "pd.DataFrame", "np.ndarray"])
 def test_collection_transformer_wrapper_series(dtype):
     """Test that the wrapper for regular transformers works with series input."""
-    y = convert_to(
-        _make_series(),
-        to_type=dtype,
-    )
-
+    if dtype == "np.ndarray":
+        y = make_series(return_numpy=True)
+    else:
+        y = make_series()
+        if dtype == "pd.DataFrame":
+            y = y.to_frame(name="series1")
     wrap = CollectionToSeriesWrapper(transformer=_Dummy())
     yt = wrap.fit_transform(y)
 
@@ -79,19 +74,44 @@ def test_collection_transformer_wrapper_collection(data_gen):
     assert Xt[0].ndim == 2
 
 
+def test_inverse_transform():
+    """Test inverse transform."""
+    d = _Dummy()
+    x, _ = make_3d_test_data()
+    d.fit(x)
+    d.set_tags(**{"skip-inverse-transform": True})
+    x2 = d.inverse_transform(x)
+    assert_almost_equal(x, x2)
+    d.set_tags(**{"skip-inverse-transform": False})
+    with pytest.raises(
+        NotImplementedError, match="does not implement " "inverse_transform"
+    ):
+        d.inverse_transform(x)
+    d.set_tags(**{"capability:inverse_transform": True})
+    x2 = d.inverse_transform(x)
+    assert_almost_equal(x, x2)
+
+
 class _Dummy(BaseCollectionTransformer):
     """Dummy transformer for testing.
 
     Converts a numpy array to a list of numpy arrays.
     """
 
-    _tags = {"X_inner_mtype": ["numpy3D", "np-list"]}
+    _tags = {
+        "X_inner_type": ["numpy3D", "np-list"],
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+    }
 
     def __init__(self):
-        super(_Dummy, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         assert isinstance(X, np.ndarray) or isinstance(X, list)
         if isinstance(X, np.ndarray):
             return [x for x in X]
+        return X
+
+    def _inverse_transform(self, X, y=None):
         return X

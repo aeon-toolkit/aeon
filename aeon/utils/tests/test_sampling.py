@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """Testing sampling utilities."""
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.utils._testing.deep_equals import deep_equals
+from aeon.testing.utils.deep_equals import deep_equals
 from aeon.utils.sampling import random_partition, stratified_resample
 
 NK_FIXTURES = [(10, 3), (15, 5), (19, 6), (3, 1), (1, 2)]
@@ -69,7 +68,7 @@ def test_stratified_resample(input_type):
     )
 
     # Valid return type
-    assert type(X_train) == type(new_X_train) and type(X_test) == type(new_X_test)
+    assert type(X_train) is type(new_X_train) and type(X_test) is type(new_X_test)
 
     classes_train, classes_count_train = np.unique(y_train, return_counts=True)
     classes_test, classes_count_test = np.unique(y_test, return_counts=True)

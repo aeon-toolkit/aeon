@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Piecewise Aggregate Approximation Transformer (PAA)."""
-
 
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
 
@@ -39,10 +37,16 @@ class PAA(BaseCollectionTransformer):
     >>> X_test_paa = paa.transform(X_test)
     """
 
+    _tags = {
+        "capability:multivariate": True,
+        "fit_is_empty": True,
+        "algorithm_type": "dictionary",
+    }
+
     def __init__(self, n_segments=8):
         self.n_segments = n_segments
 
-        super(PAA, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform the input time series to PAA segments.

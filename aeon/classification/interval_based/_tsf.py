@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Time Series Forest (TSF) Classifier.
 
 Interval-based TSF classifier, extracts basic summary features from random intervals.
@@ -18,7 +16,7 @@ from aeon.classification.sklearn import ContinuousIntervalTree
 class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
     """Time series forest (TSF) classifier.
 
-    A time series forest is an ensemble of decision trees built on random intervals.
+    Time series forest is an ensemble of decision trees built on random intervals [1]_.
     Overview: Input n series length m.
     For each tree
         - sample sqrt(m) intervals,
@@ -137,7 +135,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = TimeSeriesForestClassifier(n_estimators=10, random_state=0)
@@ -174,7 +172,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         else:
             replace_nan = 0
 
-        super(TimeSeriesForestClassifier, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",

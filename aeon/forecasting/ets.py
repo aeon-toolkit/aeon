@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements automatic and manually exponential time series smoothing models."""
-
 
 __author__ = ["hyang1996"]
 __all__ = ["AutoETS"]
@@ -236,7 +232,7 @@ class AutoETS(_StatsModelsAdapter):
         self.ignore_inf_ic = ignore_inf_ic
         self.n_jobs = n_jobs
 
-        super(AutoETS, self).__init__(random_state=random_state)
+        super().__init__(random_state=random_state)
 
     def _fit_forecaster(self, y, X=None):
         from statsmodels.tsa.exponential_smoothing.ets import ETSModel as _ETSModel
@@ -252,7 +248,8 @@ class AutoETS(_StatsModelsAdapter):
                 else:
                     warnings.warn(
                         "Warning: time series is not strictly positive, "
-                        "multiplicative components are ommitted"
+                        "multiplicative components are ommitted",
+                        stacklevel=2,
                     )
                     error_range = ["add"]
 
@@ -432,7 +429,7 @@ class AutoETS(_StatsModelsAdapter):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

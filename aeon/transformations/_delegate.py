@@ -1,11 +1,9 @@
-# -*- coding: utf-8 -*-
 """Delegator mixin that delegates all methods to wrapped transformer.
 
 Useful for building estimators where all but one or a few methods are delegated.
 For that purpose, inherit from this estimator and then override only the methods
     that are not delegated.
 """
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["miraep8"]
 __all__ = ["_DelegatedTransformer"]
@@ -43,7 +41,7 @@ class _DelegatedTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -64,7 +62,7 @@ class _DelegatedTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to be transformed, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -75,7 +73,7 @@ class _DelegatedTransformer(BaseTransformer):
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
+        type depends on type of X and output_data_type tag:
             |          | `transform`  |                        |
             |   `X`    |  `-output`   |     type of return     |
             |----------|--------------|------------------------|
@@ -109,13 +107,13 @@ class _DelegatedTransformer(BaseTransformer):
         """Use wrapped transformer to inverse transform X and return.
 
         Currently it is assumed that only transformers with tags
-            "scitype:transform-input"="Series", "scitype:transform-output"="Series",
+            "input_data_type"="Series", "output_data_type"="Series",
         have an inverse_transform.
 
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to be inverse transformed, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -143,7 +141,7 @@ class _DelegatedTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,

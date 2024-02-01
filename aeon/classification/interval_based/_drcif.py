@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """DrCIF classifier.
 
 Interval-based DrCIF classifier extracting catch22 features from random intervals on
@@ -15,7 +13,7 @@ from aeon.base.estimator.interval_based import BaseIntervalForest
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn._continuous_interval_tree import ContinuousIntervalTree
 from aeon.transformations.collection import PeriodogramTransformer
-from aeon.transformations.collection.catch22 import Catch22
+from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.numba.general import first_order_differences_3d
 from aeon.utils.numba.stats import (
     row_iqr,
@@ -174,7 +172,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import DrCIFClassifier
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = DrCIFClassifier(n_estimators=10, random_state=0)
@@ -242,7 +240,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             row_numba_max,
         ]
 
-        super(DrCIFClassifier, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",

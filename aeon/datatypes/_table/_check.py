@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Machine type checkers for Table scitype.
 
 Exports checkers for Table scitype:
@@ -159,7 +158,7 @@ def check_numpy2d_table(obj, return_metadata=False, var_name="obj"):
     return _ret(True, None, metadata, return_metadata)
 
 
-check_dict[("numpy2D", "Table")] = check_numpy2d_table
+check_dict[("numpy_Table", "Table")] = check_numpy2d_table
 
 
 def check_list_of_dict_table(obj, return_metadata=False, var_name="obj"):

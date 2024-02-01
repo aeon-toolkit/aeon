@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """A base class for interval extracting forest estimators."""
 
 __author__ = ["MatthewMiddlehurst"]
@@ -20,7 +18,10 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.collection import RandomIntervals, SupervisedIntervals
+from aeon.transformations.collection.interval_based import (
+    RandomIntervals,
+    SupervisedIntervals,
+)
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.panel import check_X_y
@@ -210,7 +211,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(BaseIntervalForest, self).__init__()
+        super().__init__()
 
     # if subsampling attributes, an interval_features transformer must contain a
     # parameter name from transformer_feature_selection and an attribute name
@@ -355,7 +356,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         # minimum interval length
         if isinstance(self.min_interval_length, int):
             self._min_interval_length = [self.min_interval_length] * len(Xt)
-        # min_interval_length must be at less than one if it is a float (proportion of
+        # min_interval_length must be less than one if it is a float (proportion of
         # of the series length)
         elif (
             isinstance(self.min_interval_length, float)
@@ -628,7 +629,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
                         if not has_feature_names:
                             raise ValueError(
                                 "All transformers in interval_features must have an "
-                                "attribute or propertynamed in "
+                                "attribute or property named in "
                                 "transformer_feature_names to be used in attribute "
                                 "subsampling."
                             )
@@ -1029,12 +1030,15 @@ class BaseIntervalForest(metaclass=ABCMeta):
         n_instances = self._train_est_setup(X, y)
 
         if is_regressor(self):
+            rng = check_random_state(self.random_state)
+
             p = Parallel(
                 n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
             )(
                 delayed(self._train_estimate_for_estimator)(
                     y,
                     i,
+                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
                 )
                 for i in range(self._n_estimators)
             )
@@ -1069,12 +1073,15 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         n_instances = self._train_est_setup(X, y, True)
 
+        rng = check_random_state(self.random_state)
+
         p = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
             delayed(self._train_estimate_for_estimator)(
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
                 probas=True,
             )
             for i in range(self._n_estimators)
@@ -1126,15 +1133,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         return n_instances
 
-    def _train_estimate_for_estimator(self, y, idx, probas=False):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
+    def _train_estimate_for_estimator(self, y, idx, rng, probas=False):
         indices = range(self.n_instances_)
         subsample = rng.choice(self.n_instances_, size=self.n_instances_)
         oob = [n for n in indices if n not in subsample]
@@ -1147,7 +1146,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         if len(oob) == 0:
             return [results, oob]
 
-        clf = _clone_estimator(self._base_estimator, rs)
+        clf = _clone_estimator(self._base_estimator, rng)
         clf.fit(self.transformed_data_[idx][subsample], y[subsample])
         preds = (
             clf.predict_proba(self.transformed_data_[idx][oob])
@@ -1170,6 +1169,149 @@ class BaseIntervalForest(metaclass=ABCMeta):
                 results[oob[n]] = pred
 
         return [results, oob]
+
+    def temporal_importance_curves(
+        self, return_dict=False, normalise_time_points=False
+    ):
+        """Calculate the temporal importance curves for each feature.
+
+        Can be finicky with transformers currently.
+
+        Parameters
+        ----------
+        return_dict : bool, default=False
+            If True, return a dictionary of curves. If False, return a list of names
+            and a list of curves.
+        normalise_time_points : bool, default=False
+            If True, normalise the time points for each feature to the number of
+            splits that used that feature. If False, return the sum of the information
+            gain for each split.
+
+        Returns
+        -------
+        names : list of str
+            The names of the features.
+        curves : list of np.ndarray
+            The temporal importance curves for each feature.
+        """
+        if not isinstance(self._base_estimator, ContinuousIntervalTree):
+            raise ValueError(
+                "CIF base estimator for temporal importance curves must"
+                " be ContinuousIntervalTree."
+            )
+
+        curves = {}
+        if normalise_time_points:
+            counts = {}
+
+        for i, est in enumerate(self.estimators_):
+            splits, gains = est.tree_node_splits_and_gain()
+            split_features = []
+
+            for n, rep in enumerate(self.intervals_[i]):
+                t = 0
+                rep_name = (
+                    ""
+                    if self._series_transformers[n] is None
+                    else self._series_transformers[n].__class__.__name__
+                )
+
+                for interval in rep.intervals_:
+                    if t % len(self._interval_features[n]) - 1 == 0:
+                        t = 0
+
+                    if _is_transformer(interval[3]):
+                        if self._att_subsample_size[n] is None:
+                            names = None
+                            for f in self.transformer_feature_names:
+                                if hasattr(interval[3], f) and isinstance(
+                                    getattr(interval[3], f), (list, tuple)
+                                ):
+                                    names = getattr(interval[3], f)
+                                    break
+
+                            if names is None:
+                                raise ValueError(
+                                    "All transformers in interval_features must have "
+                                    "an attribute or property named in "
+                                    "transformer_feature_names to be used in temporal "
+                                    "importance curves."
+                                )
+                        else:
+                            names = getattr(
+                                interval[3], self._transformer_feature_names[n][t]
+                            )
+                            t += 1
+
+                        split_features.extend(
+                            [
+                                (
+                                    rep_name,
+                                    interval[0],
+                                    interval[1],
+                                    interval[2],
+                                    feature_name,
+                                )
+                                for feature_name in names
+                            ]
+                        )
+                    else:
+                        split_features.append(
+                            (
+                                rep_name,
+                                interval[0],
+                                interval[1],
+                                interval[2],
+                                interval[3].__name__,
+                            )
+                        )
+
+            for n, split in enumerate(splits):
+                feature = (
+                    split_features[split][0],
+                    split_features[split][3],
+                    split_features[split][4],
+                )
+
+                if feature not in curves:
+                    curves[feature] = np.zeros(self.n_timepoints_)
+                    curves[feature][
+                        split_features[split][1] : split_features[split][2]
+                    ] = gains[n]
+
+                    if normalise_time_points:
+                        counts[feature] = np.zeros(self.n_timepoints_)
+                        counts[feature][
+                            split_features[split][1] : split_features[split][2]
+                        ] = 1
+                else:
+                    curves[feature][
+                        split_features[split][1] : split_features[split][2]
+                    ] += gains[n]
+
+                    if normalise_time_points:
+                        counts[feature][
+                            split_features[split][1] : split_features[split][2]
+                        ] += 1
+
+        if normalise_time_points:
+            for feature in counts:
+                curves[feature] /= counts[feature]
+
+        if return_dict:
+            return curves
+        else:
+            names = []
+            values = []
+            for key, value in curves.items():
+                dim = f"_dim{key[1]}" if self.n_channels_ > 1 else ""
+                rep = f"{key[0]}_" if key[0] != "" else ""
+                names.append(f"{rep}{key[2]}{dim}")
+                values.append(value)
+
+            names, values = zip(*sorted(zip(names, values)))
+
+            return names, values
 
 
 def _is_transformer(obj):

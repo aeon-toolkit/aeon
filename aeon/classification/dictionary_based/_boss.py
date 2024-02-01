@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """BOSS classifiers.
 
 Dictionary based BOSS classifiers based on SFA transform.
@@ -28,7 +27,7 @@ class BOSSEnsemble(BaseClassifier):
     """
     Ensemble of Bag of Symbolic Fourier Approximation Symbols (BOSS).
 
-    Implementation of BOSS Ensemble from Schäfer (2015). [1]_
+    Implementation of BOSS Ensemble from [1]_.
 
     Overview: Input *n* series of length *m* and BOSS performs a grid search over
     a set of parameter values, evaluating each with a LOOCV. It then retains
@@ -159,7 +158,7 @@ class BOSSEnsemble(BaseClassifier):
         self._norm_options = [True, False]
         self.alphabet_size = alphabet_size
 
-        super(BOSSEnsemble, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a boss ensemble on cases (X,y), where y is the target variable.
@@ -581,14 +580,14 @@ class IndividualBOSS(BaseClassifier):
         self._subsample = []
         self._train_predictions = []
 
-        super(IndividualBOSS, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a single boss classifier on n_instances cases (X,y).
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -626,7 +625,7 @@ class IndividualBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -688,6 +687,8 @@ class IndividualBOSS(BaseClassifier):
         return new_boss
 
     def _clean(self):
+        if self._transformer is None:
+            return
         self._transformer.words = None
         self._transformer.save_words = False
 

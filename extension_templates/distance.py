@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Extension template for time series distance function.
 
 This is a quick guide on how to implement a new aeon distance function. A wish list
@@ -65,6 +64,7 @@ numba cant handle kwargs)
             kwargs.get("para2",3),
         )
 """
+
 import numpy as np
 from numba import njit
 

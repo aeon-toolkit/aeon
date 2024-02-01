@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """MiniRocket transformer."""
 
 __author__ = ["angus924"]
@@ -59,9 +58,8 @@ class MiniRocket(BaseCollectionTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
-        "fit_is_empty": False,
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
+        "algorithm_type": "convolution",
     }
 
     def __init__(
@@ -76,7 +74,7 @@ class MiniRocket(BaseCollectionTransformer):
 
         self.n_jobs = n_jobs
         self.random_state = random_state
-        super(MiniRocket, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.
@@ -99,10 +97,8 @@ class MiniRocket(BaseCollectionTransformer):
         _, n_timepoints = X.shape
         if n_timepoints < 9:
             raise ValueError(
-                (
-                    f"n_timepoints must be >= 9, but found {n_timepoints};"
-                    " zero pad shorter series so that n_timepoints == 9"
-                )
+                f"n_timepoints must be >= 9, but found {n_timepoints};"
+                " zero pad shorter series so that n_timepoints == 9"
             )
         self.parameters = _fit(
             X, self.num_kernels, self.max_dilations_per_kernel, random_state
@@ -114,7 +110,7 @@ class MiniRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -855,17 +851,17 @@ def _transform(X, parameters):
 
                 if _padding1 == 0:
                     for feature_count in range(num_features_this_dilation):
-                        features[
-                            example_index, feature_index_start + feature_count
-                        ] = _PPV(C, biases[feature_index_start + feature_count]).mean()
+                        features[example_index, feature_index_start + feature_count] = (
+                            _PPV(C, biases[feature_index_start + feature_count]).mean()
+                        )
                 else:
                     for feature_count in range(num_features_this_dilation):
-                        features[
-                            example_index, feature_index_start + feature_count
-                        ] = _PPV(
-                            C[padding:-padding],
-                            biases[feature_index_start + feature_count],
-                        ).mean()
+                        features[example_index, feature_index_start + feature_count] = (
+                            _PPV(
+                                C[padding:-padding],
+                                biases[feature_index_start + feature_count],
+                            ).mean()
+                        )
 
                 feature_index_start = feature_index_end
 

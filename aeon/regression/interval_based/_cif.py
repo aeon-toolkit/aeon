@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """CIF regressor.
 
 Interval-based CIF regressor extracting catch22 features from random intervals.
@@ -9,7 +7,7 @@ import numpy as np
 
 from aeon.base.estimator.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
-from aeon.transformations.collection import Catch22
+from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 
@@ -136,7 +134,7 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.interval_based import CanonicalIntervalForestRegressor
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -183,7 +181,7 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
             row_slope,
         ]
 
-        super(CanonicalIntervalForestRegressor, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",

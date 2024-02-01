@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Symbolic Fourier Approximation (SFA) Transformer.
 
 Configurable SFA transform for discretising time series into words.
@@ -8,6 +7,7 @@ __author__ = ["MatthewMiddlehurst", "patrickzib"]
 __all__ = ["SFA"]
 
 import math
+import os
 import sys
 import warnings
 
@@ -20,7 +20,6 @@ from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -90,6 +89,11 @@ class SFA(BaseCollectionTransformer):
     Attributes
     ----------
     words: []
+        words is a list of arrays of integers, one for each case. Each array is
+        length ``(series_length - window_size+1)``. Each integer is a birt
+        representation of a word. So, for example if ``word_length=6`` and
+        ``alphabet_size=4`, integer 3235 is bit string 11 00 10 10 00 11,
+        representing word daccad.
     breakpoints: = []
     num_insts = 0
     num_atts = 0
@@ -102,11 +106,8 @@ class SFA(BaseCollectionTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
-        "scitype:instancewise": False,
-        "fit_is_empty": False,
         "requires_y": True,
-        "y_inner_mtype": "numpy1D",
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
@@ -169,6 +170,9 @@ class SFA(BaseCollectionTransformer):
         )
         self.typed_dict = typed_dict
 
+        # we will disable typed_dict if numba is disabled
+        self._typed_dict = typed_dict and not os.environ.get("NUMBA_DISABLE_JIT") == "1"
+
         self.n_jobs = n_jobs
         self.random_state = random_state
 
@@ -181,7 +185,7 @@ class SFA(BaseCollectionTransformer):
         self.level_bits = 0
         self.level_max = 0
 
-        super(SFA, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
@@ -212,6 +216,11 @@ class SFA(BaseCollectionTransformer):
         if self.binning_method not in binning_methods:
             raise TypeError("binning_method must be one of: ", binning_methods)
 
+        if self._typed_dict != self.typed_dict:
+            warnings.warn(
+                "Typed dict is not supported when numba is disabled.", stacklevel=2
+            )
+
         self.letter_bits = math.ceil(math.log2(self.alphabet_size))
         self.letter_max = pow(2, self.letter_bits) - 1
         self.word_bits = self.word_length * self.letter_bits
@@ -219,7 +228,7 @@ class SFA(BaseCollectionTransformer):
             self.word_bits * 2 if self.bigrams or self.skip_grams else self.word_bits
         )
 
-        if self.typed_dict and self.max_bits > 64:
+        if self._typed_dict and self.max_bits > 64:
             raise ValueError(
                 "Typed Dictionaries can only handle 64 bit words. "
                 "ceil(log2(alphabet_size)) * word_length must be less than or equal "
@@ -227,13 +236,11 @@ class SFA(BaseCollectionTransformer):
                 "With bi-grams or skip-grams enabled, this bit limit is 32."
             )
 
-        if self.typed_dict and self.levels > 15:
+        if self._typed_dict and self.levels > 15:
             raise ValueError(
                 "Typed Dictionaries can only handle 15 levels "
                 "(this is way to many anyway)."
             )
-
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
         if self.levels > 1:
@@ -278,7 +285,7 @@ class SFA(BaseCollectionTransformer):
             self.words = list(words)
 
         # cant pickle typed dict
-        if self.typed_dict and self.n_jobs != 1:
+        if self._typed_dict and self.n_jobs != 1:
             nl = [None] * len(dim)
             for i, pdict in enumerate(dim):
                 ndict = (
@@ -304,7 +311,7 @@ class SFA(BaseCollectionTransformer):
         else:
             dfts = supplied_dft
 
-        if self.typed_dict:
+        if self._typed_dict:
             bag = (
                 Dict.empty(
                     key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
@@ -360,7 +367,7 @@ class SFA(BaseCollectionTransformer):
                     )
 
                     if self.levels > 1:
-                        if self.typed_dict:
+                        if self._typed_dict:
                             bigram = (bigram, -1)
                         else:
                             bigram = (bigram << self.level_bits) | 0
@@ -375,14 +382,14 @@ class SFA(BaseCollectionTransformer):
                         )
 
                         if self.levels > 1:
-                            if self.typed_dict:
+                            if self._typed_dict:
                                 skip_gram = (skip_gram, -1)
                             else:
                                 skip_gram = (skip_gram << self.level_bits) | 0
                         bag[skip_gram] = bag.get(skip_gram, 0) + 1
 
         # cant pickle typed dict
-        if self.typed_dict and self.n_jobs != 1:
+        if self._typed_dict and self.n_jobs != 1:
             pdict = dict()
             for key, val in bag.items():
                 pdict[key] = val
@@ -725,7 +732,7 @@ class SFA(BaseCollectionTransformer):
         if word_len > self.word_length:
             word_len = self.word_length
 
-        if self.typed_dict:
+        if self._typed_dict:
             warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
 
         dim = Parallel(n_jobs=self.n_jobs, prefer="threads")(
@@ -733,7 +740,7 @@ class SFA(BaseCollectionTransformer):
         )
 
         # cant pickle typed dict
-        if self.typed_dict and self.n_jobs != 1:
+        if self._typed_dict and self.n_jobs != 1:
             nl = [None] * len(dim)
             for i, pdict in enumerate(dim):
                 ndict = (
@@ -754,7 +761,7 @@ class SFA(BaseCollectionTransformer):
         return new_bags
 
     def _shorten_case(self, word_len, i):
-        if self.typed_dict:
+        if self._typed_dict:
             new_bag = (
                 Dict.empty(
                     key_type=types.Tuple((types.int64, types.int16)),
@@ -796,7 +803,7 @@ class SFA(BaseCollectionTransformer):
                     )
 
                     if self.levels > 1:
-                        if self.typed_dict:
+                        if self._typed_dict:
                             bigram = (bigram, -1)
                         else:
                             bigram = (bigram << self.level_bits) | 0
@@ -815,14 +822,14 @@ class SFA(BaseCollectionTransformer):
                         )
 
                         if self.levels > 1:
-                            if self.typed_dict:
+                            if self._typed_dict:
                                 skip_gram = (skip_gram, -1)
                             else:
                                 skip_gram = (skip_gram << self.level_bits) | 0
                         new_bag[skip_gram] = new_bag.get(skip_gram, 0) + 1
 
         # cant pickle typed dict
-        if self.typed_dict and self.n_jobs != 1:
+        if self._typed_dict and self.n_jobs != 1:
             pdict = dict()
             for key, val in new_bag.items():
                 pdict[key] = val
@@ -845,7 +852,7 @@ class SFA(BaseCollectionTransformer):
 
         start = 0
         for i in range(self.levels):
-            if self.typed_dict:
+            if self._typed_dict:
                 new_word, num_quadrants = SFA._add_level_typed(
                     word, start, i, window_ind, self.window_size, self.series_length
                 )
@@ -991,8 +998,12 @@ class SFA(BaseCollectionTransformer):
         """Convert a bag of SFA words into a string."""
         s = "{"
         for word, value in bag.items():
-            s += "{0}: {1}, ".format(
-                self.word_list_typed(word) if self.typed_dict else self.word_list(word),
+            s += "{}: {}, ".format(
+                (
+                    self.word_list_typed(word)
+                    if self._typed_dict
+                    else self.word_list(word)
+                ),
                 value,
             )
         s = s[:-2]
@@ -1008,7 +1019,7 @@ class SFA(BaseCollectionTransformer):
             letters.append(word >> shift & self.letter_max)
             shift -= self.letter_bits
 
-        if word.bit_length() > self.word_bits + self.level_bits:
+        if int(word).bit_length() > self.word_bits + self.level_bits:
             bigram_letters = []
             shift = self.word_bits + word_bits - self.letter_bits
             for _ in range(self.word_length, 0, -1):
@@ -1036,7 +1047,7 @@ class SFA(BaseCollectionTransformer):
             letters.append(word >> shift & self.letter_max)
             shift -= self.letter_bits
 
-        if word.bit_length() > self.word_bits:
+        if int(word).bit_length() > self.word_bits:
             bigram_letters = []
             shift = self.word_bits + self.word_bits - self.letter_bits
             for _ in range(self.word_length, 0, -1):

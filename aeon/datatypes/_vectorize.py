@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Wrapper for easy vectorization/iteration of time series data.
 
 Contains VectorizedDF class.
 """
+
 from itertools import product
 
 import pandas as pd

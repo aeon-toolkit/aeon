@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 __author__ = ["chrisholder", "tonybagnall"]
 
 import numpy as np
@@ -10,19 +9,22 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
-    r"""Compute the euclidean distance between two time series.
+    r"""Compute the Euclidean distance between two time series.
 
     The Euclidean distance between two time series of length m is the square root of
     the squared distance and is defined as:
+
     .. math::
         ed(x, y) = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, either univariate, shape ``(n_timepoints,)``, or
+        multivariate, shape ``(n_channels, n_timepoints)``.
 
     Returns
     -------
@@ -62,17 +64,18 @@ def _univariate_euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
 
 @njit(cache=True, fastmath=True)
 def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray:
-    """Compute the euclidean pairwise distance between a set of time series.
+    """Compute the Euclidean pairwise distance between a set of time series.
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints) or (n_timepoints,)
-        A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
-        A collection of time series instances.
-
+    X : np.ndarray
+        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
+        or ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        If None, then the Euclidean pairwise distance between the instances of X is
+        calculated.
 
     Returns
     -------

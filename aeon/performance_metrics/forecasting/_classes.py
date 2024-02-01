@@ -1,12 +1,10 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Metrics classes to assess performance on forecasting task.
 
 Classes named as ``*Score`` return a value to maximize: the higher the better.
 Classes named as ``*Error`` or ``*Loss`` return a value to minimize:
 the lower the better.
 """
+
 from copy import deepcopy
 from inspect import getfullargspec, isfunction, signature
 from warnings import warn
@@ -115,7 +113,7 @@ class BaseForecastingErrorMetric(BaseMetric):
         "requires-y-pred-benchmark": False,
         "univariate-only": False,
         "lower_is_better": True,
-        # "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
+        # "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
         "inner_implements_multilevel": False,
     }
 
@@ -126,7 +124,7 @@ class BaseForecastingErrorMetric(BaseMetric):
         if not hasattr(self, "name"):
             self.name = type(self).__name__
 
-        super(BaseForecastingErrorMetric, self).__init__()
+        super().__init__()
 
     def __call__(self, y_true, y_pred, **kwargs):
         """Calculate metric value using underlying metric function.
@@ -136,10 +134,10 @@ class BaseForecastingErrorMetric(BaseMetric):
         y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
-            Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-            Panel scitype: pd.DataFrame with 2-level row MultiIndex,
+            Series type: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
+            Panel type: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
-            Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
+            Hierarchical type: pd.DataFrame with 3 or more level row MultiIndex
         y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
@@ -169,10 +167,10 @@ class BaseForecastingErrorMetric(BaseMetric):
         y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
-            Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-            Panel scitype: pd.DataFrame with 2-level row MultiIndex,
+            Series type: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
+            Panel type: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
-            Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
+            Hierarchical type: pd.DataFrame with 3 or more level row MultiIndex
         y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
@@ -210,10 +208,14 @@ class BaseForecastingErrorMetric(BaseMetric):
             if multilevel == "uniform_average":
                 out_df = out_df.mean(axis=0)
                 # if level is averaged, but not variables, return numpy
-                if multioutput == "raw_values":
+                if isinstance(multioutput, str) and multioutput == "raw_values":
                     out_df = out_df.values
 
-        if multilevel == "uniform_average" and multioutput == "uniform_average":
+        if (
+            multilevel == "uniform_average"
+            and isinstance(multioutput, str)
+            and multioutput == "uniform_average"
+        ):
             out_df = _coerce_to_scalar(out_df)
         if multilevel == "raw_values":
             out_df = _coerce_to_df(out_df)
@@ -232,10 +234,10 @@ class BaseForecastingErrorMetric(BaseMetric):
         y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
-            Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-            Panel scitype: pd.DataFrame with 2-level row MultiIndex,
+            Series type: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
+            Panel type: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
-            Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
+            Hierarchical type: pd.DataFrame with 3 or more level row MultiIndex
         y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
@@ -300,10 +302,10 @@ class BaseForecastingErrorMetric(BaseMetric):
         y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
-            Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-            Panel scitype: pd.DataFrame with 2-level row MultiIndex,
+            Series type: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
+            Panel type: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
-            Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
+            Hierarchical type: pd.DataFrame with 3 or more level row MultiIndex
         y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
@@ -345,10 +347,10 @@ class BaseForecastingErrorMetric(BaseMetric):
         y_true : time series in aeon compatible data container format
             Ground truth (correct) target values
             y can be in one of the following formats:
-            Series scitype: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-            Panel scitype: pd.DataFrame with 2-level row MultiIndex,
+            Series type: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
+            Panel type: pd.DataFrame with 2-level row MultiIndex,
                 3D np.ndarray, list of Series pd.DataFrame, or nested pd.DataFrame
-            Hierarchical scitype: pd.DataFrame with 3 or more level row MultiIndex
+            Hierarchical type: pd.DataFrame with 3 or more level row MultiIndex
         y_pred :time series in aeon compatible data container format
             Forecasted values to evaluate
             must be of same format as y_true, same indices and columns if indexed
@@ -429,7 +431,7 @@ class BaseForecastingErrorMetric(BaseMetric):
             else:
                 y_pred_orig.columns = y_true.columns
         # check multioutput arg
-        # todo: add this back when variance_weighted is supported
+        # add this back when variance_weighted is supported
         # ("raw_values", "uniform_average", "variance_weighted")
         allowed_multioutput_str = ("raw_values", "uniform_average")
 
@@ -465,21 +467,21 @@ class BaseForecastingErrorMetric(BaseMetric):
         return y_true_orig, y_pred_orig, multioutput, multilevel
 
     def _check_ys(self, y_true, y_pred, multioutput, multilevel, **kwargs):
-        SCITYPES = ["Series", "Panel", "Hierarchical"]
-        INNER_MTYPES = ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
+        types = ["Series", "Panel", "Hierarchical"]
+        inner_types = ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
 
         def _coerce_to_df(y, var_name="y"):
             valid, msg, metadata = check_is_scitype(
-                y, scitype=SCITYPES, return_metadata=True, var_name=var_name
+                y, scitype=types, return_metadata=True, var_name=var_name
             )
             if not valid:
                 raise TypeError(msg)
-            y_inner = convert_to(y, to_type=INNER_MTYPES)
+            y_inner = convert_to(y, to_type=inner_types)
 
-            scitype = metadata["scitype"]
+            type = metadata["scitype"]
             ignore_index = multilevel == "uniform_average_time"
-            if scitype in ["Panel", "Hierarchical"] and not ignore_index:
-                y_inner = VectorizedDF(y_inner, is_scitype=scitype)
+            if type in ["Panel", "Hierarchical"] and not ignore_index:
+                y_inner = VectorizedDF(y_inner, is_scitype=type)
             return y_inner
 
         y_true = _coerce_to_df(y_true, var_name="y_true")
@@ -550,9 +552,7 @@ class _DynamicForecastingErrorMetric(BaseForecastingErrorMetricFunc):
         self.name = name
         self.lower_is_better = lower_is_better
 
-        super(_DynamicForecastingErrorMetric, self).__init__(
-            multioutput=multioutput, multilevel=multilevel
-        )
+        super().__init__(multioutput=multioutput, multilevel=multilevel)
 
         self.set_tags(**{"lower_is_better": lower_is_better})
 

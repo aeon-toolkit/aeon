@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
 Upgraded hybrid ensemble of classifiers from 4 separate time series classification
@@ -27,7 +25,7 @@ class HIVECOTEV2(BaseClassifier):
     Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
     An ensemble of the STC, DrCIF, Arsenal and TDE classifiers from different feature
-    representations using the CAWPE structure as described in [1].
+    representations using the CAWPE structure as described in [1]_.
 
     Parameters
     ----------
@@ -147,14 +145,22 @@ class HIVECOTEV2(BaseClassifier):
         self._arsenal = None
         self._tde = None
 
-        super(HIVECOTEV2, self).__init__()
+        super().__init__()
+
+    _DEFAULT_N_TREES = 500
+    _DEFAULT_N_SHAPELETS = 10000
+    _DEFAULT_N_KERNELS = 2000
+    _DEFAULT_N_ESTIMATORS = 25
+    _DEFAULT_N_PARA_SAMPLES = 250
+    _DEFAULT_MAX_ENSEMBLE_SIZE = 50
+    _DEFAULT_RAND_PARAMS = 50
 
     def _fit(self, X, y):
         """Fit HIVE-COTE 2.0 to training data.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -169,15 +175,21 @@ class HIVECOTEV2(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        # Default values from HC2 paper
         if self.stc_params is None:
-            self._stc_params = {"transform_limit_in_minutes": 120}
+            self._stc_params = {"n_shapelet_samples": HIVECOTEV2._DEFAULT_N_SHAPELETS}
         if self.drcif_params is None:
-            self._drcif_params = {"n_estimators": 500}
+            self._drcif_params = {"n_estimators": HIVECOTEV2._DEFAULT_N_TREES}
         if self.arsenal_params is None:
-            self._arsenal_params = {}
+            self._arsenal_params = {
+                "num_kernels": HIVECOTEV2._DEFAULT_N_KERNELS,
+                "n_estimators": HIVECOTEV2._DEFAULT_N_ESTIMATORS,
+            }
         if self.tde_params is None:
-            self._tde_params = {}
+            self._tde_params = {
+                "n_parameter_samples": HIVECOTEV2._DEFAULT_N_PARA_SAMPLES,
+                "max_ensemble_size": HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE,
+                "randomly_selected_params": HIVECOTEV2._DEFAULT_RAND_PARAMS,
+            }
 
         # If we are contracting split the contract time between each algorithm
         if self.time_limit_in_minutes > 0:
@@ -291,7 +303,7 @@ class HIVECOTEV2(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -312,7 +324,7 @@ class HIVECOTEV2(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

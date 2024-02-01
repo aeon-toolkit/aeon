@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Autocorrelation function transformer.
 
 Efficient implementation for collections using numba.
@@ -36,7 +34,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection import AutocorrelationFunctionTransformer
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=2, n_timepoints=20,
     ...                           random_state=0)
     >>> tnf = AutocorrelationFunctionTransformer(n_lags=10)
@@ -49,6 +47,11 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
       -0.19569665  0.28835692 -0.42359509  0.21378191]]
     """
 
+    _tags = {
+        "fit_is_empty": True,
+        "capability:multivariate": True,
+    }
+
     def __init__(
         self,
         n_lags=100,
@@ -57,7 +60,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
         self.n_lags = n_lags
         self.min_values = min_values
 
-        super(AutocorrelationFunctionTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         n_instances, n_channels, n_timepoints = X.shape

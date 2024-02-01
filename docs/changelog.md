@@ -13,6 +13,8 @@ For upcoming changes and next releases, see our
 [milestones](https://github.com/aeon-toolkit/aeon/milestones). For our long-term plan,
 see our [roadmap](roadmap).
 
+- [Version 0.6.0](changelogs/v0.6.md)
+- [Version 0.5.0](changelogs/v0.5.md)
 - [Version 0.4.0](changelogs/v0.4.md)
 - [Version 0.3.0](changelogs/v0.3.md)
 - [Version 0.2.0](changelogs/v0.2.md)

@@ -1,6 +1,4 @@
-# -*- coding: utf-8 -*-
 """Sklearn to aeon coercion utility."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file).
 
 __author__ = ["fkiraly"]
 

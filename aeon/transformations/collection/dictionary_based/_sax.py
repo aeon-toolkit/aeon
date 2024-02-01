@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Symbolic Aggregate approXimation (SAX) transformer."""
 
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
@@ -62,6 +61,12 @@ class SAX(BaseCollectionTransformer):
     >>> X_test = sax.fit_transform(X_test)
     """
 
+    _tags = {
+        "capability:multivariate": True,
+        "fit_is_empty": True,
+        "algorithm_type": "dictionary",
+    }
+
     def __init__(
         self,
         n_segments=8,
@@ -93,7 +98,7 @@ class SAX(BaseCollectionTransformer):
             distribution_params=self.distribution_params_,
         )
 
-        super(SAX, self).__init__()
+        super().__init__()
 
     def _get_paa(self, X):
         """Transform the input time series to PAA segments.

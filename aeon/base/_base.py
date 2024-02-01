@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Base class template for objects and fittable objects.
 
@@ -59,8 +57,6 @@ import warnings
 from collections import defaultdict
 from copy import deepcopy
 
-import numpy as np
-import pandas as pd
 from sklearn import clone
 from sklearn.base import BaseEstimator as _BaseEstimator
 from sklearn.ensemble._base import _set_random_states
@@ -76,7 +72,7 @@ class BaseObject(_BaseEstimator):
 
     def __init__(self):
         self._tags_dynamic = dict()
-        super(BaseObject, self).__init__()
+        super().__init__()
 
     def __eq__(self, other):
         """Equality dunder. Checks equal class and parameters.
@@ -86,7 +82,7 @@ class BaseObject(_BaseEstimator):
 
         Nested BaseObject descendants from get_params are compared via __eq__ as well.
         """
-        from aeon.utils._testing.deep_equals import deep_equals
+        from aeon.testing.utils.deep_equals import deep_equals
 
         if not isinstance(other, BaseObject):
             return False
@@ -100,14 +96,14 @@ class BaseObject(_BaseEstimator):
         """Reset the object to a clean post-init state.
 
         Equivalent to sklearn.clone but overwrites self.
-        After self.reset() call, self is equal in value to
-        `type(self)(**self.get_params(deep=False))`
+        After ``self.reset()`` call, self is equal in value to
+        ``type(self)(**self.get_params(deep=False))``
 
         Detail behaviour:
         removes any object attributes, except:
-            hyper-parameters = arguments of __init__
+            hyper-parameters = arguments of ``__init__``
             object attributes containing double-underscores, i.e., the string "__"
-        runs __init__ with current values of hyper-parameters (result of get_params)
+        runs ``__init__`` with current values of hyper-parameters (result of get_params)
 
         Not affected by the reset are:
         object attributes containing double-underscores
@@ -134,11 +130,11 @@ class BaseObject(_BaseEstimator):
 
         A clone is a different object without shared references, in post-init state.
         This function is equivalent to returning sklearn.clone of self.
-        Equal in value to `type(self)(**self.get_params(deep=False))`.
+        Equal in value to ``type(self)(**self.get_params(deep=False))``.
 
         Returns
         -------
-        instance of type(self), clone of self (see above)
+        instance of ``type(self)``, clone of self (see above)
         """
         return clone(self)
 
@@ -152,7 +148,7 @@ class BaseObject(_BaseEstimator):
 
         Raises
         ------
-        RuntimeError if cls has varargs in __init__
+        RuntimeError if cls has varargs in ``__init__``
         """
         # fetch the constructor or the original constructor before
         # deprecation wrapping if any
@@ -414,7 +410,7 @@ class BaseObject(_BaseEstimator):
 
         Notes
         -----
-        Changes object state by settting tag values in tag_dict as dynamic tags
+        Changes object state by setting tag values in tag_dict as dynamic tags
         in self.
         """
         tag_update = deepcopy(tag_dict)
@@ -787,7 +783,7 @@ class TagAliaserMixin:
     """
 
     def __init__(self):
-        super(TagAliaserMixin, self).__init__()
+        super().__init__()
 
     @classmethod
     def get_class_tags(cls):
@@ -814,7 +810,7 @@ class TagAliaserMixin:
         >>> from aeon.classification import DummyClassifier
         >>> tags = DummyClassifier.get_class_tags()
         """
-        collected_tags = super(TagAliaserMixin, cls).get_class_tags()
+        collected_tags = super().get_class_tags()
         collected_tags = cls._complete_dict(collected_tags)
         return collected_tags
 
@@ -849,7 +845,7 @@ class TagAliaserMixin:
         True
         """
         cls._deprecate_tag_warn([tag_name])
-        return super(TagAliaserMixin, cls).get_class_tag(
+        return super().get_class_tag(
             tag_name=tag_name, tag_value_default=tag_value_default
         )
 
@@ -864,7 +860,7 @@ class TagAliaserMixin:
             class attribute via nested inheritance and then any overrides
             and new tags from _tags_dynamic object attribute.
         """
-        collected_tags = super(TagAliaserMixin, self).get_tags()
+        collected_tags = super().get_tags()
         collected_tags = self._complete_dict(collected_tags)
         return collected_tags
 
@@ -893,7 +889,7 @@ class TagAliaserMixin:
         ).keys()
         """
         self._deprecate_tag_warn([tag_name])
-        return super(TagAliaserMixin, self).get_tag(
+        return super().get_tag(
             tag_name=tag_name,
             tag_value_default=tag_value_default,
             raise_error=raise_error,
@@ -921,7 +917,7 @@ class TagAliaserMixin:
         self._deprecate_tag_warn(tag_dict.keys())
 
         tag_dict = self._complete_dict(tag_dict)
-        super(TagAliaserMixin, self).set_tags(**tag_dict)
+        super().set_tags(**tag_dict)
         return self
 
     @classmethod
@@ -982,11 +978,11 @@ class BaseEstimator(BaseObject):
 
     def __init__(self):
         self._is_fitted = False
-        super(BaseEstimator, self).__init__()
+        super().__init__()
 
     @property
     def is_fitted(self):
-        """Whether `fit` has been called."""
+        """Whether ``fit`` has been called."""
         return self._is_fitted
 
     def check_is_fitted(self):
@@ -1027,13 +1023,13 @@ class BaseEstimator(BaseObject):
             Dictionary of fitted parameters, paramname : paramvalue
             keys-value pairs include:
 
-            * always: all fitted parameters of this object, as via `get_param_names`
+            * always: all fitted parameters of this object, as via ``get_param_names``
               values are fitted parameter value for that key, of this object
-            * if `deep=True`, also contains keys/value pairs of component parameters
-              parameters of components are indexed as `[componentname]__[paramname]`
-              all parameters of `componentname` appear as `paramname` with its value
-            * if `deep=True`, also contains arbitrary levels of component recursion,
-              e.g., `[componentname]__[componentcomponentname]__[paramname]`, etc.
+            * if ``deep=True``, also contains keys/value pairs of component parameters
+              parameters of components are indexed as ``[componentname]__[paramname]``
+              all parameters of ``componentname`` appear as ``paramname`` with its value
+            * if ``deep=True``, also contains arbitrary levels of component recursion,
+              e.g., ``[componentname]__[componentcomponentname]__[paramname]``, etc.
         """
         if not self.is_fitted:
             raise NotFittedError(
@@ -1124,31 +1120,6 @@ class BaseEstimator(BaseObject):
             fitted parameters, keyed by names of fitted parameter.
         """
         return self._get_fitted_params_default()
-
-    def _internal_convert(self, X, y=None):
-        """Convert X and y to supported types.
-
-        Convert X to a 3D numpy array if it is a 2D and convert y into an 1D numpy
-        array if passed as a pd.Series. Used in classification, regression and
-        clustering.
-
-        Parameters
-        ----------
-        X : an object of any supported type.
-        y : np.ndarray or pd.Series.
-
-        Returns
-        -------
-        X: a numpy3D if X was a 2D numpy.ndarray, otherwise X is unchanged.
-        y: np.ndarray.
-        """
-        if isinstance(X, np.ndarray) and X.ndim == 2:
-            X = X.reshape(X.shape[0], 1, X.shape[1])
-        if y is not None and isinstance(y, pd.Series):
-            y = pd.Series.to_numpy(y)
-        if y is None:
-            return X
-        return X, y
 
 
 def _clone_estimator(base_estimator, random_state=None):

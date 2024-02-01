@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """Test function of DummyClassifier."""
+
 import numpy as np
 
 from aeon.classification import DummyClassifier

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """RandOm Convolutional KErnel Transform (Rocket) regressor.
 
 Pipeline regressor using the ROCKET transformer and RidgeCV estimator.
@@ -9,10 +8,10 @@ __all__ = ["RocketRegressor"]
 
 import numpy as np
 from sklearn.linear_model import RidgeCV
+from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
-from aeon.pipeline import make_pipeline
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
@@ -29,8 +28,8 @@ class RocketRegressor(BaseRegressor):
     This regressor simply transforms the input data using the Rocket [1]_
     transformer and builds a RidgeCV estimator using the transformed data.
 
-    The regressor can be configured to use Rocket [1]_, MiniRocket [2] or
-    MultiRocket [3].
+    The regressor can be configured to use Rocket [1]_, MiniRocket [2]_ or
+    MultiRocket [3]_.
 
     Parameters
     ----------
@@ -78,12 +77,12 @@ class RocketRegressor(BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.convolution_based import RocketRegressor
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> reg = RocketRegressor(num_kernels=500)
     >>> reg.fit(X_train, y_train)
-    RocketRegressor(...)
+    RocketRegressor(num_kernels=500)
     >>> y_pred = reg.predict(X_test)
     """
 
@@ -112,7 +111,7 @@ class RocketRegressor(BaseRegressor):
         self.estimator = estimator
         self.n_jobs = n_jobs
 
-        super(RocketRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Rocket variant to training data.
@@ -178,9 +177,11 @@ class RocketRegressor(BaseRegressor):
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
-            RidgeCV(alphas=np.logspace(-3, 3, 10))
-            if self.estimator is None
-            else self.estimator,
+            (
+                RidgeCV(alphas=np.logspace(-3, 3, 10))
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
         self.pipeline_ = make_pipeline(
@@ -196,7 +197,7 @@ class RocketRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns

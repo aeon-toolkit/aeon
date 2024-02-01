@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements forecasters for combining forecasts via stacking."""
 
 __author__ = ["mloning", "fkiraly", "indinewton"]
@@ -65,12 +62,12 @@ class StackingForecaster(_HeterogenousEnsembleForecaster):
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": True,
         "capability:missing_values": True,
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         "X-y-must-have-same-index": True,
     }
 
     def __init__(self, forecasters, regressor=None, random_state=None, n_jobs=None):
-        super(StackingForecaster, self).__init__(forecasters=forecasters, n_jobs=n_jobs)
+        super().__init__(forecasters=forecasters, n_jobs=n_jobs)
         self.regressor = regressor
         self.random_state = random_state
 

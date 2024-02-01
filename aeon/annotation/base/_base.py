@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 Base class template for annotator base type for time series stream.
 
     class name: BaseSeriesAnnotator
 
-Scitype defining methods:
+Class defining methods:
     fitting              - fit(self, X, Y=None)
     annotating           - predict(self, X)
     updating (temporal)  - update(self, X, Y=None)
@@ -67,7 +66,7 @@ class BaseSeriesAnnotator(BaseEstimator):
         self._X = None
         self._Y = None
 
-        super(BaseSeriesAnnotator, self).__init__()
+        super().__init__()
 
     def fit(self, X, Y=None):
         """Fit to training data.

@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """UnobservedComponents Tests."""
+
 __author__ = ["juanitorduz"]
 
 import numpy as np

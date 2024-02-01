@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
 """Benchmarking interface for use with aeon objects.
 
 Wraps kotsu benchmarking package.
 """
+
 from typing import Callable, Optional, Union
 from warnings import warn
 

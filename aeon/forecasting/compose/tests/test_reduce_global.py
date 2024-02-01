@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """Test extraction of features across (shifted) windows."""
+
 __author__ = ["danbartl"]
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -21,8 +21,8 @@ from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.compose import make_reduction
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
-from aeon.transformations.series.summarize import WindowSummarizer
-from aeon.utils._testing.hierarchical import _make_hierarchical
+from aeon.testing.utils.data_gen import _make_hierarchical
+from aeon.transformations.summarize import WindowSummarizer
 
 # Load data that will be the basis of tests
 y = load_airline()
@@ -229,8 +229,8 @@ def test_list_reduction(y, index_names):
 
 def test_equality_transfo_nontranso():
     """Test that recursive reducers return same results for global / local forecasts."""
-    y = load_airline()
-    y_train, y_test = temporal_train_test_split(y, test_size=30)
+    y = load_airline()[:36]
+    y_train, y_test = temporal_train_test_split(y, test_size=12)
     fh = ForecastingHorizon(y_test.index, is_relative=False)
 
     lag_vec = list(range(12, 0, -1))

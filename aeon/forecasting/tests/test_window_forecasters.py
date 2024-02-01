@@ -1,7 +1,4 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """Tests for window forecasters."""
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 
 __author__ = ["mloning"]
 
@@ -11,8 +8,7 @@ import pytest
 from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.registry import all_estimators
-from aeon.utils._testing.forecasting import make_forecasting_problem
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.data_gen import make_forecasting_problem, make_series
 
 FH0 = 1
 
@@ -34,7 +30,7 @@ def test_last_window(Forecaster):
     n_columns = 1
 
     f = Forecaster.create_test_instance()
-    y_train = _make_series(n_columns=n_columns)
+    y_train = make_series(n_columns=n_columns)
     # passing the same fh to both fit and predict works
     f.fit(y_train, fh=FH0)
 

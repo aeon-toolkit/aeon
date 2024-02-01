@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Testing panel converters - internal functions and more extensive fixtures."""
 
 import numpy as np
@@ -9,13 +8,12 @@ from aeon.datatypes._series_as_panel import (
     convert_Panel_to_Series,
     convert_Series_to_Panel,
 )
-from aeon.utils._testing.collection import make_3d_test_data
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.data_gen import make_3d_test_data, make_series
 
 
 def test_convert_numpy_series_to_collection():
     """Test output format of series-to-panel for numpy type input."""
-    X_series = _make_series(n_columns=2, return_numpy=True)
+    X_series = make_series(n_columns=2, return_numpy=True)
     n_time, n_var = X_series.shape
 
     X_collection = convert_Series_to_Panel(X_series)
@@ -39,7 +37,7 @@ def test_convert_numpy_collection_to_series():
 
 def test_convert_df_series_to_collection():
     """Test output format of series-to-panel for dataframe type input."""
-    X_series = _make_series(n_columns=2, return_numpy=False)
+    X_series = make_series(n_columns=2, return_numpy=False)
     X_collection = convert_Series_to_Panel(X_series)
 
     assert isinstance(X_collection, list)

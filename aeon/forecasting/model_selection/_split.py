@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implement dataset splitting for model evaluation and selection."""
 
 __all__ = [
@@ -341,7 +338,7 @@ class BaseSplitter(BaseObject):
         self.window_length = window_length
         self.fh = fh
 
-        super(BaseSplitter, self).__init__()
+        super().__init__()
 
     def split(self, y: ACCEPTED_Y_TYPES) -> SPLIT_GENERATOR_TYPE:
         """Get iloc references to train/test splits of `y`.
@@ -522,7 +519,7 @@ class BaseSplitter(BaseObject):
             "np.ndarray",
             "nested_univ",
             "numpy3D",
-            # "numpyflat",
+            # "numpy2D",
             "pd-multiindex",
             # "pd-wide",
             # "pd-long",
@@ -688,7 +685,7 @@ class CutoffSplitter(BaseSplitter):
     ) -> None:
         _check_inputs_for_compatibility([fh, cutoffs, window_length])
         self.cutoffs = cutoffs
-        super(CutoffSplitter, self).__init__(fh, window_length)
+        super().__init__(fh, window_length)
 
     def _split(self, y: pd.Index) -> SPLIT_GENERATOR_TYPE:
         n_timepoints = y.shape[0]
@@ -795,7 +792,7 @@ class BaseWindowSplitter(BaseSplitter):
         self.step_length = step_length
         self.start_with_window = start_with_window
         self.initial_window = initial_window
-        super(BaseWindowSplitter, self).__init__(fh=fh, window_length=window_length)
+        super().__init__(fh=fh, window_length=window_length)
 
     @property
     def _initial_window(self):
@@ -823,8 +820,7 @@ class BaseWindowSplitter(BaseSplitter):
         if self._initial_window is not None:
             yield self._split_for_initial_window(y)
 
-        for train, test in self._split_windows(window_length=window_length, y=y, fh=fh):
-            yield train, test
+        yield from self._split_windows(window_length=window_length, y=y, fh=fh)
 
     def _split_for_initial_window(self, y: pd.Index) -> SPLIT_ARRAY_TYPE:
         """Get train/test splits for non-empty initial window.
@@ -1091,7 +1087,7 @@ class SlidingWindowSplitter(BaseWindowSplitter):
         initial_window: Optional[ACCEPTED_WINDOW_LENGTH_TYPES] = None,
         start_with_window: bool = True,
     ) -> None:
-        super(SlidingWindowSplitter, self).__init__(
+        super().__init__(
             fh=fh,
             window_length=window_length,
             initial_window=initial_window,
@@ -1160,7 +1156,7 @@ class ExpandingWindowSplitter(BaseWindowSplitter):
         # Note that we pass the initial window as the window_length below. This
         # allows us to use the common logic from the parent class, while at the same
         # time expose the more intuitive name for the ExpandingWindowSplitter.
-        super(ExpandingWindowSplitter, self).__init__(
+        super().__init__(
             fh=fh,
             window_length=initial_window,
             initial_window=None,
@@ -1218,7 +1214,7 @@ class SingleWindowSplitter(BaseSplitter):
         window_length: Optional[ACCEPTED_WINDOW_LENGTH_TYPES] = None,
     ) -> None:
         _check_inputs_for_compatibility(args=[fh, window_length])
-        super(SingleWindowSplitter, self).__init__(fh=fh, window_length=window_length)
+        super().__init__(fh=fh, window_length=window_length)
 
     def _split(self, y: pd.Index) -> SPLIT_GENERATOR_TYPE:
         n_timepoints = y.shape[0]

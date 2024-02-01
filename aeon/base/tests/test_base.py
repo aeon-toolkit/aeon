@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
 Tests for BaseObject universal base class.
 
@@ -37,8 +35,6 @@ __all__ = [
 
 from copy import deepcopy
 
-import numpy as np
-import pandas as pd
 import pytest
 
 from aeon.base import BaseEstimator, BaseObject
@@ -279,7 +275,7 @@ def test_components():
     assert set(non_comp_comps.keys()) == set()
 
     assert isinstance(comp_comps, dict)
-    assert set(comp_comps.keys()) == set(["foo_"])
+    assert set(comp_comps.keys()) == {"foo_"}
     assert comp_comps["foo_"] is composite.foo_
     assert comp_comps["foo_"] is not composite.foo
 
@@ -318,11 +314,11 @@ def test_get_fitted_params():
     comp_f_params_shallow = composite.get_fitted_params(deep=False)
 
     assert isinstance(non_comp_f_params, dict)
-    assert set(non_comp_f_params.keys()) == set(["foo"])
+    assert set(non_comp_f_params.keys()) == {"foo"}
 
     assert isinstance(comp_f_params, dict)
-    assert set(comp_f_params) == set(["foo", "foo__foo"])
-    assert set(comp_f_params_shallow) == set(["foo"])
+    assert set(comp_f_params) == {"foo", "foo__foo"}
+    assert set(comp_f_params_shallow) == {"foo"}
     assert comp_f_params["foo"] is composite.foo_
     assert comp_f_params["foo"] is not composite.foo
     assert comp_f_params_shallow["foo"] is composite.foo_
@@ -370,17 +366,3 @@ def test_eq_dunder():
     assert composite == composite_2
     assert composite != composite_3
     assert composite_2 != composite_3
-
-
-def test_internal_convert():
-    """Tests the convenience conversion for input.
-
-    Tests:
-        2D numpy X converted to 3D, pd.Series y converted to numpy.
-    """
-    X = np.zeros(shape=(10, 20))
-    base = BaseEstimator()
-    y = pd.Series(np.zeros(10))
-    X, y = base._internal_convert(X, y)
-    assert X.ndim == 3
-    assert isinstance(y, np.ndarray)

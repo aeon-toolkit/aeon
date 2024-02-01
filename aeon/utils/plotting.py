@@ -1,7 +1,7 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-"""Common timeseries plotting functionality."""
+"""Common timeseries plotting functionality.
+
+Moved to aeon.visualisation in v0.6.*. todo remove in v0.8.0
+"""
 
 __all__ = ["plot_series", "plot_correlations", "plot_windows"]
 __author__ = ["mloning", "RNKuhns", "Drishti Bhasin", "chillerobscuro"]
@@ -11,13 +11,20 @@ from warnings import simplefilter, warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
-from aeon.datatypes import convert_to
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_interval_df, check_y
 from aeon.utils.validation.series import check_consistent_index_type
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_series has moved to aeon.visualisation, this version will be removed "
+    "in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_series(
     *series,
     labels=None,
@@ -34,17 +41,17 @@ def plot_series(
     Parameters
     ----------
     series : pd.Series or iterable of pd.Series
-        One or more time series
+        One or more time series.
     labels : list, default = None
-        Names of series, will be displayed in figure legend
-    markers: list, default = None
+        Names of series, will be displayed in figure legend.
+    markers : list, default = None
         Markers of data points, if None the marker "o" is used by default.
         The length of the list has to match with the number of series.
-    colors: list, default = None
+    colors : list, default = None
         The colors to use for plotting each series. Must contain one color per series
-    title: str, default = None
-        The text to use as the figure's suptitle
-    pred_interval: pd.DataFrame, default = None
+    title : str, default = None
+        The text to use as the figure's suptitle.
+    pred_interval : pd.DataFrame, default = None
         Output of `forecaster.predict_interval()`. Contains columns for lower
         and upper boundaries of confidence interval.
 
@@ -70,7 +77,6 @@ def plot_series(
         check_y(y, allow_index_names=True)
 
     series = list(series)
-    series = [convert_to(y, "pd.Series", "Series") for y in series]
 
     n_series = len(series)
     _ax_kwarg_is_none = True if ax is None else False
@@ -162,6 +168,13 @@ def plot_series(
         return ax
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_interval has moved to aeon.visualisation, this version will be "
+    "removed in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_interval(ax, interval_df):
     cov = interval_df.columns.levels[1][0]
     ax.fill_between(
@@ -176,6 +189,13 @@ def plot_interval(ax, interval_df):
     return ax
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_lags has moved to aeon.visualisation, this version will be removed "
+    "in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_lags(series, lags=1, suptitle=None):
     """Plot one or more lagged versions of a time series.
 
@@ -250,6 +270,13 @@ def plot_lags(series, lags=1, suptitle=None):
     return fig, np.array(fig.get_axes())
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_correlations has moved to aeon.visualisation, this version will be "
+    "removed in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_correlations(
     series,
     lags=24,
@@ -323,7 +350,6 @@ def plot_correlations(
     from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
     series = check_y(series)
-    series = convert_to(series, "pd.Series", "Series")
 
     # Setup figure for plotting
     fig = plt.figure(constrained_layout=True, figsize=(12, 8))
@@ -383,6 +409,13 @@ def _get_windows(cv, y):
     return train_windows, test_windows
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_windows has moved to aeon.visualisation, this version will be removed "
+    "in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_windows(cv, y, title=""):
     """Plot training and test windows.
 
@@ -446,5 +479,5 @@ def plot_windows(cv, y, title=""):
         xticklabels=y.index,
     )
     # remove duplicate labels/handles
-    handles, labels = [(leg[:2]) for leg in ax.get_legend_handles_labels()]
+    handles, labels = ((leg[:2]) for leg in ax.get_legend_handles_labels())
     ax.legend(handles, labels)

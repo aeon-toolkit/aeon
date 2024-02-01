@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Arsenal classifier.
 
 kernel based ensemble of ROCKET classifiers.
@@ -154,14 +153,14 @@ class Arsenal(BaseClassifier):
 
         self._weight_sum = 0
 
-        super(Arsenal, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Arsenal to training data.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -223,11 +222,15 @@ class Arsenal(BaseClassifier):
                     delayed(self._fit_estimator)(
                         _clone_estimator(
                             base_rocket,
-                            None
-                            if self.random_state is None
-                            else (255 if self.random_state == 0 else self.random_state)
-                            * 37
-                            * (i + 1),
+                            (
+                                None
+                                if self.random_state is None
+                                else (
+                                    255 if self.random_state == 0 else self.random_state
+                                )
+                                * 37
+                                * (i + 1)
+                            ),
                         ),
                         X,
                         y,
@@ -247,11 +250,13 @@ class Arsenal(BaseClassifier):
                 delayed(self._fit_estimator)(
                     _clone_estimator(
                         base_rocket,
-                        None
-                        if self.random_state is None
-                        else (255 if self.random_state == 0 else self.random_state)
-                        * 37
-                        * (i + 1),
+                        (
+                            None
+                            if self.random_state is None
+                            else (255 if self.random_state == 0 else self.random_state)
+                            * 37
+                            * (i + 1)
+                        ),
                     ),
                     X,
                     y,
@@ -275,7 +280,7 @@ class Arsenal(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -296,7 +301,7 @@ class Arsenal(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -341,10 +346,13 @@ class Arsenal(BaseClassifier):
         if not self.save_transformed_data:
             raise ValueError("Currently only works with saved transform data from fit.")
 
+        rng = check_random_state(self.random_state)
+
         p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._train_probas_for_estimator)(
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(self.n_estimators)
         )
@@ -383,15 +391,7 @@ class Arsenal(BaseClassifier):
             weights[i, self._class_dictionary[preds[i]]] += self.weights_[idx]
         return weights
 
-    def _train_probas_for_estimator(self, y, idx):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = (
-            None
-            if self.random_state is None
-            else (rs * 37 * (idx + 1)) % np.iinfo(np.int32).max
-        )
-        rng = check_random_state(rs)
-
+    def _train_probas_for_estimator(self, y, idx, rng):
         indices = range(self.n_instances_)
         subsample = rng.choice(self.n_instances_, size=self.n_instances_)
         oob = [n for n in indices if n not in subsample]

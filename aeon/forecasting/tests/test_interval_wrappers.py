@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Tests the conformal interval wrapper."""
 
 __author__ = ["fkiraly", "bethrice44"]
@@ -18,18 +16,26 @@ from aeon.forecasting.model_selection import (
 )
 from aeon.forecasting.naive import NaiveForecaster, NaiveVariance
 from aeon.performance_metrics.forecasting.probabilistic import PinballLoss
+from aeon.testing.test_config import PR_TESTING
 
-INTERVAL_WRAPPERS = [ConformalIntervals, NaiveVariance]
-CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
-EVALUATE_STRATEGY = ["update", "refit"]
-SAMPLE_FRACS = [None, 0.5]
-MTYPES_SERIES = scitype_to_mtype("Series", softdeps="present")
+if PR_TESTING:
+    INTERVAL_WRAPPERS = [NaiveVariance]
+    CV_SPLITTERS = [SlidingWindowSplitter]
+    EVALUATE_STRATEGY = ["update"]
+    SAMPLE_FRACS = [0.5]
+    SERIES_TYPES = ["pd.Series", "pd.DataFrame"]
+else:
+    INTERVAL_WRAPPERS = [ConformalIntervals, NaiveVariance]
+    CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
+    EVALUATE_STRATEGY = ["update", "refit"]
+    SAMPLE_FRACS = [None, 0.5]
+    SERIES_TYPES = scitype_to_mtype("Series", softdeps="present")
 
 
-@pytest.mark.parametrize("mtype", MTYPES_SERIES)
-@pytest.mark.parametrize("override_y_mtype", [True, False])
 @pytest.mark.parametrize("wrapper", INTERVAL_WRAPPERS)
-def test_wrapper_series_mtype(wrapper, override_y_mtype, mtype):
+@pytest.mark.parametrize("override_y_type", [True, False])
+@pytest.mark.parametrize("input_type", SERIES_TYPES)
+def test_wrapper_series_mtype(wrapper, override_y_type, input_type):
     """Test that interval wrappers behave nicely with different internal y_mtypes.
 
     The wrappers require y to be pd.Series, and the internal estimator can have
@@ -40,15 +46,15 @@ def test_wrapper_series_mtype(wrapper, override_y_mtype, mtype):
     We test once with an internal forecaster that needs pd.DataFrame conversion,
     and one that accepts pd.Series.
     We do this with a trick: the vanilla NaiveForecaster can accept both; we mimick a
-    "pd.DataFrame only" forecaster by restricting its y_inner_mtype tag to pd.Series.
+    "pd.DataFrame only" forecaster by restricting its y_inner_type tag to pd.Series.
     """
     y = load_airline()
-    y = convert_to(y, to_type=mtype)
+    y = convert_to(y, to_type=input_type)
 
     f = NaiveForecaster()
 
-    if override_y_mtype:
-        f.set_tags(**{"y_inner_mtype": "pd.DataFrame"})
+    if override_y_type:
+        f.set_tags(**{"y_inner_type": "pd.DataFrame"})
 
     interval_forecaster = wrapper(f)
     interval_forecaster.fit(y, fh=[1, 2, 3])

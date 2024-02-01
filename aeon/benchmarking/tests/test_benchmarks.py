@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """Benchmarks tests."""
+
 from typing import Callable
 
 import pandas as pd

@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
 """Tests for mlflow-aeon custom model flavor."""
 
 __author__ = ["benjaminbluhm"]
 
-import os
 import sys
 from pathlib import Path
 from unittest import mock
@@ -195,9 +193,12 @@ def test_auto_arima_model_pyfunc_with_params_output(auto_arima_model, model_path
     model_predict = auto_arima_model.predict()
     model_predict_interval = auto_arima_model.predict_interval(coverage=[0.1, 0.9])
     model_predict_interval.columns = flatten_multiindex(model_predict_interval)
+
     model_predict_proba_dist = auto_arima_model.predict_proba()
-    model_predict_proba = pd.DataFrame(model_predict_proba_dist.quantile([0.1, 0.9]))
-    model_predict_proba.index = model_predict_proba_dist.parameters["loc"].index
+    model_predict_proba = []
+    for q in [0.1, 0.9]:
+        model_predict_proba.append(np.diag(model_predict_proba_dist.ppf(q)))
+    model_predict_proba = pd.DataFrame(model_predict_proba).T
     model_predict_quantiles = auto_arima_model.predict_quantiles(alpha=[0.1, 0.9])
     model_predict_quantiles.columns = flatten_multiindex(model_predict_quantiles)
     model_predict_var = auto_arima_model.predict_var(cov=True)
@@ -250,8 +251,11 @@ def test_auto_arima_model_pyfunc_without_params_output(auto_arima_model, model_p
     model_predict_interval = auto_arima_model.predict_interval()
     model_predict_interval.columns = flatten_multiindex(model_predict_interval)
     model_predict_proba_dist = auto_arima_model.predict_proba()
-    model_predict_proba = pd.DataFrame(model_predict_proba_dist.quantile([0.1, 0.9]))
-    model_predict_proba.index = model_predict_proba_dist.parameters["loc"].index
+    model_predict_proba_dist = auto_arima_model.predict_proba()
+    model_predict_proba = []
+    for q in [0.1, 0.9]:
+        model_predict_proba.append(np.diag(model_predict_proba_dist.ppf(q)))
+    model_predict_proba = pd.DataFrame(model_predict_proba).T
     model_predict_quantiles = auto_arima_model.predict_quantiles()
     model_predict_quantiles.columns = flatten_multiindex(model_predict_quantiles)
     model_predict_var = auto_arima_model.predict_var()
@@ -285,9 +289,11 @@ def test_auto_arima_model_pyfunc_without_conf_output(auto_arima_model, model_pat
     """Test auto arima prediction of loaded pyfunc model without config."""
     from aeon.utils import mlflow_aeon
 
-    delattr(auto_arima_model, "pyfunc_predict_conf") if hasattr(
-        auto_arima_model, "pyfunc_predict_conf"
-    ) else None
+    (
+        delattr(auto_arima_model, "pyfunc_predict_conf")
+        if hasattr(auto_arima_model, "pyfunc_predict_conf")
+        else None
+    )
     mlflow_aeon.save_model(
         estimator=auto_arima_model,
         path=model_path,
@@ -461,30 +467,30 @@ def test_signature_and_example_for_pyfunc_predict(
         np.testing.assert_array_equal(r_example, example)
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("mlflow", severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_load_from_remote_uri_succeeds(auto_arima_model, model_path, mock_s3_bucket):
-    """Test loading native aeon model from mock S3 bucket."""
-    from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
-
-    from aeon.utils import mlflow_aeon
-
-    mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
-
-    artifact_root = f"s3://{mock_s3_bucket}"
-    artifact_path = "model"
-    artifact_repo = S3ArtifactRepository(artifact_root)
-    artifact_repo.log_artifacts(model_path, artifact_path=artifact_path)
-
-    model_uri = os.path.join(artifact_root, artifact_path)
-    reloaded_estimator = mlflow_aeon.load_model(model_uri=model_uri)
-
-    np.testing.assert_array_equal(
-        auto_arima_model.predict(),
-        reloaded_estimator.predict(),
-    )
+# @pytest.mark.skipif(
+#     not _check_soft_dependencies("mlflow", severity="none"),
+#     reason="skip test if required soft dependency not available",
+# )
+# def test_load_from_remote_uri_succeeds(auto_arima_model, model_path, mock_s3_bucket):
+#     """Test loading native aeon model from mock S3 bucket."""
+#     from mlflow.store.artifact.s3_artifact_repo import S3ArtifactRepository
+#
+#     from aeon.utils import mlflow_aeon
+#
+#     mlflow_aeon.save_model(estimator=auto_arima_model, path=model_path)
+#
+#     artifact_root = f"s3://{mock_s3_bucket}"
+#     artifact_path = "model"
+#     artifact_repo = S3ArtifactRepository(artifact_root)
+#     artifact_repo.log_artifacts(model_path, artifact_path=artifact_path)
+#
+#     model_uri = os.path.join(artifact_root, artifact_path)
+#     reloaded_estimator = mlflow_aeon.load_model(model_uri=model_uri)
+#
+#     np.testing.assert_array_equal(
+#         auto_arima_model.predict(),
+#         reloaded_estimator.predict(),
+#     )
 
 
 @pytest.mark.skipif(

@@ -1,14 +1,19 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests common to all transformers."""
 
-__author__ = ["mloning", "fkiraly"]
+__author__ = ["mloning", "fkiraly", "MatthewMiddlehurst"]
 __all__ = []
 
+import numpy as np
 import pandas as pd
+from sklearn.utils._testing import set_random_state
 
-from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
+from aeon.datasets import load_basic_motions, load_unit_test
+from aeon.testing.expected_results.expected_transform_outputs import (
+    basic_motions_result,
+    unit_test_result,
+)
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 
 
 class TransformerFixtureGenerator(BaseFixtureGenerator):
@@ -72,3 +77,49 @@ class TestAllTransformers(TransformerFixtureGenerator, QuickTester):
             _assert_array_almost_equal(X, Xit)
         elif isinstance(X, pd.DataFrame):
             _assert_array_almost_equal(X.loc[Xit.index], Xit)
+
+    def test_transformer_against_expected_results(self, estimator_class):
+        """Test transformer against stored results."""
+        # we only use the first estimator instance for testing
+        classname = estimator_class.__name__
+
+        for data_name, data_dict, data_loader, data_seed in [
+            ["UnitTest", unit_test_result, load_unit_test, 0],
+            ["BasicMotions", basic_motions_result, load_basic_motions, 4],
+        ]:
+            # retrieve expected transform output, and skip test if not available
+            if classname in data_dict.keys():
+                expected_results = data_dict[classname]
+            else:
+                # skip test if no expected results are registered
+                continue
+
+            # we only use the first estimator instance for testing
+            estimator_instance = estimator_class.create_test_instance(
+                parameter_set="results_comparison"
+            )
+            # set random seed if possible
+            set_random_state(estimator_instance, 0)
+
+            # load test data
+            X_train, y_train = data_loader(split="train")
+            indices = np.random.RandomState(data_seed).choice(
+                len(y_train), 5, replace=False
+            )
+
+            # fir transformer and transform
+            results = np.nan_to_num(
+                estimator_instance.fit_transform(X_train[indices], y_train[indices]),
+                False,
+                0,
+                0,
+                0,
+            )
+
+            # assert results are the same
+            _assert_array_almost_equal(
+                results,
+                expected_results,
+                decimal=2,
+                err_msg=f"Failed to reproduce results for {classname} on {data_name}",
+            )

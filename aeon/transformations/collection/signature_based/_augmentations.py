@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 from sklearn.pipeline import Pipeline
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
 def _make_augmentation_pipeline(augmentation_list):
@@ -61,7 +60,7 @@ def _make_augmentation_pipeline(augmentation_list):
     return pipeline
 
 
-class _AddTime(BaseTransformer):
+class _AddTime(BaseCollectionTransformer):
     """Add time component to each path.
 
     For a path of shape [B, L, C] this adds a time channel to be placed at the
@@ -70,13 +69,7 @@ class _AddTime(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "capability:multivariate": True,
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
     }
 
@@ -92,7 +85,7 @@ class _AddTime(BaseTransformer):
         return np.swapaxes(Xt, 1, 2)
 
 
-class _InvisibilityReset(BaseTransformer):
+class _InvisibilityReset(BaseCollectionTransformer):
     """Add 'invisibility-reset' dimension to the path.
 
     This adds sensitivity to translation.
@@ -101,13 +94,7 @@ class _InvisibilityReset(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
+        "capability:multivariate": True,
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
     }
 
@@ -133,7 +120,7 @@ class _InvisibilityReset(BaseTransformer):
         return Xt
 
 
-class _LeadLag(BaseTransformer):
+class _LeadLag(BaseCollectionTransformer):
     """Applies the lead-lag transformation to each path.
 
     We take the lead of an input stream, and augment it with the lag of the
@@ -147,14 +134,8 @@ class _LeadLag(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "capability:multivariate": True,
+        "fit_is_empty": True,
     }
 
     def _transform(self, X, y=None):
@@ -174,7 +155,7 @@ class _LeadLag(BaseTransformer):
         return Xt
 
 
-class _CumulativeSum(BaseTransformer):
+class _CumulativeSum(BaseCollectionTransformer):
     """Cumulatively sums the values in the stream.
 
     Introduced in: https://arxiv.org/pdf/1603.03788.pdf
@@ -186,19 +167,13 @@ class _CumulativeSum(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "fit_is_empty": True,
+        "capability:multivariate": True,
     }
 
     def __init__(self, append_zero=False):
         self.append_zero = append_zero
-        super(_CumulativeSum, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         if self.append_zero:
@@ -207,21 +182,15 @@ class _CumulativeSum(BaseTransformer):
         return Xt
 
 
-class _BasePoint(BaseTransformer):
+class _BasePoint(BaseCollectionTransformer):
     """Appends a zero starting vector to every path.
 
     Introduced in: https://arxiv.org/pdf/2001.00706.pdf
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        # what scitype is returned: Primitives, Series, Panel
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "fit_is_empty": True,
+        "capability:multivariate": True,
     }
 
     def _transform(self, X, y=None):

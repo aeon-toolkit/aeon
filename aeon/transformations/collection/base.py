@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """
-Base class template for panel transformers.
+Base class template for Collection transformers.
 
-    class name: BasePanelTransformer
+    class name: BaseCollectionTransformer
 
 Defining methods:
     fitting         - fit(self, X, y=None)
@@ -27,78 +25,74 @@ __all__ = [
 ]
 
 from abc import ABCMeta, abstractmethod
+from typing import final
 
-from aeon.datatypes import check_is_scitype, convert_to, mtype_to_scitype, update_data
-from aeon.transformations.base import BaseTransformer, _coerce_to_list
+import numpy as np
+import pandas as pd
+
+from aeon.base import BaseCollectionEstimator
+from aeon.datatypes import update_data
+from aeon.transformations.base import BaseTransformer
 
 
-class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
-    """Transformer base class."""
+class BaseCollectionTransformer(
+    BaseCollectionEstimator, BaseTransformer, metaclass=ABCMeta
+):
+    """Transformer base class for collections."""
 
-    # default tag values - these typically make the "safest" assumption
+    # tag values specific to CollectionTransformers
     _tags = {
-        "scitype:transform-input": "Panel",
-        "scitype:transform-output": "Panel",
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
-        "capability:unequal_length": False,
+        "input_data_type": "Collection",
+        "output_data_type": "Collection",
+        "fit_is_empty": False,
+        "requires_y": False,
+        "capability:inverse_transform": False,
     }
 
-    # allowed types for transformers - Series and Panel
-    ALLOWED_INPUT_TYPES = [
-        "numpy3D",
-        "numpyflat",
-        "np-list",
-        "pd-multiindex",
-        "df-list",
-        "nested_univ",
-    ]
-
     def __init__(self):
-        super(BaseCollectionTransformer, self).__init__(_output_convert=False)
+        super().__init__()
 
+    @final
     def fit(self, X, y=None):
-        """Fit transformer to X, optionally to y.
+        """Fit transformer to X, optionally using y if supervised.
 
         State change:
             Changes state to "fitted".
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
         model attributes (ending in "_") : dependent on estimator
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
-            Data to fit transform to, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
             Additional data, e.g., labels for transformation
 
         Returns
         -------
         self : a fitted instance of the estimator
         """
-        # input checks and datatype conversion
-        X_inner, y_inner = self._fit_checks(X, y)
-
+        if self.get_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
             return self
+        self.reset()
 
+        # input checks and datatype conversion
+        X_inner = self._preprocess_collection(X)
+        y_inner = y
         self._fit(X=X_inner, y=y_inner)
 
-        # this should happen last: fitted state is set to True
         self._is_fitted = True
 
         return self
 
+    @final
     def transform(self, X, y=None):
         """Transform X and return a transformed version.
 
@@ -112,54 +106,27 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
-            Data to be transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
             Additional data, e.g., labels for transformation
 
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
-            |          | `transform`  |                        |
-            |   `X`    |  `-output`   |     type of return     |
-            |----------|--------------|------------------------|
-            | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
-            | `Panel`  | `Primitives` | `pd.DataFrame`         |
-            | `Series` | `Series`     | `Series`               |
-            | `Panel`  | `Series`     | `Panel`                |
-            | `Series` | `Panel`      | `Panel`                |
-        instances in return correspond to instances in `X`
-        combinations not in the table are currently not supported
-
-        Explicitly, with examples:
-            if `X` is `Series` (e.g., `pd.DataFrame`) and `transform-output` is `Series`
-                then the return is a single `Series` of the same mtype
-                Example: detrending a single series
-            if `X` is `Panel` (e.g., `pd-multiindex`) and `transform-output` is `Series`
-                then the return is `Panel` with same number of instances as `X`
-                    (the transformer is applied to each input Series instance)
-                Example: all series in the panel are detrended individually
-            if `X` is `Series` or `Panel` and `transform-output` is `Primitives`
-                then the return is `pd.DataFrame` with as many rows as instances in `X`
-                Example: i-th row of the return has mean and variance of the i-th series
-            if `X` is `Series` and `transform-output` is `Panel`
-                then the return is a `Panel` object of type `pd-multiindex`
-                Example: i-th instance of the output is the i-th window running over `X`
         """
         # check whether is fitted
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
+        X_inner = self._preprocess_collection(X)
+        y_inner = y
 
         Xt = self._transform(X=X_inner, y=y_inner)
 
         return Xt
 
+    @final
     def fit_transform(self, X, y=None):
         """
         Fit to data, then transform it.
@@ -178,46 +145,19 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
-            Data to be transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation.
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
 
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
-            |   `X`    | `tf-output`  |     type of return     |
-            |----------|--------------|------------------------|
-            | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
-            | `Panel`  | `Primitives` | `pd.DataFrame`         |
-            | `Series` | `Series`     | `Series`               |
-            | `Panel`  | `Series`     | `Panel`                |
-            | `Series` | `Panel`      | `Panel`                |
-        instances in return correspond to instances in `X`
-        combinations not in the table are currently not supported
-
-        Explicitly, with examples:
-            if `X` is `Series` (e.g., `pd.DataFrame`) and `transform-output` is `Series`
-                then the return is a single `Series` of the same mtype
-                Example: detrending a single series
-            if `X` is `Panel` (e.g., `pd-multiindex`) and `transform-output` is `Series`
-                then the return is `Panel` with same number of instances as `X`
-                    (the transformer is applied to each input Series instance)
-                Example: all series in the panel are detrended individually
-            if `X` is `Series` or `Panel` and `transform-output` is `Primitives`
-                then the return is `pd.DataFrame` with as many rows as instances in `X`
-                Example: i-th row of the return has mean and variance of the i-th series
-            if `X` is `Series` and `transform-output` is `Panel`
-                then the return is a `Panel` object of type `pd-multiindex`
-                Example: i-th instance of the output is the i-th window running over
-                `X`.
         """
         # input checks and datatype conversion
-        X_inner, y_inner, metadata = self._fit_checks(X, y, False, True)
+        self.reset()
+        X_inner = self._preprocess_collection(X)
+        y_inner = y
 
         Xt = self._fit_transform(X=X_inner, y=y_inner)
 
@@ -225,35 +165,33 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         return Xt
 
+    @final
     def inverse_transform(self, X, y=None):
         """Inverse transform X and return an inverse transformed version.
 
         Currently it is assumed that only transformers with tags
-            "scitype:transform-input"="Series", "scitype:transform-output"="Series",
-        have an inverse_transform.
+             "input_data_type"="Series", "output_data_type"="Series",
+        can have an inverse_transform.
 
         State required:
-            Requires state to be "fitted".
+             Requires state to be "fitted".
 
         Accesses in self:
-        _is_fitted : must be True
-        _X : optionally accessed, only available if remember_data tag is True
-        fitted model attributes (ending in "_") : accessed by _inverse_transform
+         _is_fitted : must be True
+         _X : optionally accessed, only available if remember_data tag is True
+         fitted model attributes (ending in "_") : accessed by _inverse_transform
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
-            Data to be inverse transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
+             Additional data, e.g., labels for transformation
 
         Returns
         -------
         inverse transformed version of X
-            of the same type as X, and conforming to mtype format specifications
+            of the same type as X
         """
         if self.get_tag("skip-inverse-transform"):
             return X
@@ -267,12 +205,14 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
+        X_inner = self._preprocess_collection(X)
+        y_inner = y
 
         Xt = self._inverse_transform(X=X_inner, y=y_inner)
 
         return Xt
 
+    @final
     def update(self, X, y=None, update_params=True):
         """Update transformer with X, optionally y.
 
@@ -291,12 +231,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
-            Data to fit transform to, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
+        X : data to update of valid collection type.
+        y : Target variable, default=None
             Additional data, e.g., labels for transformation
         update_params : bool, default=True
             whether the model is updated. Yes if true, if false, simply skips call.
@@ -314,7 +250,8 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
             raise ValueError(f"{self.__class__.__name__} requires `y` in `update`.")
 
         # check and convert X/y
-        X_inner, y_inner = self._check_X_y(X=X, y=y)
+        X_inner = self._preprocess_collection(X)
+        y_inner = y
 
         # update memory of X, if remember_data tag is set to True
         if self.get_tag("remember_data", False):
@@ -329,145 +266,6 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         return self
 
-    def _check_X_y(self, X=None, y=None, return_metadata=False):
-        """Check and coerce X/y for fit/transform functions.
-
-        Parameters
-        ----------
-        X : object of aeon compatible time series type
-            can be Series, Panel, Hierarchical
-        y : None (default), or object of aeon compatible time series type
-            can be Series, Panel, Hierarchical
-        return_metadata : bool, optional, default=False
-            whether to return the metadata return object
-
-        Returns
-        -------
-        X_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("X_inner_mtype") format
-            Case 1: self.get_tag("X_inner_mtype") supports scitype of X, then
-                converted/coerced version of X, mtype determined by "X_inner_mtype" tag
-            Case 2: self.get_tag("X_inner_mtype") supports *higher* scitype than X
-                then X converted to "one-Series" or "one-Panel" sub-case of that scitype
-                always pd-multiindex (Panel) or pd_multiindex_hier (Hierarchical)
-            Case 3: self.get_tag("X_inner_mtype") supports only *simpler* scitype than X
-                then VectorizedDF of X, iterated as the most complex supported scitype
-        y_inner : Series, Panel, or Hierarchical object, or VectorizedDF
-                compatible with self.get_tag("y_inner_mtype") format
-            Case 1: self.get_tag("y_inner_mtype") supports scitype of y, then
-                converted/coerced version of y, mtype determined by "y_inner_mtype" tag
-            Case 2: self.get_tag("y_inner_mtype") supports *higher* scitype than y
-                then X converted to "one-Series" or "one-Panel" sub-case of that scitype
-                always pd-multiindex (Panel) or pd_multiindex_hier (Hierarchical)
-            Case 3: self.get_tag("y_inner_mtype") supports only *simpler* scitype than y
-                then VectorizedDF of X, iterated as the most complex supported scitype
-            Case 4: None if y was None, or self.get_tag("y_inner_mtype") is "None"
-
-            Complexity order above: Hierarchical > Panel > Series
-
-        metadata : dict, returned only if return_metadata=True
-            dictionary with str keys, contents as follows
-            _converter_store_X : dict, metadata from X conversion, for back-conversion
-            _X_mtype_last_seen : str, mtype of X seen last
-            _X_input_scitype : str, scitype of X seen last
-            _convert_case : str, coversion case (see above), one of
-                "case 1: scitype supported"
-                "case 2: higher scitype supported"
-                "case 3: requires vectorization"
-
-        Raises
-        ------
-        TypeError if X is None
-        TypeError if X or y is not one of the permissible Series mtypes
-        TypeError if X is not compatible with self.get_tag("univariate_only")
-            if tag value is "True", X must be univariate
-        ValueError if self.get_tag("requires_y")=True but y is None
-        """
-        if X is None:
-            raise TypeError("X cannot be None, but found None")
-
-        metadata = dict()
-        metadata["_converter_store_X"] = dict()
-
-        # retrieve supported mtypes
-        X_inner_mtype = _coerce_to_list(self.get_tag("X_inner_mtype"))
-        y_inner_mtype = _coerce_to_list(self.get_tag("y_inner_mtype"))
-        y_inner_scitype = mtype_to_scitype(y_inner_mtype, return_unique=True)
-
-        # checking X
-        X_valid, msg, X_metadata = check_is_scitype(
-            X,
-            scitype="Panel",
-            return_metadata=True,
-            var_name="X",
-            exclude_mtypes=[],
-        )
-
-        if not X_valid:
-            raise TypeError("invalid input type for X")
-
-        X_scitype = X_metadata["scitype"]
-        X_mtype = X_metadata["mtype"]
-        # remember these for potential back-conversion (in transform etc)
-        metadata["_X_mtype_last_seen"] = X_mtype
-        metadata["_X_input_scitype"] = X_scitype
-
-        if X_mtype not in self.ALLOWED_INPUT_TYPES:
-            raise TypeError("invalid input mtype for X")
-
-        # check if univariate-only
-        if self.get_tag("univariate-only") and not X_metadata["is_univariate"]:
-            raise TypeError("X must be univariate, but found multivariate")
-
-        # checking y
-        if y_inner_mtype != ["None"] and y is not None:
-            if "Table" in y_inner_scitype:
-                y_possible_scitypes = "Table"
-            elif X_scitype == "Series":
-                y_possible_scitypes = "Series"
-            elif X_scitype == "Panel":
-                y_possible_scitypes = "Panel"
-            elif X_scitype == "Hierarchical":
-                y_possible_scitypes = ["Panel", "Hierarchical"]
-
-            y_valid, _, y_metadata = check_is_scitype(
-                y, scitype=y_possible_scitypes, return_metadata=True, var_name="y"
-            )
-            if not y_valid:
-                raise TypeError("invalid input mtype for y")
-
-            y_scitype = y_metadata["scitype"]
-        else:
-            # y_scitype is used below - set to None if y is None
-            y_scitype = None
-
-        X_inner = convert_to(
-            X,
-            to_type=X_inner_mtype,
-            store=metadata["_converter_store_X"],
-            store_behaviour="reset",
-            exclude_mtypes=[],
-        )
-
-        # converts y, returns None if y is None
-        if y_inner_mtype != ["None"] and y is not None:
-            y_inner = convert_to(
-                y,
-                to_type=y_inner_mtype,
-                as_scitype=y_scitype,
-            )
-        else:
-            y_inner = None
-
-        if return_metadata:
-            return X_inner, y_inner, metadata
-        else:
-            return X_inner, y_inner
-
-    def _check_X(self, X=None):
-        """Shorthand for _check_X_y with one argument X, see _check_X_y."""
-        return self._check_X_y(X=X)[0]
-
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
 
@@ -475,11 +273,10 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit must support all types in it
-            Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
-            Additional data, e.g., labels for tarnsformation
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
 
         Returns
         -------
@@ -498,28 +295,14 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
-            Data to be transformed
-        y : Series or Panel, default=None
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
             Additional data, e.g., labels for transformation
 
         Returns
         -------
         transformed version of X
-        type depends on type of X and scitype:transform-output tag:
-            |          | `transform`  |                        |
-            |   `X`    |  `-output`   |     type of return     |
-            |----------|--------------|------------------------|
-            | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
-            | `Panel`  | `Primitives` | `pd.DataFrame`         |
-            | `Series` | `Series`     | `Series`               |
-            | `Panel`  | `Series`     | `Panel`                |
-            | `Series` | `Panel`      | `Panel`                |
-        instances in return correspond to instances in `X`
-        combinations not in the table are currently not supported
-
-        See extension_templates/transformer.py for implementation details.
         """
 
     def _fit_transform(self, X, y=None):
@@ -527,21 +310,18 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         Fits the transformer to X and y and returns a transformed version of X.
 
-        private _fit_transform containing the core logic, called from fit_transform
+        private _fit_transform containing the core logic, called from fit_transform.
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _fit_transform must support all types in it
-            Data to fit transform to
-        y : Series or Panel of mtype y_inner_mtype, default=None
-            Additional data, e.g., labels for tarnsformation
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
-        self: a fitted instance of the estimator
-
-        See extension_templates/transformer.py for implementation details.
+        transformed version of X.
         """
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
@@ -551,22 +331,19 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
     def _inverse_transform(self, X, y=None):
         """Inverse transform X and return an inverse transformed version.
 
-        private _inverse_transform containing core logic, called from inverse_transform
+        private _inverse_transform containing core logic, called from inverse_transform.
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _inverse_transform must support all types in it
-            Data to be transformed
-        y : Series or Panel, default=None
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
             Additional data, e.g., labels for transformation
 
         Returns
         -------
         inverse transformed version of X
-            of the same type as X, and conforming to mtype format specifications
-
-        See extension_templates/transformer.py for implementation details.
+            of the same type as X.
         """
         raise NotImplementedError(
             f"{self.__class__.__name__} does not support inverse_transform"
@@ -579,17 +356,32 @@ class BaseCollectionTransformer(BaseTransformer, metaclass=ABCMeta):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _update must support all types in it
-            Data to update transformer with
-        y : Series or Panel of mtype y_inner_mtype, default=None
-            Additional data, e.g., labels for tarnsformation
+        X : Input data
+            Data to fit transform to, of valid collection type.
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
 
         Returns
         -------
-        self: a fitted instance of the estimator
-
-        See extension_templates/transformer.py for implementation details.
+        self: a fitted instance of the estimator.
         """
         # standard behaviour: no update takes place, new data is ignored
         return self
+
+    def _check_y(self, y, n_cases):
+        if y is None:
+            return None
+        # Check y valid input for collection transformations
+        if not isinstance(y, (pd.Series, np.ndarray)):
+            raise TypeError(
+                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
+            )
+        if isinstance(y, np.ndarray) and y.ndim > 1:
+            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+        # Check matching number of labels
+        n_labels = y.shape[0]
+        if n_cases != n_labels:
+            raise ValueError(
+                f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
+                f"{n_labels}"
+            )

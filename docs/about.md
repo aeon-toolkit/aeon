@@ -1,26 +1,50 @@
-# About us
+# About Us
 
 ## Roles
 
-The roles are described in scikit-time's {ref}`governance` document.
+The roles are described in `aeon`'s [governance](governance.md) document.
 A list of all contributors can be found [here](contributors.md).
 
-### Community Council
+### Code of Conduct Workgroup
 
-The community council currently has no sitting members while we discuss governance for
-the project.
+The code of conduct workgroup maintains the code of conduct and handles any
+issues related that arise.
 
 ```{eval-rst}
-.. include:: about/community_council.rst
+.. include:: about/code_of_conduct_workgroup.rst
 ```
 
-### Code of Conduct Committee
+### Communications Workgroup
 
-The code of conduct committee maintains the code of conduct and handles any issues
-related that arise.
+The communications workgroup manages the project's communication channels.
 
 ```{eval-rst}
-.. include:: about/coc_committee.rst
+.. include:: about/communications_workgroup.rst
+```
+
+### Finance Workgroup
+
+The finance workgroup is responsible for managing the project's finances.
+
+```{eval-rst}
+.. include:: about/finance_workgroup.rst
+```
+
+### Infrastructure Workgroup
+
+The infrastructure workgroup is responsible for managing the project's infrastructure
+and CI.
+
+```{eval-rst}
+.. include:: about/infrastructure_workgroup.rst
+```
+
+### Release Management Workgroup
+
+The release management workgroup is responsible for managing the project's releases.
+
+```{eval-rst}
+.. include:: about/release_management_workgroup.rst
 ```
 
 ### Core Developers
@@ -34,7 +58,7 @@ The core developers push forward `aeon`'s development and maintain the package.
 #### Pre-fork Core Developers
 
 The following listed contributors were part of the sktime core developer team at some
-point prior to our split from the project.
+point prior to the split of the project.
 
 <details><summary>sktime v0.16.0 core developers</summary>
 <p>
@@ -66,8 +90,8 @@ point prior to our split from the project.
 ## History
 
 `aeon` was started in January 2023 as a fork of the
-[sktime project](https://pypi.org/project/sktime/) by 8 core developers using v0.16.0
-as a base.
+[sktime project](https://pypi.org/project/sktime/0.16.0/) by 8 core developers using
+v0.16.0 as a base.
 
 ## Artwork
 
@@ -98,7 +122,7 @@ The project developers would like to thank the following funders.
 #### Pre-fork funding
 
 As a fork of the sktime project, `aeon` has benefited from funding given to sktime prior
-to our split. We would like to thank the funders from before the split.
+to the projects split. We would like to thank the funders from before the split.
 
 <details><summary>sktime v0.16.0 funders</summary>
 <p>

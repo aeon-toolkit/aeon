@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """Tests the VAR model."""
+
 __author__ = ["thayeylolu"]
 import numpy as np
 import pandas as pd

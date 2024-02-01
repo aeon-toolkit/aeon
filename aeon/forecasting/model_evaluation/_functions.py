@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
 """Implements functions to be used in evaluating forecasting models."""
 
 __author__ = ["aiwalter", "mloning", "fkiraly", "topher-lo"]
@@ -156,7 +153,7 @@ def _evaluate_window(
             metric_args = scoring.metric_args
 
         try:
-            scitype = scoring.get_tag("scitype:y_pred")
+            scitype = scoring.get_tag("y_input_type_pred")
         except ValueError:
             # If no scitype exists then metric is not proba and no args needed
             scitype = None
