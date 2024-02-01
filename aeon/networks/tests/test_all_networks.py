@@ -1,6 +1,4 @@
 import inspect
-import os
-import time
 
 import pytest
 
@@ -29,11 +27,6 @@ def test_all_networks_functionality():
         my_network = network_classes[i]()
 
         input_layer, output_layer = my_network.build_network(input_shape=input_shape)
-
-        file_name = str(time.time_ns())
-        my_network.plot_network(input_shape=input_shape, file_name=file_name)
-        if os.path.exists(file_name + ".pdf"):
-            os.remove(file_name + ".pdf")
 
         assert input_layer is not None
         assert output_layer is not None

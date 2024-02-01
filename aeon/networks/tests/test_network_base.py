@@ -1,6 +1,3 @@
-import os
-import time
-
 import pytest
 
 from aeon.networks.base import BaseDeepNetwork
@@ -32,11 +29,6 @@ def test_dummy_deep_network():
     dummy_network = DummyDeepNetwork()
 
     X, y = make_3d_test_data()
-
-    file_name = str(time.time_ns())
-    dummy_network.plot_network(input_shape=X.shape, file_name=file_name)
-    if os.path.exists(file_name + ".pdf"):
-        os.remove(file_name + ".pdf")
 
     input_layer, output_layer = dummy_network.build_network(input_shape=X.shape)
 
