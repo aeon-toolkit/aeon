@@ -310,6 +310,7 @@ class InceptionNetwork(BaseDeepNetwork):
             input_inception = input_tensor
 
         kernel_size_s = [kernel_size // (2**i) for i in range(nb_conv_per_layer)]
+        self.kernel_size_s = kernel_size_s
 
         conv_list = []
 
