@@ -214,10 +214,11 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         )
 
         # fit transforms sequentially
+        Xt = X
         for i in range(len(self.steps_) - 1):
-            X = self.steps_[i][1].fit_transform(X=X, y=y)
+            Xt = self.steps_[i][1].fit_transform(X=Xt, y=y)
         # fit classifier
-        self.steps_[-1][1].fit(X=X, y=y)
+        self.steps_[-1][1].fit(X=Xt, y=y)
 
         return self
 
@@ -233,10 +234,11 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         y : predictions of labels for X, np.ndarray
         """
         # transform
+        Xt = X
         for i in range(len(self.steps_) - 1):
-            X = self.steps_[i][1].transform(X=X)
+            Xt = self.steps_[i][1].transform(X=Xt)
         # predict
-        return self.steps_[-1][1].predict(X=X)
+        return self.steps_[-1][1].predict(X=Xt)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -254,10 +256,11 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         y : predictions of probabilities for class values of X, np.ndarray
         """
         # transform
+        Xt = X
         for i in range(len(self.steps_) - 1):
-            self.steps_[i][1].transform(X=X)
+            Xt = self.steps_[i][1].transform(X=Xt)
         # predict
-        return self.steps_[-1][1].predict_proba(X=X)
+        return self.steps_[-1][1].predict_proba(X=Xt)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
