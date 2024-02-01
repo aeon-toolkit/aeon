@@ -11,7 +11,7 @@ from aeon.transformations.base import BaseTransformer
 # TODO: remove in v0.8.0
 @deprecated(
     version="0.6.0",
-    reason="MatrixProfileSeriesTransformer will be removed from the base directory of "
+    reason="MatrixProfileTransformer will be removed from the base directory of "
     "transformations in v0.8.0, it has been replaced by MatrixProfileSeriesTransformer"
     "in the transformations.series module.",
     category=FutureWarning,
