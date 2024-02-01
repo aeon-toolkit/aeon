@@ -81,6 +81,8 @@ class Arsenal(BaseClassifier):
         The collections of estimators trained in fit.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
+    n_estimators_ : int
+        The number of estimators in the ensemble.
 
     See Also
     --------
@@ -293,7 +295,7 @@ class Arsenal(BaseClassifier):
 
             while (
                 train_time < time_limit
-                and self.n_estimators < self.contract_max_n_estimators
+                and self.n_estimators_ < self.contract_max_n_estimators
             ):
                 fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                     delayed(self._fit_ensemble_estimator)(

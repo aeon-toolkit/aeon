@@ -23,7 +23,6 @@ def test_contracted_arsenal():
         time_limit_in_minutes=0.25,
         contract_max_n_estimators=3,
         num_kernels=20,
-        random_state=0,
     )
     arsenal.fit(X_train, y_train)
 

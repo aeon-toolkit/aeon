@@ -254,8 +254,7 @@ class HIVECOTEV2(BaseClassifier):
             random_state=self.random_state,
             n_jobs=self._n_jobs,
         )
-        train_probs = self._arsenal.fit_predict_proba(X, y)
-        train_preds = self._arsenal.classes_[np.argmax(train_probs, axis=1)]
+        train_preds = self._arsenal.fit_predict(X, y)
         self.arsenal_weight_ = accuracy_score(y, train_preds) ** 4
 
         if self.verbose > 0:
