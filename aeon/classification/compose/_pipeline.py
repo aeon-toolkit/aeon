@@ -278,10 +278,16 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.exponent import ExponentTransformer
+        from aeon.transformations.collection import TruncationTransformer
+        from aeon.transformations.collection.feature_based import (
+            SevenNumberSummaryTransformer,
+        )
 
         return {
-            "transformers": ExponentTransformer(power=2),
+            "transformers": [
+                TruncationTransformer(truncated_length=5),
+                SevenNumberSummaryTransformer(),
+            ],
             "classifier": KNeighborsTimeSeriesClassifier(distance="euclidean"),
         }
 
@@ -564,22 +570,11 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from sklearn.neighbors import KNeighborsClassifier
 
-        from aeon.transformations.collection import TruncationTransformer
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        # example with series-to-series transformer before sklearn classifier
-        return {
-            "transformers": [
-                TruncationTransformer(truncated_length=5),
-                SevenNumberSummaryTransformer(),
-            ],
-            "classifier": KNeighborsClassifier(),
-        }
+        t1 = Rocket(num_kernels=200, random_state=49)
+        c = KNeighborsClassifier()
+        return {"transformers": [t1], "classifier": c}
