@@ -250,4 +250,4 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
             Parameters to create testing instances of the class.
         """
         # default parameters = empty dict
-        return {"n_segments": 2, "axis": 1}
+        return {}
