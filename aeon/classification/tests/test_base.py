@@ -254,6 +254,9 @@ def test_fit_predict():
     p = cls.fit_predict_proba(X, y)
     assert p.shape == (5, 2)
 
+    p = cls.predict(X)
+    assert p.shape == (5,)
+
 
 def test_fit_predict_single_class():
     """Test return of fit_predict/fit_predict_proba in case only single class."""
@@ -270,6 +273,11 @@ def test_fit_predict_single_class():
     assert y_pred_proba.ndim == 2
     assert y_pred_proba.shape == (10, 1)
     assert all(list(y_pred_proba == 1))
+
+    y_pred = clf.predict(X)
+    assert y_pred.ndim == 1
+    assert y_pred.shape == (10,)
+    assert all(list(y_pred == 1))
 
 
 def test_fit_predict_default():

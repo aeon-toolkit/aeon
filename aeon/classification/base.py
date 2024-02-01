@@ -481,6 +481,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         return y
 
     def _fit_predict_default(self, X, y, method):
+        # fit the classifier
+        self._fit(X, y)
+
+        # predict using cross-validation
         cv_size = 10
         _, counts = np.unique(y, return_counts=True)
         min_class = np.min(counts)
