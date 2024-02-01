@@ -40,9 +40,9 @@ class BaseSeriesEstimator(BaseEstimator):
             if ``self`` has multivariate capability, all converted to Pandas DataFrame
             shape `(m,1)`, `(1,m)` depending on axis
 
-    Multivariate series:
-        Numpy array, shape `(m,d)` or `(d,m)`.
-        pandas DataFrame `(m,d)` or `(d,m)`
+        Multivariate series:
+            Numpy array, shape `(m,d)` or `(d,m)`.
+            pandas DataFrame `(m,d)` or `(d,m)`
 
     Parameters
     ----------
@@ -51,7 +51,7 @@ class BaseSeriesEstimator(BaseEstimator):
         is 0, it is assumed each column is a time series and each row is a
         timepoint. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
         ``axis == 1`` indicates the time series are in rows, i.e. the shape of the data
-        is ``(n_channels, n_timepoints)`.
+        is ``(n_channels, n_timepoints)``.
     """
 
     _tags = {
