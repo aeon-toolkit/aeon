@@ -240,7 +240,7 @@ class Arsenal(BaseClassifier):
             np.sum(y_probas, axis=0) / (np.ones(self.n_classes_) * self._weight_sum), 8
         )
 
-    def _fit_predict(self, X, y):
+    def _fit_predict(self, X, y) -> np.ndarray:
         rng = check_random_state(self.random_state)
         return np.array(
             [
@@ -249,9 +249,36 @@ class Arsenal(BaseClassifier):
             ]
         )
 
-    def _fit_predict_proba(self, X, y):
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
         Xt = self._fit_arsenal(X, y, keep_transformed_data=True)
-        return self._get_train_probs(Xt, y)
+
+        rng = check_random_state(self.random_state)
+
+        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+            delayed(self._train_probas_for_estimator)(
+                Xt,
+                y,
+                i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
+            )
+            for i in range(self.n_estimators)
+        )
+        y_probas, weights, oobs = zip(*p)
+
+        results = np.sum(y_probas, axis=0)
+        divisors = np.zeros(self.n_instances_)
+        for n, oob in enumerate(oobs):
+            for inst in oob:
+                divisors[inst] += weights[n]
+
+        for i in range(self.n_instances_):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
 
     def _fit_arsenal(self, X, y, keep_transformed_data=False):
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
@@ -356,35 +383,6 @@ class Arsenal(BaseClassifier):
             self._weight_sum += weight
 
         return Xt
-
-    def _get_train_probs(self, Xt, y) -> np.ndarray:
-        rng = check_random_state(self.random_state)
-
-        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(self._train_probas_for_estimator)(
-                Xt,
-                y,
-                i,
-                check_random_state(rng.randint(np.iinfo(np.int32).max)),
-            )
-            for i in range(self.n_estimators)
-        )
-        y_probas, weights, oobs = zip(*p)
-
-        results = np.sum(y_probas, axis=0)
-        divisors = np.zeros(self.n_instances_)
-        for n, oob in enumerate(oobs):
-            for inst in oob:
-                divisors[inst] += weights[n]
-
-        for i in range(self.n_instances_):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
-
-        return results
 
     def _fit_ensemble_estimator(self, rocket, X, y, keep_transformed_data):
         transformed_x = rocket.fit_transform(X)
