@@ -50,7 +50,7 @@ def _assert_incorrect_input(dummy, correctX, correcty, X, y, msg):
 def test_incorrect_input():
     """Test informative errors raised with wrong X and/or y.
 
-    Errors are raise in aeon/utils/validation/collection.py and tested again here.
+    Errors are raise in aeon.utils.converstion.convert_collection and tested again here.
     """
     dummy = MockClassifier()
     correctX = np.random.random(size=(5, 1, 10))

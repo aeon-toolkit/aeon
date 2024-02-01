@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_consistent_length
 
-from aeon.utils.conversion.collection import convert_collection
+from aeon.utils.conversion import convert_collection
 from aeon.utils.validation import is_nested_univ_dataframe
 
 VALID_X_TYPES = (pd.DataFrame, np.ndarray)  # nested pd.DataFrame, 2d or 3D np.ndarray

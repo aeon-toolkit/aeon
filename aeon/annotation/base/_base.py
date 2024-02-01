@@ -22,7 +22,6 @@ __author__ = ["satya-pattnaik ", "fkiraly"]
 __all__ = ["BaseSeriesAnnotator"]
 
 from aeon.base import BaseEstimator
-from aeon.utils.validation.annotation import check_fmt, check_labels
 from aeon.utils.validation.series import check_series
 
 
@@ -88,8 +87,15 @@ class BaseSeriesAnnotator(BaseEstimator):
         Creates fitted model that updates attributes ending in "_". Sets
         _is_fitted flag to True.
         """
-        check_labels(self.labels)
-        check_fmt(self.fmt)
+        valid_labels = ["indicator", "score", "int_label"]
+        if self.labels not in valid_labels:
+            raise ValueError(
+                f"`labels` must be in: {valid_labels}, but found: {self.labels}."
+            )
+        valid_fmts = ["dense", "sparse"]
+        if self.fmt not in valid_fmts:
+            raise ValueError(f"`fmt` must be in: {valid_fmts}, but found: {self.fmt}.")
+
         X = check_series(X)
 
         if Y is not None:

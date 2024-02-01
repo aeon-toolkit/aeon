@@ -1,6 +1,7 @@
 """Validation and checking functions for time series."""
 
 __all__ = [
+    "convert_collection",
     "is_int",
     "is_float",
     "is_timedelta",
@@ -15,6 +16,9 @@ __all__ = [
     "has_missing",
     "is_univariate",
     "is_nested_univ_dataframe",
+    "resolve_equal_length_inner_type",
+    "resolve_unequal_length_inner_type",
+    "_equal_length",
 ]
 __author__ = ["mloning", "Taiwo Owoseni", "khrapovs", "TonyBagnall"]
 
@@ -25,14 +29,18 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from aeon.utils.conversion.collection import (
+from aeon.utils.conversion import convert_collection
+from aeon.utils.validation._check_collection import (
+    _equal_length,
     get_n_cases,
     get_type,
     has_missing,
     is_equal_length,
+    is_nested_univ_dataframe,
     is_univariate,
+    resolve_equal_length_inner_type,
+    resolve_unequal_length_inner_type,
 )
-from aeon.utils.validation._convert_collection import is_nested_univ_dataframe
 
 ACCEPTED_DATETIME_TYPES = np.datetime64, pd.Timestamp
 ACCEPTED_TIMEDELTA_TYPES = pd.Timedelta, timedelta, np.timedelta64

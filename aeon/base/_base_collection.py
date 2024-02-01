@@ -1,10 +1,9 @@
 """Base class for estimators that fit collections of time series."""
 
 from aeon.base._base import BaseEstimator
-from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import (
-    convert_collection,
+from aeon.utils.conversion import convert_collection
+from aeon.utils.validation import (
+    check_n_jobs,
     get_n_cases,
     has_missing,
     is_equal_length,
@@ -12,6 +11,19 @@ from aeon.utils.validation.collection import (
     resolve_equal_length_inner_type,
     resolve_unequal_length_inner_type,
 )
+from aeon.utils.validation._dependencies import _check_estimator_deps
+
+COLLECTIONS_DATA_TYPES = [
+    "numpy3D",  # 3D np.ndarray of format (n_cases, n_channels, n_timepoints)
+    "np-list",  # python list of 2D numpy array of length [n_cases],
+    # each of shape (n_channels, n_timepoints_i)
+    "df-list",  # python list of 2D pd.DataFrames of length [n_cases], each a of
+    # shape (n_timepoints_i, n_channels)
+    "numpy2D",  # 2D np.ndarray of univariate series, shape (n_cases, n_timepoints)
+    "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_timepoints)
+    "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
+    "pd-multiindex",  # pd.DataFrame with multi-index,
+]
 
 
 class BaseCollectionEstimator(BaseEstimator):
@@ -52,7 +64,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-            See aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES for details
+            See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
 
         Returns
@@ -102,7 +114,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-           See aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES for details
+           See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
            on aeon supported data structures.
 
         Returns
