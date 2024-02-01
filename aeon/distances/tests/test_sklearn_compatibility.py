@@ -43,7 +43,7 @@ def test_knn(dist):
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_support_vector_machine(dist):
-    """Test all distances work with DBSCAN"""
+    """Test all distances work with DBSCAN."""
     X, y = make_example_3d_numpy(
         n_cases=5, n_channels=1, n_timepoints=10, return_y=True
     )

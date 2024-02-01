@@ -147,7 +147,7 @@ def test_load_fails():
 
 
 def test__alias_datatype_check():
-    """Test the alias check"""
+    """Test the alias check."""
     assert _alias_datatype_check("FOO") == "FOO"
     assert _alias_datatype_check("np2d") == "numpy2D"
     assert _alias_datatype_check("numpy2d") == "numpy2D"
@@ -424,7 +424,7 @@ def test_load_classification():
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test_load_from_ucr_tsv():
-    """Test that GunPoint is the same when loaded from .ts and .tsv"""
+    """Test that GunPoint is the same when loaded from .ts and .tsv."""
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
@@ -441,7 +441,7 @@ def test_load_from_ucr_tsv():
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test_load_from_arff():
-    """Test that GunPoint is the same when loaded from .ts and .arff"""
+    """Test that GunPoint is the same when loaded from .ts and .arff."""
     X, y = _load_saved_dataset("GunPoint", split="TRAIN")
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),

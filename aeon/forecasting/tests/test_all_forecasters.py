@@ -1,6 +1,4 @@
-"""Tests for BaseForecaster API points.
-
-"""
+"""Tests for BaseForecaster API points."""
 
 __author__ = ["mloning", "kejsitake", "fkiraly"]
 

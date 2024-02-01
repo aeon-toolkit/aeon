@@ -1,3 +1,5 @@
+"""Tests for BaseCollectionEstimator."""
+
 import numpy as np
 import pytest
 
