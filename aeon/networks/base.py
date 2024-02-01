@@ -44,7 +44,7 @@ class BaseDeepNetwork(BaseObject, ABC):
         -------
         None
         """
-        _check_soft_dependencies("tensorflow")
+        _check_soft_dependencies(["tensorflow", "pydot"])
         import tensorflow as tf
 
         input_layer, output_layer = self.build_network(input_shape=input_shape)
