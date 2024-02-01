@@ -294,14 +294,14 @@ class ResNetClusterer(BaseDeepClusterer):
             callbacks=self.callbacks_,
         )
 
-        # try:
-        #     self.model_ = tf.keras.models.load_model(self.file_path +
-        #                                              self.file_name_ + ".hdf5",
-        #                                              compile=False)
-        #     if not self.save_best_model:
-        #         os.remove(self.file_path + self.file_name_ + ".hdf5")
-        # except FileNotFoundError:
-        self.model_ = deepcopy(self.training_model_)
+        try:
+            self.model_ = tf.keras.models.load_model(self.file_path +
+                                                     self.file_name_ + ".hdf5",
+                                                     compile=False)
+            if not self.save_best_model:
+                os.remove(self.file_path + self.file_name_ + ".hdf5")
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
 
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
