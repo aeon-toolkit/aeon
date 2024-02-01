@@ -61,15 +61,22 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
     Segmentation representation
 
         Given a time series of 10 points with two change points found in position 4
-        and 8 (lets index from 1 for clarity)
+        and 8.
 
         The segmentation can be output in two forms:
-        a) A list of change points: output example [4,8].
+        a) A list of change points.
+            output example [4,8] for a series length 10 means three segments at
+            positions (0,1,2,3), (4,5,6,7) and (8,9).
             This dense representation is the default behaviour, as it is the minimal
-            representation. Indicated by tag "return_dense" being set to True.
+            representation. Indicated by tag "return_dense" being set to True. It is
+            assumed to be sorted, and the first segment is assumed to start at
+            position 0. Hence, the first change point must be greater than 0 and the
+            last less than the series length. If the last value is
+            ``series_length-1`` then the last point forms a single segment. An empty
+            list indicates no change points.
         b) A list of integers of length m indicating the segment of each time point:
-            output [0,0,0,1,1,1,1,2,2,2] or output [0,0,0,1,1,1,1,0,0,0]
-            This sparse representation can be used to indicate shared segments (
+            output [0,0,0,0,1,1,1,1,2,2] or output [0,0,0,1,1,1,1,0,0,0]
+            This sparse representation can be used to indicate shared segments
             indicating segment 1 is somehow the same (perhaps in generative process)
             as segment 3. Indicated by tag ``return_dense`` being set to False.
 
