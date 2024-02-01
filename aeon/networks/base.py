@@ -11,6 +11,8 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 class BaseDeepNetwork(BaseObject, ABC):
     """Abstract base class for deep learning networks."""
 
+    _tags = {"python_dependencies": ["pydot"]}
+
     def plot_network(
         self,
         input_shape,
