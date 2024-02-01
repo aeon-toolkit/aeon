@@ -570,13 +570,16 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         """
         from sklearn.neighbors import KNeighborsClassifier
 
-        from aeon.transformations.exponent import ExponentTransformer
+        from aeon.transformations.collection import TruncationTransformer
+        from aeon.transformations.collection.feature_based import (
+            SevenNumberSummaryTransformer,
+        )
 
         # example with series-to-series transformer before sklearn classifier
         return {
             "transformers": [
-                ExponentTransformer(power=2),
-                ExponentTransformer(power=0.5),
+                TruncationTransformer(truncated_length=5),
+                SevenNumberSummaryTransformer(),
             ],
             "classifier": KNeighborsClassifier(),
         }
