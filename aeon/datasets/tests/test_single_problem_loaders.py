@@ -1,4 +1,5 @@
 """Test single problem loaders with varying return types."""
+
 import os
 
 import numpy as np

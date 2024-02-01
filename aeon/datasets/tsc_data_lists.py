@@ -28,6 +28,7 @@ Ensembles Version 1.0 (HIVE-COTE v1.0). Lecture Notes in Computer Science. in pr
     Data Mining and Knowledge Discovery, 2020.
 
 """
+
 # The 85 UCR univariate time series classification problems in the 2015 version
 univariate2015 = {
     "Adiac",

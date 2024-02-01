@@ -212,7 +212,7 @@ def _write_header(
     dir = f"{str(path)}/"
     try:
         os.makedirs(dir, exist_ok=True)
-    except os.error:
+    except OSError:
         raise ValueError(f"Error trying to access {dir} in _write_header")
     # create ts file in the path
     load_path = f"{dir}{str(problem_name)}"
@@ -380,7 +380,7 @@ def write_results_to_uea_format(
         output_path = f"{output_path}/{estimator_name}/Predictions/{dataset_name}/"
     try:
         os.makedirs(output_path)
-    except os.error:
+    except OSError:
         pass  # raises os.error if path already exists, so just ignore this
 
     if split == "TRAIN" or split == "train":

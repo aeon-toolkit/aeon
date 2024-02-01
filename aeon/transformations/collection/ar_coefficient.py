@@ -57,7 +57,7 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
         self.min_values = min_values
         self.replace_nan = replace_nan
 
-        super(ARCoefficientTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         from statsmodels.regression.linear_model import burg

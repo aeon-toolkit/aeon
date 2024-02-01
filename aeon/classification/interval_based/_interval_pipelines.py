@@ -125,7 +125,7 @@ class RandomIntervalClassifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(RandomIntervalClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit RandomIntervalClassifier to training data.
@@ -156,9 +156,11 @@ class RandomIntervalClassifier(BaseClassifier):
         )
 
         self._estimator = _clone_estimator(
-            RandomForestClassifier(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestClassifier(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 
@@ -362,7 +364,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(SupervisedIntervalClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit SupervisedIntervalClassifier to training data.
@@ -394,9 +396,11 @@ class SupervisedIntervalClassifier(BaseClassifier):
         )
 
         self._estimator = _clone_estimator(
-            RandomForestClassifier(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestClassifier(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 

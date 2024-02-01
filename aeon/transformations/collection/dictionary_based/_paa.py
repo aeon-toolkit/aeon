@@ -1,6 +1,5 @@
 """Piecewise Aggregate Approximation Transformer (PAA)."""
 
-
 __author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
 
 import numpy as np
@@ -47,7 +46,7 @@ class PAA(BaseCollectionTransformer):
     def __init__(self, n_segments=8):
         self.n_segments = n_segments
 
-        super(PAA, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform the input time series to PAA segments.

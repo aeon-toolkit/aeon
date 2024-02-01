@@ -4,10 +4,18 @@ __author__ = ["sveameyer13"]
 __all__ = ["Filter"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="Filter will be removed in v0.8.0. It is specific to neuro and the "
+    "functionality is in aeon-neuro.",
+    category=FutureWarning,
+)
 class Filter(BaseTransformer):
     """Transformer that filters Series data.
 
@@ -68,7 +76,7 @@ class Filter(BaseTransformer):
                 raise ValueError("Negative values not supported")
             if l_freq > h_freq:
                 raise ValueError("High frequency must be higher" " than low frequency")
-        super(Filter, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None) -> np.ndarray:
         """Transform data.

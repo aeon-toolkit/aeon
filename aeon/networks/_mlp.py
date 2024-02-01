@@ -35,7 +35,7 @@ class MLPNetwork(BaseDeepNetwork):
     ):
         _check_soft_dependencies("tensorflow")
         self.random_state = random_state
-        super(MLPNetwork, self).__init__()
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.

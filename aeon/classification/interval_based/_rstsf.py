@@ -98,7 +98,7 @@ class RSTSF(BaseClassifier):
         if use_pyfftw:
             self.set_tags(**{"python_dependencies": ["statsmodels", "pyfftw"]})
 
-        super(RSTSF, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape

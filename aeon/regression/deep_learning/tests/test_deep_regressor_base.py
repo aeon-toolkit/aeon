@@ -1,4 +1,5 @@
 """Unit tests for regressors deep learning base class functionality."""
+
 import gc
 import os
 import time
@@ -17,7 +18,7 @@ class _DummyDeepRegressor(BaseDeepRegressor):
 
     def __init__(self, last_file_name):
         self.last_file_name = last_file_name
-        super(_DummyDeepRegressor, self).__init__(last_file_name=last_file_name)
+        super().__init__(last_file_name=last_file_name)
 
     def build_model(self, input_shape):
         import tensorflow as tf

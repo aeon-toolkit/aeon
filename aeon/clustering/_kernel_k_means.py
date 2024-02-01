@@ -1,4 +1,5 @@
 """Time series kernel kmeans."""
+
 from typing import Dict, Union
 
 import numpy as np
@@ -116,7 +117,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         self._tslearn_kernel_k_means = None
 
-        super(TimeSeriesKernelKMeans, self).__init__(n_clusters=n_clusters)
+        super().__init__(n_clusters=n_clusters)
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.

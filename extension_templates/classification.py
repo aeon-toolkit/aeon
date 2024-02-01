@@ -30,6 +30,7 @@ Testing - implement if aeon classifier (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 
 """
+
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
@@ -105,7 +106,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
         self.param_c = param_c
 
         # todo: change "MyTimeSeriesClassifier" to the name of the class
-        super(MyTimeSeriesClassifier, self).__init__()
+        super().__init__()
 
     # todo: implement this abstract function
     def _fit(self, X, y):
