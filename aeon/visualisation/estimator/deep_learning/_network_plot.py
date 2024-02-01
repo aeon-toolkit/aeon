@@ -19,6 +19,9 @@ def plot_network(
     Its important to note that to be able to use this function,
     the pydot package should be installed in the environment as well
     as graphviz on the system.
+    The function also works when the network is an auto-encoder based
+    model, and the function will split the output files into 2 files,
+    the first for the encoder and the second for the decoder.
 
     Parameters
     ----------
@@ -46,18 +49,43 @@ def plot_network(
     import tensorflow as tf
 
     input_layer, output_layer = network.build_network(input_shape=input_shape)
-    network = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-    file_name_ = "model" if file_name is None else file_name
+    if not isinstance(input_layer, tf.keras.models.Model):
+        network = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-    try:
-        tf.keras.utils.plot_model(
-            model=network,
-            to_file=file_name_ + ".pdf",
-            show_shapes=show_shapes,
-            show_layer_names=show_layer_names,
-            show_layer_activations=show_layer_activations,
-            dpi=dpi,
-        )
-    except ImportError:
-        raise ImportError("Either graphviz or pydot should be installed.")
+        file_name_ = "model" if file_name is None else file_name
+
+        try:
+            tf.keras.utils.plot_model(
+                model=network,
+                to_file=file_name_ + ".pdf",
+                show_shapes=show_shapes,
+                show_layer_names=show_layer_names,
+                show_layer_activations=show_layer_activations,
+                dpi=dpi,
+            )
+        except ImportError:
+            raise ImportError("Either graphviz or pydot should be installed.")
+
+    else:
+        file_name_ = "model" if file_name is None else file_name
+
+        try:
+            tf.keras.utils.plot_model(
+                model=input_layer,
+                to_file=file_name_ + "_encoder.pdf",
+                show_shapes=show_shapes,
+                show_layer_names=show_layer_names,
+                show_layer_activations=show_layer_activations,
+                dpi=dpi,
+            )
+            tf.keras.utils.plot_model(
+                model=output_layer,
+                to_file=file_name_ + "_decoder.pdf",
+                show_shapes=show_shapes,
+                show_layer_names=show_layer_names,
+                show_layer_activations=show_layer_activations,
+                dpi=dpi,
+            )
+        except ImportError:
+            raise ImportError("Either graphviz or pydot should be installed.")
