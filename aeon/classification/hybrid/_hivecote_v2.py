@@ -251,25 +251,15 @@ class HIVECOTEV2(BaseClassifier):
         # Build Arsenal
         self._arsenal = Arsenal(
             **self._arsenal_params,
-            save_transformed_data=True,
             random_state=self.random_state,
             n_jobs=self._n_jobs,
         )
-        self._arsenal.fit(X, y)
-
-        if self.verbose > 0:
-            print("Arsenal ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-
-        # Find Arsenal weight using train set estimate
-        train_probs = self._arsenal._get_train_probs(X, y)
+        train_probs = self._arsenal.fit_predict_proba(X, y)
         train_preds = self._arsenal.classes_[np.argmax(train_probs, axis=1)]
         self.arsenal_weight_ = accuracy_score(y, train_preds) ** 4
 
         if self.verbose > 0:
-            print(  # noqa
-                "Arsenal train estimate ",
-                datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
-            )
+            print("Arsenal ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
             print("Arsenal weight = " + str(self.arsenal_weight_))  # noqa
 
         # Build TDE
