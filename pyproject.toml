@@ -64,7 +64,6 @@ all_extras = [
     "keras-self-attention",
     "kotsu>=0.3.1",
     "matplotlib>=3.3.2",
-    "mne",
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
     "scikit_posthocs>=0.6.5",
@@ -79,6 +78,7 @@ all_extras = [
     "xarray",
     "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
     "imbalanced-learn",
+    "pydot==2.0.0",
 ]
 dl = [
     "keras-self-attention",

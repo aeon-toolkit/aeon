@@ -325,7 +325,9 @@ class ResNetClassifier(BaseDeepClassifier):
             "n_epochs": 10,
             "batch_size": 4,
             "n_residual_blocks": 1,
+            "n_filters": 5,
             "n_conv_per_residual_block": 1,
+            "kernel_size": 3,
         }
 
         test_params = [param]

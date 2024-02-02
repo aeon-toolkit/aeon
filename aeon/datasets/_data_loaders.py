@@ -5,7 +5,6 @@ import tempfile
 import urllib
 import zipfile
 from datetime import datetime
-from distutils.util import strtobool
 from urllib.request import urlretrieve
 
 import numpy as np
@@ -13,8 +12,8 @@ import pandas as pd
 
 import aeon
 from aeon.datasets.dataset_collections import (
-    list_downloaded_tsc_tsr_datasets,
-    list_downloaded_tsf_datasets,
+    get_downloaded_tsc_tsr_datasets,
+    get_downloaded_tsf_datasets,
 )
 from aeon.datasets.tser_data_lists import tser_monash, tser_soton
 from aeon.utils.validation.collection import convert_collection
@@ -398,9 +397,9 @@ def download_dataset(name, save_path=None):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    if name not in list_downloaded_tsc_tsr_datasets(
+    if name not in get_downloaded_tsc_tsr_datasets(
         save_path
-    ) or name not in list_downloaded_tsf_datasets(save_path):
+    ) or name not in get_downloaded_tsf_datasets(save_path):
         # Dataset is not already present in the datasets directory provided.
         # If it is not there, download it.
         url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
@@ -510,12 +509,12 @@ def _load_tsc_dataset(
 
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
-    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
+    if name not in get_downloaded_tsc_tsr_datasets(extract_path):
         if extract_path is None:
             local_dirname = "local_data"
         if not os.path.exists(os.path.join(local_module, local_dirname)):
             os.makedirs(os.path.join(local_module, local_dirname))
-        if name not in list_downloaded_tsc_tsr_datasets(
+        if name not in get_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
             # Dataset is not already present in the datasets directory provided.
@@ -790,12 +789,15 @@ def load_from_tsf_file(
                             elif line.startswith("@horizon"):
                                 forecast_horizon = int(line_content[1])
                             elif line.startswith("@missing"):
-                                contain_missing_values = bool(
-                                    strtobool(line_content[1])
-                                )
+                                if line_content[1].lower() == "true":
+                                    contain_missing_values = True
+                                else:
+                                    contain_missing_values = False
                             elif line.startswith("@equallength"):
-                                contain_equal_length = bool(strtobool(line_content[1]))
-
+                                if line_content[1].lower() == "false":
+                                    contain_equal_length = False
+                                else:
+                                    contain_equal_length = True
                     else:
                         if len(col_names) == 0:
                             raise Exception(
@@ -958,7 +960,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
         os.makedirs(os.path.join(local_module, local_dirname))
     # Check if data already in extract path or, if extract_path None,
     # in datasets/data directory
-    if name not in list_downloaded_tsf_datasets(extract_path):
+    if name not in get_downloaded_tsf_datasets(extract_path):
         # Dataset is not already present in the datasets directory provided.
         # If it is not there, download and install it.
         if name in tsf_all.keys():
@@ -971,7 +973,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
             raise ValueError(
                 f"File name {name} is not in the list of valid files to download"
             )
-        if name not in list_downloaded_tsf_datasets(
+        if name not in get_downloaded_tsf_datasets(
             os.path.join(local_module, local_dirname)
         ):
             url = f"https://zenodo.org/record/{id}/files/{name}.zip"
@@ -1104,7 +1106,7 @@ def load_regression(
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     path = os.path.join(local_module, local_dirname)
-    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
+    if name not in get_downloaded_tsc_tsr_datasets(extract_path):
         if name in tser_soton:
             if extract_path is None:
                 local_dirname = "local_data"
@@ -1113,7 +1115,7 @@ def load_regression(
                 path = os.path.join(local_module, local_dirname)
         else:
             raise ValueError(error_str)
-        if name not in list_downloaded_tsc_tsr_datasets(
+        if name not in get_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
             # Check if on timeseriesclassification.com
