@@ -52,9 +52,9 @@ SETAR-Tree [3].
 
 ##### Expected Outcomes
 
-1. Contributions to the aeon forecasting module
-2. Implementation of a machine learning forecasting alg
-3. Help write up results for a technical report/academic paper (dependning on outcomes.)
+1. Contributions to the aeon forecasting module.
+2. Implementation of a machine learning forecasting algortihms.
+3. Help write up results for a technical report/academic paper (depending on outcomes).
 
 ##### Skills Required
 
