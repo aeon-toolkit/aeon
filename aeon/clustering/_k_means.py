@@ -1,4 +1,5 @@
 """Time series kmeans."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import Callable, Union

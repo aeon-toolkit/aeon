@@ -283,12 +283,14 @@ class Imputer(BaseTransformer):
                     .fillna(method="ffill")
                     .fillna(method="backfill")
                     .fillna(self.value),
-                    X=self._y[col]
-                    .fillna(method="ffill")
-                    .fillna(method="backfill")
-                    .fillna(self.value)
-                    if self._y is not None
-                    else None,
+                    X=(
+                        self._y[col]
+                        .fillna(method="ffill")
+                        .fillna(method="backfill")
+                        .fillna(self.value)
+                        if self._y is not None
+                        else None
+                    ),
                 )
 
                 # replace missing values with predicted values
