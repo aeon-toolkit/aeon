@@ -4,76 +4,10 @@ __author__ = ["MatthewMiddlehurst", "TonyBagnall"]
 
 from typing import Dict
 
-import numpy as np
 import pandas as pd
 
 
-def make_example_long_table(n_cases=50, n_channels=2, n_timepoints=20):
-    """Generate example from long table format file.
-
-    Parameters
-    ----------
-    n_cases: int
-        Number of cases.
-    n_channels: int
-        Number of dimensions.
-    n_timepoints: int
-        Length of the series.
-
-    Returns
-    -------
-    DataFrame containing random data in long format.
-    """
-    rows_per_case = n_timepoints * n_channels
-    total_rows = n_cases * n_timepoints * n_channels
-
-    case_ids = np.empty(total_rows, dtype=int)
-    idxs = np.empty(total_rows, dtype=int)
-    dims = np.empty(total_rows, dtype=int)
-    vals = np.random.rand(total_rows)
-
-    for i in range(total_rows):
-        case_ids[i] = int(i / rows_per_case)
-        rem = i % rows_per_case
-        dims[i] = int(rem / n_timepoints)
-        idxs[i] = rem % n_timepoints
-
-    df = pd.DataFrame()
-    df["case_id"] = pd.Series(case_ids)
-    df["dim_id"] = pd.Series(dims)
-    df["reading_id"] = pd.Series(idxs)
-    df["value"] = pd.Series(vals)
-    return df
-
-
-def make_example_multi_index_dataframe(n_instances=50, n_channels=3, n_timepoints=20):
-    """Generate example multi-index DataFrame.
-
-    Parameters
-    ----------
-    n_instances : int
-        Number of instances.
-    n_channels : int
-        Number of columns (series) in multi-indexed DataFrame.
-    n_timepoints : int
-        Number of timepoints per instance-column pair.
-
-    Returns
-    -------
-    mi_df : pd.DataFrame
-        The multi-indexed DataFrame with
-        shape (n_instances*n_timepoints, n_column).
-    """
-    # Make long DataFrame
-    long_df = make_example_long_table(
-        n_cases=n_instances, n_timepoints=n_timepoints, n_channels=n_channels
-    )
-    # Make Multi index DataFrame
-    mi_df = long_df.set_index(["case_id", "reading_id"]).pivot(columns="dim_id")
-    mi_df.columns = [f"var_{i}" for i in range(n_channels)]
-    return mi_df
-
-
+# TODO: Move to the conversion module after #1125
 def _convert_tsf_to_hierarchical(
     data: pd.DataFrame,
     metadata: Dict,

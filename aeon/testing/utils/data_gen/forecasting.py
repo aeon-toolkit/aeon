@@ -3,10 +3,8 @@
 __author__ = ["mloning"]
 __all__ = [
     "_get_expected_index_for_update_predict",
-    "_generate_polynomial_series",
     "make_forecasting_problem",
     "_get_expected_index_for_update_predict",
-    "make_forecasting_problem",
 ]
 
 import numpy as np
@@ -63,14 +61,6 @@ def _get_expected_index_for_update_predict(y, fh, step_length, initial_window):
 
     # return unique and sorted index
     return pred_index.unique().sort_values()
-
-
-def _generate_polynomial_series(n, order, coefs=None):
-    """Generate polynomial series of given order and coefficients."""
-    if coefs is None:
-        coefs = np.ones((order + 1, 1))
-    x = np.vander(np.arange(n), N=order + 1).dot(coefs)
-    return x.ravel()
 
 
 def make_forecasting_problem(

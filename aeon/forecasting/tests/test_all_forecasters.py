@@ -96,13 +96,13 @@ class ForecasterFixtureGenerator(BaseFixtureGenerator):
             ranges over 1 and 2 for forecasters which are both uni/multivariate
         """
         if "estimator_class" in kwargs.keys():
-            scitype_tag = kwargs["estimator_class"].get_class_tag("y_input_type")
+            y_input_type = kwargs["estimator_class"].get_class_tag("y_input_type")
         elif "estimator_instance" in kwargs.keys():
-            scitype_tag = kwargs["estimator_instance"].get_tag("y_input_type")
+            y_input_type = kwargs["estimator_instance"].get_tag("y_input_type")
         else:
             return []
 
-        n_columns_list = _get_n_columns(scitype_tag)
+        n_columns_list = _get_n_columns(y_input_type)
         if len(n_columns_list) == 1:
             n_columns_names = ["" for x in n_columns_list]
         else:

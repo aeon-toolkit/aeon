@@ -140,7 +140,7 @@ def make_example_2d_numpy(
     return X
 
 
-def make_unequal_length_data(
+def make_example_unequal_length(
     n_cases: int = 10,
     n_channels: int = 1,
     min_series_length: int = 6,
@@ -180,8 +180,8 @@ def make_unequal_length_data(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_unequal_length_data
-    >>> data, labels = make_unequal_length_data(
+    >>> from aeon.testing.utils.data_gen import make_example_unequal_length
+    >>> data, labels = make_example_unequal_length(
     ...     n_cases=20,
     ...     n_channels=2,
     ...     min_series_length=8,
@@ -210,6 +210,125 @@ def make_unequal_length_data(
         y += rng.uniform(size=y.shape)
 
     return X, y
+
+
+def make_example_nested_dataframe(
+    n_cases: int = 20,
+    n_channels: int = 1,
+    n_timepoints: int = 20,
+    return_y: bool = True,
+    n_classes: int = 2,
+    regression_target: bool = False,
+    random_state=None,
+):
+    """Randomly generate nest pd.DataFrame X and pd.Series y data for testing.
+
+    Parameters
+    ----------
+    n_cases : int
+        The number of samples to generate.
+    n_channels : int
+        The number of series channels to generate.
+    n_timepoints : int
+        The number of features/series length to generate.
+    n_labels : int
+        The number of unique labels to generate.
+    regression_target : bool
+        If True, the target will be a float, otherwise a discrete.
+    random_state : int or None
+        Seed for random number generation.
+
+    Returns
+    -------
+    X : np.ndarray
+        Randomly generated 3D data.
+    y : np.ndarray
+        Randomly generated labels.
+    """
+    X = _make_collection_X(
+        n_channels=n_channels,
+        n_timepoints=n_timepoints,
+        return_numpy=False,
+        random_state=random_state,
+    )
+    if return_y:
+        if not regression_target:
+            """Make Classification Problem."""
+            y = _make_classification_y(
+                n_cases, n_classes, return_numpy=False, random_state=random_state
+            )
+        else:
+            y = _make_regression_y(
+                n_cases, return_numpy=False, random_state=random_state
+            )
+        return X, y
+    return X
+
+
+def make_example_long_table(n_cases=50, n_channels=2, n_timepoints=20):
+    """Generate example collection in long table format file.
+
+    Parameters
+    ----------
+    n_cases: int
+        Number of cases.
+    n_channels: int
+        Number of dimensions.
+    n_timepoints: int
+        Length of the series.
+
+    Returns
+    -------
+    DataFrame containing random data in long format.
+    """
+    rows_per_case = n_timepoints * n_channels
+    total_rows = n_cases * n_timepoints * n_channels
+
+    case_ids = np.empty(total_rows, dtype=int)
+    idxs = np.empty(total_rows, dtype=int)
+    dims = np.empty(total_rows, dtype=int)
+    vals = np.random.rand(total_rows)
+
+    for i in range(total_rows):
+        case_ids[i] = int(i / rows_per_case)
+        rem = i % rows_per_case
+        dims[i] = int(rem / n_timepoints)
+        idxs[i] = rem % n_timepoints
+
+    df = pd.DataFrame()
+    df["case_id"] = pd.Series(case_ids)
+    df["dim_id"] = pd.Series(dims)
+    df["reading_id"] = pd.Series(idxs)
+    df["value"] = pd.Series(vals)
+    return df
+
+
+def make_example_multi_index_dataframe(n_instances=50, n_channels=3, n_timepoints=20):
+    """Generate example collection as multi-index DataFrame.
+
+    Parameters
+    ----------
+    n_instances : int
+        Number of instances.
+    n_channels : int
+        Number of columns (series) in multi-indexed DataFrame.
+    n_timepoints : int
+        Number of timepoints per instance-column pair.
+
+    Returns
+    -------
+    mi_df : pd.DataFrame
+        The multi-indexed DataFrame with
+        shape (n_instances*n_timepoints, n_column).
+    """
+    # Make long DataFrame
+    long_df = make_example_long_table(
+        n_cases=n_instances, n_timepoints=n_timepoints, n_channels=n_channels
+    )
+    # Make Multi index DataFrame
+    mi_df = long_df.set_index(["case_id", "reading_id"]).pivot(columns="dim_id")
+    mi_df.columns = [f"var_{i}" for i in range(n_channels)]
+    return mi_df
 
 
 def _make_collection(
@@ -315,59 +434,6 @@ def _make_classification_y(
         return y
     else:
         return pd.Series(y)
-
-
-def make_example_nested_dataframe(
-    n_cases: int = 20,
-    n_channels: int = 1,
-    n_timepoints: int = 20,
-    return_y: bool = True,
-    n_classes: int = 2,
-    regression_target: bool = False,
-    random_state=None,
-):
-    """Randomly generate nest pd.DataFrame X and pd.Series y data for testing.
-
-    Parameters
-    ----------
-    n_cases : int
-        The number of samples to generate.
-    n_channels : int
-        The number of series channels to generate.
-    n_timepoints : int
-        The number of features/series length to generate.
-    n_labels : int
-        The number of unique labels to generate.
-    regression_target : bool
-        If True, the target will be a float, otherwise a discrete.
-    random_state : int or None
-        Seed for random number generation.
-
-    Returns
-    -------
-    X : np.ndarray
-        Randomly generated 3D data.
-    y : np.ndarray
-        Randomly generated labels.
-    """
-    X = _make_collection_X(
-        n_channels=n_channels,
-        n_timepoints=n_timepoints,
-        return_numpy=False,
-        random_state=random_state,
-    )
-    if return_y:
-        if not regression_target:
-            """Make Classification Problem."""
-            y = _make_classification_y(
-                n_cases, n_classes, return_numpy=False, random_state=random_state
-            )
-        else:
-            y = _make_regression_y(
-                n_cases, return_numpy=False, random_state=random_state
-            )
-        return X, y
-    return X
 
 
 def _make_nested_from_array(array, n_instances=20, n_columns=1):

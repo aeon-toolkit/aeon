@@ -11,11 +11,10 @@ from aeon.testing.utils.data_gen import (
     _make_classification_y,
     _make_nested_from_array,
     _make_regression_y,
-    make_2d_test_data,
-    make_3d_test_data,
-    make_clustering_data,
-    make_nested_dataframe_data,
-    make_unequal_length_data,
+    make_example_2d_numpy,
+    make_example_3d_numpy,
+    make_example_nested_dataframe,
+    make_example_unequal_length,
     piecewise_poisson,
 )
 
@@ -64,9 +63,11 @@ def test_piecewise_poisson(lambdas, lengths, random_state, output):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
 @pytest.mark.parametrize("regression", [True, False])
-def test_make_3d_test_data(n_cases, n_channels, n_timepoints, n_classes, regression):
+def test_make_example_3d_numpy(
+    n_cases, n_channels, n_timepoints, n_classes, regression
+):
     """Test data of right format."""
-    X, y = make_3d_test_data(
+    X, y = make_example_3d_numpy(
         n_cases=n_cases,
         n_channels=n_channels,
         n_timepoints=n_timepoints,
@@ -84,9 +85,9 @@ def test_make_3d_test_data(n_cases, n_channels, n_timepoints, n_classes, regress
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
 @pytest.mark.parametrize("regression", [True, False])
-def test_make_2d_test_data(n_cases, n_timepoints, n_classes, regression):
+def test_make_example_2d_numpy(n_cases, n_timepoints, n_classes, regression):
     """Test data of right format."""
-    X, y = make_2d_test_data(
+    X, y = make_example_2d_numpy(
         n_cases=n_cases,
         n_timepoints=n_timepoints,
         n_labels=n_classes,
@@ -105,33 +106,11 @@ def test_make_2d_test_data(n_cases, n_timepoints, n_classes, regression):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
 @pytest.mark.parametrize("regression", [True, False])
-def test_make_dataframe_data(n_cases, n_channels, n_timepoints, n_classes, regression):
-    X, y = make_nested_dataframe_data(
-        n_cases=n_cases,
-        n_labels=n_classes,
-        n_channels=n_channels,
-        n_timepoints=n_timepoints,
-        regression_target=regression,
-    )
-
-    # check dimensions of generated data
-    _check_X_y(X, y, n_cases, n_channels, n_timepoints, check_numpy=False)
-    if regression:
-        assert y.dtype == np.float32
-    else:
-        assert len(np.unique(y)) == n_classes
-
-
-@pytest.mark.parametrize("n_cases", N_INSTANCES)
-@pytest.mark.parametrize("n_channels", N_CHANNELS)
-@pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
-@pytest.mark.parametrize("n_classes", N_CLASSES)
-@pytest.mark.parametrize("regression", [True, False])
 def test_make_unequal_length_data(
     n_cases, n_channels, n_timepoints, n_classes, regression
 ):
     """Test data of right format."""
-    X, y = make_unequal_length_data(
+    X, y = make_example_unequal_length(
         n_cases=n_cases,
         n_channels=n_channels,
         n_labels=n_classes,
@@ -152,22 +131,30 @@ def test_make_unequal_length_data(
 @pytest.mark.parametrize("n_cases", N_INSTANCES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
-def test_make_clustering_data(
-    n_cases,
-    n_channels,
-    n_timepoints,
+@pytest.mark.parametrize("n_classes", N_CLASSES)
+@pytest.mark.parametrize("regression", [True, False])
+def test_make_example_nested_dataframe(
+    n_cases, n_channels, n_timepoints, n_classes, regression
 ):
-    X = make_clustering_data(
+    X, y = make_example_nested_dataframe(
         n_cases=n_cases,
+        n_labels=n_classes,
         n_channels=n_channels,
         n_timepoints=n_timepoints,
+        regression_target=regression,
     )
-    assert X.shape == (n_cases, n_channels, n_timepoints)
+
+    # check dimensions of generated data
+    _check_X_y(X, y, n_cases, n_channels, n_timepoints, check_numpy=False)
+    if regression:
+        assert y.dtype == np.float32
+    else:
+        assert len(np.unique(y)) == n_classes
 
 
 def test_uncovered():
     """Test data gen cases we dont need to do for all combos."""
-    X, y = make_2d_test_data(n_cases=4, n_labels=5)
+    X, y = make_example_2d_numpy(n_cases=4, n_labels=5)
     assert np.unique(y).size == 4
     y = _make_regression_y(return_numpy=True)
     assert isinstance(y, np.ndarray)
@@ -175,5 +162,5 @@ def test_uncovered():
     assert isinstance(y, pd.Series)
     with pytest.raises(ValueError, match="n_cases must be bigger than n_classes"):
         y = _make_classification_y(n_instances=4, n_classes=5)
-    x = _make_nested_from_array(make_3d_test_data(n_channels=2), 2)
+    x = _make_nested_from_array(make_example_3d_numpy(n_channels=2), 2)
     assert isinstance(x, pd.DataFrame)
