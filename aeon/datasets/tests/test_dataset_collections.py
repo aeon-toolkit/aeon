@@ -48,7 +48,7 @@ def test_list_available_tsc_datasets():
 def test_list_available_tser_datasets():
     """Test recovering lists of available data sets."""
     res = get_available_tser_datasets()
-    assert len(res) == 18  # PGDalia excluded because of unequal length within case
+    assert len(res) == 63
     res = get_available_tser_datasets("FOO")
     assert not res
     res = get_available_tser_datasets("Covid3Month")
