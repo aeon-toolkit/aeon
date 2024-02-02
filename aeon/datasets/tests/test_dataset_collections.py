@@ -13,7 +13,7 @@ from aeon.testing.test_config import PR_TESTING
 
 @pytest.mark.skipif(
     PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
+    reason="Only run on overnights because of intermittent fail for read/write.",
 )
 def test_downloaded_tsf_datasets():
     """Test recovering downloaded data sets.
@@ -29,7 +29,7 @@ def test_downloaded_tsf_datasets():
 
 @pytest.mark.skipif(
     PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
+    reason="Only run on overnights because of intermittent fail for read/write.",
 )
 def test_list_available_tsc_datasets():
     """Test recovering lists of available data sets."""
@@ -43,7 +43,7 @@ def test_list_available_tsc_datasets():
 
 @pytest.mark.skipif(
     PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
+    reason="Only run on overnights because of intermittent fail for read/write.",
 )
 def test_list_available_tser_datasets():
     """Test recovering lists of available data sets."""
@@ -57,7 +57,7 @@ def test_list_available_tser_datasets():
 
 @pytest.mark.skipif(
     PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
+    reason="Only run on overnights because of intermittent fail for read/write.",
 )
 def test_list_available_tsf_datasets():
     """Test recovering lists of available data sets."""
