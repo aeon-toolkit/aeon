@@ -14,7 +14,7 @@ from aeon.networks import AEResNetNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
-class ResNetClusterer(BaseDeepClusterer):
+class AEResNetClusterer(BaseDeepClusterer):
     """
     Residual Neural Network (RNN).
 
@@ -107,7 +107,8 @@ class ResNetClusterer(BaseDeepClusterer):
     >>> from aeon.clustering.deep_learning import AEResNetClusterer
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> ae_resnet = AEResNetClusterer(n_clusters=2,n_epochs=20,batch_size=4) # doctest: +SKIP
+    >>> ae_resnet = AEResNetClusterer(n_clusters=2,
+                n_epochs=20,batch_size=4) # doctest: +SKIP
     >>> ae_resnet.fit(X_train, Y_train) # doctest: +SKIP
     AEResNetClusterer(...)
     """
@@ -148,7 +149,7 @@ class ResNetClusterer(BaseDeepClusterer):
         optimizer="Adam",
     ):
         _check_dl_dependencies(severity="error")
-        super(ResNetClusterer, self).__init__(
+        super(AEResNetClusterer, self).__init__(
             n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
