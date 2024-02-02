@@ -86,7 +86,7 @@ class AEResNetNetwork(BaseDeepNetwork):
         random_state=0,
     ):
         _check_dl_dependencies(severity="error")
-        super(AEResNetNetwork, self).__init__()
+        super().__init__()
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
         self.n_filters = n_filters
@@ -100,20 +100,16 @@ class AEResNetNetwork(BaseDeepNetwork):
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.random_state = random_state
 
-    def _shortcut_layer(self,
-                        input_tensor,
-                        output_tensor,
-                        padding="same",
-                        use_bias=True):
+    def _shortcut_layer(
+        self, input_tensor, output_tensor, padding="same", use_bias=True
+    ):
         import tensorflow as tf
 
         n_out_filters = int(output_tensor.shape[-1])
 
         shortcut_layer = tf.keras.layers.Conv1D(
-            filters=n_out_filters,
-            kernel_size=1,
-            padding=padding,
-            use_bias=use_bias)(input_tensor)
+            filters=n_out_filters, kernel_size=1, padding=padding, use_bias=use_bias
+        )(input_tensor)
         shortcut_layer = tf.keras.layers.BatchNormalization()(shortcut_layer)
 
         return tf.keras.layers.Add()([output_tensor, shortcut_layer])
@@ -136,11 +132,8 @@ class AEResNetNetwork(BaseDeepNetwork):
         """
         import tensorflow as tf
 
-        self._n_filters_ = [64, 128, 128
-                            ] if self.n_filters is None else self.n_filters
-        self._kernel_size_ = [
-            8, 5, 3
-        ] if self.kernel_size is None else self.kernel_size
+        self._n_filters_ = [64, 128, 128] if self.n_filters is None else self.n_filters
+        self._kernel_size_ = [8, 5, 3] if self.kernel_size is None else self.kernel_size
 
         if isinstance(self._n_filters_, list):
             self._n_filters = self._n_filters_
@@ -150,8 +143,7 @@ class AEResNetNetwork(BaseDeepNetwork):
         if isinstance(self._kernel_size_, list):
             self._kernel_size = self._kernel_size_
         else:
-            self._kernel_size = [self._kernel_size_
-                                 ] * self.n_conv_per_residual_block
+            self._kernel_size = [self._kernel_size_] * self.n_conv_per_residual_block
 
         if isinstance(self.strides, list):
             self._strides = self.strides
@@ -161,8 +153,7 @@ class AEResNetNetwork(BaseDeepNetwork):
         if isinstance(self.dilation_rate, list):
             self._dilation_rate = self.dilation_rate
         else:
-            self._dilation_rate = [self.dilation_rate
-                                   ] * self.n_conv_per_residual_block
+            self._dilation_rate = [self.dilation_rate] * self.n_conv_per_residual_block
 
         if isinstance(self.padding, list):
             self._padding = self.padding
@@ -172,8 +163,7 @@ class AEResNetNetwork(BaseDeepNetwork):
         if isinstance(self.activation, list):
             self._activation = self.activation
         else:
-            self._activation = [self.activation
-                                ] * self.n_conv_per_residual_block
+            self._activation = [self.activation] * self.n_conv_per_residual_block
 
         if isinstance(self.use_bias, list):
             self._use_bias = self.use_bias
@@ -199,18 +189,19 @@ class AEResNetNetwork(BaseDeepNetwork):
 
                 if c == self.n_conv_per_residual_block - 1:
                     conv = self._shortcut_layer(
-                        input_tensor=input_block_tensor, output_tensor=conv)
+                        input_tensor=input_block_tensor, output_tensor=conv
+                    )
 
-                conv = tf.keras.layers.Activation(
-                    activation=self._activation[c])(conv)
+                conv = tf.keras.layers.Activation(activation=self._activation[c])(conv)
 
                 x = conv
         if not self.temporal_latent_space:
             shape_before_flattent = x.shape[1:]
 
             flatten_layer = tf.keras.layers.Flatten()(x)
-            latent_space = tf.keras.layers.Dense(
-                units=self.latent_space_dim)(flatten_layer)
+            latent_space = tf.keras.layers.Dense(units=self.latent_space_dim)(
+                flatten_layer
+            )
         else:
             latent_space = tf.keras.layers.Conv1D(
                 filters=self.latent_space_dim,
@@ -221,19 +212,20 @@ class AEResNetNetwork(BaseDeepNetwork):
                 use_bias=self._use_bias[-1],
             )(x)
 
-        encoder = tf.keras.models.Model(inputs=input_layer_encoder,
-                                        outputs=latent_space,
-                                        name="encoder")
+        encoder = tf.keras.models.Model(
+            inputs=input_layer_encoder, outputs=latent_space, name="encoder"
+        )
 
         if not self.temporal_latent_space:
-            input_layer_decoder = tf.keras.layers.Input(
-                (self.latent_space_dim, ))
+            input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
 
-            dense_layer = tf.keras.layers.Dense(
-                units=np.prod(shape_before_flattent))(input_layer_decoder)
+            dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flattent))(
+                input_layer_decoder
+            )
 
-            reshape_layer = tf.keras.layers.Reshape(
-                target_shape=shape_before_flattent)(dense_layer)
+            reshape_layer = tf.keras.layers.Reshape(target_shape=shape_before_flattent)(
+                dense_layer
+            )
             x = reshape_layer
         else:
             input_layer_decoder = tf.keras.layers.Input(latent_space.shape[1:])
@@ -255,10 +247,10 @@ class AEResNetNetwork(BaseDeepNetwork):
 
                 if c == self.n_conv_per_residual_block - 1:
                     conv = self._shortcut_layer(
-                        input_tensor=input_block_tensor, output_tensor=conv)
+                        input_tensor=input_block_tensor, output_tensor=conv
+                    )
 
-                conv = tf.keras.layers.Activation(
-                    activation=self._activation[c])(conv)
+                conv = tf.keras.layers.Activation(activation=self._activation[c])(conv)
 
                 x = conv
 
@@ -271,8 +263,8 @@ class AEResNetNetwork(BaseDeepNetwork):
             use_bias=self._use_bias[0],
         )(x)
 
-        decoder = tf.keras.models.Model(inputs=input_layer_decoder,
-                                        outputs=last_projection_layer,
-                                        name="decoder")
+        decoder = tf.keras.models.Model(
+            inputs=input_layer_decoder, outputs=last_projection_layer, name="decoder"
+        )
 
         return encoder, decoder
