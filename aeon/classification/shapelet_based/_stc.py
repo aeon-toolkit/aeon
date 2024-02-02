@@ -173,14 +173,14 @@ class ShapeletTransformClassifier(BaseClassifier):
         self._transform_limit_in_minutes = 0
         self._classifier_limit_in_minutes = 0
 
-        super(ShapeletTransformClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit ShapeletTransformClassifier to training data.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -247,7 +247,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -264,7 +264,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

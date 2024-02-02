@@ -50,7 +50,7 @@ class BaseCollectionTransformer(
     }
 
     def __init__(self):
-        super(BaseCollectionTransformer, self).__init__()
+        super().__init__()
 
     @final
     def fit(self, X, y=None):

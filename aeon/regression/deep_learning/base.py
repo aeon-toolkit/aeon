@@ -41,7 +41,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
     }
 
     def __init__(self, batch_size=40, last_file_name="last_model"):
-        super(BaseDeepRegressor, self).__init__()
+        super().__init__()
 
         self.batch_size = batch_size
         self.last_file_name = last_file_name
@@ -81,7 +81,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_dimensions, series_length)
+        X : an np.ndarray of shape = (n_instances, n_channels, series_length)
             The training input samples.
 
         Returns

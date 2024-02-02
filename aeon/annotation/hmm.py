@@ -5,10 +5,12 @@ Implements a basic Hidden Markov Model (HMM) as an annotation estimator.
 To read more about the algorithm, check out the `HMM wikipedia page
 <https://en.wikipedia.org/wiki/Hidden_Markov_model>`_.
 """
+
 import warnings
 from typing import Tuple
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from scipy.stats import norm
 
 from aeon.annotation.base._base import BaseSeriesAnnotator
@@ -17,6 +19,13 @@ __author__ = ["miraep8"]
 __all__ = ["HMM"]
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="HMM will be removed from annotation module in v0.8.0, it has been replaced "
+    "by HMMSegmenter in the segmentation module.",
+    category=FutureWarning,
+)
 class HMM(BaseSeriesAnnotator):
     """Implements a simple HMM fitted with Viterbi algorithm.
 
@@ -140,7 +149,7 @@ class HMM(BaseSeriesAnnotator):
         self.initial_probs = initial_probs
         self.emission_funcs = emission_funcs
         self.transition_prob_mat = transition_prob_mat
-        super(HMM, self).__init__(fmt="dense", labels="int_label")
+        super().__init__(fmt="dense", labels="int_label")
         self._validate_init()
 
     def _validate_init(self):

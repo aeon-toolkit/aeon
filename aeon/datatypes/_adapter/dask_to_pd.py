@@ -12,6 +12,7 @@ MultiIndex columns to DataFrame columns with the name:
     __index__[index_iloc], if level has no indexname and is index_iloc-th level
 index is replaced by a string index where tuples are replaced with str coerced elements
 """
+
 import pandas as pd
 
 
@@ -204,7 +205,6 @@ def check_dask_frame(
     # check whether index is equally spaced or if there are any nans
     #   compute only if needed
     if return_metadata:
-        # todo: logic for equal spacing
         metadata["is_equally_spaced"] = True
         metadata["has_nans"] = obj.isnull().values.any().compute()
 

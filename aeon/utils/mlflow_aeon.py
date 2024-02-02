@@ -27,7 +27,7 @@ mlflow.pyfunc
     `{"predict_method": {"predict": {}, "predict_interval": {"coverage": [0.1, 0.9]}}`.
     `Dict[str, list]`, with default parameters in predict method, for example
     `{"predict_method": ["predict", "predict_interval"}` (Note: when including
-    `predict_proba` method the former appraoch must be followed as `quantiles`
+    `predict_proba` method the former approach must be followed as `quantiles`
     parameter has to be provided by the user). If no prediction config is defined
     `pyfunc.predict()` will return output from aeon `predict()` method.
 """
@@ -45,6 +45,7 @@ import logging
 import os
 import pickle
 
+import numpy as np
 import pandas as pd
 import yaml
 
@@ -129,7 +130,7 @@ def save_model(
     pip_requirements=None,
     extra_pip_requirements=None,
     serialization_format=SERIALIZATION_FORMAT_PICKLE,
-):  # TODO: can we specify a type for fitted instance of aeon model below?
+):
     """Save a aeon model to a path on the local file system.
 
     Parameters
@@ -318,7 +319,7 @@ def log_model(
     extra_pip_requirements=None,
     serialization_format=SERIALIZATION_FORMAT_PICKLE,
     **kwargs,
-):  # TODO: can we specify a type for fitted instance of aeon model below?
+):
     """
     Log a aeon model as an MLflow artifact for the current run.
 
@@ -690,9 +691,9 @@ class _aeonModelWrapper:
                 else:
                     coverage = 0.9
 
-                raw_predictions[
-                    AEON_PREDICT_INTERVAL
-                ] = self.estimator.predict_interval(X=X, coverage=coverage)
+                raw_predictions[AEON_PREDICT_INTERVAL] = (
+                    self.estimator.predict_interval(X=X, coverage=coverage)
+                )
 
             if AEON_PREDICT_PROBA in predict_methods:
                 if not isinstance(
@@ -730,9 +731,12 @@ class _aeonModelWrapper:
                 )
 
                 y_pred_dist = self.estimator.predict_proba(X=X, marginal=marginal)
-                y_pred_dist_quantiles = pd.DataFrame(y_pred_dist.quantile(quantiles))
+                y_pred_dist_quantiles = []
+                for q in quantiles:
+                    y_pred_dist_quantiles.append(np.diag(y_pred_dist.ppf(q)))
+                y_pred_dist_quantiles = pd.DataFrame(y_pred_dist_quantiles).T
                 y_pred_dist_quantiles.columns = [f"Quantiles_{q}" for q in quantiles]
-                y_pred_dist_quantiles.index = y_pred_dist.parameters["loc"].index
+                # y_pred_dist_quantiles.index = y_pred_dist.parameters["loc"].index
 
                 raw_predictions[AEON_PREDICT_PROBA] = y_pred_dist_quantiles
 
@@ -750,9 +754,9 @@ class _aeonModelWrapper:
                     )
                 else:
                     alpha = None
-                raw_predictions[
-                    AEON_PREDICT_QUANTILES
-                ] = self.estimator.predict_quantiles(X=X, alpha=alpha)
+                raw_predictions[AEON_PREDICT_QUANTILES] = (
+                    self.estimator.predict_quantiles(X=X, alpha=alpha)
+                )
 
             if AEON_PREDICT_VAR in predict_methods:
                 if predict_params:
@@ -787,6 +791,3 @@ class _aeonModelWrapper:
             predictions = raw_predictions[list(raw_predictions.keys())[0]]
 
         return predictions
-
-
-# TODO: Add support for autologging

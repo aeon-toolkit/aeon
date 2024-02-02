@@ -13,12 +13,12 @@ from sklearn.utils._testing import set_random_state
 from aeon.datatypes._utilities import update_data
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.ets import AutoETS
+from aeon.testing.mock_estimators import MockForecaster
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.bootstrap import (
     MovingBlockBootstrapTransformer,
     STLBootstrapTransformer,
 )
-from aeon.utils.estimators import MockForecaster
 
 
 class BaggingForecaster(BaseForecaster):
@@ -116,7 +116,7 @@ class BaggingForecaster(BaseForecaster):
             # done before the super call to trigger exceptions
             self.set_tags(**{"python_dependencies": "statsmodels"})
 
-        super(BaggingForecaster, self).__init__()
+        super().__init__()
 
         # set the tags based on forecaster
         tags_to_clone = [
