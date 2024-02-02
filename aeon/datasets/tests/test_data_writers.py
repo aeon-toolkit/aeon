@@ -21,7 +21,7 @@ from aeon.testing.test_config import PR_TESTING
 from aeon.testing.utils.data_gen import (
     make_3d_test_data,
     make_nested_dataframe_data,
-    make_unequal_length_test_data,
+    make_unequal_length_data,
 )
 
 
@@ -88,7 +88,7 @@ def test_write_to_tsfile_unequal_length(problem_name):
     Loads equal and unequal length problems into both data frames and numpy arrays,
     writes locally, reloads, then compares all class labels. It then delete the files.
     """
-    X, y = make_unequal_length_test_data()
+    X, y = make_unequal_length_data()
     with tempfile.TemporaryDirectory() as tmp:
         write_to_tsfile(X=X, path=tmp, y=y, problem_name=problem_name)
         load_path = os.path.join(tmp, problem_name)

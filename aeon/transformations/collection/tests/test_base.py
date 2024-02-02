@@ -10,7 +10,7 @@ from aeon.testing.utils.data_gen import (
     make_2d_test_data,
     make_3d_test_data,
     make_series,
-    make_unequal_length_test_data,
+    make_unequal_length_data,
 )
 from aeon.transformations.collection import (
     BaseCollectionTransformer,
@@ -19,7 +19,7 @@ from aeon.transformations.collection import (
 
 
 @pytest.mark.parametrize(
-    "data_gen", [make_3d_test_data, make_2d_test_data, make_unequal_length_test_data]
+    "data_gen", [make_3d_test_data, make_2d_test_data, make_unequal_length_data]
 )
 def test_collection_transformer_valid_input(data_gen):
     """Test that BaseCollectionTransformer works with collection input."""
@@ -61,7 +61,7 @@ def test_collection_transformer_wrapper_series(dtype):
     assert yt[0].ndim == 2
 
 
-@pytest.mark.parametrize("data_gen", [make_3d_test_data, make_unequal_length_test_data])
+@pytest.mark.parametrize("data_gen", [make_3d_test_data, make_unequal_length_data])
 def test_collection_transformer_wrapper_collection(data_gen):
     """Test that the wrapper for regular transformers works with collection input."""
     X, y = data_gen()

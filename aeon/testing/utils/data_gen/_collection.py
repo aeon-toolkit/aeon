@@ -4,7 +4,7 @@ __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
     "make_3d_test_data",
     "make_2d_test_data",
-    "make_unequal_length_test_data",
+    "make_unequal_length_data",
     "make_nested_dataframe_data",
     "make_clustering_data",
 ]
@@ -138,7 +138,7 @@ def make_2d_test_data(
     return X, y
 
 
-def make_unequal_length_test_data(
+def make_unequal_length_data(
     n_cases: int = 10,
     n_channels: int = 1,
     min_series_length: int = 6,
@@ -178,8 +178,8 @@ def make_unequal_length_test_data(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_unequal_length_test_data
-    >>> data, labels = make_unequal_length_test_data(
+    >>> from aeon.testing.utils.data_gen import make_unequal_length_data
+    >>> data, labels = make_unequal_length_data(
     ...     n_cases=20,
     ...     n_channels=2,
     ...     min_series_length=8,
@@ -293,6 +293,7 @@ def _make_collection_X(
 def _make_regression_y(n_instances=20, return_numpy=True, random_state=None):
     rng = check_random_state(random_state)
     y = rng.normal(size=n_instances)
+    y = y.astype(np.float32)
     if return_numpy:
         return y
     else:
@@ -318,8 +319,8 @@ def make_nested_dataframe_data(
     n_cases: int = 20,
     n_channels: int = 1,
     n_timepoints: int = 20,
-    n_classes: int = 2,
-    classification: bool = True,
+    n_labels: int = 2,
+    regression_target: bool = False,
     random_state=None,
 ):
     """Randomly generate nest pd.DataFrame X and pd.Series y data for testing.
@@ -332,8 +333,10 @@ def make_nested_dataframe_data(
         The number of series channels to generate.
     n_timepoints : int
         The number of features/series length to generate.
-    classification : bool
-        If True, the target will be discrete, otherwise a float.
+    n_labels : int
+        The number of unique labels to generate.
+    regression_target : bool
+        If True, the target will be a float, otherwise a discrete.
     random_state : int or None
         Seed for random number generation.
 
@@ -344,10 +347,10 @@ def make_nested_dataframe_data(
     y : np.ndarray
         Randomly generated labels.
     """
-    if classification:
+    if not regression_target:
         """Make Classification Problem."""
         y = _make_classification_y(
-            n_cases, n_classes, return_numpy=False, random_state=random_state
+            n_cases, n_labels, return_numpy=False, random_state=random_state
         )
     else:
         y = _make_regression_y(n_cases, return_numpy=False, random_state=random_state)

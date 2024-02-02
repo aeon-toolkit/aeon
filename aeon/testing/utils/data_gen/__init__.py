@@ -3,7 +3,7 @@
 __all__ = [
     "make_2d_test_data",
     "make_3d_test_data",
-    "make_unequal_length_test_data",
+    "make_unequal_length_data",
     "make_series",
     "_make_index",
     "make_clustering_data",
@@ -52,7 +52,7 @@ from aeon.testing.utils.data_gen._collection import (
     make_3d_test_data,
     make_clustering_data,
     make_nested_dataframe_data,
-    make_unequal_length_test_data,
+    make_unequal_length_data,
 )
 from aeon.testing.utils.data_gen._data_generators import (
     _convert_tsf_to_hierarchical,

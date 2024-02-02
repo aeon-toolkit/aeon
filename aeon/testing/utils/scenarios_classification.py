@@ -17,7 +17,7 @@ from aeon.base import BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.regression.base import BaseRegressor
-from aeon.testing.utils.data_gen import make_3d_test_data, make_unequal_length_test_data
+from aeon.testing.utils.data_gen import make_3d_test_data, make_unequal_length_data
 from aeon.testing.utils.scenarios import TestScenario
 
 # random seed for generating data to keep scenarios exactly reproducible
@@ -101,10 +101,10 @@ X_test_mv, _ = make_3d_test_data(
     n_cases=5, n_channels=2, n_timepoints=20, random_state=RAND_SEED
 )
 
-X_ul, _ = make_unequal_length_test_data(
+X_ul, _ = make_unequal_length_data(
     n_cases=10, max_series_length=15, min_series_length=10, random_state=RAND_SEED
 )
-X_test_ul, _ = make_unequal_length_test_data(
+X_test_ul, _ = make_unequal_length_data(
     n_cases=5, max_series_length=15, min_series_length=10, random_state=RAND_SEED
 )
 
