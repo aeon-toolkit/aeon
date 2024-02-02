@@ -108,8 +108,7 @@ class AEResNetClusterer(BaseDeepClusterer):
     >>> from aeon.clustering.deep_learning import AEResNetClusterer
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> ae_resnet = AEResNetClusterer(n_clusters=2,
-                n_epochs=20,batch_size=4) # doctest: +SKIP
+    >>> ae_resnet = AEResNetClusterer(n_clusters=2,n_epochs=20) # doctest: +SKIP
     >>> ae_resnet.fit(X_train, Y_train) # doctest: +SKIP
     AEResNetClusterer(...)
     """
@@ -150,7 +149,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         optimizer="Adam",
     ):
         _check_dl_dependencies(severity="error")
-        super().__init__(
+        super(AEResNetClusterer, self).__init__(
             n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
@@ -218,11 +217,8 @@ class AEResNetClusterer(BaseDeepClusterer):
 
         tf.random.set_seed(self.random_state)
 
-        self.optimizer_ = (
-            tf.keras.optimizers.Adam(learning_rate=0.01)
-            if self.optimizer is None
-            else self.optimizer
-        )
+        self.optimizer_ = (tf.keras.optimizers.Adam(
+            learning_rate=0.01) if self.optimizer is None else self.optimizer)
 
         encoder, decoder = self._network.build_network(input_shape, **kwargs)
 
@@ -230,8 +226,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         encoder_output = encoder(input_layer)
         decoder_output = decoder(encoder_output)
         output_layer = tf.keras.layers.Reshape(
-            target_shape=input_shape, name="outputlayer"
-        )(decoder_output)
+            target_shape=input_shape, name="outputlayer")(decoder_output)
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
@@ -267,24 +262,18 @@ class AEResNetClusterer(BaseDeepClusterer):
         if self.verbose:
             self.training_model_.summary()
 
-        self.file_name_ = (
-            self.best_file_name if self.save_best_model else str(time.time_ns())
-        )
+        self.file_name_ = (self.best_file_name
+                           if self.save_best_model else str(time.time_ns()))
 
-        self.callbacks_ = (
-            [
-                tf.keras.callbacks.ReduceLROnPlateau(
-                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-                ),
-                tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
-                    monitor="loss",
-                    save_best_only=True,
-                ),
-            ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        self.callbacks_ = ([
+            tf.keras.callbacks.ReduceLROnPlateau(
+                monitor="loss", factor=0.5, patience=50, min_lr=0.0001),
+            tf.keras.callbacks.ModelCheckpoint(
+                filepath=self.file_path + self.file_name_ + ".hdf5",
+                monitor="loss",
+                save_best_only=True,
+            ),
+        ] if self.callbacks is None else self.callbacks)
 
         if self.use_mini_batch_size:
             mini_batch_size = min(self.batch_size, X.shape[0] // 10)
@@ -301,9 +290,9 @@ class AEResNetClusterer(BaseDeepClusterer):
         )
 
         try:
-            self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
-            )
+            self.model_ = tf.keras.models.load_model(self.file_path +
+                                                     self.file_name_ + ".hdf5",
+                                                     compile=False)
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".hdf5")
         except FileNotFoundError:
