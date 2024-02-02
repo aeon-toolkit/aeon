@@ -30,7 +30,7 @@ We will more widely advertise funding opportunities as and when they become avai
 
 #### 1. Machine Learning for Time Series Forecasting
 
-Mentors: Tony Bagnall ({user}`TonyBagnall`)
+Mentors: Tony Bagnall ({user}`TonyBagnall`) and TBC.
 
 ##### Description
 
@@ -42,7 +42,7 @@ evaluating regression algorithms already in `aeon`[1] for forecasting problems a
 implementing at least one algorithm from the literature not already in aeon, such as
 SETAR-Tree [3].
 
-##### Project stages
+##### Project Stages
 
 1. Learn about aeon best practices, coding standards and testing policies.
 2. Work through existing forecasting workflow and experimental reproduction.
@@ -82,23 +82,23 @@ Mentors: Ali Ismail-Fawaz ({user}`hadifawaz1999`)
 Implement and evaluate some models from the literature, maybe benchmark them as well
 to non-deep models
 
-##### Project stages
+##### Project Stages
 
-?
+TBC
 
-##### Project evaluation
+##### Expected Outcomes
 
-?
+TBC
 
 ##### References
 
-?
+TBC
 
 ### Classification
 
 #### 1. Optimizing the Shapelet Transform for Classification and Similarity Search
 
-Mentors : Antoine Guillaume ({user}`baraline`)
+Mentors : Antoine Guillaume ({user}`baraline`) and Tony Bagnall ({user}`TonyBagnall`)
 
 ##### Description
 
@@ -139,9 +139,11 @@ shapelets.
 7. Benchmark the implementation against the original shapelet transform algorithm.
 8. If time, generalize this new algorithm to the case of dilated shapelets (see [5]).
 
-##### Project evaluation
+##### Expected Outcomes
 
-Based on the benchmark of the different implementations, we will evaluate the
+We expect the mentee engage with the aeon community and produce a performance games
+for the
+We Based on the benchmark of the different implementations, we will evaluate the
 performance gains of the new shapelet transform and the success of this project.
 
 ##### References
@@ -173,20 +175,36 @@ Mentors: Tony Bagnall ({user}`TonyBagnall`) and Aiden Rushbrooke
 
 EEG (Electroencephalogram) data are high dimensional time series that are used in
 medical, psychology and brain computer interface research. For example, EEG are
-used to detect epilepsy and to control decvices such as mice.
-Work on aeon-neuro, implement some of the recent EEG classification algorithms
+used to detect epilepsy and to control decvices such as mice. There is a huge body
+of work on analysing and learning from EEG, but there is a wide disparity of
+tools, practices and systems used. This project will help members of the `aeon`
+team who are currently researching techniques for EEG classification [1] and
+developing an aeon sister toolkit, ``aeon-neuro`` [LINK]. We will work together to
+improve the structure and documentation for aeon-neuro, help integrate the
+toolkit with existing EEG toolkits such as NM [2], provide interfaces to standard data
+formats such as BIDS [3] and help develop and assess a range of EEG classification
+algorithms.
 
 ##### Project stages
 
-?
+1. Learn about aeon best practices, coding standards and testing policies.
+2. Study the existing techniques for EEG classification.
+3. Implement or wrap standard EEG processing algorithms.
+4. Evaluate aeon classifiers for EEG problems.
+5. Implement alternatives transformations for preprocessing EEG data.
+6. Help write up results for a technical report/academic paper (depending on outcomes).
 
-##### Project evaluation
+##### Expected Outcomes
 
-?
+We would expect a better documented and more integrated aeon-neuro toolkit with
+better functionality and a wider appeal.
 
 ##### References
 
-?
+1. Aiden Rushbrooke, Jordan Tsigarides, Saber Sami, Anthony Bagnall,
+Time Series Classification of Electroencephalography Data, IWANN 2023.
+2. MNE Toolkit, https://mne.tools/stable/index.html
+3. The Brain Imaging Data Structure (BIDS) standard, https://bids.neuroimaging.io/
 
 #### 3. Improved Proximity Forest for classification
 
@@ -231,12 +249,10 @@ and the authors' Java implementation.
 5. If time, implement the Proximity Forest 2.0 algorithm and repeat the above
 evaluation.
 
-##### Project evaluation
+##### Expected Outcomes
 
-Success of the project will be assessed by the quality of the code produced and an
-evaluation of the classifier. The new implementation should be comparable with the
-authors implementation in performance. Engagement with the project and the
-`aeon` community are factors in evaluating success.
+We expect the mentee engage with the aeon community and produce a high quality
+implementation of the Proximity Forest algorithm(s) that gets accepted into the toolkit.
 
 ##### References
 
@@ -273,13 +289,13 @@ approaches for time series clustering. This involves adapting the FCN auto-encod
 leverage the ResNet model. Additionally, the project aims to integrate feature-based
 algorithms for time series clustering into the system.
 
-##### Project stages
+##### Project Stages
 
-?
+TBC
 
-##### Project evaluation
+##### Expected Outcomes
 
-?
+TBC
 
 ##### References
 
@@ -295,7 +311,7 @@ Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
 
 ##### Description
 
-`aeon` is looking to introduce a new module for time series anomaly detection. The
+`aeon` is looking to extend its module for time series anomaly detection. The
 end goal of this project is to implement the Matrix Profile [1][2] and MERLIN [3]
 algorithms, but suitable framework for anomaly detection in `aeon` will need to be
 designed first. The mentee will help design the API for the anomaly detection module
@@ -318,7 +334,7 @@ using the new API.
 5. If time allows and there is interest, benchmark the implementations against the
 original implementations or other anomaly detection algorithms.
 
-##### Project evaluation
+##### Project Outcome
 
 As the anomaly detection is a new module in `aeon`, there is very little existing code
 to compare against and little infrastructure to evluate anomaly detection algorithms.
@@ -345,7 +361,7 @@ mining. Journal of Open Source Software, 4(39), p.1504.
 
 #### 1. Time series segmentation
 
-Mentors: Tony Bagnall ({user}`TonyBagnall`) and ??
+Mentors: Tony Bagnall ({user}`TonyBagnall`) and TBC
 
 ##### Description
 
@@ -362,7 +378,7 @@ https://github.com/aeon-toolkit/aeon/issues/948
 4. Implement tools for comparing segmentation algorithms
 5. Conduct a bake off of segmentation algorithms on a range of datasets.
 
-##### Project evaluation
+##### Project Outcome
 
 As with all research programming based projects, progress can be hindered by many
 unforseen circumstances. Success will be measured by engagement, effort and
@@ -413,7 +429,7 @@ potentially to compare to other implementations ([#214](https://github.com/aeon-
 Besides improving the existing implementations, there is scope to implement the HYDRA
 algorithm [4] or implement GPU compatible versions of the algorithms.
 
-##### Project stages
+##### Project Stages
 
 1. Learn about `aeon` best practices, coding standards and testing policies.
 2. Study the ROCKET, MiniROCKET, MultiROCKET algorithms.
@@ -431,7 +447,7 @@ mentee with the `aeon` pull request process.
 6. Benchmark the implementation against the original ROCKET implementations, looking at
 booth speed of the transform and accuracy in a classification setting.
 
-##### Project evaluation
+##### Project Outcomes
 
 Success of the project will be assessed by the quality of the code produced and an
 evaluation of the transformers in a classification setting. None of the implementations
@@ -473,7 +489,7 @@ relevant API page. I.e., the API page for
 "Examples" which links to the examples which use the class (such as the Rocket
 notebook).
 
-##### Project stages
+##### Project Stages
 
 1. Learn about `aeon` best practices and project documentation.
 2. Familiarise with `sphinx` documentation generation and `numpydoc` docstring
@@ -486,7 +502,7 @@ to examples which use the function/class.
 improved! If time allows, continue to enhance the API documentation through individual
 docstrings, API landing page and template improvements at the mentees discretion.
 
-##### Project evaluation
+##### Project Outcomes
 
 Success of the project will be assessed by the quality of the documentation produced
 and engagement with the project and the `aeon` community. Automatically generating
