@@ -217,7 +217,7 @@ def make_example_nested_dataframe(
     n_channels: int = 1,
     n_timepoints: int = 20,
     return_y: bool = True,
-    n_classes: int = 2,
+    n_labels: int = 2,
     regression_target: bool = False,
     random_state=None,
 ):
@@ -225,17 +225,19 @@ def make_example_nested_dataframe(
 
     Parameters
     ----------
-    n_cases : int
+    n_cases : int, default = 20
         The number of samples to generate.
-    n_channels : int
+    n_channels : int, default = 1
         The number of series channels to generate.
-    n_timepoints : int
+    n_timepoints : int, default = 20
         The number of features/series length to generate.
-    n_labels : int
+    return_y : bool, default = True
+        Return the y target variable.
+    n_labels : int, default = 2
         The number of unique labels to generate.
-    regression_target : bool
+    regression_target : bool, default = False
         If True, the target will be a float, otherwise a discrete.
-    random_state : int or None
+    random_state : int or None, default = None
         Seed for random number generation.
 
     Returns
@@ -246,6 +248,7 @@ def make_example_nested_dataframe(
         Randomly generated labels.
     """
     X = _make_collection_X(
+        n_instances=n_cases,
         n_channels=n_channels,
         n_timepoints=n_timepoints,
         return_numpy=False,
@@ -255,7 +258,7 @@ def make_example_nested_dataframe(
         if not regression_target:
             """Make Classification Problem."""
             y = _make_classification_y(
-                n_cases, n_classes, return_numpy=False, random_state=random_state
+                n_cases, n_labels, return_numpy=False, random_state=random_state
             )
         else:
             y = _make_regression_y(
