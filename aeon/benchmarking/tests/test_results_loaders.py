@@ -61,7 +61,7 @@ def test_get_estimator_results_as_array():
         include_missing=True,
         default_only=False,
     )
-    assert res[0][0] == 0.9700680272108843
+    assert res[0][0] == 0.968901846452867
 
 
 def test_alias():
@@ -72,9 +72,9 @@ def test_alias():
     name = estimator_alias("FP")
     name2 = estimator_alias("FreshPRINCEClassifier")
     assert name == "FreshPRINCE" and name2 == "FreshPRINCE"
-    name = estimator_alias("WEASEL-D")
+    name = estimator_alias("WEASEL-Dilation")
     name2 = estimator_alias("WEASEL")
-    assert name == "WEASEL-Dilation" and name2 == "WEASEL-Dilation"
+    assert name == "WEASEL-2.0" and name2 == "WEASEL-1.0"
     with raises(ValueError):
         estimator_alias("NotAClassifier")
 
