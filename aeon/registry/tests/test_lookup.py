@@ -19,6 +19,8 @@ CLASSES_WITHOUT_TAGS = [
     "network",
     "collection-transformer",
     "collection-estimator",
+    "series-estimator",
+    "series-transformer",
     "similarity-search",
 ]
 
