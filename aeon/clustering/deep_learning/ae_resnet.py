@@ -1,5 +1,5 @@
 """Residual Network (ResNet) for clustering."""
-
+__author__ = ["xiaopu222"]
 __all__ = ["ResNetClusterer"]
 
 import gc
@@ -10,7 +10,7 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
-from networks.ae_resnet import AEResNetNetwork
+from aeon.networks import AEResNetNetwork
 from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
@@ -180,6 +180,7 @@ class ResNetClusterer(BaseDeepClusterer):
         self.last_file_name = last_file_name
         self.optimizer = optimizer
         self.history = None
+
         self._network = AEResNetNetwork(
             n_residual_blocks=self.n_residual_blocks,
             n_conv_per_residual_block=self.n_conv_per_residual_block,
@@ -227,14 +228,7 @@ class ResNetClusterer(BaseDeepClusterer):
             target_shape=input_shape, name="outputlayer")(decoder_output)
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-        # input_layer, output_layer = self._network.build_network(
-        #     input_shape, **kwargs)
-        # output_layer = tf.keras.layers.Dense(
-        #     units=input_shape[0], activation="softmax",
-        #     use_bias=self.use_bias)(output_layer)
-        # output_layer = tf.keras.layers.Reshape(
-        #     target_shape=input_shape, name="outputlayer")(output_layer)
-        # model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
+
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,

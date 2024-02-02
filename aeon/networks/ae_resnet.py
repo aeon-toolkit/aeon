@@ -243,7 +243,7 @@ class AEResNetNetwork(BaseDeepNetwork):
         for d in range(self.n_residual_blocks):
             input_block_tensor = x
 
-            for c in range(self.n_conv_per_residual_block):
+            for c in range(self.n_conv_per_residual_block)[::-1]:
                 conv = tf.keras.layers.Conv1DTranspose(
                     filters=self._n_filters[d],
                     kernel_size=self._kernel_size[c],
