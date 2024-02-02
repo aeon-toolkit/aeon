@@ -1,114 +1,161 @@
+"""Validation and checking functions for collections of time series."""
+
+__author__ = ["TonyBagnall"]
+
 import numpy as np
 import pandas as pd
 
-from aeon.base._base_collection import COLLECTIONS_DATA_TYPES
+import aeon.utils.validation._convert_collection as conv
+from aeon.utils.validation._convert_collection import _equal_length
+
+COLLECTIONS_DATA_TYPES = [
+    "numpy3D",  # 3D np.ndarray of format (n_cases, n_channels, n_timepoints)
+    "np-list",  # python list of 2D numpy array of length [n_cases],
+    # each of shape (n_channels, n_timepoints_i)
+    "df-list",  # python list of 2D pd.DataFrames of length [n_cases], each a of
+    # shape (n_timepoints_i, n_channels)
+    "numpy2D",  # 2D np.ndarray of shape (n_cases, n_channels*n_timepoints)
+    "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
+    "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
+    "pd-multiindex",  # pd.DataFrame with multi-index,
+]
+
+convert_dictionary = dict()
+# assign identity function to type conversion to self
+for x in COLLECTIONS_DATA_TYPES:
+    convert_dictionary[(x, x)] = conv.convert_identity
+# numpy3D -> *
+convert_dictionary[("numpy3D", "np-list")] = conv._from_numpy3d_to_np_list
+convert_dictionary[("numpy3D", "df-list")] = conv._from_numpy3d_to_df_list
+convert_dictionary[("numpy3D", "pd-wide")] = conv._from_numpy3d_to_pd_wide
+convert_dictionary[("numpy3D", "numpy2D")] = conv._from_numpy3d_to_numpy2d
+convert_dictionary[("numpy3D", "nested_univ")] = conv._from_numpy3d_to_nested_univ
+convert_dictionary[("numpy3D", "pd-multiindex")] = conv._from_numpy3d_to_pd_multiindex
+# np-list-> *
+convert_dictionary[("np-list", "numpy3D")] = conv._from_np_list_to_numpy3d
+convert_dictionary[("np-list", "df-list")] = conv._from_np_list_to_df_list
+convert_dictionary[("np-list", "pd-wide")] = conv._from_np_list_to_pd_wide
+convert_dictionary[("np-list", "numpy2D")] = conv._from_np_list_to_numpy2d
+convert_dictionary[("np-list", "nested_univ")] = conv._from_np_list_to_nested_univ
+convert_dictionary[("np-list", "pd-multiindex")] = conv._from_np_list_to_pd_multiindex
+# df-list-> *
+convert_dictionary[("df-list", "numpy3D")] = conv._from_df_list_to_numpy3d
+convert_dictionary[("df-list", "np-list")] = conv._from_df_list_to_np_list
+convert_dictionary[("df-list", "pd-wide")] = conv._from_df_list_to_pd_wide
+convert_dictionary[("df-list", "numpy2D")] = conv._from_df_list_to_numpy2d
+convert_dictionary[("df-list", "nested_univ")] = conv._from_df_list_to_nested_univ
+convert_dictionary[("df-list", "pd-multiindex")] = conv._from_df_list_to_pd_multiindex
+# numpy2D -> *: NOTE ASSUMES n_channels == 1 for this conversion.
+convert_dictionary[("numpy2D", "numpy3D")] = conv._from_numpy2d_to_numpy3d
+convert_dictionary[("numpy2D", "np-list")] = conv._from_numpy2d_to_np_list
+convert_dictionary[("numpy2D", "df-list")] = conv._from_numpy2d_to_df_list
+convert_dictionary[("numpy2D", "pd-wide")] = conv._from_numpy2d_to_pd_wide
+convert_dictionary[("numpy2D", "nested_univ")] = conv._from_numpy2d_to_nested_univ
+convert_dictionary[("numpy2D", "pd-multiindex")] = conv._from_numpy2d_to_pd_multiindex
+# pd-wide -> *: NOTE ASSUMES n_channels == 1 for this conversion.
+convert_dictionary[("pd-wide", "numpy3D")] = conv._from_pd_wide_to_numpy3d
+convert_dictionary[("pd-wide", "np-list")] = conv._from_pd_wide_to_np_list
+convert_dictionary[("pd-wide", "df-list")] = conv._from_pd_wide_to_df_list
+convert_dictionary[("pd-wide", "numpy2D")] = conv._from_pd_wide_to_numpy2d
+convert_dictionary[("pd-wide", "nested_univ")] = conv._from_pd_wide_to_nested_univ
+convert_dictionary[("pd-wide", "pd-multiindex")] = conv._pd_wide_to_pd_multiindex
+# nested_univ -> *
+convert_dictionary[("nested_univ", "numpy3D")] = conv._from_nested_univ_to_numpy3d
+convert_dictionary[("nested_univ", "np-list")] = conv._from_nested_univ_to_np_list
+convert_dictionary[("nested_univ", "df-list")] = conv._from_nested_univ_to_df_list
+convert_dictionary[("nested_univ", "pd-wide")] = conv._from_nested_univ_to_pd_wide
+convert_dictionary[("nested_univ", "numpy2D")] = conv._from_nested_univ_to_numpy2d
+convert_dictionary[("nested_univ", "pd-multiindex")] = (
+    conv._from_nested_univ_to_pd_multiindex
+)
+# pd_multiindex -> *
+convert_dictionary[("pd-multiindex", "numpy3D")] = conv._from_pd_multiindex_to_numpy3d
+convert_dictionary[("pd-multiindex", "np-list")] = conv._from_pd_multiindex_to_np_list
+convert_dictionary[("pd-multiindex", "df-list")] = conv._from_pd_multiindex_to_df_list
+convert_dictionary[("pd-multiindex", "pd-wide")] = conv._from_pd_multiindex_to_pd_wide
+convert_dictionary[("pd-multiindex", "numpy2D")] = conv._from_pd_multiindex_to_numpy2d
+convert_dictionary[("pd-multiindex", "nested_univ")] = (
+    conv._from_pd_multiindex_to_nested_univ
+)
 
 
-def _equal_length(X, input_type):
-    """Test if X contains equal length time series.
+def convert_collection(X, output_type):
+    """Convert from one of collections compatible data structure to another.
 
-    Assumes input_type is a valid type (COLLECTIONS_DATA_TYPES).
+    See aeon.utils.validation.collections.COLLECTIONS_DATA_TYPE for the list.
 
     Parameters
     ----------
     X : data structure.
-    input_type : string, one of COLLECTIONS_DATA_TYPES
+    output_type : string, one of COLLECTIONS_DATA_TYPES
 
     Returns
     -------
-    boolean: True if all series in X are equal length, False otherwise
+    Data structure conforming to "to_type"
 
     Raises
     ------
-    ValueError if input_type not in COLLECTIONS_DATA_TYPES.
+    TypeError if
+        X pd.ndarray but wrong dimension
+        X is list but not of np.ndarray or p.DataFrame.
+        X is a pd.DataFrame of non float primitives.
 
     Example
     -------
-    >>> _equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
-    True
+    >>> from aeon.utils.validation.collection import convert_collection, get_type
+    >>> X=convert_collection(np.zeros(shape=(10, 3, 20)), "np-list")
+    >>> type(X)
+    <class 'list'>
+    >>> get_type(X)
+    'np-list'
     """
-    always_equal = {"numpy3D", "numpy2D", "pd-wide"}
-    if input_type in always_equal:
-        return True
-    # np-list are shape (n_channels, n_timepoints)
-    if input_type == "np-list":
-        first = X[0].shape[1]
-        for i in range(1, len(X)):
-            if X[i].shape[1] != first:
-                return False
-        return True
-    # df-list are shape (n_timepoints, n_channels)
-    if input_type == "df-list":
-        first = X[0].shape[0]
-        for i in range(1, len(X)):
-            if X[i].shape[0] != first:
-                return False
-        return True
-    if input_type == "nested_univ":  # Nested univariate or hierachical
-        return _nested_univ_is_equal(X)
-    if input_type == "pd-multiindex":  # multiindex will store unequal as NaN
-        return not X.isna().any().any()
-    raise ValueError(f" unknown input type {input_type}")
-    return False
+    input_type = get_type(X)
+    if (input_type, output_type) not in convert_dictionary.keys():
+        raise TypeError(
+            f"Attempting to convert from {input_type} to {output_type} "
+            f"but this is not a valid conversion. See "
+            f"aeon.utils.validation.collections.COLLECTIONS_DATA_TYPE "
+            f"for the list of valid collections"
+        )
+    return convert_dictionary[(input_type, output_type)](X)
 
 
-def is_nested_univ_dataframe(X):
-    """Check if X is nested dataframe."""
-    # Otherwise check all entries are pd.Series
-    if not isinstance(X, pd.DataFrame):
-        return False
-    for _, series in X.items():
-        for cell in series:
-            if not isinstance(cell, pd.Series):
-                return False
-    return True
+def resolve_equal_length_inner_type(inner_type):
+    """Hierarchy of preference for internal supported types for equal length."""
+    if "numpy3D" in inner_type:
+        return "numpy3D"
+    if "np-list" in inner_type:
+        return "np-list"
+    if "numpy2D" in inner_type:
+        return "numpy2D"
+    if "pd-multiindex" in inner_type:
+        return "pd-multiindex"
+    if "df-list" in inner_type:
+        return "df-list"
+    if "pd-wide" in inner_type:
+        return "pd-wide"
+    if "nested_univ" in inner_type:
+        return "nested_univ"
+    raise ValueError(
+        f"Error, no valid inner types in {inner_type} must be one of "
+        f"{COLLECTIONS_DATA_TYPES}"
+    )
 
 
-def _nested_univ_is_equal(X):
-    """Check whether series in a nested DataFrame are of equal length.
-
-    This function checks if all series in a nested DataFrame have the same length. It
-    assumes that series are of equal length over channels, so it only tests the first
-    channel.
-
-    Parameters
-    ----------
-    X : pd.DataFrame
-        The nested DataFrame to check.
-
-    Returns
-    -------
-    bool
-        True if all series in the DataFrame are of equal length, False otherwise.
-
-    Example
-    -------
-    >>> df = pd.DataFrame({
-    ...     'A': [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
-    ...     'B': [pd.Series([7, 8, 9]), pd.Series([10, 11, 12])]
-    ... })
-    >>> _nested_univ_is_equal(df)
-    True
-    """
-    length = X.iloc[0, 0].size
-    for i in range(1, X.shape[0]):
-        if X.iloc[i, 0].size != length:
-            return False
-    return True
-
-
-def _is_pd_wide(X):
-    """Check whether the input nested DataFrame is "pd-wide" type."""
-    # only test is if all values are float.
-    if isinstance(X, pd.DataFrame) and not isinstance(X.index, pd.MultiIndex):
-        if is_nested_univ_dataframe(X):
-            return False
-        float_cols = X.select_dtypes(include=[float]).columns
-        for col in float_cols:
-            if not np.issubdtype(X[col].dtype, np.floating):
-                return False
-        return True
-    return False
+def resolve_unequal_length_inner_type(inner_type):
+    """Hierarchy of preference for internal supported types for unequal length."""
+    if "np-list" in inner_type:
+        return "np-list"
+    if "df-list" in inner_type:
+        return "df-list"
+    if "pd-multiindex" in inner_type:
+        return "pd-multiindex"
+    if "nested_univ" in inner_type:
+        return "nested_univ"
+    raise ValueError(
+        f"Error, no valid inner types for unequal series in {inner_type} "
+        f"must be one of np-list, df-list, pd-multiindex or nested_univ"
+    )
 
 
 def get_n_cases(X):
@@ -182,11 +229,11 @@ def get_type(X):
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
-        if is_nested_univ_dataframe(X):
+        if conv.is_nested_univ_dataframe(X):
             return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
             return "pd-multiindex"
-        elif _is_pd_wide(X):
+        elif conv._is_pd_wide(X):
             return "pd-wide"
         raise TypeError(
             "ERROR unknown pd.DataFrame, contains non float values, "
@@ -194,7 +241,10 @@ def get_type(X):
         )
     #    if isinstance(X, dask.dataframe.core.DataFrame):
     #        return "dask_panel"
-    raise TypeError(f"ERROR passed input of type {type(X)}")
+    raise TypeError(
+        f"ERROR passed input of type {type(X)}, must be of type "
+        f"np.ndarray, pd.DataFrame or list of np.ndarray/pd.DataFrame"
+    )
 
 
 def is_equal_length(X):
@@ -216,7 +266,7 @@ def is_equal_length(X):
 
     Example
     -------
-    >>> from aeon.utils.validation import is_equal_length
+    >>> from aeon.utils.validation.collection import is_equal_length
     >>> is_equal_length( np.zeros(shape=(10, 3, 20)))
     True
     """
@@ -287,41 +337,3 @@ def is_univariate(X):
         return X[0].shape[0] == 1
     if type == "pd-multiindex":
         return X.columns.shape[0] == 1
-
-
-def resolve_equal_length_inner_type(inner_type):
-    """Hierarchy of preference for internal supported types for equal length."""
-    if "numpy3D" in inner_type:
-        return "numpy3D"
-    if "np-list" in inner_type:
-        return "np-list"
-    if "numpy2D" in inner_type:
-        return "numpy2D"
-    if "pd-multiindex" in inner_type:
-        return "pd-multiindex"
-    if "df-list" in inner_type:
-        return "df-list"
-    if "pd-wide" in inner_type:
-        return "pd-wide"
-    if "nested_univ" in inner_type:
-        return "nested_univ"
-    raise ValueError(
-        f"Error, no valid inner types in {inner_type} must be one of "
-        f"{COLLECTIONS_DATA_TYPES}"
-    )
-
-
-def resolve_unequal_length_inner_type(inner_type):
-    """Hierarchy of preference for internal supported types for unequal length."""
-    if "np-list" in inner_type:
-        return "np-list"
-    if "df-list" in inner_type:
-        return "df-list"
-    if "pd-multiindex" in inner_type:
-        return "pd-multiindex"
-    if "nested_univ" in inner_type:
-        return "nested_univ"
-    raise ValueError(
-        f"Error, no valid inner types for unequal series in {inner_type} "
-        f"must be one of np-list, df-list, pd-multiindex or nested_univ"
-    )

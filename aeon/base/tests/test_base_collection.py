@@ -97,7 +97,7 @@ def test__convert_X(internal_type, data):
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_preprocess_fit(data):
+def test_preprocess_collection(data):
     """Test the functionality for preprocessing fit."""
     data = EQUAL_LENGTH_UNIVARIATE[data]
     cls = BaseCollectionEstimator()
