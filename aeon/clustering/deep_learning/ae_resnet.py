@@ -1,7 +1,7 @@
 """Residual Network (ResNet) for clustering."""
 
 __author__ = ["xiaopu222"]
-__all__ = ["ResNetClusterer"]
+__all__ = ["AEResNetClusterer"]
 
 import gc
 import os
