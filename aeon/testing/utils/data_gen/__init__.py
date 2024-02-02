@@ -24,14 +24,12 @@ __all__ = [
     "_make_collection",
     "_make_nested_from_array",
     "_make_regression_y",
-    "_make_primitives",
     "_make_tabular_data",
     "_make_fh",
     "_assert_correct_columns",
     "_assert_correct_pred_time_index",
     "make_annotation_problem",
     "_convert_tsf_to_hierarchical",
-    "_make_tabular_X",
     "_get_expected_index_for_update_predict",
     "_get_n_columns",
 ]
@@ -52,7 +50,6 @@ from aeon.testing.utils.data_gen._collection import (
 )
 from aeon.testing.utils.data_gen._data_generators import _convert_tsf_to_hierarchical
 from aeon.testing.utils.data_gen._series import _make_index, make_series
-from aeon.testing.utils.data_gen._tabular import _make_primitives, _make_tabular_X
 from aeon.testing.utils.data_gen.annotation import make_annotation_problem
 from aeon.testing.utils.data_gen.forecasting import (
     _assert_correct_columns,
