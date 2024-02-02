@@ -1,10 +1,11 @@
 """Base class for deep clustering."""
+
 __author__ = ["hadifawaz1999"]
 
 from abc import ABC, abstractmethod
 
+from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
-from aeon.clustering.k_means import TimeSeriesKMeans
 
 
 class BaseDeepClusterer(BaseClusterer, ABC):
@@ -43,7 +44,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         batch_size=32,
         last_file_name="last_file",
     ):
-        super(BaseDeepClusterer, self).__init__(n_clusters)
+        super().__init__(n_clusters)
 
         self.clustering_algorithm = clustering_algorithm
         self.clustering_params = clustering_params

@@ -11,8 +11,16 @@ from aeon.transformations.base import BaseTransformer
 
 __author__ = ["KatieBuc", "patrickzib"]
 __all__ = ["EAgglo"]
+from deprecated.sphinx import deprecated
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="EAgglo will be removed from annotation in v0.8.0, it has been replaced by "
+    "EAggloSegmenter in the segmentation module.",
+    category=FutureWarning,
+)
 class EAgglo(BaseTransformer):
     """
     Hierarchical agglomerative estimation of multiple change points.
@@ -72,7 +80,7 @@ class EAgglo(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
     ... random_state = 10)
     >>> from aeon.annotation.eagglo import EAgglo
@@ -94,7 +102,7 @@ class EAgglo(BaseTransformer):
         self.member = member
         self.alpha = alpha
         self.penalty = penalty
-        super(EAgglo, self).__init__()
+        super().__init__()
 
     def _fit(self, X: pd.DataFrame, y=None):
         """Find optimally clustered segments.

@@ -1,6 +1,6 @@
 # Governance
 
-You can find our full governance guidelines on our [website](https://www.aeon-toolkit.org/en/latest/governance.html).
+You can find our full governance guidelines on our [website](https://www.aeon-toolkit.org/en/stable/governance.html).
 
 `aeon` welcomes all contributors, and anyone can involve themselves in the community
 and contribute code, documentation, and ideas. The project is maintained by a group

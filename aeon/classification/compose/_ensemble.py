@@ -138,7 +138,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         else:
             self._metric = metric
 
-        super(WeightedEnsembleClassifier, self).__init__()
+        super().__init__()
 
         # set property tags based on tags of components
         ests = self.classifiers_
@@ -158,7 +158,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
         y : 1D np.array of int, of shape [n_instances] - class labels for fitting
             indices correspond to instance indices in X
 
@@ -203,7 +203,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns

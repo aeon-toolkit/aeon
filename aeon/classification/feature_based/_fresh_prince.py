@@ -11,7 +11,7 @@ import numpy as np
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
 
@@ -98,7 +98,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         self._rotf = None
         self._tsfresh = None
 
-        super(FreshPRINCEClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.

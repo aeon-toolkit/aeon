@@ -32,6 +32,7 @@ Optional implements:
 Testing - implement if aeon transformer (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
+
 # todo: write an informative docstring for the file or module, remove the above
 
 # todo: uncomment the following line, enter authors' GitHub IDs
@@ -83,7 +84,7 @@ class MyTransformer(BaseTransformer):
     #   X_inner_type - the internal mtype used for X in _fit and _transform
     #   y_inner_type - if y is used, the internal mtype used for y; usually "None"
     #   setting this guarantees that X, y passed to _fit, _transform are of above types
-    #   for possible mtypes see datatypes.MTYPE_REGISTER, or the datatypes tutorial
+    #   for possible mtypes see datatypes.TYPE_REGISTER, or the datatypes tutorial
     #
     #  when input_data_type is set to Panel:
     #   X_inner_type must be changed to one or a list of aeon Panel mtypes
@@ -132,7 +133,7 @@ class MyTransformer(BaseTransformer):
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
         # valid values: str and list of str
-        # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
+        # if str, must be a valid mtype str, in aeon.datatypes.TYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
         #   y_inner_type can also be of scitype Table (one row/instance per series)
         #   in that case, all inputs are converted to that one type
@@ -233,7 +234,7 @@ class MyTransformer(BaseTransformer):
         # raises exception at construction if local python veresion is incompatible
         #
         # soft dependency requirement
-        "python_dependencies": None
+        "python_dependencies": None,
         # valid values: str or list of str
         # raises exception at construction if modules at strings cannot be imported
     }
@@ -253,7 +254,7 @@ class MyTransformer(BaseTransformer):
         self.paramc = paramc
 
         # todo: change "MyTransformer" to the name of the class
-        super(MyTransformer, self).__init__()
+        super().__init__()
 
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc

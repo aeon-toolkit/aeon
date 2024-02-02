@@ -8,7 +8,8 @@ from sklearn.preprocessing import FunctionTransformer
 
 from aeon.base.estimator.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
-from aeon.transformations.collection import Catch22, PeriodogramTransformer
+from aeon.transformations.collection import PeriodogramTransformer
+from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.numba.general import first_order_differences_3d
 from aeon.utils.numba.stats import (
     row_iqr,
@@ -149,7 +150,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.interval_based import DrCIFRegressor
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -214,7 +215,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
             row_numba_max,
         ]
 
-        super(DrCIFRegressor, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",

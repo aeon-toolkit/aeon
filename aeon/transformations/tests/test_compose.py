@@ -8,6 +8,9 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.datasets import load_airline, load_basic_motions
 from aeon.datatypes import get_examples
+from aeon.testing.utils.deep_equals import deep_equals
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
+from aeon.transformations.boxcox import LogTransformer
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.compose import (
     ColumnConcatenator,
@@ -16,14 +19,11 @@ from aeon.transformations.compose import (
     OptionalPassthrough,
     TransformerPipeline,
 )
-from aeon.transformations.series.boxcox import LogTransformer
-from aeon.transformations.series.exponent import ExponentTransformer
-from aeon.transformations.series.impute import Imputer
-from aeon.transformations.series.subset import ColumnSelect
-from aeon.transformations.series.summarize import SummaryTransformer
-from aeon.transformations.series.theta import ThetaLinesTransformer
-from aeon.utils._testing.deep_equals import deep_equals
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
+from aeon.transformations.exponent import ExponentTransformer
+from aeon.transformations.impute import Imputer
+from aeon.transformations.subset import ColumnSelect
+from aeon.transformations.summarize import SummaryTransformer
+from aeon.transformations.theta import ThetaLinesTransformer
 
 
 def test_dunder_mul():
@@ -179,7 +179,7 @@ def test_pipeline_column_vectorization():
 
     X_theta = t.fit_transform(X)
 
-    assert set(X_theta.columns) == set(["a__0", "a__2", "b__0", "b__2"])
+    assert set(X_theta.columns) == {"a__0", "a__2", "b__0", "b__2"}
 
 
 def test_pipeline_inverse():

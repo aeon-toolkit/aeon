@@ -111,7 +111,7 @@ class RocketRegressor(BaseRegressor):
         self.estimator = estimator
         self.n_jobs = n_jobs
 
-        super(RocketRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Rocket variant to training data.
@@ -177,9 +177,11 @@ class RocketRegressor(BaseRegressor):
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
-            RidgeCV(alphas=np.logspace(-3, 3, 10))
-            if self.estimator is None
-            else self.estimator,
+            (
+                RidgeCV(alphas=np.logspace(-3, 3, 10))
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
         self.pipeline_ = make_pipeline(
@@ -195,7 +197,7 @@ class RocketRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns

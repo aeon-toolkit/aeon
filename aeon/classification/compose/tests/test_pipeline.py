@@ -8,11 +8,11 @@ from sklearn.preprocessing import StandardScaler
 from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
+from aeon.testing.utils.data_gen import make_nested_dataframe_data
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection.pad import PaddingTransformer
-from aeon.transformations.series.exponent import ExponentTransformer
-from aeon.transformations.series.impute import Imputer
-from aeon.utils._testing.collection import make_nested_dataframe_data
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
+from aeon.transformations.exponent import ExponentTransformer
+from aeon.transformations.impute import Imputer
 
 
 def test_dunder_mul():

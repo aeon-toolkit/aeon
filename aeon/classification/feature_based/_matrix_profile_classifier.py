@@ -7,6 +7,7 @@ __author__ = ["MatthewMiddlehurst"]
 __all__ = ["MatrixProfileClassifier"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.neighbors import KNeighborsClassifier
 
 from aeon.base._base import _clone_estimator
@@ -14,6 +15,12 @@ from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.matrix_profile import MatrixProfile
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="MatrixProfileClassifier will be removed in v0.8.0.",
+    category=FutureWarning,
+)
 class MatrixProfileClassifier(BaseClassifier):
     """
     Matrix Profile (MP) classifier.
@@ -87,7 +94,7 @@ class MatrixProfileClassifier(BaseClassifier):
         self._transformer = None
         self._estimator = None
 
-        super(MatrixProfileClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
@@ -111,9 +118,11 @@ class MatrixProfileClassifier(BaseClassifier):
         """
         self._transformer = MatrixProfile(m=self.subsequence_length)
         self._estimator = _clone_estimator(
-            KNeighborsClassifier(n_neighbors=1)
-            if self.estimator is None
-            else self.estimator,
+            (
+                KNeighborsClassifier(n_neighbors=1)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 

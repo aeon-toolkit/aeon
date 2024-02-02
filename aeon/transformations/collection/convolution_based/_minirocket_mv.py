@@ -86,6 +86,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_type": "np-list",
+        "algorithm_type": "convolution",
     }
 
     def __init__(
@@ -127,7 +128,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
                 f"{reference_length}"
             )
 
-        super(MiniRocketMultivariateVariable, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.
@@ -167,11 +168,9 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         if lengths_1darray.min() < 9:
             failed_index = np.where(lengths_1darray < 9)[0]
             raise ValueError(
-                (
-                    f"X must be >= 9 for all samples, but found miniumum to be "
-                    f"{lengths_1darray.min()}; at index {failed_index}, pad shorter "
-                    "series so that n_timepoints >= 9 for all samples."
-                )
+                f"X must be >= 9 for all samples, but found miniumum to be "
+                f"{lengths_1darray.min()}; at index {failed_index}, pad shorter "
+                "series so that n_timepoints >= 9 for all samples."
             )
 
         if lengths_1darray.min() == lengths_1darray.max():
@@ -239,17 +238,17 @@ def _np_list_transposed2D_array_and_len_list(
     ----------
     X : List of dataframes
         List of length n_instances, with
-        dataframes of series_length-rows and n_dimensions-columns
+        dataframes of series_length-rows and n_channels-columns
     pad : float or None. if float/int,pads multivariate series with 'pad',
         so that each series has at least length 9.
         if None, no padding is applied.
 
     Returns
     -------
-    np.array: 2D array of shape =
-        [n_dimensions, sum(length_series(i) for i in n_instances)],
+    np.ndarray: 2D array of shape =
+        [n_channels, sum(length_series(i) for i in n_instances)],
         np.float32
-    np.array: 1D array of shape = [n_instances]
+    np.ndarray: 1D array of shape = [n_instances]
         with length of each series, np.int32
 
     Raises

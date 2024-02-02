@@ -32,6 +32,7 @@ Mandatory implements:
 Testing - implement if aeon forecaster (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
+
 # todo: write an informative docstring for the file or module, remove the above
 
 # todo: uncomment the following line, enter authors' GitHub IDs
@@ -77,7 +78,7 @@ class MyForecaster(BaseForecaster):
         "y_inner_type": "pd.Series",
         "X_inner_type": "pd.DataFrame",
         # valid values: str and list of str
-        # if str, must be a valid mtype str, in aeon.datatypes.MTYPE_REGISTER
+        # if str, must be a valid mtype str, in aeon.datatypes.TYPE_REGISTER
         #   of scitype Series, Panel (panel data) or Hierarchical (hierarchical series)
         #   in that case, all inputs are converted to that one type
         # if list of str, must be a list of valid str specifiers
@@ -114,7 +115,7 @@ class MyForecaster(BaseForecaster):
         self.paramc = paramc
 
         # todo: change "MyForecaster" to the name of the class
-        super(MyForecaster, self).__init__()
+        super().__init__()
 
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc

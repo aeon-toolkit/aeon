@@ -26,8 +26,8 @@ from aeon.forecasting.tests import (
     TEST_FHS_TIMEDELTA,
     VALID_INDEX_FH_COMBINATIONS,
 )
-from aeon.utils._testing.forecasting import _make_fh, make_forecasting_problem
-from aeon.utils._testing.series import _make_index
+from aeon.testing.mock_estimators import MockForecaster
+from aeon.testing.utils.data_gen import _make_fh, _make_index, make_forecasting_problem
 from aeon.utils.datetime import (
     _coerce_duration_to_int,
     _get_duration,
@@ -36,7 +36,6 @@ from aeon.utils.datetime import (
     _shift,
     infer_freq,
 )
-from aeon.utils.estimators import MockForecaster
 from aeon.utils.validation.series import is_in_valid_index_types, is_integer_index
 
 

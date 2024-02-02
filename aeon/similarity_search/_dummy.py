@@ -23,7 +23,7 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
     Attributes
     ----------
-    _X : array, shape (n_instances, n_channels, n_timestamps)
+    _X : array, shape (n_instances, n_channels, n_timepoints)
         The input time series stored during the fit method.
     distance_profile_function : function
         The function used to compute the distance profile affected
@@ -46,7 +46,7 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
     def __init__(
         self, distance="euclidean", normalize=False, store_distance_profile=False
     ):
-        super(DummySimilaritySearch, self).__init__(
+        super().__init__(
             distance=distance,
             normalize=normalize,
             store_distance_profile=store_distance_profile,
@@ -58,7 +58,7 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        X : array, shape (n_instances, n_channels, n_timestamps)
+        X : array, shape (n_instances, n_channels, n_timepoints)
             Input array to used as database for the similarity search
         y : optional
             Not used.
@@ -70,7 +70,7 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
         """
         return self
 
-    def _predict(self, q, mask):
+    def _predict(self, distance_profile, exclusion_size=None):
         """
         Private predict method for DummySimilaritySearch.
 
@@ -78,11 +78,10 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        q :  array, shape (n_channels, q_length)
-            Input query used for similarity search.
-        mask : array, shape (n_instances, n_channels, n_timestamps - (q_length - 1))
-            Boolean mask of the shape of the distance profile indicating for which part
-            of it the distance should be computed.
+        distance_profile : array, shape (n_samples, n_timepoints - query_length + 1)
+            Precomputed distance profile.
+        exclusion_size : int, optional
+            This parameter has no effect on this dummy class as we do k=1.
 
         Returns
         -------
@@ -90,25 +89,6 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
             An array containing the index of the best match between q and _X.
 
         """
-        if self.normalize:
-            distance_profile = self.distance_profile_function(
-                self._X,
-                q,
-                mask,
-                self._X_means,
-                self._X_stds,
-                self._q_means,
-                self._q_stds,
-            )
-        else:
-            distance_profile = self.distance_profile_function(self._X, q, mask)
-
-        if self.store_distance_profile:
-            self._distance_profile = distance_profile
-
-        # For now, deal with the multidimensional case as "dependent", so we sum.
         search_size = distance_profile.shape[-1]
-        distance_profile = distance_profile.sum(axis=1)
         _id_best = distance_profile.argmin(axis=None)
-
         return [(_id_best // search_size, _id_best % search_size)]

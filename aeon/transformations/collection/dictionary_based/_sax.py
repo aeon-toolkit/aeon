@@ -64,6 +64,7 @@ class SAX(BaseCollectionTransformer):
     _tags = {
         "capability:multivariate": True,
         "fit_is_empty": True,
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
@@ -97,7 +98,7 @@ class SAX(BaseCollectionTransformer):
             distribution_params=self.distribution_params_,
         )
 
-        super(SAX, self).__init__()
+        super().__init__()
 
     def _get_paa(self, X):
         """Transform the input time series to PAA segments.

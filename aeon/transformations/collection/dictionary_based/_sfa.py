@@ -20,7 +20,6 @@ from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.utils.validation.panel import check_X
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -90,6 +89,11 @@ class SFA(BaseCollectionTransformer):
     Attributes
     ----------
     words: []
+        words is a list of arrays of integers, one for each case. Each array is
+        length ``(series_length - window_size+1)``. Each integer is a birt
+        representation of a word. So, for example if ``word_length=6`` and
+        ``alphabet_size=4`, integer 3235 is bit string 11 00 10 10 00 11,
+        representing word daccad.
     breakpoints: = []
     num_insts = 0
     num_atts = 0
@@ -103,6 +107,7 @@ class SFA(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": True,
+        "algorithm_type": "dictionary",
     }
 
     def __init__(
@@ -180,7 +185,7 @@ class SFA(BaseCollectionTransformer):
         self.level_bits = 0
         self.level_max = 0
 
-        super(SFA, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Calculate word breakpoints using MCB or IGB.
@@ -236,8 +241,6 @@ class SFA(BaseCollectionTransformer):
                 "Typed Dictionaries can only handle 15 levels "
                 "(this is way to many anyway)."
             )
-
-        X = check_X(X, enforce_univariate=True, coerce_to_numpy=True)
         X = X.squeeze(1)
 
         if self.levels > 1:
@@ -995,10 +998,12 @@ class SFA(BaseCollectionTransformer):
         """Convert a bag of SFA words into a string."""
         s = "{"
         for word, value in bag.items():
-            s += "{0}: {1}, ".format(
-                self.word_list_typed(word)
-                if self._typed_dict
-                else self.word_list(word),
+            s += "{}: {}, ".format(
+                (
+                    self.word_list_typed(word)
+                    if self._typed_dict
+                    else self.word_list(word)
+                ),
                 value,
             )
         s = s[:-2]

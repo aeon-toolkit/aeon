@@ -61,14 +61,14 @@ class DummyRegressor(BaseRegressor):
         self.sklearn_dummy_regressor = SklearnDummyRegressor(
             strategy=strategy, constant=constant, quantile=quantile
         )
-        super(DummyRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y) -> np.ndarray:
         """Fit the dummy regressor.
 
         Parameters
         ----------
-        X : 3D np.array of shape [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape [n_instances, n_channels, series_length]
         y : array-like, shape = [n_instances] - the target values
 
         Returns
@@ -83,7 +83,7 @@ class DummyRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape [n_instances, n_channels, series_length]
 
         Returns
         -------

@@ -1,4 +1,5 @@
 """Residual Network (ResNet) for clustering."""
+
 __author__ = ["xiaopu222"]
 __all__ = ["ResNetClusterer"]
 

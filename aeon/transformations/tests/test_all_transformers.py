@@ -8,12 +8,12 @@ import pandas as pd
 from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.transformations.tests.test_expected_outputs import (
+from aeon.testing.expected_results.expected_transform_outputs import (
     basic_motions_result,
     unit_test_result,
 )
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 
 
 class TransformerFixtureGenerator(BaseFixtureGenerator):
