@@ -38,7 +38,6 @@ from aeon.regression.base import BaseRegressor
 from aeon.transformations.compose import FeatureUnion
 from aeon.transformations.summarize import WindowSummarizer
 from aeon.utils.datetime import _shift
-from aeon.utils.estimators.dispatch import construct_dispatch
 from aeon.utils.sklearn import is_sklearn_regressor
 from aeon.utils.validation import check_window_length
 
@@ -189,6 +188,36 @@ def _sliding_window_transform(
         return yt, Xt
 
 
+def construct_dispatch(cls, params=None):
+    """Construct an estimator with an overspecified parameter dictionary.
+
+    Constructs and returns an instance of `cls`, using parameters in a dict `params`.
+    The dict `params` may contain keys that `cls` does not have, which are ignored.
+
+    This is useful in multiplexing or dispatching over multiple `cls` which have
+    different and potentially intersecting parameter sets.
+
+    Parameters
+    ----------
+    cls : aeon estimator, inheriting from `BaseObject`
+    params : dict with str keys, optional, default = None = {}
+
+    Examples
+    --------
+    >>> from aeon.forecasting.compose._reduce import construct_dispatch
+    >>> from aeon.forecasting.naive import NaiveForecaster
+    >>> params = {"strategy": "drift", "foo": "bar", "bar": "foo"}
+    >>> construct_dispatch(NaiveForecaster, params)
+    NaiveForecaster(strategy='drift')
+    """
+    cls_param_names = cls.get_param_names()
+    cls_params_in_dict = set(cls_param_names).intersection(params.keys())
+    params_for_cls = {key: params[key] for key in cls_params_in_dict}
+
+    obj = cls(**params_for_cls)
+    return obj
+
+
 class _Reducer(_BaseWindowForecaster):
     """Base class for reducing forecasting to regression."""
 
@@ -204,7 +233,7 @@ class _Reducer(_BaseWindowForecaster):
         transformers=None,
         pooling="local",
     ):
-        super(_Reducer, self).__init__(window_length=window_length)
+        super().__init__(window_length=window_length)
         self.transformers = transformers
         self.transformers_ = None
         self.estimator = estimator
@@ -398,7 +427,7 @@ class _DirectReducer(_Reducer):
         windows_identical=True,
     ):
         self.windows_identical = windows_identical
-        super(_DirectReducer, self).__init__(
+        super().__init__(
             estimator=estimator,
             window_length=window_length,
             transformers=transformers,
@@ -1776,7 +1805,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
         self.impute_method = impute_method
         self.pooling = pooling
         self._lags = list(range(window_length))
-        super(DirectReductionForecaster, self).__init__()
+        super().__init__()
 
         warn(
             "DirectReductionForecaster is experimental, and interfaces may change. "
@@ -2112,7 +2141,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         self.impute_method = impute_method
         self.pooling = pooling
         self._lags = list(range(window_length))
-        super(RecursiveReductionForecaster, self).__init__()
+        super().__init__()
 
         warn(
             "RecursiveReductionForecaster is experimental, and interfaces may change. "

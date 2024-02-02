@@ -369,7 +369,7 @@ Hidalgo segmentation
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/distances/img/dtw_vis.png
+:img-top: examples/distances/img/distances.png
 :class-img-top: aeon-card-image-m
 :link: /examples/distances/distances.ipynb
 :link-type: ref

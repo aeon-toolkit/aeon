@@ -109,7 +109,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     >>> from aeon.regression.interval_based import (
     ...     RandomIntervalSpectralEnsembleRegressor
     ... )
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -158,7 +158,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
                 n_lags=acf_lag, min_values=acf_min_values
             ),
         ]
-        super(RandomIntervalSpectralEnsembleRegressor, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",

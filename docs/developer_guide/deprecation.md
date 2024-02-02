@@ -13,16 +13,20 @@ When to deprecate:
 - Addition of positional arguments without default values
 
 Deprecation warnings should be included for at least one full minor version cycle
-before change or removal. If an item is deprecated in v0.6.0, it can be removed in
-v0.7.0. If an item is deprecated in v0.6.1, it can be removed in v0.8.0.
+before change or removal. If an item is deprecated on the release of v0.6.0, it can be
+removed in v0.7.0. If an item is deprecated between v0.6.0 and v0.7.0 (i.e. v0.6.1),
+it can be removed in v0.8.0.
 
 Note that the deprecation policy does not necessarily apply to modules we class as
 still experimental. Currently experimental modules are:
 
 - `annotation`
 - `anomaly_detection`
+- `benchmarking`
 - `segmentation`
 - `similarity_search`
+- `visualisation`
+- `testing`
 
 When we introduce a new module, we may classify it as experimental until the API is
 stable. We will try to not make drastic changes to experimental modules, but we need to

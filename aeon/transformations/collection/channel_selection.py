@@ -305,7 +305,7 @@ class ElbowClassSum(BaseCollectionTransformer):
         self.prototype_type = prototype_type
         self._is_fitted = False
 
-        super(ElbowClassSum, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit ECS to a specified X and y.
@@ -437,7 +437,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
         self.mean_center = mean_center
         self._is_fitted = False
 
-        super(ElbowClassPairwise, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """

@@ -110,7 +110,7 @@ class EncoderClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(EncoderClassifier, self).__init__(last_file_name=last_file_name)
+        super().__init__(last_file_name=last_file_name)
 
         self.n_filters = n_filters
         self.max_pool_size = max_pool_size

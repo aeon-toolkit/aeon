@@ -63,7 +63,7 @@ class ReconcilerForecaster(BaseForecaster):
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.reconcile import ReconcilerForecaster
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.utils._testing.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -108,7 +108,7 @@ class ReconcilerForecaster(BaseForecaster):
         self.forecaster = forecaster
         self.method = method
 
-        super(ReconcilerForecaster, self).__init__()
+        super().__init__()
 
     def _add_totals(self, y):
         """Add total levels to y, using Aggregate."""
@@ -339,7 +339,7 @@ class ReconcilerForecaster(BaseForecaster):
             # higherorder var (only diags)
             resid_corseries = resid**2
             hovar_mat = (resid_corseries.transpose().dot(resid_corseries)) - scale_hovar
-            hovar_mat = (nobs / ((nobs - 1)) ** 3) * hovar_mat
+            hovar_mat = (nobs / (nobs - 1) ** 3) * hovar_mat
 
             # set diagonals to zero
             for i in resid.columns:

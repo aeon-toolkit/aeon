@@ -19,18 +19,21 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
     ----------
     k : int, default=1
         The number of nearest matches from Q to return.
-    distance : str, default ="euclidean"
-        Name of the distance function to use.
-    distance_args : dict, default=None
-        Optional keyword arguments for the distance function.
-    normalize : bool, default = False
-        Whether the distance function should be z-normalized.
-    store_distance_profile : bool, default = =False.
-        Whether to store the computed distance profile in the attribute
-        "_distance_profile" after calling the predict method.
-    speed_up : str, default=None
-        Which speed up technique to use with for the selected distance
-        function.
+     distance : str, default="euclidean"
+         Name of the distance function to use. A list of valid strings can be found in
+         the documentation for :func:`aeon.distances.get_distance_function`.
+         If a callable is passed it must either be a python function or numba function
+         with nopython=True, that takes two 1d numpy arrays as input and returns a
+         float.
+     distance_args : dict, default=None
+         Optional keyword arguments for the distance function.
+     normalize : bool, default=False
+         Whether the distance function should be z-normalized.
+     store_distance_profile : bool, default=False.
+         Whether to store the computed distance profile in the attribute
+         "_distance_profile" after calling the predict method.
+     speed_up : str, default=None
+         Which speed up technique to use with for the selected distance function.
 
     Attributes
     ----------
@@ -75,7 +78,7 @@ class TopKSimilaritySearch(BaseSimiliaritySearch):
                 "integer superior or equal to 1"
             )
         self.k = k
-        super(TopKSimilaritySearch, self).__init__(
+        super().__init__(
             distance=distance,
             distance_args=distance_args,
             normalize=normalize,

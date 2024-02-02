@@ -8,12 +8,20 @@ from functools import reduce
 from typing import Union
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils.validation import check_random_state
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="Hidalgo in transformations will be removed in v0.8.0, it has been replaced "
+    "by HidalgoSegmenter in the segmentation module.",
+    category=FutureWarning,
+)
 class Hidalgo(BaseTransformer):
     """Heteregeneous Intrinsic Dimensionality Algorithm (Hidalgo) model.
 
@@ -129,7 +137,7 @@ class Hidalgo(BaseTransformer):
         self.f = f
         self.seed = seed
 
-        super(Hidalgo, self).__init__()
+        super().__init__()
 
     def _get_neighbourhood_params(self, X):
         """

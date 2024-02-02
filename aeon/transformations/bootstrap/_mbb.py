@@ -141,7 +141,7 @@ class STLBootstrapTransformer(BaseTransformer):
     --------
     >>> from aeon.transformations.bootstrap import STLBootstrapTransformer
     >>> from aeon.datasets import load_airline
-    >>> from `aeon.visualisation import plot_series  # doctest: +SKIP
+    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
     >>> y = load_airline()  # doctest: +SKIP
     >>> transformer = STLBootstrapTransformer(10)  # doctest: +SKIP
     >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
@@ -226,7 +226,7 @@ class STLBootstrapTransformer(BaseTransformer):
         self.outer_iter = outer_iter
         self.random_state = random_state
 
-        super(STLBootstrapTransformer, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -452,7 +452,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
     --------
     >>> from aeon.transformations.bootstrap import MovingBlockBootstrapTransformer
     >>> from aeon.datasets import load_airline
-    >>> from `aeon.visualisation import plot_series  # doctest: +SKIP
+    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
     >>> y = load_airline()
     >>> transformer = MovingBlockBootstrapTransformer(10)
     >>> y_hat = transformer.fit_transform(y)
@@ -506,7 +506,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
         self.return_actual = return_actual
         self.random_state = random_state
 
-        super(MovingBlockBootstrapTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

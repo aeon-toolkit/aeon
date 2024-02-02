@@ -408,7 +408,7 @@ class ClaSPTransformer(BaseTransformer):
         self.window_length = int(window_length)
         self.scoring_metric = scoring_metric
         self.exclusion_radius = exclusion_radius
-        super(ClaSPTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Compute ClaSP.
@@ -418,8 +418,8 @@ class ClaSPTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : 2D numpy.ndarray
-           A single pandas series or a 1d numpy array
+        X : numpy.ndarray
+            A univariate time series
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 

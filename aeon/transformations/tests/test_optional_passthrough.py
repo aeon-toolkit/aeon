@@ -3,15 +3,15 @@
 import pytest
 from pandas.testing import assert_series_equal
 
+from aeon.testing.utils.data_gen import make_series
 from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import OptionalPassthrough
-from aeon.utils._testing.series import _make_series
 
 
 @pytest.mark.parametrize("passthrough", [True, False])
 def test_passthrough(passthrough):
     """Test that passthrough works as expected."""
-    y = _make_series(n_columns=1)
+    y = make_series(n_columns=1)
 
     optional_passthourgh = OptionalPassthrough(
         BoxCoxTransformer(), passthrough=passthrough

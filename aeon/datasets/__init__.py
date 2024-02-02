@@ -12,6 +12,7 @@ __all__ = [
     "download_all_regression",
     # Write functions
     "write_to_tsfile",
+    "write_to_arff_file",
     "write_results_to_uea_format",
     # Data generators
     "make_example_3d_numpy",
@@ -46,6 +47,7 @@ __all__ = [
     "load_from_arff_to_dataframe",
     "load_from_ucr_tsv_to_dataframe",
     "load_from_tsfile_to_dataframe",
+    "get_dataset_meta_data",
 ]
 
 from aeon.datasets._data_generators import (
@@ -56,6 +58,7 @@ from aeon.datasets._data_generators import (
 )
 from aeon.datasets._data_loaders import (
     download_all_regression,
+    get_dataset_meta_data,
     load_classification,
     load_forecasting,
     load_from_arff_file,
@@ -64,7 +67,11 @@ from aeon.datasets._data_loaders import (
     load_from_tsv_file,
     load_regression,
 )
-from aeon.datasets._data_writers import write_results_to_uea_format, write_to_tsfile
+from aeon.datasets._data_writers import (
+    write_results_to_uea_format,
+    write_to_arff_file,
+    write_to_tsfile,
+)
 from aeon.datasets._dataframe_loaders import (
     load_from_arff_to_dataframe,
     load_from_tsfile_to_dataframe,
