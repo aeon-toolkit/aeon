@@ -16,8 +16,8 @@ from aeon.forecasting.arima import ARIMA
 from aeon.forecasting.base._base import _format_moving_cutoff_predictions
 from aeon.testing.utils.data_gen import (
     _make_hierarchical,
-    make_3d_test_data,
-    make_nested_dataframe_data,
+    make_example_3d_numpy,
+    make_example_nested_dataframe,
     make_series,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -28,11 +28,11 @@ HIER_TYPES = ["pd_multiindex_hier"]
 
 def _get_y(input_type, n_instances):
     if input_type == "numpy3D":
-        y, _ = make_3d_test_data(n_cases=n_instances, random_state=42)
+        y, _ = make_example_3d_numpy(n_cases=n_instances, random_state=42)
     elif input_type == "nested_univ":
-        y, _ = make_nested_dataframe_data(n_cases=n_instances, random_state=42)
+        y, _ = make_example_nested_dataframe(n_cases=n_instances, random_state=42)
     elif input_type == "pd-multiindex":
-        y, _ = make_nested_dataframe_data(n_cases=n_instances, random_state=42)
+        y, _ = make_example_nested_dataframe(n_cases=n_instances, random_state=42)
         y = from_nested_to_multi_index(y)
     return y
 

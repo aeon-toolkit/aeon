@@ -1,14 +1,5 @@
 """Utility functions for generating collections of time series."""
 
-__author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst"]
-__all__ = [
-    "make_3d_test_data",
-    "make_2d_test_data",
-    "make_unequal_length_data",
-    "make_nested_dataframe_data",
-    "make_clustering_data",
-]
-
 from typing import List, Tuple, Union
 
 import numpy as np
@@ -18,14 +9,15 @@ from sklearn.utils.validation import check_random_state
 from aeon.utils.validation.collection import convert_collection
 
 
-def make_3d_test_data(
+def make_example_3d_numpy(
     n_cases: int = 10,
     n_channels: int = 1,
     n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
-) -> Tuple[np.ndarray, np.ndarray]:
+    return_y: bool = True,
+) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 3D X and y data for testing.
 
     Will ensure there is at least one sample per label if a classification
@@ -55,13 +47,17 @@ def make_3d_test_data(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_3d_test_data
-    >>> data, labels = make_3d_test_data(
-    ...     n_cases=20,
-    ...     n_channels=2,
-    ...     n_timepoints=10,
-    ...     n_labels=3,
-    ... )
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> data, labels = make_example_3d_numpy(n_cases=2, n_channels=2, n_timepoints=6,
+    ...                                      return_y=True, n_labels=2, random_state=0)
+    >>> print(data)
+    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
+      [0.87517442 1.783546   1.92732552 0.76688304 1.58345008 1.05778984]]
+    <BLANKLINE>
+     [[2.         3.70238655 0.28414423 0.3485172  0.08087359 3.33047938]
+      [3.112627   3.48004859 3.91447337 3.19663426 1.84591745 3.12211671]]]
+    >>> print(labels)
+    [0 1]
     """
     rng = np.random.RandomState(random_state)
     X = n_labels * rng.uniform(size=(n_cases, n_channels, n_timepoints))
@@ -76,17 +72,19 @@ def make_3d_test_data(
     if regression_target:
         y = y.astype(np.float32)
         y += rng.uniform(size=y.shape)
+    if return_y:
+        return X, y
+    return X
 
-    return X, y
 
-
-def make_2d_test_data(
+def make_example_2d_numpy(
     n_cases: int = 10,
     n_timepoints: int = 8,
+    return_y: bool = True,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 2D data for testing.
 
     Will ensure there is at least one sample per label if a classification
@@ -98,6 +96,8 @@ def make_2d_test_data(
         The number of samples to generate.
     n_timepoints : int
         The number of features/series length to generate.
+    return_y : bool
+        If True, return the labels as well as the data.
     n_labels : int
         The number of unique labels to generate.
     regression_target : bool
@@ -114,12 +114,13 @@ def make_2d_test_data(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_2d_test_data
-    >>> data, labels = make_2d_test_data(
-    ...     n_cases=20,
-    ...     n_timepoints=10,
-    ...     n_labels=3,
-    ... )
+    >>> data, labels = make_example_2d_numpy(n_cases=2, n_timepoints=6,
+    ... n_labels=2, random_state=0)
+    >>> print(data)
+    [[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
+     [2.         3.567092   3.85465104 1.53376608 3.16690015 2.11557968]]
+    >>> print(labels)
+    [0 1]
     """
     rng = np.random.RandomState(random_state)
     X = n_labels * rng.uniform(size=(n_cases, n_timepoints))
@@ -134,8 +135,9 @@ def make_2d_test_data(
     if regression_target:
         y = y.astype(np.float32)
         y += rng.uniform(size=y.shape)
-
-    return X, y
+    if return_y:
+        return X, y
+    return X
 
 
 def make_unequal_length_data(
@@ -315,11 +317,12 @@ def _make_classification_y(
         return pd.Series(y)
 
 
-def make_nested_dataframe_data(
+def make_example_nested_dataframe(
     n_cases: int = 20,
     n_channels: int = 1,
     n_timepoints: int = 20,
-    n_labels: int = 2,
+    return_y: bool = True,
+    n_classes: int = 2,
     regression_target: bool = False,
     random_state=None,
 ):
@@ -347,57 +350,23 @@ def make_nested_dataframe_data(
     y : np.ndarray
         Randomly generated labels.
     """
-    if not regression_target:
-        """Make Classification Problem."""
-        y = _make_classification_y(
-            n_cases, n_labels, return_numpy=False, random_state=random_state
-        )
-    else:
-        y = _make_regression_y(n_cases, return_numpy=False, random_state=random_state)
     X = _make_collection_X(
         n_channels=n_channels,
         n_timepoints=n_timepoints,
         return_numpy=False,
         random_state=random_state,
-        y=y,
     )
-
-    return X, y
-
-
-def make_clustering_data(
-    n_cases: int = 20,
-    n_channels: int = 1,
-    n_timepoints: int = 20,
-    return_numpy: bool = True,
-    random_state=None,
-):
-    """Randomly generate nest pd.DataFrame X and pd.Series y data for testing.
-
-    Parameters
-    ----------
-    n_cases : int
-        The number of samples to generate.
-    n_channels : int
-        The number of series channels to generate.
-    n_timepoints : int
-        The number of features/series length to generate.
-    random_state : int or None
-        Seed for random number generation.
-
-    Returns
-    -------
-    X : np.ndarray
-        Randomly generated 3D data.
-    y : np.ndarray
-        Randomly generated labels.
-    """
-    X, _ = make_3d_test_data(
-        n_cases=n_cases,
-        n_channels=n_channels,
-        n_timepoints=n_timepoints,
-        random_state=random_state,
-    )
+    if return_y:
+        if not regression_target:
+            """Make Classification Problem."""
+            y = _make_classification_y(
+                n_cases, n_classes, return_numpy=False, random_state=random_state
+            )
+        else:
+            y = _make_regression_y(
+                n_cases, return_numpy=False, random_state=random_state
+            )
+        return X, y
     return X
 
 

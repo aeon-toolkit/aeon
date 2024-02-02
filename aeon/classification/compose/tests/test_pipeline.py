@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
-from aeon.testing.utils.data_gen import make_nested_dataframe_data
+from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.exponent import ExponentTransformer
@@ -18,11 +18,11 @@ from aeon.transformations.impute import Imputer
 def test_dunder_mul():
     """Test the mul dunder method."""
     RAND_SEED = 42
-    X, y = make_nested_dataframe_data(
+    X, y = make_example_nested_dataframe(
         n_cases=10, n_timepoints=20, random_state=RAND_SEED
     )
 
-    X_test, _ = make_nested_dataframe_data(
+    X_test, _ = make_example_nested_dataframe(
         n_cases=10, n_timepoints=20, random_state=RAND_SEED
     )
 
@@ -48,11 +48,11 @@ def test_dunder_mul():
 def test_mul_sklearn_autoadapt():
     """Test auto-adapter for sklearn in mul."""
     RAND_SEED = 42
-    X, y = make_nested_dataframe_data(
+    X, y = make_example_nested_dataframe(
         n_cases=10, n_timepoints=20, random_state=RAND_SEED
     )
 
-    X_test, _ = make_nested_dataframe_data(
+    X_test, _ = make_example_nested_dataframe(
         n_cases=10, n_timepoints=20, random_state=RAND_SEED
     )
     t1 = ExponentTransformer(power=2)

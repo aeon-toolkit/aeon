@@ -13,7 +13,7 @@ from aeon.testing.utils.data_gen import make_example_3d_numpy
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_function_transformer(dist):
     """Test all distances work with FunctionTransformer in a pipeline."""
-    X = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=10)
+    X = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=10, return_y=False)
     distance = dist["distance"]
     pairwise = dist["pairwise_distance"]
     ft = FunctionTransformer(pairwise)
@@ -44,9 +44,7 @@ def test_knn(dist):
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_support_vector_machine(dist):
     """Test all distances work with DBSCAN"""
-    X, y = make_example_3d_numpy(
-        n_cases=5, n_channels=1, n_timepoints=10, return_y=True
-    )
+    X, y = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=10)
     pairwise = dist["pairwise_distance"]
     ft = FunctionTransformer(pairwise)
     pipe = Pipeline(steps=[("FunctionTransformer", ft), ("SVM", SVC())])

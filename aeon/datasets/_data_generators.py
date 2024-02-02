@@ -130,8 +130,8 @@ def make_example_2d_numpy(
     Examples
     --------
     >>> from aeon.datasets import make_example_2d_numpy
-    >>> data, labels = make_example_2d_numpy(n_cases=2, n_timepoints=6,
-    ...                                      return_y=True, n_labels=2, random_state=0)
+    >>> data, labels = make_example_2d_numpy(n_cases=2, n_timepoints=6, n_labels=2,
+    ...    random_state=0)
     >>> print(data)
     [[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
      [2.         3.567092   3.85465104 1.53376608 3.16690015 2.11557968]]
@@ -331,8 +331,8 @@ def _make_3d_test_data(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_3d_test_data
-    >>> data, labels = make_3d_test_data(
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> data, labels = make_example_3d_numpy(
     ...     n_cases=20,
     ...     n_channels=2,
     ...     n_timepoints=10,
@@ -390,8 +390,8 @@ def _make_2d_test_data(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_2d_test_data
-    >>> data, labels = make_2d_test_data(
+    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
+    >>> data, labels = make_example_2d_numpy(
     ...     n_cases=20,
     ...     n_timepoints=10,
     ...     n_labels=3,

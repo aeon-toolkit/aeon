@@ -6,7 +6,7 @@ import pytest
 
 from aeon.testing.utils.data_gen import (
     make_example_multi_index_dataframe,
-    make_nested_dataframe_data,
+    make_example_nested_dataframe,
 )
 from aeon.utils.validation import is_nested_univ_dataframe
 from aeon.utils.validation._convert_collection import (
@@ -46,7 +46,7 @@ for _ in range(10):
 df_list = []
 for _ in range(10):
     df_list.append(pd.DataFrame(np.random.random(size=(20, 1))))
-nested, _ = make_nested_dataframe_data(n_cases=10)
+nested, _ = make_example_nested_dataframe(n_cases=10)
 multiindex = make_example_multi_index_dataframe(
     n_instances=10, n_channels=1, n_timepoints=20
 )
@@ -288,7 +288,7 @@ def test__nested_univ_is_equal():
     }
     X = pd.DataFrame(data)
     assert not _nested_univ_is_equal(X)
-    X, _ = make_nested_dataframe_data(n_cases=10, n_channels=1, n_timepoints=20)
+    X, _ = make_example_nested_dataframe(n_cases=10, n_channels=1, n_timepoints=20)
     assert _nested_univ_is_equal(X)
 
 
@@ -312,10 +312,10 @@ def test_from_nested():
         TypeError, match="Cannot convert unequal length series to " "numpy2D"
     ):
         _from_nested_univ_to_numpy2d(X)
-    X, _ = make_nested_dataframe_data(n_cases=10, n_channels=1, n_timepoints=20)
+    X, _ = make_example_nested_dataframe(n_cases=10, n_channels=1, n_timepoints=20)
     result = _from_nested_univ_to_numpy2d(X)
     assert result.shape == (10, 20)
-    X, _ = make_nested_dataframe_data(n_cases=10, n_channels=2, n_timepoints=20)
+    X, _ = make_example_nested_dataframe(n_cases=10, n_channels=2, n_timepoints=20)
     with pytest.raises(
         TypeError, match="Cannot convert multivariate nested into " "numpy2D"
     ):

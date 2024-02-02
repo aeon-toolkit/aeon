@@ -102,8 +102,7 @@ class RotationForestClassifier(BaseEstimator):
     --------
     >>> from aeon.classification.sklearn import RotationForestClassifier
     >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
-    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12,
-    ...                              return_y=True, random_state=0)
+    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12,random_state=0)
     >>> clf = RotationForestClassifier(n_estimators=10)
     >>> clf.fit(X, y)
     RotationForestClassifier(n_estimators=10)
