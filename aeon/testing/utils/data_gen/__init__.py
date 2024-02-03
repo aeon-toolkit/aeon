@@ -8,6 +8,7 @@ __all__ = [
     "make_example_long_table",
     "make_example_multi_index_dataframe",
     "make_series",
+    "make_forecasting_problem",
     "_make_index",
     "piecewise_normal_multivariate",
     "piecewise_normal",
@@ -15,7 +16,6 @@ __all__ = [
     "piecewise_poisson",
     "labels_with_repeats",
     "label_piecewise_normal",
-    "make_forecasting_problem",
     "_make_collection",
     "_make_collection_X",
     "_make_classification_y",
@@ -48,14 +48,17 @@ from aeon.testing.utils.data_gen._collection import (
     make_example_unequal_length,
 )
 from aeon.testing.utils.data_gen._data_generators import _convert_tsf_to_hierarchical
-from aeon.testing.utils.data_gen._series import _make_index, make_series
+from aeon.testing.utils.data_gen._series import (
+    _make_index,
+    make_forecasting_problem,
+    make_series,
+)
 from aeon.testing.utils.data_gen.annotation import make_annotation_problem
 from aeon.testing.utils.data_gen.forecasting import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,
     _get_n_columns,
     _make_fh,
-    make_forecasting_problem,
 )
 from aeon.testing.utils.data_gen.hierarchical import (
     _bottom_hier_datagen,

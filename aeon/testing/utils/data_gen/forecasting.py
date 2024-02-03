@@ -1,15 +1,12 @@
 """Forecasting testing utils."""
 
 __author__ = ["mloning"]
-__all__ = [
-    "make_forecasting_problem",
-]
+__all__ = []
 
 import numpy as np
 import pandas as pd
 
 from aeon.forecasting.base import ForecastingHorizon
-from aeon.testing.utils.data_gen._series import make_series
 from aeon.utils.validation.forecasting import check_fh
 
 
@@ -23,59 +20,6 @@ def _get_n_columns(tag):
     else:
         raise ValueError(f"Unexpected tag {tag} in _get_n_columns.")
     return n_columns_list
-
-
-def make_forecasting_problem(
-    n_timepoints=50,
-    all_positive=True,
-    index_type=None,
-    make_X=False,
-    n_columns=1,
-    random_state=None,
-):
-    """Return test data for forecasting tests.
-
-    Parameters
-    ----------
-    n_timepoints : int, optional
-        Lenght of data, by default 50
-    all_positive : bool, optional
-        Only positive values or not, by default True
-    index_type : e.g. pd.PeriodIndex, optional
-        pandas Index type, by default None
-    make_X : bool, optional
-        Should X data also be returned, by default False
-    n_columns : int, optional
-        Number of columns of y, by default 1
-    random_state : inst, str, float, optional
-        Set seed of random state, by default None
-
-    Returns
-    -------
-    ps.Series, pd.DataFrame
-        y, if not make_X
-        y, X if make_X
-    """
-    y = make_series(
-        n_timepoints=n_timepoints,
-        n_columns=n_columns,
-        all_positive=all_positive,
-        index_type=index_type,
-        random_state=random_state,
-    )
-
-    if not make_X:
-        return y
-
-    X = make_series(
-        n_timepoints=n_timepoints,
-        n_columns=2,
-        all_positive=all_positive,
-        index_type=index_type,
-        random_state=random_state,
-    )
-    X.index = y.index
-    return y, X
 
 
 def _assert_correct_pred_time_index(y_pred_index, cutoff, fh):

@@ -61,3 +61,56 @@ def _make_index(n_timepoints, index_type=None):
 
     else:
         raise ValueError(f"index_class: {index_type} is not supported")
+
+
+def make_forecasting_problem(
+    n_timepoints=50,
+    all_positive=True,
+    index_type=None,
+    make_X=False,
+    n_columns=1,
+    random_state=None,
+):
+    """Return test data for forecasting tests.
+
+    Parameters
+    ----------
+    n_timepoints : int, optional
+        Lenght of data, by default 50
+    all_positive : bool, optional
+        Only positive values or not, by default True
+    index_type : e.g. pd.PeriodIndex, optional
+        pandas Index type, by default None
+    make_X : bool, optional
+        Should X data also be returned, by default False
+    n_columns : int, optional
+        Number of columns of y, by default 1
+    random_state : inst, str, float, optional
+        Set seed of random state, by default None
+
+    Returns
+    -------
+    ps.Series, pd.DataFrame
+        y, if not make_X
+        y, X if make_X
+    """
+    y = make_series(
+        n_timepoints=n_timepoints,
+        n_columns=n_columns,
+        all_positive=all_positive,
+        index_type=index_type,
+        random_state=random_state,
+    )
+
+    if not make_X:
+        return y
+
+    X = make_series(
+        n_timepoints=n_timepoints,
+        n_columns=2,
+        all_positive=all_positive,
+        index_type=index_type,
+        random_state=random_state,
+    )
+    X.index = y.index
+    return y, X
