@@ -2,9 +2,7 @@
 
 __author__ = ["mloning"]
 __all__ = [
-    "_get_expected_index_for_update_predict",
     "make_forecasting_problem",
-    "_get_expected_index_for_update_predict",
 ]
 
 import numpy as np
@@ -25,42 +23,6 @@ def _get_n_columns(tag):
     else:
         raise ValueError(f"Unexpected tag {tag} in _get_n_columns.")
     return n_columns_list
-
-
-def _get_expected_index_for_update_predict(y, fh, step_length, initial_window):
-    """Compute expected time index from update_predict()."""
-    # time points at which to make predictions
-    fh = check_fh(fh)
-    index = y.index
-
-    # only works with date-time index
-    assert isinstance(index, pd.DatetimeIndex)
-    assert hasattr(index, "freq") and index.freq is not None
-    assert fh.is_relative
-
-    freq = index.freq
-    start = index[0] + (-1 + initial_window) * freq  # initial cutoff
-    end = index[-1]  # last point to predict
-
-    # generate date-time range
-    cutoffs = pd.date_range(start, end)
-
-    # only predict at time points if all steps in fh can be predicted before
-    # the end of y_test
-    cutoffs = cutoffs[cutoffs + max(fh) * freq <= max(index)]
-
-    # apply step length and recast to ignore inferred freq value
-    cutoffs = cutoffs[::step_length]
-    cutoffs = pd.DatetimeIndex(cutoffs, freq=None)
-
-    # generate all predicted time points, including duplicates from overlapping fh steps
-    pred_index = pd.DatetimeIndex([])
-    for step in fh:
-        values = cutoffs + step * freq
-        pred_index = pred_index.append(values)
-
-    # return unique and sorted index
-    return pred_index.unique().sort_values()
 
 
 def make_forecasting_problem(

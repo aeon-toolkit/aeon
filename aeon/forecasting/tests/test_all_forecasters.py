@@ -30,7 +30,6 @@ from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.testing.utils.data_gen import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,
-    _get_expected_index_for_update_predict,
     _get_n_columns,
     _make_fh,
     make_forecasting_problem,
@@ -653,3 +652,39 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         else:
             # if levels are added, all expected levels and times should be contained
             assert set(X_test.index).issubset(y_pred.index)
+
+
+def _get_expected_index_for_update_predict(y, fh, step_length, initial_window):
+    """Compute expected time index from update_predict()."""
+    # time points at which to make predictions
+    fh = check_fh(fh)
+    index = y.index
+
+    # only works with date-time index
+    assert isinstance(index, pd.DatetimeIndex)
+    assert hasattr(index, "freq") and index.freq is not None
+    assert fh.is_relative
+
+    freq = index.freq
+    start = index[0] + (-1 + initial_window) * freq  # initial cutoff
+    end = index[-1]  # last point to predict
+
+    # generate date-time range
+    cutoffs = pd.date_range(start, end)
+
+    # only predict at time points if all steps in fh can be predicted before
+    # the end of y_test
+    cutoffs = cutoffs[cutoffs + max(fh) * freq <= max(index)]
+
+    # apply step length and recast to ignore inferred freq value
+    cutoffs = cutoffs[::step_length]
+    cutoffs = pd.DatetimeIndex(cutoffs, freq=None)
+
+    # generate all predicted time points, including duplicates from overlapping fh steps
+    pred_index = pd.DatetimeIndex([])
+    for step in fh:
+        values = cutoffs + step * freq
+        pred_index = pred_index.append(values)
+
+    # return unique and sorted index
+    return pred_index.unique().sort_values()
