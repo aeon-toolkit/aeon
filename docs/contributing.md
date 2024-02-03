@@ -138,6 +138,26 @@ Reviewer Guide
 
 :::
 
+:::{grid-item-card}
+:text-align: center
+
+Mentoring and Projects
+
+^^^
+
+`aeon` projects and mentoring oppertunities.
+
++++
+
+```{button-ref} mentoring
+:color: primary
+:click-parent:
+:expand:
+
+Mentoring and Projects
+```
+:::
+
 ::::
 
 ```{toctree}
