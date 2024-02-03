@@ -31,7 +31,7 @@ def test_function_transformer(dist):
 def test_knn(dist):
     """Test all distances work with KNN in a pipeline."""
     X, y = make_example_3d_numpy(
-        n_cases=5, n_channels=1, n_timepoints=10, regression_target=True, return_y=True
+        n_cases=5, n_channels=1, n_timepoints=10, regression_target=True
     )
     pairwise = dist["pairwise_distance"]
     ft = FunctionTransformer(pairwise)
@@ -56,7 +56,7 @@ def test_support_vector_machine(dist):
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_clusterer(dist):
     """Test all distances work with SVM in a pipeline."""
-    X = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=10)
+    X = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=10, return_y=False)
     db = DBSCAN(metric="precomputed", eps=2.5)
     preds = db.fit_predict(dist["pairwise_distance"](X))
     assert len(preds) == len(X)
