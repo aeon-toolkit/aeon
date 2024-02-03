@@ -221,7 +221,15 @@ ESTIMATOR_TAG_REGISTER = [
             "segmenter",
         ],
         "bool",
-        "can the estimator classify time series with 2 or more variables?",
+        "can the estimator deal with series with two or more channels?",
+    ),
+    (
+        "capability:univariate",
+        [
+            "segmenter",
+        ],
+        "bool",
+        "can the estimator deal with single series input?",
     ),
     (
         "capability:unequal_length",

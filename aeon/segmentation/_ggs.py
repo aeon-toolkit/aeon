@@ -446,6 +446,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
     """
 
     _tags = {
+        "capability:univariate": False,
         "capability:multivariate": True,
         "returns_dense": False,
     }
@@ -510,3 +511,23 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         ):
             labels[start:stop] = i
         return labels
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class.
+        """
+        return {}
+
+    def __repr__(self) -> str:
+        """Return a string representation of the estimator."""
+        return self.ggs.__repr__()

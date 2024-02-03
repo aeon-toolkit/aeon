@@ -22,7 +22,7 @@ class DummyDeepNetwork(BaseDeepNetwork):
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("tensorflow", severity="none"),
+    not _check_soft_dependencies(["tensorflow", "pydot"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_network():
