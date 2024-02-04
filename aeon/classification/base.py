@@ -45,6 +45,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     Attributes with an underscore suffix are set in the method fit.
 
+
     Attributes
     ----------
     classes_ : np.ndarray
@@ -128,14 +129,17 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             or list of numpy arrays (any number of channels, unequal length series)
             of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. Other types are
-            allowed and converted into one of the above. Different estimators have
-            different capabilities to handle different types of input. If
-            ``self.get_tag("capability:multivariate")`` is False, they cannot handle
-            multivariate series, so either ``n_channels == 1`` or X is 2D.If
-            ``self.get_tag("capability:unequal_length")`` is False, they cannot
-            handle unequal length input. In both situations, a ValueError is
-            raised if X has a characteristic that the estimator does not have the
-            capability for is passed.
+            allowed and converted into one of the above.
+
+            Different estimators have different capabilities to handle different
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series, so either ``n_channels == 1`` is
+            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability for is
+            passed.
+
         np.ndarray
             shape ``(n_instances)`` - class labels for fitting indices correspond to
             instance indices in X.
@@ -175,13 +179,15 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``
             other types are allowed and converted into one of the above.
+
             Different estimators have different capabilities to handle different
-            types of input. If ``self.get_tag("capability:multivariate")`` is False,
-            they cannot handle multivariate series, so either ``n_channels == 1`` or
-            X is 2D.If ``self.get_tag("capability:unequal_length")`` is False,
-            they cannot handle unequal length input. In both situations, a ValueError is
-            raised if X has a characteristic that the estimator does not have the
-            capability for is passed.
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series, so either ``n_channels == 1`` is
+            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability for is
+            passed.
 
         Returns
         -------
@@ -212,13 +218,15 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
+
             Different estimators have different capabilities to handle different
-            types of input. If ``self.get_tag("capability:multivariate")`` is False,
-            they cannot handle multivariate series, so either ``n_channels == 1`` or
-            X is 2D.If ``self.get_tag("capability:unequal_length")`` is False,
-            they cannot handle unequal length input. In both situations, a ValueError is
-            raised if X has a characteristic that the estimator does not have the
-            capability for is passed.
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series, so either ``n_channels == 1`` is
+            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability for is
+            passed.
 
         Returns
         -------
@@ -255,13 +263,15 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
+
             Different estimators have different capabilities to handle different
-            types of input. If ``self.get_tag("capability:multivariate")`` is False,
-            they cannot handle multivariate series, so either ``n_channels == 1`` or
-            X is 2D.If ``self.get_tag("capability:unequal_length")`` is False,
-            they cannot handle unequal length input. In both situations, a ValueError is
-            raised if X has a characteristic that the estimator does not have the
-            capability for is passed.
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series, so either ``n_channels == 1`` is
+            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability for is
+            passed.
 
         Returns
         -------
@@ -299,13 +309,15 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
+
             Different estimators have different capabilities to handle different
-            types of input. If ``self.get_tag("capability:multivariate")`` is False,
-            they cannot handle multivariate series, so either ``n_channels == 1`` or
-            X is 2D.If ``self.get_tag("capability:unequal_length")`` is False,
-            they cannot handle unequal length input. In both situations, a ValueError is
-            raised if X has a characteristic that the estimator does not have the
-            capability for is passed.
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series, so either ``n_channels == 1`` is
+            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability for is
+            passed.
 
         Returns
         -------
@@ -341,13 +353,16 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
+
             Different estimators have different capabilities to handle different
-            types of input. If ``self.get_tag("capability:multivariate")`` is False,
-            they cannot handle multivariate series, so either ``n_channels == 1`` or
-            X is 2D.If ``self.get_tag("capability:unequal_length")`` is False,
-            they cannot handle unequal length input. In both situations, a ValueError is
-            raised if X has a characteristic that the estimator does not have the
-            capability for is passed.
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series, so either ``n_channels == 1`` is
+            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability for is
+            passed.
+
         y : np.ndarray
             array shape ``(n_instances)`` - class labels (ground truth)
             indices correspond to instance indices in X.
