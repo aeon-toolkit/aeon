@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
-from aeon.base._base_collection import COLLECTIONS_DATA_TYPES
+from aeon.utils.conversion import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.tests.test_collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,

@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.base._base_collection import COLLECTIONS_DATA_TYPES
 from aeon.testing.utils.data_gen import (
     make_example_multi_index_dataframe,
     make_nested_dataframe_data,
 )
 from aeon.utils import convert_collection
+from aeon.utils.conversion import COLLECTIONS_DATA_TYPES
 from aeon.utils.conversion._convert_collection import (
     _from_nested_univ_to_numpy2d,
     _from_nested_univ_to_pd_multiindex,
