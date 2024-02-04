@@ -64,7 +64,15 @@ def subsample_by_version_os(x):
     import platform
     import sys
 
-    ix = sys.version_info.minor % 5
+    # only use 3 Python versions in PR
+    ix = sys.version_info.minor
+    if ix == 8:
+        ix = 0
+    elif ix == 10:
+        ix = 1
+    elif ix == 12:
+        ix = 2
+
     os_str = platform.system()
     if os_str == "Windows":
         ix = ix
