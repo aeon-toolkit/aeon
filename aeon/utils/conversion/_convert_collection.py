@@ -21,7 +21,7 @@ legacy code supported "dask_panel" but it is not actually used anywhere.
 import numpy as np
 import pandas as pd
 
-from aeon.utils.validation._check_collection import _nested_univ_is_equal
+from aeon.utils.validation._check_collection import _equal_length, _nested_univ_is_equal
 
 
 def convert_identity(X):
@@ -475,51 +475,3 @@ def _from_pd_multiindex_to_nested_univ(X):
     assert (x_nested.columns == X.columns).all(), col_msg
 
     return x_nested
-
-
-def _equal_length(X, input_type):
-    """Test if X contains equal length time series.
-
-    Assumes input_type is a valid type (COLLECTIONS_DATA_TYPES).
-
-    Parameters
-    ----------
-    X : data structure.
-    input_type : string, one of COLLECTIONS_DATA_TYPES
-
-    Returns
-    -------
-    boolean: True if all series in X are equal length, False otherwise
-
-    Raises
-    ------
-    ValueError if input_type not in COLLECTIONS_DATA_TYPES.
-
-    Example
-    -------
-    >>> _equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
-    True
-    """
-    always_equal = {"numpy3D", "numpy2D", "pd-wide"}
-    if input_type in always_equal:
-        return True
-    # np-list are shape (n_channels, n_timepoints)
-    if input_type == "np-list":
-        first = X[0].shape[1]
-        for i in range(1, len(X)):
-            if X[i].shape[1] != first:
-                return False
-        return True
-    # df-list are shape (n_timepoints, n_channels)
-    if input_type == "df-list":
-        first = X[0].shape[0]
-        for i in range(1, len(X)):
-            if X[i].shape[0] != first:
-                return False
-        return True
-    if input_type == "nested_univ":  # Nested univariate or hierachical
-        return _nested_univ_is_equal(X)
-    if input_type == "pd-multiindex":  # multiindex will store unequal as NaN
-        return not X.isna().any().any()
-    raise ValueError(f" unknown input type {input_type}")
-    return False

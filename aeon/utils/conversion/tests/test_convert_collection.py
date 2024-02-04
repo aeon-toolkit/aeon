@@ -11,7 +11,6 @@ from aeon.testing.utils.data_gen._collection import (
     UNEQUAL_LENGTH_UNIVARIATE,
 )
 from aeon.utils.conversion._convert_collection import (
-    _equal_length,
     _from_nested_univ_to_numpy2d,
     _from_nested_univ_to_pd_multiindex,
     _from_numpy2d_to_df_list,
@@ -30,13 +29,16 @@ from aeon.utils.conversion._convert_collection import (
 from aeon.utils.conversion.collection import (
     COLLECTIONS_DATA_TYPES,
     convert_collection,
+    resolve_equal_length_inner_type,
+    resolve_unequal_length_inner_type,
+)
+from aeon.utils.validation._check_collection import (
+    _equal_length,
     get_n_cases,
     get_type,
     has_missing,
     is_equal_length,
     is_univariate,
-    resolve_equal_length_inner_type,
-    resolve_unequal_length_inner_type,
 )
 
 
