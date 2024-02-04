@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_random_state
 
-from aeon.utils.validation.collection import convert_collection
+from aeon.utils.conversion import convert_collection
 
 
 def make_example_3d_numpy(

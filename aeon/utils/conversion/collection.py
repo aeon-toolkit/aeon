@@ -5,8 +5,8 @@ __author__ = ["TonyBagnall"]
 import numpy as np
 import pandas as pd
 
-import aeon.utils.validation._convert_collection as conv
-from aeon.utils.validation._convert_collection import _equal_length
+import aeon.utils.conversion._convert_collection as conv
+from aeon.utils.conversion._convert_collection import _equal_length
 
 COLLECTIONS_DATA_TYPES = [
     "numpy3D",  # 3D np.ndarray of format (n_cases, n_channels, n_timepoints)

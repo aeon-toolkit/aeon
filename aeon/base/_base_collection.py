@@ -1,9 +1,7 @@
 """Base class for estimators that fit collections of time series."""
 
 from aeon.base._base import BaseEstimator
-from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import (
+from aeon.utils.conversion import (
     convert_collection,
     get_n_cases,
     has_missing,
@@ -12,6 +10,8 @@ from aeon.utils.validation.collection import (
     resolve_equal_length_inner_type,
     resolve_unequal_length_inner_type,
 )
+from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseCollectionEstimator(BaseEstimator):

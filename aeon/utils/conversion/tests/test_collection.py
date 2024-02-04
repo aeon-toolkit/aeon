@@ -8,8 +8,8 @@ from aeon.testing.utils.data_gen import (
     make_example_multi_index_dataframe,
     make_example_nested_dataframe,
 )
-from aeon.utils.validation import is_nested_univ_dataframe
-from aeon.utils.validation._convert_collection import (
+from aeon.utils.conversion import is_nested_univ_dataframe
+from aeon.utils.conversion._convert_collection import (
     _equal_length,
     _from_nested_univ_to_numpy2d,
     _from_nested_univ_to_pd_multiindex,
@@ -28,7 +28,7 @@ from aeon.utils.validation._convert_collection import (
     _is_pd_wide,
     _nested_univ_is_equal,
 )
-from aeon.utils.validation.collection import (
+from aeon.utils.conversion.collection import (
     COLLECTIONS_DATA_TYPES,
     convert_collection,
     get_n_cases,
