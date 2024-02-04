@@ -16,7 +16,7 @@ from aeon.benchmarking.results_loaders import (
     get_estimator_results,
     get_estimator_results_as_array,
 )
-from aeon.tests.test_config import PR_TESTING
+from aeon.testing.test_config import PR_TESTING
 
 cls = ["HC2", "FreshPRINCE", "InceptionT"]
 data = ["Chinatown", "Tools"]
@@ -38,7 +38,7 @@ def test_get_estimator_results():
     with pytest.raises(ValueError, match="not a valid task"):
         get_estimator_results(estimators=cls, task="skipping")
     with pytest.raises(ValueError, match="not a valid type "):
-        get_estimator_results(estimators=cls, type="madness")
+        get_estimator_results(estimators=cls, measure="madness")
 
 
 def test_get_estimator_results_as_array():
@@ -61,7 +61,7 @@ def test_get_estimator_results_as_array():
         include_missing=True,
         default_only=False,
     )
-    assert res[0][0] == 0.9700680272108843
+    assert res[0][0] == 0.968901846452867
 
 
 def test_alias():
@@ -72,9 +72,9 @@ def test_alias():
     name = estimator_alias("FP")
     name2 = estimator_alias("FreshPRINCEClassifier")
     assert name == "FreshPRINCE" and name2 == "FreshPRINCE"
-    name = estimator_alias("WEASEL-D")
+    name = estimator_alias("WEASEL-Dilation")
     name2 = estimator_alias("WEASEL")
-    assert name == "WEASEL-Dilation" and name2 == "WEASEL-Dilation"
+    assert name == "WEASEL-2.0" and name2 == "WEASEL-1.0"
     with raises(ValueError):
         estimator_alias("NotAClassifier")
 
@@ -87,12 +87,12 @@ def test_alias():
 )
 def test_load_all_classifier_results():
     """Run through all classifiers in NAME_ALIASES."""
-    for type in ["accuracy", "auroc", "balancedaccuracy", "nll"]:
+    for measure in ["accuracy", "auroc", "balancedaccuracy", "nll"]:
         for name_key in NAME_ALIASES.keys():
             res, names = get_estimator_results_as_array(
                 estimators=[name_key],
                 include_missing=False,
-                type=type,
+                measure=measure,
                 default_only=False,
             )
             assert res.shape[0] >= 112
@@ -100,7 +100,7 @@ def test_load_all_classifier_results():
             res = get_estimator_results_as_array(
                 estimators=[name_key],
                 include_missing=True,
-                type=type,
+                measure=measure,
                 default_only=False,
             )
             from aeon.datasets.tsc_data_lists import univariate as UCR
@@ -119,6 +119,9 @@ def test_get_available_estimators():
     classifiers = get_available_estimators(task="classification")
     assert isinstance(classifiers, pd.DataFrame)
     assert classifiers.isin(["HC2"]).any().any()
+    regressors = get_available_estimators(task="regression")
+    assert isinstance(regressors, pd.DataFrame)
+    assert regressors.isin(["DrCIF"]).any().any()
 
 
 @pytest.mark.skipif(

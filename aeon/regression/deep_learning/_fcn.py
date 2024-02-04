@@ -42,7 +42,7 @@ class FCNRegressor(BaseDeepRegressor):
         the number of epochs to train the model
     batch_size      : int, default = 16
         the number of samples per gradient update.
-    use_mini_batch_size : bool, default = True,
+    use_mini_batch_size : bool, default = False,
         whether or not to use the mini batch size formula
     random_state    : int or None, default=None
         Seed for random number generation.
@@ -89,7 +89,7 @@ class FCNRegressor(BaseDeepRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import FCNRegressor
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -120,7 +120,7 @@ class FCNRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         n_epochs=2000,
         batch_size=16,
-        use_mini_batch_size=True,
+        use_mini_batch_size=False,
         callbacks=None,
         verbose=False,
         output_activation="linear",
@@ -131,7 +131,7 @@ class FCNRegressor(BaseDeepRegressor):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(FCNRegressor, self).__init__(last_file_name=last_file_name)
+        super().__init__(last_file_name=last_file_name)
 
         self.n_layers = n_layers
         self.kernel_size = kernel_size
@@ -315,7 +315,9 @@ class FCNRegressor(BaseDeepRegressor):
             "n_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
-            "n_layers": 2,
+            "n_layers": 1,
+            "n_filters": 5,
+            "kernel_size": 3,
             "padding": "valid",
             "strides": 2,
         }

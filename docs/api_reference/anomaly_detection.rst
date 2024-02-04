@@ -1,7 +1,7 @@
-.. _annotation_ref:
+.. _anomaly_detection_ref:
 
-Time Series Anomaly Detection
-=============================
+Anomaly Detection
+=================
 
 Time Series Anomaly Detection aims at discovering regions of a time series that in
 some way not representative of the underlying generative process.

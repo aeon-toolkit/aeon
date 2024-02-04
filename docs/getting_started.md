@@ -328,12 +328,12 @@ of univariate series**</span>.
 
 
 The following example shows how to use the
-[Differencer](transformations.series.difference.Differencer) class to extract the first
+[Differencer](transformations.difference.Differencer) class to extract the first
 order difference of a time series. Usage is the same for both single series and
 collection input types.
 
 ```{code-block} python
->>> from aeon.transformations.series.difference import Differencer
+>>> from aeon.transformations.difference import Differencer
 >>> from aeon.datasets import load_airline
 >>> from aeon.datasets import load_italy_power_demand
 >>> diff = Differencer(lags=1)
@@ -368,11 +368,11 @@ Freq: M, Name: Number of airline passengers, Length: 144, dtype: float64
 
 As well as series-to-series transformations, the transformations module also contains
 features which transform series into a feature vector. The following example shows how
-to use the [SummaryTransformer](transformations.series.summarize.SummaryTransformer)
+to use the [SummaryTransformer](transformations.summarize.SummaryTransformer)
 class to extract summary statistics from a time series.
 
 ```{code-block} python
->>> from aeon.transformations.series.summarize import SummaryTransformer
+>>> from aeon.transformations.summarize import SummaryTransformer
 >>> from aeon.datasets import load_airline
 >>> y = load_airline()  # load single series airline dataset
 >>> summary = SummaryTransformer()
@@ -415,7 +415,7 @@ series and process unequal length collections.
 
 ```{code-block} python
 >>> from aeon.transformations.collection.pad import PaddingTransformer
->>> from aeon.utils._testing.collection import make_unequal_length_test_data
+>>> from aeon.testing.utils.data_gen import make_unequal_length_test_data
 >>> X, _ = make_unequal_length_test_data(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
 ...     min_series_length=8,
@@ -463,16 +463,16 @@ transformations and estimators together. The simplest pipeline for forecasting i
 [TransformedTargetForecaster](forecasting.compose.TransformedTargetForecaster).
 
 In the following example, we chain together a
-[BoxCoxTransformer](transformations.series.boxcox.BoxCoxTransformer),
-[Deseasonalizer](transformations.series.detrend.Deseasonalizer) and
+[BoxCoxTransformer](transformations.boxcox.BoxCoxTransformer),
+[Deseasonalizer](transformations.detrend.Deseasonalizer) and
 [ARIMA](forecasting.arima.ARIMA) forecaster to make a forecast (if you want to run this
 yourself, you will need to `pip install statsmodels` and `pip install pmdarima`).
 
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.datasets import load_airline
->>> from aeon.transformations.series.boxcox import BoxCoxTransformer
->>> from aeon.transformations.series.detrend import Deseasonalizer
+>>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.detrend import Deseasonalizer
 >>> from aeon.forecasting.arima import ARIMA
 >>> from aeon.forecasting.compose import TransformedTargetForecaster
 ...
@@ -567,8 +567,8 @@ to ARIMA order values for the forecasting pipeline we created in the previous ex
 ...     ForecastingGridSearchCV,
 ... )
 >>> from aeon.forecasting.arima import ARIMA
->>> from aeon.transformations.series.boxcox import BoxCoxTransformer
->>> from aeon.transformations.series.detrend import Deseasonalizer
+>>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.detrend import Deseasonalizer
 ...
 >>> y = load_airline()
 ...
@@ -639,14 +639,18 @@ the available `scikit-learn` functionality.
 
 The similarity search module in `aeon` offers a set of functions and estimators to solve
 tasks related to time series similarity search. The estimators can be used standalone
-or as parts of pipelines, while the functions give you to the tools to build your own
+or as parts of pipelines, while the functions give you the tools to build your own
 estimators that would rely on similarity search at some point.
 
 The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
-class accept 3D collection of time series as input types. This collection asked for the
-fit method is stored as a database, which will be used in the predict method. The
-predict method expect a single 2D time series. All inputs are expected to be in numpy
-array format. Then length of the time series in the 3D collection should be superior or
+class accepts as inputs 3D time series (n_instances, n_channels, n_timepoints) for the
+fit method. Univariate and single series can still be used, but will need to be reshaped
+to this format.
+
+This collection, asked for the fit method, is stored as a database. It will be used in
+the predict method, which expects a single 2D time series as input
+(n_channels, query_length), which will be used as a query to search for in the database.
+Note that the length of the time series in the 3D  collection should be superior or
 equal to the length of the 2D time series given in the predict method.
 
 Given those two inputs, the predict method should return the set of most similar
@@ -660,7 +664,7 @@ function.
 >>> from aeon.similarity_search import TopKSimilaritySearch
 >>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
 ...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
->>> X = np.array(X) # X is of shape (2, 1, 7) : (n_samples, n_channels, n_timestamps)
+>>> X = np.array(X) # X is of shape (2, 1, 7) : (n_instances, n_channels, n_timepoints)
 >>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
 >>> topk.fit(X)  # fit the estimator on train data
 ...

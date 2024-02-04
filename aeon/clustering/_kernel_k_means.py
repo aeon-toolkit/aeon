@@ -1,4 +1,5 @@
 """Time series kernel kmeans."""
+
 from typing import Dict, Union
 
 import numpy as np
@@ -68,6 +69,19 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
         Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
         .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
+
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesKernelKMeans
+    >>> from aeon.datasets import load_basic_motions
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
+    >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
+    >>> # Example of KernelKMeans Clustering
+    >>> kkm = TimeSeriesKernelKMeans(n_clusters=3, kernel='rbf')  # doctest: +SKIP
+    >>> kkm.fit(X_train)  # doctest: +SKIP
+    TimeSeriesKernelKMeans(kernel='rbf', n_clusters=3)
+    >>> preds = kkm.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
@@ -103,7 +117,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         self._tslearn_kernel_k_means = None
 
-        super(TimeSeriesKernelKMeans, self).__init__(n_clusters=n_clusters)
+        super().__init__(n_clusters=n_clusters)
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.

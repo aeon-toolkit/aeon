@@ -1,4 +1,5 @@
 r"""Weighted dynamic time warping (WDTW) distance between two time series."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
@@ -47,12 +48,14 @@ def wdtw_distance(
 
     Parameters
     ----------
-    x : np.ndarray
-        First time series, either univariate, shape ``(n_timepoints,)``, or
-        multivariate, shape ``(n_channels, n_timepoints)``.
-    y : np.ndarray
-        Second time series, either univariate, shape ``(n_timepoints,)``, or
-        multivariate, shape ``(n_channels, n_timepoints)``.
+    X : np.ndarray
+        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
+        or ``(n_instances, n_channels, n_timepoints)``.
+    y : np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        If None, then the wdtw pairwise distance between the instances of X is
+        calculated.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
@@ -360,10 +363,10 @@ def wdtw_alignment_path(
 
     Parameters
     ----------
-    x : np.ndarray, of shape (n_channels, n_timepoints) or (n_timepoints,)
-        First time series.
-    y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
-        Second time series.
+    x : np.ndarray
+        First time series, shape ``(n_channels, n_timepoints)`` or ``(n_timepoints,)``.
+    y : np.ndarray
+        Second time series, shape ``(m_channels, m_timepoints)`` or ``(m_timepoints,)``.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.

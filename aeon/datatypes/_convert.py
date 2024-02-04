@@ -99,9 +99,9 @@ def convert(
     ----------
     obj : object to convert - any type, should comply with mtype spec for as_scitype
     from_type : str - the type to convert "obj" to, a valid mtype string
-        valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
+        valid mtype strings, with explanation, are in datatypes.TYPE_REGISTER
     to_type : str - the type to convert "obj" to, a valid mtype string
-        valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
+        valid mtype strings, with explanation, are in datatypes.TYPE_REGISTER
     as_scitype : str, optional - name of scitype the object "obj" is considered as
         default = inferred from from_type
         valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
@@ -189,7 +189,7 @@ def convert_to(
     obj : object to convert - any type, should comply with mtype spec for as_scitype
     to_type : str - the type to convert "obj" to, a valid mtype string
             or list of str, this specifies admissible types for conversion to
-        valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
+        valid mtype strings, with explanation, are in datatypes.TYPE_REGISTER
     as_scitype : str, optional - name of scitype the object "obj" is considered as
         pre-specifying the scitype reduces the number of checks done in type inference
         valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
@@ -291,8 +291,8 @@ def _conversions_defined(scitype: str):
                                      0 if conversion from i to j is not defined
     """
     pairs = [(x[0], x[1]) for x in list(convert_dict.keys()) if x[2] == scitype]
-    cols0 = set([x[0] for x in list(convert_dict.keys()) if x[2] == scitype])
-    cols1 = set([x[1] for x in list(convert_dict.keys()) if x[2] == scitype])
+    cols0 = {x[0] for x in list(convert_dict.keys()) if x[2] == scitype}
+    cols1 = {x[1] for x in list(convert_dict.keys()) if x[2] == scitype}
     cols = sorted(list(cols0.union(cols1)))
 
     mat = np.zeros((len(cols), len(cols)), dtype=int)

@@ -115,7 +115,7 @@ class Catch22(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.feature_based import Catch22
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=10,
     ...                           random_state=0)
     >>> tnf = Catch22(replace_nans=True)
@@ -159,14 +159,14 @@ class Catch22(BaseCollectionTransformer):
         if use_pycatch22:
             self.set_tags(**{"python_dependencies": "pycatch22"})
 
-        super(Catch22, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X into the catch22 features.
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
                 of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where

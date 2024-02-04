@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -41,7 +41,7 @@ jobs:
         run: |
           python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
           python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
-          python -m pytest --pyargs aeon.tests.test_softdeps
+          python -m pytest --pyargs aeon.testing.test_softdeps
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps
@@ -50,7 +50,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -80,7 +80,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -108,7 +108,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 

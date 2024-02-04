@@ -78,7 +78,7 @@ Functions
 Segmentation
 ~~~~~~~~~~~~
 
-.. currentmodule:: aeon.performance_metrics.annotation.metrics
+.. currentmodule:: aeon.performance_metrics.segmentation.metrics
 
 .. autosummary::
     :toctree: auto_generated/

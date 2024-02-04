@@ -4,6 +4,7 @@ Classes named as ``*Score`` return a value to maximize: the higher the better.
 Classes named as ``*Error`` or ``*Loss`` return a value to minimize:
 the lower the better.
 """
+
 from copy import deepcopy
 from inspect import getfullargspec, isfunction, signature
 from warnings import warn
@@ -123,7 +124,7 @@ class BaseForecastingErrorMetric(BaseMetric):
         if not hasattr(self, "name"):
             self.name = type(self).__name__
 
-        super(BaseForecastingErrorMetric, self).__init__()
+        super().__init__()
 
     def __call__(self, y_true, y_pred, **kwargs):
         """Calculate metric value using underlying metric function.
@@ -430,7 +431,7 @@ class BaseForecastingErrorMetric(BaseMetric):
             else:
                 y_pred_orig.columns = y_true.columns
         # check multioutput arg
-        # todo: add this back when variance_weighted is supported
+        # add this back when variance_weighted is supported
         # ("raw_values", "uniform_average", "variance_weighted")
         allowed_multioutput_str = ("raw_values", "uniform_average")
 
@@ -551,9 +552,7 @@ class _DynamicForecastingErrorMetric(BaseForecastingErrorMetricFunc):
         self.name = name
         self.lower_is_better = lower_is_better
 
-        super(_DynamicForecastingErrorMetric, self).__init__(
-            multioutput=multioutput, multilevel=multilevel
-        )
+        super().__init__(multioutput=multioutput, multilevel=multilevel)
 
         self.set_tags(**{"lower_is_better": lower_is_better})
 

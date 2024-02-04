@@ -23,6 +23,31 @@ assert set(RELATIVE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 assert set(ABSOLUTE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 
 
+def get_index_for_series(obj, cutoff=0):
+    """Get pandas index for a Series object.
+
+    Returns index even for numpy array, in that case a RangeIndex.
+
+    Assumptions on obj are not checked, these should be validated separately.
+    Function may return unexpected results without prior validation.
+
+    Parameters
+    ----------
+    obj : data structure
+        must be of one of pd.Series, pd.DataFrame, np.ndarray
+    cutoff : int, or pd.datetime, optional, default=0
+        current cutoff, used to offset index if obj is np.ndarray
+
+    Returns
+    -------
+    index : pandas.Index, index for obj
+    """
+    if hasattr(obj, "index"):
+        return obj.index
+    # now we know the object must be an np.ndarray
+    return pd.RangeIndex(cutoff, cutoff + obj.shape[0])
+
+
 def is_integer_index(x) -> bool:
     """Check that the input is an integer pd.Index."""
     return isinstance(x, pd.Index) and is_integer_dtype(x)
@@ -86,7 +111,7 @@ def check_series(
     allow_index_names=False,
     var_name="input",
 ):
-    """Validate input data to be a valid mtype for Series.
+    """Validate input data to be a valid type for Series.
 
     Parameters
     ----------
@@ -115,7 +140,7 @@ def check_series(
 
     Raises
     ------
-    TypeError - if Z is not in a valid type or format for scitype Series
+    TypeError - if Z is not in a valid type for Series
     if enforce_univariate is True:
         ValueError if Z has 2 or more columns
     if enforce_multivariate is True:
@@ -240,7 +265,6 @@ def check_equal_time_index(*ys, mode="equal"):
         must be pd.Series, pd.DataFrame or 1/2D np.ndarray, or None
         can be Series, Panel, Hierarchical, but must be pandas or numpy
         note: this assumption is not checked by the function itself
-            if check is needed, use check_is_scitype or check_is_mtype before call
     mode : str, "equal" or "contained", optional, default = "equal"
         if "equal" will check for all indices being exactly equal
         if "contained", will check whether all indices are subset of ys[0].index
@@ -254,9 +278,6 @@ def check_equal_time_index(*ys, mode="equal"):
             such that ys[i].index is not contained in ys[o].index
         np.ndarray are considered having (pandas) integer range index on axis 0
     """
-    from aeon.datatypes._utilities import get_index_for_series
-
-    # None entries are ignored
     y_not_None = [y for y in ys if y is not None]
 
     # if there is no or just one element, there is nothing to compare

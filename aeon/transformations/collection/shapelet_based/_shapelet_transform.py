@@ -18,7 +18,7 @@ from sklearn import preprocessing
 from sklearn.utils._random import check_random_state
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.utils.numba.general import z_normalise_series
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD, z_normalise_series
 from aeon.utils.validation import check_n_jobs
 
 
@@ -194,7 +194,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._class_dictionary = {}
         self._sorted_indicies = []
 
-        super(RandomShapeletTransform, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the shapelet transform to a specified X and y.
@@ -586,7 +586,7 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
 
     mean = sum / length
     std = math.sqrt((sum2 - mean * mean * length) / length)
-    if std > 0:
+    if std > AEON_NUMBA_STD_THRESHOLD:
         subseq = (subseq - mean) / std
     else:
         subseq = np.zeros(length)

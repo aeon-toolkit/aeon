@@ -44,7 +44,7 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
         self.profiling_filename = profiling_filename
         self.distributor = distributor
 
-        super(_TSFreshFeatureExtractor, self).__init__()
+        super().__init__()
 
         # _get_extraction_params should be after the init because this imports tsfresh
         # and the init checks for python version and tsfresh being present
@@ -233,7 +233,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
         profiling_sorting=None,
         distributor=None,
     ):
-        super(TSFreshFeatureExtractor, self).__init__(
+        super().__init__(
             default_fc_parameters=default_fc_parameters,
             kind_to_fc_parameters=kind_to_fc_parameters,
             chunksize=chunksize,
@@ -463,7 +463,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         hypotheses_independent=None,
         ml_task="auto",
     ):
-        super(TSFreshRelevantFeatureExtractor, self).__init__(
+        super().__init__(
             default_fc_parameters=default_fc_parameters,
             kind_to_fc_parameters=kind_to_fc_parameters,
             chunksize=chunksize,
@@ -536,7 +536,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to be transformed, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,

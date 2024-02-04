@@ -2,8 +2,8 @@
 
 import pytest
 
+from aeon.testing.utils.data_gen import make_3d_test_data
 from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
-from aeon.utils._testing.collection import make_3d_test_data
 
 
 def test_shapelet_transform():

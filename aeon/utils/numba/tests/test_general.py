@@ -4,18 +4,57 @@ __author__ = ["TonyBagnall", "baraline"]
 
 import numpy as np
 import pytest
+from numba import njit
+from numba.core.registry import CPUDispatcher
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from aeon.utils.numba.general import (
     combinations_1d,
+    generate_new_default_njit_func,
     get_subsequence,
     get_subsequence_with_mean_std,
     sliding_dot_product,
     sliding_mean_std_one_series,
     z_normalise_series,
+    z_normalize_series_with_mean_std,
 )
 
 DATATYPES = ["int32", "int64", "float32", "float64"]
+
+
+def test_generate_new_default_njit_func():
+    def _dummy_func(x, arg1=0.0, arg2=1.0):
+        return x - arg1 + arg2
+
+    dummy_func = njit(_dummy_func, fastmath=True)
+
+    new_dummy_func = generate_new_default_njit_func(dummy_func, {"arg1": -1.0})
+
+    expected_targetoptions = {"fastmath": True, "nopython": True, "boundscheck": None}
+
+    if isinstance(dummy_func, CPUDispatcher):
+        assert dummy_func.py_func.__defaults__ == (0.0, 1.0)
+        assert new_dummy_func.py_func.__defaults__ == (-1.0, 1.0)
+
+        assert dummy_func.targetoptions == expected_targetoptions
+        assert new_dummy_func.targetoptions == expected_targetoptions
+
+        assert dummy_func.__name__ != new_dummy_func.__name__
+        assert dummy_func.py_func.__code__ == new_dummy_func.py_func.__code__
+
+    elif callable(dummy_func):
+        assert dummy_func.__defaults__ == (0.0, 1.0)
+        assert new_dummy_func.__defaults__ == (-1.0, 1.0)
+        assert dummy_func.__name__ != new_dummy_func.__name__
+        assert dummy_func.__code__ == new_dummy_func.__code__
+
+
+@pytest.mark.parametrize("type", DATATYPES)
+def test_z_normalize_series_with_mean_std(type):
+    a = np.array([2, 2, 2], dtype=type)
+    a_expected = np.array([0, 0, 0], dtype=type)
+    a_result = z_normalize_series_with_mean_std(a, a.mean(), a.std())
+    assert_array_equal(a_result, a_expected)
 
 
 @pytest.mark.parametrize("type", DATATYPES)

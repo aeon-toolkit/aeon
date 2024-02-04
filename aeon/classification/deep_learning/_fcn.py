@@ -42,7 +42,7 @@ class FCNClassifier(BaseDeepClassifier):
         The number of epochs to train the model.
     batch_size : int, default = 16
         The number of samples per gradient update.
-    use_mini_batch_size : bool, default = True
+    use_mini_batch_size : bool, default = False
         Whether or not to use the mini batch size formula.
     random_state : int or None, default = None
         Seed for random number generation.
@@ -117,7 +117,7 @@ class FCNClassifier(BaseDeepClassifier):
         last_file_name="last_model",
         n_epochs=2000,
         batch_size=16,
-        use_mini_batch_size=True,
+        use_mini_batch_size=False,
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
@@ -127,7 +127,7 @@ class FCNClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(FCNClassifier, self).__init__(last_file_name=last_file_name)
+        super().__init__(last_file_name=last_file_name)
 
         self.n_layers = n_layers
         self.kernel_size = kernel_size
@@ -313,7 +313,9 @@ class FCNClassifier(BaseDeepClassifier):
             "n_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
-            "n_layers": 2,
+            "n_layers": 1,
+            "n_filters": 4,
+            "kernel_size": 3,
             "padding": "valid",
             "strides": 2,
         }

@@ -1,4 +1,5 @@
 """Deep Learning Auto-Encoder using FCN Network."""
+
 __author__ = ["hadifawaz1999"]
 __all__ = ["AEFCNClusterer"]
 
@@ -139,7 +140,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         callbacks=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(AEFCNClusterer, self).__init__(
+        super().__init__(
             n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
@@ -335,6 +336,8 @@ class AEFCNClusterer(BaseDeepClusterer):
             "batch_size": 4,
             "use_bias": False,
             "n_layers": 1,
+            "n_filters": 5,
+            "kernel_size": 3,
             "padding": "same",
             "strides": 1,
             "clustering_params": {
@@ -345,6 +348,4 @@ class AEFCNClusterer(BaseDeepClusterer):
             },
         }
 
-        test_params = [param1]
-
-        return test_params
+        return [param1]

@@ -126,7 +126,7 @@ class ResNetClassifier(BaseDeepClassifier):
         loss="categorical_crossentropy",
         metrics=None,
         batch_size=64,
-        use_mini_batch_size=True,
+        use_mini_batch_size=False,
         random_state=None,
         file_path="./",
         save_best_model=False,
@@ -136,7 +136,7 @@ class ResNetClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         _check_soft_dependencies("tensorflow")
-        super(ResNetClassifier, self).__init__(last_file_name=last_file_name)
+        super().__init__(last_file_name=last_file_name)
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.n_filters = n_filters
@@ -325,7 +325,9 @@ class ResNetClassifier(BaseDeepClassifier):
             "n_epochs": 10,
             "batch_size": 4,
             "n_residual_blocks": 1,
+            "n_filters": 5,
             "n_conv_per_residual_block": 1,
+            "kernel_size": 3,
         }
 
         test_params = [param]

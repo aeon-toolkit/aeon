@@ -1,7 +1,7 @@
 """
-Information Gain-based Temporal Segmentation.
+Information Gain-based Temporal Segmenter.
 
-Information Gain Temporal Segmentation (IGTS) is a method for segmenting
+Information Gain Temporal Segmentation (_IGTS) is a method for segmenting
 multivariate time series based off reducing the entropy in each segment [1]_.
 
 The amount of entropy lost by the segmentations made is called the Information
@@ -17,17 +17,16 @@ References
 
 """
 
-from dataclasses import dataclass
-from typing import Dict, List
+from dataclasses import dataclass, field
+from typing import List
 
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from attrs import asdict, define, field
 
-from aeon.base import BaseEstimator
+from aeon.segmentation.base import BaseSegmenter
 
-__all__ = ["InformationGainSegmentation"]
+__all__ = ["InformationGainSegmenter"]
 __author__ = ["lmmentel"]
 
 
@@ -103,12 +102,12 @@ def generate_segments_pandas(X: npt.ArrayLike, change_points: List) -> npt.Array
         yield X[interval.left : interval.right, :]
 
 
-@define
-class IGTS:
+@dataclass
+class _IGTS:
     """
-    Information Gain based Temporal Segmentation (IGTS).
+    Information Gain based Temporal Segmentation (GTS).
 
-    IGTS is a n unsupervised method for segmenting multivariate time series
+    GTS is a n unsupervised method for segmenting multivariate time series
     into non-overlapping segments by locating change points that for which
     the information gain is maximized.
 
@@ -116,13 +115,13 @@ class IGTS:
     The aim is to find the segmentation that have the maximum information
     gain for a specified number of segments.
 
-    IGTS uses top-down search method to greedily find the next change point
+    GTS uses top-down search method to greedily find the next change point
     location that creates the maximum information gain. Once this is found, it
     repeats the process until it finds `k_max` splits of the time series.
 
     .. note::
 
-       IGTS does not work very well for univariate series but it can still be
+       GTS does not work very well for univariate series but it can still be
        used if the original univariate series are augmented by an extra feature
        dimensions. A technique proposed in the paper [1]_ us to subtract the
        series from it's largest element and append to the series.
@@ -157,14 +156,14 @@ class IGTS:
 
     Example
     -------
-    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
+    >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
     ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
     ... variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
-    >>> from aeon.segmentation import InformationGainSegmentation
-    >>> igts = InformationGainSegmentation(k_max=3, step=2)
+    >>> igts = InformationGainSegmenter(k_max=3, step=2)
     >>> y = igts.fit_predict(X_scaled)
 
     """
@@ -174,7 +173,7 @@ class IGTS:
     step: int = 5
 
     # computed attributes
-    intermediate_results_: List = field(init=False, default=[])
+    intermediate_results_: List = field(init=False, default_factory=list)
 
     def identity(self, X: npt.ArrayLike) -> List[int]:
         """Return identity segmentation, i.e. terminal indexes of the data."""
@@ -249,7 +248,7 @@ class IGTS:
         n_samples, n_series = X.shape
         if n_series == 1:
             raise ValueError(
-                "Detected univariate series, IGTS will not work properly"
+                "Detected univariate series, GTS will not work properly"
                 " in this case. Consider augmenting your series to multivariate."
             )
         self.intermediate_results_ = []
@@ -280,42 +279,10 @@ class IGTS:
         return current_change_points
 
 
-class SegmentationMixin:
-    """Mixin with methods useful for segmentation problems."""
+class InformationGainSegmenter(BaseSegmenter):
+    """Information Gain based Temporal Segmentation (GTS) Estimator.
 
-    def to_classification(self, change_points: List[int]) -> npt.ArrayLike:
-        """Convert change point locations to a classification vector.
-
-        Change point detection results can be treated as classification
-        with true change point locations marked with 1's at position of
-        the change point and remaining non-change point locations being
-        0's.
-
-        For example change points [2, 8] for a time series of length 10
-        would result in: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0].
-        """
-        return np.bincount(change_points[1:-1], minlength=change_points[-1])
-
-    def to_clusters(self, change_points: List[int]) -> npt.ArrayLike:
-        """Convert change point locations to a clustering vector.
-
-        Change point detection results can be treated as clustering
-        with each segment separated by change points assigned a
-        distinct dummy label.
-
-        For example change points [2, 8] for a time series of length 10
-        would result in: [0, 0, 1, 1, 1, 1, 1, 1, 2, 2].
-        """
-        labels = np.zeros(change_points[-1], dtype=np.int32)
-        for i, (start, stop) in enumerate(zip(change_points[:-1], change_points[1:])):
-            labels[start:stop] = i
-        return labels
-
-
-class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
-    """Information Gain based Temporal Segmentation (IGTS) Estimator.
-
-    IGTS is a n unsupervised method for segmenting multivariate time series
+    GTS is a n unsupervised method for segmenting multivariate time series
     into non-overlapping segments by locating change points that for which
     the information gain is maximized.
 
@@ -323,13 +290,13 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
     The aim is to find the segmentation that have the maximum information
     gain for a specified number of segments.
 
-    IGTS uses top-down search method to greedily find the next change point
+    GTS uses top-down search method to greedily find the next change point
     location that creates the maximum information gain. Once this is found, it
     repeats the process until it finds `k_max` splits of the time series.
 
     .. note::
 
-       IGTS does not work very well for univariate series but it can still be
+       GTS does not work very well for univariate series but it can still be
        used if the original univariate series are augmented by an extra feature
        dimensions. A technique proposed in the paper [1]_ us to subtract the
        series from it's largest element and append to the series.
@@ -369,19 +336,24 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
 
     Examples
     --------
-    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
-    >>> from aeon.segmentation import InformationGainSegmentation
+    >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(
     ... lengths=[10, 10, 10, 10],
     ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
     ... variances=0.5,
     ... )
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
-    >>> igts = InformationGainSegmentation(k_max=3, step=2)
+    >>> igts = InformationGainSegmenter(k_max=3, step=2)
     >>> y = igts.fit_predict(X_scaled)
-
     """
+
+    _tags = {
+        "capability:univariate": False,
+        "capability:multivariate": True,
+        "returns_dense": False,
+    }
 
     def __init__(
         self,
@@ -390,110 +362,34 @@ class InformationGainSegmentation(SegmentationMixin, BaseEstimator):
     ):
         self.k_max = k_max
         self.step = step
-        self._adaptee_class = IGTS
-        self._adaptee = self._adaptee_class(
+        self._igts = _IGTS(
             k_max=k_max,
             step=step,
         )
+        super().__init__(n_segments=k_max + 1, axis=0)
 
-    def fit(self, X: npt.ArrayLike, y: npt.ArrayLike = None):
-        """Fit method for compatibility with sklearn-type estimator interface.
-
-        It sets the internal state of the estimator and returns the initialized
-        instance.
-
-        Parameters
-        ----------
-        X: array_like
-            2D `array_like` representing time series with sequence index along
-            the first dimension and value series as columns.
-
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
-        """
-        return self
-
-    def predict(self, X: npt.ArrayLike, y: npt.ArrayLike = None) -> npt.ArrayLike:
+    def _predict(self, X, y=None) -> np.ndarray:
         """Perform segmentation.
 
         Parameters
         ----------
-        X: array_like
-            2D `array_like` representing time series with sequence index along
-            the first dimension and value series as columns.
-
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
+        X: np.ndarray
+            2D time series shape (n_timepoints, n_channels).
 
         Returns
         -------
-        y_pred : array_like
-            1D array with predicted segmentation of the same size as the first
-            dimension of X. The numerical values represent distinct segments
-            labels for each of the data points.
+        y_pred : np.ndarray
+            1D array with predicted segmentation of the same size as X.
+            The numerical values represent distinct segment labels for each of the
+            data points.
         """
-        self.change_points_ = self._adaptee.find_change_points(X)
-        self.intermediate_results_ = self._adaptee.intermediate_results_
-        return self.to_clusters(self.change_points_)
-
-    def fit_predict(self, X: npt.ArrayLike, y: npt.ArrayLike = None) -> npt.ArrayLike:
-        """Perform segmentation.
-
-        A convenience method for compatibility with sklearn-like api.
-
-        Parameters
-        ----------
-        X: array_like
-            2D `array_like` representing time series with sequence index along
-            the first dimension and value series as columns.
-
-        y: array_like
-            Placeholder for compatibility with sklearn-api, not used, default=None.
-
-        Returns
-        -------
-        y_pred : array_like
-            1D array with predicted segmentation of the same size as the first
-            dimension of X. The numerical values represent distinct segments
-            labels for each of the data points.
-        """
-        return self.fit(X=X, y=y).predict(X=X, y=y)
-
-    def get_params(self, deep: bool = True) -> Dict:
-        """Return initialization parameters.
-
-        Parameters
-        ----------
-        deep: bool
-            Dummy argument for compatibility with sklearn-api, not used.
-
-        Returns
-        -------
-        params: dict
-            Dictionary with the estimator's initialization parameters, with
-            keys being argument names and values being argument values.
-        """
-        return asdict(self._adaptee, filter=lambda attr, value: attr.init is True)
-
-    def set_params(self, **parameters):
-        """Set the parameters of this object.
-
-        Parameters
-        ----------
-        parameters : dict
-            Initialization parameters for th estimator.
-
-        Returns
-        -------
-        self : reference to self (after parameters have been set)
-        """
-        for key, value in parameters.items():
-            setattr(self._adaptee, key, value)
-        return self
+        self.change_points_ = self._igts.find_change_points(X)
+        self.intermediate_results_ = self._igts.intermediate_results_
+        return self.to_clusters(self.change_points_[1:-1], X.shape[0])
 
     def __repr__(self) -> str:
         """Return a string representation of the estimator."""
-        return self._adaptee.__repr__()
+        return self._igts.__repr__()
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

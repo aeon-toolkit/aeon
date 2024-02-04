@@ -1,7 +1,9 @@
 """Rocket test code."""
+
 import pytest
 
 from aeon.classification.convolution_based import RocketClassifier
+from aeon.testing.utils.data_gen import make_2d_test_data, make_3d_test_data
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,
@@ -9,7 +11,6 @@ from aeon.transformations.collection.convolution_based import (
     MultiRocketMultivariate,
     Rocket,
 )
-from aeon.utils._testing.collection import make_2d_test_data, make_3d_test_data
 
 
 def test_rocket():

@@ -16,7 +16,7 @@ aeon/classification/dictionary_based/_redcomets.py @zy18811
 
 aeon/clustering/ @chrisholder @TonyBagnall
 
-aeon/distances/ @chrisholder @TonyBagnall
+aeon/distances/ @chrisholder @TonyBagnall @akshatvishu
 
 aeon/forecasting/ @aiwalter @guzalbulatova @ltsaprounis
 aeon/forecasting/base/adapters/_statsforecast.py @FedericoGarza
@@ -52,15 +52,18 @@ aeon/transformations/collection/shapelet_based/dilated_shapelet_transform.py @ba
 aeon/transformations/collection/shapelet_based/shapelet_transform.py @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/collection/supervised_intervals.py @MatthewMiddlehurst
 
-aeon/transformations/series/ @aiwalter
-aeon/transformations/series/augmenter.py @MrPr3ntice @iljamaurer
-aeon/transformations/series/clasp.py @patrickzib @ermshaua
-aeon/transformations/series/kalman_filter.py @NoaBenAmi
-aeon/transformations/series/scaledlogit.py @ltsaprounis
-aeon/transformations/series/theta.py @GuzalBulatova
-aeon/transformations/series/time_since.py @KishManani
+aeon/transformations/ @aiwalter
+aeon/transformations/augmenter.py @MrPr3ntice @iljamaurer
+aeon/transformations/clasp.py @patrickzib @ermshaua
+aeon/transformations/kalman_filter.py @NoaBenAmi
+aeon/transformations/scaledlogit.py @ltsaprounis
+aeon/transformations/theta.py @GuzalBulatova
+aeon/transformations/time_since.py @KishManani
+
+aeon/similarity_search/ @baraline
 
 aeon/utils/mlflow_aeon.py @benjaminbluhm
+aeon/utils/numba/ @baraline
 
 docs/get_involved/code_of_conduct.rst @aeon/aeon-code-of-conduct-committee
 docs/get_involved/governance.rst @aeon/aeon-core-developers

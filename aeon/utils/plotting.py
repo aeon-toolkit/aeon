@@ -1,4 +1,7 @@
-"""Common timeseries plotting functionality."""
+"""Common timeseries plotting functionality.
+
+Moved to aeon.visualisation in v0.6.*. todo remove in v0.8.0
+"""
 
 __all__ = ["plot_series", "plot_correlations", "plot_windows"]
 __author__ = ["mloning", "RNKuhns", "Drishti Bhasin", "chillerobscuro"]
@@ -8,12 +11,20 @@ from warnings import simplefilter, warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_interval_df, check_y
 from aeon.utils.validation.series import check_consistent_index_type
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_series has moved to aeon.visualisation, this version will be removed "
+    "in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_series(
     *series,
     labels=None,
@@ -157,6 +168,13 @@ def plot_series(
         return ax
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_interval has moved to aeon.visualisation, this version will be "
+    "removed in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_interval(ax, interval_df):
     cov = interval_df.columns.levels[1][0]
     ax.fill_between(
@@ -171,6 +189,13 @@ def plot_interval(ax, interval_df):
     return ax
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_lags has moved to aeon.visualisation, this version will be removed "
+    "in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_lags(series, lags=1, suptitle=None):
     """Plot one or more lagged versions of a time series.
 
@@ -245,6 +270,13 @@ def plot_lags(series, lags=1, suptitle=None):
     return fig, np.array(fig.get_axes())
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_correlations has moved to aeon.visualisation, this version will be "
+    "removed in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_correlations(
     series,
     lags=24,
@@ -377,6 +409,13 @@ def _get_windows(cv, y):
     return train_windows, test_windows
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="plot_windows has moved to aeon.visualisation, this version will be removed "
+    "in v0.8.0.",
+    category=FutureWarning,
+)
 def plot_windows(cv, y, title=""):
     """Plot training and test windows.
 
@@ -440,5 +479,5 @@ def plot_windows(cv, y, title=""):
         xticklabels=y.index,
     )
     # remove duplicate labels/handles
-    handles, labels = [(leg[:2]) for leg in ax.get_legend_handles_labels()]
+    handles, labels = ((leg[:2]) for leg in ax.get_legend_handles_labels())
     ax.legend(handles, labels)

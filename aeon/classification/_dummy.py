@@ -76,15 +76,17 @@ class DummyClassifier(BaseClassifier):
         self.sklearn_dummy_classifier = SklearnDummyClassifier(
             strategy=strategy, random_state=random_state, constant=constant
         )
-        super(DummyClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the dummy classifier.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
-        y : array-like, shape = [n_instances] - the class labels
+        X : np.ndarray
+            training data shape ``(n_instances, n_channels, series_length)``
+        y : np.ndarray
+            class labels, shape ``(n_instances)`` - the class labels
 
         Returns
         -------
@@ -111,7 +113,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
 
         Returns
         -------

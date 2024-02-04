@@ -1,1 +1,1 @@
-"""Tests for series transformers."""
+"""Tests for series transformations."""
