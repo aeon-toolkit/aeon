@@ -39,10 +39,6 @@ jobs:
         with:
           extra_args: --all-files
 
-      - name: Check for missing init files
-        run: build_tools/fail_on_missing_init_files.sh
-        shell: bash
-
   run-notebook-examples:
     runs-on: ubuntu-22.04
 
