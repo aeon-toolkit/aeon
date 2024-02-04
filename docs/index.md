@@ -272,6 +272,7 @@ examples.md
 
 contributing.md
 developer_guide.md
+mentoring.md
 ```
 
 ```{toctree}
