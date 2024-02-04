@@ -34,7 +34,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         "non-deterministic": True,
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
-        "python_version": "<3.11",
+        "python_version": "<3.12",
     }
 
     def __init__(

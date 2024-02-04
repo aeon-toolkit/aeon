@@ -12,7 +12,7 @@ class BaseDeepNetwork(BaseObject, ABC):
 
     _tags = {
         "python_dependencies": "tensorflow",
-        "python_version": "<3.11",
+        "python_version": "<3.12",
     }
 
     @abstractmethod
