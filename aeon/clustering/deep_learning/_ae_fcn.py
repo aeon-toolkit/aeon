@@ -336,6 +336,8 @@ class AEFCNClusterer(BaseDeepClusterer):
             "batch_size": 4,
             "use_bias": False,
             "n_layers": 1,
+            "n_filters": 5,
+            "kernel_size": 3,
             "padding": "same",
             "strides": 1,
             "clustering_params": {
