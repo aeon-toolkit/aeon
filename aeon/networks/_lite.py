@@ -3,7 +3,6 @@
 __author__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class LITENetwork(BaseDeepNetwork):
@@ -47,8 +46,6 @@ class LITENetwork(BaseDeepNetwork):
         activation="relu",
         random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
-
         self.nb_filters = nb_filters
         self.kernel_size = kernel_size
         self.activation = activation

@@ -3,7 +3,6 @@
 __author__ = ["James Large", "Withington", "nilesh05apr", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class ResNetNetwork(BaseDeepNetwork):
@@ -64,8 +63,6 @@ class ResNetNetwork(BaseDeepNetwork):
 
     """
 
-    _tags = {"python_dependencies": ["tensorflow"]}
-
     def __init__(
         self,
         n_residual_blocks=3,
@@ -79,9 +76,6 @@ class ResNetNetwork(BaseDeepNetwork):
         use_bias=True,
         random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__()
-
         self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.activation = activation
@@ -92,6 +86,8 @@ class ResNetNetwork(BaseDeepNetwork):
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.random_state = random_state
+
+        super().__init__()
 
     def _shortcut_layer(
         self, input_tensor, output_tensor, padding="same", use_bias=True
