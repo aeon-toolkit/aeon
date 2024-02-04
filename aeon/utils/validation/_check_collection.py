@@ -3,9 +3,6 @@
 import numpy as np
 import pandas as pd
 
-import aeon
-import aeon.utils
-
 
 def is_nested_univ_dataframe(X):
     """Check if X is nested dataframe."""
@@ -104,7 +101,7 @@ def get_type(X):
 
     Example
     -------
-    >>> from aeon.utils.validation.collection import get_type
+    >>> from aeon.utils.validation import get_type
     >>> get_type( np.zeros(shape=(10, 3, 20)))
     'numpy3D'
     """
@@ -137,11 +134,11 @@ def get_type(X):
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
-        if aeon.utils.validation._check_collection.is_nested_univ_dataframe(X):
+        if is_nested_univ_dataframe(X):
             return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
             return "pd-multiindex"
-        elif aeon.utils.validation._check_collection._is_pd_wide(X):
+        elif _is_pd_wide(X):
             return "pd-wide"
         raise TypeError(
             "ERROR unknown pd.DataFrame, contains non float values, "
@@ -174,7 +171,7 @@ def is_equal_length(X):
 
     Example
     -------
-    >>> from aeon.utils.validation.collection import is_equal_length
+    >>> from aeon.utils.validation import is_equal_length
     >>> is_equal_length( np.zeros(shape=(10, 3, 20)))
     True
     """
@@ -199,7 +196,7 @@ def has_missing(X):
 
     Example
     -------
-    >>> from aeon.utils.validation.collection import has_missing
+    >>> from aeon.utils.validation import has_missing
     >>> has_missing( np.zeros(shape=(10, 3, 20)))
     False
     """

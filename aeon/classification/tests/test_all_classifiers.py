@@ -15,7 +15,7 @@ from aeon.testing.expected_results.expected_classifier_outputs import (
 from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.testing.utils.scenarios_classification import ClassifierFitPredict
-from aeon.utils.validation.collection import get_n_cases
+from aeon.utils.validation import get_n_cases
 
 
 class ClassifierFixtureGenerator(BaseFixtureGenerator):

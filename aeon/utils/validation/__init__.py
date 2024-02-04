@@ -30,6 +30,7 @@ from aeon.utils.validation._check_collection import (
     get_type,
     has_missing,
     is_equal_length,
+    is_nested_univ_dataframe,
     is_univariate,
 )
 
