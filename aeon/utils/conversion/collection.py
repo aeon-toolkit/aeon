@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 import aeon.utils.conversion._convert_collection as conv
+import aeon.utils.validation._check_collection
 from aeon.utils.conversion._convert_collection import _equal_length
 
 COLLECTIONS_DATA_TYPES = [
@@ -229,11 +230,11 @@ def get_type(X):
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
-        if conv.is_nested_univ_dataframe(X):
+        if aeon.utils.validation._check_collection.is_nested_univ_dataframe(X):
             return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
             return "pd-multiindex"
-        elif conv._is_pd_wide(X):
+        elif aeon.utils.validation._check_collection._is_pd_wide(X):
             return "pd-wide"
         raise TypeError(
             "ERROR unknown pd.DataFrame, contains non float values, "
