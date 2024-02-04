@@ -69,27 +69,27 @@ all_extras = [
     "matplotlib>=3.3.2",
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
+    "pydot>=2.0.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
     "statsforecast>=0.5.2",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow<2.16.0",
+    "tensorflow; python_version < '3.12'",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
     "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
     "imbalanced-learn",
-    "pydot==2.0.0",
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow<2.16.0",
+    "tensorflow",
 ]
 unstable_extras = [
-    "pycatch22<=0.4.3",  # known to fail installation on some setups
     "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
+    "pycatch22<=0.4.3",  # known to fail installation on some setups
 ]
 dev = [
     "backoff",

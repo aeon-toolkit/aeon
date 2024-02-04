@@ -38,6 +38,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         "non-deterministic": True,
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
+        "python_version": "<3.11",
     }
 
     def __init__(self, batch_size=40, last_file_name="last_model"):
