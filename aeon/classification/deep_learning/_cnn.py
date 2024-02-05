@@ -12,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import CNNNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class CNNClassifier(BaseDeepClassifier):
@@ -100,12 +99,6 @@ class CNNClassifier(BaseDeepClassifier):
     CNNClassifier(...)
     """
 
-    _tags = {
-        "python_dependencies": "tensorflow",
-        "capability:multivariate": True,
-        "algorithm_type": "deeplearning",
-    }
-
     def __init__(
         self,
         n_layers=2,
@@ -131,9 +124,6 @@ class CNNClassifier(BaseDeepClassifier):
         use_bias=True,
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__(last_file_name=last_file_name)
-
         self.n_layers = n_layers
         self.kernel_size = kernel_size
         self.n_filters = n_filters
@@ -157,7 +147,11 @@ class CNNClassifier(BaseDeepClassifier):
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
+
         self.history = None
+
+        super().__init__(last_file_name=last_file_name)
+
         self._network = CNNNetwork(
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,

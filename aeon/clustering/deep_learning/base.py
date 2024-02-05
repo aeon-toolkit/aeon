@@ -45,13 +45,14 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         batch_size=32,
         last_file_name="last_file",
     ):
-        super().__init__(n_clusters)
-
         self.clustering_algorithm = clustering_algorithm
         self.clustering_params = clustering_params
         self.batch_size = batch_size
         self.last_file_name = last_file_name
+
         self.model_ = None
+
+        super().__init__(n_clusters)
 
     @abstractmethod
     def build_model(self, input_shape):

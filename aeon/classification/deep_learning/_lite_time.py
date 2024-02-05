@@ -14,7 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import LITENetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class LITETimeClassifier(BaseClassifier):
@@ -372,8 +371,6 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         metrics=None,
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__(last_file_name=last_file_name)
         # predefined
         self.nb_filters = nb_filters
         self.strides = strides
@@ -397,6 +394,8 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
+
+        super().__init__(last_file_name=last_file_name)
 
         self._network = LITENetwork(
             nb_filters=self.nb_filters,

@@ -12,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import ResNetNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class ResNetClassifier(BaseDeepClassifier):
@@ -103,12 +102,6 @@ class ResNetClassifier(BaseDeepClassifier):
     ResNetClassifier(...)
     """
 
-    _tags = {
-        "python_dependencies": "tensorflow",
-        "capability:multivariate": True,
-        "algorithm_type": "deeplearning",
-    }
-
     def __init__(
         self,
         n_residual_blocks=3,
@@ -135,8 +128,6 @@ class ResNetClassifier(BaseDeepClassifier):
         last_file_name="last_model",
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__(last_file_name=last_file_name)
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.n_filters = n_filters
@@ -160,7 +151,11 @@ class ResNetClassifier(BaseDeepClassifier):
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
         self.optimizer = optimizer
+
         self.history = None
+
+        super().__init__(last_file_name=last_file_name)
+
         self._network = ResNetNetwork(
             n_residual_blocks=self.n_residual_blocks,
             n_conv_per_residual_block=self.n_conv_per_residual_block,

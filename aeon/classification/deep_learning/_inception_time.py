@@ -14,7 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import InceptionNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionTimeClassifier(BaseClassifier):
@@ -507,8 +506,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         metrics=None,
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow", severity="error")
-        super().__init__(last_file_name=last_file_name)
         # predefined
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
@@ -542,6 +539,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
+
+        super().__init__(last_file_name=last_file_name)
 
         self._network = InceptionNetwork(
             nb_filters=self.nb_filters,

@@ -14,7 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.networks import InceptionNetwork
 from aeon.regression.base import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionTimeRegressor(BaseRegressor):
@@ -494,8 +493,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         loss="mse",
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__(last_file_name=last_file_name)
         # predefined
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
@@ -529,6 +526,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.use_mini_batch_size = use_mini_batch_size
         self.loss = loss
         self.optimizer = optimizer
+
+        super().__init__(last_file_name=last_file_name)
 
         self._network = InceptionNetwork(
             nb_filters=self.nb_filters,

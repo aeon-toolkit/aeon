@@ -12,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.networks import CNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class CNNRegressor(BaseDeepRegressor):
@@ -135,10 +134,6 @@ class CNNRegressor(BaseDeepRegressor):
         use_bias=True,
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__(
-            batch_size=batch_size,
-        )
         self.n_layers = n_layers
         self.avg_pool_size = avg_pool_size
         self.padding = padding
@@ -162,7 +157,11 @@ class CNNRegressor(BaseDeepRegressor):
         self.activation = activation
         self.use_bias = use_bias
         self.optimizer = optimizer
+
         self.history = None
+
+        super().__init__(batch_size=batch_size)
+
         self._network = CNNNetwork(
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,
