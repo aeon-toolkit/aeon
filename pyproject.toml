@@ -79,15 +79,15 @@ all_extras = [
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
     "tensorflow; python_version < '3.12'",
-    "tensorflow_addons",
+    "tensorflow-addons; python_version < '3.12",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow",
-    "tensorflow_addons",
+    "tensorflow; python_version < '3.12'",
+    "tensorflow-addons; python_version < '3.12",
 ]
 unstable_extras = [
     "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
