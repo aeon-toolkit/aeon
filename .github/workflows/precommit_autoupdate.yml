@@ -27,7 +27,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - if: always()
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "Automated `pre-commit` hook update"
