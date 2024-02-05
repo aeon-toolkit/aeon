@@ -129,3 +129,5 @@ jobs:
         run: python -m pytest --cov=aeon --cov-report=xml  --timeout 1800
 
       - uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
