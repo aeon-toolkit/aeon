@@ -133,16 +133,13 @@ class CNNClassifier(BaseDeepClassifier):
         self.avg_pool_size = avg_pool_size
         self.activation = activation
         self.use_bias = use_bias
-        self.random_state = random_state
 
         self.n_epochs = n_epochs
-        self.batch_size = batch_size
         self.callbacks = callbacks
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
@@ -150,7 +147,11 @@ class CNNClassifier(BaseDeepClassifier):
 
         self.history = None
 
-        super().__init__(last_file_name=last_file_name)
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+            last_file_name=last_file_name,
+        )
 
         self._network = CNNNetwork(
             n_layers=self.n_layers,

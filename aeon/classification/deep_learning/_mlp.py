@@ -101,23 +101,24 @@ class MLPClassifier(BaseDeepClassifier):
     ):
         self.callbacks = callbacks
         self.n_epochs = n_epochs
-        self.batch_size = batch_size
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
         self.optimizer = optimizer
 
         self.history = None
 
-        super().__init__(last_file_name=last_file_name)
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+            last_file_name=last_file_name,
+        )
 
         self._network = MLPNetwork(
             random_state=self.random_state,

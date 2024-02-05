@@ -508,7 +508,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.bottleneck_size = bottleneck_size
         self.depth = depth
         self.kernel_size = kernel_size
-        self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.use_custom_filters = use_custom_filters
         self.output_activation = output_activation
@@ -518,7 +517,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -527,7 +525,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.loss = loss
         self.optimizer = optimizer
 
-        super().__init__(last_file_name=last_file_name)
+        super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
         self._network = InceptionNetwork(
             nb_filters=self.nb_filters,

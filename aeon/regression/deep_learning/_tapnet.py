@@ -107,7 +107,6 @@ class TapNetRegressor(BaseDeepRegressor):
         callbacks=None,
         verbose=False,
     ):
-        self.batch_size = batch_size
         self.random_state = random_state
         self.kernel_size = kernel_size
         self.layers = layers
@@ -134,7 +133,9 @@ class TapNetRegressor(BaseDeepRegressor):
         self.use_rp = use_rp
         self.rp_params = rp_params
 
-        super().__init__()
+        super().__init__(
+            batch_size=batch_size,
+        )
 
         self._network = TapNetNetwork(
             dropout=self.dropout,

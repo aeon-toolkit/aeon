@@ -143,12 +143,10 @@ class CNNRegressor(BaseDeepRegressor):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
         self.strides = strides
         self.dilation_rate = dilation_rate
         self.callbacks = callbacks
         self.n_epochs = n_epochs
-        self.batch_size = batch_size
         self.verbose = verbose
         self.loss = loss
         self.output_activation = output_activation
@@ -160,7 +158,10 @@ class CNNRegressor(BaseDeepRegressor):
 
         self.history = None
 
-        super().__init__(batch_size=batch_size)
+        super().__init__(
+            batch_size=batch_size,
+            last_file_name=last_file_name,
+        )
 
         self._network = CNNNetwork(
             n_layers=self.n_layers,

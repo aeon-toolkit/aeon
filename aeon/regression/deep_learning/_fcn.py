@@ -134,7 +134,6 @@ class FCNRegressor(BaseDeepRegressor):
         self.output_activation = output_activation
         self.callbacks = callbacks
         self.n_epochs = n_epochs
-        self.batch_size = batch_size
         self.use_mini_batch_size = use_mini_batch_size
         self.verbose = verbose
         self.loss = loss
@@ -145,11 +144,10 @@ class FCNRegressor(BaseDeepRegressor):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
 
         self.history = None
 
-        super().__init__(last_file_name=last_file_name)
+        super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
         self._network = FCNNetwork(
             random_state=self.random_state,
