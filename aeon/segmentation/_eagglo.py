@@ -82,7 +82,7 @@ class EAggloSegmenter(BaseSegmenter):
     """
 
     _tags = {
-        "X_inner_type": "DataFrame",  # One of VALID_INNER_TYPES
+        "X_inner_type": "pd.DataFrame",  # One of VALID_INNER_TYPES
         "capability:multivariate": True,
         "fit_is_empty": False,
         "returns_dense": False,

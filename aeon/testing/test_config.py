@@ -3,7 +3,12 @@ __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
 import os
 
-from aeon.base import BaseEstimator, BaseObject
+from aeon.base import (
+    BaseCollectionEstimator,
+    BaseEstimator,
+    BaseObject,
+    BaseSeriesEstimator,
+)
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 
 # whether to use smaller parameter matrices for test generation and subsample estimators
@@ -66,8 +71,13 @@ NON_STATE_CHANGING_METHODS = NON_STATE_CHANGING_METHODS_ARRAYLIKE + (
 )
 
 # The following gives a list of valid estimator base classes.
-BASE_BASE_TYPES = (BaseEstimator, BaseObject)
-VALID_ESTIMATOR_BASE_TYPES = tuple(set(BASE_CLASS_LIST).difference(BASE_BASE_TYPES))
+CORE_BASE_TYPES = (
+    BaseEstimator,
+    BaseObject,
+    BaseCollectionEstimator,
+    BaseSeriesEstimator,
+)
+VALID_ESTIMATOR_BASE_TYPES = tuple(set(BASE_CLASS_LIST).difference(CORE_BASE_TYPES))
 
 VALID_ESTIMATOR_TYPES = (
     BaseEstimator,

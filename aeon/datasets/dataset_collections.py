@@ -44,7 +44,7 @@ MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
 
 def get_available_tser_datasets(name="tser_soton", return_list=True):
-    """List available tser data.
+    """List available tser data as specified by lists.
 
     Parameters
     ----------
@@ -69,16 +69,14 @@ def get_available_tser_datasets(name="tser_soton", return_list=True):
             return sorted(list(tser_monash))
         else:
             return tser_monash
-    return []
+    return name in tser_soton
 
 
 def get_available_tsf_datasets(name=None):
     """List available tsf data."""
     if name is None:  # List them all
         return sorted(list(tsf_all))
-    if name in tsf_all:
-        return True
-    return False
+    return name in tsf_all
 
 
 def get_available_tsc_datasets(name=None):
@@ -99,9 +97,7 @@ def get_available_tsc_datasets(name=None):
     if name is None:  # List them all
         merged_set = univariate.union(multivariate)
         return sorted(list(merged_set))
-    if name in univariate or name in multivariate:
-        return True
-    return False
+    return name in univariate or name in multivariate
 
 
 def get_downloaded_tsc_tsr_datasets(extract_path=None):
