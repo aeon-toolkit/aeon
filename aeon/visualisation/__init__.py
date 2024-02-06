@@ -12,6 +12,7 @@ __all__ = [
     "plot_series_with_change_points",
     # Results plotting
     "plot_critical_difference",
+    "plot_significance",
     "plot_boxplot_median",
     "plot_scatter_predictions",
     "plot_pairwise_scatter",
@@ -38,6 +39,7 @@ from aeon.visualisation.results._scatter import (
     plot_scatter_predictions,
     plot_score_vs_time_scatter,
 )
+from aeon.visualisation.results._significance import plot_significance
 from aeon.visualisation.series._collections import (
     plot_collection_by_class,
     plot_series_collection,
