@@ -190,6 +190,10 @@ def test_plot_significance():
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("matplotlib", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_plot_significance_p_values():
     """Test plot significance diagram."""
     _check_soft_dependencies("matplotlib")
