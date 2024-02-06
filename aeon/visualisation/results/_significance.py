@@ -53,6 +53,7 @@ def plot_significance(
     indices = [np.where(np.array(labels) == r)[0] for r in ordered_labels]
 
     ordered_scores = scores[:, indices]
+    ordered_avg_scores = ordered_scores.mean(axis=0).flatten()
 
     # Step 3 : check whether Friedman test is significant
     p_value_friedman = check_friedman(ranks)
@@ -114,16 +115,18 @@ def plot_significance(
 
     # Setting labels for x-axis. Rotate only if labels are too long.
     ax.xaxis.tick_top()
-    ax.set_xticks(np.arange(len(labels)))
-    label_lengths = np.array([len(i) for i in reversed(labels)])
+    ax.set_xticks(np.arange(len(ordered_labels)))
+    label_lengths = np.array([len(i) for i in reversed(ordered_labels)])
     if (sum(label_lengths) > 40) or (max(label_lengths[:-1] + label_lengths[1:]) > 20):
-        ax.set_xticklabels(reversed(labels), rotation=45, ha="left")
+        ax.set_xticklabels(
+            reversed(ordered_labels), rotation=45, ha="left", fontsize=14
+        )
     else:
-        ax.set_xticklabels(reversed(labels))
+        ax.set_xticklabels(reversed(ordered_labels), fontsize=14)
 
     ax.xaxis.set_label_position("top")
 
-    y_pos = y_pos + spacing
+    y_pos = y_pos + spacing * 2
 
     # Add a horizontal line on the X axis under the labels
     ax.hlines(
@@ -133,17 +136,48 @@ def plot_significance(
         color="black",
         linewidth=1,
     )
-
+    ordered_avg_ranks = list(reversed(ordered_avg_ranks))
     # add ranks below the horizontal line
-    for i, rank in enumerate(ordered_avg_ranks):
+
+    ordered_avg_scores = list(reversed(ordered_avg_scores))
+    for i in range(len(ordered_avg_ranks)):
         ax.text(
             i,
             y_pos - 0.1,
-            f"{rank:.3f}",
+            f"{ordered_avg_ranks[i]:.3f}",
             ha="center",
             va="center",
-            fontsize=12,
+            fontsize=14,
         )
+
+        ax.text(
+            i,
+            y_pos - 0.3,
+            f"{ordered_avg_scores[i]:.3f}",
+            ha="center",
+            va="center",
+            fontsize=14,
+        )
+
+    ax.text(
+        -1,
+        y_pos - 0.1,
+        "Avg. rank",
+        ha="right",
+        va="center",
+        fontsize=14,
+        fontweight="bold",
+    )
+
+    ax.text(
+        -1,
+        y_pos - 0.3,
+        "Avg. value",
+        ha="right",
+        va="center",
+        fontsize=14,
+        fontweight="bold",
+    )
 
     # Adjust the y limits
     ax.set_ylim(-0.1, y_pos)
