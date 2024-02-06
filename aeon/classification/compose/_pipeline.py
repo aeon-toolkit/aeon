@@ -56,7 +56,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     Attributes
     ----------
-    steps_ : list of tuples (str, estimaor) of tansformers and classifier
+    steps_ : list of tuples (str, estimator) of tansformers and classifier
         Clones of transformers and the classifier which are fitted in the pipeline.
         Will always be in (str, estimator) format, even if transformers input is a
         singular transform or list of transformers.
@@ -77,6 +77,14 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     >>> y_pred = pipeline.predict(X_test)
     """
 
+    # TODO: remove in v0.8.0
+    @deprecated(
+        version="0.6.0",
+        reason="The position of the classifier and transformers argument for "
+        "ClassifierPipeline __init__ will be swapped in v0.8.0. Use "
+        "keyword arguments to avoid breakage.",
+        category=FutureWarning,
+    )
     def __init__(self, classifier, transformers):
         self.classifier = classifier
         self.transformers = transformers
