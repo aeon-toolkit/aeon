@@ -1,7 +1,7 @@
-"""Residual Network (ResNet) for classification."""
+"""Residual Network (ResNet) for clustering."""
 
-__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
-__all__ = ["ResNetClassifier"]
+__author__ = ["xiaopu222"]
+__all__ = ["AEResNetClusterer"]
 
 import gc
 import os
@@ -10,11 +10,11 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks import ResNetNetwork
+from aeon.clustering.deep_learning.base import BaseDeepClusterer
+from aeon.networks import AEResNetNetwork
 
 
-class ResNetClassifier(BaseDeepClassifier):
+class AEResNetClusterer(BaseDeepClusterer):
     """
     Residual Neural Network (RNN).
 
@@ -22,6 +22,16 @@ class ResNetClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
+    n_clusters : int, default=None
+    Number of clusters for the deep learning model.
+    clustering_algorithm : str, default="kmeans"
+        The clustering algorithm used in the latent space.
+    clustering_params : dict, default=None
+        Dictionary containing the parameters of the clustering algorithm chosen.
+    latent_space_dim : int, default=128
+        Dimension of the latent space of the auto-encoder.
+    temporal_latent_space : bool, default = False
+        Flag to choose whether the latent space is an MTS or Euclidean space.
     n_residual_blocks : int, default = 3
         The number of residual blocks of ResNet's model.
     n_conv_per_residual_block : int, default = 3
@@ -94,17 +104,20 @@ class ResNetClassifier(BaseDeepClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning import ResNetClassifier
+    >>> from aeon.clustering.deep_learning import AEResNetClusterer
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> clf = ResNetClassifier(n_epochs=20, bacth_size=4) # doctest: +SKIP
-    >>> clf.fit(X_train, Y_train) # doctest: +SKIP
-    ResNetClassifier(...)
+    >>> ae_resnet = AEResNetClusterer(n_clusters=2,n_epochs=20) # doctest: +SKIP
+    >>> ae_resnet.fit(X_train, y_train) # doctest: +SKIP
+    AEResNetClusterer(...)
     """
 
     def __init__(
         self,
+        n_clusters,
         n_residual_blocks=3,
+        clustering_algorithm="kmeans",
+        clustering_params=None,
         n_conv_per_residual_block=3,
         n_filters=None,
         kernel_size=None,
@@ -116,17 +129,17 @@ class ResNetClassifier(BaseDeepClassifier):
         n_epochs=1500,
         callbacks=None,
         verbose=False,
-        loss="categorical_crossentropy",
+        loss="mse",
         metrics=None,
-        batch_size=64,
+        batch_size=32,
         use_mini_batch_size=False,
         random_state=None,
         file_path="./",
         save_best_model=False,
         save_last_model=False,
         best_file_name="best_model",
-        last_file_name="last_model",
-        optimizer=None,
+        last_file_name="last_file",
+        optimizer="Adam",
     ):
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
@@ -140,24 +153,29 @@ class ResNetClassifier(BaseDeepClassifier):
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
+        self.batch_size = batch_size
         self.use_mini_batch_size = use_mini_batch_size
+        self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
         self.optimizer = optimizer
 
         self.history = None
 
         super().__init__(
+            n_clusters=n_clusters,
+            clustering_algorithm=clustering_algorithm,
+            clustering_params=clustering_params,
             batch_size=batch_size,
-            random_state=random_state,
             last_file_name=last_file_name,
         )
 
-        self._network = ResNetNetwork(
+        self._network = AEResNetNetwork(
             n_residual_blocks=self.n_residual_blocks,
             n_conv_per_residual_block=self.n_conv_per_residual_block,
             n_filters=self.n_filters,
@@ -170,24 +188,23 @@ class ResNetClassifier(BaseDeepClassifier):
             random_state=random_state,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m,d). This method also assumes (m,d). Transpose should
-        happen in fit.
+        In aeon, time series are stored in numpy arrays of shape
+        (n_channels,n_timepoints). Keras/tensorflow assume
+        data is in shape (n_timepoints,n_channels). This method also assumes
+        (n_timepoints,n_channels). Transpose should happen in fit.
 
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
-        n_classes: int
-            The number of classes, which becomes the size of the output layer
+            The shape of the data fed into the input layer, should be
+            (n_timepoints,n_channels).
 
         Returns
         -------
-        output : a compiled Keras Model
+        output : a compiled Keras Model.
         """
         import tensorflow as tf
 
@@ -199,35 +216,31 @@ class ResNetClassifier(BaseDeepClassifier):
             else self.optimizer
         )
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
+        encoder, decoder = self._network.build_network(input_shape, **kwargs)
 
-        input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
-
-        output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation="softmax", use_bias=self.use_bias
-        )(output_layer)
+        input_layer = tf.keras.layers.Input(input_shape, name="input layer")
+        encoder_output = encoder(input_layer)
+        decoder_output = decoder(encoder_output)
+        output_layer = tf.keras.layers.Reshape(
+            target_shape=input_shape, name="outputlayer"
+        )(decoder_output)
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
+
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
         )
 
         return model
 
-    def _fit(self, X, y):
-        """Fit the classifier on the training set (X, y).
+    def _fit(self, X):
+        """Fit the Clusterer on the training set X.
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
+        X : np.ndarray of shape = (n_instances (n), n_dimensions (d), series_length (m))
             The training input samples.
-        y : np.ndarray of shape n
-            The training data class labels.
 
         Returns
         -------
@@ -235,14 +248,13 @@ class ResNetClassifier(BaseDeepClassifier):
         """
         import tensorflow as tf
 
-        y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
         check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
-        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape)
 
         if self.verbose:
             self.training_model_.summary()
@@ -273,7 +285,7 @@ class ResNetClassifier(BaseDeepClassifier):
 
         self.history = self.training_model_.fit(
             X,
-            y_onehot,
+            X,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
@@ -292,8 +304,16 @@ class ResNetClassifier(BaseDeepClassifier):
         if self.save_last_model:
             self.save_last_model_to_file(file_path=self.file_path)
 
+        self._fit_clustering(X=X)
+
         gc.collect()
         return self
+
+    def _score(self, X, y=None):
+        # Transpose to conform to Keras input style.
+        X = X.transpose(0, 2, 1)
+        latent_space = self.model_.layers[1].predict(X)
+        return self.clusterer.score(latent_space)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -318,12 +338,17 @@ class ResNetClassifier(BaseDeepClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param = {
-            "n_epochs": 10,
+            "n_clusters": 2,
+            "n_epochs": 1,
             "batch_size": 4,
             "n_residual_blocks": 1,
-            "n_filters": 5,
             "n_conv_per_residual_block": 1,
-            "kernel_size": 3,
+            "clustering_params": {
+                "distance": "euclidean",
+                "averaging_method": "mean",
+                "n_init": 1,
+                "max_iter": 30,
+            },
         }
 
         test_params = [param]

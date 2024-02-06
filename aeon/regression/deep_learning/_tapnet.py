@@ -14,7 +14,6 @@ from sklearn.utils import check_random_state
 
 from aeon.networks import TapNetNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TapNetRegressor(BaseDeepRegressor):
@@ -80,7 +79,9 @@ class TapNetRegressor(BaseDeepRegressor):
     or class  based self attention.
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
+    _tags = {
+        "python_dependencies": ["tensorflow", "keras_self_attention"],
+    }
 
     def __init__(
         self,
@@ -106,10 +107,6 @@ class TapNetRegressor(BaseDeepRegressor):
         callbacks=None,
         verbose=False,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__()
-
-        self.batch_size = batch_size
         self.random_state = random_state
         self.kernel_size = kernel_size
         self.layers = layers
@@ -135,6 +132,10 @@ class TapNetRegressor(BaseDeepRegressor):
         # parameters for random projection
         self.use_rp = use_rp
         self.rp_params = rp_params
+
+        super().__init__(
+            batch_size=batch_size,
+        )
 
         self._network = TapNetNetwork(
             dropout=self.dropout,

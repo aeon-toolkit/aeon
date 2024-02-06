@@ -52,6 +52,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         "non-deterministic": True,
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
+        "python_version": "<3.12",
     }
 
     def __init__(
@@ -60,12 +61,13 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         random_state=None,
         last_file_name="last_model",
     ):
-        super().__init__()
-
         self.batch_size = batch_size
         self.random_state = random_state
         self.last_file_name = last_file_name
+
         self.model_ = None
+
+        super().__init__()
 
     @abstractmethod
     def build_model(self, input_shape, n_classes):
