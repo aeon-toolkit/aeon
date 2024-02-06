@@ -1,4 +1,4 @@
-# Implementing `aeon`` estimators and contributing them to `aeon``
+# Implementing estimators
 
 This page describes how to implement ``aeon`` compatible estimators, and how to ensure and test compatibility.
 There are additional steps for estimators that are contributed to ``aeon`` directly.
