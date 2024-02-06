@@ -10,7 +10,7 @@ The high-level steps to implement ``aeon`` compatible estimators are as follows:
 1.  identify the type of the estimator: forecaster, classifier, etc
 2.  copy the extension template for that kind of estimator to its intended location
 3.  complete the extension template
-4.  run the ``aeon`` test suite and/or the ``check_estimator`` utility (see `here <https://www.aeon-toolkit.org/en/latest/developer_guide/add_estimators.html#using-the-check-estimator-utility>`__)
+4.  run the ``aeon`` test suite and/or the ``check_estimator`` utility (see [here](https://www.aeon-toolkit.org/en/latest/developer_guide/add_estimators.html#using-the-check-estimator-utility)
 5.  if the test suite highlights bugs or issues, fix them and go to 4
 
 
@@ -18,8 +18,7 @@ The high-level steps to implement ``aeon`` compatible estimators are as follows:
 
 ``aeon`` is structured along modules encompassing specific learning tasks,
 e.g., forecasting, classification, regression or segmentation, with a class structure
-to reflect that. See the `base class overview <https://www.aeon-toolkit.
-org/en/stable/examples/base/base_classes.html>` for more on the code structure.
+to reflect that. See the [base class overview](https://www.aeon-toolkit.org/en/stable/examples/base/base_classes.html) for more on the code structure.
 
 We tag each estimator with a type associated with the relevant base classifier. For
 example, the type of an estimator that extends BaseForecaster is "forecaster" and the
@@ -27,7 +26,7 @@ type of an estimator that solves the time series classification task is "classif
 
 Estimators for a given task are located in the respective module.
 The estimator types also map onto the different extension templates found in
-the `extension_templates <https://github.com/aeon-toolkit/aeon/tree/main/extension_templates>`__
+the [extension_templates](https://github.com/aeon-toolkit/aeon/tree/main/extension_templates)
 directory of ``aeon``.
 
 Base classes contain operations common to all algorithms of that type concerning
