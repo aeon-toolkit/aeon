@@ -8,10 +8,10 @@ To add a new dataset into `aeon` internal dataset repository, please proceed wit
       mkdir ./datasets/data/<dataset-name>
 ```
 2. In the above directory, add your dataset file `<dataset-name>.<EXT>`, where
-:code:`<EXT>` is the file extension:
+`<EXT>` is the file extension:
 
-   * The list of supported file formats is available in the :code:`aeon/MANIFEST.in` file (*e.g.*, :code:`.csv`, :code:`.txt`).
-   * If your file format ``<EXT>`` does not figure in the list, simply add it in the :code:`aeon/MANIFEST.in` file:
+   * The list of supported file formats is available in the `aeon/MANIFEST.in` file (*e.g.*, `.csv`, `.txt`).
+   * If your file format ``<EXT>`` does not figure in the list, simply add it in the `aeon/MANIFEST.in` file:
 
 ```{code-block} powershell
       "aeon/MANIFEST.in"
@@ -21,6 +21,6 @@ To add a new dataset into `aeon` internal dataset repository, please proceed wit
 ```
 3. In ``aeon/datasets/_single_problem_loaders.py``, declare a `load_<dataset-name>(...)` function. Feel free to use any other declared functions as templates for either classification or regression datasets.
 
-4. In ``aeon/datasets/__init__.py``, append `"load_<dataset-name>"` to the list :code:`__all__`.
+4. In ``aeon/datasets/__init__.py``, append `"load_<dataset-name>"` to the list `__all__`.
 
-5. In ``aeon/datasets/setup.py``, append `"<dataset-name>"` to the tuple :code:`included_datasets`.
+5. In ``aeon/datasets/setup.py``, append `"<dataset-name>"` to the tuple `included_datasets`.

@@ -1,15 +1,9 @@
-.. _developer_guide_add_estimators:
-
-=======================
-Implementing Estimators
-=======================
+# Implementing `aeon`` estimators and contributing them to `aeon``
 
 This page describes how to implement ``aeon`` compatible estimators, and how to ensure and test compatibility.
 There are additional steps for estimators that are contributed to ``aeon`` directly.
 
-
-Implementing an ``aeon`` compatible estimator
-===============================================
+## Implementing an ``aeon`` compatible estimator
 
 The high-level steps to implement ``aeon`` compatible estimators are as follows:
 
@@ -19,14 +13,14 @@ The high-level steps to implement ``aeon`` compatible estimators are as follows:
 4.  run the ``aeon`` test suite and/or the ``check_estimator`` utility (see `here <https://www.aeon-toolkit.org/en/latest/developer_guide/add_estimators.html#using-the-check-estimator-utility>`__)
 5.  if the test suite highlights bugs or issues, fix them and go to 4
 
-For more guidance on how to implement your own estimator, see this `tutorial at pydata <https://github.com/aeon-toolkit/aeon-workshop-pydata-london-2022>`__ on testing interface conformance.
 
-
-What is my learning task?
--------------------------
+## What is my learning task?
 
 ``aeon`` is structured along modules encompassing specific learning tasks,
-e.g., forecasting or time series classification, with a class structure to reflect that.
+e.g., forecasting, classification, regression or segmentation, with a class structure
+to reflect that. See the `base class overview <https://www.aeon-toolkit.
+org/en/stable/examples/base/base_classes.html>` for more on the code structure.
+
 We tag each estimator with a type associated with the relevant base classifier. For
 example, the type of an estimator that extends BaseForecaster is "forecaster" and the
 type of an estimator that solves the time series classification task is "classifier".
@@ -36,36 +30,20 @@ The estimator types also map onto the different extension templates found in
 the `extension_templates <https://github.com/aeon-toolkit/aeon/tree/main/extension_templates>`__
 directory of ``aeon``.
 
+Base classes contain operations common to all algorithms of that type concerning
+checking and conversion of input data, and checking that tags match the data.
+For each module, the template gives a step by step guide on how to extend the
+base classes. For example, ``BaseClassifier`` defines the ``fit`` and
+``predict`` base class methods that handle data checking and conversion.
+All classifiers extend ``BaseClassifier`` and implement the private methods ``_fit``
+and ``_predict`` which contain the core logic of the algorithm.
 
-What are ``aeon`` extension templates?
-----------------------------------------
+### What are ``aeon`` extension templates?
 
 Extension templates are convenient "fill-in" templates for implementers of new estimators.
-They fit into ``aeon``'s unified interface as follows:
+Classes contain ``tags`` that describe the algorithm and the type of data it can handle.
 
-*   for each module, there is a public user interface, defined by the respective base
-class.
-    For instance, ``BaseForecaster`` defines the ``fit`` and ``predict`` interfaces for forecasters.
-    All forecasters will implement ``fit`` and ``predict`` the same way, by inheritance from ``BaseForecaster``.
-    The public interface follows the "strategy" object orientation pattern.
-*   for each type, there is a private extender interface, defined by the extension
-contract in the extension template.
-    For instance, the ``forecaster.py`` extension template for forecasters explains what to fill in for a concrete forecaster
-    inheriting from ``BaseForecaster``. In most extension templates, users should implement private methods ("inner" methods),
-    e.g., ``_fit`` and ``_predict`` for forecasters. Boilerplate code rests within the public part of the interface, in ``fit`` and ``predict``.
-    The extender interface follows the "template" object orientation pattern.
-
-Extenders familiar with ``scikit-learn`` extension should note the following difference to ``scikit-learn``:
-
-the public interface, e.g., ``fit`` and ``predict``, is never overridden in ``aeon`` (concrete) estimators.
-Implementation happens in the private, extender sided interface, e.g., ``_fit`` and ``_predict``.
-
-This allows to avoid boilerplate replication, such as ``check_X`` etc in ``scikit-learn``.
-This also allows richer boilerplate, such as automated vectorization functionality or input conversion.
-
-
-How to use ``aeon`` extension templates
------------------------------------------
+### How to use ``aeon`` extension templates
 
 To use the ``aeon`` extension templates, copy them to the intended location of the estimator.
 Inside the extension templates, necessary actions are marked with ``todo``.
@@ -80,10 +58,9 @@ Extension templates typically have the following ``todo``:
     it tends to be useful as a specification to follow in implementation.
 *   filling in the tags for the estimator. Some tags are "capabilities", i.e., what the estimator can do, e.g., dealing with nans.
     Other tags determine the format of inputs seen in the "inner" methods ``_fit``
-etc, these tags are usually called ``X_inner_type`` or similar.
-    This is useful in case the inner functionality assumes ``numpy.ndarray``, or ``pandas.DataFrame``, and helps avoid conversion boilerplate.
-    The type strings can be found in ``datatypes.TYPE_REGISTER``. For a tutorial on data type conventions, see ``examples/AA_datatypes_and_datasets``.
-*   Filling in the "inner" methods, e.g., ``_fit`` and ``_predict``. The docstrings and comments in the extension template should be followed here.
+    etc, these tags are usually called ``X_inner_type`` or similar.
+*   Filling in the inherited abstract methods, e.g., ``_fit`` and ``_predict``. The
+    docstrings and  comments in the extension template should be followed here.
     The docstrings also describe the guarantees on the inputs to the "inner" methods, which are typically stronger than the guarantees on
     inputs to the public methods, and determined by values of tags that have been set.
     For instance, setting the tag ``y_inner_type`` to ``pd.DataFrame`` for a forecaster guarantees that the ``y`` seen by ``_fit`` will be
@@ -103,16 +80,9 @@ Some common caveats, also described in extension template text:
     parameters that are nested structures containing estimators.
 
 
-How to test interface conformance
----------------------------------
+### Using the ``check_estimator`` utility
 
-For a video tutorial and more examples on the below, please visit our
-`tutorial at pydata <https://github.com/aeon-toolkit/aeon-workshop-pydata-london-2022>`__.
-
-Using the ``check_estimator`` utility
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Usually, the simplest way to test interface conformance with ``aeon`` is via the
+Usually, the simplest way to test complaince with ``aeon`` is via the
 ``check_estimator`` methods in the ``utils.estimator_checks`` module.
 
 When invoked, this will collect tests in ``aeon`` relevant for the estimator type and
@@ -121,11 +91,11 @@ run them on the estimator.
 This can be used for manual debugging in a notebook environment.
 Example of running the full test suite for ``NaiveForecaster``:
 
-.. code-block:: python
-
+```{code-block} powershell
     from aeon.utils.estimator_checks import check_estimator
     from aeon.forecasting.naive import NaiveForecaster
     check_estimator(NaiveForecaster)
+```
 
 The ``check_estimator`` utility will return, by default, a ``dict``, indexed by test/fixture combination strings,
 that is, a test name and the fixture combination string in squared brackets.
@@ -143,23 +113,21 @@ Note that test names exclude the part in squared brackets.
 
 Example, running the test ``test_constructor`` with all fixtures:
 
-.. code-block:: python
-
+```{code-block} powershell
     check_estimator(NaiveForecaster, tests_to_run="test_constructor")
 
 ``{'test_constructor[NaiveForecaster]': 'PASSED'}``
+```
 
 To run or exclude certain test-fixture-combinations, use the ``fixtures_to_run`` or ``fixtures_to_exclude`` arguments.
 Values provided should be names of test-fixture-combination strings (str), or a list of such.
 Valid strings are precisely the dictionary keys when using ``check_estimator`` with default parameters.
 
 Example, running the test-fixture-combination ``"test_repr[NaiveForecaster-2]"``:
-
-.. code-block:: python
-
-    check_estimator(NaiveForecaster, fixtures_to_run="test_repr[NaiveForecaster-2]")
+```{code-block} powershell   check_estimator(NaiveForecaster, fixtures_to_run="test_repr[NaiveForecaster-2]")
 
 ``{'test_repr[NaiveForecaster-2]': 'PASSED'}``
+```
 
 A useful workflow for using ``check_estimator`` to debug an estimator is as follows:
 
@@ -168,15 +136,14 @@ A useful workflow for using ``check_estimator`` to debug an estimator is as foll
 3. If the failure is not obvious, set ``raise_exceptions=True`` to raise the exception and inspecet the traceback.
 4. If the failure is still not clear, use advanced debuggers on the line of code with ``check_estimator``.
 
-Running the test suite in a repository clone
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+### Running the test suite in a repository clone
 
 If the target location of the estimator is within ``aeon``, then the ``aeon`` test
 suite can be run instead. The ``aeon`` test suite (and CI/CD) is ``pytest`` based, ``pytest`` will automatically
 collect all estimators of a certain type and tests applying for a given estimator.
 
-For an overview of the testing framework, see the "testing framework" documentation.
-Generic interface conformance tests are contained in the classes ``TestAllEstimators``, ``TestAllForecasters``, and so on.
+Generic interface compliance tests are contained in the classes ``TestAllEstimators``,
+``TestAllForecasters``, and so on.
 ``pytest`` test-fixture-strings for an estimator ``EstimatorName`` will always contain ``EstimatorName`` as a substring,
 and are identical with the test-fixture-strings returned by ``check_estimator``.
 
@@ -188,21 +155,8 @@ functionality - for this, refer to the respecetive IDE documentation on test int
 To identify codebase locations of tests applying to a specific estimator,
 a quick approach is searching the codebase for test strings produced by ``check_estimator``, preceded by ``def`` (for function/method definition).
 
-Testing within a third party extension package
-----------------------------------------------
 
-For third party extension packages to ``aeon`` (open or closed),
-or third party modules that aim for interface compliance with ``aeon``,
-the ``aeon`` test suite can be imported and extended in two ways:
-
-*   importing ``check_estimator``, this will carry out the tests defined in ``aeon``
-
-*   importing test classes, e.g., ``test_all_estimators.TestAllEstimators`` or
-    ``test_all_forecasters.TestAllForecasters``. The imports will be discovered directly
-    by ``pytest``. The test suite also be extended by inheriting from the test classes.
-
-Adding an ``aeon`` compatible estimator to ``aeon``
-=======================================================
+## Adding an ``aeon`` compatible estimator to ``aeon``
 
 When adding an ``aeon`` compatible estimator to ``aeon`` itself, a number of
 additional things need to be done:
@@ -218,6 +172,7 @@ additional things need to be done:
 *   ensure that test parameters in ``get_test_params`` are chosen such that runtime of estimator specific tests remains in the seconds order
     on ``aeon`` remote CI/CD
 
-Don't panic - when contributing to ``aeon``, core developers will give helpful pointers on the above in their PR reviews.
+When contributing to ``aeon``, core developers will give helpful pointers on the
+above in their PR reviews.
 
 It is recommended to open a draft PR to get feedback early.
