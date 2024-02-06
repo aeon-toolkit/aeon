@@ -48,6 +48,7 @@ Estimator Search and Retrieval, Estimator Tags
     all_tags
     check_tag_is_valid
 
+
 Estimator Validity Checking
 ---------------------------
 
@@ -68,7 +69,7 @@ Estimator Validity Checking
 Data Validation Tools
 ---------------------
 
-:mod:`aeon.utils.validation`
+:mod:`aeon.utils`
 
 .. automodule:: aeon.utils.validation
     :no-members:
