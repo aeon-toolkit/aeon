@@ -16,6 +16,7 @@ def plot_significance(
     correction="holm",
     fontsize=12,
     reverse=True,
+    return_p_values=False,
 ):
     """
     Plot that allow the case where cliques can be deceiving.
@@ -46,11 +47,18 @@ def plot_significance(
         The fontsize of the text in the plot.
     reverse : bool, default=True
         Whether to reverse the order of the labels.
+    return_p_values : bool, default=False
+        Whether to return the pairwise matrix of p-values.
 
     Returns
     -------
         fig : matplotlib.figure
             Figure created.
+        ax : matplotlib.axes
+            Axes of the figure.
+        p_values : np.ndarray (optional)
+            if return_p_values is True, returns a (n_estimators, n_estimators) matrix of
+            unadjusted p values for the pairwise Wilcoxon sign rank test.
 
     References
     ----------
@@ -82,6 +90,12 @@ def plot_significance(
         ranks = rankdata(scores, axis=1)
     else:  # assign opposite ranks
         ranks = rankdata(-1 * scores, axis=1)
+
+    if return_p_values and test != "wilcoxon":
+        raise ValueError(
+            f"Cannot return p values for {test}, since it does "
+            "not calculate p-values."
+        )
 
     # Step 2: calculate average rank per estimator
     avg_ranks = ranks.mean(axis=0)
@@ -149,7 +163,7 @@ def plot_significance(
     )
     width = max(n_estimators * 0.8, 7.5)
 
-    fig, ax = plt.subplots(figsize=(width, height))
+    fig, ax = plt.subplots(figsize=(width, height), layout="tight")
 
     # Draw the horizontal lines for each valid row
     for row_index, row in enumerate(cliques[::-1]):
@@ -242,9 +256,10 @@ def plot_significance(
     ax.tick_params(left=False, labelleft=False, labelbottom=False)
     ax.grid(False)
 
-    plt.tight_layout()
-
-    return fig
+    if return_p_values:
+        return fig, ax, p_values
+    else:
+        return fig, ax
 
 
 # this _build_cliques is different to the CD one.

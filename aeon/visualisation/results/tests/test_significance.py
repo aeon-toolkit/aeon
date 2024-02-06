@@ -128,10 +128,13 @@ def test__build_cliques_empty():
     not _check_soft_dependencies("matplotlib", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_plot_significance():
-    """Test plot critical difference diagram."""
-    _check_soft_dependencies("matplotlib")
-    from matplotlib.figure import Figure
+@pytest.mark.parametrize("correction", ["bonferroni", "holm", None])
+def test_plot_significance_corrections(correction):
+    """Test plot significance diagram."""
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
     data_full = list(univariate_equal_length)
@@ -141,7 +144,39 @@ def test_plot_significance():
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
 
-    plot = plot_significance(
+    fig, ax = plot_significance(
+        res,
+        cls,
+        test="wilcoxon",
+        correction=correction,
+    )
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("matplotlib", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+def test_plot_significance():
+    """Test plot critical difference diagram."""
+    _check_soft_dependencies("matplotlib")
+
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
+
+    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
+    data_full = list(univariate_equal_length)
+    data_full.sort()
+
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=data_full, path=data_path, include_missing=True
+    )
+
+    fig, ax = plot_significance(
         res,
         cls,
         lower_better=False,
@@ -151,4 +186,34 @@ def test_plot_significance():
         correction="holm",
         fontsize=12,
     )
-    assert isinstance(plot, Figure)
+    plt.gcf().canvas.draw_idle()
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+
+def test_plot_significance_p_values():
+    """Test plot significance diagram."""
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
+
+    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
+    data_full = list(univariate_equal_length)
+    data_full.sort()
+
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=data_full, path=data_path, include_missing=True
+    )
+
+    fig, ax, p_values = plot_significance(
+        res,
+        cls,
+        lower_better=False,
+        alpha=0.05,
+        reverse=True,
+        return_p_values=True,
+    )
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+    assert isinstance(p_values, np.ndarray)
