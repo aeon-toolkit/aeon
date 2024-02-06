@@ -20,9 +20,8 @@ def test_contracted_arsenal():
     # train contracted Arsenal
     arsenal = Arsenal(
         time_limit_in_minutes=0.25,
-        contract_max_n_estimators=5,
+        contract_max_n_estimators=3,
         num_kernels=20,
-        random_state=0,
     )
     arsenal.fit(X_train, y_train)
     assert len(arsenal.estimators_) > 1
