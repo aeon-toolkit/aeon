@@ -17,7 +17,6 @@ api_reference/benchmarking
 api_reference/classification
 api_reference/clustering
 api_reference/datasets
-api_reference/deployment
 api_reference/distances
 api_reference/exceptions
 api_reference/forecasting

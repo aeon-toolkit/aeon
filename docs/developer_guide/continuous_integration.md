@@ -1,7 +1,4 @@
-.. _continuous_integration:
-
-Continuous integration
-======================
+# Continuous integration
 
 We use continuous integration services on GitHub to automatically check
 if new pull requests do not break anything and meet code quality
@@ -11,10 +8,9 @@ up your developer environment, and installed a
 `development version <https://www.aeon-toolkit.org/en/stable/installation.html>`__
 of aeon.
 
-Code quality checks
--------------------
+## Code quality checks
 
-.. _pre-commit: https://pre-commit.com
+``_pre-commit: <https://pre-commit.com>`
 
 We use `pre-commit`_ for code quality checks (a process we also refer to as "linting" checks).
 
@@ -22,16 +18,15 @@ We recommend that you also set this up locally as it will ensure that you never 
 These checks run automatically before you make a new commit.
 To setup, simply navigate to the aeon folder and install our pre-commit configuration:
 
-.. code:: bash
-
+```{code-block} powershell
    pre-commit install
+```
 
 pre-commit should now automatically run anything you make a commit! Please let us know if you encounter any issues getting this setup.
 
 For a detailed guide on code quality and linting for developers, see :ref:`coding_standards`.
 
-Unit testing
-~~~~~~~~~~~~
+## Unit testing
 
 We use `pytest <https://docs.pytest.org/en/latest/>`__ for unit testing.
 
@@ -40,36 +35,32 @@ development version of aeon and all extra dependencies.
 
 1. Install the development version of aeon with developer dependencies:
 
-   .. code:: bash
-
-      pip install -e .[dev]
+```{code-block} powershell
+    pip install -e .[dev]
+```
 
    This installs an editable `development
    version <https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs>`__
    of aeon which will include the changes you make.
-
-.. note::
 
    For trouble shooting on different operating systems, please see our detailed
    `installation instructions <https://www.aeon-toolkit.org/en/latest/installation.html>`__.
 
 2. To run all unit tests, run:
 
-   .. code:: bash
-
+```{code-block} powershell
       pytest ./aeon
+```
 
-Test coverage
--------------
+## Test coverage
 
-.. _codecov: https://codecov.io
-.. _coverage: https://coverage.readthedocs.io/
-.. _pytest-cov: https://github.com/pytest-dev/pytest-cov
+`_codecov: <https://codecov.io>`
+`_coverage: <https://coverage.readthedocs.io/>`
+`_pytest-cov: <https://github.com/pytest-dev/pytest-cov>
 
 We use `coverage`_, the `pytest-cov`_ plugin, and `codecov`_ for test coverage.
 
-Infrastructure
---------------
+## Infrastructure
 
 This section gives an overview of the infrastructure and continuous
 integration services we use.

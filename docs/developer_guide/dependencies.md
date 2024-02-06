@@ -1,10 +1,6 @@
-.. _dependencies:
+# Dependencies
 
-Dependencies
-============
-
-Types of dependencies
----------------------
+## Types of dependencies
 
 There are three types of dependencies in ``aeon``: **core**, **soft**, or **developer**.
 
@@ -17,9 +13,7 @@ There are three types of dependencies in ``aeon``: **core**, **soft**, or **deve
 
 We try to keep the number of core dependencies to a minimum and rely on other packages as soft dependencies when feasible.
 
-
-Adding a soft dependency
-------------------------
+## Adding a soft dependency
 
 Soft dependencies in ``aeon`` should usually be restricted to estimators.
 
@@ -57,12 +51,11 @@ To add an estimator with a soft dependency, ensure the following:
    helpful for any users running ``check_estimator`` on all estimators, or a full local `pytest` run without the required soft dependency.
    Again, see the tests for pydarima (in forecasting) for a concrete example.
 
-Adding a core or developer dependency
--------------------------------------
+## Adding a core or developer dependency
 
-Core or developer dependencies can be added only by core developers after discussion in the core developer meeting.
-
-When adding a new core dependency or changing the version of an existing one,
+Core or developer dependencies can be added only by core developers after discussion
+and consensus. When adding a new core dependency or changing the version of an
+existing one,
 the following files need to be updated:
 
 *  `pyproject.toml <https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml>`__,

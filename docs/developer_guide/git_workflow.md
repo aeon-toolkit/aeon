@@ -1,7 +1,4 @@
-.. _git_workflow:
-
-Git and GitHub workflow
-=======================
+# Git and GitHub workflow
 
 The preferred workflow for contributing to aeon’s repository is to
 fork the `main
@@ -19,75 +16,69 @@ GitHub, clone, and develop on a new branch.
     your fork of the aeon repo from your GitHub account to your local
     disk:
 
-    .. code:: bash
-
+```{code-block} powershell
        git clone git@github.com:<username>/aeon.git
        cd aeon
-
-    where :code:`<username>` is your GitHub username.
+```
+where `<username>` is your GitHub username.
 
 3.  Configure and link the remote for your fork to the upstream
     repository:
 
-    .. code:: bash
-
+```{code-block} powershell
        git remote -v
        git remote add upstream https://github.com/aeon-toolkit/aeon.git
+```
 
 4.  Verify the new upstream repository you've specified for your fork:
 
-    .. code:: bash
-
+```{code-block} powershell
        git remote -v
        > origin    https://github.com/<username>/aeon.git (fetch)
        > origin    https://github.com/<username>/aeon.git (push)
        > upstream  https://github.com/aeon-toolkit/aeon.git (fetch)
        > upstream  https://github.com/aeon-toolkit/aeon.git (push)
+```
 
 5.  `Sync <https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork>`_
     the ``main`` branch of your fork with the upstream repository:
 
-    .. code:: bash
-
+```{code-block} powershell
        git fetch upstream
        git checkout main
        git merge upstream/main
+```
 
 6.  Create a new ``feature`` branch from the ``main`` branch to hold
     your changes:
 
-    .. code:: bash
-
+```{code-block} powershell
        git checkout main
        git checkout -b <feature-branch>
-
-    Always use a ``feature`` branch. It's good practice to never work on
-    the ``main`` branch. Name the ``feature`` branch after your
+```
+Always use a ``feature`` branch. It's good practice to never work on
+the ``main`` branch. Name the ``feature`` branch after your
     contribution.
 
 7.  Develop your contribution on your feature branch. Add changed files
     using ``git add`` and then ``git commit`` files to record your
     changes in Git:
 
-    .. code:: bash
-
+```{code-block} powershell
        git add <modified_files>
        git commit
-
+```
 8.  When finished, push the changes to your GitHub account with:
 
-    .. code:: bash
-
+```{code-block} powershell
        git push --set-upstream origin my-feature-branch
-
+```
 9.  Follow `these
     instructions <https://help.github.com/articles/creating-a-pull-request-from-a-fork>`__
     to create a pull request from your fork. If your work is still work
     in progress, open a draft pull request.
 
-.. note::
-
-    We recommend to open a pull request early, so that other contributors become aware of
+We recommend to open a pull request early, so that other contributors become aware of
     your work and can give you feedback early on.
 
 10. To add more changes, simply repeat steps 7 - 8. Pull requests are
@@ -97,5 +88,5 @@ GitHub, clone, and develop on a new branch.
 
 .. note::
 
-   If any of the above seems like magic to you, look up the `Git documentation <https://git scm.com/documentation>`_.
-   If you get stuck, chat with us on `Slack`_, or join one of the community sessions.
+If the above is unclear, ook up the `Git documentation <https://git scm.
+com/documentation>`_. If you get stuck, chat with us on `Slack`_.
