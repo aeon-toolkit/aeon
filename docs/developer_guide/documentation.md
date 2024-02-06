@@ -4,16 +4,14 @@
 
 * Documenting code using NumPy docstrings and aeon conventions
 * Following ``aeon's`` docstring convention for public code artifacts and modules
-* Adding new public functionality to the [api_reference](https://www.aeon-toolkit.
-  org/en/stable/api_reference.html) and [user_guide](https://www.aeon-toolkit.
-  org/en/stable/getting_started.html).
+* Adding new public functionality to the [api_reference](https://www.aeon-toolkit.org/en/stable/api_reference.html) and [user_guide](https://www.aeon-toolkit.org/en/stable/getting_started.html).
 
 More detailed information on ``aeon's`` documentation format is provided below.
 
 ## Docstring conventions
 
 aeon uses the numpydoc_ Sphinx extension and follows
-`NumPy docstring format <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
+[NumPy docstring format](https://numpydoc.readthedocs.io/en/latest/format.html>).
 
 To ensure docstrings meet expectations, aeon uses a combination of validations built into numpydoc_,
 pydocstyle_ pre-commit checks (set to the NumPy convention) and automated testing of docstring examples to ensure
@@ -21,10 +19,8 @@ the code runs without error. However, the automated docstring validation in pydo
 Passing these tests is necessary to meet the aeon docstring conventions, but is not sufficient for doing so.
 
 To ensure docstrings meet aeon's conventions, developers are expected to check their docstrings against numpydoc_
-and aeon conventions and [reviewer's guide](https://www.aeon-toolkit.
-org/en/stable/contributing/reviewer_guide.html) are expected to also focus feedback on
-docstring
-quality.
+and aeon conventions and [reviewer's guide](https://www.aeon-toolkit.org/en/stable/contributing/reviewer_guide.html) are expected to also focus feedback on
+docstring quality.
 
 ## ``aeon`` specific conventions
 
@@ -65,7 +61,7 @@ Additional user-friendly details of the algorithm should follow (e.g. describe h
 
 A developer can link to a particular area of the user guide by including an explicit
 cross-reference and following the steps for referencing in Sphinx
-(see the helpful description on `Sphinx cross-references <https://docs.readthedocs.io/en/stable/guides/cross-referencing-with-sphinx.html>`_ posted by Read the Docs).
+(see the helpful description on [Sphinx cross-references](https://docs.readthedocs.io/en/stable/guides/cross-referencing-with-sphinx.html) posted by Read the Docs).
 Again developers are encouraged to add important content to the user guide and link to it if it does not already exist.
 
 ### See Also
@@ -117,39 +113,32 @@ For quick running code artifacts, additional examples can be included to illustr
 Here are a few examples of aeon code artifacts with good documentation.
 
 #### Estimators
+Here are the links converted to Markdown format:
 
-[BOSSEnsemble_]()
+[BOSSEnsemble](https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.classification.dictionary_based.BOSSEnsemble.html#aeon.classification.dictionary_based.BOSSEnsemble)
 
 #### Functions
 [dtw_distance](https://www.aeon-toolkit.org/en/stable/api_reference/auto_generated/aeon.distances.dtw_distance.html)
 
-.. _numpydoc: https://numpydoc.readthedocs.io/en/latest/index.html
-.. _pydocstyle: http://www.pydocstyle.org/en/stable/
-.. _BOSSEnsemble: https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.classification.dictionary_based.BOSSEnsemble.html#aeon.classification.dictionary_based.BOSSEnsemble
-.. _ContractableBOSS: https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.classification.dictionary_based.ContractableBOSS.html#aeon.classification.dictionary_based.ContractableBOSS
-.. _MeanAbsoluteScaledError: https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.performance_metrics.forecasting.MeanAbsoluteScaledError.html
+[numpydoc](https://numpydoc.readthedocs.io/en/latest/index.html)
 
-.. _sphinx: https://www.sphinx-doc.org/
-.. _readthedocs: https://readthedocs.org/projects/aeon-toolkit/
+[pydocstyle](http://www.pydocstyle.org/en/stable/)
+
+[ContractableBOSS](https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.classification.dictionary_based.ContractableBOSS.html#aeon.classification.dictionary_based.ContractableBOSS)
+
+[MeanAbsoluteScaledError](https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.performance_metrics.forecasting.MeanAbsoluteScaledError.html)
+
+[sphinx](https://www.sphinx-doc.org/)
+
+[readthedocs](https://readthedocs.org/projects/aeon-toolkit/)
 
 ## Documentation Build
 
-We use `sphinx`_ to build our documentation and `readthedocs`_ to host it.
-You can find our latest documentation `here <https://www.aeon-toolkit.org/en/latest/>`_.
+We use [sphinx](https://www.sphinx-doc.org/) to build our documentation and [readthedocs](https://readthedocs.org/projects/aeon-toolkit/) to host it. You can find our latest documentation [here](https://www.aeon-toolkit.org/en/latest/).
 
-The source files can be found
-in `docs/ <https://github.com/aeon-toolkit/aeon/tree/main/docs/>`_.
-The main configuration file for sphinx is
-`conf.py <https://github.com/aeon-toolkit/aeon/blob/main/docs/conf.py>`__
-and the main page is
-`index.md <https://github.com/aeon-toolkit/aeon/blob/main/docs/index.md>`__.
-To add new pages, you need to add a new ``.rst`` file and include it in
-the ``index.md`` file.
+The source files can be found in [docs/](https://github.com/aeon-toolkit/aeon/tree/main/docs/). The main configuration file for sphinx is [conf.py](https://github.com/aeon-toolkit/aeon/blob/main/docs/conf.py) and the main page is [index.md](https://github.com/aeon-toolkit/aeon/blob/main/docs/index.md). To add new pages, you need to add a new `.rst` file and include it in the `index.md` file.
 
-To build the documentation locally, you need to install a few extra
-dependencies listed in
-`pyproject.toml <https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml>`__.
-
+To build the documentation locally, you need to install a few extra dependencies listed in [pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml).
 1. To install extra dependencies from the root directory, run:
 
 ```{code-block} powershell
