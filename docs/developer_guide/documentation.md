@@ -113,7 +113,6 @@ For quick running code artifacts, additional examples can be included to illustr
 Here are a few examples of aeon code artifacts with good documentation.
 
 #### Estimators
-Here are the links converted to Markdown format:
 
 [BOSSEnsemble](https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.classification.dictionary_based.BOSSEnsemble.html#aeon.classification.dictionary_based.BOSSEnsemble)
 
