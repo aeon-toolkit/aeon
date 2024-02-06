@@ -29,6 +29,7 @@ from typing import final
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
@@ -78,6 +79,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         super().__init__()
         _check_estimator_deps(self)
 
+    # TODO: remove in v0.8.0
+    @deprecated(
+        version="0.6.0",
+        reason="The BaseClassifier __rmul__ (*) functionality will be removed "
+        "in v0.8.0.",
+        category=FutureWarning,
+    )
     def __rmul__(self, other):
         """Magic * method, return concatenated ClassifierPipeline, transformers on left.
 
