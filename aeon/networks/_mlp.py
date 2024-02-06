@@ -3,7 +3,6 @@
 __author__ = ["James-Large", "Withington", "AurumnPegasus"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class MLPNetwork(BaseDeepNetwork):
@@ -27,14 +26,12 @@ class MLPNetwork(BaseDeepNetwork):
     networks: A strong baseline, IJCNN, 2017.
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
-
     def __init__(
         self,
         random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
         self.random_state = random_state
+
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):
