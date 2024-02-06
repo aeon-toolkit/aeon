@@ -28,5 +28,5 @@ api_reference/segmentation
 api_reference/similarity_search
 api_reference/transformations
 api_reference/utils
-api_reference/visualization
+api_reference/visualisation
 ```
