@@ -192,6 +192,7 @@ def test_plot_significance():
 
 def test_plot_significance_p_values():
     """Test plot significance diagram."""
+    _check_soft_dependencies("matplotlib")
     import matplotlib
     import matplotlib.pyplot as plt
 
