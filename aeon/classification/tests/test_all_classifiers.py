@@ -242,5 +242,6 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         for method in final_methods:
             if method in estimator_class.__dict__:
                 raise ValueError(
-                    f"Classifier {estimator_class} overrides the method {method}"
+                    f"Classifier {estimator_class} overrides the method {method}. "
+                    f"Override _{method} instead."
                 )

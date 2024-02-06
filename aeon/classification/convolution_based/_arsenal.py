@@ -233,7 +233,7 @@ class Arsenal(BaseClassifier):
                 self.estimators_[i],
                 i,
             )
-            for i in range(self.n_estimators)
+            for i in range(self.n_estimators_)
         )
 
         return np.around(
@@ -261,7 +261,7 @@ class Arsenal(BaseClassifier):
                 i,
                 check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
-            for i in range(self.n_estimators)
+            for i in range(self.n_estimators_)
         )
         y_probas, weights, oobs = zip(*p)
 
