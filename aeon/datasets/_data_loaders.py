@@ -5,7 +5,6 @@ import tempfile
 import urllib
 import zipfile
 from datetime import datetime
-from distutils.util import strtobool
 from urllib.request import urlretrieve
 
 import numpy as np
@@ -13,8 +12,8 @@ import pandas as pd
 
 import aeon
 from aeon.datasets.dataset_collections import (
-    list_downloaded_tsc_tsr_datasets,
-    list_downloaded_tsf_datasets,
+    get_downloaded_tsc_tsr_datasets,
+    get_downloaded_tsf_datasets,
 )
 from aeon.datasets.tser_data_lists import tser_monash, tser_soton
 from aeon.utils.validation.collection import convert_collection
@@ -78,12 +77,12 @@ def _load_header_info(file):
             key = tokens[0][1:]
             if key == "data":
                 if line != "@data":
-                    raise IOError("data tag should not have an associated value")
+                    raise OSError("data tag should not have an associated value")
                 return meta_data
             if key in meta_data.keys():
                 if key in boolean_keys:
                     if token_len != 2:
-                        raise IOError(f"{tokens[0]} tag requires a boolean value")
+                        raise OSError(f"{tokens[0]} tag requires a boolean value")
                     if tokens[1] == "true":
                         meta_data[key] = True
                     elif tokens[1] == "false":
@@ -94,14 +93,14 @@ def _load_header_info(file):
                     if tokens[1] == "true":
                         meta_data["classlabel"] = True
                         if token_len == 2:
-                            raise IOError(
+                            raise OSError(
                                 "if the classlabel tag is true then class values "
                                 "must be supplied"
                             )
                     elif tokens[1] == "false":
                         meta_data["classlabel"] = False
                     else:
-                        raise IOError("invalid class label value")
+                        raise OSError("invalid class label value")
                     meta_data["class_values"] = [token.strip() for token in tokens[2:]]
         if meta_data["targetlabel"]:
             meta_data["classlabel"] = False
@@ -173,13 +172,13 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
                 series_length = len(channels[0].split(","))
         else:
             if current_channels != n_channels:
-                raise IOError(
+                raise OSError(
                     f"Inconsistent number of dimensions in case {n_cases}. "
                     f"Expecting {n_channels} but have read {current_channels}"
                 )
             if meta_data["univariate"]:
                 if current_channels > 1:
-                    raise IOError(
+                    raise OSError(
                         f"Seen {current_channels} in case {n_cases}."
                         f"Expecting univariate from meta data"
                     )
@@ -194,7 +193,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             data_series = [float(x) for x in data_series]
             if len(data_series) != current_length:
                 equal_length = meta_data["equallength"]
-                raise IOError(
+                raise OSError(
                     f"channel {i} in case {n_cases} has a different number of "
                     f"observations to the other channels. "
                     f"Saw {current_length} in the first channel but"
@@ -254,7 +253,7 @@ def load_from_tsfile(
     if not full_file_path_and_name.endswith(".ts"):
         full_file_path_and_name = full_file_path_and_name + ".ts"
     # Open file
-    with open(full_file_path_and_name, "r", encoding="utf-8") as file:
+    with open(full_file_path_and_name, encoding="utf-8") as file:
         # Read in headers
         meta_data = _load_header_info(file)
         # load into list of numpy
@@ -398,9 +397,9 @@ def download_dataset(name, save_path=None):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-    if name not in list_downloaded_tsc_tsr_datasets(
+    if name not in get_downloaded_tsc_tsr_datasets(
         save_path
-    ) or name not in list_downloaded_tsf_datasets(save_path):
+    ) or name not in get_downloaded_tsf_datasets(save_path):
         # Dataset is not already present in the datasets directory provided.
         # If it is not there, download it.
         url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
@@ -510,12 +509,12 @@ def _load_tsc_dataset(
 
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
-    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
+    if name not in get_downloaded_tsc_tsr_datasets(extract_path):
         if extract_path is None:
             local_dirname = "local_data"
         if not os.path.exists(os.path.join(local_module, local_dirname)):
             os.makedirs(os.path.join(local_module, local_dirname))
-        if name not in list_downloaded_tsc_tsr_datasets(
+        if name not in get_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
             # Dataset is not already present in the datasets directory provided.
@@ -572,7 +571,7 @@ def load_from_arff_file(
     is_first_case = True
     n_cases = 0
     n_channels = 1
-    with open(full_file_path_and_name, "r", encoding="utf-8") as f:
+    with open(full_file_path_and_name, encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 if (
@@ -762,7 +761,7 @@ def load_from_tsf_file(
     found_data_section = False
     started_reading_data_section = False
 
-    with open(full_file_path_and_name, "r", encoding="cp1252") as file:
+    with open(full_file_path_and_name, encoding="cp1252") as file:
         for line in file:
             # Strip white space from start/end of line
             line = line.strip()
@@ -790,12 +789,15 @@ def load_from_tsf_file(
                             elif line.startswith("@horizon"):
                                 forecast_horizon = int(line_content[1])
                             elif line.startswith("@missing"):
-                                contain_missing_values = bool(
-                                    strtobool(line_content[1])
-                                )
+                                if line_content[1].lower() == "true":
+                                    contain_missing_values = True
+                                else:
+                                    contain_missing_values = False
                             elif line.startswith("@equallength"):
-                                contain_equal_length = bool(strtobool(line_content[1]))
-
+                                if line_content[1].lower() == "false":
+                                    contain_equal_length = False
+                                else:
+                                    contain_equal_length = True
                     else:
                         if len(col_names) == 0:
                             raise Exception(
@@ -958,7 +960,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
         os.makedirs(os.path.join(local_module, local_dirname))
     # Check if data already in extract path or, if extract_path None,
     # in datasets/data directory
-    if name not in list_downloaded_tsf_datasets(extract_path):
+    if name not in get_downloaded_tsf_datasets(extract_path):
         # Dataset is not already present in the datasets directory provided.
         # If it is not there, download and install it.
         if name in tsf_all.keys():
@@ -971,7 +973,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
             raise ValueError(
                 f"File name {name} is not in the list of valid files to download"
             )
-        if name not in list_downloaded_tsf_datasets(
+        if name not in get_downloaded_tsf_datasets(
             os.path.join(local_module, local_dirname)
         ):
             url = f"https://zenodo.org/record/{id}/files/{name}.zip"
@@ -1104,7 +1106,7 @@ def load_regression(
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     path = os.path.join(local_module, local_dirname)
-    if name not in list_downloaded_tsc_tsr_datasets(extract_path):
+    if name not in get_downloaded_tsc_tsr_datasets(extract_path):
         if name in tser_soton:
             if extract_path is None:
                 local_dirname = "local_data"
@@ -1113,7 +1115,7 @@ def load_regression(
                 path = os.path.join(local_module, local_dirname)
         else:
             raise ValueError(error_str)
-        if name not in list_downloaded_tsc_tsr_datasets(
+        if name not in get_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
             # Check if on timeseriesclassification.com

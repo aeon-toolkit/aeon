@@ -1,4 +1,5 @@
 """Time series kmedoids."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 import math
@@ -111,7 +112,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     ):
         self.max_neighbours = max_neighbours
 
-        super(TimeSeriesCLARANS, self).__init__(
+        super().__init__(
             n_clusters=n_clusters,
             init_algorithm=init_algorithm,
             distance=distance,

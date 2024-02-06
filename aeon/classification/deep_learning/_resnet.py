@@ -12,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import ResNetNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class ResNetClassifier(BaseDeepClassifier):
@@ -103,12 +102,6 @@ class ResNetClassifier(BaseDeepClassifier):
     ResNetClassifier(...)
     """
 
-    _tags = {
-        "python_dependencies": "tensorflow",
-        "capability:multivariate": True,
-        "algorithm_type": "deeplearning",
-    }
-
     def __init__(
         self,
         n_residual_blocks=3,
@@ -135,8 +128,6 @@ class ResNetClassifier(BaseDeepClassifier):
         last_file_name="last_model",
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super(ResNetClassifier, self).__init__(last_file_name=last_file_name)
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.n_filters = n_filters
@@ -149,18 +140,23 @@ class ResNetClassifier(BaseDeepClassifier):
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.batch_size = batch_size
         self.use_mini_batch_size = use_mini_batch_size
-        self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
         self.optimizer = optimizer
+
         self.history = None
+
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+            last_file_name=last_file_name,
+        )
+
         self._network = ResNetNetwork(
             n_residual_blocks=self.n_residual_blocks,
             n_conv_per_residual_block=self.n_conv_per_residual_block,
@@ -325,7 +321,9 @@ class ResNetClassifier(BaseDeepClassifier):
             "n_epochs": 10,
             "batch_size": 4,
             "n_residual_blocks": 1,
+            "n_filters": 5,
             "n_conv_per_residual_block": 1,
+            "kernel_size": 3,
         }
 
         test_params = [param]

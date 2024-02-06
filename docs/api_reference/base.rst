@@ -20,3 +20,5 @@ Base classes
 
     BaseObject
     BaseEstimator
+    BaseCollectionEstimator
+    BaseSeriesEstimator

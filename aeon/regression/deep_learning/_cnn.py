@@ -12,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.networks import CNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class CNNRegressor(BaseDeepRegressor):
@@ -100,7 +99,7 @@ class CNNRegressor(BaseDeepRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import CNNRegressor
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -135,10 +134,6 @@ class CNNRegressor(BaseDeepRegressor):
         use_bias=True,
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super(CNNRegressor, self).__init__(
-            batch_size=batch_size,
-        )
         self.n_layers = n_layers
         self.avg_pool_size = avg_pool_size
         self.padding = padding
@@ -148,12 +143,10 @@ class CNNRegressor(BaseDeepRegressor):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
         self.strides = strides
         self.dilation_rate = dilation_rate
         self.callbacks = callbacks
         self.n_epochs = n_epochs
-        self.batch_size = batch_size
         self.verbose = verbose
         self.loss = loss
         self.output_activation = output_activation
@@ -162,7 +155,14 @@ class CNNRegressor(BaseDeepRegressor):
         self.activation = activation
         self.use_bias = use_bias
         self.optimizer = optimizer
+
         self.history = None
+
+        super().__init__(
+            batch_size=batch_size,
+            last_file_name=last_file_name,
+        )
+
         self._network = CNNNetwork(
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,

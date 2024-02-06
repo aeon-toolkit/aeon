@@ -8,14 +8,14 @@ import pandas as pd
 import pytest
 
 from aeon.datatypes import get_examples
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import make_series
 from aeon.transformations.lag import Lag
 
 # some examples with range vs time index, univariate vs multivariate (mv)
 X_range_idx = get_examples("pd.DataFrame")[0]
 X_range_idx_mv = get_examples("pd.DataFrame")[1]
-X_time_idx = _make_series()
-X_time_idx_mv = _make_series(n_columns=2)
+X_time_idx = make_series()
+X_time_idx_mv = make_series(n_columns=2)
 
 # all fixtures
 X_fixtures = [X_range_idx, X_range_idx_mv, X_time_idx, X_time_idx_mv]

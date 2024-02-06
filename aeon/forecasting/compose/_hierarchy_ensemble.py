@@ -58,7 +58,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
     >>> from aeon.forecasting.compose import HierarchyEnsembleForecaster
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster, TrendForecaster
-    >>> from aeon.testing.utils.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
     >>> y = _bottom_hier_datagen(
     ...         no_bottom_nodes=7,
     ...         no_levels=2,
@@ -109,7 +109,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
         self.forecasters = forecasters
         self.by = by
         self.default = default
-        super(HierarchyEnsembleForecaster, self).__init__(forecasters=forecasters)
+        super().__init__(forecasters=forecasters)
 
         if isinstance(forecasters, BaseForecaster):
             tags_to_clone = [

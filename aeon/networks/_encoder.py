@@ -3,7 +3,6 @@
 __author__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class EncoderNetwork(BaseDeepNetwork):
@@ -48,7 +47,7 @@ class EncoderNetwork(BaseDeepNetwork):
 
     """
 
-    _tags = {"python_dependencies": ["tensorflow", "tensorflow_addons "]}
+    _tags = {"python_dependencies": ["tensorflow", "tensorflow_addons"]}
 
     def __init__(
         self,
@@ -62,8 +61,6 @@ class EncoderNetwork(BaseDeepNetwork):
         fc_units=256,
         random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
-
         self.kernel_size = kernel_size
         self.n_filters = n_filters
         self.random_state = random_state
@@ -74,7 +71,7 @@ class EncoderNetwork(BaseDeepNetwork):
         self.dropout_proba = dropout_proba
         self.fc_units = fc_units
 
-        super(EncoderNetwork, self).__init__()
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         """

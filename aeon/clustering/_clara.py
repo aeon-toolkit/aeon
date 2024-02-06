@@ -1,4 +1,5 @@
 """Time series kmedoids."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import Callable, Union
@@ -139,7 +140,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self._random_state = None
         self._kmedoids_instance = None
 
-        super(TimeSeriesCLARA, self).__init__(n_clusters)
+        super().__init__(n_clusters)
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         return self._kmedoids_instance.predict(X)

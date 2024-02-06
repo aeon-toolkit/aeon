@@ -19,7 +19,7 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
-__author__ = ["mloning", "fkiraly", "miraep8", "MatthewMiddlehurst"]
+__author__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = [
     "BaseCollectionTransformer",
 ]
@@ -50,7 +50,7 @@ class BaseCollectionTransformer(
     }
 
     def __init__(self):
-        super(BaseCollectionTransformer, self).__init__()
+        super().__init__()
 
     @final
     def fit(self, X, y=None):

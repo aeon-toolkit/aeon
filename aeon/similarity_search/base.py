@@ -82,7 +82,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self.normalize = normalize
         self.store_distance_profile = store_distance_profile
         self.speed_up = speed_up
-        super(BaseSimiliaritySearch, self).__init__()
+        super().__init__()
 
     @final
     def fit(self, X, y=None):
@@ -422,12 +422,10 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         return distance_profile
 
     @abstractmethod
-    def _fit(self, X, y):
-        ...
+    def _fit(self, X, y): ...
 
     @abstractmethod
-    def _predict(self, distance_profile, exclusion_size=None):
-        ...
+    def _predict(self, distance_profile, exclusion_size=None): ...
 
 
 _SIM_SEARCH_SPEED_UP_DICT = {

@@ -2266,6 +2266,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "julu98",
+      "name": "julu98",
+      "avatar_url": "https://avatars.githubusercontent.com/u/133243896?v=4",
+      "profile": "https://github.com/julu98",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"

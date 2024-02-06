@@ -97,7 +97,7 @@ class TSFreshClassifier(BaseClassifier):
         self._return_majority_class = False
         self._majority_class = 0
 
-        super(TSFreshClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
@@ -133,9 +133,11 @@ class TSFreshClassifier(BaseClassifier):
             )
         )
         self._estimator = _clone_estimator(
-            RandomForestClassifier(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestClassifier(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 

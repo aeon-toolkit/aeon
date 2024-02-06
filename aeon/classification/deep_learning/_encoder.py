@@ -12,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import EncoderNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class EncoderClassifier(BaseDeepClassifier):
@@ -80,8 +79,6 @@ class EncoderClassifier(BaseDeepClassifier):
 
     _tags = {
         "python_dependencies": ["tensorflow", "tensorflow_addons"],
-        "capability:multivariate": True,
-        "algorithm_type": "deeplearning",
     }
 
     def __init__(
@@ -109,9 +106,6 @@ class EncoderClassifier(BaseDeepClassifier):
         use_bias=True,
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super(EncoderClassifier, self).__init__(last_file_name=last_file_name)
-
         self.n_filters = n_filters
         self.max_pool_size = max_pool_size
         self.kernel_size = kernel_size
@@ -126,16 +120,20 @@ class EncoderClassifier(BaseDeepClassifier):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
         self.n_epochs = n_epochs
-        self.batch_size = batch_size
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.random_state = random_state
         self.use_bias = use_bias
         self.optimizer = optimizer
+
         self.history = None
+
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+            last_file_name=last_file_name,
+        )
 
         self._network = EncoderNetwork(
             kernel_size=self.kernel_size,

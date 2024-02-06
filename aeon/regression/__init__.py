@@ -1,4 +1,5 @@
 """Regression Base."""
+
 __all__ = [
     "BaseRegressor",
     "DummyRegressor",

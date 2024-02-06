@@ -3,9 +3,19 @@
 __author__ = ["mloning"]
 __all__ = ["MatrixProfileTransformer"]
 
+from deprecated.sphinx import deprecated
+
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="MatrixProfileTransformer will be removed from the base directory of "
+    "transformations in v0.8.0, it has been replaced by MatrixProfileSeriesTransformer"
+    "in the transformations.series module.",
+    category=FutureWarning,
+)
 class MatrixProfileTransformer(BaseTransformer):
     """Calculate the matrix profile of a time series.
 
@@ -51,7 +61,7 @@ class MatrixProfileTransformer(BaseTransformer):
 
     def __init__(self, window_length=3):
         self.window_length = window_length
-        super(MatrixProfileTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

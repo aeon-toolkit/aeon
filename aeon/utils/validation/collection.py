@@ -18,7 +18,6 @@ COLLECTIONS_DATA_TYPES = [
     "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
     "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
     "pd-multiindex",  # pd.DataFrame with multi-index,
-    # To add "dask_panel": but not currently used anywhere
 ]
 
 convert_dictionary = dict()
@@ -66,18 +65,18 @@ convert_dictionary[("nested_univ", "np-list")] = conv._from_nested_univ_to_np_li
 convert_dictionary[("nested_univ", "df-list")] = conv._from_nested_univ_to_df_list
 convert_dictionary[("nested_univ", "pd-wide")] = conv._from_nested_univ_to_pd_wide
 convert_dictionary[("nested_univ", "numpy2D")] = conv._from_nested_univ_to_numpy2d
-convert_dictionary[
-    ("nested_univ", "pd-multiindex")
-] = conv._from_nested_univ_to_pd_multiindex
+convert_dictionary[("nested_univ", "pd-multiindex")] = (
+    conv._from_nested_univ_to_pd_multiindex
+)
 # pd_multiindex -> *
 convert_dictionary[("pd-multiindex", "numpy3D")] = conv._from_pd_multiindex_to_numpy3d
 convert_dictionary[("pd-multiindex", "np-list")] = conv._from_pd_multiindex_to_np_list
 convert_dictionary[("pd-multiindex", "df-list")] = conv._from_pd_multiindex_to_df_list
 convert_dictionary[("pd-multiindex", "pd-wide")] = conv._from_pd_multiindex_to_pd_wide
 convert_dictionary[("pd-multiindex", "numpy2D")] = conv._from_pd_multiindex_to_numpy2d
-convert_dictionary[
-    ("pd-multiindex", "nested_univ")
-] = conv._from_pd_multiindex_to_nested_univ
+convert_dictionary[("pd-multiindex", "nested_univ")] = (
+    conv._from_pd_multiindex_to_nested_univ
+)
 
 
 def convert_collection(X, output_type):
@@ -242,7 +241,10 @@ def get_type(X):
         )
     #    if isinstance(X, dask.dataframe.core.DataFrame):
     #        return "dask_panel"
-    raise TypeError(f"ERROR passed input of type {type(X)}")
+    raise TypeError(
+        f"ERROR passed input of type {type(X)}, must be of type "
+        f"np.ndarray, pd.DataFrame or list of np.ndarray/pd.DataFrame"
+    )
 
 
 def is_equal_length(X):

@@ -1,4 +1,5 @@
 """Tests for _HeterogenousMetaEstimator."""
+
 import pytest
 
 from aeon.base._meta import _HeterogenousMetaEstimator

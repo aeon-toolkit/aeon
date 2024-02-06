@@ -1,10 +1,13 @@
 """Unit tests for aeon.utils.validation.collection check/convert functions."""
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datasets import make_example_multi_index_dataframe
-from aeon.testing.utils.tests.test_collection import make_nested_dataframe_data
+from aeon.testing.utils.data_gen import (
+    make_example_multi_index_dataframe,
+    make_nested_dataframe_data,
+)
 from aeon.utils.validation import is_nested_univ_dataframe
 from aeon.utils.validation._convert_collection import (
     _equal_length,
