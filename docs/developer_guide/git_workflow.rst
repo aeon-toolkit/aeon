@@ -62,7 +62,7 @@ GitHub, clone, and develop on a new branch.
        git checkout -b <feature-branch>
 
     Always use a ``feature`` branch. It's good practice to never work on
-    the ``main`` branch! Name the ``feature`` branch after your
+    the ``main`` branch. Name the ``feature`` branch after your
     contribution.
 
 7.  Develop your contribution on your feature branch. Add changed files
