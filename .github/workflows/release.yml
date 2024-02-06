@@ -75,14 +75,14 @@ jobs:
 
       - if: runner.os == 'Windows'
         name: Windows install
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 30
           max_attempts: 3
           command: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
       - if: runner.os != 'Windows'
         name: Unix install
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 30
           max_attempts: 3
