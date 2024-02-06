@@ -3,7 +3,6 @@
 import numpy as np
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class AEResNetNetwork(BaseDeepNetwork):
@@ -68,8 +67,6 @@ class AEResNetNetwork(BaseDeepNetwork):
 
     """
 
-    _tags = {"python_dependencies": ["tensorflow"]}
-
     def __init__(
         self,
         latent_space_dim=128,
@@ -85,8 +82,6 @@ class AEResNetNetwork(BaseDeepNetwork):
         use_bias=True,
         random_state=0,
     ):
-        _check_dl_dependencies(severity="error")
-        super().__init__()
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
         self.n_filters = n_filters
@@ -99,6 +94,8 @@ class AEResNetNetwork(BaseDeepNetwork):
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.random_state = random_state
+
+        super().__init__()
 
     def _shortcut_layer(
         self, input_tensor, output_tensor, padding="same", use_bias=True
