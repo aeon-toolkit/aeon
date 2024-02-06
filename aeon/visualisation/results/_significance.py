@@ -15,7 +15,7 @@ def plot_significance(
     test="wilcoxon",
     correction="holm",
     fontsize=12,
-    reverse=False,
+    reverse=True,
 ):
     """
     Plot that allow the case where cliques can be deceiving.
@@ -152,14 +152,14 @@ def plot_significance(
     fig, ax = plt.subplots(figsize=(width, height))
 
     # Draw the horizontal lines for each valid row
-    for row_index, row in enumerate(cliques):
+    for row_index, row in enumerate(cliques[::-1]):
         true_indices = np.where(row)[0]
         if true_indices.size > 0:
             y_pos = spacing * row_index
             for col_index in true_indices:
                 # add circles for each 'True' value
                 ax.plot(
-                    n_estimators - col_index - 1,
+                    col_index,
                     y_pos,
                     "o",
                     markersize=fontsize - 2,
@@ -168,8 +168,8 @@ def plot_significance(
 
             ax.hlines(
                 y=y_pos,
-                xmin=(n_estimators - true_indices[-1] - 1),
-                xmax=(n_estimators - true_indices[0] - 1),
+                xmin=true_indices[-1],
+                xmax=true_indices[0],
                 color="black",
                 linewidth=2,
             )
@@ -276,7 +276,4 @@ def _build_cliques(pairwise_matrix):
     n = np.sum(cliques, 1)
     cliques = cliques[n > 1, :]
 
-    for i in range(len(cliques)):
-        cliques[i] = cliques[i][::-1]
-
-    return cliques[::-1]
+    return cliques
