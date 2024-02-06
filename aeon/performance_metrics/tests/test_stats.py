@@ -109,9 +109,3 @@ def test__check_friedman():
     res = np.clip(res + random_values, 0, 1)
     ranked_data = rankdata(-1 * res, axis=1)
     assert check_friedman(ranked_data) > 0.05
-
-
-if __name__ == "__main__":
-    test_nemenyi_test()
-    test_wilcoxon_test()
-    test__check_friedman()
