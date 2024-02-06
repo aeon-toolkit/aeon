@@ -3,7 +3,6 @@
 __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionNetwork(BaseDeepNetwork):
@@ -92,8 +91,6 @@ class InceptionNetwork(BaseDeepNetwork):
     }
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
-
     def __init__(
         self,
         nb_filters=32,
@@ -113,8 +110,6 @@ class InceptionNetwork(BaseDeepNetwork):
         use_custom_filters=False,
         random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
-
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
         self.kernel_size = kernel_size

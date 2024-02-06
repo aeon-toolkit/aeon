@@ -12,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEResNetNetwork
-from aeon.utils.validation._dependencies import _check_dl_dependencies
 
 
 class AEResNetClusterer(BaseDeepClusterer):
@@ -109,15 +108,9 @@ class AEResNetClusterer(BaseDeepClusterer):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> ae_resnet = AEResNetClusterer(n_clusters=2,n_epochs=20) # doctest: +SKIP
-    >>> ae_resnet.fit(X_train, Y_train) # doctest: +SKIP
+    >>> ae_resnet.fit(X_train, y_train) # doctest: +SKIP
     AEResNetClusterer(...)
     """
-
-    _tags = {
-        "python_dependencies": "tensorflow",
-        "capability:multivariate": True,
-        "algorithm_type": "deeplearning",
-    }
 
     def __init__(
         self,
@@ -148,15 +141,6 @@ class AEResNetClusterer(BaseDeepClusterer):
         last_file_name="last_file",
         optimizer="Adam",
     ):
-        _check_dl_dependencies(severity="error")
-        super().__init__(
-            n_clusters=n_clusters,
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
-            batch_size=batch_size,
-            last_file_name=last_file_name,
-        )
-
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
         self.n_filters = n_filters
@@ -180,7 +164,16 @@ class AEResNetClusterer(BaseDeepClusterer):
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
         self.optimizer = optimizer
+
         self.history = None
+
+        super().__init__(
+            n_clusters=n_clusters,
+            clustering_algorithm=clustering_algorithm,
+            clustering_params=clustering_params,
+            batch_size=batch_size,
+            last_file_name=last_file_name,
+        )
 
         self._network = AEResNetNetwork(
             n_residual_blocks=self.n_residual_blocks,

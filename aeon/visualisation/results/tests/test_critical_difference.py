@@ -101,10 +101,13 @@ def test__build_cliques_empty():
     not _check_soft_dependencies("matplotlib", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_plot_critical_difference():
+@pytest.mark.parametrize("correction", ["bonferroni", "holm", None])
+def test_plot_critical_difference(correction):
     """Test plot critical difference diagram."""
-    _check_soft_dependencies("matplotlib")
-    from matplotlib.figure import Figure
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
     data_full = list(univariate_equal_length)
@@ -114,7 +117,36 @@ def test_plot_critical_difference():
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
 
-    plot = plot_critical_difference(
+    fig, ax = plot_critical_difference(
+        res,
+        cls,
+        correction=correction,
+    )
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("matplotlib", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+def test_plot_critical_difference_p_values():
+    """Test plot critical difference diagram."""
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
+
+    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
+    data_full = list(univariate_equal_length)
+    data_full.sort()
+
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=data_full, path=data_path, include_missing=True
+    )
+
+    fig, ax, p_values = plot_critical_difference(
         res,
         cls,
         highlight=None,
@@ -123,5 +155,9 @@ def test_plot_critical_difference():
         width=6,
         textspace=1.5,
         reverse=True,
+        return_p_values=True,
     )
-    assert isinstance(plot, Figure)
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+    assert isinstance(p_values, np.ndarray)

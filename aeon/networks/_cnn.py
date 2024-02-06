@@ -3,7 +3,6 @@
 __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class CNNNetwork(BaseDeepNetwork):
@@ -53,8 +52,6 @@ class CNNNetwork(BaseDeepNetwork):
     Journal of Systems Engineering and Electronics 28(1), 162--169, 2017
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
-
     def __init__(
         self,
         n_layers=2,
@@ -68,8 +65,6 @@ class CNNNetwork(BaseDeepNetwork):
         use_bias=True,
         random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
-
         self.n_layers = n_layers
         self.random_state = random_state
         self.n_filters = n_filters

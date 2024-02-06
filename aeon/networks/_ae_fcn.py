@@ -5,7 +5,6 @@ __author__ = ["hadifawaz1999"]
 import numpy as np
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class AEFCNNetwork(BaseDeepNetwork):
@@ -59,8 +58,6 @@ class AEFCNNetwork(BaseDeepNetwork):
     }
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
-
     def __init__(
         self,
         latent_space_dim=128,
@@ -75,9 +72,6 @@ class AEFCNNetwork(BaseDeepNetwork):
         use_bias=True,
         random_state=0,
     ):
-        super().__init__()
-        _check_soft_dependencies("tensorflow")
-
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
         self.n_layers = n_layers
@@ -89,6 +83,8 @@ class AEFCNNetwork(BaseDeepNetwork):
         self.dilation_rate = dilation_rate
         self.use_bias = use_bias
         self.random_state = random_state
+
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
