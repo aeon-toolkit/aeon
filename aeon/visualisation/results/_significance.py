@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 from scipy.stats import rankdata
 
@@ -12,22 +14,62 @@ def plot_significance(
     lower_better=False,
     test="wilcoxon",
     correction="holm",
+    fontsize=12,
+    reverse=False,
 ):
     """
     Plot that allow the case where cliques can be deceiving.
 
-    Plot a graph with a horizontal line on the X axis under the labels, with horizontal
-    lines for each row of the boolean matrix that has more than one 'True' value, and a
-    line connecting the 'True' elements in those rows, with the X axis at the top,
-    with labels on the X axis, reduced overall white space, without grid lines,
-    and with larger letters and circles.
+    It is a visual representation of the results of a statistical test to compare the
+    performance of different classifiers. The plot is based on the work of Demsar [1]_.
+    The plot shows the average rank of each classifier and the average score of each
+    method. The plot also shows the cliques of classifiers that are not significantly
+    different from each other.
 
     Parameters
     ----------
-    - boolean_matrix: A 2D numpy array (n x n) of booleans
-    - labels: A list of strings of length n for X axis labels
+    scores : np.array
+        Array of shape (n_datasets, n_estimators) with the performance of each estimator
+        in each dataset.
+    labels : list of str
+        List of length n_estimators with the name of each estimator.
+    alpha : float, default=0.1
+        The significance level used in the statistical test.
+    lower_better : bool, default=False
+        Whether lower scores are better than higher scores.
+    test : str, default="wilcoxon"
+        The statistical test to use. Available tests are "nemenyi" and "wilcoxon".
+    correction : str, default="holm"
+        The correction to apply to the p-values. Available corrections are "bonferroni",
+        "holm" and None.
+    fontsize : int, default=12
+        The fontsize of the text in the plot.
+    reverse : bool, default=True
+        Whether to reverse the order of the labels.
+
+    Returns
+    -------
+        fig : matplotlib.figure
+            Figure created.
+
+    References
+    ----------
+    .. [1] Demsar J., "Statistical comparisons of classifiers over multiple data sets."
+    Journal of Machine Learning Research 7:1-30, 2006.
+
+    Example
+    -------
+    >>> from aeon.visualisation import plot_significance
+    >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+    >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
+    >>> results = get_estimator_results_as_array(estimators=methods) # doctest: +SKIP
+    >>> plot = plot_significance(results[0], methods, alpha=0.1)\
+        # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> plot.savefig("significance_plot.pdf", bbox_inches="tight")  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")
+
     import matplotlib.pyplot as plt
 
     n_datasets, n_estimators = scores.shape
@@ -42,10 +84,10 @@ def plot_significance(
         ranks = rankdata(-1 * scores, axis=1)
 
     # Step 2: calculate average rank per estimator
-    ordered_avg_ranks = ranks.mean(axis=0)
+    avg_ranks = ranks.mean(axis=0)
     # Sort labels and ranks
     ordered_labels_ranks = np.array(
-        [(l, float(r)) for r, l in sorted(zip(ordered_avg_ranks, labels))], dtype=object
+        [(l, float(r)) for r, l in sorted(zip(avg_ranks, labels))], dtype=object
     )
     ordered_labels = np.array([la for la, _ in ordered_labels_ranks], dtype=str)
     ordered_avg_ranks = np.array([r for _, r in ordered_labels_ranks], dtype=np.float32)
@@ -79,16 +121,35 @@ def plot_significance(
         p_values = np.triu(np.ones((n_estimators, n_estimators)))
         cliques = [[1] * n_estimators]
 
+    if len(cliques) == 0:
+        warnings.warn(
+            "No significant difference between the classifiers. "
+            "Consider using critical difference diagrams.",
+            stacklevel=2,
+        )
+    if reverse:
+        ordered_labels = ordered_labels[::-1]
+        ordered_avg_ranks = ordered_avg_ranks[::-1]
+        ordered_avg_scores = ordered_avg_scores[::-1]
+        for i in range(len(cliques)):
+            cliques[i] = cliques[i][::-1]
+
+    label_lengths = np.array([len(i) for i in ordered_labels])
+    labels_space = 0.5 if max(label_lengths) > 14 else 0
+
     # Compress the graph by reducing vertical spacing
-    spacing = 0.3
+    spacing = 0.2 if len(cliques) >= 3 else 0.3
 
-    height = len(cliques) * 1
-
-    width = float(len(labels))
+    height = (
+        max(
+            len(cliques) * 0.6 if len(cliques) > 5 else len(cliques),
+            1.5 if n_estimators < 7 else 2.5,
+        )
+        + labels_space
+    )
+    width = max(n_estimators * 0.8, 7.5)
 
     fig, ax = plt.subplots(figsize=(width, height))
-
-    num_rows, num_cols = cliques.shape
 
     # Draw the horizontal lines for each valid row
     for row_index, row in enumerate(cliques):
@@ -98,17 +159,17 @@ def plot_significance(
             for col_index in true_indices:
                 # add circles for each 'True' value
                 ax.plot(
-                    num_cols - col_index - 1,
+                    n_estimators - col_index - 1,
                     y_pos,
                     "o",
-                    markersize=13,
+                    markersize=fontsize - 2,
                     color="black",
                 )
 
             ax.hlines(
                 y=y_pos,
-                xmin=num_cols - true_indices[-1] - 1,
-                xmax=num_cols - true_indices[0] - 1,
+                xmin=(n_estimators - true_indices[-1] - 1),
+                xmax=(n_estimators - true_indices[0] - 1),
                 color="black",
                 linewidth=2,
             )
@@ -116,71 +177,65 @@ def plot_significance(
     # Setting labels for x-axis. Rotate only if labels are too long.
     ax.xaxis.tick_top()
     ax.set_xticks(np.arange(len(ordered_labels)))
-    label_lengths = np.array([len(i) for i in reversed(ordered_labels)])
     if (sum(label_lengths) > 40) or (max(label_lengths[:-1] + label_lengths[1:]) > 20):
-        ax.set_xticklabels(
-            reversed(ordered_labels), rotation=45, ha="left", fontsize=14
-        )
+        ax.set_xticklabels(ordered_labels, rotation=45, ha="left", fontsize=fontsize)
     else:
-        ax.set_xticklabels(reversed(ordered_labels), fontsize=14)
+        ax.set_xticklabels(ordered_labels, fontsize=fontsize)
 
     ax.xaxis.set_label_position("top")
 
-    y_pos = y_pos + spacing * 2
-
+    y_pos = spacing * (len(cliques) + 2.5)
     # Add a horizontal line on the X axis under the labels
     ax.hlines(
         y=y_pos,
         xmin=-0.5,
-        xmax=num_cols - 0.5,
+        xmax=n_estimators - 0.5,
         color="black",
         linewidth=1,
     )
-    ordered_avg_ranks = list(reversed(ordered_avg_ranks))
-    # add ranks below the horizontal line
 
-    ordered_avg_scores = list(reversed(ordered_avg_scores))
-    for i in range(len(ordered_avg_ranks)):
+    for idx, (ran, val) in enumerate(zip(ordered_avg_ranks, ordered_avg_scores)):
         ax.text(
-            i,
-            y_pos - 0.1,
-            f"{ordered_avg_ranks[i]:.3f}",
+            idx,
+            y_pos - spacing / 2,
+            f"{ran:.3f}",
             ha="center",
             va="center",
-            fontsize=14,
+            fontsize=fontsize,
         )
 
         ax.text(
-            i,
-            y_pos - 0.3,
-            f"{ordered_avg_scores[i]:.3f}",
+            idx,
+            y_pos - spacing * 1.5,
+            f"{val:.2f}" if ordered_avg_scores.mean() > 9 else f"{val:.3f}",
             ha="center",
             va="center",
-            fontsize=14,
+            fontsize=fontsize - 2 if ordered_avg_scores.mean() > 9 else fontsize,
         )
 
     ax.text(
         -1,
-        y_pos - 0.1,
+        y_pos - spacing / 2,
         "Avg. rank",
         ha="right",
         va="center",
-        fontsize=14,
+        fontsize=fontsize,
         fontweight="bold",
     )
 
     ax.text(
         -1,
-        y_pos - 0.3,
+        y_pos - spacing * 1.5,
         "Avg. value",
         ha="right",
         va="center",
-        fontsize=14,
+        fontsize=fontsize,
         fontweight="bold",
     )
 
     # Adjust the y limits
     ax.set_ylim(-0.1, y_pos)
+    ax.set_xlim(-1, n_estimators)
 
     # Remove the spines, ticks, labels, and grid
     ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
@@ -220,5 +275,8 @@ def _build_cliques(pairwise_matrix):
 
     n = np.sum(cliques, 1)
     cliques = cliques[n > 1, :]
+
+    for i in range(len(cliques)):
+        cliques[i] = cliques[i][::-1]
 
     return cliques[::-1]
