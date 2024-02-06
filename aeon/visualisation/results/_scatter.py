@@ -69,8 +69,8 @@ def plot_pairwise_scatter(
 
     Returns
     -------
-    fig: matplotlib.figure
-        Figure created.
+    fig : matplotlib.figure.Figure
+    ax : matplotlib.axes.Axes
 
     Example
     -------
@@ -322,8 +322,8 @@ def plot_scatter_predictions(
 
     Returns
     -------
-    fig: matplotlib.figure
-        Figure created.
+    fig : matplotlib.figure.Figure
+    ax : matplotlib.axes.Axes
 
     Example
     -------
@@ -385,7 +385,9 @@ def plot_scatter_predictions(
     return fig, ax
 
 
-def plot_score_vs_time_scatter(scores, time, names=None, title=None, log_time=False):
+def plot_score_vs_time_scatter(
+    scores, time, time_unit="", names=None, title=None, log_time=False
+):
     """
     Plot a scatter that compares scores and timings for a set of estimators.
 
@@ -395,6 +397,8 @@ def plot_score_vs_time_scatter(scores, time, names=None, title=None, log_time=Fa
         Scores achieved by the estimators.
     time : np.array
         Time taken by the estimators.
+    time_unit : str, default=""
+        Unit of the time (i.e. milliseconds, seconds).
     names : list, default=None
         Names of the estimators.
     title : str, default=None
@@ -404,10 +408,10 @@ def plot_score_vs_time_scatter(scores, time, names=None, title=None, log_time=Fa
 
     Returns
     -------
-    fig: matplotlib.figure
-        Figure created.
+    fig : matplotlib.figure.Figure
+    ax : matplotlib.axes.Axes
     """
-    _check_soft_dependencies("matplotlib", "seaborn")
+    _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
     if isinstance(scores, list):
@@ -438,11 +442,13 @@ def plot_score_vs_time_scatter(scores, time, names=None, title=None, log_time=Fa
     # Set x-axis to log scale if log_time is True
     if log_time:
         ax.set_xscale("log")
-        ax.set_xlabel("Time (log scale)")
+        time_unit = f" ({time_unit}, log scale)" if time_unit != "" else " (log scale)"
+        ax.set_xlabel(f"Time{time_unit}")
     else:
-        ax.set_xlabel("Time")
+        time_unit = f" {time_unit}" if time_unit != "" else ""
+        ax.set_xlabel(f"Time{time_unit}")
 
-    ax.set_ylabel("Rank")
+    ax.set_ylabel("Average Rank")
 
     if title is not None:
         ax.set_title(title)

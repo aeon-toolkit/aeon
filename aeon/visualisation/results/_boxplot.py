@@ -50,8 +50,8 @@ def plot_boxplot_median(
 
     Returns
     -------
-    fig: matplotlib.figure
-        Figure created.
+    fig : matplotlib.figure.Figure
+    ax : matplotlib.axes.Axes
 
     Example
     -------

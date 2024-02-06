@@ -121,11 +121,11 @@ def plot_critical_difference(
 
     Returns
     -------
-        fig : matplotlib.figure
-            Figure created.
-        p_values : np.ndarray (optional)
-            if return_p_values is True, returns a (n_estimators, n_estimators) matrix of
-            unadjusted p values for the pairwise Wilcoxon sign rank test.
+    fig : matplotlib.figure.Figure
+    ax : matplotlib.axes.Axes
+    p_values : np.ndarray (optional)
+        if return_p_values is True, returns a (n_estimators, n_estimators) matrix of
+        unadjusted p values for the pairwise Wilcoxon sign rank test.
 
     References
     ----------
@@ -168,7 +168,7 @@ def plot_critical_difference(
     p_values = None
     if return_p_values and test != "wilcoxon":
         raise ValueError(
-            "Cannot return p values for the Nemenyi test, since it does "
+            f"Cannot return p values for the {test}, since it does "
             "not calculate p-values."
         )
 
@@ -219,8 +219,7 @@ def plot_critical_difference(
             raise ValueError("tests available are only nemenyi and wilcoxon.")
     # If Friedman test is not significant everything has to be one clique
     else:
-        if return_p_values and test == "wilcoxon":
-            p_values = _wilcoxon_test(ordered_scores, ordered_labels, lower_better)
+        p_values = np.triu(np.ones((n_estimators, n_estimators)))
         cliques = [[1] * n_estimators]
 
     # Step 6 create the diagram:
