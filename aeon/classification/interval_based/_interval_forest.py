@@ -218,6 +218,21 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             parallel_backend=parallel_backend,
         )
 
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        return super()._predict_proba(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        return super()._fit_predict_proba(X, y)
+
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
@@ -253,12 +268,6 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
                 "time_limit_in_minutes": 5,
                 "contract_max_n_estimators": 2,
                 "n_intervals": 2,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "n_intervals": 2,
-                "save_transformed_data": True,
             }
         else:
             return {"n_estimators": 2, "n_intervals": 2}
