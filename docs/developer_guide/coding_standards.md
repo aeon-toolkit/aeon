@@ -5,7 +5,8 @@
 
 We follow:
 
-*  the `PEP8 <https://www.python.org/dev/peps/pep-0008/>`__ coding guidelines. A good example can be found `here <https://gist.github.com/nateGeorge/5455d2c57fb33c1ae04706f2dc4fee01>`__.
+*  the [PEP8](https://www.python.org/dev/peps/pep-0008/>) coding guidelines. A
+   good example can be found [here](https://gist.github.com/nateGeorge/5455d2c57fb33c1ae04706f2dc4fee01)
 
 * code formatting according to ``black``, ``flake8``, ``isort``, ``numpydoc``
 
@@ -13,24 +14,26 @@ We follow:
 
 We adhere to the following code formatting standards:
 
-* `black <https://black.readthedocs.io/en/stable/>`__ with default settings
+* [black](https://black.readthedocs.io/en/stable/) with default settings
 
-* `flake8 <https://flake8.pycqa.org/en/latest/>`__ with a ``max_line_length=88`` and some exceptions as per ``setup.cfg``
+* [flake8)(https://flake8.pycqa.org/en/latest/) with a ``max_line_length=88`` and
+  some exceptions as per ``setup.cfg``
 
 * ``isort`` with default settings
 
-* ``numpydoc`` to enforce numpy `docstring standard <https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>`_ , along with aeon specific conventions described in our :ref:`developer_guide`'s :ref:`documentation section <developer_guide_documentation>`.
+* ``numpydoc`` to enforce numpy [docstring standard](https://numpydoc.readthedocs.io/en/latest/format.html#docstring-standard>) , along with aeon specific
+  conventions described in our :ref:`developer_guide`'s :ref:`documentation section <developer_guide_documentation>`.
 
-This is enforced through our CI/CD workflows via `pre-commit <https://pre-commit.com/>`_.
+This is enforced through our CI/CD workflows via [pre-commit](https://pre-commit.com/)
 
 The full pre-commit configuration can be found in
-`.pre-commit-config.yaml <https://github.com/aeon-toolkit/aeon/blob/main/.pre-commit-config.yaml>`_.
+[.pre-commit-config.yaml](https://github.com/aeon-toolkit/aeon/blob/main/.pre-commit-config.yaml).
 Additional configurations can be found in
-`setup.cfg <https://github.com/aeon-toolkit/aeon/blob/main/setup.cfg>`_.
+[setup.cfg](https://github.com/aeon-toolkit/aeon/blob/main/setup.cfg).
 
 ### ``aeon`` specific code formatting conventions
 
--  Check out our `glossary <https://www.aeon-toolkit.org/en/stable/glossary.html>.
+-  Check out our `[glossary](https://www.aeon-toolkit.org/en/stable/glossary.html).
 -  Use underscores to separate words in non-class names: ``n_instances``
    rather than ``ninstances``.
 -  exceptionally, capital letters ``X``, ``Y``, ``Z``, are permissible as variable names
@@ -62,26 +65,23 @@ Type the below in your python environment, and in the root of your local reposit
 
 1. If not already done, ensure ``aeon`` with ``dev`` dependencies is installed, this includes ``pre-commit``:
 
-.. code:: bash
-
+```{code-block} powershell
    pip install -e .[dev]
-
+```
 2. Set up pre-commit:
 
-.. code:: bash
-
+```{code-block} powershell
    pre-commit install
-
+```
 Once installed, pre-commit will automatically run all ``aeon`` code quality
 checks on the files you changed whenever you make a new commit.
 
 You can find our pre-commit configuration in
-`.pre-commit-config.yaml <https://github.com/aeon-toolkit/aeon/blob/main/.pre-commit-config.yaml>`_.
+[.pre-commit-config.yaml](https://github.com/aeon-toolkit/aeon/blob/main/.pre-commit-config.yaml>).
 Additional configurations can be found in
-`setup.cfg <https://github.com/aeon-toolkit/aeon/blob/main/setup.cfg>`_.
+[setup.cfg](https://github.com/aeon-toolkit/aeon/blob/main/setup.cfg>).
 
-.. note::
-   If you want to exclude some line of code from being checked, you can add a ``# noqa`` (no quality assurance) comment at the end of that line.
+If you want to exclude some line of code from being checked, you can add a ``# noqa`` (no quality assurance) comment at the end of that line.
 
 #### Integrating with your local developer IDE
 
