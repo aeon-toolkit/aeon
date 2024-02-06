@@ -16,7 +16,6 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import TapNetNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TapNetClassifier(BaseDeepClassifier):
@@ -87,7 +86,9 @@ class TapNetClassifier(BaseDeepClassifier):
     TapNetClassifier(...)
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
+    _tags = {
+        "python_dependencies": ["tensorflow", "keras_self_attention"],
+    }
 
     def __init__(
         self,
@@ -113,11 +114,6 @@ class TapNetClassifier(BaseDeepClassifier):
         callbacks=None,
         verbose=False,
     ):
-        _check_soft_dependencies("tensorflow")
-        super(TapNetClassifier, self).__init__()
-
-        self.batch_size = batch_size
-        self.random_state = random_state
         self.kernel_size = kernel_size
         self.layers = layers
         self.rp_params = rp_params
@@ -142,6 +138,11 @@ class TapNetClassifier(BaseDeepClassifier):
         # parameters for random projection
         self.use_rp = use_rp
         self.rp_params = rp_params
+
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+        )
 
         self._network = TapNetNetwork(
             dropout=self.dropout,

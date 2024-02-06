@@ -1,8 +1,8 @@
 """LITE Network."""
+
 __author__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class LITENetwork(BaseDeepNetwork):
@@ -46,15 +46,13 @@ class LITENetwork(BaseDeepNetwork):
         activation="relu",
         random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
-
         self.nb_filters = nb_filters
         self.kernel_size = kernel_size
         self.activation = activation
         self.strides = strides
         self.random_state = random_state
 
-        super(LITENetwork, self).__init__()
+        super().__init__()
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of cutom filters.

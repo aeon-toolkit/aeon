@@ -1,7 +1,7 @@
 import pytest
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.testing.utils.collection import make_3d_test_data
+from aeon.testing.utils.data_gen import make_3d_test_data
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["hadifawaz1999"]
@@ -10,7 +10,7 @@ __author__ = ["hadifawaz1999"]
 class DummyDeepNetwork(BaseDeepNetwork):
     def __init__(self):
         """Dummy Deep Network for testing empty base network class save utilities."""
-        super(DummyDeepNetwork, self).__init__()
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         import tensorflow as tf
@@ -22,7 +22,7 @@ class DummyDeepNetwork(BaseDeepNetwork):
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("tensorflow", severity="none"),
+    not _check_soft_dependencies(["tensorflow", "pydot"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_network():

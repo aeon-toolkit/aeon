@@ -1,4 +1,5 @@
 """Base class for deep clustering."""
+
 __author__ = ["hadifawaz1999"]
 
 from abc import ABC, abstractmethod
@@ -33,6 +34,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         "non-deterministic": True,
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
+        "python_version": "<3.12",
     }
 
     def __init__(
@@ -43,13 +45,14 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         batch_size=32,
         last_file_name="last_file",
     ):
-        super(BaseDeepClusterer, self).__init__(n_clusters)
-
         self.clustering_algorithm = clustering_algorithm
         self.clustering_params = clustering_params
         self.batch_size = batch_size
         self.last_file_name = last_file_name
+
         self.model_ = None
+
+        super().__init__(n_clusters)
 
     @abstractmethod
     def build_model(self, input_shape):

@@ -14,7 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.networks import InceptionNetwork
 from aeon.regression.base import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionTimeRegressor(BaseRegressor):
@@ -144,7 +143,7 @@ class InceptionTimeRegressor(BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import InceptionTimeRegressor
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -231,7 +230,7 @@ class InceptionTimeRegressor(BaseRegressor):
 
         self.regressors_ = []
 
-        super(InceptionTimeRegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit each of the Individual Inception models.
@@ -453,7 +452,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import IndividualInceptionRegressor
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -494,10 +493,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         loss="mse",
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super(IndividualInceptionRegressor, self).__init__(
-            last_file_name=last_file_name
-        )
         # predefined
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
@@ -513,7 +508,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.bottleneck_size = bottleneck_size
         self.depth = depth
         self.kernel_size = kernel_size
-        self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.use_custom_filters = use_custom_filters
         self.output_activation = output_activation
@@ -523,7 +517,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -531,6 +524,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.use_mini_batch_size = use_mini_batch_size
         self.loss = loss
         self.optimizer = optimizer
+
+        super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
         self._network = InceptionNetwork(
             nb_filters=self.nb_filters,

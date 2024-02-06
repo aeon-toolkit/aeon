@@ -96,7 +96,7 @@ class MultiRocket(BaseCollectionTransformer):
         self.parameter = None
         self.parameter1 = None
 
-        super(MultiRocket, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit dilations and biases to input time series.

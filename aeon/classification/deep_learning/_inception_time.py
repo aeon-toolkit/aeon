@@ -14,7 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import InceptionNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionTimeClassifier(BaseClassifier):
@@ -227,7 +226,7 @@ class InceptionTimeClassifier(BaseClassifier):
 
         self.classifers_ = []
 
-        super(InceptionTimeClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the ensemble of IndividualInceptionClassifier models.
@@ -507,10 +506,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         metrics=None,
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow", severity="error")
-        super(IndividualInceptionClassifier, self).__init__(
-            last_file_name=last_file_name
-        )
         # predefined
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
@@ -526,7 +521,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.bottleneck_size = bottleneck_size
         self.depth = depth
         self.kernel_size = kernel_size
-        self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.use_custom_filters = use_custom_filters
 
@@ -535,15 +529,19 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
 
         self.callbacks = callbacks
-        self.random_state = random_state
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
+
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+            last_file_name=last_file_name,
+        )
 
         self._network = InceptionNetwork(
             nb_filters=self.nb_filters,

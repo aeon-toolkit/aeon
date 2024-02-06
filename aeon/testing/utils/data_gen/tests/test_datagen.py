@@ -1,10 +1,11 @@
 """Tests for datagen functions."""
+
 __author__ = ["klam-data", "mgorlin", "pyyim"]
 
 import pytest
 from numpy import array_equal
 
-from aeon.annotation.datagen import piecewise_poisson
+from aeon.testing.utils.data_gen import piecewise_poisson
 
 
 @pytest.mark.parametrize(

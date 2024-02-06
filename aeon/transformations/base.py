@@ -140,7 +140,7 @@ class BaseTransformer(BaseEstimator):
         self._converter_store_X = dict()  # storage dictionary for in/output conversion
         self._output_convert = _output_convert
 
-        super(BaseTransformer, self).__init__()
+        super().__init__()
         _check_estimator_deps(self)
 
     def __mul__(self, other):
@@ -687,7 +687,7 @@ class BaseTransformer(BaseEstimator):
         """
         # if self is not vectorized, run the default get_fitted_params
         if not getattr(self, "_is_vectorized", False):
-            return super(BaseTransformer, self).get_fitted_params(deep=deep)
+            return super().get_fitted_params(deep=deep)
 
         # otherwise, we delegate to the instances' get_fitted_params
         # instances' parameters are returned at dataframe-slice-like keys
@@ -1042,7 +1042,7 @@ class BaseTransformer(BaseEstimator):
                 store=_converter_store_X,
                 store_behaviour="freeze",
             )
-        elif output_scitype == "Primitives":
+        elif output_scitype == "Tabular" or output_scitype == "Primitives":
             # we ensure the output is pd_DataFrame_Table
             # & ensure the returned index is sensible
             # for return index, we need to deal with last level, constant 0

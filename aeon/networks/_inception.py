@@ -1,8 +1,8 @@
 """Inception Network."""
+
 __author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionNetwork(BaseDeepNetwork):
@@ -91,8 +91,6 @@ class InceptionNetwork(BaseDeepNetwork):
     }
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
-
     def __init__(
         self,
         nb_filters=32,
@@ -112,8 +110,6 @@ class InceptionNetwork(BaseDeepNetwork):
         use_custom_filters=False,
         random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
-
         self.nb_filters = nb_filters
         self.nb_conv_per_layer = nb_conv_per_layer
         self.kernel_size = kernel_size
@@ -131,7 +127,7 @@ class InceptionNetwork(BaseDeepNetwork):
         self.use_custom_filters = use_custom_filters
         self.random_state = random_state
 
-        super(InceptionNetwork, self).__init__()
+        super().__init__()
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
         """Construct the hybrid layer to compute features of cutom filters.
@@ -309,6 +305,7 @@ class InceptionNetwork(BaseDeepNetwork):
             input_inception = input_tensor
 
         kernel_size_s = [kernel_size // (2**i) for i in range(nb_conv_per_layer)]
+        self.kernel_size_s = kernel_size_s
 
         conv_list = []
 
@@ -384,51 +381,61 @@ class InceptionNetwork(BaseDeepNetwork):
         import tensorflow as tf
 
         if isinstance(self.nb_filters, list):
+            assert len(self.nb_filters) == self.depth
             self._nb_filters = self.nb_filters
         else:
             self._nb_filters = [self.nb_filters] * self.depth
 
         if isinstance(self.kernel_size, list):
+            assert len(self.kernel_size) == self.depth
             self._kernel_size = self.kernel_size
         else:
             self._kernel_size = [self.kernel_size] * self.depth
 
         if isinstance(self.nb_conv_per_layer, list):
+            assert len(self.nb_conv_per_layer) == self.depth
             self._nb_conv_per_layer = self.nb_conv_per_layer
         else:
             self._nb_conv_per_layer = [self.nb_conv_per_layer] * self.depth
 
         if isinstance(self.strides, list):
+            assert len(self.strides) == self.depth
             self._strides = self.strides
         else:
             self._strides = [self.strides] * self.depth
 
         if isinstance(self.dilation_rate, list):
+            assert len(self.dilation_rate) == self.depth
             self._dilation_rate = self.dilation_rate
         else:
             self._dilation_rate = [self.dilation_rate] * self.depth
 
         if isinstance(self.padding, list):
+            assert len(self.padding) == self.depth
             self._padding = self.padding
         else:
             self._padding = [self.padding] * self.depth
 
         if isinstance(self.activation, list):
+            assert len(self.activation) == self.depth
             self._activation = self.activation
         else:
             self._activation = [self.activation] * self.depth
 
         if isinstance(self.use_max_pooling, list):
+            assert len(self.use_max_pooling) == self.depth
             self._use_max_pooling = self.use_max_pooling
         else:
             self._use_max_pooling = [self.use_max_pooling] * self.depth
 
         if isinstance(self.max_pool_size, list):
+            assert len(self.max_pool_size) == self.depth
             self._max_pool_size = self.max_pool_size
         else:
             self._max_pool_size = [self.max_pool_size] * self.depth
 
         if isinstance(self.use_bias, list):
+            assert len(self.use_bias) == self.depth
             self._use_bias = self.use_bias
         else:
             self._use_bias = [self.use_bias] * self.depth

@@ -1,4 +1,5 @@
 """Implements ARDL Model as interface to statsmodels."""
+
 import warnings
 
 import pandas as pd
@@ -264,7 +265,7 @@ class ARDL(_StatsModelsAdapter):
         if self.auto_ardl and self.lags is not None:
             raise ValueError("lags should not be specified if auto_ardl is True")
 
-        super(ARDL, self).__init__()
+        super().__init__()
 
     def check_param_validity(self, X):
         """Check for the validity of entered parameter combination."""
@@ -522,10 +523,10 @@ class ARDL(_StatsModelsAdapter):
                 fitted_params["hessian"] = self._fitted_forecaster.model.hessian(
                     self._fitted_forecaster.params
                 )
-                fitted_params[
-                    "information"
-                ] = self._fitted_forecaster.model.information(
-                    self._fitted_forecaster.params
+                fitted_params["information"] = (
+                    self._fitted_forecaster.model.information(
+                        self._fitted_forecaster.params
+                    )
                 )
                 fitted_params["loglike"] = self._fitted_forecaster.model.loglike(
                     self._fitted_forecaster.params

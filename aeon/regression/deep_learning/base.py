@@ -38,14 +38,16 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         "non-deterministic": True,
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
+        "python_version": "<3.12",
     }
 
     def __init__(self, batch_size=40, last_file_name="last_model"):
-        super(BaseDeepRegressor, self).__init__()
-
         self.batch_size = batch_size
         self.last_file_name = last_file_name
+
         self.model_ = None
+
+        super().__init__()
 
     @abstractmethod
     def build_model(self, input_shape):

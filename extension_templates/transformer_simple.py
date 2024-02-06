@@ -32,6 +32,7 @@ Mandatory implements:
 Testing - implement if aeon transformer (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
+
 # todo: write an informative docstring for the file or module, remove the above
 
 # todo: uncomment the following line, enter authors' GitHub IDs
@@ -180,7 +181,7 @@ class MyTransformer(BaseTransformer):
         self.paramc = paramc
 
         # todo: change "MyTransformer" to the name of the class
-        super(MyTransformer, self).__init__()
+        super().__init__()
 
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc
