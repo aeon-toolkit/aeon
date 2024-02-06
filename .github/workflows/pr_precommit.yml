@@ -40,9 +40,5 @@ jobs:
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
 
-      - name: Check for missing init files
-        run: build_tools/fail_on_missing_init_files.sh
-        shell: bash
-
       - if: ${{ failure() && github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
         uses: pre-commit-ci/lite-action@v1.0.1

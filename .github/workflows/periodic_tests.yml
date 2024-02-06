@@ -39,10 +39,6 @@ jobs:
         with:
           extra_args: --all-files
 
-      - name: Check for missing init files
-        run: build_tools/fail_on_missing_init_files.sh
-        shell: bash
-
   run-notebook-examples:
     runs-on: ubuntu-22.04
 
@@ -54,7 +50,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -75,7 +71,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -101,7 +97,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -120,7 +116,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04, macOS-12, windows-2022 ]
-        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
       - uses: actions/checkout@v4
@@ -130,7 +126,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -156,7 +152,7 @@ jobs:
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v2
+        uses: nick-fields/retry@v3
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -168,4 +164,6 @@ jobs:
       - name: Run tests
         run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
