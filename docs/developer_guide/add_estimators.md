@@ -14,7 +14,7 @@ The high-level steps to implement ``aeon`` compatible estimators are as follows:
 5.  if the test suite highlights bugs or issues, fix them and go to 4
 
 
-## What is my learning task?
+### What is my learning task?
 
 ``aeon`` is structured along modules encompassing specific learning tasks,
 e.g., forecasting, classification, regression or segmentation, with a class structure
@@ -115,19 +115,21 @@ Example, running the test ``test_constructor`` with all fixtures:
 
 ```{code-block} powershell
     check_estimator(NaiveForecaster, tests_to_run="test_constructor")
-
-``{'test_constructor[NaiveForecaster]': 'PASSED'}``
 ```
+outputs
+``{'test_constructor[NaiveForecaster]': 'PASSED'}``
 
 To run or exclude certain test-fixture-combinations, use the ``fixtures_to_run`` or ``fixtures_to_exclude`` arguments.
 Values provided should be names of test-fixture-combination strings (str), or a list of such.
 Valid strings are precisely the dictionary keys when using ``check_estimator`` with default parameters.
 
 Example, running the test-fixture-combination ``"test_repr[NaiveForecaster-2]"``:
-```{code-block} powershell   check_estimator(NaiveForecaster, fixtures_to_run="test_repr[NaiveForecaster-2]")
 
-``{'test_repr[NaiveForecaster-2]': 'PASSED'}``
+```{code-block} powershell
+    check_estimator(NaiveForecaster, fixtures_to_run="test_repr[NaiveForecaster-2]")
 ```
+outputs
+``{'test_repr[NaiveForecaster-2]': 'PASSED'}``
 
 A useful workflow for using ``check_estimator`` to debug an estimator is as follows:
 
@@ -161,7 +163,7 @@ a quick approach is searching the codebase for test strings produced by ``check_
 When adding an ``aeon`` compatible estimator to ``aeon`` itself, a number of
 additional things need to be done:
 
-*   ensure that code also meets ``aeon's`` :ref:`documentation <developer_guide_documentation>` standards.
+*   ensure that code also meets ``aeon's`` developer documentation standards.
 *   add the estimator to the ``aeon`` API reference. This is done by adding a reference to the estimator in the
     correct ``rst`` file inside ``docs/api_reference``.
 *   authors of the estimator should add themselves to ``CODEOWNERS``, as owners of the contributed estimator.

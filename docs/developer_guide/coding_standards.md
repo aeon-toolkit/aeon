@@ -1,21 +1,15 @@
-.. _coding_standards:
-
-================
-Coding standards
-================
+# Coding standards
 
 
-Coding style
-============
+## Coding style
 
-In coding, we follow:
+We follow:
 
 *  the `PEP8 <https://www.python.org/dev/peps/pep-0008/>`__ coding guidelines. A good example can be found `here <https://gist.github.com/nateGeorge/5455d2c57fb33c1ae04706f2dc4fee01>`__.
 
 * code formatting according to ``black``, ``flake8``, ``isort``, ``numpydoc``
 
-Code formatting and linting
----------------------------
+### Code formatting and linting
 
 We adhere to the following code formatting standards:
 
@@ -34,10 +28,9 @@ The full pre-commit configuration can be found in
 Additional configurations can be found in
 `setup.cfg <https://github.com/aeon-toolkit/aeon/blob/main/setup.cfg>`_.
 
-``aeon`` specific code formatting conventions
------------------------------------------------
+### ``aeon`` specific code formatting conventions
 
--  Check out our :ref:`glossary`.
+-  Check out our `glossary <https://www.aeon-toolkit.org/en/stable/glossary.html>.
 -  Use underscores to separate words in non-class names: ``n_instances``
    rather than ``ninstances``.
 -  exceptionally, capital letters ``X``, ``Y``, ``Z``, are permissible as variable names
@@ -53,16 +46,14 @@ Additional configurations can be found in
    referenced, but most important, it prevents using a static analysis
    tool like pyflakes to automatically find bugs.
 
-Setting up local code quality checks
-------------------------------------
+### Setting up local code quality checks
 
 There are two options to set up local code quality checks:
 
 * using ``pre-commit`` for automated code formatting
 * setting up ``black``, ``flake8``, ``isort`` and/or ``numpydoc`` manually in a local dev IDE
 
-Using pre-commit
-^^^^^^^^^^^^^^^^
+#### Using pre-commit
 
 To set up pre-commit, follow these steps in a python environment
 with the ``aeon`` ``dev`` dependencies installed.
@@ -92,8 +83,7 @@ Additional configurations can be found in
 .. note::
    If you want to exclude some line of code from being checked, you can add a ``# noqa`` (no quality assurance) comment at the end of that line.
 
-Integrating with your local developer IDE
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#### Integrating with your local developer IDE
 
 Local developer IDEs will usually integrate with common code quality checks, but need setting them up in IDE specific ways.
 
@@ -104,14 +94,3 @@ this can be achieved by an install of ``aeon`` with ``dev`` dependencies.
 Visual Studio Code preferences also allow setting of parameters such as ``max_line_length=88`` for ``flake8``.
 
 In Visual Studio Code, we also recommend to add ``"editor.ruler": 88`` to your local ``settings.json`` to display the max line length.
-
-API design
-============
-
-The general design approach of aeon is described in the
-paper `“Designing Machine Learning Toolboxes: Concepts, Principles and
-Patterns” <https://arxiv.org/abs/2101.04938>`__.
-
-.. note::
-
-   Feedback and improvement suggestions are very welcome!
