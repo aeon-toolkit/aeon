@@ -5,12 +5,12 @@ if new pull requests do not break anything and meet code quality
 standards such as a common `coding style <#Coding-style>`__.
 Before setting up Continuous Integration, be sure that you have set
 up your developer environment, and installed a
-`development version <https://www.aeon-toolkit.org/en/stable/installation.html>`__
+[development version](https://www.aeon-toolkit.org/en/stable/installation.html)
 of aeon.
 
 ## Code quality checks
 
-``_pre-commit: <https://pre-commit.com>`
+[pre-commit:](<https://pre-commit.com)
 
 We use `pre-commit`_ for code quality checks (a process we also refer to as "linting" checks).
 
@@ -28,7 +28,7 @@ For a detailed guide on code quality and linting for developers, see :ref:`codin
 
 ## Unit testing
 
-We use `pytest <https://docs.pytest.org/en/latest/>`__ for unit testing.
+We use [pytest](https://docs.pytest.org/en/latest/) for unit testing.
 
 To check if your code passes all tests locally, you need to install the
 development version of aeon and all extra dependencies.
@@ -39,12 +39,11 @@ development version of aeon and all extra dependencies.
     pip install -e .[dev]
 ```
 
-   This installs an editable `development
-   version <https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs>`__
+   This installs an editable [development version](https://pip.pypa.io/en/stable/reference/pip_install/#editable-installs>)
    of aeon which will include the changes you make.
 
    For trouble shooting on different operating systems, please see our detailed
-   `installation instructions <https://www.aeon-toolkit.org/en/latest/installation.html>`__.
+   [nstallation instructions](https://www.aeon-toolkit.org/en/latest/installation.html).
 
 2. To run all unit tests, run:
 
@@ -54,9 +53,9 @@ development version of aeon and all extra dependencies.
 
 ## Test coverage
 
-`_codecov: <https://codecov.io>`
-`_coverage: <https://coverage.readthedocs.io/>`
-`_pytest-cov: <https://github.com/pytest-dev/pytest-cov>
+[codecov:](https://codecov.io)
+[coverage:](https://coverage.readthedocs.io/)
+[pytest-cov:](https://github.com/pytest-dev/pytest-cov)
 
 We use `coverage`_, the `pytest-cov`_ plugin, and `codecov`_ for test coverage.
 
@@ -65,30 +64,12 @@ We use `coverage`_, the `pytest-cov`_ plugin, and `codecov`_ for test coverage.
 This section gives an overview of the infrastructure and continuous
 integration services we use.
 
-+---------------+-----------------------+-------------------------------------+
 | Platform      | Operation             | Configuration                       |
-+===============+=======================+=====================================+
-| `GitHub       | Build/test/           | `.github/workflows/ <https://gi     |
-| Actions       | distribute            | thub.com/aeon/skti                  |
-| <https:/      | on Linux, MacOS and   | me/blob/main/.github/workflows/>`__ |
-| /docs.github. | Windows,              |                                     |
-| com/en/free-p | run code quality      |                                     |
-| ro-team@lates | checks                |                                     |
-| t/actions>`__ |                       |                                     |
-+---------------+-----------------------+-------------------------------------+
-| `Read the     | Build/deploy          | `.readthedocs.yml                   |
-| Docs <h       | documentation         | <https://github.com/alan-tu         |
-| ttps://readth |                       | ring-institute/aeon/blob/main/.gi   |
-| edocs.org>`__ |                       | thub/workflows/code-quality.yml>`__ |
-+---------------+-----------------------+-------------------------------------+
-| `Codecov      | Test coverage         | `.codecov.yml <https                |
-| <https://c    |                       | ://github.com/aeon                  |
-| odecov.io>`__ |                       | /aeon/blob/main/.codecov.yml>`__,   |
-|               |                       | `.coveragerc <htt                   |
-|               |                       | ps://github.com/alan-turing-institu |
-|               |                       | te/aeon/blob/main/.coveragerc>`__   |
-+---------------+-----------------------+-------------------------------------+
+|---------------|-----------------------|-------------------------------------|
+| GitHub Actions | Build/test/distribute on Linux, MacOS and Windows, run code quality checks | [`.github/workflows/`](https://github.com/aeon/skti/me/blob/main/.github/workflows/) |
+| Read the Docs | Build/deploy documentation | [`.readthedocs.yml`](https://github.com/alan-turing-institute/aeon/blob/main/.github/workflows/code-quality.yml) |
+| Codecov       | Test coverage         | [`.codecov.yml`](https://github.com/aeon/aeon/blob/main/.codecov.yml), [`.coveragerc`](https://github.com/alan-turing-institute/aeon/blob/main/.coveragerc) |
 
 Additional scripts used for building, unit testing and distribution can
 be found in
-`build_tools/ <https://github.com/aeon-toolkit/aeon/tree/main/build_tools>`__.
+[build_tools](https://github.com/aeon-toolkit/aeon/tree/main/build_tools>).
