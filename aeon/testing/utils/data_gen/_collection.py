@@ -118,7 +118,7 @@ def make_example_2d_numpy(
     X : np.ndarray
         Randomly generated 2D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
 
     Examples
     --------
@@ -278,7 +278,7 @@ def make_example_nested_dataframe(
 
 def make_example_long_table(
     n_cases: int = 50, n_channels: int = 2, n_timepoints: int = 20
-):
+) -> pd.DataFrame:
     """Generate example collection in long table format file.
 
     Parameters
@@ -292,7 +292,8 @@ def make_example_long_table(
 
     Returns
     -------
-    DataFrame containing random data in long format.
+    pd.DataFrame
+        DataFrame containing random data in long format.
     """
     rows_per_case = n_timepoints * n_channels
     total_rows = n_cases * n_timepoints * n_channels
@@ -316,16 +317,18 @@ def make_example_long_table(
     return df
 
 
-def make_example_multi_index_dataframe(n_instances=50, n_channels=3, n_timepoints=20):
+def make_example_multi_index_dataframe(
+    n_instances: int = 50, n_channels: int = 3, n_timepoints: int = 20
+):
     """Generate example collection as multi-index DataFrame.
 
     Parameters
     ----------
-    n_instances : int
+    n_instances : int, default =50
         Number of instances.
-    n_channels : int
+    n_channels : int, default =3
         Number of columns (series) in multi-indexed DataFrame.
-    n_timepoints : int
+    n_timepoints : int, default =20
         Number of timepoints per instance-column pair.
 
     Returns
