@@ -1,4 +1,4 @@
-"""Tests for the critical difference diagram maker."""
+"""Tests for the stats and p-values computation."""
 
 import os
 
