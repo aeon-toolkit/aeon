@@ -9,10 +9,6 @@ To stay up-to-date with aeon releases, subscribe to aeon
 [here](https://libraries.io/pypi/aeon>) or follow us on
 [Twitter](https://twitter.com/aeon_toolbox>).
 
-For upcoming changes and next releases, see our
-[milestones](https://github.com/aeon-toolkit/aeon/milestones). For our long-term plan,
-see our [roadmap](roadmap).
-
 - [Version 0.7.0](changelogs/v0.7.md)
 - [Version 0.6.0](changelogs/v0.6.md)
 - [Version 0.5.0](changelogs/v0.5.md)
