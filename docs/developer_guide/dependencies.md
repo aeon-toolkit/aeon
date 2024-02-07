@@ -2,13 +2,12 @@
 
 ## Types of dependencies
 
-There are three types of dependencies in ``aeon``: **core**, **soft**, or **developer**.
+There are three types of dependencies in `aeon`: **core**, **soft**, or **developer**.
 
-.. note::
 
-   * **Core** dependencies are required to install and run ``aeon`` and are automatically installed with ``aeon``, *e.g.*  ``pandas``;
-   * **Soft** dependencies are only required to import certain modules, but not necessary to use most functionalities. A soft dependency is not installed automatically with the package. Instead, users need to install it manually if they want to use a module that requires a soft dependency, *e.g.* ``pmdarima``;
-   * **Developer** dependencies are required for ``aeon`` developers, but not for typical users of ``aeon``, *e.g.* ``pytest``.
+   * **Core** dependencies are required to install and run `aeon` and are automatically installed with `aeon`, *e.g.*  `pandas`;
+   * **Soft** dependencies are only required to import certain modules, but not necessary to use most functionalities. A soft dependency is not installed automatically with the package. Instead, users need to install it manually if they want to use a module that requires a soft dependency, *e.g.* `pmdarima`;
+   * **Developer** dependencies are required for `aeon` developers, but not for typical users of `aeon`, *e.g.* `pytest`.
 
 
 We try to keep the number of core dependencies to a minimum and rely on other packages as soft dependencies when feasible.
@@ -19,9 +18,9 @@ Soft dependencies in `aeon` should usually be restricted to estimators.
 
 When adding a new soft dependency or changing the version of an existing one, the following files need to be updated:
 
-- `pyproject.toml`, adding the dependency or version bounds in the `all_extras` dependency set. Following the [PEP 621](https://www.python.org/dev/peps/pep-0621/) convention, all dependencies including build time dependencies and optional dependencies are specified in this file. ([pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml))
+- [pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml), adding the dependency or version bounds in the `all_extras` dependency set. Following the [PEP 621](https://www.python.org/dev/peps/pep-0621/) convention, all dependencies including build time dependencies and optional dependencies are specified in this file.
 
-Informative warnings or error messages for missing soft dependencies should be raised, in a situation where a user would need them. This is handled through our `_check_soft_dependencies` utility [here](https://github.com/aeon-toolkit/aeon/blob/main/aeon/utils/validation/_dependencies.py).
+Informative warnings or error messages for missing soft dependencies should be raised, in a situation where a user would need them. This is handled through our [`_check_soft_dependencies` utility](https://github.com/aeon-toolkit/aeon/blob/main/aeon/utils/validation/_dependencies.py).
 
 There are specific conventions to add such warnings in estimators, as below. To add an estimator with a soft dependency, ensure the following:
 
@@ -36,8 +35,8 @@ There are specific conventions to add such warnings in estimators, as below. To 
 
 Core or developer dependencies can be added only by core developers after discussion and consensus. When adding a new core dependency or changing the version of an existing one, the following files need to be updated:
 
-- `pyproject.toml`, adding the dependency or version bounds in the `dependencies` dependency set. ([pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml))
+- [`pyproject.toml`](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml), adding the dependency or version bounds in the `dependencies` dependency set.
 
 When adding a new developer dependency or changing the version of an existing one, the following files need to be updated:
 
-- `pyproject.toml`, adding the dependency or version bounds in the `dev` dependency set. ([pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml))
+- [`pyproject.toml`](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml), adding the dependency or version bounds in the `dev` dependency set.

@@ -4,7 +4,7 @@ The preferred workflow for contributing to aeon's repository is to fork the main
 
 1. Fork the [project repository](https://github.com/aeon-toolkit/aeon) by clicking on the 'Fork' button near the top right of the page. This creates a copy of the code under your GitHub user account. For more details on how to fork a repository, see [this guide](https://help.github.com/articles/fork-a-repo/).
 
-2. [Clone](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository) your fork of the aeon repo from your GitHub account to your local disk:
+2. [Clone](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/cloning-a-repository) your fork of the `aeon` repo from your GitHub account to your local disk:
 
     ```powershell
     git clone git@github.com:<username>/aeon.git
@@ -66,8 +66,6 @@ The preferred workflow for contributing to aeon's repository is to fork the main
 
 10. To add more changes, simply repeat steps 7 - 8. Pull requests are updated automatically if you push new changes to the same branch.
 
-[Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
-
 > **Note:**
 >
-> If the above is unclear, look up the [Git documentation](https://git-scm.com/documentation). If you get stuck, chat with us on Slack.
+> If the above is unclear, look up the [Git documentation](https://git-scm.com/documentation). If you get stuck, chat with us on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA).

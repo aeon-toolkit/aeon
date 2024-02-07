@@ -5,7 +5,7 @@ To add a new dataset into `aeon` internal dataset repository, please proceed wit
 1. From the root of your `aeon` local repository, create a `<dataset-name>` folder:
 
 ```{code-block} powershell
-      mkdir ./datasets/data/<dataset-name>
+mkdir ./datasets/data/<dataset-name>
 ```
 2. In the above directory, add your dataset file `<dataset-name>.<EXT>`, where
 `<EXT>` is the file extension:
@@ -14,10 +14,10 @@ To add a new dataset into `aeon` internal dataset repository, please proceed wit
    * If your file format ``<EXT>`` does not figure in the list, simply add it in the `aeon/MANIFEST.in` file:
 
 ```{code-block} powershell
-      "aeon/MANIFEST.in"
-      ...
-      recursive-include aeon/datasets *.csv ... *.<EXT>
-      ...
+"aeon/MANIFEST.in"
+...
+recursive-include aeon/datasets *.csv ... *.<EXT>
+...
 ```
 3. In ``aeon/datasets/_single_problem_loaders.py``, declare a `load_<dataset-name>(...)` function. Feel free to use any other declared functions as templates for either classification or regression datasets.
 
