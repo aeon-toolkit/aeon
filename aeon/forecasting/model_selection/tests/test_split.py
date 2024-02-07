@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datatypes._utilities import get_cutoff
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.model_selection import (
     CutoffSplitter,
@@ -29,6 +28,7 @@ from aeon.forecasting.tests import (
 )
 from aeon.testing.utils.data_gen import _make_fh, _make_hierarchical, make_series
 from aeon.utils.datetime import _coerce_duration_to_int
+from aeon.utils.index_functions import get_cutoff
 from aeon.utils.validation import (
     array_is_datetime64,
     array_is_int,

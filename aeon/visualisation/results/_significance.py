@@ -1,3 +1,11 @@
+"""Function to compute and plot significance."""
+
+__author__ = ["dguijo", "TonyBagnall"]
+
+__all__ = [
+    "plot_significance",
+]
+
 import warnings
 
 import numpy as np
@@ -19,13 +27,18 @@ def plot_significance(
     return_p_values=False,
 ):
     """
-    Plot that allow the case where cliques can be deceiving.
+    Plot similar to CDDs, but allows the case where cliques can be deceiving.
 
     It is a visual representation of the results of a statistical test to compare the
     performance of different classifiers. The plot is based on the work of Demsar [1]_.
     The plot shows the average rank of each classifier and the average score of each
     method. The plot also shows the cliques of classifiers that are not significantly
-    different from each other.
+    different from each other. The main difference against CDDs is that this plot
+    allows the case where cliques can be deceiving, i.e. there is a gap where a method
+    is significantly different from the rest of the clique. In the CDDs, the clique
+    stop when there is a significant difference between the methods. In this plot,
+    the clique continues until the end of the list of methods, showing a gap for the
+    method with significant differences.
 
     Parameters
     ----------
@@ -52,13 +65,13 @@ def plot_significance(
 
     Returns
     -------
-        fig : matplotlib.figure
-            Figure created.
-        ax : matplotlib.axes
-            Axes of the figure.
-        p_values : np.ndarray (optional)
-            if return_p_values is True, returns a (n_estimators, n_estimators) matrix of
-            unadjusted p values for the pairwise Wilcoxon sign rank test.
+    fig : matplotlib.figure
+        Figure created.
+    ax : matplotlib.axes
+        Axes of the figure.
+    p_values : np.ndarray (optional)
+        if return_p_values is True, returns a (n_estimators, n_estimators) matrix of
+        unadjusted p values for the pairwise Wilcoxon sign rank test.
 
     References
     ----------

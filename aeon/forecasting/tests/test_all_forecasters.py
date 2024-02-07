@@ -9,7 +9,6 @@ import pandas as pd
 import pytest
 
 from aeon.datatypes import check_is_mtype
-from aeon.datatypes._utilities import get_cutoff
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.forecasting.model_selection import (
@@ -35,6 +34,7 @@ from aeon.testing.utils.data_gen import (
     make_forecasting_problem,
     make_series,
 )
+from aeon.utils.index_functions import get_cutoff
 from aeon.utils.validation.forecasting import check_fh
 
 # get all forecasters
@@ -610,8 +610,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
             and does not have expected row and column indices
         """
         from aeon.datatypes import check_is_mtype
-        from aeon.datatypes._utilities import get_window
         from aeon.testing.utils.data_gen import _make_hierarchical
+        from aeon.utils.index_functions import get_window
 
         y_train = _make_hierarchical(
             hierarchy_levels=(2, 4),

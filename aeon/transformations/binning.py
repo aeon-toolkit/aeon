@@ -40,16 +40,6 @@ class TimeBinAggregate(BaseTransformer):
         "bin_end" = transformed pd.DataFrame will be indexed by bin starts
         "bin_mid" = transformed pd.DataFrame will be indexed by bin midpoints
         "bin" = transformed pd.DataFrame will have `bins` as `IntervalIndex`
-
-    Example
-    -------
-    from aeon.datatypes import get_examples
-    from aeon.transformations.binning import TimeBinAggregate
-
-    bins = [0, 2, 4]
-    X = get_examples("pd.DataFrame")[0]
-
-    t = TimeBinAggregate([-1, 2, 10])
     """
 
     _tags = {

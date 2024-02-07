@@ -49,13 +49,12 @@ from aeon.datatypes import (
     VectorizedDF,
     check_is_scitype,
     convert_to,
-    get_cutoff,
     mtype_to_scitype,
     scitype_to_mtype,
-    update_data,
 )
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
+from aeon.utils.index_functions import get_cutoff, update_data
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index

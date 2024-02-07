@@ -1,4 +1,4 @@
-"""Eclectic utilities for the datatypes module."""
+"""Index functions of dubious worth."""
 
 import numpy as np
 import pandas as pd

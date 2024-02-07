@@ -24,7 +24,6 @@ from aeon.datatypes._registry import (
     mtype_to_scitype,
     scitype_to_mtype,
 )
-from aeon.datatypes._utilities import get_cutoff, update_data
 from aeon.datatypes._vectorize import VectorizedDF
 
 __all__ = [
@@ -35,7 +34,6 @@ __all__ = [
     "convert",
     "convert_to",
     "mtype",
-    "get_cutoff",
     "get_examples",
     "mtype_to_scitype",
     "TYPE_REGISTER",
