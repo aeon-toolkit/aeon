@@ -31,6 +31,7 @@ __all__ = [
     "make_annotation_problem",
     "_convert_tsf_to_hierarchical",
     "_get_n_columns",
+    "get_examples",
 ]
 
 

@@ -7,7 +7,6 @@ import pandas as pd
 from sklearn import clone
 
 from aeon.base import _HeterogenousMetaEstimator
-from aeon.datatypes import ALL_TIME_SERIES_TYPES
 from aeon.transformations._delegate import _DelegatedTransformer
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.multiindex import flatten_multiindex
@@ -583,7 +582,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
         Parameters
         ----------
-        X : pd.DataFrame, Series, Panel, or Hierarchical mtype format
+        X : pd.DataFrame
             Data to fit transform to
         y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
@@ -608,7 +607,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
 
         Parameters
         ----------
-        X : pd.DataFrame, Series, Panel, or Hierarchical mtype format
+        X : pd.DataFrame
             Data to be transformed
         y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
@@ -880,7 +879,23 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
     _tags = {
         "fit_is_empty": False,
         "univariate-only": False,
-        "X_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": [
+            "dask_panel",
+            "pd-multiindex",
+            "pd-long",
+            "df-list",
+            "xr.DataArray",
+            "pd_multiindex_hier",
+            "numpy3D",
+            "np-list",
+            "pd.DataFrame",
+            "pd.Series",
+            "dask_hierarchical",
+            "np.ndarray",
+            "dask_series",
+            "nested_univ",
+            "pd-wide",
+        ],
     }
 
     # attribute for _DelegatedTransformer, which then delegates
@@ -917,7 +932,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
         self.clone_tags(self.transformer_)
         self.set_tags(**{"fit_is_empty": False})
         # this ensures that we convert in the inner estimator, not in the multiplexer
-        self.set_tags(**{"X_inner_type": ALL_TIME_SERIES_TYPES})
+        self.set_tags(**{"X_inner_type": CORE_TYPES})
 
     @property
     def _transformers(self):
@@ -1200,7 +1215,6 @@ class Id(BaseTransformer):
         "capability:inverse_transform": True,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
         "X_inner_type": CORE_TYPES,
-        # this can be a Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "None",
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": True,

@@ -1,6 +1,7 @@
 """Implements compositors for performing forecasting by group."""
 
-from aeon.datatypes import ALL_TIME_SERIES_TYPES, mtype_to_scitype
+from aeon.base import ALL_TIME_SERIES_TYPES
+from aeon.datatypes import mtype_to_scitype
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 
 __author__ = ["fkiraly"]
@@ -89,12 +90,14 @@ class ForecastByLevel(_DelegatedForecaster):
                 f"but found {groupby}"
             )
 
-        mtypes = [x for x in ALL_TIME_SERIES_TYPES if mtype_to_scitype(x) in scitypes]
+        internal_types = [
+            x for x in ALL_TIME_SERIES_TYPES if mtype_to_scitype(x) in scitypes
+        ]
 
         # this ensures that we convert in the inner estimator
         # but vectorization/broadcasting happens at the level of groupby
-        self.set_tags(**{"y_inner_type": mtypes})
-        self.set_tags(**{"X_inner_type": mtypes})
+        self.set_tags(**{"y_inner_type": internal_types})
+        self.set_tags(**{"X_inner_type": internal_types})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

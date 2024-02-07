@@ -1,7 +1,6 @@
 """Implements forecaster for selecting among different model classes."""
 
-from aeon.base import _HeterogenousMetaEstimator
-from aeon.datatypes import ALL_TIME_SERIES_TYPES
+from aeon.base import ALL_TIME_SERIES_TYPES, _HeterogenousMetaEstimator
 from aeon.forecasting.base._base import BaseForecaster
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 
