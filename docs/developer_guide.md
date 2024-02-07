@@ -1,6 +1,6 @@
 # Developer Guide
 
-Welcome to the `aeon` developer guide! This guide is intended for new developers who
+Welcome to the `aeon` developer guide. This guide is intended for new developers who
 want to start contributing code to `aeon` and current developers who want to learn
 about specific topics for code and non-code developments.
 
