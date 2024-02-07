@@ -559,8 +559,9 @@ def convert_collection(X, output_type):
 
     Parameters
     ----------
-    X : data structure.
-    output_type : string, one of COLLECTIONS_DATA_TYPES
+    X : collection.
+    output_type : string
+        one of COLLECTIONS_DATA_TYPES
 
     Returns
     -------
@@ -595,7 +596,13 @@ def convert_collection(X, output_type):
 
 
 def resolve_equal_length_inner_type(inner_type):
-    """Hierarchy of preference for internal supported types for equal length."""
+    """Hierarchy of preference for internal supported types for equal length.
+
+    Parameter
+    ---------
+    inner_type: str
+        The inner type to be resolved.
+    """
     if "numpy3D" in inner_type:
         return "numpy3D"
     if "np-list" in inner_type:
@@ -617,7 +624,13 @@ def resolve_equal_length_inner_type(inner_type):
 
 
 def resolve_unequal_length_inner_type(inner_type):
-    """Hierarchy of preference for internal supported types for unequal length."""
+    """Hierarchy of preference for internal supported types for unequal length.
+
+    Parameter
+    ---------
+    inner_type: str
+        The inner type to be resolved.
+    """
     if "np-list" in inner_type:
         return "np-list"
     if "df-list" in inner_type:

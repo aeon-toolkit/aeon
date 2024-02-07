@@ -53,7 +53,7 @@ class BaseCollectionEstimator(BaseEstimator):
 
         Parameters
         ----------
-        X : data structure
+        X : collection
             See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
 

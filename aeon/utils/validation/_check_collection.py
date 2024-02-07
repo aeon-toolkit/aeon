@@ -5,7 +5,14 @@ import pandas as pd
 
 
 def is_nested_univ_dataframe(X):
-    """Check if X is nested dataframe."""
+    """Check if X is nested dataframe.
+
+    Parameters
+    ----------
+    X: collection
+        See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
+        on aeon supported data structures.
+    """
     # Otherwise check all entries are pd.Series
     if not isinstance(X, pd.DataFrame):
         return False
@@ -70,11 +77,13 @@ def get_n_cases(X):
 
     Parameters
     ----------
-    X : valid collection data structure
+    X : collection
+        See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
-    int : number of cases
+    int
+        Number of cases.
     """
     if isinstance(X, pd.DataFrame) and isinstance(X.index, pd.MultiIndex):
         return len(X.index.get_level_values(0).unique())
@@ -86,15 +95,17 @@ def get_type(X):
 
     Parameters
     ----------
-    X : data structure.
+    X : collection
+        See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
-    input_type : string, one of COLLECTIONS_DATA_TYPES
+    input_type : string
+        One of COLLECTIONS_DATA_TYPES.
 
     Raises
     ------
-    ValueError if
+    ValueError
         X pd.ndarray but wrong dimension
         X is list but not of np.ndarray or p.DataFrame.
         X is a pd.DataFrame of non float primitives.
@@ -159,15 +170,18 @@ def is_equal_length(X):
 
     Parameters
     ----------
-    X : data structure.
+    X : collection
+        See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
-    boolean: True if all series in X are equal length, False otherwise
+    boolean
+        True if all series in X are equal length, False otherwise.
 
     Raises
     ------
-    ValueError if input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
+    ValueError
+        input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
 
     Example
     -------
@@ -183,16 +197,19 @@ def has_missing(X):
 
     Parameters
     ----------
-    X : data structure.
-    input_type : string, one of COLLECTIONS_DATA_TYPES
+    X : collection
+    input_type : string
+        One of COLLECTIONS_DATA_TYPES.
 
     Returns
     -------
-    boolean: True if there are any missing values, False otherwise
+    boolean
+        True if there are any missing values, False otherwise
 
     Raises
     ------
-    ValueError if input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
+    ValueError
+        Input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
 
     Example
     -------
@@ -251,16 +268,19 @@ def _equal_length(X, input_type):
 
     Parameters
     ----------
-    X : data structure.
-    input_type : string, one of COLLECTIONS_DATA_TYPES
+    X : collection
+    input_type : string
+        one of COLLECTIONS_DATA_TYPES
 
     Returns
     -------
-    boolean: True if all series in X are equal length, False otherwise
+    boolean
+        True if all series in X are equal length, False otherwise
 
     Raises
     ------
-    ValueError if input_type not in COLLECTIONS_DATA_TYPES.
+    ValueError
+        input_type not in COLLECTIONS_DATA_TYPES.
 
     Example
     -------
