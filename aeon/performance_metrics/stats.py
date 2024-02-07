@@ -19,7 +19,7 @@ def check_friedman(ranks):
     Parameters
     ----------
     ranks : np.array
-      Rank of estimators on datasets, shape (n_estimators, n_datasets).
+        Rank of estimators on datasets, shape (n_estimators, n_datasets).
 
     Returns
     -------
@@ -92,8 +92,8 @@ def wilcoxon_test(results, labels, lower_better=False):
 
     Parameters
     ----------
-    results: np.array
-      results of estimators on datasets
+    results : np.array
+        Results of estimators on datasets
 
     lower_better : bool, default = False
         Indicates whether smaller is better for the results in scores. For example,
