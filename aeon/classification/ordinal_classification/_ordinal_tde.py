@@ -210,7 +210,7 @@ class OrdinalTDE(BaseClassifier):
         self.save_train_predictions = save_train_predictions
         if save_train_predictions != "deprecated":
             warnings.warn(
-                "the save_train_predictions is deprecated and will be"
+                "the function save_train_predictions is deprecated and will be "
                 "removed in v0.8.0.",
                 stacklevel=2,
             )

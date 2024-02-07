@@ -81,7 +81,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    save_transformed_data : bool, default=False
+    save_transformed_data : bool, default="deprecated"
         Save the data transformed in fit for use in _get_train_preds and
         _get_train_probs.
     random_state : int, RandomState instance or None, default=None
@@ -162,7 +162,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         max_interval_length=np.inf,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,

@@ -96,9 +96,9 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    save_transformed_data : bool, default=False
+    save_transformed_data : bool, default="deprecated"
         Save the data transformed in fit for use in _get_train_preds and
-        _get_train_probs.
+        _get_train_probs. Will be removed in V0.8.0.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -185,7 +185,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
         use_pycatch22=False,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,

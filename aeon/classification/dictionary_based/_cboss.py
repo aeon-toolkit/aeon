@@ -146,7 +146,7 @@ class ContractableBOSS(BaseClassifier):
         min_window=10,
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
-        save_train_predictions=False,
+        save_train_predictions="deprecated",
         feature_selection="none",
         n_jobs=1,
         random_state=None,
@@ -177,7 +177,7 @@ class ContractableBOSS(BaseClassifier):
         self.save_train_predictions = save_train_predictions
         if save_train_predictions != "deprecated":
             warnings.warn(
-                "the save_train_predictions is deprecated and will be"
+                "the function save_train_predictions is deprecated and will be "
                 "removed in v0.8.0.",
                 stacklevel=2,
             )

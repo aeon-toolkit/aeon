@@ -63,7 +63,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
     use_pyfftw : bool, default=False
         Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
         package to be installed.
-    save_transformed_data : bool, default=False
+    save_transformed_data : bool, default="deprecated"
         Save the data transformed in fit for use in _get_train_probs.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
@@ -152,7 +152,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
         use_pyfftw=False,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,

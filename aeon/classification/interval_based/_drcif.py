@@ -203,7 +203,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         contract_max_n_estimators=500,
         use_pycatch22=False,
         use_pyfftw=False,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,

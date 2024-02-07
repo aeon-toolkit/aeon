@@ -113,9 +113,9 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    save_transformed_data : bool, default=False
+    save_transformed_data : bool, default="deprecated"
         Save the data transformed in fit for use in _get_train_preds and
-        _get_train_probs.
+        _get_train_probs. Will be removed in 0.8.0.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -194,7 +194,7 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         replace_nan=None,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,

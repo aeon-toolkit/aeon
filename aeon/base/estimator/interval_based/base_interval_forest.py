@@ -214,7 +214,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         self.save_transformed_data = save_transformed_data
         if save_transformed_data != "deprecated":
             warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
+                "the save_transformed_data parameter is deprecated and will be "
                 "removed in v0.8.0. transformed_data_ will also be removed.",
                 stacklevel=2,
             )
