@@ -11,6 +11,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.utils import check_array
 
 from aeon.datatypes import VectorizedDF, check_is_scitype, convert_to
@@ -66,23 +67,14 @@ __all__ = [
 ]
 
 
-def _coerce_to_scalar(obj):
-    """Coerce obj to scalar, from polymorphic input scalar or pandas."""
-    if isinstance(obj, pd.DataFrame):
-        assert len(obj) == 1
-        assert len(obj.columns) == 1
-        return obj.iloc[0, 0]
-    if isinstance(obj, pd.Series):
-        assert len(obj) == 1
-        return obj.iloc[0]
-    return obj
-
-
-def _coerce_to_df(obj):
-    """Coerce to pd.DataFrame, from polymorphic input scalar or pandas."""
-    return pd.DataFrame(obj)
-
-
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="BaseForecastingErrorMetric and all subclasses will be removed from "
+    "performance_metric package in v0.8.0. Please use the functions rather "
+    "than the functor classes.",
+    category=FutureWarning,
+)
 class BaseForecastingErrorMetric(BaseMetric):
     """Base class for defining forecasting error metrics in aeon.
 
@@ -123,7 +115,7 @@ class BaseForecastingErrorMetric(BaseMetric):
 
         if not hasattr(self, "name"):
             self.name = type(self).__name__
-
+        self.__name__ = self.name
         super().__init__()
 
     def __call__(self, y_true, y_pred, **kwargs):
@@ -216,9 +208,15 @@ class BaseForecastingErrorMetric(BaseMetric):
             and isinstance(multioutput, str)
             and multioutput == "uniform_average"
         ):
-            out_df = _coerce_to_scalar(out_df)
+            if isinstance(out_df, pd.DataFrame):
+                assert len(out_df) == 1
+                assert len(out_df.columns) == 1
+                out_df = out_df.iloc[0, 0]
+            if isinstance(out_df, pd.Series):
+                assert len(out_df) == 1
+                out_df = out_df.iloc[0]
         if multilevel == "raw_values":
-            out_df = _coerce_to_df(out_df)
+            out_df = pd.DataFrame(out_df)
 
         return out_df
 
