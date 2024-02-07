@@ -50,8 +50,14 @@ def make_example_3d_numpy(
     Examples
     --------
     >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
-    >>> data, labels = make_example_3d_numpy(n_cases=2, n_channels=2, n_timepoints=6,
-    ...                                      return_y=True, n_labels=2, random_state=0)
+    >>> data, labels = make_example_3d_numpy(
+    ...     n_cases=2,
+    ...     n_channels=2,
+    ...     n_timepoints=6,
+    ...     return_y=True,
+    ...     n_labels=2,
+    ...     random_state=0,
+    ... )
     >>> print(data)
     [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
       [0.87517442 1.783546   1.92732552 0.76688304 1.58345008 1.05778984]]
