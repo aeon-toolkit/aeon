@@ -62,11 +62,12 @@ class ContractableBOSS(BaseClassifier):
     contract_max_n_parameter_samples : int, default=np.inf
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
-    save_train_predictions : bool, default="deprecated"
-        Save the ensemble member train predictions in fit.
+    save_transformed_data : bool, default="deprecated"
+        Save the data transformed in fit.
 
-        Deprecated and will be removed in v0.8.0. Use fit_predict and fit_predict_proba
-        to generate train estimates instead.
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead. ``transformed_data_``
+         will also be removed.
     n_jobs : int, default = 1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -177,7 +178,7 @@ class ContractableBOSS(BaseClassifier):
         self.save_train_predictions = save_train_predictions
         if save_train_predictions != "deprecated":
             warnings.warn(
-                "the function save_train_predictions is deprecated and will be "
+                "the save_train_predictions parameter is deprecated and will be "
                 "removed in v0.8.0.",
                 stacklevel=2,
             )
