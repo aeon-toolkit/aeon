@@ -15,8 +15,8 @@ def make_example_3d_numpy(
     n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
-    return_y: bool = True,
     random_state: Union[int, None] = None,
+    return_y: bool = True,
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 3D X and y data for testing.
 
@@ -35,10 +35,10 @@ def make_example_3d_numpy(
         The number of unique labels to generate.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
-    return_y : bool, default = True
-        Return the y target variable.
     random_state : int or None
         Seed for random number generation.
+    return_y : bool, default = True
+        Return the y target variable.
 
     Returns
     -------
@@ -82,10 +82,10 @@ def make_example_3d_numpy(
 def make_example_2d_numpy(
     n_cases: int = 10,
     n_timepoints: int = 8,
-    return_y: bool = True,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
+    return_y: bool = True,
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 2D data for testing.
 
@@ -98,14 +98,14 @@ def make_example_2d_numpy(
         The number of samples to generate.
     n_timepoints : int
         The number of features/series length to generate.
-    return_y : bool, default = True
-        If True, return the labels as well as the data.
     n_labels : int
         The number of unique labels to generate.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
     random_state : int or None
         Seed for random number generation.
+    return_y : bool, default = True
+        If True, return the labels as well as the data.
 
     Returns
     -------
@@ -218,10 +218,10 @@ def make_example_nested_dataframe(
     n_cases: int = 20,
     n_channels: int = 1,
     n_timepoints: int = 20,
-    return_y: bool = True,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state=None,
+    return_y: bool = True,
 ):
     """Randomly generate nest pd.DataFrame X and pd.Series y data for testing.
 
@@ -233,14 +233,14 @@ def make_example_nested_dataframe(
         The number of series channels to generate.
     n_timepoints : int, default = 20
         The number of features/series length to generate.
-    return_y : bool, default = True
-        Return the y target variable.
     n_labels : int, default = 2
         The number of unique labels to generate.
     regression_target : bool, default = False
         If True, the target will be a float, otherwise a discrete.
     random_state : int or None, default = None
         Seed for random number generation.
+    return_y : bool, default = True
+        Return the y target variable.
 
     Returns
     -------
