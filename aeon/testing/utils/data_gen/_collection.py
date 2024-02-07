@@ -15,8 +15,8 @@ def make_example_3d_numpy(
     n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
-    random_state: Union[int, None] = None,
     return_y: bool = True,
+    random_state: Union[int, None] = None,
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 3D X and y data for testing.
 
@@ -35,6 +35,8 @@ def make_example_3d_numpy(
         The number of unique labels to generate.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
+    return_y : bool, default = True
+        Return the y target variable.
     random_state : int or None
         Seed for random number generation.
 
@@ -96,7 +98,7 @@ def make_example_2d_numpy(
         The number of samples to generate.
     n_timepoints : int
         The number of features/series length to generate.
-    return_y : bool
+    return_y : bool, default = True
         If True, return the labels as well as the data.
     n_labels : int
         The number of unique labels to generate.
@@ -268,16 +270,18 @@ def make_example_nested_dataframe(
     return X
 
 
-def make_example_long_table(n_cases=50, n_channels=2, n_timepoints=20):
+def make_example_long_table(
+    n_cases: int = 50, n_channels: int = 2, n_timepoints: int = 20
+):
     """Generate example collection in long table format file.
 
     Parameters
     ----------
-    n_cases: int
+    n_cases: int, default = 50
         Number of cases.
-    n_channels: int
+    n_channels: int, default = 2
         Number of dimensions.
-    n_timepoints: int
+    n_timepoints: int, default = 20
         Length of the series.
 
     Returns

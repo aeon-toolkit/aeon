@@ -4,7 +4,7 @@ import pytest
 
 from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2
 from aeon.testing.test_config import PR_TESTING
-from aeon.testing.utils.data_gen import make_example_2d_numpy
+from aeon.testing.utils.data_gen import make_example_3d_numpy
 
 
 @pytest.mark.skipif(PR_TESTING, reason="slow test, run overnight only")
@@ -14,7 +14,7 @@ def test_hc1_defaults_and_verbosity():
     HIVECOTEV1._DEFAULT_N_SHAPELETS = 10
     HIVECOTEV1._DEFAULT_MAX_ENSEMBLE_SIZE = 5
     HIVECOTEV1._DEFAULT_N_PARA_SAMPLES = 10
-    X, y = make_example_2d_numpy(n_cases=20, n_timepoints=10, n_labels=2)
+    X, y = make_example_3d_numpy(n_cases=20, n_timepoints=10, n_labels=2)
     hc1 = HIVECOTEV1(verbose=True)
     hc1.fit(X, y)
     assert hc1._stc_params == {"n_shapelet_samples": 10}
@@ -38,7 +38,7 @@ def test_hc2_defaults_and_verbosity():
     HIVECOTEV2._DEFAULT_N_PARA_SAMPLES = 10
     HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE = 5
     HIVECOTEV2._DEFAULT_RAND_PARAMS = 5
-    X, y = make_example_2d_numpy(n_cases=20, n_timepoints=10, n_labels=2)
+    X, y = make_example_3d_numpy(n_cases=20, n_timepoints=10, n_labels=2)
     hc2 = HIVECOTEV2(verbose=True)
     hc2.fit(X, y)
     assert hc2._stc_params == {"n_shapelet_samples": 10}

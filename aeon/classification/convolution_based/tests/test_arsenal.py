@@ -16,16 +16,13 @@ from aeon.transformations.collection.convolution_based import (
 def test_contracted_arsenal():
     """Test of contracted Arsenal on unit test data."""
     # load unit test data
-    X_train, y_train = make_example_2d_numpy()
+    X_train, y_train = make_example_3d_numpy()
     # train contracted Arsenal
     arsenal = Arsenal(
         time_limit_in_minutes=0.25,
         contract_max_n_estimators=3,
         num_kernels=20,
     )
-    arsenal.fit(X_train, y_train)
-    assert len(arsenal.estimators_) > 1
-    X_train, y_train = make_example_3d_numpy()
     arsenal.fit(X_train, y_train)
     assert len(arsenal.estimators_) > 1
 
