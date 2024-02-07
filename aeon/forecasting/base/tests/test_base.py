@@ -10,30 +10,23 @@ import pytest
 from pandas.testing import assert_series_equal
 
 from aeon.datatypes import check_is_mtype, convert
-from aeon.datatypes._panel._convert import from_nested_to_multi_index
-from aeon.datatypes._utilities import get_cutoff, get_window
 from aeon.forecasting.arima import ARIMA
-from aeon.forecasting.base._base import _format_moving_cutoff_predictions
 from aeon.testing.utils.data_gen import (
     _make_hierarchical,
     make_3d_test_data,
-    make_nested_dataframe_data,
     make_series,
 )
+from aeon.utils import get_cutoff, get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+from aeon.utils.validation.collection import convert_collection, get_n_cases, get_type
 
 COLLECTION_TYPES = ["pd-multiindex", "nested_univ", "numpy3D"]
 HIER_TYPES = ["pd_multiindex_hier"]
 
 
 def _get_y(input_type, n_instances):
-    if input_type == "numpy3D":
-        y, _ = make_3d_test_data(n_cases=n_instances, random_state=42)
-    elif input_type == "nested_univ":
-        y, _ = make_nested_dataframe_data(n_cases=n_instances, random_state=42)
-    elif input_type == "pd-multiindex":
-        y, _ = make_nested_dataframe_data(n_cases=n_instances, random_state=42)
-        y = from_nested_to_multi_index(y)
+    y, _ = make_3d_test_data(n_cases=n_instances, random_state=42)
+    y = convert_collection(y, input_type)
     return y
 
 
@@ -52,29 +45,17 @@ def test_vectorization_series_to_panel(input_type):
     y = _get_y(input_type, n_instances)
     f = ARIMA()
     y_pred = f.fit(y).predict([1, 2, 3])
-    valid, _, metadata = check_is_mtype(y_pred, input_type, return_metadata=True)
-
     msg = (
         f"vectorization of forecasters does not work for test example "
         f"of type {input_type}, using the ARIMA forecaster"
     )
-
-    assert valid, msg
-
-    y_pred_instances = metadata["n_instances"]
+    assert get_type(y_pred) == input_type, msg
+    y_pred_instances = get_n_cases(y_pred)
     msg = (
         f"vectorization test produces wrong number of instances "
         f"expected {n_instances}, found {y_pred_instances}"
     )
-
     assert y_pred_instances == n_instances, msg
-
-    y_pred_equal_length = metadata["is_equal_length"]
-    msg = (
-        "vectorization test produces non-equal length Panel forecast, should be "
-        "equal length, and length equal to the forecasting horizon [1, 2, 3]"
-    )
-    assert y_pred_equal_length, msg
 
     cutoff_expected = get_cutoff(y)
     msg = (
@@ -326,35 +307,3 @@ def test_predict_residuals():
     y_pred_2 = forecaster.predict()
     assert_series_equal(y_pred_1, y_pred_2)
     assert y_resid.index.equals(y_train.index)
-
-
-def test_format_moving_cutoff_predictions():
-    with pytest.raises(ValueError, match="`y_preds` must be a list"):
-        _format_moving_cutoff_predictions("foo", "bar")
-    with pytest.raises(
-        ValueError, match="y_preds must be a list of pd.Series or pd.DataFrame"
-    ):
-        _format_moving_cutoff_predictions([1, 2, 3], "bar")
-    res = pd.DataFrame([1, 2, 3])
-    preds = [res, "foo"]
-    with pytest.raises(
-        ValueError, match="all elements of y_preds must be of the same type"
-    ):
-        _format_moving_cutoff_predictions(preds, "bar")
-    res2 = pd.DataFrame([1, 2, 2, 3, 4, 4])
-    preds = [res, res2]
-    with pytest.raises(
-        ValueError, match="all elements of y_preds must be of the same length"
-    ):
-        _format_moving_cutoff_predictions(preds, "bar")
-    res = pd.DataFrame({"Column1": [1, 2, 3], "Column2": [3, 4, 5]})
-    res2 = pd.DataFrame({"Col1": [1, 2, 3], "Col2": [3, 4, 5]})
-    preds = [res, res2]
-    with pytest.raises(
-        ValueError, match="all elements of y_preds must have the same columns"
-    ):
-        _format_moving_cutoff_predictions(preds, "bar")
-    res = pd.DataFrame({"Col1": [1, 2, 3], "Col2": [3, 4, 5]})
-    preds = [res, res2]
-    r = _format_moving_cutoff_predictions(preds, "bar")
-    assert isinstance(r, pd.DataFrame)

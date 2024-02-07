@@ -17,9 +17,9 @@ from sklearn.model_selection import train_test_split as _train_test_split
 
 from aeon.base import BaseObject
 from aeon.datatypes import check_is_scitype, convert_to
-from aeon.datatypes._utilities import get_index_for_series, get_time_index, get_window
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._fh import VALID_FORECASTING_HORIZON_TYPES
+from aeon.utils.index_functions import get_index_for_series, get_time_index, get_window
 from aeon.utils.validation import (
     ACCEPTED_WINDOW_LENGTH_TYPES,
     NON_FLOAT_WINDOW_LENGTH_TYPES,

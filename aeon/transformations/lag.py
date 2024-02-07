@@ -69,7 +69,7 @@ class Lag(BaseTransformer):
     flatten_transform_index : bool, optional (default=True)
         if True, columns of return DataFrame are flat, by "lagname__variablename"
         if False, columns are MultiIndex (lagname, variablename)
-        has no effect if return mtype is one without column names
+        has no effect if return type is one without column names
     keep_column_names : bool, optional (default=False)
         has an effect only if `lags` contains only a single element
         if True, ensures that column names of `transform` output are same as in input,
@@ -278,15 +278,6 @@ class Lag(BaseTransformer):
         -------
         pd.DataFrame, inverse transformed version of X
         """
-        # implement here
-        # IMPORTANT: avoid side effects to X, y
-        #
-        # type conventions are exactly those in _transform, reversed
-        #
-        # for example: if transform-output is "Series":
-        #  return should be of same mtype as input, X_inner_type
-        #  if multiple X_inner_type are supported, ensure same input/output
-        #
 
     def _update(self, X, y=None):
         """Update transformer with X and y.
@@ -397,9 +388,7 @@ class ReducerTransform(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what scitype is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "capability:inverse_transform": False,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
