@@ -6,6 +6,43 @@ import pandas as pd
 
 __all__ = ["write_to_tsfile", "write_results_to_uea_format"]
 
+def _write_header_tsf(
+    path,
+    dataset_name,
+    time_stamp="date",
+    equal_length=True,
+    frequency="weekly",
+    horizon=8,
+    missing=False,
+    comment=None,
+    suffix=None,
+    extension=".tsf",
+):
+    if not os.path.exists(path):
+        os.makedirs(path)
+        
+    load_path = f"{path}/{dataset_name}"
+    if suffix is not None:
+        load_path = load_path + suffix
+    load_path = load_path + extension
+
+    file = open(load_path, "w")
+
+    if comment is not None:
+        file.write("\n# ".join(textwrap.wrap("# " + comment)))
+        file.write("\n")
+        
+    file.write(f"@relation {str(dataset_name).lower()}\n")
+    file.write("@attribute series_name string\n")
+    file.write(f"@attribute start_timestamp {str(time_stamp).lower()}\n")
+    file.write(f"@frequency {str(frequency).lower()}\n")
+    file.write(f"@horizon {str(horizon).lower()}\n")
+    file.write(f"@missing {str(missing).lower()}\n")
+    file.write(f"@equallength {str(equal_length).lower()}\n")
+    file.write("@data\n")
+
+    return file
+
 
 def write_to_tsfile(
     X, path, y=None, problem_name="sample_data.ts", header=None, regression=False
