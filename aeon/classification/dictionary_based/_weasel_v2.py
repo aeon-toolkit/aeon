@@ -158,7 +158,7 @@ class WEASEL_V2(BaseClassifier):
 
         # TODO remove 'support_probabilities' in v0.8.0
         self.support_probabilities = support_probabilities
-        if support_probabilities == "deprecated":
+        if support_probabilities != "deprecated":
             warnings.warn(
                 "the support_probabilities parameter is deprecated and will be"
                 "removed in v0.8.0",
