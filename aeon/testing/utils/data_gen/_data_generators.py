@@ -112,8 +112,8 @@ def _make_3d_test_data(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_3d_test_data
-    >>> data, labels = make_3d_test_data(
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> data, labels = make_example_3d_numpy(
     ...     n_cases=20,
     ...     n_channels=2,
     ...     n_timepoints=10,
@@ -171,8 +171,8 @@ def _make_2d_test_data(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_2d_test_data
-    >>> data, labels = make_2d_test_data(
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> data, labels = make_example_3d_numpy(
     ...     n_cases=20,
     ...     n_timepoints=10,
     ...     n_labels=3,
