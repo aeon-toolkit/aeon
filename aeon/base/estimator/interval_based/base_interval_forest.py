@@ -127,10 +127,11 @@ class BaseIntervalForest(metaclass=ABCMeta):
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
     save_transformed_data : bool, default="deprecated"
-        Save the data transformed in fit.
+        Save the data transformed in ``fit``.
 
-        Deprecated and will be removed in v0.8.0. Use fit_predict and fit_predict_proba
-        to generate train estimates instead. transformed_data_ will also be removed.
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
+        ``transformed_data_`` will also be removed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;

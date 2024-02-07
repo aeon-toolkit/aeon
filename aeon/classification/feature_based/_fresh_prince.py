@@ -33,10 +33,11 @@ class FreshPRINCEClassifier(BaseClassifier):
     n_estimators : int, default=200
         Number of estimators for the RotationForestClassifier ensemble.
     save_transformed_data : bool, default="deprecated"
-        Save the data transformed in fit.
+        Save the data transformed in ``fit``.
 
-        Deprecated and will be removed in v0.8.0. Use fit_predict and fit_predict_proba
-        to generate train estimates instead. transformed_data_ will also be removed.
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
+        ``transformed_data_`` will also be removed.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     n_jobs : int, default=1
