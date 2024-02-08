@@ -87,7 +87,7 @@ _logger = logging.getLogger(__name__)
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="get_default_pip_requirements will be removed in v0.8.0.",
     category=FutureWarning,
 )
@@ -112,7 +112,7 @@ def get_default_pip_requirements(include_cloudpickle=False):
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="get_default_conda_env will be removed in v0.8.0.",
     category=FutureWarning,
 )
@@ -134,7 +134,7 @@ def get_default_conda_env(include_cloudpickle=False):
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="save_model will be removed in v0.8.0.",
     category=FutureWarning,
 )
@@ -327,7 +327,7 @@ def save_model(
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="log_model will be removed in v0.8.0.",
     category=FutureWarning,
 )
@@ -471,7 +471,7 @@ def log_model(
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="load_model will be removed in v0.8.0.",
     category=FutureWarning,
 )
