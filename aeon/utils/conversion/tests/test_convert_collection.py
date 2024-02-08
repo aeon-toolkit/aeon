@@ -32,6 +32,7 @@ from aeon.utils.conversion._convert_collection import (
 )
 from aeon.utils.validation._check_collection import (
     _equal_length,
+    _nested_univ_is_equal,
     get_n_cases,
     get_type,
     has_missing,
@@ -188,6 +189,24 @@ def test_numpy2D_error(function):
     X = np.random.random(size=(10, 2, 20))
     with pytest.raises(TypeError, match="Error: Input numpy not of type numpy2D"):
         function(X)
+
+
+def test__nested_univ_is_equal():
+    """Test _nested_univ_is_equal function for pd.DataFrame.
+
+    Note that the function _nested_univ_is_equal assumes series are equal length
+    over channels so only tests the first channel.
+    """
+
+    data = {
+        "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+        "C": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
+    }
+    X = pd.DataFrame(data)
+    assert not _nested_univ_is_equal(X)
+    X, _ = make_example_nested_dataframe(n_cases=10, n_channels=1, n_timepoints=20)
+    assert _nested_univ_is_equal(X)
 
 
 def test_from_nested():
