@@ -11,7 +11,7 @@ from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.classification.dictionary_based import ContractableBOSS
-from aeon.testing.utils.data_gen import make_3d_test_data
+from aeon.testing.utils.data_gen import make_example_3d_numpy
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import PaddingTransformer, Tabularizer
@@ -37,8 +37,8 @@ from aeon.transformations.impute import Imputer
 )
 def test_classifier_pipeline(transformers):
     """Test the classifier pipeline."""
-    X_train, y_train = make_3d_test_data(n_cases=10, n_timepoints=12)
-    X_test, _ = make_3d_test_data(n_cases=10, n_timepoints=12)
+    X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
     c = DummyClassifier()
     pipeline = ClassifierPipeline(transformers=transformers, classifier=c)
@@ -77,8 +77,8 @@ def test_classifier_pipeline(transformers):
 )
 def test_sklearn_classifier_pipeline(transformers):
     """Test classifier pipeline with sklearn estimator."""
-    X_train, y_train = make_3d_test_data(n_cases=10, n_timepoints=12)
-    X_test, _ = make_3d_test_data(n_cases=10, n_timepoints=12)
+    X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
     c = RandomForestClassifier(n_estimators=2, random_state=0)
     pipeline = ClassifierPipeline(transformers=transformers, classifier=c)

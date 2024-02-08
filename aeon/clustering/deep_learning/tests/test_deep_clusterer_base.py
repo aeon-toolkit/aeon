@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from aeon.testing.mock_estimators import MockDeepClusterer
-from aeon.testing.utils.data_gen import make_2d_test_data
+from aeon.testing.utils.data_gen import make_example_2d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["hadifawaz1999"]
@@ -22,7 +22,7 @@ def test_base_deep_clusterer():
         # create a dummy deep classifier
         dummy_deep_clr = MockDeepClusterer(last_file_name=last_file_name)
         # generate random data
-        X, y = make_2d_test_data()
+        X, y = make_example_2d_numpy()
         # test fit function on random data
         dummy_deep_clr.fit(X=X)
         # test save last model to file than delete it
