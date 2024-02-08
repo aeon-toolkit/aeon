@@ -60,10 +60,11 @@ class ShapeletTransformClassifier(BaseClassifier):
         Max number of shapelets to extract when contracting the transform with
         ``transform_limit_in_minutes`` or ``time_limit_in_minutes``.
     save_transformed_data : bool, default="deprecated"
-        Save the data transformed in fit.
+        Save the data transformed in ``fit``.
 
-        Deprecated and will be removed in v0.8.0. Use fit_predict and fit_predict_proba
-        to generate train estimates instead. transformed_data_ will also be removed.
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
+        ``transformed_data_`` will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.

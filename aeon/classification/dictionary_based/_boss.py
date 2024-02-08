@@ -59,10 +59,10 @@ class BOSSEnsemble(BaseClassifier):
     min_window : int, default=10
         Minimum window size.
     save_train_predictions : bool, default="deprecated"
-        Save the ensemble member train predictions in fit.
+        Save the ensemble member train predictions in ``fit``.
 
-        Deprecated and will be removed in v0.8.0. Use fit_predict and fit_predict_proba
-        to generate train estimates instead.
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
     feature_selection : str, default: "none"
         Sets the feature selections strategy to be usedfrom  {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
@@ -163,7 +163,7 @@ class BOSSEnsemble(BaseClassifier):
         self.save_train_predictions = save_train_predictions
         if save_train_predictions != "deprecated":
             warnings.warn(
-                "the save_train_predictions is deprecated and will be"
+                "the save_train_predictions parameter is deprecated and will be "
                 "removed in v0.8.0.",
                 stacklevel=2,
             )
