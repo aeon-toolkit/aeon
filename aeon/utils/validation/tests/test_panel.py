@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.testing.utils.data_gen import make_nested_dataframe_data
+from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.utils.validation.panel import check_X, check_X_y, check_y
 
 BAD_INPUT_ARGS = [
@@ -31,7 +31,7 @@ def test_check_X_bad_input_args(X):
 
 def test_check_enforce_min_instances():
     """Test minimum instances enforced in check_X."""
-    X, y = make_nested_dataframe_data(n_cases=3)
+    X, y = make_example_nested_dataframe(n_cases=3)
     msg = r"instance"
     with pytest.raises(ValueError, match=msg):
         check_X(X, enforce_min_instances=4)
@@ -45,7 +45,7 @@ def test_check_enforce_min_instances():
 
 def test_check_X_enforce_univariate():
     """Test univariate enforced in check_X."""
-    X, y = make_nested_dataframe_data(n_channels=2)
+    X, y = make_example_nested_dataframe(n_channels=2)
     msg = r"univariate"
     with pytest.raises(ValueError, match=msg):
         check_X(X, enforce_univariate=True)
@@ -56,7 +56,7 @@ def test_check_X_enforce_univariate():
 
 def test_check_X_enforce_min_columns():
     """Test minimum columns enforced in check_X."""
-    X, y = make_nested_dataframe_data(n_channels=2)
+    X, y = make_example_nested_dataframe(n_channels=2)
     msg = r"columns"
     with pytest.raises(ValueError, match=msg):
         check_X(X, enforce_min_columns=3)
@@ -75,7 +75,7 @@ def test_check_X():
     check_X(X2, enforce_min_instances=5)
     with pytest.raises(ValueError, match="but a minimum of: 6 is required"):
         check_X(X2, enforce_min_instances=6)
-    X, y = make_nested_dataframe_data(n_cases=5, n_channels=2, n_timepoints=10)
+    X, y = make_example_nested_dataframe(n_cases=5, n_channels=2, n_timepoints=10)
     X2 = check_X(X, coerce_to_numpy=True)
     assert isinstance(X2, np.ndarray)
     assert X2.shape == (5, 2, 10)
