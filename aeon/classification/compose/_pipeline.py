@@ -12,8 +12,8 @@ from aeon.base import BaseEstimator, _HeterogenousMetaEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
+from aeon.utils.conversion import convert_collection
 from aeon.utils.sklearn import is_sklearn_classifier
-from aeon.utils.validation.collection import convert_collection
 
 
 class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
