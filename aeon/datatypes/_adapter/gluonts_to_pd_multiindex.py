@@ -1,3 +1,13 @@
+from deprecated.sphinx import deprecated
+
+
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="convert_gluonts_result_to_multiindex will be moved from datatypes in "
+    "v0.8.0 to utils.conversion in v0.8.0",
+    category=FutureWarning,
+)
 def convert_gluonts_result_to_multiindex(gluonts_result):
     """
 
