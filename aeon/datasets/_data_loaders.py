@@ -9,6 +9,7 @@ from urllib.request import urlretrieve
 
 import numpy as np
 import pandas as pd
+import requests
 
 import aeon
 from aeon.datasets.dataset_collections import (
@@ -407,9 +408,9 @@ def download_dataset(name, save_path=None):
             _download_and_extract(url, extract_path=save_path)
         except zipfile.BadZipFile as e:
             raise ValueError(
-                f"Invalid dataset name ={name} is not available on extract path ="
-                f"{save_path}. Nor is it available on "
-                f"https://timeseriesclassification.com/.",
+                f"Invalid dataset name ={name} is  available on extract path ="
+                f"{save_path}or https://timeseriesclassification.com/ but it is not "
+                f"correctly formatted.",
             ) from e
 
     return os.path.join(save_path, name)
@@ -1000,12 +1001,12 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
 
 
 def load_regression(
-    name,
+    name: str,
     split=None,
     extract_path=None,
-    return_metadata=False,
-    load_equal_length=True,
-    load_no_missing=True,
+    return_metadata: bool = False,
+    load_equal_length: bool = True,
+    load_no_missing: bool = True,
 ):
     """Download/load regression problem.
 
@@ -1119,14 +1120,21 @@ def load_regression(
             os.path.join(local_module, local_dirname)
         ):
             # Check if on timeseriesclassification.com
+            try_monash = False
             url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
-            # This also tests the validitiy of the URL, can't rely on the html
-            try:
-                _download_and_extract(
-                    url,
-                    extract_path=extract_path,
-                )
-            except zipfile.BadZipFile:
+            # Test if file exists
+            response = requests.head(url)
+            if response.status_code != 200:
+                try_monash = True
+            else:
+                try:
+                    _download_and_extract(
+                        url,
+                        extract_path=extract_path,
+                    )
+                except zipfile.BadZipFile:
+                    try_monash = True
+            if try_monash:
                 # Try on monash
                 if name in tser_monash.keys():
                     id = tser_monash[name]
@@ -1143,6 +1151,8 @@ def load_regression(
                         urllib.request.urlretrieve(url_test, test_save)
                     except Exception:
                         raise ValueError(error_str)
+                else:
+                    raise ValueError(error_str)
     # Test for non missing or equal length versions
     dir_name = name
     if load_equal_length:
@@ -1167,27 +1177,36 @@ def load_regression(
     )
 
 
-def load_classification(name, split=None, extract_path=None, return_metadata=False):
+def load_classification(
+    name,
+    split=None,
+    extract_path=None,
+    return_metadata=False,
+    load_equal_length: bool = True,
+    load_no_missing: bool = True,
+):
     """Load a classification dataset.
 
-    If you want to load a problem from a local file, specify the
+    This function loads TSC problems into memory, downloading from
+    https://timeseriesclassification.com/ if the data is not available at the
+    specified local path. If you want to load a problem from a local file, specify the
     location in ``extract_path``. This function assumes the data is stored in format
-    <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
-    If you want to load a file directly from a full path, use the function
-    `load_from_tsfile`` directly. If you do not specify ``extract_path``, or if the
-    problem is not present in ``extract_path`` it will attempt to download the data
+    ``<extract_path>/<name>/<name>_TRAIN.ts`` and
+    ``<extract_path>/<name>/<name>_TEST.ts.`` If you want to load a file directly
+    from a full path, use the function `load_from_tsfile`` directly. If you do not
+    specify ``extract_path``, it will set the path to ``aeon/datasets/local_data``. If
+    the  problem is not present in ``extract_path`` it will attempt to download the data
     from https://timeseriesclassification.com/.
 
-    The list of problems this function can download from the website is in
-    ``datasets/tsc_lists.py``.  This function can load timestamped data, but it does
-    not store the time stamps. The time stamp loading is fragile, it will only work
-    if all data are floats.
+    This function can load timestamped data, but it does not store the time stamps.
+    The time stamp loading is fragile, it will only work if all data are floats.
 
     Data is assumed to be in the standard .ts format: each row is a (possibly
     multivariate) time series. Each dimension is separated by a colon, each value in
     a series is comma separated. For examples see aeon.datasets.data. ArrowHead
     is an example of a univariate equal length problem, BasicMotions an equal length
-    multivariate problem.
+    multivariate problem. See https://www.aeon-toolkit.org/en/stable/api_reference
+    /file_specifications/ts.html for formatting details.
 
     Parameters
     ----------
@@ -1206,6 +1225,20 @@ def load_classification(name, split=None, extract_path=None, return_metadata=Fal
         e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
     return_metadata : boolean, default = True
         If True, returns a tuple (X, y, metadata)
+    load_equal_length : boolean, default=True
+        This is for the case when the standard release has unequal length series. The
+        downloaded zip for these contain a version made equal length through
+        truncation. These versions all have the suffix _eq after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
+    load_no_missing : boolean, default=True
+        This is for the case when the standard release has missing values. The
+        downloaded zip for these contain a version with imputed missing values. These
+        versions all have the suffix _nmv after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
 
     Returns
     -------
@@ -1222,11 +1255,72 @@ def load_classification(name, split=None, extract_path=None, return_metadata=Fal
     >>> from aeon.datasets import load_classification
     >>> X, y = load_classification(name="ArrowHead")  # doctest: +SKIP
     """
-    return _load_tsc_dataset(
-        name,
-        split,
-        return_X_y=True,
-        extract_path=extract_path,
+    if extract_path is not None:
+        local_module = extract_path
+        local_dirname = ""
+    else:
+        local_module = MODULE
+        local_dirname = "data"
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+    path = os.path.join(local_module, local_dirname)
+    if extract_path is None:
+        local_dirname = "local_data"
+        if not os.path.exists(os.path.join(local_module, local_dirname)):
+            os.makedirs(os.path.join(local_module, local_dirname))
+        path = os.path.join(local_module, local_dirname)
+    if name not in get_downloaded_tsc_tsr_datasets(
+        os.path.join(local_module, local_dirname)
+    ):
+        # Check if on timeseriesclassification.com
+        url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
+        # Test if file exists
+        response = requests.head(url)
+        if response.status_code != 200:
+            raise ValueError(
+                f"Invalid dataset name ={name} is not available on extract path ="
+                f"{extract_path}. "
+                f"Nor is it available on https://timeseriesclassification.com/."
+            )
+        try:
+            _download_and_extract(
+                url,
+                extract_path=extract_path,
+            )
+        except zipfile.BadZipFile:
+            raise ValueError(
+                f"Invalid dataset name ={name} is  available on extract path ="
+                f"{extract_path} or https://timeseriesclassification.com/ but it "
+                f"is not correctly formatted.",
+            )
+    # Test for discrete version (first suffix _disc), always use that if it exists
+
+    # Test for non missing or equal length versions
+    dir_name = name
+    # If there exists a version with _discr, load that
+    train = os.path.join(path, f"{name}/{name}_disc_TRAIN.ts")
+    test = os.path.join(path, f"{name}/{name}_disc_TEST.ts")
+    if os.path.exists(train) and os.path.exists(test):
+        name = name + "_disc"
+
+    if load_equal_length:
+        # If there exists a version with equal length, load that
+        train = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_eq_TEST.ts")
+        if os.path.exists(train) and os.path.exists(test):
+            name = name + "_eq"
+    if load_no_missing:
+        train = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_nmv_TEST.ts")
+        if os.path.exists(train) and os.path.exists(test):
+            name = name + "_nmv"
+
+    return _load_saved_dataset(
+        name=name,
+        dir_name=dir_name,
+        split=split,
+        local_module=local_module,
+        local_dirname=local_dirname,
         return_meta=return_metadata,
     )
 
