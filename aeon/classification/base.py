@@ -36,8 +36,8 @@ from sklearn.utils.multiclass import type_of_target
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.sklearn import is_sklearn_transformer
+from aeon.utils.validation._check_collection import get_n_cases
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import get_n_cases
 
 
 class BaseClassifier(BaseCollectionEstimator, ABC):
@@ -81,7 +81,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     # TODO: remove in v0.8.0
     @deprecated(
-        version="0.6.0",
+        version="0.7.0",
         reason="The BaseClassifier __rmul__ (*) functionality will be removed "
         "in v0.8.0.",
         category=FutureWarning,

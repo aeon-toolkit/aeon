@@ -31,6 +31,8 @@ When renaming items, the functionality should ideally already be available with 
 
 In most cases not necessary to use the `deprecated` package when renaming or removing function and class keyword arguments. The default value of the argument can be set to `"deprecated"`. If this value is changed, a `FutureWarning` can be raised. This isolates the deprecation warning to the argument, rather than the whole function or class. If renaming, the new keyword argument can be added alongside this, with the warning directing users to use the new keyword argument.
 
+If the next version number has not been decided, use the next minor version number for the deprecated package `version` parameter.
+
 ## Examples
 
 ### Functions and Methods

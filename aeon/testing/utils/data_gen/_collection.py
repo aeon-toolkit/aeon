@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_random_state
 
-from aeon.utils.validation.collection import convert_collection
+from aeon.utils.conversion import convert_collection
 
 
 def make_example_3d_numpy(
@@ -457,3 +457,71 @@ def _make_nested_from_array(array, n_instances=20, n_columns=1):
         [[pd.Series(array) for _ in range(n_columns)] for _ in range(n_instances)],
         columns=[f"col{c}" for c in range(n_columns)],
     )
+
+
+np_list = []
+for _ in range(10):
+    np_list.append(np.random.random(size=(1, 20)))
+df_list = []
+for _ in range(10):
+    df_list.append(pd.DataFrame(np.random.random(size=(20, 1))))
+nested, _ = make_example_nested_dataframe(n_cases=10)
+multiindex = make_example_multi_index_dataframe(
+    n_instances=10, n_channels=1, n_timepoints=20
+)
+
+EQUAL_LENGTH_UNIVARIATE = {
+    "numpy3D": np.random.random(size=(10, 1, 20)),
+    "np-list": np_list,
+    "df-list": df_list,
+    "numpy2D": np.zeros(shape=(10, 20)),
+    "pd-wide": pd.DataFrame(np.zeros(shape=(10, 20))),
+    "nested_univ": nested,
+    "pd-multiindex": multiindex,
+}
+np_list_uneq = []
+for i in range(10):
+    np_list_uneq.append(np.random.random(size=(1, 20 + i)))
+df_list_uneq = []
+for i in range(10):
+    df_list_uneq.append(pd.DataFrame(np.random.random(size=(20 + i, 1))))
+
+nested_univ_uneq = pd.DataFrame(dtype=float)
+instance_list = []
+for i in range(0, 10):
+    instance_list.append(pd.Series(np.random.randn(20 + i)))
+nested_univ_uneq["channel0"] = instance_list
+
+UNEQUAL_LENGTH_UNIVARIATE = {
+    "np-list": np_list_uneq,
+    "df-list": df_list_uneq,
+    "nested_univ": nested_univ_uneq,
+}
+np_list_multi = []
+for _ in range(10):
+    np_list_multi.append(np.random.random(size=(2, 20)))
+df_list_multi = []
+for _ in range(10):
+    df_list_multi.append(pd.DataFrame(np.random.random(size=(20, 2))))
+multi = make_example_multi_index_dataframe(
+    n_instances=10, n_channels=2, n_timepoints=20
+)
+
+nested_univ_multi = pd.DataFrame(dtype=float)
+instance_list = []
+for _ in range(0, 10):
+    instance_list.append(pd.Series(np.random.randn(20)))
+nested_univ_multi["channel0"] = instance_list
+instance_list = []
+for _ in range(0, 10):
+    instance_list.append(pd.Series(np.random.randn(20)))
+nested_univ_multi["channel1"] = instance_list
+
+
+EQUAL_LENGTH_MULTIVARIATE = {
+    "numpy3D": np.random.random(size=(10, 2, 20)),
+    "np-list": np_list_multi,
+    "df-list": df_list_multi,
+    "nested_univ": nested_univ_multi,
+    "pd-multiindex": multi,
+}

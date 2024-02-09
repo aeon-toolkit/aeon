@@ -12,8 +12,8 @@ from aeon.base import BaseEstimator, _HeterogenousMetaEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
+from aeon.utils.conversion import convert_collection
 from aeon.utils.sklearn import is_sklearn_classifier
-from aeon.utils.validation.collection import convert_collection
 
 
 class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
@@ -79,7 +79,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     # TODO: remove in v0.8.0
     @deprecated(
-        version="0.6.0",
+        version="0.7.0",
         reason="The position of the classifier and transformers argument for "
         "ClassifierPipeline __init__ will be swapped in v0.8.0. Use "
         "keyword arguments to avoid breakage.",
@@ -172,7 +172,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     # TODO: remove in v0.8.0
     @deprecated(
-        version="0.6.0",
+        version="0.7.0",
         reason="The ClassifierPipeline __rmul__ (*) functionality will be removed "
         "in v0.8.0.",
         category=FutureWarning,
@@ -305,7 +305,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="SklearnClassifierPipeline will be removed in v0.8.0. Use "
     "ClassifierPipeline or the sklearn pipeline instead.",
     category=FutureWarning,

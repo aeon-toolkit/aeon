@@ -73,7 +73,7 @@ example_dict_metadata.update(example_dict_metadata_Proba)
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="get_examples has moved to the testing module, please use that version.",
     category=FutureWarning,
 )

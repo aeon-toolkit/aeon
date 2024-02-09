@@ -16,7 +16,7 @@ from aeon.datasets.dataset_collections import (
     get_downloaded_tsf_datasets,
 )
 from aeon.datasets.tser_data_lists import tser_monash, tser_soton
-from aeon.utils.validation.collection import convert_collection
+from aeon.utils.conversion import convert_collection
 
 DIRNAME = "data"
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
