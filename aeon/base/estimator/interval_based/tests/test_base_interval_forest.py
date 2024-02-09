@@ -8,7 +8,7 @@ from sklearn.tree import DecisionTreeClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification.interval_based._interval_forest import IntervalForestClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
-from aeon.testing.utils.data_gen import make_3d_test_data
+from aeon.testing.utils.data_gen import make_example_3d_numpy
 from aeon.transformations.collection import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.feature_based import (
     Catch22,
@@ -24,7 +24,7 @@ from aeon.utils.numba.stats import row_mean, row_numba_min
 )
 def test_interval_forest_feature_skipping(base_estimator):
     """Test BaseIntervalForest feature skipping with different base estimators."""
-    X, y = make_3d_test_data(random_state=0)
+    X, y = make_example_3d_numpy(random_state=0)
 
     est = IntervalForestClassifier(
         base_estimator=base_estimator,
@@ -51,7 +51,7 @@ def test_interval_forest_feature_skipping(base_estimator):
 
 def test_interval_forest_invalid_feature_skipping():
     """Test BaseIntervalForest with an invalid transformer for feature skipping."""
-    X, y = make_3d_test_data()
+    X, y = make_example_3d_numpy()
 
     est = IntervalForestClassifier(
         n_estimators=2,
@@ -69,7 +69,7 @@ def test_interval_forest_invalid_feature_skipping():
 )
 def test_interval_forest_selection_methods(interval_selection_method):
     """Test BaseIntervalForest with different interval selection methods."""
-    X, y = make_3d_test_data()
+    X, y = make_example_3d_numpy()
 
     est = IntervalForestClassifier(
         n_estimators=2,
@@ -92,7 +92,7 @@ def test_interval_forest_selection_methods(interval_selection_method):
 )
 def test_interval_forest_n_intervals(n_intervals, n_intervals_len):
     """Test BaseIntervalForest n_interval options."""
-    X, y = make_3d_test_data(n_timepoints=20)
+    X, y = make_example_3d_numpy(n_timepoints=20)
 
     est = IntervalForestClassifier(
         n_estimators=2,
@@ -135,7 +135,7 @@ att_subsample_c22 = Catch22(
 )
 def test_interval_forest_attribute_subsample(features, output_len):
     """Test BaseIntervalForest subsampling with different interval features."""
-    X, y = make_3d_test_data()
+    X, y = make_example_3d_numpy()
 
     est = IntervalForestClassifier(
         n_estimators=2,
@@ -155,7 +155,7 @@ def test_interval_forest_attribute_subsample(features, output_len):
 
 def test_interval_forest_invalid_attribute_subsample():
     """Test BaseIntervalForest with an invalid transformer for subsampling."""
-    X, y = make_3d_test_data()
+    X, y = make_example_3d_numpy()
 
     est = IntervalForestClassifier(
         n_estimators=2,
@@ -178,7 +178,7 @@ def test_interval_forest_invalid_attribute_subsample():
 )
 def test_interval_forest_series_transformer(series_transformer):
     """Test BaseIntervalForest with different series transformers."""
-    X, y = make_3d_test_data()
+    X, y = make_example_3d_numpy()
 
     est = IntervalForestClassifier(
         n_estimators=2,
@@ -201,7 +201,7 @@ def test_min_interval_length():
     """Test exception raising."""
     series_transformer = [FunctionTransformer(np.log1p)]
 
-    X, y = make_3d_test_data(n_cases=3, n_timepoints=10)
+    X, y = make_example_3d_numpy(n_cases=3, n_timepoints=10)
     est = IntervalForestClassifier(min_interval_length=0.5)
     est.fit(X, y)
     assert est._min_interval_length[0] == 5
@@ -224,7 +224,7 @@ def test_max_interval_length():
     """Test exception raising."""
     series_transformer = [FunctionTransformer(np.log1p)]
 
-    X, y = make_3d_test_data(n_cases=3, n_timepoints=10)
+    X, y = make_example_3d_numpy(n_cases=3, n_timepoints=10)
     est = IntervalForestClassifier(max_interval_length=0.5)
     est.fit(X, y)
     assert est._max_interval_length[0] == 5
@@ -249,7 +249,7 @@ def test_interval_features():
         Catch22(features=["DN_HistogramMode_5", "DN_HistogramMode_10"]),
         row_numba_min,
     ]
-    X, y = make_3d_test_data(n_cases=3, n_timepoints=10)
+    X, y = make_example_3d_numpy(n_cases=3, n_timepoints=10)
     est = IntervalForestClassifier(interval_features=f1)
     est.fit(X, y)
     assert est._interval_function == [True]

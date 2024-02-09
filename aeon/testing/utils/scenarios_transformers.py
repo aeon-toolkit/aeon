@@ -13,6 +13,7 @@ from inspect import isclass
 
 import numpy as np
 import pandas as pd
+from sklearn.utils import check_random_state
 
 from aeon.base import BaseObject
 from aeon.datatypes import mtype_to_scitype
@@ -20,8 +21,6 @@ from aeon.testing.utils.data_gen import (
     _make_classification_y,
     _make_collection_X,
     _make_hierarchical,
-    _make_primitives,
-    _make_tabular_X,
     make_series,
 )
 from aeon.testing.utils.scenarios import TestScenario
@@ -33,6 +32,24 @@ RAND_SEED2 = 84
 
 # typical length of time series
 N_T = 10
+
+
+def _make_primitives(n_columns=1, random_state=None):
+    """Generate one or more primitives, for checking inverse-transform."""
+    rng = check_random_state(random_state)
+    if n_columns == 1:
+        return rng.rand()
+    return rng.rand(size=(n_columns,))
+
+
+def _make_tabular_X(n_instances=20, n_columns=1, return_numpy=True, random_state=None):
+    """Generate tabular X, for checking inverse-transform."""
+    rng = check_random_state(random_state)
+    X = rng.rand(n_instances, n_columns)
+    if return_numpy:
+        return X
+    else:
+        return pd.DataFrame(X)
 
 
 def _is_child_of(obj, class_or_tuple):
@@ -165,7 +182,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
             elif s2s:
                 args = {"X": make_series(n_timepoints=N_T, random_state=RAND_SEED)}
             elif p2t:
-                args = {"X": _make_tabular_X(n_instances=7, random_state=RAND_SEED)}
+                args = {"X": _make_tabular_X(n_instances=7, nrandom_state=RAND_SEED)}
             elif p2p:
                 args = {
                     "X": _make_collection_X(

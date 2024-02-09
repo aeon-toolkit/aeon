@@ -1,17 +1,19 @@
 """Base class for estimators that fit collections of time series."""
 
 from aeon.base._base import BaseEstimator
-from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import (
+from aeon.utils.conversion import (
     convert_collection,
+    resolve_equal_length_inner_type,
+    resolve_unequal_length_inner_type,
+)
+from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation._check_collection import (
     get_n_cases,
     has_missing,
     is_equal_length,
     is_univariate,
-    resolve_equal_length_inner_type,
-    resolve_unequal_length_inner_type,
 )
+from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseCollectionEstimator(BaseEstimator):
@@ -51,8 +53,8 @@ class BaseCollectionEstimator(BaseEstimator):
 
         Parameters
         ----------
-        X : data structure
-            See aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES for details
+        X : collection
+            See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
 
         Returns
@@ -102,7 +104,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-           See aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES for details
+           See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
            on aeon supported data structures.
 
         Returns
@@ -164,7 +166,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-        must be of type aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES.
+        must be of type aeon.utils.conversion.COLLECTIONS_DATA_TYPES.
 
         Returns
         -------
@@ -179,7 +181,7 @@ class BaseCollectionEstimator(BaseEstimator):
         --------
         >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
-        >>> from aeon.utils.validation.collection import get_type
+        >>> from aeon.utils.validation import get_type
         >>> X = [np.random.random(size=(5,10)), np.random.random(size=(5,10))]
         >>> get_type(X)
         'np-list'

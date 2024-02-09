@@ -17,7 +17,7 @@ from aeon.transformations.base import BaseTransformer
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="Hidalgo in transformations will be removed in v0.8.0, it has been replaced "
     "by HidalgoSegmenter in the segmentation module.",
     category=FutureWarning,
