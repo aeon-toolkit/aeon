@@ -1,3 +1,4 @@
+import glob
 import os
 import re
 import shutil
@@ -1260,21 +1261,21 @@ def load_classification(
     """
     if extract_path is not None:
         local_module = extract_path
-        local_dirname = ""
+        local_dirname = None
     else:
         local_module = MODULE
         local_dirname = "data"
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     path = os.path.join(local_module, local_dirname)
-    if extract_path is None:
-        local_dirname = "local_data"
-        if not os.path.exists(os.path.join(local_module, local_dirname)):
-            os.makedirs(os.path.join(local_module, local_dirname))
-        path = os.path.join(local_module, local_dirname)
     if name not in get_downloaded_tsc_tsr_datasets(
         os.path.join(local_module, local_dirname)
     ):
+        if local_dirname == "data":
+            local_dirname = "local_data"
+            if not os.path.exists(os.path.join(local_module, local_dirname)):
+                os.makedirs(os.path.join(local_module, local_dirname))
+            path = os.path.join(local_module, local_dirname)
         # Check if on timeseriesclassification.com
         url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
         # Test if file exists to generate more informative error
@@ -1301,19 +1302,21 @@ def load_classification(
     # Test for non missing or equal length versions
     dir_name = name
     # If there exists a version with _discr, load that
-    train = os.path.join(path, f"{name}/{name}_disc_TRAIN.ts")
-    test = os.path.join(path, f"{name}/{name}_disc_TEST.ts")
-    if os.path.exists(train) and os.path.exists(test):
+    train = os.path.join(path, f"{name}/{name}_disc*TRAIN.ts")
+    test = os.path.join(path, f"{name}/{name}_disc*TEST.ts")
+    train_match = glob.glob(train)
+    test_match = glob.glob(test)
+    if train_match and test_match:
         name = name + "_disc"
     if load_equal_length:
         # If there exists a version with equal length, load that
-        train = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
-        test = os.path.join(path, f"{name}/{name}_eq_TEST.ts")
+        train = os.path.join(path, f"{dir_name}", f"{name}_eq_TRAIN.ts")
+        test = os.path.join(path, f"{dir_name}", f"{name}_eq_TEST.ts")
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_eq"
     if load_no_missing:
-        train = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
-        test = os.path.join(path, f"{name}/{name}_nmv_TEST.ts")
+        train = os.path.join(path, f"{dir_name}", f"{name}_nmv_TRAIN.ts")
+        test = os.path.join(path, f"{dir_name}", f"{name}_nmv_TEST.ts")
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_nmv"
 
