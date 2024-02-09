@@ -949,7 +949,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     >>> X=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
     # Allow user to have non standard extract path
-    from aeon.datasets.tsf_data_lists import tsf_all
+    from aeon.datasets.tsf_datasets import tsf_all
 
     if extract_path is not None:
         local_module = extract_path
@@ -1101,7 +1101,7 @@ def load_regression(
         local_dirname = "data"
     error_str = (
         f"File name {name} is not in the list of valid files to download,"
-        f"see aeon.datasets.tser_data_lists.tser_soton for the list. "
+        f"see aeon.datasets.tser_datasetss.tser_soton for the list. "
         f"If it is one tsc.com but not on the list, it means it may not "
         f"have been fully validated. Download it from the website."
     )
