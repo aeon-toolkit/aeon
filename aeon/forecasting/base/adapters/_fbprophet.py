@@ -86,9 +86,9 @@ class _ProphetAdapter(BaseForecaster):
 
         # Add seasonality/seasonalities
         if self.add_seasonality:
-            if type(self.add_seasonality) == dict:
+            if isinstance(self.add_seasonality, dict):
                 self._forecaster.add_seasonality(**self.add_seasonality)
-            elif type(self.add_seasonality) == list:
+            elif isinstance(self.add_seasonality, list):
                 for seasonality in self.add_seasonality:
                     self._forecaster.add_seasonality(**seasonality)
 
@@ -344,7 +344,7 @@ def _merge_X(df, X):
     return df, X
 
 
-class _suppress_stdout_stderr(object):
+class _suppress_stdout_stderr:
     """Context manager for doing  a "deep suppression" of stdout and stderr.
 
     A context manager for doing a "deep suppression" of stdout and stderr in

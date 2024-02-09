@@ -12,14 +12,16 @@ MultiIndex columns to DataFrame columns with the name:
     __index__[index_iloc], if level has no indexname and is index_iloc-th level
 index is replaced by a string index where tuples are replaced with str coerced elements
 """
+
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 
 def _is_mi_col(x):
     return isinstance(x, str) and x.startswith("__index__")
 
 
-def get_mi_cols(obj):
+def _get_mi_cols(obj):
     """Get multiindex cols from a dask object.
 
     Parameters
@@ -35,6 +37,13 @@ def get_mi_cols(obj):
     return [x for x in obj.columns if _is_mi_col(x)]
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="convert_dask_to_pandas will be moved from datatypes in v0.8.0 to "
+    "utils.conversion in v0.8.0",
+    category=FutureWarning,
+)
 def convert_dask_to_pandas(obj):
     """Convert dask DataFrame to pandas DataFrame, preserving MultiIndex.
 
@@ -62,7 +71,7 @@ def convert_dask_to_pandas(obj):
                 new_names[i] = None
         return new_names
 
-    multi_cols = get_mi_cols(obj)
+    multi_cols = _get_mi_cols(obj)
 
     # if has multi-index cols, move to pandas MultiIndex
     if len(multi_cols) > 0:
@@ -141,7 +150,7 @@ def check_dask_frame(
 
     # we now know obj is a dask DataFrame
 
-    index_cols = get_mi_cols(obj)
+    index_cols = _get_mi_cols(obj)
 
     # check right number of cols depending on scitype
     if scitype == "Series":
@@ -204,7 +213,6 @@ def check_dask_frame(
     # check whether index is equally spaced or if there are any nans
     #   compute only if needed
     if return_metadata:
-        # todo: logic for equal spacing
         metadata["is_equally_spaced"] = True
         metadata["has_nans"] = obj.isnull().values.any().compute()
 

@@ -19,7 +19,7 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
-__author__ = ["mloning", "fkiraly", "miraep8", "MatthewMiddlehurst"]
+__author__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = [
     "BaseCollectionTransformer",
 ]
@@ -31,8 +31,8 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseCollectionEstimator
-from aeon.datatypes import update_data
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.index_functions import update_data
 
 
 class BaseCollectionTransformer(
@@ -50,7 +50,7 @@ class BaseCollectionTransformer(
     }
 
     def __init__(self):
-        super(BaseCollectionTransformer, self).__init__()
+        super().__init__()
 
     @final
     def fit(self, X, y=None):
@@ -191,7 +191,7 @@ class BaseCollectionTransformer(
         Returns
         -------
         inverse transformed version of X
-            of the same type as X, and conforming to mtype format specifications
+            of the same type as X
         """
         if self.get_tag("skip-inverse-transform"):
             return X
@@ -231,12 +231,8 @@ class BaseCollectionTransformer(
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
-            Data to fit transform to, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
+        X : data to update of valid collection type.
+        y : Target variable, default=None
             Additional data, e.g., labels for transformation
         update_params : bool, default=True
             whether the model is updated. Yes if true, if false, simply skips call.
@@ -347,7 +343,7 @@ class BaseCollectionTransformer(
         Returns
         -------
         inverse transformed version of X
-            of the same type as X, and conforming to mtype format specifications.
+            of the same type as X.
         """
         raise NotImplementedError(
             f"{self.__class__.__name__} does not support inverse_transform"

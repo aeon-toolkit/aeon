@@ -47,7 +47,7 @@ class PaddingTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "fit_is_empty": False,
         "capability:multivariate": True,
         "capability:unequal_length": True,
@@ -57,7 +57,7 @@ class PaddingTransformer(BaseCollectionTransformer):
     def __init__(self, pad_length=None, fill_value=0):
         self.pad_length = pad_length
         self.fill_value = fill_value
-        super(PaddingTransformer, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit padding transformer to X and y.

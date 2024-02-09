@@ -1,4 +1,5 @@
 """Clustering averaging metrics."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import Callable, Dict
@@ -13,12 +14,12 @@ def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
 
     Parameters
     ----------
-    X : np.ndarray (3d array of shape (n_instances, n_dimensions, series_length))
+    X : np.ndarray (3d array of shape (n_instances, n_channels, series_length))
         Time series instances compute average from.
 
     Returns
     -------
-    np.ndarray (2d array of shape (n_dimensions, series_length)
+    np.ndarray (2d array of shape (n_channels, series_length)
         The time series that is the mean.
     """
     if X.shape[0] <= 1:

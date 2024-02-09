@@ -103,7 +103,7 @@ class VAR(_StatsModelsAdapter):
         self.freq = freq
         self.ic = ic
 
-        super(VAR, self).__init__(random_state=random_state)
+        super().__init__(random_state=random_state)
 
     def _fit_forecaster(self, y, X=None):
         """Fit forecaster to training data.
@@ -208,7 +208,7 @@ class VAR(_StatsModelsAdapter):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

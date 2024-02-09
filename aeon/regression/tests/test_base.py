@@ -1,4 +1,5 @@
 """Unit tests for regression base class functionality."""
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -6,11 +7,11 @@ import pytest
 from aeon.datasets import load_covid_3month
 from aeon.regression._dummy import DummyRegressor
 from aeon.regression.base import BaseRegressor
-from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation.tests.test_collection import (
+from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
+from aeon.utils.conversion import COLLECTIONS_DATA_TYPES
 
 
 class _TestRegressor(BaseRegressor):
@@ -32,7 +33,7 @@ class _DummyHandlesAllInput(BaseRegressor):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def _fit(self, X, y):
@@ -51,7 +52,7 @@ class _TestHandlesAllInput(BaseRegressor):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def _fit(self, X, y):

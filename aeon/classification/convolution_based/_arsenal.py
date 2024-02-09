@@ -7,6 +7,7 @@ __author__ = ["MatthewMiddlehurst", "kachayev"]
 __all__ = ["Arsenal"]
 
 import time
+import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -24,7 +25,6 @@ from aeon.transformations.collection.convolution_based import (
     MultiRocketMultivariate,
     Rocket,
 )
-from aeon.utils.validation.panel import check_X_y
 
 
 class Arsenal(BaseClassifier):
@@ -54,8 +54,12 @@ class Arsenal(BaseClassifier):
         Default of 0 means n_estimators is used.
     contract_max_n_estimators : int, default=100
         Max number of estimators when time_limit_in_minutes is set.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_probs.
+    save_transformed_data : bool, default="deprecated"
+        Save the data transformed in ``fit``.
+
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
+        ``transformed_data_`` will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -64,7 +68,7 @@ class Arsenal(BaseClassifier):
 
     Attributes
     ----------
-    n_classes : int
+    n_classes_ : int
         The number of classes.
     n_instances_ : int
         The number of train cases.
@@ -78,9 +82,8 @@ class Arsenal(BaseClassifier):
         The collections of estimators trained in fit.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
-    transformed_data_ : list of shape (n_estimators)
-        The transformed dataset for all classifiers. Only saved when
-        save_transformed_data is true.
+    n_estimators_ : int
+        The number of estimators in the ensemble.
 
     See Also
     --------
@@ -128,7 +131,7 @@ class Arsenal(BaseClassifier):
         n_features_per_kernel=4,
         time_limit_in_minutes=0.0,
         contract_max_n_estimators=100,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         n_jobs=1,
         random_state=None,
     ):
@@ -139,7 +142,6 @@ class Arsenal(BaseClassifier):
         self.n_features_per_kernel = n_features_per_kernel
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
-        self.save_transformed_data = save_transformed_data
 
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -149,18 +151,27 @@ class Arsenal(BaseClassifier):
         self.series_length_ = 0
         self.estimators_ = []
         self.weights_ = []
-        self.transformed_data_ = []
 
         self._weight_sum = 0
 
-        super(Arsenal, self).__init__()
+        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
+        self.transformed_data_ = []
+        self.save_transformed_data = save_transformed_data
+        if save_transformed_data != "deprecated":
+            warnings.warn(
+                "the save_transformed_data parameter is deprecated and will be"
+                "removed in v0.8.0. transformed_data_ will also be removed.",
+                stacklevel=2,
+            )
+
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Arsenal to training data.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -175,6 +186,102 @@ class Arsenal(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        b = (
+            False
+            if isinstance(self.save_transformed_data, str)
+            else self.save_transformed_data
+        )
+        self.transformed_data_ = self._fit_arsenal(X, y, keep_transformed_data=b)
+        return self
+
+    def _predict(self, X) -> np.ndarray:
+        """Predicts labels for sequences in X.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances]
+            Predicted class labels.
+        """
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._predict_proba(X)
+            ]
+        )
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predicts labels probabilities for sequences in X.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+            The data to make predict probabilities for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_instances, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+            delayed(self._predict_proba_for_estimator)(
+                X,
+                self.estimators_[i],
+                i,
+            )
+            for i in range(self.n_estimators_)
+        )
+
+        return np.around(
+            np.sum(y_probas, axis=0) / (np.ones(self.n_classes_) * self._weight_sum), 8
+        )
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._fit_predict_proba(X, y)
+            ]
+        )
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        Xt = self._fit_arsenal(X, y, keep_transformed_data=True)
+
+        rng = check_random_state(self.random_state)
+
+        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+            delayed(self._train_probas_for_estimator)(
+                Xt,
+                y,
+                i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
+            )
+            for i in range(self.n_estimators_)
+        )
+        y_probas, weights, oobs = zip(*p)
+
+        results = np.sum(y_probas, axis=0)
+        divisors = np.zeros(self.n_instances_)
+        for n, oob in enumerate(oobs):
+            for inst in oob:
+                divisors[inst] += weights[n]
+
+        for i in range(self.n_instances_):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
+
+    def _fit_arsenal(self, X, y, keep_transformed_data=False):
         self.n_instances_, self.n_dims_, self.series_length_ = X.shape
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
@@ -210,26 +317,31 @@ class Arsenal(BaseClassifier):
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 
         if time_limit > 0:
-            self.n_estimators = 0
+            self.n_estimators_ = 0
             self.estimators_ = []
-            self.transformed_data_ = []
+            Xt = []
 
             while (
                 train_time < time_limit
-                and self.n_estimators < self.contract_max_n_estimators
+                and self.n_estimators_ < self.contract_max_n_estimators
             ):
                 fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                    delayed(self._fit_estimator)(
+                    delayed(self._fit_ensemble_estimator)(
                         _clone_estimator(
                             base_rocket,
-                            None
-                            if self.random_state is None
-                            else (255 if self.random_state == 0 else self.random_state)
-                            * 37
-                            * (i + 1),
+                            (
+                                None
+                                if self.random_state is None
+                                else (
+                                    255 if self.random_state == 0 else self.random_state
+                                )
+                                * 37
+                                * (i + 1)
+                            ),
                         ),
                         X,
                         y,
+                        keep_transformed_data=keep_transformed_data,
                     )
                     for i in range(self._n_jobs)
                 )
@@ -237,28 +349,32 @@ class Arsenal(BaseClassifier):
                 estimators, transformed_data = zip(*fit)
 
                 self.estimators_ += estimators
-                self.transformed_data_ += transformed_data
+                Xt += transformed_data
 
-                self.n_estimators += self._n_jobs
+                self.n_estimators_ += self._n_jobs
                 train_time = time.time() - start_time
         else:
             fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(self._fit_estimator)(
+                delayed(self._fit_ensemble_estimator)(
                     _clone_estimator(
                         base_rocket,
-                        None
-                        if self.random_state is None
-                        else (255 if self.random_state == 0 else self.random_state)
-                        * 37
-                        * (i + 1),
+                        (
+                            None
+                            if self.random_state is None
+                            else (255 if self.random_state == 0 else self.random_state)
+                            * 37
+                            * (i + 1)
+                        ),
                     ),
                     X,
                     y,
+                    keep_transformed_data=keep_transformed_data,
                 )
                 for i in range(self.n_estimators)
             )
 
-            self.estimators_, self.transformed_data_ = zip(*fit)
+            self.estimators_, Xt = zip(*fit)
+            self.n_estimators_ = self.n_estimators
 
         self.weights_ = []
         self._weight_sum = 0
@@ -267,107 +383,9 @@ class Arsenal(BaseClassifier):
             self.weights_.append(weight)
             self._weight_sum += weight
 
-        return self
+        return Xt
 
-    def _predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
-
-        Parameters
-        ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predictions for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
-        """
-        rng = check_random_state(self.random_state)
-        return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self._predict_proba(X)
-            ]
-        )
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
-
-        Parameters
-        ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(self._predict_proba_for_estimator)(
-                X,
-                self.estimators_[i],
-                i,
-            )
-            for i in range(self.n_estimators)
-        )
-
-        return np.around(
-            np.sum(y_probas, axis=0) / (np.ones(self.n_classes_) * self._weight_sum), 8
-        )
-
-    def _get_train_probs(self, X, y) -> np.ndarray:
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True)
-
-        # handle the single-class-label case
-        if len(self._class_dictionary) == 1:
-            return self._single_class_y_pred(X, method="predict_proba")
-
-        n_instances, n_dims, series_length = X.shape
-
-        if (
-            n_instances != self.n_instances_
-            or n_dims != self.n_dims_
-            or series_length != self.series_length_
-        ):
-            raise ValueError(
-                "n_instances, n_dims, series_length mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
-
-        if not self.save_transformed_data:
-            raise ValueError("Currently only works with saved transform data from fit.")
-
-        rng = check_random_state(self.random_state)
-
-        p = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(self._train_probas_for_estimator)(
-                y,
-                i,
-                check_random_state(rng.randint(np.iinfo(np.int32).max)),
-            )
-            for i in range(self.n_estimators)
-        )
-        y_probas, weights, oobs = zip(*p)
-
-        results = np.sum(y_probas, axis=0)
-        divisors = np.zeros(n_instances)
-        for n, oob in enumerate(oobs):
-            for inst in oob:
-                divisors[inst] += weights[n]
-
-        for i in range(n_instances):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
-
-        return results
-
-    def _fit_estimator(self, rocket, X, y):
+    def _fit_ensemble_estimator(self, rocket, X, y, keep_transformed_data):
         transformed_x = rocket.fit_transform(X)
         scaler = StandardScaler(with_mean=False)
         scaler.fit(transformed_x, y)
@@ -375,7 +393,7 @@ class Arsenal(BaseClassifier):
         ridge.fit(scaler.transform(transformed_x), y)
         return [
             make_pipeline(rocket, scaler, ridge),
-            transformed_x if self.save_transformed_data else None,
+            transformed_x if keep_transformed_data else None,
         ]
 
     def _predict_proba_for_estimator(self, X, classifier, idx):
@@ -385,7 +403,7 @@ class Arsenal(BaseClassifier):
             weights[i, self._class_dictionary[preds[i]]] += self.weights_[idx]
         return weights
 
-    def _train_probas_for_estimator(self, y, idx, rng):
+    def _train_probas_for_estimator(self, Xt, y, idx, rng):
         indices = range(self.n_instances_)
         subsample = rng.choice(self.n_instances_, size=self.n_instances_)
         oob = [n for n in indices if n not in subsample]
@@ -398,8 +416,8 @@ class Arsenal(BaseClassifier):
             StandardScaler(with_mean=False),
             RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)),
         )
-        clf.fit(self.transformed_data_[idx][subsample], y[subsample])
-        preds = clf.predict(self.transformed_data_[idx][oob])
+        clf.fit(Xt[idx][subsample], y[subsample])
+        preds = clf.predict(Xt[idx][oob])
 
         weight = clf.steps[1][1].best_score_
 
@@ -424,9 +442,6 @@ class Arsenal(BaseClassifier):
                 "contracting" - used in classifiers that set the
                     "capability:contractable" tag to True to test contacting
                     functionality
-                "train_estimate" - used in some classifiers that set the
-                    "capability:train_estimate" tag to True to allow for more efficient
-                    testing when relevant parameters are available
 
         Returns
         -------
@@ -443,12 +458,6 @@ class Arsenal(BaseClassifier):
                 "time_limit_in_minutes": 5,
                 "num_kernels": 10,
                 "contract_max_n_estimators": 2,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "num_kernels": 10,
-                "n_estimators": 2,
-                "save_transformed_data": True,
             }
         else:
             return {"num_kernels": 10, "n_estimators": 2}

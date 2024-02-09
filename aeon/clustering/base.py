@@ -1,4 +1,5 @@
 """Base class for clustering."""
+
 __author__ = ["chrisholder", "TonyBagnall"]
 __all__ = ["BaseClusterer"]
 
@@ -26,7 +27,8 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV
         self._estimator_type = "clusterer"
-        super(BaseClusterer, self).__init__()
+
+        super().__init__()
         _check_estimator_deps(self)
 
     @final
@@ -35,7 +37,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
+        X : 3D np.ndarray (any number of channels, equal length series)
                 of shape (n_instances, n_channels, n_timepoints)
             or 2D np.array (univariate, equal length series)
                 of shape (n_instances, n_timepoints)
@@ -64,7 +66,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array
+        X : 3D np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -116,7 +118,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array
+        X : 3D np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -166,7 +168,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : 3D np.array
+        X : 3D np.ndarray
             Input data, any number of channels, equal length series of shape ``(
             n_instances, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
@@ -194,8 +196,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         return dists
 
     @abstractmethod
-    def _score(self, X, y=None):
-        ...
+    def _score(self, X, y=None): ...
 
     @abstractmethod
     def _predict(self, X, y=None) -> np.ndarray:

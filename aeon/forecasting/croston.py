@@ -1,6 +1,5 @@
 """Croston's Forecasting Method."""
 
-
 import numpy as np
 import pandas as pd
 
@@ -75,7 +74,7 @@ class Croston(BaseForecaster):
         # hyperparameter
         self.smoothing = smoothing
         self._f = None
-        super(Croston, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.

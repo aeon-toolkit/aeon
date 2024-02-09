@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datatypes._utilities import get_cutoff
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.model_selection import (
     CutoffSplitter,
@@ -27,10 +26,9 @@ from aeon.forecasting.tests import (
     TEST_YS,
     VALID_INDEX_FH_COMBINATIONS,
 )
-from aeon.utils._testing.forecasting import _make_fh
-from aeon.utils._testing.hierarchical import _make_hierarchical
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.data_gen import _make_fh, _make_hierarchical, make_series
 from aeon.utils.datetime import _coerce_duration_to_int
+from aeon.utils.index_functions import get_cutoff
 from aeon.utils.validation import (
     array_is_datetime64,
     array_is_int,
@@ -350,7 +348,7 @@ def test_expanding_window_splitter_start_with_initial_window_zero(y, fh, step_le
 
 def test_sliding_window_splitter_initial_window_start_with_empty_window_raises_error():
     """Test SlidingWindowSplitter."""
-    y = _make_series()
+    y = make_series()
     cv = SlidingWindowSplitter(
         fh=1,
         initial_window=15,
@@ -363,7 +361,7 @@ def test_sliding_window_splitter_initial_window_start_with_empty_window_raises_e
 
 def test_sliding_window_splitter_initial_window_smaller_than_window_raise_error():
     """Test SlidingWindowSplitter."""
-    y = _make_series()
+    y = make_series()
     cv = SlidingWindowSplitter(
         fh=1,
         window_length=10,
@@ -475,12 +473,7 @@ def test_split_by_fh(index_type, fh_type, is_relative, values):
     """Test temporal_train_test_split."""
     if fh_type == "timedelta":
         return None
-        # todo: ensure check_estimator works with pytest.skip like below
-        # pytest.skip(
-        #    "ForecastingHorizon with timedelta values "
-        #     "is currently experimental and not supported everywhere"
-        # )
-    y = _make_series(20, index_type=index_type)
+    y = make_series(20, index_type=index_type)
     cutoff = get_cutoff(y.iloc[:10], return_index=True)
     fh = _make_fh(cutoff, values, fh_type, is_relative)
     split = temporal_train_test_split(y, fh=fh)
@@ -505,7 +498,7 @@ def _check_train_test_split_y(fh, split):
 
 def test_split_series():
     """Tests that split_series produces series in the split."""
-    y = _make_series()
+    y = make_series()
     cv = SlidingWindowSplitter()
 
     for train, test in cv.split_series(y):
@@ -517,7 +510,7 @@ def test_split_series():
 
 def test_split_loc():
     """Tests that split_loc produces loc indices for train and test."""
-    y = _make_series()
+    y = make_series()
     cv = SlidingWindowSplitter()
 
     for train, test in cv.split_loc(y):

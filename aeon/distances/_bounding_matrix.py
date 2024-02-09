@@ -10,7 +10,7 @@ from numba import njit
 def create_bounding_matrix(
     x_size: int, y_size: int, window: float = None, itakura_max_slope: float = None
 ):
-    """Create a bounding matrix for a elastic distance.
+    """Create a bounding matrix for an elastic distance.
 
     Parameters
     ----------
@@ -62,7 +62,7 @@ def _itakura_parallelogram(x_size: int, y_size: int, max_slope_percent: float):
     https://github.com/tslearn-team/tslearn/blob/main/tslearn/metrics/dtw_variants.py
     """
     one_percent = min(x_size, y_size) / 100
-    max_slope = math.floor(((max_slope_percent * one_percent) * 100))
+    max_slope = math.floor((max_slope_percent * one_percent) * 100)
     min_slope = 1 / float(max_slope)
     max_slope *= float(x_size) / float(y_size)
     min_slope *= float(x_size) / float(y_size)
@@ -98,7 +98,7 @@ def _sakoe_chiba_bounding(
     x_size: int, y_size: int, radius_percent: float
 ) -> np.ndarray:
     one_percent = min(x_size, y_size) / 100
-    radius = math.floor(((radius_percent * one_percent) * 100))
+    radius = math.floor((radius_percent * one_percent) * 100)
     bounding_matrix = np.full((x_size, y_size), False)
 
     smallest_size = min(x_size, y_size)

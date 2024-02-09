@@ -117,7 +117,7 @@ class AutoEnsembleForecaster(_HeterogenousEnsembleForecaster):
         random_state=None,
         n_jobs=None,
     ):
-        super(AutoEnsembleForecaster, self).__init__(
+        super().__init__(
             forecasters=forecasters,
             n_jobs=n_jobs,
         )
@@ -309,13 +309,13 @@ class EnsembleForecaster(_HeterogenousEnsembleForecaster):
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_input_type": "both",
     }
 
     def __init__(self, forecasters, n_jobs=None, aggfunc="mean", weights=None):
-        super(EnsembleForecaster, self).__init__(forecasters=forecasters, n_jobs=n_jobs)
+        super().__init__(forecasters=forecasters, n_jobs=n_jobs)
         self.aggfunc = aggfunc
         self.weights = weights
 

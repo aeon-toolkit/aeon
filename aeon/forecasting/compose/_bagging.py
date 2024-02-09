@@ -10,15 +10,15 @@ from sklearn import clone
 from sklearn.utils import check_random_state
 from sklearn.utils._testing import set_random_state
 
-from aeon.datatypes._utilities import update_data
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.ets import AutoETS
+from aeon.testing.mock_estimators import MockForecaster
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.bootstrap import (
     MovingBlockBootstrapTransformer,
     STLBootstrapTransformer,
 )
-from aeon.utils.estimators import MockForecaster
+from aeon.utils.index_functions import update_data
 
 
 class BaggingForecaster(BaseForecaster):
@@ -90,7 +90,7 @@ class BaggingForecaster(BaseForecaster):
         "ignores-exogeneous-X": True,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "X_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "requires-fh-in-fit": False,  # like AutoETS overwritten if forecaster not None
         "enforce_index_type": None,  # like AutoETS overwritten if forecaster not None
@@ -116,7 +116,7 @@ class BaggingForecaster(BaseForecaster):
             # done before the super call to trigger exceptions
             self.set_tags(**{"python_dependencies": "statsmodels"})
 
-        super(BaggingForecaster, self).__init__()
+        super().__init__()
 
         # set the tags based on forecaster
         tags_to_clone = [
@@ -148,7 +148,7 @@ class BaggingForecaster(BaseForecaster):
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns

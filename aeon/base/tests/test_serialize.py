@@ -1,15 +1,16 @@
 """Test save and load."""
+
 import os
 
 import pytest
 
 from aeon.base import load
 from aeon.classification import DummyClassifier
-from aeon.utils._testing.collection import make_3d_test_data
+from aeon.testing.utils.data_gen import make_example_3d_numpy
 
 
 def test_save_and_load():
-    X, y = make_3d_test_data()
+    X, y = make_example_3d_numpy()
     dummy = DummyClassifier()
     dummy.fit(X, y)
     loc = "testy"

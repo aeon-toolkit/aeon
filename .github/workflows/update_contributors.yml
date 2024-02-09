@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
 
@@ -25,8 +25,15 @@ jobs:
         id: generate
         run: npx all-contributors generate
 
-      - uses: peter-evans/create-pull-request@v5
+      - uses: actions/create-github-app-token@v1
+        id: app-token
         with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: "Automated `CONTRIBUTORS.md` update"
           branch: update_contributors
           title: "[MNT] Automated `CONTRIBUTORS.md` update"

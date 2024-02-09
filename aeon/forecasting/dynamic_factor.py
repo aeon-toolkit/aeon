@@ -113,9 +113,9 @@ class DynamicFactor(_StatsModelsAdapter):
 
     Examples
     --------
-    >>> from aeon.utils._testing.series import _make_series
+    >>> from aeon.testing.utils.data_gen import make_series
     >>> from aeon.forecasting.dynamic_factor import DynamicFactor
-    >>> y = _make_series(n_columns=4)
+    >>> y = make_series(n_columns=4)
     >>> forecaster = DynamicFactor()  # doctest: +SKIP
     >>> forecaster.fit(y)  # doctest: +SKIP
     DynamicFactor(...)
@@ -127,7 +127,7 @@ class DynamicFactor(_StatsModelsAdapter):
         "ignores-exogeneous-X": False,
         "capability:missing_values": True,
         "y_inner_type": "pd.DataFrame",
-        "X_inner_mtype": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "X-y-must-have-same-index": True,
         "enforce_index_type": None,
@@ -185,7 +185,7 @@ class DynamicFactor(_StatsModelsAdapter):
         self.flags = flags
         self.low_memory = low_memory
 
-        super(DynamicFactor, self).__init__()
+        super().__init__()
 
     def _predict(self, fh, X=None):
         """Make forecasts.
@@ -239,7 +239,7 @@ class DynamicFactor(_StatsModelsAdapter):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

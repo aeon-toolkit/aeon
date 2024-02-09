@@ -20,7 +20,8 @@ __all__ = [
     "get_examples",
 ]
 
-from aeon.datatypes._alignment import example_dict_Alignment
+from deprecated.sphinx import deprecated
+
 from aeon.datatypes._hierarchical import (
     example_dict_Hierarchical,
     example_dict_lossy_Hierarchical,
@@ -49,7 +50,6 @@ from aeon.datatypes._table import (
 
 # pool example_dict-s
 example_dict = dict()
-example_dict.update(example_dict_Alignment)
 example_dict.update(example_dict_Series)
 example_dict.update(example_dict_Panel)
 example_dict.update(example_dict_Hierarchical)
@@ -71,6 +71,12 @@ example_dict_metadata.update(example_dict_metadata_Table)
 example_dict_metadata.update(example_dict_metadata_Proba)
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.7.0",
+    reason="get_examples has moved to the testing module, please use that version.",
+    category=FutureWarning,
+)
 def get_examples(
     mtype: str,
     as_scitype: str = None,
@@ -82,7 +88,7 @@ def get_examples(
     Parameters
     ----------
     mtype: str - name of the mtype for the example, a valid mtype string
-        valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
+        valid mtype strings, with explanation, are in datatypes.TYPE_REGISTER
     as_scitype : str, optional - name of scitype of the example, a valid scitype string
         valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
         default = inferred from mtype of obj

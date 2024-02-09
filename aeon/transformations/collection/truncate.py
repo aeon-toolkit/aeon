@@ -35,7 +35,7 @@ class TruncationTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:unequal_length:removes": True,
@@ -43,7 +43,7 @@ class TruncationTransformer(BaseCollectionTransformer):
 
     def __init__(self, truncated_length=None):
         self.truncated_length = truncated_length
-        super(TruncationTransformer, self).__init__()
+        super().__init__()
 
     @staticmethod
     def _get_min_length(X):

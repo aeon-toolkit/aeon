@@ -1,6 +1,6 @@
 <!--
 Thanks for contributing a pull request! Please ensure you have taken a look at our
-contribution guide: https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md
+contribution guide: https://www.aeon-toolkit.org/en/stable/contributing.html
 
 Feel free to delete sections of this template if they do not apply to your PR,
 avoid submitting a blank template or empty sections.
@@ -47,19 +47,14 @@ Please go through the checklist below. Please feel free to remove points if they
 -->
 
 ##### For all contributions
-- [ ] I've added myself to the [list of contributors](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc).
-Alternatively, you can use the [@all-contributors](https://allcontributors.org/docs/en/bot/usage)
-bot to do this for you.
-- [ ] The PR title starts with either [ENH], [MNT], [DOC], [BUG] or [GOV] indicating
-whether the PR topic is related to enhancement, maintenance, documentation, bugs or
-governance.
+- [ ] I've added myself to the [list of contributors](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc). Alternatively, you can use the [@all-contributors](https://allcontributors.org/docs/en/bot/usage) bot to do this for you.
+- [ ] The PR title starts with either [ENH], [MNT], [DOC], [BUG], [REF], [DEP] or [GOV] indicating whether the PR topic is related to enhancement, maintenance, documentation, bugs, refactoring, deprecation or governance.
 
 ##### For new estimators and functions
 - [ ] I've added the estimator to the online [API documentation](https://www.aeon-toolkit.org/en/latest/api_reference.html).
 
 ##### For developers with write access
-- [ ] Optionally, I've updated aeon's [CODEOWNERS](https://github.com/aeon-toolkit/aeon/blob/main/CODEOWNERS)
-to receive notifications about future changes to these files.
+- [ ] Optionally, I've updated aeon's [CODEOWNERS](https://github.com/aeon-toolkit/aeon/blob/main/CODEOWNERS) to receive notifications about future changes to these files.
 
 
 <!--

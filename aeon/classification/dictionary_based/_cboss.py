@@ -10,6 +10,7 @@ __all__ = ["ContractableBOSS", "pairwise_distances"]
 
 import math
 import time
+import warnings
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -17,7 +18,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based import IndividualBOSS
 from aeon.classification.dictionary_based._boss import pairwise_distances
-from aeon.utils.validation.panel import check_X_y
 
 
 class ContractableBOSS(BaseClassifier):
@@ -62,9 +62,11 @@ class ContractableBOSS(BaseClassifier):
     contract_max_n_parameter_samples : int, default=np.inf
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
-    save_train_predictions : bool, default=False
-        Save the ensemble member train predictions in fit for use in _get_train_probs
-        leave-one-out cross-validation.
+    save_train_predictions : bool, default="deprecated"
+        Save the ensemble member train predictions in ``fit``.
+
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
     n_jobs : int, default = 1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -85,13 +87,12 @@ class ContractableBOSS(BaseClassifier):
         The classes labels.
     n_instances_ : int
         Number of instances. Extracted from the data.
-    n_estimators_ : int
-        The final number of classifiers used. Will be <= `max_ensemble_size` if
-        `max_ensemble_size` has been specified.
     series_length_ : int
         Length of all series (assumed equal).
     estimators_ : list
        List of DecisionTree classifiers.
+    n_estimators_ : int
+        The final number of classifiers used. Will be <= `max_ensemble_size`.
     weights_ :
         Weight of each classifier in the ensemble.
 
@@ -145,7 +146,7 @@ class ContractableBOSS(BaseClassifier):
         min_window=10,
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
-        save_train_predictions=False,
+        save_train_predictions="deprecated",
         feature_selection="none",
         n_jobs=1,
         random_state=None,
@@ -157,7 +158,6 @@ class ContractableBOSS(BaseClassifier):
 
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_parameter_samples = contract_max_n_parameter_samples
-        self.save_train_predictions = save_train_predictions
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.feature_selection = feature_selection
@@ -173,9 +173,18 @@ class ContractableBOSS(BaseClassifier):
         self._norm_options = [True, False]
         self._alphabet_size = 4
 
-        super(ContractableBOSS, self).__init__()
+        # TODO remove 'save_train_predictions' in v0.8.0
+        self.save_train_predictions = save_train_predictions
+        if save_train_predictions != "deprecated":
+            warnings.warn(
+                "the save_train_predictions parameter is deprecated and will be "
+                "removed in v0.8.0.",
+                stacklevel=2,
+            )
 
-    def _fit(self, X, y):
+        super().__init__()
+
+    def _fit(self, X, y, keep_train_preds=True):
         """Fit a cBOSS ensemble on cases (X,y), where y is the target variable.
 
         Build an ensemble of BOSS classifiers from the training set (X,
@@ -270,6 +279,7 @@ class ContractableBOSS(BaseClassifier):
                 y_subsample,
                 subsample_size,
                 0 if num_classifiers < self.max_ensemble_size else lowest_acc,
+                keep_train_preds,
             )
             if boss._accuracy > 0:
                 weight = math.pow(boss._accuracy, 4)
@@ -336,12 +346,47 @@ class ContractableBOSS(BaseClassifier):
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 
+        if self.n_estimators_ == 0:
+            return sums + 1 / self.n_classes_
+
         for n, clf in enumerate(self.estimators_):
             preds = clf.predict(X)
             for i in range(X.shape[0]):
                 sums[i, self._class_dictionary[preds[i]]] += self.weights_[n]
 
         return sums / (np.ones(self.n_classes_) * self._weight_sum)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._fit_predict_proba(X, y)
+            ]
+        )
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        self._fit(X, y, keep_train_preds=True)
+
+        results = np.zeros((self.n_instances_, self.n_classes_))
+        divisors = np.zeros(self.n_instances_)
+
+        for i, clf in enumerate(self.estimators_):
+            subsample = clf._subsample
+            preds = clf._train_predictions
+
+            for n, pred in enumerate(preds):
+                results[subsample[n]][self._class_dictionary[pred]] += self.weights_[i]
+                divisors[subsample[n]] += self.weights_[i]
+
+        for i in range(self.n_instances_):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
 
     def _worst_ensemble_acc(self):
         min_acc = 1.0
@@ -362,55 +407,16 @@ class ContractableBOSS(BaseClassifier):
             for g, word_len in enumerate(self._word_lengths)
         ]
 
-    def _get_train_probs(self, X, y) -> np.ndarray:
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True, enforce_univariate=True)
-
-        n_instances, _, series_length = X.shape
-
-        if n_instances != self.n_instances_ or series_length != self.series_length_:
-            raise ValueError(
-                "n_instances, series_length mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
-
-        results = np.zeros((n_instances, self.n_classes_))
-        divisors = np.zeros(n_instances)
-
-        for i, clf in enumerate(self.estimators_):
-            subsample = clf._subsample
-            if self.save_train_predictions:
-                preds = clf._train_predictions
-
-            else:
-                distance_matrix = pairwise_distances(
-                    clf._transformed_data, n_jobs=self.n_jobs
-                )
-
-                preds = [
-                    clf._train_predict(j, distance_matrix)
-                    for j in range(len(subsample))
-                ]
-            for n, pred in enumerate(preds):
-                results[subsample[n]][self._class_dictionary[pred]] += self.weights_[i]
-                divisors[subsample[n]] += self.weights_[i]
-
-        for i in range(n_instances):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
-
-        return results
-
-    def _individual_train_acc(self, boss, y, train_size, lowest_acc):
+    def _individual_train_acc(self, boss, y, train_size, lowest_acc, keep_train_preds):
         correct = 0
         required_correct = int(lowest_acc * train_size)
 
-        # there may be no words if feature selection is too aggressive
-        if boss._transformed_data.shape[1] > 0:
+        # there may be no words if feature selection is too aggressive or
+        # subsampling is too small
+        if (
+            not isinstance(boss._transformed_data, list)
+            and boss._transformed_data.shape[1] > 0
+        ):
             distance_matrix = pairwise_distances(
                 boss._transformed_data, n_jobs=self.n_jobs
             )
@@ -423,7 +429,7 @@ class ContractableBOSS(BaseClassifier):
                 if c == y[i]:
                     correct += 1
 
-                if self.save_train_predictions:
+                if keep_train_preds:
                     boss._train_predictions.append(c)
 
         return correct / train_size
@@ -463,12 +469,6 @@ class ContractableBOSS(BaseClassifier):
                 "time_limit_in_minutes": 5,
                 "contract_max_n_parameter_samples": 4,
                 "max_ensemble_size": 2,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_parameter_samples": 4,
-                "max_ensemble_size": 2,
-                "save_train_predictions": True,
             }
         else:
             return {"n_parameter_samples": 4, "max_ensemble_size": 2}

@@ -4,7 +4,7 @@ from numpy.testing import assert_almost_equal
 
 from aeon.distances import cost_matrix as compute_cost_matrix
 from aeon.distances._distance import DISTANCES
-from aeon.distances.tests._utils import create_test_distance_numpy
+from aeon.distances.tests.test_utils import _create_test_distance_numpy
 
 
 def _validate_cost_matrix_result(
@@ -17,7 +17,7 @@ def _validate_cost_matrix_result(
     cost_matrix_result = cost_matrix(x, y)
 
     assert isinstance(cost_matrix_result, np.ndarray)
-    assert np.array_equal(cost_matrix_result, compute_cost_matrix(x, y, metric=name))
+    assert_almost_equal(cost_matrix_result, compute_cost_matrix(x, y, metric=name))
     if name == "ddtw" or name == "wddtw":
         assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)
     elif name == "lcss":
@@ -61,8 +61,8 @@ def test_cost_matrix(dist):
         )
 
     _validate_cost_matrix_result(
-        create_test_distance_numpy(10),
-        create_test_distance_numpy(10, random_state=2),
+        _create_test_distance_numpy(10),
+        _create_test_distance_numpy(10, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],
@@ -70,8 +70,8 @@ def test_cost_matrix(dist):
 
     # Test multivariate
     _validate_cost_matrix_result(
-        create_test_distance_numpy(10, 10),
-        create_test_distance_numpy(10, 10, random_state=2),
+        _create_test_distance_numpy(10, 10),
+        _create_test_distance_numpy(10, 10, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],
@@ -79,16 +79,16 @@ def test_cost_matrix(dist):
 
     # Test unequal length
     _validate_cost_matrix_result(
-        create_test_distance_numpy(5),
-        create_test_distance_numpy(10, random_state=2),
+        _create_test_distance_numpy(5),
+        _create_test_distance_numpy(10, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],
     )
 
     _validate_cost_matrix_result(
-        create_test_distance_numpy(10, 5),
-        create_test_distance_numpy(10, 10, random_state=2),
+        _create_test_distance_numpy(10, 5),
+        _create_test_distance_numpy(10, 10, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],

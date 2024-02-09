@@ -1,4 +1,5 @@
 """Implements ARDL Model as interface to statsmodels."""
+
 import warnings
 
 import pandas as pd
@@ -197,7 +198,7 @@ class ARDL(_StatsModelsAdapter):
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "X_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -264,7 +265,7 @@ class ARDL(_StatsModelsAdapter):
         if self.auto_ardl and self.lags is not None:
             raise ValueError("lags should not be specified if auto_ardl is True")
 
-        super(ARDL, self).__init__()
+        super().__init__()
 
     def check_param_validity(self, X):
         """Check for the validity of entered parameter combination."""
@@ -290,7 +291,6 @@ class ARDL(_StatsModelsAdapter):
                 )
         return inner_order, inner_auto_ardl
 
-    # todo: implement this, mandatory
     def _fit(self, y, X=None, fh=None):
         """Fit forecaster to training data.
 
@@ -307,7 +307,7 @@ class ARDL(_StatsModelsAdapter):
                 guaranteed to have a single column/variable
             A 1-d endogenous response variable. The dependent variable.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
             Exogenous variables to include in the model. Either a DataFrame or
             an 2-d array-like structure that can be converted to a NumPy array.
@@ -396,7 +396,7 @@ class ARDL(_StatsModelsAdapter):
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
 
         Returns
@@ -443,7 +443,7 @@ class ARDL(_StatsModelsAdapter):
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         update_params : bool, optional (default=True)
             whether model parameters should be updated
@@ -468,8 +468,6 @@ class ARDL(_StatsModelsAdapter):
             mtype_last_seen = self._y_mtype_last_seen
             # refit with updated data, not only passed data
             self.fit(y=self._y, X=self._X, fh=self._fh)
-            # todo: should probably be self._fit, not self.fit
-            # but looping to self.fit for now to avoid interface break
             self._y_mtype_last_seen = mtype_last_seen
 
         # if update_params=False, and there are no components, do nothing
@@ -525,10 +523,10 @@ class ARDL(_StatsModelsAdapter):
                 fitted_params["hessian"] = self._fitted_forecaster.model.hessian(
                     self._fitted_forecaster.params
                 )
-                fitted_params[
-                    "information"
-                ] = self._fitted_forecaster.model.information(
-                    self._fitted_forecaster.params
+                fitted_params["information"] = (
+                    self._fitted_forecaster.model.information(
+                        self._fitted_forecaster.params
+                    )
                 )
                 fitted_params["loglike"] = self._fitted_forecaster.model.loglike(
                     self._fitted_forecaster.params

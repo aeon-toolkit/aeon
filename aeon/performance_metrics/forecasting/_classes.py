@@ -4,12 +4,14 @@ Classes named as ``*Score`` return a value to maximize: the higher the better.
 Classes named as ``*Error`` or ``*Loss`` return a value to minimize:
 the lower the better.
 """
+
 from copy import deepcopy
 from inspect import getfullargspec, isfunction, signature
 from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.utils import check_array
 
 from aeon.datatypes import VectorizedDF, check_is_scitype, convert_to
@@ -65,23 +67,14 @@ __all__ = [
 ]
 
 
-def _coerce_to_scalar(obj):
-    """Coerce obj to scalar, from polymorphic input scalar or pandas."""
-    if isinstance(obj, pd.DataFrame):
-        assert len(obj) == 1
-        assert len(obj.columns) == 1
-        return obj.iloc[0, 0]
-    if isinstance(obj, pd.Series):
-        assert len(obj) == 1
-        return obj.iloc[0]
-    return obj
-
-
-def _coerce_to_df(obj):
-    """Coerce to pd.DataFrame, from polymorphic input scalar or pandas."""
-    return pd.DataFrame(obj)
-
-
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.7.0",
+    reason="BaseForecastingErrorMetric and all subclasses will be removed from "
+    "performance_metric package in v0.8.0. Please use the functions rather "
+    "than the functor classes.",
+    category=FutureWarning,
+)
 class BaseForecastingErrorMetric(BaseMetric):
     """Base class for defining forecasting error metrics in aeon.
 
@@ -122,8 +115,8 @@ class BaseForecastingErrorMetric(BaseMetric):
 
         if not hasattr(self, "name"):
             self.name = type(self).__name__
-
-        super(BaseForecastingErrorMetric, self).__init__()
+        self.__name__ = self.name
+        super().__init__()
 
     def __call__(self, y_true, y_pred, **kwargs):
         """Calculate metric value using underlying metric function.
@@ -207,13 +200,23 @@ class BaseForecastingErrorMetric(BaseMetric):
             if multilevel == "uniform_average":
                 out_df = out_df.mean(axis=0)
                 # if level is averaged, but not variables, return numpy
-                if multioutput == "raw_values":
+                if isinstance(multioutput, str) and multioutput == "raw_values":
                     out_df = out_df.values
 
-        if multilevel == "uniform_average" and multioutput == "uniform_average":
-            out_df = _coerce_to_scalar(out_df)
+        if (
+            multilevel == "uniform_average"
+            and isinstance(multioutput, str)
+            and multioutput == "uniform_average"
+        ):
+            if isinstance(out_df, pd.DataFrame):
+                assert len(out_df) == 1
+                assert len(out_df.columns) == 1
+                out_df = out_df.iloc[0, 0]
+            if isinstance(out_df, pd.Series):
+                assert len(out_df) == 1
+                out_df = out_df.iloc[0]
         if multilevel == "raw_values":
-            out_df = _coerce_to_df(out_df)
+            out_df = pd.DataFrame(out_df)
 
         return out_df
 
@@ -426,7 +429,7 @@ class BaseForecastingErrorMetric(BaseMetric):
             else:
                 y_pred_orig.columns = y_true.columns
         # check multioutput arg
-        # todo: add this back when variance_weighted is supported
+        # add this back when variance_weighted is supported
         # ("raw_values", "uniform_average", "variance_weighted")
         allowed_multioutput_str = ("raw_values", "uniform_average")
 
@@ -547,9 +550,7 @@ class _DynamicForecastingErrorMetric(BaseForecastingErrorMetricFunc):
         self.name = name
         self.lower_is_better = lower_is_better
 
-        super(_DynamicForecastingErrorMetric, self).__init__(
-            multioutput=multioutput, multilevel=multilevel
-        )
+        super().__init__(multioutput=multioutput, multilevel=multilevel)
 
         self.set_tags(**{"lower_is_better": lower_is_better})
 

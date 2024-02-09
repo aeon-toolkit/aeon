@@ -1,15 +1,19 @@
 """Pipeline with a classifier."""
-import numpy as np
 
-from aeon.base import _HeterogenousMetaEstimator
+__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
+__all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
+
+
+import numpy as np
+from deprecated.sphinx import deprecated
+from sklearn.base import BaseEstimator as SklearnBaseEstimator
+
+from aeon.base import BaseEstimator, _HeterogenousMetaEstimator
 from aeon.classification.base import BaseClassifier
-from aeon.datatypes import convert_to
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
+from aeon.utils.conversion import convert_collection
 from aeon.utils.sklearn import is_sklearn_classifier
-
-__author__ = ["fkiraly"]
-__all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
 
 
 class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
@@ -23,7 +27,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a classifier `clf`,
         the pipeline behaves as follows:
-    `fit(X, y)` - changes styte by running `trafo1.fit_transform` on `X`,
+    `fit(X, y)` - changes state by running `trafo1.fit_transform` on `X`,
         them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `clf.fit` with `X` being the output of `trafo[N]`,
@@ -37,110 +41,142 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         then running `clf.predict_proba` on the output of `trafoN.transform`,
         and returning the output of `clf.predict_proba`
 
-    `get_params`, `set_params` uses `sklearn` compatible nesting interface
-        if list is unnamed, names are generated as names of classes
-        if names are non-unique, `f"_{str(i)}"` is appended to each name string
-            where `i` is the total count of occurrence of a non-unique string
-            inside the list of names leading up to it (inclusive)
-
-    `ClassifierPipeline` can also be created by using the magic multiplication
-        on any classifier, i.e., if `my_clf` inherits from `BaseClassifier`,
-            and `my_trafo1`, `my_trafo2` inherit from `BaseTransformer`, then,
-            for instance, `my_trafo1 * my_trafo2 * my_clf`
-            will result in the same object as  obtained from the constructor
-            `ClassifierPipeline(classifier=my_clf, transformers=[my_trafo1, my_trafo2])`
-        magic multiplication can also be used with (str, transformer) pairs,
-            as long as one element in the chain is a transformer
-
     Parameters
     ----------
-    classifier : aeon classifier, i.e., estimator inheriting from BaseClassifier
-        This is a "blueprint" classifier, state does not change when `fit` is called.
-    transformers : list of aeon transformers
-        List of tuples (str, transformer) of aeon transformers
-        these are "blueprint" transformers, states do not change when `fit` is called.
+    classifier : aeon or sklearn classifier
+        A classifier to use at the end of the pipeline.
+        The object is cloned prior, as such the state of the input will not be modified
+        by fitting the pipeline.
+    transformers : aeon or sklearn transformer or list of transformers
+        A transform or list of transformers to use prior to classification.
+        List of tuples (str, transformer) of transformers can also be passed, where
+        the str is used to name the transformer.
+        The objecst are cloned prior, as such the state of the input will not be
+        modified by fitting the pipeline.
 
     Attributes
     ----------
-    classifier_ : aeon classifier, clone of classifier in `classifier`
-        This clone is fitted in the pipeline when `fit` is called
-    transformers_ : list of tuples (str, transformer) of aeon transformers
-        Clones of transformers in `transformers` which are fitted in the pipeline
-        is always in (str, transformer) format, even if transformers is just a list
-        strings not passed in transformers are unique generated strings
-        i-th transformer in `transformers_` is clone of i-th in `transformers`
+    steps_ : list of tuples (str, estimator) of tansformers and classifier
+        Clones of transformers and the classifier which are fitted in the pipeline.
+        Will always be in (str, estimator) format, even if transformers input is a
+        singular transform or list of transformers.
 
     Examples
     --------
     >>> from aeon.transformations.collection.interpolate import TSInterpolator
-    >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
+    >>> from aeon.classification.convolution_based import RocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     TimeSeriesForestClassifier(n_estimators=5), [TSInterpolator(length=10)]
+    ...     RocketClassifier(num_kernels=50), TSInterpolator(length=10)
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
     >>> y_pred = pipeline.predict(X_test)
     """
 
+    # TODO: remove in v0.8.0
+    @deprecated(
+        version="0.7.0",
+        reason="The position of the classifier and transformers argument for "
+        "ClassifierPipeline __init__ will be swapped in v0.8.0. Use "
+        "keyword arguments to avoid breakage.",
+        category=FutureWarning,
+    )
     def __init__(self, classifier, transformers):
         self.classifier = classifier
-        self.classifier_ = classifier.clone()
         self.transformers = transformers
-        self.transformers_ = TransformerPipeline(transformers)
 
-        super(ClassifierPipeline, self).__init__()
-
-        # can handle multivariate iff: both classifier and all transformers can
-        multivariate = classifier.get_tag("capability:multivariate", False)
-        multivariate = multivariate and not self.transformers_.get_tag(
-            "univariate-only", True
+        self._steps = (
+            [t for t in transformers]
+            if isinstance(transformers, list)
+            else [transformers]
         )
-        # can handle missing values iff: both classifier and all transformers can,
+        self._steps.append(classifier)
+        self._steps = self._check_estimators(
+            self._steps,
+            attr_name="_steps",
+            cls_type=SklearnBaseEstimator,
+            clone_ests=False,
+        )
+
+        super().__init__()
+
+        # can handle multivariate if: both classifier and all transformers can
+        multivariate_tags = [
+            (
+                t[1].get_tag("capability:multivariate", False, raise_error=False)
+                if isinstance(t[1], BaseEstimator)
+                else False
+            )
+            for t in self._steps
+        ]
+        multivariate = all(multivariate_tags)
+
+        # can handle missing values if: both classifier and all transformers can,
         #   *or* transformer chain removes missing data
-        missing = classifier.get_tag("capability:missing_values", False)
-        missing = missing and self.transformers_.get_tag(
-            "capability:missing_values", False
-        )
-        missing = missing or self.transformers_.get_tag(
-            "capability:missing_values:removes", False
-        )
-        # can handle unequal length iff: classifier can and transformers can,
+        missing_tags = [
+            (
+                t[1].get_tag("capability:missing_values", False, raise_error=False)
+                if isinstance(t[1], BaseEstimator)
+                else False
+            )
+            for t in self._steps
+        ]
+        missing_rm_rags = [
+            (
+                t[1].get_tag(
+                    "capability:missing_values:removes", False, raise_error=False
+                )
+                if isinstance(t[1], BaseEstimator)
+                else False
+            )
+            for t in self._steps
+        ]
+        missing = all(missing_tags) or any(missing_rm_rags)
+
+        # can handle unequal length if: classifier can and transformers can,
         #   *or* transformer chain renders the series equal length
-        unequal = classifier.get_tag("capability:unequal_length")
-        unequal = unequal and self.transformers_.get_tag(
-            "capability:unequal_length", False
-        )
-        unequal = unequal or self.transformers_.get_tag(
-            "capability:unequal_length:removes", False
-        )
-        # last three tags are always False, since not supported by transformers
+        unequal_tags = [
+            (
+                t[1].get_tag("capability:unequal_length", False, raise_error=False)
+                if isinstance(t[1], BaseEstimator)
+                else False
+            )
+            for t in self._steps
+        ]
+        unequal_rm_tags = [
+            (
+                t[1].get_tag(
+                    "capability:unequal_length:removes", False, raise_error=False
+                )
+                if isinstance(t[1], BaseEstimator)
+                else False
+            )
+            for t in self._steps
+        ]
+        unequal = all(unequal_tags) or any(unequal_rm_tags)
+
         tags_to_set = {
             "capability:multivariate": multivariate,
             "capability:missing_values": missing,
             "capability:unequal_length": unequal,
-            "capability:contractable": False,
-            "capability:train_estimate": False,
-            "capability:multithreading": False,
         }
         self.set_tags(**tags_to_set)
-        if unequal:
-            tags_to_set = {
-                "X_inner_mtype": ["np-list", "numpy3D"],
-            }
-            self.set_tags(**tags_to_set)
 
-    @property
-    def _transformers(self):
-        return self.transformers_._steps
+    _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
+    }
 
-    @_transformers.setter
-    def _transformers(self, value):
-        self.transformers_._steps = value
-
+    # TODO: remove in v0.8.0
+    @deprecated(
+        version="0.7.0",
+        reason="The ClassifierPipeline __rmul__ (*) functionality will be removed "
+        "in v0.8.0.",
+        category=FutureWarning,
+    )
     def __rmul__(self, other):
         """Magic * method, return concatenated ClassifierPipeline, transformers on left.
 
@@ -168,11 +204,9 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     def _fit(self, X, y):
         """Fit time series classifier to training data.
 
-        core logic
-
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -183,26 +217,36 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         ------------
         creates fitted model (attributes ending in "_")
         """
-        Xt = self.transformers_.fit_transform(X=X, y=y)
-        self.classifier_.fit(X=Xt, y=y)
+        self.steps_ = self._check_estimators(
+            self._steps, attr_name="steps_", cls_type=SklearnBaseEstimator
+        )
+
+        # fit transforms sequentially
+        Xt = X
+        for i in range(len(self.steps_) - 1):
+            Xt = self.steps_[i][1].fit_transform(X=Xt, y=y)
+        # fit classifier
+        self.steps_[-1][1].fit(X=Xt, y=y)
 
         return self
 
     def _predict(self, X) -> np.ndarray:
         """Predict labels for sequences in X.
 
-        core logic
-
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
         y : predictions of labels for X, np.ndarray
         """
-        Xt = self.transformers_.transform(X=X)
-        return self.classifier_.predict(X=Xt)
+        # transform
+        Xt = X
+        for i in range(len(self.steps_) - 1):
+            Xt = self.steps_[i][1].transform(X=Xt)
+        # predict
+        return self.steps_[-1][1].predict(X=Xt)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -213,59 +257,18 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_mtype")
+        X : data to predict y with, of type self.get_tag("X_inner_type")
 
         Returns
         -------
         y : predictions of probabilities for class values of X, np.ndarray
         """
-        Xt = self.transformers_.transform(X)
-        return self.classifier_.predict_proba(Xt)
-
-    def get_params(self, deep=True):
-        """Get parameters of estimator in `transformers`.
-
-        Parameters
-        ----------
-        deep : boolean, optional, default=True
-            If True, will return the parameters for this estimator and
-            contained sub-objects that are estimators.
-
-        Returns
-        -------
-        params : mapping of string to any
-            Parameter names mapped to their values.
-        """
-        params = {}
-        trafo_params = self._get_params("_transformers", deep=deep)
-        params.update(trafo_params)
-
-        return params
-
-    def set_params(self, **kwargs):
-        """Set the parameters of estimator in `transformers`.
-
-        Valid parameter keys can be listed with ``get_params()``.
-
-        Returns
-        -------
-        self : returns an instance of self.
-        """
-        if "classifier" in kwargs and not isinstance(
-            kwargs["classifier"], BaseClassifier
-        ):
-            raise TypeError('"classifier" arg must be an aeon classifier')
-        trafo_keys = self._get_params("_transformers", deep=True).keys()
-        classif_keys = self.classifier.get_params(deep=True).keys()
-        trafo_args = self._subset_dict_keys(dict_to_subset=kwargs, keys=trafo_keys)
-        classif_args = self._subset_dict_keys(
-            dict_to_subset=kwargs, keys=classif_keys, prefix="classifier"
-        )
-        if len(classif_args) > 0:
-            self.classifier.set_params(**classif_args)
-        if len(trafo_args) > 0:
-            self._set_params("_transformers", **trafo_args)
-        return self
+        # transform
+        Xt = X
+        for i in range(len(self.steps_) - 1):
+            Xt = self.steps_[i][1].transform(X=Xt)
+        # predict
+        return self.steps_[-1][1].predict_proba(X=Xt)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -285,27 +288,32 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        # imports
-        from aeon.classification import DummyClassifier
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.series.exponent import ExponentTransformer
+        from aeon.transformations.collection import TruncationTransformer
+        from aeon.transformations.collection.feature_based import (
+            SevenNumberSummaryTransformer,
+        )
 
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-        c = KNeighborsTimeSeriesClassifier()
-
-        another_c = DummyClassifier()
-
-        params1 = {"transformers": [t1, t2], "classifier": c}
-        params2 = {"transformers": [t1], "classifier": another_c}
-
-        return [params1, params2]
+        return {
+            "transformers": [
+                TruncationTransformer(truncated_length=5),
+                SevenNumberSummaryTransformer(),
+            ],
+            "classifier": KNeighborsTimeSeriesClassifier(distance="euclidean"),
+        }
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.7.0",
+    reason="SklearnClassifierPipeline will be removed in v0.8.0. Use "
+    "ClassifierPipeline or the sklearn pipeline instead.",
+    category=FutureWarning,
+)
 class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     """Pipeline of transformers and a classifier.
 
-    The `SklearnClassifierPipeline` chains transformers and an single classifier.
+    The `SklearnClassifierPipeline` chains transformers and a single classifier.
         Similar to `ClassifierPipeline`, but uses a tabular `sklearn` classifier.
     The pipeline is constructed with a list of aeon transformers, plus a classifier,
         i.e., transformers following the BaseTransformer interface,
@@ -320,8 +328,6 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
         and then running `clf.fit` with `X` the output of `trafo[N]` converted to numpy,
         and `y` identical with the input to `self.fit`.
-        `X` is converted to `numpyflat` mtype if `X` is of `Panel` type;
-        `X` is converted to `numpy2D` mtype if `X` is of `Table` type.
     `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
         with `trafo[i].transform` input = output of `trafo[i-1].transform`,
         then running `clf.predict` on the numpy converted output of `trafoN.transform`,
@@ -369,8 +375,8 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     Examples
     --------
     >>> from sklearn.neighbors import KNeighborsClassifier
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
-    >>> from aeon.transformations.series.summarize import SummaryTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
+    >>> from aeon.transformations.summarize import SummaryTransformer
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import SklearnClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
@@ -392,7 +398,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         self.transformers = transformers
         self.transformers_ = TransformerPipeline(transformers)
 
-        super(SklearnClassifierPipeline, self).__init__()
+        super().__init__()
 
         # can handle multivariate iff all transformers can
         # sklearn transformers always support multivariate
@@ -451,22 +457,9 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
             return NotImplemented
 
     def _convert_X_to_sklearn(self, X):
-        """Convert a Table or Panel X to 2D numpy required by sklearn."""
-        output_type = self.transformers_.get_tag("output_data_type")
-        # if output_type is Primitives, output is Table, convert to 2D numpy array
-        if output_type == "Primitives":
-            Xt = convert_to(X, to_type="numpy2D", as_scitype="Table")
-        # if output_type is Series, output is Panel, convert to 2D numpy array
-        elif output_type == "Series":
-            Xt = convert_to(X, to_type="numpyflat", as_scitype="Panel")
-        else:
-            raise TypeError(
-                f"unexpected X output type "
-                f'in tag "output_data_type", found "{output_type}", '
-                'expected one of "Primitives" or "Series"'
-            )
-
-        return Xt
+        """Convert X to 2D numpy required by sklearn."""
+        Xt = convert_collection(X, "numpy3D")
+        return np.reshape(Xt, (Xt.shape[0], Xt.shape[1] * Xt.shape[2]))
 
     def _fit(self, X, y):
         """Fit time series classifier to training data.
@@ -475,7 +468,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : Training data of type self.get_tag("X_inner_mtype")
+        X : Training data of type self.get_tag("X_inner_type")
         y : array-like, shape = [n_instances] - the class labels
 
         Returns
@@ -499,7 +492,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data not used in training, of type self.get_tag("X_inner_mtype")
+        X : data not used in training, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -518,7 +511,7 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : data to predict y with, of type self.get_tag("X_inner_mtype")
+        X : data to predict y with, of type self.get_tag("X_inner_type")
 
         Returns
         -------
@@ -588,26 +581,11 @@ class SklearnClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from sklearn.neighbors import KNeighborsClassifier
 
-        from aeon.transformations.series.exponent import ExponentTransformer
-        from aeon.transformations.series.summarize import SummaryTransformer
+        from aeon.transformations.collection.convolution_based import Rocket
 
-        # example with series-to-series transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
+        t1 = Rocket(num_kernels=200, random_state=49)
         c = KNeighborsClassifier()
-        params1 = {"transformers": [t1, t2], "classifier": c}
-
-        # example with series-to-primitive transformer before sklearn classifier
-        t1 = ExponentTransformer(power=2)
-        t2 = SummaryTransformer()
-        c = KNeighborsClassifier()
-        params2 = {"transformers": [t1, t2], "classifier": c}
-
-        # construct without names
-        return [params1, params2]
+        return {"transformers": [t1], "classifier": c}

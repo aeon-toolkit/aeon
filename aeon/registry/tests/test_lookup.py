@@ -19,6 +19,9 @@ CLASSES_WITHOUT_TAGS = [
     "network",
     "collection-transformer",
     "collection-estimator",
+    "series-estimator",
+    "series-transformer",
+    "similarity-search",
 ]
 
 # shorthands for easy reading
@@ -248,12 +251,12 @@ def test_list_tag_lookup():
     checks that DummyClassifier is returned with either of these argument.s
     """
     matches = all_estimators(
-        estimator_types="classifier", filter_tags={"X_inner_mtype": "np-list"}
+        estimator_types="classifier", filter_tags={"X_inner_type": "np-list"}
     )
     names = [t[0] for t in matches]
     assert "DummyClassifier" in names
     matches = all_estimators(
-        estimator_types="classifier", filter_tags={"X_inner_mtype": "numpy3D"}
+        estimator_types="classifier", filter_tags={"X_inner_type": "numpy3D"}
     )
     names = [t[0] for t in matches]
     assert "DummyClassifier" in names

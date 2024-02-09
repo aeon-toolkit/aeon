@@ -67,7 +67,7 @@ class TrendForecaster(BaseForecaster):
     def __init__(self, regressor=None):
         # for default regressor, set fit_intercept=True
         self.regressor = regressor
-        super(TrendForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -205,7 +205,7 @@ class PolynomialTrendForecaster(BaseForecaster):
         self.degree = degree
         self.with_intercept = with_intercept
         self.regressor_ = self.regressor
-        super(PolynomialTrendForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -424,7 +424,7 @@ class STLForecaster(BaseForecaster):
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "X_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "python_dependencies": "statsmodels",
     }
@@ -464,7 +464,7 @@ class STLForecaster(BaseForecaster):
         self.forecaster_trend = forecaster_trend
         self.forecaster_seasonal = forecaster_seasonal
         self.forecaster_resid = forecaster_resid
-        super(STLForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit forecaster to training data.

@@ -7,6 +7,7 @@ Contains a single BOSS and a BOSS ensemble.
 __author__ = ["patrickzib", "MatthewMiddlehurst"]
 __all__ = ["BOSSEnsemble", "IndividualBOSS", "pairwise_distances"]
 
+import warnings
 from itertools import compress
 
 import numpy as np
@@ -20,7 +21,6 @@ from sklearn.utils.validation import _num_samples
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
-from aeon.utils.validation.panel import check_X_y
 
 
 class BOSSEnsemble(BaseClassifier):
@@ -58,9 +58,11 @@ class BOSSEnsemble(BaseClassifier):
         Maximum window length as a proportion of the series length.
     min_window : int, default=10
         Minimum window size.
-    save_train_predictions : bool, default=False
-        Save the ensemble member train predictions in fit for use in _get_train_probs
-        leave-one-out cross-validation.
+    save_train_predictions : bool, default="deprecated"
+        Save the ensemble member train predictions in ``fit``.
+
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
     feature_selection : str, default: "none"
         Sets the feature selections strategy to be usedfrom  {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
@@ -82,11 +84,11 @@ class BOSSEnsemble(BaseClassifier):
     ----------
     n_instances_ : int
         Number of train instances in data passed to fit.
+    series_length_ : int
+        Length of all series (assumed equal).
     n_estimators_ : int
         The final number of classifiers used. Will be <= `max_ensemble_size` if
         `max_ensemble_size` has been specified.
-    series_length_ : int
-        Length of all series (assumed equal).
     estimators_ : list
        List of DecisionTree classifiers size n_estimators_.
 
@@ -132,7 +134,7 @@ class BOSSEnsemble(BaseClassifier):
         max_ensemble_size=500,
         max_win_len_prop=1,
         min_window=10,
-        save_train_predictions=False,
+        save_train_predictions="deprecated",
         feature_selection="none",
         use_boss_distance=True,
         alphabet_size=4,
@@ -143,7 +145,6 @@ class BOSSEnsemble(BaseClassifier):
         self.max_ensemble_size = max_ensemble_size
         self.max_win_len_prop = max_win_len_prop
         self.min_window = min_window
-        self.save_train_predictions = save_train_predictions
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.use_boss_distance = use_boss_distance
@@ -158,9 +159,18 @@ class BOSSEnsemble(BaseClassifier):
         self._norm_options = [True, False]
         self.alphabet_size = alphabet_size
 
-        super(BOSSEnsemble, self).__init__()
+        # TODO remove 'save_train_predictions' in v0.8.0
+        self.save_train_predictions = save_train_predictions
+        if save_train_predictions != "deprecated":
+            warnings.warn(
+                "the save_train_predictions parameter is deprecated and will be "
+                "removed in v0.8.0.",
+                stacklevel=2,
+            )
 
-    def _fit(self, X, y):
+        super().__init__()
+
+    def _fit(self, X, y, keep_train_preds=False):
         """Fit a boss ensemble on cases (X,y), where y is the target variable.
 
         Build an ensemble of BOSS classifiers from the training set (X,
@@ -202,6 +212,7 @@ class BOSSEnsemble(BaseClassifier):
                 f"the constructor, but the classifier may not work at "
                 f"all with very short series"
             )
+
         max_acc = -1
         min_max_acc = -1
         for normalise in self._norm_options:
@@ -231,7 +242,11 @@ class BOSSEnsemble(BaseClassifier):
                         boss = boss._shorten_bags(word_len, y)
 
                     boss._accuracy = self._individual_train_acc(
-                        boss, y, self.n_instances_, best_acc_for_win_size
+                        boss,
+                        y,
+                        self.n_instances_,
+                        best_acc_for_win_size,
+                        keep_train_preds,
                     )
 
                     if boss._accuracy >= best_acc_for_win_size:
@@ -319,6 +334,36 @@ class BOSSEnsemble(BaseClassifier):
                 sums[i, self._class_dictionary[preds[i]]] += 1
         return sums / (np.ones(self.n_classes_) * self.n_estimators_)
 
+    def _fit_predict(self, X, y) -> np.ndarray:
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._fit_predict_proba(X, y)
+            ]
+        )
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        self._fit(X, y, keep_train_preds=True)
+
+        results = np.zeros((self.n_instances_, self.n_classes_))
+        divisors = np.zeros(self.n_instances_)
+
+        for clf in self.estimators_:
+            preds = clf._train_predictions
+            for n, pred in enumerate(preds):
+                results[n][self._class_dictionary[pred]] += 1
+                divisors[n] += 1
+
+        for i in range(self.n_instances_):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
+
     def _include_in_ensemble(self, acc, max_acc, min_max_acc, size):
         if acc >= max_acc * self.threshold:
             if size >= self.max_ensemble_size:
@@ -338,56 +383,7 @@ class BOSSEnsemble(BaseClassifier):
 
         return min_acc, min_acc_idx
 
-    def _get_train_probs(self, X, y):
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True, enforce_univariate=True)
-
-        n_instances, _, series_length = X.shape
-
-        if n_instances != self.n_instances_ or series_length != self.series_length_:
-            raise ValueError(
-                "n_instances, series_length mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
-
-        results = np.zeros((n_instances, self.n_classes_))
-        divisors = np.zeros(n_instances)
-
-        if self.save_train_predictions:
-            for clf in self.estimators_:
-                preds = clf._train_predictions
-                for n, pred in enumerate(preds):
-                    results[n][self._class_dictionary[pred]] += 1
-                    divisors[n] += 1
-
-        else:
-            for i, clf in enumerate(self.estimators_):
-                if self._transformed_data.shape[1] > 0:
-                    distance_matrix = pairwise_distances(
-                        clf._transformed_data,
-                        use_boss_distance=self.use_boss_distance,
-                        n_jobs=self.n_jobs,
-                    )
-
-                    preds = [
-                        clf._train_predict(i, distance_matrix)
-                        for i in range(n_instances)
-                    ]
-                    for n, pred in enumerate(preds):
-                        results[n][self._class_dictionary[pred]] += 1
-                        divisors[n] += 1
-
-        for i in range(n_instances):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
-
-        return results
-
-    def _individual_train_acc(self, boss, y, train_size, lowest_acc):
+    def _individual_train_acc(self, boss, y, train_size, lowest_acc, keep_train_preds):
         correct = 0
         required_correct = int(lowest_acc * train_size)
 
@@ -407,7 +403,7 @@ class BOSSEnsemble(BaseClassifier):
                 if c == y[i]:
                     correct += 1
 
-                if self.save_train_predictions:
+                if keep_train_preds:
                     boss._train_predictions.append(c)
 
         return correct / train_size
@@ -443,13 +439,6 @@ class BOSSEnsemble(BaseClassifier):
                 "feature_selection": "none",
                 "use_boss_distance": False,
                 "alphabet_size": 4,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "max_ensemble_size": 2,
-                "feature_selection": "none",
-                "use_boss_distance": False,
-                "save_train_predictions": True,
             }
         else:
             return {
@@ -580,14 +569,14 @@ class IndividualBOSS(BaseClassifier):
         self._subsample = []
         self._train_predictions = []
 
-        super(IndividualBOSS, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a single boss classifier on n_instances cases (X,y).
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -625,7 +614,7 @@ class IndividualBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -687,6 +676,8 @@ class IndividualBOSS(BaseClassifier):
         return new_boss
 
     def _clean(self):
+        if self._transformer is None:
+            return
         self._transformer.words = None
         self._transformer.save_words = False
 
@@ -734,7 +725,6 @@ def pairwise_distances(X, Y=None, use_boss_distance=False, n_jobs=1):
     return distance_matrix
 
 
-# @njit(cache=True, fastmath=True)
 def boss_distance(X, Y, i, XX_all=None, XY_all=None):
     """Find the distance between two histograms.
 

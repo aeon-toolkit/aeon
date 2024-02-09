@@ -43,8 +43,9 @@ from aeon.performance_metrics.forecasting import (
     median_squared_scaled_error,
     relative_loss,
 )
-from aeon.performance_metrics.tests._config import RANDOM_SEED
-from aeon.utils._testing.series import _make_series
+from aeon.testing.utils.data_gen import make_series
+
+RANDOM_SEED = 42
 
 # For multiple comparisons of equality between functions and classes
 rng = np.random.default_rng(RANDOM_SEED)
@@ -461,7 +462,7 @@ def test_univariate_metric_function_class_equality(metric_func_name, random_stat
     metric_class = LOSS_RESULTS[metric_func_name]["class"]
     metric_func = LOSS_RESULTS[metric_func_name]["func"]
 
-    y = _make_series(n_timepoints=75, random_state=random_state)
+    y = make_series(n_timepoints=75, random_state=random_state)
     y_train, y_true = y.iloc[:50], y.iloc[50:]
     y_pred = y.shift(1).iloc[50:]
     y_pred_benchmark = y.rolling(2).mean().iloc[50:]
@@ -484,7 +485,7 @@ def test_univariate_metric_function_class_equality(metric_func_name, random_stat
 @pytest.mark.parametrize("metric_func_name", LOSS_RESULTS.keys())
 def test_univariate_function_output_type(metric_func_name, random_state):
     metric_func = LOSS_RESULTS[metric_func_name]["func"]
-    y = _make_series(n_timepoints=75, random_state=random_state)
+    y = make_series(n_timepoints=75, random_state=random_state)
     y_train, y_true = y.iloc[:50], y.iloc[50:]
     y_pred = y.shift(1).iloc[50:]
     y_pred_benchmark = y.rolling(2).mean().iloc[50:]
@@ -503,7 +504,7 @@ def test_univariate_function_output_type(metric_func_name, random_state):
 @pytest.mark.parametrize("metric_func_name", LOSS_RESULTS.keys())
 def test_y_true_y_pred_inconsistent_n_outputs_raises_error(metric_func_name):
     metric_func = LOSS_RESULTS[metric_func_name]["func"]
-    y = _make_series(n_timepoints=75, random_state=RANDOM_STATES[0])
+    y = make_series(n_timepoints=75, random_state=RANDOM_STATES[0])
     y_train, y_true = y.iloc[:50], y.iloc[50:]
     y_true = y_true.values  # Convert to flat NumPy array
     y_pred = y.shift(1).iloc[50:]
@@ -521,7 +522,7 @@ def test_y_true_y_pred_inconsistent_n_outputs_raises_error(metric_func_name):
 @pytest.mark.parametrize("metric_func_name", LOSS_RESULTS.keys())
 def test_y_true_y_pred_inconsistent_n_timepoints_raises_error(metric_func_name):
     metric_func = LOSS_RESULTS[metric_func_name]["func"]
-    y = _make_series(n_timepoints=75, random_state=RANDOM_STATES[0])
+    y = make_series(n_timepoints=75, random_state=RANDOM_STATES[0])
     y_train, y_true = y.iloc[:50], y.iloc[50:]
     y_pred = y.shift(1).iloc[40:]  # y_pred has more obs
     y_pred_benchmark = y.rolling(2).mean().iloc[50:]
@@ -536,7 +537,7 @@ def test_y_true_y_pred_inconsistent_n_timepoints_raises_error(metric_func_name):
 @pytest.mark.parametrize("metric_func_name", LOSS_RESULTS.keys())
 def test_y_true_y_pred_inconsistent_n_variables_raises_error(metric_func_name):
     metric_func = LOSS_RESULTS[metric_func_name]["func"]
-    y = _make_series(n_timepoints=75, random_state=RANDOM_STATES[0])
+    y = make_series(n_timepoints=75, random_state=RANDOM_STATES[0])
     y_train, y_true = y.iloc[:50], y.iloc[50:]
     y_true = y_true.values  # will pass as NumPy array
     y_pred = y.shift(1).iloc[50:]

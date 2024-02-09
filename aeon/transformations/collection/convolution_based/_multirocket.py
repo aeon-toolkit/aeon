@@ -72,6 +72,7 @@ class MultiRocket(BaseCollectionTransformer):
 
     _tags = {
         "output_data_type": "Tabular",
+        "algorithm_type": "convolution",
     }
 
     def __init__(
@@ -95,14 +96,14 @@ class MultiRocket(BaseCollectionTransformer):
         self.parameter = None
         self.parameter1 = None
 
-        super(MultiRocket, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit dilations and biases to input time series.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -111,11 +112,11 @@ class MultiRocket(BaseCollectionTransformer):
         self
         """
         X = X.astype(np.float64)
+        X = X.squeeze()
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
-        X = X.reshape((X.shape[0], X.shape[1] * X.shape[2]))
 
         self.parameter = self._get_parameter(X)
 
@@ -129,7 +130,7 @@ class MultiRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -138,7 +139,7 @@ class MultiRocket(BaseCollectionTransformer):
         pandas DataFrame, transformed features
         """
         X = X.astype(np.float64)
-        X = X.reshape((X.shape[0], X.shape[1] * X.shape[2]))
+        X = X.squeeze()
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8

@@ -20,7 +20,6 @@ comparison.
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series forecasting.
 
 +++
@@ -39,7 +38,6 @@ Forecasting
 :img-top: examples/img/tsc.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series classification.
 
@@ -60,7 +58,6 @@ Classification
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series extrinsic regression.
 
 +++
@@ -79,7 +76,6 @@ Regression
 :img-top: examples/img/tscl.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series clustering.
 
@@ -100,7 +96,6 @@ Clustering
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Get started with time series transformations.
 
 +++
@@ -116,10 +111,9 @@ Transformations
 :::
 
 :::{grid-item-card}
-:img-top: examples/distances/img/dtw_vis.png
+:img-top: examples/distances/img/distances.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Get started with time series distances.
 
@@ -136,29 +130,9 @@ Distances
 :::
 
 :::{grid-item-card}
-:img-top: examples/networks/img/Inception.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Deep learning networks.
-
-+++
-
-```{button-ref} /examples/networks/deep_learning.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Networks
-```
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/annotation/img/clasp.png
 :class-img-top: aeon-card-image
 :text-align: center
-
 
 Annotation
 
@@ -175,11 +149,50 @@ Annotation
 :::
 
 :::{grid-item-card}
+:img-top: examples/networks/img/Inception.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Deep learning networks.
+
++++
+
+```{button-ref} /examples/segmentation/segmentation.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/segmentation/img/segmentation.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+
+Segmentation
+
++++
+
+```{button-ref} /examples/segmentation/segmentation.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Segmentation
+```
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/datasets/img/data.png
 :class-img-top: aeon-card-image
 :text-align: center
 
-Data structures and containers used in aeon
+Data structures and containers used in `aeon`.
 
 +++
 
@@ -198,7 +211,7 @@ Data
 :class-img-top: aeon-card-image
 :text-align: center
 
-How to benchmark algorithms.
+How to benchmark algorithms with `aeon`.
 
 +++
 
@@ -208,6 +221,25 @@ How to benchmark algorithms.
 :expand:
 
 Benchmarking
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/networks/img/Inception.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+`aeon` deep learning networks for time series.
+
++++
+
+```{button-ref} /examples/networks/deep_learning.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Networks
 ```
 
 :::
@@ -230,8 +262,7 @@ Benchmarking
 
 installation.md
 getting_started.md
-user_guide
-api_reference
+api_reference.md
 examples.md
 ```
 
@@ -239,8 +270,9 @@ examples.md
 :caption: Developing aeon
 :hidden:
 
-get_involved
-developers
+contributing.md
+developer_guide.md
+mentoring.md
 ```
 
 ```{toctree}

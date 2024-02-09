@@ -22,7 +22,7 @@ from aeon.utils.validation.forecasting import check_scoring
 def _score_forecasters(forecasters, cv, y):
     """Will evaluate all the forecasters on y and return the name of best."""
     scoring = check_scoring(None)
-    scoring_name = f"test_{scoring.name}"
+    scoring_name = f"test_{scoring.__name__}"
     score = None
     for name, forecaster in forecasters:
         results = evaluate(forecaster, cv, y)

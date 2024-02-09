@@ -63,8 +63,12 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
     use_pyfftw : bool, default=True
         Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
         package to be installed.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_probs.
+    save_transformed_data : bool, default="deprecated"
+        Save the data transformed in ``fit``.
+
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
+        ``transformed_data_`` will also be removed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -116,7 +120,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import SupervisedTimeSeriesForest
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = SupervisedTimeSeriesForest(n_estimators=10, random_state=0)
@@ -142,7 +146,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
         use_pyfftw=False,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -167,7 +171,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
             row_numba_max,
         ]
 
-        super(SupervisedTimeSeriesForest, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="supervised",
@@ -185,6 +189,21 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        return super()._predict_proba(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        return super()._fit_predict_proba(X, y)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -220,11 +239,6 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
             return {
                 "time_limit_in_minutes": 5,
                 "contract_max_n_estimators": 2,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "save_transformed_data": True,
             }
         else:
             return {"n_estimators": 2}

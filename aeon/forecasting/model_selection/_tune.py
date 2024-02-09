@@ -52,7 +52,7 @@ class BaseGridSearch(_DelegatedForecaster):
         self.return_n_best_forecasters = return_n_best_forecasters
         self.update_behaviour = update_behaviour
         self.error_score = error_score
-        super(BaseGridSearch, self).__init__()
+        super().__init__()
         tags_to_clone = [
             "requires-fh-in-fit",
             "capability:pred_int",
@@ -60,13 +60,13 @@ class BaseGridSearch(_DelegatedForecaster):
             "ignores-exogeneous-X",
             "capability:missing_values",
             "y_inner_type",
-            "X_inner_mtype",
+            "X_inner_type",
             "X-y-must-have-same-index",
             "enforce_index_type",
         ]
         self.clone_tags(forecaster, tags_to_clone)
         self._extend_to_all_scitypes("y_inner_type")
-        self._extend_to_all_scitypes("X_inner_mtype")
+        self._extend_to_all_scitypes("X_inner_type")
 
     # attribute for _DelegatedForecaster, which then delegates
     #     all non-overridden methods are same as of getattr(self, _delegate_name)
@@ -81,7 +81,7 @@ class BaseGridSearch(_DelegatedForecaster):
 
         Parameters
         ----------
-        tagname : str, name of the tag. Should be "y_inner_type" or "X_inner_mtype".
+        tagname : str, name of the tag. Should be "y_inner_type" or "X_inner_type".
 
         Returns
         -------
@@ -141,7 +141,7 @@ class BaseGridSearch(_DelegatedForecaster):
         cv = check_cv(self.cv)
 
         scoring = check_scoring(self.scoring)
-        scoring_name = f"test_{scoring.name}"
+        scoring_name = f"test_{scoring.__name__}"
 
         def _fit_and_score(params):
             # Clone forecaster.
@@ -183,8 +183,8 @@ class BaseGridSearch(_DelegatedForecaster):
                 n_candidates = len(candidate_params)
                 n_splits = cv.get_n_splits(y)
                 print(  # noqa
-                    "Fitting {0} folds for each of {1} candidates,"
-                    " totalling {2} fits".format(
+                    "Fitting {} folds for each of {} candidates,"
+                    " totalling {} fits".format(
                         n_splits, n_candidates, n_candidates * n_splits
                     )
                 )
@@ -208,7 +208,7 @@ class BaseGridSearch(_DelegatedForecaster):
 
         # Rank results, according to whether greater is better for the given scoring.
         results[f"rank_{scoring_name}"] = results.loc[:, f"mean_{scoring_name}"].rank(
-            ascending=scoring.get_tag("lower_is_better")
+            ascending=True
         )
 
         self.cv_results_ = results
@@ -231,9 +231,7 @@ class BaseGridSearch(_DelegatedForecaster):
             self.best_forecaster_.fit(y, X, fh)
 
         # Sort values according to rank
-        results = results.sort_values(
-            by=f"rank_{scoring_name}", ascending=scoring.get_tag("lower_is_better")
-        )
+        results = results.sort_values(by=f"rank_{scoring_name}", ascending=True)
         # Select n best forecaster
         self.n_best_forecasters_ = []
         self.n_best_scores_ = []
@@ -265,7 +263,7 @@ class BaseGridSearch(_DelegatedForecaster):
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         update_params : bool, optional (default=True)
             whether model parameters should be updated
@@ -416,7 +414,7 @@ class ForecastingGridSearchCV(BaseGridSearch):
     >>> from aeon.forecasting.model_selection import ForecastingGridSearchCV
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> from aeon.forecasting.theta import ThetaForecaster
-    >>> from aeon.transformations.series.impute import Imputer
+    >>> from aeon.transformations.impute import Imputer
     >>> y = load_shampoo_sales()
     >>> pipe = TransformedTargetForecaster(steps=[
     ...     ("imputer", Imputer()),
@@ -464,7 +462,7 @@ class ForecastingGridSearchCV(BaseGridSearch):
         update_behaviour="full_refit",
         error_score=np.nan,
     ):
-        super(ForecastingGridSearchCV, self).__init__(
+        super().__init__(
             forecaster=forecaster,
             scoring=scoring,
             n_jobs=n_jobs,
@@ -492,15 +490,15 @@ class ForecastingGridSearchCV(BaseGridSearch):
 
                 if isinstance(v, str) or not isinstance(v, (np.ndarray, Sequence)):
                     raise ValueError(
-                        "Parameter grid for parameter ({0}) needs to"
-                        " be a list or numpy array, but got ({1})."
+                        "Parameter grid for parameter ({}) needs to"
+                        " be a list or numpy array, but got ({})."
                         " Single values need to be wrapped in a list"
                         " with one element.".format(name, type(v))
                     )
 
                 if len(v) == 0:
                     raise ValueError(
-                        "Parameter values for parameter ({0}) need "
+                        "Parameter values for parameter ({}) need "
                         "to be a non-empty sequence.".format(name)
                     )
 
@@ -526,19 +524,19 @@ class ForecastingGridSearchCV(BaseGridSearch):
         from aeon.forecasting.model_selection._split import SingleWindowSplitter
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.forecasting.trend import PolynomialTrendForecaster
-        from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
+        from aeon.performance_metrics.forecasting import mean_absolute_error
 
         params = {
             "forecaster": NaiveForecaster(strategy="mean"),
             "cv": SingleWindowSplitter(fh=1),
             "param_grid": {"window_length": [2, 5]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
+            "scoring": mean_absolute_error,
         }
         params2 = {
             "forecaster": PolynomialTrendForecaster(),
             "cv": SingleWindowSplitter(fh=1),
             "param_grid": {"degree": [1, 2]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
+            "scoring": mean_absolute_error,
             "update_behaviour": "inner_only",
         }
         return [params, params2]
@@ -659,7 +657,7 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
         update_behaviour="full_refit",
         error_score=np.nan,
     ):
-        super(ForecastingRandomizedSearchCV, self).__init__(
+        super().__init__(
             forecaster=forecaster,
             scoring=scoring,
             strategy=strategy,
@@ -702,20 +700,17 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
         from aeon.forecasting.model_selection._split import SingleWindowSplitter
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.forecasting.trend import PolynomialTrendForecaster
-        from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
 
         params = {
             "forecaster": NaiveForecaster(strategy="mean"),
             "cv": SingleWindowSplitter(fh=1),
             "param_distributions": {"window_length": [2, 5]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
         }
 
         params2 = {
             "forecaster": PolynomialTrendForecaster(),
             "cv": SingleWindowSplitter(fh=1),
             "param_distributions": {"degree": [1, 2]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
             "update_behaviour": "inner_only",
         }
 

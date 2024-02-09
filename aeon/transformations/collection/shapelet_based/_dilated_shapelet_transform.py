@@ -16,6 +16,7 @@ from sklearn.preprocessing import LabelEncoder
 from aeon.distances import manhattan_distance
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import (
+    AEON_NUMBA_STD_THRESHOLD,
     choice_log,
     combinations_1d,
     get_subsequence,
@@ -97,6 +98,10 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             - normalization parameter
             - mean parameter
             - standard deviation parameter
+    max_shapelet_length_ : int
+        The maximum actual shapelet length fitted to train data.
+    min_series_length_ : int
+        The minimum length of series in train data.
 
     Notes
     -----
@@ -132,6 +137,10 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "X_inner_type": ["np-list", "numpy3D"],
+        "y_inner_type": "numpy1D",
+        "algorithm_type": "shapelet",
     }
 
     def __init__(
@@ -154,7 +163,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-        super(RandomDilatedShapeletTransform, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit the random dilated shapelet transform to a specified X and y.
@@ -173,12 +182,14 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self : RandomDilatedShapeletTransform
             This estimator.
         """
+        # Numba does not yet support new random numpy API with generator
         if isinstance(self.random_state, int):
             self._random_state = np.int32(self.random_state)
         else:
             self._random_state = np.int32(np.random.randint(0, 2**31))
 
-        self.n_instances, self.n_channels, self.series_length = X.shape
+        n_instances_ = len(X)
+        self.min_series_length_ = min([X[i].shape[1] for i in range(n_instances_)])
 
         self._check_input_params()
 
@@ -186,15 +197,15 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         set_num_threads(self._n_jobs)
 
         if y is None:
-            y = np.zeros(self.n_instances)
+            y = np.zeros(n_instances_)
         else:
             y = LabelEncoder().fit_transform(y)
 
-        if any(self.shapelet_lengths_ > self.series_length):
+        if any(self.shapelet_lengths_ > self.min_series_length_):
             raise ValueError(
                 "Shapelets lengths can't be superior to input length,",
-                "but got shapelets_lengths = {} ".format(self.shapelet_lengths_),
-                "with input length = {}".format(self.series_length),
+                f"but got shapelets_lengths = {self.shapelet_lengths_} ",
+                f"with an input length = {self.min_series_length_}",
             )
         self.shapelets_ = random_dilated_shapelet_extraction(
             X,
@@ -218,6 +229,12 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                 "you have NaN values in your data. We do not currently support NaN "
                 "values for shapelet transformation."
             )
+
+        # Shapelet "length" is length-1 times dilation
+        self.max_shapelet_length_ = np.max(
+            (self.shapelets_[1] - 1) * self.shapelets_[2]
+        )
+
         return self
 
     def _transform(self, X, y=None):
@@ -233,6 +250,14 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         X_new : 2D np.array of shape = (n_instances, 3*n_shapelets)
             The transformed data.
         """
+        for i in range(0, len(X)):
+            if X[i].shape[1] < self.max_shapelet_length_:
+                raise ValueError(
+                    "The shortest series in transform is smaller than "
+                    "the min shapelet length, pad to min length prior to "
+                    "calling transform."
+                )
+
         X_new = dilated_shapelet_transform(X, self.shapelets_)
         if np.isinf(X_new).any() or np.isnan(X_new).any():
             warnings.warn(
@@ -247,17 +272,17 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     def _check_input_params(self):
         if isinstance(self.max_shapelets, bool):
             raise TypeError(
-                "'max_shapelets' must be an integer, got {}.".format(self.max_shapelets)
+                f"'max_shapelets' must be an integer, got {self.max_shapelets}."
             )
 
         if not isinstance(self.max_shapelets, (int, np.integer)):
             raise TypeError(
-                "'max_shapelets' must be an integer, got {}.".format(self.max_shapelets)
+                f"'max_shapelets' must be an integer, got {self.max_shapelets}."
             )
         self.shapelet_lengths_ = self.shapelet_lengths
         if self.shapelet_lengths_ is None:
             self.shapelet_lengths_ = np.array(
-                [min(max(2, self.series_length // 2), 11)]
+                [min(max(2, self.min_series_length_ // 2), 11)]
             )
         else:
             if not isinstance(self.shapelet_lengths_, (list, tuple, np.ndarray)):
@@ -277,14 +302,14 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                     self.shapelet_lengths_ >= 2
                 ]
 
-            if not np.all(self.shapelet_lengths_ <= self.series_length):
+            if not np.all(self.shapelet_lengths_ <= self.min_series_length_):
                 warnings.warn(
                     "All the values in 'shapelet_lengths' must be lower or equal to"
                     + "the series length. Shapelet lengths above it will be ignored.",
                     stacklevel=2,
                 )
                 self.shapelet_lengths_ = self.shapelet_lengths_[
-                    self.shapelet_lengths_ <= self.series_length
+                    self.shapelet_lengths_ <= self.min_series_length_
                 ]
 
             if len(self.shapelet_lengths_) == 0:
@@ -330,7 +355,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             params = {"max_shapelets": 10}
         else:
             raise NotImplementedError(
-                "The parameter set {} is not yet implemented".format(parameter_set)
+                f"The parameter set {parameter_set} is not yet implemented"
             )
         return params
 
@@ -425,6 +450,24 @@ def _init_random_shapelet_params(
     return values, lengths, dilations, threshold, normalize, means, stds
 
 
+@njit(cache=True)
+def _get_admissible_sampling_point(current_mask):
+    n_instances = len(current_mask)
+    # Count the number of admissible points per sample as cumsum
+    n_admissible_points = 0
+    for i in range(n_instances):
+        n_admissible_points += current_mask[i].shape[0]
+    if n_admissible_points > 0:
+        idx_choice = np.random.choice(n_admissible_points)
+        for i in range(n_instances):
+            _new_val = idx_choice - current_mask[i].shape[0]
+            if _new_val < 0 and current_mask[i].shape[0] > 0:
+                return i, idx_choice
+            idx_choice = _new_val
+    else:
+        return -1, -1
+
+
 @njit(fastmath=True, cache=True, parallel=True)
 def random_dilated_shapelet_extraction(
     X,
@@ -492,8 +535,13 @@ def random_dilated_shapelet_extraction(
         - stds : array, shape (max_shapelets, n_channels)
             Standard deviation of the shapelets
     """
-    n_instances, n_channels, series_length = X.shape
-
+    n_instances = len(X)
+    n_channels = X[0].shape[0]
+    series_lengths = np.zeros(n_instances, dtype=np.int64)
+    for i in range(n_instances):
+        series_lengths[i] = X[i].shape[1]
+    min_series_length = series_lengths.min()
+    max_series_length = series_lengths.max()
     # Fix the random seed
     set_numba_random_seed(seed)
 
@@ -512,7 +560,7 @@ def random_dilated_shapelet_extraction(
         proba_normalization,
         use_prime_dilations,
         n_channels,
-        series_length,
+        min_series_length,
     )
     # Get unique dilations to loop over
     unique_dil = np.unique(dilations)
@@ -521,7 +569,11 @@ def random_dilated_shapelet_extraction(
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
         # (2, _, _): Mask is different for normalized and non-normalized shapelets
-        alpha_mask = np.ones((2, n_instances, series_length), dtype=np.bool_)
+        alpha_mask = np.ones((2, n_instances, max_series_length), dtype=np.bool_)
+        for _i in range(n_instances):
+            # For the unequal length case, we scale the mask up and set to False
+            alpha_mask[:, _i, series_lengths[_i] :] = False
+
         id_shps = np.where(dilations == unique_dil[i_dilation])[0]
         min_len = min(lengths[id_shps])
         # For each shapelet id with this dilation
@@ -529,29 +581,25 @@ def random_dilated_shapelet_extraction(
             # Get shapelet params
             dilation = dilations[i_shp]
             length = lengths[i_shp]
-            norm = np.int32(normalize[i_shp])
-            dist_vect_shape = series_length - (length - 1) * dilation
-
+            norm = np.int_(normalize[i_shp])
             # Possible sampling points given self similarity mask
-            current_mask = alpha_mask[norm, :, :dist_vect_shape]
-            idx_mask = np.where(current_mask)
-
-            n_admissible_points = idx_mask[0].shape[0]
-            if n_admissible_points > 0:
-                # Choose a sample and a timestamp
-                idx_choice = np.random.choice(n_admissible_points)
-                idx_sample = idx_mask[0][idx_choice]
-                idx_timestamp = idx_mask[1][idx_choice]
-
+            current_mask = [
+                np.where(
+                    alpha_mask[norm, _i, : series_lengths[_i] - (length - 1) * dilation]
+                )[0]
+                for _i in range(n_instances)
+            ]
+            idx_sample, idx_timestamp = _get_admissible_sampling_point(current_mask)
+            if idx_sample >= 0:
                 # Update the mask in two directions from the sampling point
                 alpha_size = length - int(max(1, (1 - alpha_similarity) * min_len))
                 for j in range(alpha_size):
-                    alpha_mask[
-                        norm, idx_sample, (idx_timestamp - (j * dilation))
-                    ] = False
-                    alpha_mask[
-                        norm, idx_sample, (idx_timestamp + (j * dilation))
-                    ] = False
+                    alpha_mask[norm, idx_sample, (idx_timestamp - (j * dilation))] = (
+                        False
+                    )
+                    alpha_mask[norm, idx_sample, (idx_timestamp + (j * dilation))] = (
+                        False
+                    )
 
                 # Extract the values of shapelet
                 if norm:
@@ -559,7 +607,7 @@ def random_dilated_shapelet_extraction(
                         X[idx_sample], idx_timestamp, length, dilation
                     )
                     for i_channel in prange(_val.shape[0]):
-                        if _stds[i_channel] > 0:
+                        if _stds[i_channel] > AEON_NUMBA_STD_THRESHOLD:
                             _val[i_channel] = (
                                 _val[i_channel] - _means[i_channel]
                             ) / _stds[i_channel]
@@ -569,7 +617,6 @@ def random_dilated_shapelet_extraction(
                     _val = get_subsequence(
                         X[idx_sample], idx_timestamp, length, dilation
                     )
-
                 # Select another sample of the same class as the sample used to
                 loc_others = np.where(y == y[idx_sample])[0]
                 if loc_others.shape[0] > 1:
@@ -586,7 +633,6 @@ def random_dilated_shapelet_extraction(
                         X[id_test], length, dilation
                     )
                     X_subs = normalize_subsequences(X_subs, X_means, X_stds)
-
                 x_dist = compute_shapelet_dist_vector(X_subs, _val, length)
 
                 lower_bound = np.percentile(x_dist, threshold_percentiles[0])
@@ -648,7 +694,7 @@ def dilated_shapelet_transform(X, shapelets):
     """
     (values, lengths, dilations, threshold, normalize, means, stds) = shapelets
     n_shapelets = len(lengths)
-    n_instances, n_channels, series_length = X.shape
+    n_instances = len(X)
     n_ft = 3
 
     # (u_l * u_d , 2)
@@ -664,10 +710,10 @@ def dilated_shapelet_transform(X, shapelets):
             X_subs = get_all_subsequences(X[i_x], length, dilation)
             idx_no_norm = id_shps[np.where(~normalize[id_shps])[0]]
             for i_shp in idx_no_norm:
-                X_new[
-                    i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)
-                ] = compute_shapelet_features(
-                    X_subs, values[i_shp], length, threshold[i_shp]
+                X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
+                    compute_shapelet_features(
+                        X_subs, values[i_shp], length, threshold[i_shp]
+                    )
                 )
 
             idx_norm = id_shps[np.where(normalize[id_shps])[0]]
@@ -675,10 +721,10 @@ def dilated_shapelet_transform(X, shapelets):
                 X_means, X_stds = sliding_mean_std_one_series(X[i_x], length, dilation)
                 X_subs = normalize_subsequences(X_subs, X_means, X_stds)
                 for i_shp in idx_norm:
-                    X_new[
-                        i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)
-                    ] = compute_shapelet_features(
-                        X_subs, values[i_shp], length, threshold[i_shp]
+                    X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
+                        compute_shapelet_features(
+                            X_subs, values[i_shp], length, threshold[i_shp]
+                        )
                     )
     return X_new
 
@@ -706,7 +752,7 @@ def normalize_subsequences(X_subs, X_means, X_stds):
     X_new = np.zeros((n_subsequences, n_channels, length))
     for i_sub in prange(n_subsequences):
         for i_channel in prange(n_channels):
-            if X_stds[i_channel, i_sub] > 0:
+            if X_stds[i_channel, i_sub] > AEON_NUMBA_STD_THRESHOLD:
                 X_new[i_sub, i_channel] = (
                     X_subs[i_sub, i_channel] - X_means[i_channel, i_sub]
                 ) / X_stds[i_channel, i_sub]

@@ -13,8 +13,8 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest `aeon` release is `v0.5.0`. You can view the full changelog
-[here](https://www.aeon-toolkit.org/en/latest/changelog.html).
+The latest `aeon` release is `v0.7.0`. You can view the full changelog
+[here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
 
@@ -27,7 +27,7 @@ Our webpage and documentation is available at https://aeon-toolkit.org.
 ## ⚙️ Installation
 
 `aeon` requires a Python version of 3.8 or greater. Our full installation guide is
-available in our [documentation](https://www.aeon-toolkit.org/en/latest/installation.html).
+available in our [documentation](https://www.aeon-toolkit.org/en/stable/installation.html).
 
 The easiest way to install `aeon` is via pip:
 
@@ -43,11 +43,11 @@ pip install aeon[all_extras]
 ```
 
 Instructions for installation from the [GitHub source](https://github.com/aeon-toolkit/aeon)
-can be found [here](https://www.aeon-toolkit.org/en/latest/developer_guide/dev_installation.html).
+can be found [here](https://www.aeon-toolkit.org/en/stable/developer_guide/dev_installation.html).
 
 ## ⏲️ Getting started
 
-The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/latest/getting_started.html).
+The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/stable/getting_started.html).
 
 Below we provide a quick example of how to use `aeon` for forecasting and
 classification.

@@ -19,10 +19,11 @@ concurrency:
 jobs:
   test-nosoftdeps:
     runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
         id: setup-python
         with:
           python-version: "3.10"
@@ -35,25 +36,29 @@ jobs:
           key: ${{ runner.os }}-pip-3.10-dev-nosoftdep
 
       - name: Install aeon and dependencies
-        run: pip install .[dev]
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[dev]
 
       - name: Show dependencies
-        run: pip list
+        run: python -m pip list
 
       - name: Run tests
         run: |
           python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
           python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
-          python -m pytest --pyargs aeon.tests.test_softdeps
+          python -m pytest --pyargs aeon.testing.test_softdeps
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -65,10 +70,14 @@ jobs:
           key: ${{ runner.os }}-pip-3.10-nosoftdeps-full
 
       - name: Install aeon and dependencies
-        run: pip install .[dev]
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[dev]
 
       - name: Show dependencies
-        run: pip list
+        run: python -m pip list
 
       - name: Run tests
         run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
@@ -81,12 +90,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-22.04, macOS-12, windows-2022 ]
-        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+        python-version: [ "3.8", "3.10", "3.12" ]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -112,24 +121,30 @@ jobs:
           key: ${{ runner.os }}-pip-${{ matrix.python-version }}-pytest
 
       - name: Install aeon and dependencies
-        run: pip install .[all_extras,dev]
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
 
       - name: Show dependencies
-        run: pip list
+        run: python -m pip list
 
       - name: Run tests
+        # run the full test suit if a PR has the 'full pytest actions' label
         run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
+    # run the code coverage job if a PR has the 'codecov actions' label
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
 
     needs: test-nosoftdeps
     runs-on: ubuntu-22.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -144,12 +159,18 @@ jobs:
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
       - name: Install aeon and dependencies
-        run: pip install .[all_extras,unstable_extras,dev]
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,unstable_extras,dev]
 
       - name: Show dependencies
-        run: pip list
+        run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --cov=aeon --cov-report=xml
+        run: python -m pytest --cov=aeon --cov-report=xml  --timeout 1800
 
-      - uses: codecov/codecov-action@v3
+      - uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

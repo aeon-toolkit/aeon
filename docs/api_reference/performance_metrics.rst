@@ -15,38 +15,6 @@ Forecasting
 
 .. currentmodule:: aeon.performance_metrics.forecasting
 
-Classes
-~~~~~~~
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class_with_call.rst
-
-    MeanAbsoluteScaledError
-    MedianAbsoluteScaledError
-    MeanSquaredScaledError
-    MedianSquaredScaledError
-    MeanAbsoluteError
-    MeanSquaredError
-    MedianAbsoluteError
-    MedianSquaredError
-    GeometricMeanAbsoluteError
-    GeometricMeanSquaredError
-    MeanAbsolutePercentageError
-    MedianAbsolutePercentageError
-    MeanSquaredPercentageError
-    MedianSquaredPercentageError
-    MeanRelativeAbsoluteError
-    MedianRelativeAbsoluteError
-    GeometricMeanRelativeAbsoluteError
-    GeometricMeanRelativeSquaredError
-    MeanAsymmetricError
-    MeanLinexError
-    RelativeLoss
-
-Functions
-~~~~~~~~~
-
 .. autosummary::
     :toctree: auto_generated/
     :template: function.rst
@@ -78,7 +46,7 @@ Functions
 Segmentation
 ~~~~~~~~~~~~
 
-.. currentmodule:: aeon.performance_metrics.annotation.metrics
+.. currentmodule:: aeon.performance_metrics.segmentation.metrics
 
 .. autosummary::
     :toctree: auto_generated/

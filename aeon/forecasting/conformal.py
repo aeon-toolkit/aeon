@@ -15,8 +15,8 @@ from joblib import Parallel, delayed
 from sklearn.base import clone
 
 from aeon.datatypes import convert, convert_to
-from aeon.datatypes._utilities import get_slice
 from aeon.forecasting.base import BaseForecaster
+from aeon.utils.index_functions import get_slice
 
 
 class ConformalIntervals(BaseForecaster):
@@ -126,14 +126,14 @@ class ConformalIntervals(BaseForecaster):
         self.n_jobs = n_jobs
         self.forecasters_ = []
 
-        super(ConformalIntervals, self).__init__()
+        super().__init__()
 
         tags_to_clone = [
             "requires-fh-in-fit",
             "ignores-exogeneous-X",
             "capability:missing_values",
             "y_inner_type",
-            "X_inner_mtype",
+            "X_inner_type",
             "X-y-must-have-same-index",
             "enforce_index_type",
         ]
@@ -189,7 +189,7 @@ class ConformalIntervals(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -272,7 +272,7 @@ class ConformalIntervals(BaseForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float, optional (default=[0.5])
             A list of probabilities at which quantile forecasts are computed.
@@ -311,15 +311,13 @@ class ConformalIntervals(BaseForecaster):
             and (initial_window <= 0 or initial_window >= 1)
         ):
             raise ValueError(
-                "initial_window={0} should be either positive and smaller"
-                " than the number of samples {1} or a float in the "
+                "initial_window={} should be either positive and smaller"
+                " than the number of samples {} or a float in the "
                 "(0, 1) range".format(initial_window, n_samples)
             )
 
         if initial_window is not None and initial_window_type not in ("i", "f"):
-            raise ValueError(
-                "Invalid value for initial_window: {}".format(initial_window)
-            )
+            raise ValueError(f"Invalid value for initial_window: {initial_window}")
 
         if initial_window_type == "f":
             n_initial_window = int(floor(initial_window * n_samples))
@@ -379,9 +377,9 @@ class ConformalIntervals(BaseForecaster):
                 overlapping_index = pd.Index(
                     self.residuals_matrix_.index.intersection(full_y_index)
                 ).sort_values()
-                residuals_matrix.loc[
-                    overlapping_index, overlapping_index
-                ] = self.residuals_matrix_.loc[overlapping_index, overlapping_index]
+                residuals_matrix.loc[overlapping_index, overlapping_index] = (
+                    self.residuals_matrix_.loc[overlapping_index, overlapping_index]
+                )
             else:
                 overlapping_index = None
             y_index = remaining_y_index

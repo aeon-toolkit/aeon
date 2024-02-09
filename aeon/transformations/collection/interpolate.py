@@ -38,7 +38,7 @@ class TSInterpolator(BaseCollectionTransformer):
     """
 
     _tags = {
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "fit_is_empty": True,
@@ -55,7 +55,7 @@ class TSInterpolator(BaseCollectionTransformer):
             raise ValueError("resizing length must be integer and > 0")
 
         self.length = length
-        super(TSInterpolator, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Take series in each cell, train linear interpolation and samples n.

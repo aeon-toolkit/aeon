@@ -108,14 +108,14 @@ class ShapeDTW(BaseClassifier):
             self._shape_descriptor_functions = shape_descriptor_functions
         self.metric_params = metric_params
 
-        super(ShapeDTW, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Train the classifier.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -164,7 +164,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
         y - training data classes of shape [n_instances].
         """
         self._metric_params = {k.lower(): v for k, v in self._metric_params.items()}

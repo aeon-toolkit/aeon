@@ -41,7 +41,7 @@ class _DelegatedTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -62,7 +62,7 @@ class _DelegatedTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to be transformed, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -87,7 +87,7 @@ class _DelegatedTransformer(BaseTransformer):
 
         Explicitly, with examples:
             if `X` is `Series` (e.g., `pd.DataFrame`) and `transform-output` is `Series`
-                then the return is a single `Series` of the same mtype
+                then the return is a single `Series` of the same type
                 Example: detrending a single series
             if `X` is `Panel` (e.g., `pd-multiindex`) and `transform-output` is `Series`
                 then the return is `Panel` with same number of instances as `X`
@@ -113,7 +113,7 @@ class _DelegatedTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to be inverse transformed, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -124,7 +124,7 @@ class _DelegatedTransformer(BaseTransformer):
         Returns
         -------
         inverse transformed version of X
-            of the same type as X, and conforming to mtype format specifications
+            of the same type as X, and conforming to type format specifications
         """
         estimator = self._get_delegate()
         return estimator.inverse_transform(X=X, y=y)
@@ -141,7 +141,7 @@ class _DelegatedTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel, any supported mtype
+        X : Series or Panel, any supported type
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,

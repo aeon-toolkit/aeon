@@ -92,8 +92,8 @@ class RotationForestRegressor(BaseEstimator):
     Examples
     --------
     >>> from aeon.regression.sklearn import RotationForestRegressor
-    >>> from aeon.datasets import make_example_2d_numpy
-    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12, return_y=True,
+    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
+    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12,
     ...                              regression_target=True, random_state=0)
     >>> reg = RotationForestRegressor(n_estimators=10)
     >>> reg.fit(X, y)
@@ -127,7 +127,7 @@ class RotationForestRegressor(BaseEstimator):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        super(RotationForestRegressor, self).__init__()
+        super().__init__()
 
     def fit(self, X, y):
         """Fit a forest of trees on cases (X,y), where y is the target variable.
@@ -417,7 +417,7 @@ class RotationForestRegressor(BaseEstimator):
         return [results, oob]
 
     def _generate_groups(self, rng):
-        permutation = rng.permutation((np.arange(0, self._n_atts)))
+        permutation = rng.permutation(np.arange(0, self._n_atts))
 
         # select the size of each group.
         group_size_count = np.zeros(self.max_group - self.min_group + 1)

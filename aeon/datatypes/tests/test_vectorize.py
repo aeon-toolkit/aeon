@@ -6,11 +6,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datatypes import DATATYPE_REGISTER, MTYPE_REGISTER
+from aeon.datatypes import DATATYPE_REGISTER, TYPE_REGISTER
 from aeon.datatypes._check import AMBIGUOUS_MTYPES, check_is_mtype
 from aeon.datatypes._examples import get_examples
 from aeon.datatypes._vectorize import VectorizedDF, _enforce_index_freq
-from aeon.utils._testing.deep_equals import deep_equals
+from aeon.testing.utils.deep_equals import deep_equals
 
 SCITYPES = ["Panel", "Hierarchical"]
 
@@ -28,7 +28,7 @@ def _get_all_mtypes_for_scitype(scitype):
     """
     if scitype not in [s[0] for s in DATATYPE_REGISTER]:
         raise RuntimeError(scitype + " is not in the DATATYPE_REGISTER")
-    mtypes = [key[0] for key in MTYPE_REGISTER if key[1] == scitype]
+    mtypes = [key[0] for key in TYPE_REGISTER if key[1] == scitype]
     mtypes = [mtype for mtype in mtypes if mtype not in AMBIGUOUS_MTYPES]
 
     if len(mtypes) == 0:
@@ -122,7 +122,7 @@ def pytest_generate_tests(metafunc):
 
     fixturenames = set(metafunc.fixturenames)
 
-    if set(["scitype", "mtype", "fixture_index"]).issubset(fixturenames):
+    if {"scitype", "mtype", "fixture_index"}.issubset(fixturenames):
         keys = _generate_scitype_mtype_fixtureindex_combinations()
 
         ids = []
@@ -132,7 +132,7 @@ def pytest_generate_tests(metafunc):
         # parameterize test with from-mtpes
         metafunc.parametrize("scitype,mtype,fixture_index", keys, ids=ids)
 
-    elif set(["scitype", "mtype"]).issubset(fixturenames):
+    elif {"scitype", "mtype"}.issubset(fixturenames):
         keys = _generate_scitype_mtype_combinations()
 
         ids = []

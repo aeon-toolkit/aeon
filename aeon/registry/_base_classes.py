@@ -7,7 +7,7 @@ This module exports the following:
 BASE_CLASS_REGISTER - list of tuples
 
 each tuple corresponds to a base class, elements as follows:
-    0 : string - shorthand identifie for base class type
+    0 : string - shorthand identifier for base class type
     1 : type - the base class itself
     2 : string - plain English description of the class
 
@@ -33,7 +33,12 @@ __author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 import pandas as pd
 
 from aeon.annotation.base import BaseSeriesAnnotator
-from aeon.base import BaseEstimator, BaseObject
+from aeon.base import (
+    BaseCollectionEstimator,
+    BaseEstimator,
+    BaseObject,
+    BaseSeriesEstimator,
+)
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
@@ -42,27 +47,31 @@ from aeon.forecasting.model_selection._split import BaseSplitter
 from aeon.networks.base import BaseDeepNetwork
 from aeon.performance_metrics.base import BaseMetric
 from aeon.regression.base import BaseRegressor
+from aeon.segmentation.base import BaseSegmenter
+from aeon.similarity_search.base import BaseSimiliaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.series import BaseSeriesTransformer
 
 BASE_CLASS_REGISTER = [
     ("object", BaseObject, "object"),
     ("estimator", BaseEstimator, "estimator = object with fit"),
-    ("classifier", BaseClassifier, "time series classifier"),
-    ("clusterer", BaseClusterer, "time series clusterer"),
+    ("classifier", BaseClassifier, "classifier"),
+    ("collection-estimator", BaseCollectionEstimator, "collection estimator"),
+    ("collection-transformer", BaseCollectionTransformer, "collection transformer"),
+    ("clusterer", BaseClusterer, "clusterer"),
     ("early_classifier", BaseEarlyClassifier, "early time series classifier"),
     ("forecaster", BaseForecaster, "forecaster"),
     ("metric", BaseMetric, "performance metric"),
     ("network", BaseDeepNetwork, "deep learning network"),
-    ("regressor", BaseRegressor, "time series regressor"),
-    ("series-annotator", BaseSeriesAnnotator, "time series annotator"),
-    ("splitter", BaseSplitter, "time series splitter"),
-    ("transformer", BaseTransformer, "time series transformer"),
-    (
-        "collection-transformer",
-        BaseCollectionTransformer,
-        "time series collection transformer",
-    ),
+    ("regressor", BaseRegressor, "regressor"),
+    ("segmenter", BaseSegmenter, "segmenter"),
+    ("series-annotator", BaseSeriesAnnotator, "annotator"),
+    ("series-estimator", BaseSeriesEstimator, "single series estimator"),
+    ("series-transformer", BaseSeriesTransformer, "single series transformer"),
+    ("splitter", BaseSplitter, "splitter"),
+    ("similarity-search", BaseSimiliaritySearch, "similarity search"),
+    ("transformer", BaseTransformer, "transformer"),
 ]
 
 

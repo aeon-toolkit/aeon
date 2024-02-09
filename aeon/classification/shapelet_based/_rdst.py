@@ -4,7 +4,6 @@ A Random Dilated Shapelet Transform classifier pipeline that simply performs a r
 shapelet dilated transform and build (by default) a ridge classifier on the output.
 """
 
-
 __author__ = ["baraline"]
 __all__ = ["RDSTClassifier"]
 
@@ -79,10 +78,6 @@ class RDSTClassifier(BaseClassifier):
         The number of unique classes in the training set.
     fit_time_  : int
         The time (in milliseconds) for ``fit`` to run.
-    n_instances_ : int
-        The number of train cases in the training set.
-    n_dims_ : int
-        The number of dimensions per case in the training set.
     series_length_ : int
         The length of each series in the training set.
     transformed_data_ : list of shape (n_estimators) of ndarray
@@ -120,7 +115,9 @@ class RDSTClassifier(BaseClassifier):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:unequal_length": True,
         "capability:multithreading": True,
+        "X_inner_type": ["np-list", "numpy3D"],
         "non-deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }
@@ -149,16 +146,12 @@ class RDSTClassifier(BaseClassifier):
         self.save_transformed_data = save_transformed_data
         self.random_state = random_state
         self.n_jobs = n_jobs
-
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
         self.transformed_data_ = []
 
         self._transformer = None
         self._estimator = None
 
-        super(RDSTClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Classifier to training data.
@@ -180,8 +173,6 @@ class RDSTClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
-
         self._transformer = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,
             shapelet_lengths=self.shapelet_lengths,
@@ -250,9 +241,9 @@ class RDSTClassifier(BaseClassifier):
         if callable(m):
             return self._estimator.predict_proba(X_t)
         else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
+            dists = np.zeros((len(X), self.n_classes_))
             preds = self._estimator.predict(X_t)
-            for i in range(0, X.shape[0]):
+            for i in range(0, len(X)):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists
 

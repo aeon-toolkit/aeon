@@ -12,30 +12,42 @@ from github import Github
 context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
 
 repo = context_dict["repository"]
-g = Github(context_dict["token"])
+g = Github(sys.argv[1])
 repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
 
-print(sys.argv)  # noqa
-title_labels = sys.argv[1][1:-1].split(",")
-title_labels_new = sys.argv[2][1:-1].split(",")
-content_labels = sys.argv[3][1:-1].split(",")
-content_labels_status = sys.argv[4]
+if "[bot]" in pr.user.login:
+    sys.exit(0)
+
+print(sys.argv[2:])  # noqa
+title_labels = sys.argv[2][1:-1].split(",")
+title_labels_new = sys.argv[3][1:-1].split(",")
+content_labels = sys.argv[4][1:-1].split(",")
+content_labels_status = sys.argv[5]
+
+replacement_labels = [
+    ("anomalydetection", "anomaly detection"),
+    ("similaritysearch", "similarity search"),
+]
+for i, label in enumerate(content_labels):
+    for cur_label, new_label in replacement_labels:
+        if label == cur_label:
+            content_labels[i] = new_label
 
 labels = [(label.name, label.color) for label in repo.get_labels()]
 title_labels = [
-    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
+    f"$\\color{{#{color}}}{{\\textsf{{{label}}}}}$"
     for label, color in labels
     if label in title_labels
 ]
 title_labels_new = [
-    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
+    f"$\\color{{#{color}}}{{\\textsf{{{label}}}}}$"
     for label, color in labels
     if label in title_labels_new
 ]
 content_labels = [
-    "$\\color{#%s}{\\textsf{%s}}$" % (color, label)
+    f"$\\color{{#{color}}}{{\\textsf{{{label}}}}}$"
     for label, color in labels
     if label in content_labels
 ]
@@ -44,8 +56,8 @@ title_labels_str = ""
 if len(title_labels) == 0:
     title_labels_str = (
         "I did not find any labels to add based on the title. Please "
-        "add the ENH, MNT, BUG, DOC and/or GOV tag to your pull "
-        "requests titles. For now you can add the labels manually."
+        "add the [ENH], [MNT], [BUG], [DOC], [REF], [DEP] and/or [GOV] tags to your "
+        "pull requests titles. For now you can add the labels manually."
     )
 elif len(title_labels_new) != 0:
     arr_str = str(title_labels_new).strip("[]").replace("'", "")
@@ -92,13 +104,16 @@ elif title_labels_str == "":
 
 pr.create_issue_comment(
     f"""
-## Thank you for contributing to `aeon`!
+## Thank you for contributing to `aeon`
 
 {title_labels_str}
 {content_labels_str}
 
-The "Checks" tab above or the panel below will show the status of our automated tests. From the panel below you can click on "Details" to the right of the check to see more information if there is a failure. If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR.
+The [Checks](https://github.com/aeon-toolkit/aeon/pull/{pr_number}/checks) tab will show the status of our automated tests. You can click on individual test runs in the tab or "Details" in the panel below to see more information if there is a failure.
 
-Don't hesitate to ask questions on the `aeon` Slack channel if you have any!
+If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR unless it is a draft.
+
+Don't hesitate to ask questions on the `aeon` [Slack](
+https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) channel if you have any.
     """  # noqa
 )

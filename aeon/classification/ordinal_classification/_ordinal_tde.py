@@ -27,7 +27,6 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFA
-from aeon.utils.validation.panel import check_X_y
 
 
 class OrdinalTDE(BaseClassifier):
@@ -81,9 +80,15 @@ class OrdinalTDE(BaseClassifier):
         be faster for larger datasets. As the Dict cannot be pickled currently, there
         will be some overhead converting it to a python dict with multiple threads and
         pickling.
-    save_train_predictions : bool, default=False
-        Save the ensemble member train predictions in fit for use in _get_train_probs
-        leave-one-out cross-validation.
+    save_train_predictions : bool, default="deprecated"
+        Save the ensemble member train predictions in ``fit``.
+
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
+    train_estimate_method : str, default="loocv"
+        Method used to generate train estimates in `fit_predict` and
+        `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
+        "oob" for out of bag estimates.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -102,10 +107,10 @@ class OrdinalTDE(BaseClassifier):
         The number of dimensions per case.
     series_length_ : int
         The length of each series.
-    n_estimators_ : int
-        The final number of classifiers used (<= max_ensemble_size)
     estimators_ : list of shape (n_estimators) of IndividualOrdinalTDE
         The collections of estimators trained in fit.
+    n_estimators_ : int
+        The final number of classifiers used. Will be <= `max_ensemble_size`.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
 
@@ -162,7 +167,8 @@ class OrdinalTDE(BaseClassifier):
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
         typed_dict=True,
-        save_train_predictions=False,
+        save_train_predictions="deprecated",
+        train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
     ):
@@ -180,7 +186,7 @@ class OrdinalTDE(BaseClassifier):
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_parameter_samples = contract_max_n_parameter_samples
         self.typed_dict = typed_dict
-        self.save_train_predictions = save_train_predictions
+        self.train_estimate_method = train_estimate_method
         self.random_state = random_state
         self.n_jobs = n_jobs
 
@@ -200,9 +206,18 @@ class OrdinalTDE(BaseClassifier):
         self._prev_parameters_x = []
         self._prev_parameters_y = []
 
-        super(OrdinalTDE, self).__init__()
+        # TODO remove 'save_train_predictions' in v0.8.0
+        self.save_train_predictions = save_train_predictions
+        if save_train_predictions != "deprecated":
+            warnings.warn(
+                "the save_train_predictions parameter is deprecated and will be "
+                "removed in v0.8.0.",
+                stacklevel=2,
+            )
 
-    def _fit(self, X, y):
+        super().__init__()
+
+    def _fit(self, X, y, keep_train_preds=False):
         """Fit an ensemble on cases (X,y), where y is the target variable.
 
         Build an ensemble of base TDE classifiers from the training set (X,
@@ -211,7 +226,7 @@ class OrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -332,6 +347,7 @@ class OrdinalTDE(BaseClassifier):
                 y_subsample,
                 subsample_size,
                 100 if num_classifiers < self.max_ensemble_size else highest_mae,
+                keep_train_preds,
             )
 
             w = 1 / (1 + abs(tde._mae))
@@ -368,7 +384,7 @@ class OrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
@@ -389,7 +405,7 @@ class OrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predict probabilities for.
 
         Returns
@@ -413,16 +429,57 @@ class OrdinalTDE(BaseClassifier):
 
         return sums / (np.ones(self.n_classes_) * self._weight_sum)
 
-    def _worst_ensemble_acc(self):
-        min_acc = 1.0
-        min_acc_idx = 0
+    def _fit_predict(self, X, y) -> np.ndarray:
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._fit_predict_proba(X, y)
+            ]
+        )
 
-        for c, classifier in enumerate(self.estimators_):
-            if classifier._accuracy < min_acc:
-                min_acc = classifier._accuracy
-                min_acc_idx = c
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        self._fit(X, y, keep_train_preds=True)
 
-        return min_acc, min_acc_idx
+        results = np.zeros((self.n_instances_, self.n_classes_))
+        divisors = np.zeros(self.n_instances_)
+
+        if self.train_estimate_method.lower() == "loocv":
+            for i, clf in enumerate(self.estimators_):
+                subsample = clf._subsample
+                preds = clf._train_predictions
+
+                for n, pred in enumerate(preds):
+                    results[subsample[n]][
+                        self._class_dictionary[pred]
+                    ] += self.weights_[i]
+                    divisors[subsample[n]] += self.weights_[i]
+        elif self.train_estimate_method.lower() == "oob":
+            indices = range(self.n_instances_)
+            for i, clf in enumerate(self.estimators_):
+                oob = [n for n in indices if n not in clf._subsample]
+
+                if len(oob) == 0:
+                    continue
+
+                preds = clf.predict(X[oob])
+
+                for n, pred in enumerate(preds):
+                    results[oob[n]][self._class_dictionary[pred]] += self.weights_[i]
+                    divisors[oob[n]] += self.weights_[i]
+        else:
+            raise ValueError(
+                "Invalid train_estimate_method. Available options: loocv, oob"
+            )
+
+        for i in range(self.n_instances_):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
 
     def _worst_ensemble_mae(self):
         worst_mae = 0.0
@@ -447,109 +504,7 @@ class OrdinalTDE(BaseClassifier):
 
         return possible_parameters
 
-    def _get_train_probs(self, X, y, train_estimate_method="loocv") -> np.ndarray:
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True)
-
-        n_instances, n_dims, series_length = X.shape
-
-        if (
-            n_instances != self.n_instances_
-            or n_dims != self.n_dims_
-            or series_length != self.series_length_
-        ):
-            raise ValueError(
-                "n_instances, n_dims, series_length mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
-
-        results = np.zeros((n_instances, self.n_classes_))
-        divisors = np.zeros(n_instances)
-
-        if train_estimate_method.lower() == "loocv":
-            for i, clf in enumerate(self.estimators_):
-                subsample = clf._subsample
-                preds = (
-                    clf._train_predictions
-                    if self.save_train_predictions
-                    else Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                        delayed(clf._train_predict)(
-                            i,
-                        )
-                        for i in range(len(subsample))
-                    )
-                )
-
-                for n, pred in enumerate(preds):
-                    results[subsample[n]][
-                        self._class_dictionary[pred]
-                    ] += self.weights_[i]
-                    divisors[subsample[n]] += self.weights_[i]
-        elif train_estimate_method.lower() == "oob":
-            indices = range(n_instances)
-            for i, clf in enumerate(self.estimators_):
-                oob = [n for n in indices if n not in clf._subsample]
-
-                if len(oob) == 0:
-                    continue
-
-                preds = clf.predict(X[oob])
-
-                for n, pred in enumerate(preds):
-                    results[oob[n]][self._class_dictionary[pred]] += self.weights_[i]
-                    divisors[oob[n]] += self.weights_[i]
-        else:
-            raise ValueError(
-                "Invalid train_estimate_method. Available options: loocv, oob"
-            )
-
-        for i in range(n_instances):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
-
-        return results
-
-    def _individual_train_acc(self, tde, y, train_size, lowest_acc):
-        correct = 0
-        required_correct = int(lowest_acc * train_size)
-
-        if self._n_jobs > 1:
-            c = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(tde._train_predict)(
-                    i,
-                )
-                for i in range(train_size)
-            )
-
-            for i in range(train_size):
-                if correct + train_size - i < required_correct:
-                    return -1
-                elif c[i] == y[i]:
-                    correct += 1
-
-                if self.save_train_predictions:
-                    tde._train_predictions.append(c[i])
-
-        else:
-            for i in range(train_size):
-                if correct + train_size - i < required_correct:
-                    return -1
-
-                c = tde._train_predict(i)
-
-                if c == y[i]:
-                    correct += 1
-
-                if self.save_train_predictions:
-                    tde._train_predictions.append(c)
-
-        return correct / train_size
-
-    def _individual_train_mae(self, tde, y, train_size, highest_mae):
+    def _individual_train_mae(self, tde, y, train_size, highest_mae, keep_train_preds):
         absolute_error = 0
 
         if self._n_jobs > 1:
@@ -559,15 +514,19 @@ class OrdinalTDE(BaseClassifier):
                 )
                 for i in range(train_size)
             )
+
             for i in range(train_size):
                 absolute_error += abs(int(y[i]) - int(c[i]))
-                if self.save_train_predictions:
+
+                if keep_train_preds:
                     tde._train_predictions.append(c[i])
         else:
             for i in range(train_size):
                 c = tde._train_predict(i)
+
                 absolute_error += abs(int(y[i]) - int(c))
-                if self.save_train_predictions:
+
+                if keep_train_preds:
                     tde._train_predictions.append(c)
 
         mae = absolute_error / train_size
@@ -609,13 +568,6 @@ class OrdinalTDE(BaseClassifier):
                 "contract_max_n_parameter_samples": 5,
                 "max_ensemble_size": 2,
                 "randomly_selected_params": 3,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_parameter_samples": 5,
-                "max_ensemble_size": 2,
-                "randomly_selected_params": 3,
-                "save_train_predictions": True,
             }
         else:
             return {
@@ -772,7 +724,7 @@ class IndividualOrdinalTDE(BaseClassifier):
         self._subsample = []
         self._train_predictions = []
 
-        super(IndividualOrdinalTDE, self).__init__()
+        super().__init__()
 
     # todo remove along with BOSS and SFA workarounds when Dict becomes serialisable.
     def __getstate__(self):
@@ -811,7 +763,7 @@ class IndividualOrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
             The class labels.
@@ -891,7 +843,7 @@ class IndividualOrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns

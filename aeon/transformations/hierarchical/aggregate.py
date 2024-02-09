@@ -9,8 +9,6 @@ import pandas as pd
 
 from aeon.transformations.base import BaseTransformer
 
-# todo: add any necessary aeon internal imports here
-
 
 class Aggregator(BaseTransformer):
     """Prepare hierarchical data, including aggregate levels, from bottom level.
@@ -38,7 +36,7 @@ class Aggregator(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.utils._testing.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -52,15 +50,14 @@ class Aggregator(BaseTransformer):
         "input_data_type": "Series",
         "output_data_type": "Series",
         "transform_labels": "None",
-        # todo instance wise?
         "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": [
+        "X_inner_type": [
             "pd.Series",
             "pd.DataFrame",
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "y_inner_type": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "capability:inverse_transform": False,  # does transformer have inverse
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
         "univariate-only": False,  # can the transformer handle multivariate X?
@@ -73,7 +70,7 @@ class Aggregator(BaseTransformer):
     def __init__(self, flatten_single_levels=True):
         self.flatten_single_levels = flatten_single_levels
 
-        super(Aggregator, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
