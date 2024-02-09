@@ -20,7 +20,6 @@ jobs:
   test-nosoftdeps:
     runs-on: ubuntu-22.04
 
-
     env:
       NUMBA_CACHE_DIR: ${{ github.workspace }}/.numba_cache
       NUMBA_CPU_NAME: generic
@@ -45,7 +44,7 @@ jobs:
         name: Numba cache
         id: cache
         with:
-          path: .numba_cache
+          path: ${{ github.workspace }}/.numba_cache
           key: ${{ runner.os }}-pip-numba-3.10-no-soft-dep-${{ hashFiles('pyproject.toml') }}
 
 
@@ -93,7 +92,7 @@ jobs:
         name: Numba cache
         id: cache
         with:
-          path: .numba_cache
+          path: .${{ github.workspace }}/numba_cache
           key: ${{ runner.os }}-pip-numba-3.10-no-soft-dep-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
@@ -152,7 +151,7 @@ jobs:
         uses: actions/cache@v3
         id: cache
         with:
-          path: .numba_cache
+          path: ${{ github.workspace }}/.numba_cache
           key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
 
       - name: Install aeon and dependencies
