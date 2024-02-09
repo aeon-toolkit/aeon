@@ -50,7 +50,6 @@ jobs:
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
-        if: steps.cache.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -97,7 +96,6 @@ jobs:
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
-        if: steps.cache.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -156,7 +154,6 @@ jobs:
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
-        if: steps.cache.outputs.cache-hit != 'true'
         with:
           timeout_minutes: 30
           max_attempts: 3
