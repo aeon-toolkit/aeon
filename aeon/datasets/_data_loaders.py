@@ -1167,14 +1167,17 @@ def load_regression(
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_nmv"
 
-    return _load_saved_dataset(
+    X, y, meta = _load_saved_dataset(
         name=name,
         dir_name=dir_name,
         split=split,
         local_module=local_module,
         local_dirname=local_dirname,
-        return_meta=return_metadata,
+        return_meta=True,
     )
+    if return_metadata:
+        return X, y, meta
+    return X, y
 
 
 def load_classification(
@@ -1274,7 +1277,7 @@ def load_classification(
     ):
         # Check if on timeseriesclassification.com
         url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
-        # Test if file exists
+        # Test if file exists to generate more informative error
         response = requests.head(url)
         if response.status_code != 200:
             raise ValueError(
@@ -1302,7 +1305,6 @@ def load_classification(
     test = os.path.join(path, f"{name}/{name}_disc_TEST.ts")
     if os.path.exists(train) and os.path.exists(test):
         name = name + "_disc"
-
     if load_equal_length:
         # If there exists a version with equal length, load that
         train = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
@@ -1324,7 +1326,7 @@ def load_classification(
         return_meta=True,
     )
     # Check this is a classification problem
-    if return_metadata["classlabel"] is False:
+    if "classlabel" not in meta or not meta["classlabel"]:
         raise ValueError(
             f"You have tried to load a regression problem called {name} with "
             f"load_classifier. This will cause un-intended concequences for any "

@@ -465,3 +465,10 @@ multivariate_unequal_length = {
     "JapaneseVowels",
     "SpokenArabicDigits",
 }
+
+# 30 new univariate classification problems used in the bake off [5]. Some are new,
+# some are discrete versions of regression problems, some are equal length versions
+# of the current UCR problems and some are no missing versions of the current 128 UCR.
+# All can be loaded from the timeseriesclassification.com archive directly using the
+# function load_classification. This will download all available versions of the
+# problem in one directory. You can then set which version through function arguments.
