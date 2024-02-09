@@ -1329,7 +1329,7 @@ def load_classification(
     if "classlabel" not in meta or not meta["classlabel"]:
         raise ValueError(
             f"You have tried to load a regression problem called {name} with "
-            f"load_classifier. This will cause un-intended concequences for any "
+            f"load_classifier. This will cause unintended consequences for any "
             f"classifier you build. If you want to load a regression problem, "
             f"use load_regression "
         )
