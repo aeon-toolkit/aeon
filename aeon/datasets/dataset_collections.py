@@ -36,9 +36,9 @@ __all__ = [
 import os
 
 import aeon
-from aeon.datasets.tsc_data_lists import multivariate, univariate
-from aeon.datasets.tser_data_lists import tser_monash, tser_soton
-from aeon.datasets.tsf_data_lists import tsf_all
+from aeon.datasets.tsc_datasets import multivariate, univariate
+from aeon.datasets.tser_datasets import tser_monash, tser_soton
+from aeon.datasets.tsf_datasets import tsf_all
 
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 

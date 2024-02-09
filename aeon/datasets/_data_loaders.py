@@ -16,7 +16,7 @@ from aeon.datasets.dataset_collections import (
     get_downloaded_tsc_tsr_datasets,
     get_downloaded_tsf_datasets,
 )
-from aeon.datasets.tser_data_lists import tser_monash, tser_soton
+from aeon.datasets.tser_datasets import tser_monash, tser_soton
 from aeon.utils.validation.collection import convert_collection
 
 DIRNAME = "data"
@@ -1315,14 +1315,25 @@ def load_classification(
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_nmv"
 
-    return _load_saved_dataset(
+    X, y, meta = _load_saved_dataset(
         name=name,
         dir_name=dir_name,
         split=split,
         local_module=local_module,
         local_dirname=local_dirname,
-        return_meta=return_metadata,
+        return_meta=True,
     )
+    # Check this is a classification problem
+    if return_metadata["classlabel"] is False:
+        raise ValueError(
+            f"You have tried to load a regression problem called {name} with "
+            f"load_classifier. This will cause un-intended concequences for any "
+            f"classifier you build. If you want to load a regression problem, "
+            f"use load_regression "
+        )
+    if return_metadata:
+        return X, y, meta
+    return X, y
 
 
 def download_all_regression(extract_path=None):
