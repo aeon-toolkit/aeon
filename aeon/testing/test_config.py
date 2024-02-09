@@ -16,7 +16,7 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 PR_TESTING = False
 
 if os.environ.get("CICD_RUNNING") == "1":
-    import aeon.utils._testing._cicd_numba_caching  # noqa: F401
+    import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 
 EXCLUDE_ESTIMATORS = []
 
