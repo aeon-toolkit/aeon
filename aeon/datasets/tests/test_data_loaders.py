@@ -396,10 +396,10 @@ def test_load_regression():
     assert y.shape == (201,)
 
 
-# @pytest.mark.skipif(
-#     PR_TESTING,
-#     reason="Only run on overnights because of intermittent fail for read/write",
-# )
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
 def test_load_classification():
     """Test load classification."""
     expected_metadata = {

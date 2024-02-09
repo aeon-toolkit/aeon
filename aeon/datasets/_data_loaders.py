@@ -18,7 +18,7 @@ from aeon.datasets.dataset_collections import (
     get_downloaded_tsf_datasets,
 )
 from aeon.datasets.tser_datasets import tser_monash, tser_soton
-from aeon.utils.validation.collection import convert_collection
+from aeon.utils.conversion import convert_collection
 
 DIRNAME = "data"
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
@@ -1268,38 +1268,36 @@ def load_classification(
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     path = os.path.join(local_module, local_dirname)
-    if name not in get_downloaded_tsc_tsr_datasets(
-        os.path.join(local_module, local_dirname)
-    ):
-        if local_dirname == "data":
+    if name not in get_downloaded_tsc_tsr_datasets(extract_path):
+        if extract_path is None:
             local_dirname = "local_data"
-            if not os.path.exists(os.path.join(local_module, local_dirname)):
-                os.makedirs(os.path.join(local_module, local_dirname))
-            path = os.path.join(local_module, local_dirname)
-        # Check if on timeseriesclassification.com
-        url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
-        # Test if file exists to generate more informative error
-        response = requests.head(url)
-        if response.status_code != 200:
-            raise ValueError(
-                f"Invalid dataset name ={name} is not available on extract path ="
-                f"{extract_path}. "
-                f"Nor is it available on https://timeseriesclassification.com/."
-            )
-        try:
-            _download_and_extract(
-                url,
-                extract_path=extract_path,
-            )
-        except zipfile.BadZipFile:
-            raise ValueError(
-                f"Invalid dataset name ={name} is  available on extract path ="
-                f"{extract_path} or https://timeseriesclassification.com/ but it "
-                f"is not correctly formatted.",
-            )
+        if not os.path.exists(os.path.join(local_module, local_dirname)):
+            os.makedirs(os.path.join(local_module, local_dirname))
+        if name not in get_downloaded_tsc_tsr_datasets(
+            os.path.join(local_module, local_dirname)
+        ):
+            # Check if on timeseriesclassification.com
+            url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
+            # Test if file exists to generate more informative error
+            response = requests.head(url)
+            if response.status_code != 200:
+                raise ValueError(
+                    f"Invalid dataset name ={name} is not available on extract path ="
+                    f"{extract_path}. "
+                    f"Nor is it available on https://timeseriesclassification.com/."
+                )
+            try:
+                _download_and_extract(
+                    url,
+                    extract_path=extract_path,
+                )
+            except zipfile.BadZipFile:
+                raise ValueError(
+                    f"Invalid dataset name ={name} is  available on extract path ="
+                    f"{extract_path} or https://timeseriesclassification.com/ but it "
+                    f"is not correctly formatted.",
+                )
     # Test for discrete version (first suffix _disc), always use that if it exists
-
-    # Test for non missing or equal length versions
     dir_name = name
     # If there exists a version with _discr, load that
     train = os.path.join(path, f"{name}/{name}_disc*TRAIN.ts")
