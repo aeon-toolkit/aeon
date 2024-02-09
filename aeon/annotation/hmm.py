@@ -21,7 +21,7 @@ __all__ = ["HMM"]
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="HMM will be removed from annotation module in v0.8.0, it has been replaced "
     "by HMMSegmenter in the segmentation module.",
     category=FutureWarning,

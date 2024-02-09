@@ -20,7 +20,7 @@ from aeon.utils.validation.series import check_consistent_index_type
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="plot_series has moved to aeon.visualisation, this version will be removed "
     "in v0.8.0.",
     category=FutureWarning,
@@ -170,7 +170,7 @@ def plot_series(
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="plot_interval has moved to aeon.visualisation, this version will be "
     "removed in v0.8.0.",
     category=FutureWarning,
@@ -191,7 +191,7 @@ def plot_interval(ax, interval_df):
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="plot_lags has moved to aeon.visualisation, this version will be removed "
     "in v0.8.0.",
     category=FutureWarning,
@@ -272,7 +272,7 @@ def plot_lags(series, lags=1, suptitle=None):
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="plot_correlations has moved to aeon.visualisation, this version will be "
     "removed in v0.8.0.",
     category=FutureWarning,
@@ -411,7 +411,7 @@ def _get_windows(cv, y):
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="plot_windows has moved to aeon.visualisation, this version will be removed "
     "in v0.8.0.",
     category=FutureWarning,

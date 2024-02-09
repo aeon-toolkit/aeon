@@ -69,7 +69,7 @@ __all__ = [
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="BaseForecastingErrorMetric and all subclasses will be removed from "
     "performance_metric package in v0.8.0. Please use the functions rather "
     "than the functor classes.",

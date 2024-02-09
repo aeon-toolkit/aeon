@@ -79,7 +79,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     # TODO: remove in v0.8.0
     @deprecated(
-        version="0.6.0",
+        version="0.7.0",
         reason="The position of the classifier and transformers argument for "
         "ClassifierPipeline __init__ will be swapped in v0.8.0. Use "
         "keyword arguments to avoid breakage.",
@@ -172,7 +172,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     # TODO: remove in v0.8.0
     @deprecated(
-        version="0.6.0",
+        version="0.7.0",
         reason="The ClassifierPipeline __rmul__ (*) functionality will be removed "
         "in v0.8.0.",
         category=FutureWarning,
@@ -305,7 +305,7 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="SklearnClassifierPipeline will be removed in v0.8.0. Use "
     "ClassifierPipeline or the sklearn pipeline instead.",
     category=FutureWarning,
