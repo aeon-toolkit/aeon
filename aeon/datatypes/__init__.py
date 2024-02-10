@@ -2,7 +2,8 @@
 
 __author__ = ["fkiraly"]
 
-from aeon.datatypes._check import (  # check_is_mtype,
+from aeon.datatypes._check import (
+    check_is_mtype,
     check_is_scitype,
     check_raise,
     mtype,
@@ -25,7 +26,8 @@ from aeon.datatypes._registry import (
 )
 from aeon.datatypes._vectorize import VectorizedDF
 
-__all__ = [  # "check_is_mtype",
+__all__ = [
+    "check_is_mtype",
     "ALL_TIME_SERIES_TYPES",
     "check_is_scitype",
     "check_raise",
