@@ -4,6 +4,15 @@ import numpy as np
 import pandas as pd
 
 
+def is_collection(X):
+    """Check X is a valid collection data structure."""
+    try:
+        get_type(X)
+        return True
+    except TypeError:
+        return False
+
+
 def is_nested_univ_dataframe(X):
     """Check if X is nested dataframe.
 

@@ -7,13 +7,13 @@ from aeon.utils.conversion import (
     resolve_unequal_length_inner_type,
 )
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._check_collection import (
+from aeon.utils.validation._dependencies import _check_estimator_deps
+from aeon.utils.validation.collection import (
     get_n_cases,
     has_missing,
     is_equal_length,
     is_univariate,
 )
-from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseCollectionEstimator(BaseEstimator):

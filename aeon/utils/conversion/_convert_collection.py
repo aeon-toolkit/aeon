@@ -20,7 +20,7 @@ legacy code supported "dask_panel" but it is not actually used anywhere.
 import numpy as np
 import pandas as pd
 
-from aeon.utils.validation._check_collection import (
+from aeon.utils.validation.collection import (
     _equal_length,
     _nested_univ_is_equal,
     get_type,
