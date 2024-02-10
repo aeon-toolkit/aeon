@@ -39,14 +39,18 @@ jobs:
         run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
         shell: bash
 
+      - name: Set daily date for cache invalidation
+        id: daily-date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        shell: bash
+
       # Python environment cache
       - uses: actions/cache@v3
         name: Numba cache
         id: cache
         with:
           path: ${{ github.workspace }}/.numba_cache
-          key: ${{ runner.os }}-pip-numba-3.10-no-soft-dep-${{ hashFiles('pyproject.toml') }}
-
+          key: ${{ runner.os }}-pip-numba-3.10-no-soft-dep-${{ hashFiles('pyproject.toml') }}-${{ steps.daily-date.outputs.date }}
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -86,13 +90,18 @@ jobs:
         run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
         shell: bash
 
+      - name: Set daily date for cache invalidation
+        id: daily-date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        shell: bash
+
       # Numba cache
       - uses: actions/cache@v3
         name: Numba cache
         id: cache
         with:
           path: .${{ github.workspace }}/numba_cache
-          key: ${{ runner.os }}-pip-numba-3.10-no-soft-dep-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-pip-numba-3.10-no-soft-deps-${{ hashFiles('pyproject.toml') }}-${{ steps.daily-date.outputs.date }}
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -143,12 +152,17 @@ jobs:
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
+      - name: Set daily date for cache invalidation
+        id: daily-date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        shell: bash
+
       - name: Restore Python Cache
         uses: actions/cache@v3
         id: cache
         with:
           path: ${{ github.workspace }}/.numba_cache
-          key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-numba-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}-${{ steps.daily-date.outputs.date }}
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
