@@ -7,11 +7,11 @@ import pytest
 from aeon.datasets import load_covid_3month
 from aeon.regression._dummy import DummyRegressor
 from aeon.regression.base import BaseRegressor
-from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation.tests.test_collection import (
+from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
+from aeon.utils.conversion import COLLECTIONS_DATA_TYPES
 
 
 class _TestRegressor(BaseRegressor):
