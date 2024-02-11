@@ -109,4 +109,3 @@ def _sakoe_chiba_bounding(
         bounding_matrix[i, lower:upper] = True
 
     return bounding_matrix
-
