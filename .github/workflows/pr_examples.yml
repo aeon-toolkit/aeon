@@ -40,7 +40,7 @@ jobs:
 
       - name: Set daily date for cache invalidation
         id: daily-date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))"
         shell: bash
 
       # Python environment cache

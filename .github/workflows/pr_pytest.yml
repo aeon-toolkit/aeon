@@ -41,7 +41,7 @@ jobs:
 
       - name: Set daily date for cache invalidation
         id: daily-date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))"
         shell: bash
 
       # Python environment cache
@@ -92,7 +92,7 @@ jobs:
 
       - name: Set daily date for cache invalidation
         id: daily-date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))"
         shell: bash
 
       # Numba cache
@@ -132,7 +132,6 @@ jobs:
       NUMBA_CPU_FEATURES: +64bit,+adx,+aes,+avx,+avx2,-avx512bf16,-avx512bitalg,-avx512bw,-avx512cd,-avx512dq,-avx512er,-avx512f,-avx512ifma,-avx512pf,-avx512vbmi,-avx512vbmi2,-avx512vl,-avx512vnni,-avx512vpopcntdq,+bmi,+bmi2,-cldemote,-clflushopt,-clwb,-clzero,+cmov,+cx16,+cx8,-enqcmd,+f16c,+fma,-fma4,+fsgsbase,+fxsr,-gfni,+invpcid,-lwp,+lzcnt,+mmx,+movbe,-movdir64b,-movdiri,-mwaitx,+pclmul,-pconfig,-pku,+popcnt,-prefetchwt1,+prfchw,-ptwrite,-rdpid,+rdrnd,+rdseed,+rtm,+sahf,-sgx,-sha,-shstk,+sse,+sse2,+sse3,+sse4.1,+sse4.2,-sse4a,+ssse3,-tbm,-vaes,-vpclmulqdq,-waitpkg,-wbnoinvd,-xop,+xsave,-xsavec,+xsaveopt,-xsaves
       CICD_RUNNING: 1
 
-
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
@@ -154,7 +153,7 @@ jobs:
 
       - name: Set daily date for cache invalidation
         id: daily-date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))"
         shell: bash
 
       - name: Restore Python Cache
