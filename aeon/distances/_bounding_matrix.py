@@ -97,17 +97,16 @@ def _itakura_parallelogram(x_size: int, y_size: int, max_slope_percent: float):
 def _sakoe_chiba_bounding(
     x_size: int, y_size: int, radius_percent: float
 ) -> np.ndarray:
-    one_percent = min(x_size, y_size) / 100
+    if y_size < x_size:
+        return _sakoe_chiba_bounding(y_size, x_size, radius_percent).T
+
+    one_percent = x_size / 100
     radius = math.floor((radius_percent * one_percent) * 100)
     bounding_matrix = np.full((x_size, y_size), False)
-
-    smallest_size = min(x_size, y_size)
-    largest_size = max(x_size, y_size)
-
-    width = largest_size - smallest_size + radius
-    for i in range(smallest_size):
+    width = y_size - x_size + radius
+    for i in range(x_size):
         lower = max(0, i - radius)
-        upper = min(largest_size, i + width) + 1
+        upper = min(y_size, i + width) + 1
         bounding_matrix[i, lower:upper] = True
 
     return bounding_matrix
