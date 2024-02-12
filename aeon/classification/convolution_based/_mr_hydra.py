@@ -12,8 +12,10 @@ class MultiRocketHydraClassifier(BaseClassifier):
     """MultiRocket-Hydra Classifier."""
 
     _tags = {
-        "capability:multithreading": False,
-        "classifier_type": "dictionary",
+        "capability:multivariate": True,
+        "capability:multithreading": True,
+        "classifier_type": "convolution",
+        "python_dependencies": "torch",
     }
 
     def __init__(self, k=8, g=64, n_jobs=1, random_state=None):
