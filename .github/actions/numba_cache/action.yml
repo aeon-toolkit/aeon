@@ -45,8 +45,9 @@ runs:
 
     # Set the date for cache invalidation set to every 3 days
     - name: Cache invalidation date
-      id: daily-date
-      run: echo "name=date::$(python -c 'import datetime; print((datetime.datetime.now() - datetime.timedelta(days=datetime.datetime.now().day % ${inputs.number_days_cache_invalidation})).strftime("%Y-%m-%d"))')" >> $GITHUB_OUTPUT
+      run: |
+        echo "NUMBER_DAYS_CACHE_INVALIDATION=${{ inputs.number_days_cache_invalidation }}" >> $GITHUB_ENV
+        echo "name=date::$(python -c 'import datetime, os; days=int(os.getenv(\"NUMBER_DAYS_CACHE_INVALIDATION\")); print((datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d"))')" >> $GITHUB_OUTPUT
       shell: bash
 
     # Tries to restore or creates a new numba cache
