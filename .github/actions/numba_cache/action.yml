@@ -46,7 +46,7 @@ runs:
     # Set the date for cache invalidation set to every 3 days
     - name: Cache invalidation date
       id: daily-date
-      run: echo "name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (${{ inputs.cache_name }} * 24 * 60 * 60) * (${{ inputs.cache_name }} * 24 * 60 * 60) )))" >> $GITHUB_OUTPUT
+      run: echo "name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (${{ inputs.number_days_cache_invalidation }} * 24 * 60 * 60) * (${{ inputs.number_days_cache_invalidation }} * 24 * 60 * 60) )))" >> $GITHUB_OUTPUT
       shell: bash
 
     # Tries to restore or creates a new numba cache
