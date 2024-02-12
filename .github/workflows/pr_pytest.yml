@@ -34,11 +34,6 @@ jobs:
         with:
           python-version: "3.10"
 
-      # Set CPU Features
-      - name: Set CPU Features
-        run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
-        shell: bash
-
       - name: Cache invalidation date
         id: daily-date
         run: echo "name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))" >> $GITHUB_OUTPUT
@@ -84,11 +79,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
-      # Set CPU Features
-      - name: Set CPU Features
-        run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
-        shell: bash
 
       - name: Cache invalidation date
         id: daily-date
