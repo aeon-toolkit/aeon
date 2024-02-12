@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.testing.utils.data_gen import make_nested_dataframe_data
+from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.utils.validation.series import (
     _check_is_multivariate,
     _check_is_univariate,
@@ -42,9 +42,9 @@ def test__check_is_univariate():
     X = np.random.random(size=(10, 3, 20))
     with pytest.raises(ValueError, match="must be univariate"):
         _check_is_univariate(X)
-    X, _ = make_nested_dataframe_data(n_cases=4, n_channels=1, n_timepoints=10)
+    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=1, n_timepoints=10)
     _check_is_univariate(X)
-    X, _ = make_nested_dataframe_data(n_cases=4, n_channels=2, n_timepoints=10)
+    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=2, n_timepoints=10)
     with pytest.raises(ValueError, match="must be univariate"):
         _check_is_univariate(X)
 
@@ -57,9 +57,9 @@ def test__check_is_multivariate():
     X = pd.Series([1, 2, 3, 4, 5])
     with pytest.raises(ValueError, match=" must have 2 or more variables, but found 1"):
         _check_is_multivariate(X)
-    X, _ = make_nested_dataframe_data(n_cases=4, n_channels=2, n_timepoints=10)
+    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=2, n_timepoints=10)
     _check_is_multivariate(X)
-    X, _ = make_nested_dataframe_data(n_cases=4, n_channels=1, n_timepoints=10)
+    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=1, n_timepoints=10)
     with pytest.raises(ValueError, match="must have 2 or more variables"):
         _check_is_multivariate(X)
     X = np.random.random(size=(10, 1))
@@ -70,10 +70,10 @@ def test_check_series():
     check_series(None)
     with pytest.raises(ValueError, match="cannot be None"):
         check_series(None, allow_None=False)
-    X, _ = make_nested_dataframe_data(n_cases=4, n_channels=2, n_timepoints=10)
+    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=2, n_timepoints=10)
     with pytest.raises(ValueError, match="cannot both be set to True"):
         check_series(Z=X, enforce_univariate=True, enforce_multivariate=True)
-    X, _ = make_nested_dataframe_data(n_cases=4, n_channels=2, n_timepoints=10)
+    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=2, n_timepoints=10)
     check_series(Z=X, enforce_multivariate=True)
 
 

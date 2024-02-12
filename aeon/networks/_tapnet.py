@@ -9,7 +9,6 @@ import math
 import numpy as np
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TapNetNetwork(BaseDeepNetwork):
@@ -51,7 +50,7 @@ class TapNetNetwork(BaseDeepNetwork):
     34(4), 6845-6852, 2020
     """
 
-    _tags = {"python_dependencies": ["tensorflow", "keras-self-attention"]}
+    _tags = {"python_dependencies": ["tensorflow", "keras_self_attention"]}
 
     def __init__(
         self,
@@ -68,15 +67,6 @@ class TapNetNetwork(BaseDeepNetwork):
         random_state=1,
         padding="same",
     ):
-        _check_soft_dependencies(
-            "keras-self-attention",
-            package_import_alias={"keras-self-attention": "keras_self_attention"},
-            severity="error",
-        )
-        _check_soft_dependencies("tensorflow")
-
-        super().__init__()
-
         self.random_state = random_state
         self.kernel_size = kernel_size
         self.layers = layers
@@ -93,6 +83,8 @@ class TapNetNetwork(BaseDeepNetwork):
         # parameters for random projection
         self.use_rp = use_rp
         self.rp_params = rp_params
+
+        super().__init__()
 
     @staticmethod
     def output_conv_size(in_size, kernel_size, strides, padding):

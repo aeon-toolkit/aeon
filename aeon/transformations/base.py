@@ -56,9 +56,9 @@ from aeon.datatypes import (
     check_is_scitype,
     convert_to,
     mtype_to_scitype,
-    update_data,
 )
 from aeon.datatypes._series_as_panel import convert_to_scitype
+from aeon.utils.index_functions import update_data
 from aeon.utils.sklearn import (
     is_sklearn_classifier,
     is_sklearn_regressor,

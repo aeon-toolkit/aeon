@@ -11,7 +11,7 @@ from aeon.transformations.base import BaseTransformer
 
 # TODO: remove in v0.8.0
 @deprecated(
-    version="0.6.0",
+    version="0.7.0",
     reason="Filter will be removed in v0.8.0. It is specific to neuro and the "
     "functionality is in aeon-neuro.",
     category=FutureWarning,

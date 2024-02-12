@@ -162,7 +162,7 @@ class Reconciler(BaseTransformer):
 
         Returns
         -------
-        recon_preds : multi-indexed pd.DataFrame of Panel mtype pd_multiindex
+        recon_preds : multi-indexed pd.DataFrame
         """
         # check the length of index
         if X.index.nlevels < 2:

@@ -22,6 +22,12 @@ repos:
       - id: requirements-txt-fixer
       - id: trailing-whitespace
 
+  - repo: https://github.com/lk16/detect-missing-init
+    rev: v0.1.6
+    hooks:
+      - id: detect-missing-init
+        args: [ "--create", "--python-folders", "aeon" ]
+
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.0
     hooks:
@@ -67,14 +73,6 @@ repos:
       - id: pydocstyle
         args: [ "--convention=numpy" ]
         additional_dependencies: [ toml, tomli ]
-
-  # not ready to be enabled yet
-  #  - repo: https://github.com/pre-commit/mirrors-mypy
-  #    rev: v1.0.1
-  #    hooks:
-  #      - id: mypy
-  #        files: aeon/
-  #        additional_dependencies: [ pytest ]
 
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.49"

@@ -6,8 +6,8 @@ from aeon.base import _HeterogenousMetaEstimator
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
+from aeon.utils.conversion import convert_collection
 from aeon.utils.sklearn import is_sklearn_regressor
-from aeon.utils.validation.collection import convert_collection
 
 __author__ = ["fkiraly"]
 __all__ = ["RegressorPipeline", "SklearnRegressorPipeline"]

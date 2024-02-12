@@ -123,7 +123,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     >>> from aeon.transformations.collection.interval_based import SupervisedIntervals
     >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=20,
-    ...                              return_y=True, random_state=0)
+    ...                              random_state=0)
     >>> tnf = SupervisedIntervals(n_intervals=1, random_state=0)
     >>> tnf.fit(X, y)
     SupervisedIntervals(...)

@@ -24,7 +24,6 @@ from aeon.transformations.collection.interval_based import (
 )
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation.panel import check_X_y
 
 
 class BaseIntervalForest(metaclass=ABCMeta):
@@ -127,9 +126,12 @@ class BaseIntervalForest(metaclass=ABCMeta):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_preds and
-        _get_train_probs.
+    save_transformed_data : bool, default="deprecated"
+        Save the data transformed in ``fit``.
+
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
+        ``transformed_data_`` will also be removed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -158,10 +160,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         The collections of estimators trained in fit.
     intervals_ : list of shape (n_estimators) of BaseTransformer
         Stores the interval extraction transformer for all estimators.
-    transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances_ ,total_intervals * att_subsample_size)
-        The transformed dataset for all estimators. Only saved when
-        save_transformed_data is true.
+
 
     References
     ----------
@@ -189,7 +188,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         replace_nan=None,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -211,6 +210,16 @@ class BaseIntervalForest(metaclass=ABCMeta):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
+        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
+        self.transformed_data_ = []
+        self.save_transformed_data = save_transformed_data
+        if save_transformed_data != "deprecated":
+            warnings.warn(
+                "the save_transformed_data parameter is deprecated and will be "
+                "removed in v0.8.0. transformed_data_ will also be removed.",
+                stacklevel=2,
+            )
+
         super().__init__()
 
     # if subsampling attributes, an interval_features transformer must contain a
@@ -228,6 +237,138 @@ class BaseIntervalForest(metaclass=ABCMeta):
     transformer_feature_skip = ["transform_features_", "_transform_features"]
 
     def _fit(self, X, y):
+        b = (
+            False
+            if isinstance(self.save_transformed_data, str)
+            else self.save_transformed_data
+        )
+        self.transformed_data_ = self._fit_forest(X, y, save_transformed_data=b)
+        return self
+
+    def _predict(self, X):
+        if is_regressor(self):
+            Xt = self._predict_setup(X)
+
+            y_preds = Parallel(
+                n_jobs=self._n_jobs,
+                backend=self.parallel_backend,
+                prefer="threads",
+            )(
+                delayed(self._predict_for_estimator)(
+                    Xt,
+                    self.estimators_[i],
+                    self.intervals_[i],
+                    predict_proba=False,
+                )
+                for i in range(self._n_estimators)
+            )
+
+            return np.mean(y_preds, axis=0)
+        else:
+            return np.array(
+                [self.classes_[int(np.argmax(prob))] for prob in self._predict_proba(X)]
+            )
+
+    def _predict_proba(self, X):
+        Xt = self._predict_setup(X)
+
+        y_probas = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(
+            delayed(self._predict_for_estimator)(
+                Xt,
+                self.estimators_[i],
+                self.intervals_[i],
+                predict_proba=True,
+            )
+            for i in range(self._n_estimators)
+        )
+
+        output = np.sum(y_probas, axis=0) / (
+            np.ones(self.n_classes_) * self._n_estimators
+        )
+        return output
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        rng = check_random_state(self.random_state)
+
+        if is_regressor(self):
+            Xt = self._fit_forest(X, y, save_transformed_data=True)
+
+            p = Parallel(
+                n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+            )(
+                delayed(self._train_estimate_for_estimator)(
+                    Xt,
+                    y,
+                    i,
+                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                )
+                for i in range(self._n_estimators)
+            )
+            y_preds, oobs = zip(*p)
+
+            results = np.sum(y_preds, axis=0)
+            divisors = np.zeros(self.n_instances_)
+            for oob in oobs:
+                for inst in oob:
+                    divisors[inst] += 1
+
+            label_average = np.mean(y)
+            for i in range(self.n_instances_):
+                results[i] = (
+                    label_average if divisors[i] == 0 else results[i] / divisors[i]
+                )
+        else:
+            return np.array(
+                [
+                    self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                    for prob in self._fit_predict_proba(X, y)
+                ]
+            )
+
+        return results
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        if is_regressor(self):
+            raise ValueError(
+                "Train probability estimates are only available for classification"
+            )
+
+        Xt = self._fit_forest(X, y, save_transformed_data=True)
+
+        rng = check_random_state(self.random_state)
+
+        p = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(
+            delayed(self._train_estimate_for_estimator)(
+                Xt,
+                y,
+                i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                probas=True,
+            )
+            for i in range(self._n_estimators)
+        )
+        y_probas, oobs = zip(*p)
+
+        results = np.sum(y_probas, axis=0)
+        divisors = np.zeros(self.n_instances_)
+        for oob in oobs:
+            for inst in oob:
+                divisors[inst] += 1
+
+        for i in range(self.n_instances_):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
+
+    def _fit_forest(self, X, y, save_transformed_data=False):
         rng = check_random_state(self.random_state)
 
         self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
@@ -685,7 +826,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
             self._n_estimators = 0
             self.estimators_ = []
             self.intervals_ = []
-            self.transformed_data_ = []
+            transformed_intervals = []
 
             while (
                 train_time < time_limit
@@ -700,6 +841,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
                         Xt,
                         y,
                         rng.randint(np.iinfo(np.int32).max),
+                        save_transformed_data=save_transformed_data,
                     )
                     for _ in range(self._n_jobs)
                 )
@@ -707,12 +849,12 @@ class BaseIntervalForest(metaclass=ABCMeta):
                 (
                     estimators,
                     intervals,
-                    transformed_data,
+                    td,
                 ) = zip(*fit)
 
                 self.estimators_ += estimators
                 self.intervals_ += intervals
-                self.transformed_data_ += transformed_data
+                transformed_intervals += td
 
                 self._n_estimators += self._n_jobs
                 train_time = time.time() - start_time
@@ -728,6 +870,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
                     Xt,
                     y,
                     rng.randint(np.iinfo(np.int32).max),
+                    save_transformed_data=save_transformed_data,
                 )
                 for _ in range(self._n_estimators)
             )
@@ -735,56 +878,12 @@ class BaseIntervalForest(metaclass=ABCMeta):
             (
                 self.estimators_,
                 self.intervals_,
-                self.transformed_data_,
+                transformed_intervals,
             ) = zip(*fit)
 
-        return self
+        return transformed_intervals
 
-    def _predict(self, X):
-        if is_regressor(self):
-            Xt = self._predict_setup(X)
-
-            y_preds = Parallel(
-                n_jobs=self._n_jobs,
-                backend=self.parallel_backend,
-                prefer="threads",
-            )(
-                delayed(self._predict_for_estimator)(
-                    Xt,
-                    self.estimators_[i],
-                    self.intervals_[i],
-                    predict_proba=False,
-                )
-                for i in range(self._n_estimators)
-            )
-
-            return np.mean(y_preds, axis=0)
-        else:
-            return np.array(
-                [self.classes_[int(np.argmax(prob))] for prob in self._predict_proba(X)]
-            )
-
-    def _predict_proba(self, X):
-        Xt = self._predict_setup(X)
-
-        y_probas = Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(self._predict_for_estimator)(
-                Xt,
-                self.estimators_[i],
-                self.intervals_[i],
-                predict_proba=True,
-            )
-            for i in range(self._n_estimators)
-        )
-
-        output = np.sum(y_probas, axis=0) / (
-            np.ones(self.n_classes_) * self._n_estimators
-        )
-        return output
-
-    def _fit_estimator(self, Xt, y, seed):
+    def _fit_estimator(self, Xt, y, seed, save_transformed_data=False):
         # random state for this estimator
         rng = check_random_state(seed)
 
@@ -975,7 +1074,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         return [
             tree,
             intervals,
-            interval_features if self.save_transformed_data else None,
+            interval_features if save_transformed_data else None,
         ]
 
     def _predict_setup(self, X):
@@ -1026,114 +1125,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         else:
             return estimator.predict(interval_features)
 
-    def _get_train_preds(self, X, y) -> np.ndarray:
-        n_instances = self._train_est_setup(X, y)
-
-        if is_regressor(self):
-            rng = check_random_state(self.random_state)
-
-            p = Parallel(
-                n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-            )(
-                delayed(self._train_estimate_for_estimator)(
-                    y,
-                    i,
-                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                )
-                for i in range(self._n_estimators)
-            )
-            y_preds, oobs = zip(*p)
-
-            results = np.sum(y_preds, axis=0)
-            divisors = np.zeros(n_instances)
-            for oob in oobs:
-                for inst in oob:
-                    divisors[inst] += 1
-
-            label_average = np.mean(y)
-            for i in range(n_instances):
-                results[i] = (
-                    label_average if divisors[i] == 0 else results[i] / divisors[i]
-                )
-        else:
-            return np.array(
-                [
-                    self.classes_[int(np.argmax(prob))]
-                    for prob in self._get_train_probs(X)
-                ]
-            )
-
-        return results
-
-    def _get_train_probs(self, X, y) -> np.ndarray:
-        if is_regressor(self):
-            raise ValueError(
-                "Train probability estimates are only available for classification"
-            )
-
-        n_instances = self._train_est_setup(X, y, True)
-
-        rng = check_random_state(self.random_state)
-
-        p = Parallel(
-            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(
-            delayed(self._train_estimate_for_estimator)(
-                y,
-                i,
-                check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                probas=True,
-            )
-            for i in range(self._n_estimators)
-        )
-        y_probas, oobs = zip(*p)
-
-        results = np.sum(y_probas, axis=0)
-        divisors = np.zeros(n_instances)
-        for oob in oobs:
-            for inst in oob:
-                divisors[inst] += 1
-
-        for i in range(n_instances):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
-
-        return results
-
-    def _train_est_setup(self, X, y, probas=False):
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True)
-
-        # treat case of single class seen in fit
-        if is_classifier(self) and self.n_classes_ == 1:
-            return (
-                np.repeat([[1]], X.shape[0], axis=0)
-                if probas
-                else np.repeat(list(self._class_dictionary.keys()), X.shape[0], axis=0)
-            )
-
-        n_instances, n_channels, n_timepoints = X.shape
-
-        if (
-            n_instances != self.n_instances_
-            or n_channels != self.n_channels_
-            or n_timepoints != self.n_timepoints_
-        ):
-            raise ValueError(
-                "n_instances, n_channels, n_timepoints mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                f"{type}."
-            )
-
-        if not self.save_transformed_data:
-            raise ValueError("Currently only works with saved transform data from fit.")
-
-        return n_instances
-
-    def _train_estimate_for_estimator(self, y, idx, rng, probas=False):
+    def _train_estimate_for_estimator(self, Xt, y, idx, rng, probas=False):
         indices = range(self.n_instances_)
         subsample = rng.choice(self.n_instances_, size=self.n_instances_)
         oob = [n for n in indices if n not in subsample]
@@ -1147,12 +1139,8 @@ class BaseIntervalForest(metaclass=ABCMeta):
             return [results, oob]
 
         clf = _clone_estimator(self._base_estimator, rng)
-        clf.fit(self.transformed_data_[idx][subsample], y[subsample])
-        preds = (
-            clf.predict_proba(self.transformed_data_[idx][oob])
-            if probas
-            else clf.predict(self.transformed_data_[idx][oob])
-        )
+        clf.fit(Xt[idx][subsample], y[subsample])
+        preds = clf.predict_proba(Xt[idx][oob]) if probas else clf.predict(Xt[idx][oob])
 
         if probas and preds.shape[1] != self.n_classes_:
             new_probas = np.zeros((preds.shape[0], self.n_classes_))
