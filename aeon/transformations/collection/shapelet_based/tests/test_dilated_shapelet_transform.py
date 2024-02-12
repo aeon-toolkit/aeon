@@ -142,8 +142,6 @@ def test_compute_shapelet_features(dtype):
     X_subs = get_all_subsequences(X, length, dilation)
     _min, _argmin, SO = compute_shapelet_features(X_subs, values, length, threshold)
 
-    # On some occasion, float32 precision with fasmath retruns things like
-    # 2.1835059227370834e-07 instead of 0
     assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 0.0
     assert SO == 3.0

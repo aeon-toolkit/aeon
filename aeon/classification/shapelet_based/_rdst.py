@@ -269,4 +269,4 @@ class RDSTClassifier(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {"max_shapelets": 20}
+        return {"max_shapelets": 5}

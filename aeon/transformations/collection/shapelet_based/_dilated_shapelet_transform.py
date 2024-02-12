@@ -11,6 +11,7 @@ import warnings
 
 import numpy as np
 from numba import njit, prange, set_num_threads
+from numba.typed import List
 from sklearn.preprocessing import LabelEncoder
 
 from aeon.distances import manhattan_distance
@@ -207,8 +208,13 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                 f"but got shapelets_lengths = {self.shapelet_lengths_} ",
                 f"with an input length = {self.min_series_length_}",
             )
+        if isinstance(X, list):
+            X_ = List(X)
+        else:
+            X_ = X
+
         self.shapelets_ = random_dilated_shapelet_extraction(
-            X,
+            X_,
             y,
             self.max_shapelets,
             self.shapelet_lengths_,
@@ -352,7 +358,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         if parameter_set == "default":
-            params = {"max_shapelets": 10}
+            params = {"max_shapelets": 5}
         else:
             raise NotImplementedError(
                 f"The parameter set {parameter_set} is not yet implemented"
