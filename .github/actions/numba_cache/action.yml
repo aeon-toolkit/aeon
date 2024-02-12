@@ -1,0 +1,48 @@
+name: 'Numba cache setup'
+description: 'Tries to restore the numba cache'
+inputs:
+  cache_name:
+    description: 'The name of the cache'
+    required: true
+  runner_os:
+    description: 'The runner os'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    # Set the location for numba cache to exist
+    - name: Set numba cache env
+      run: echo "NUMBA_CACHE_DIR=${{ github.workspace }}/.numba_cache" >> $GITHUB_ENV
+      shell: bash
+
+    # Sets the cpu name for numba to use
+    - name: Set numba cpu env
+      run: echo "NUMBA_CPU_NAME=generic" >> $GITHUB_ENV
+      shell: bash
+
+    # Sets the cpu features for numba to use
+    - name: Set numba cpu features env
+      run: echo "NUMBA_CPU_FEATURES=+64bit +adx +aes +avx +avx2 -avx512bf16 -avx512bitalg -avx512bw -avx512cd -avx512dq -avx512er -avx512f -avx512ifma -avx512pf -avx512vbmi -avx512vbmi2 -avx512vl -avx512vnni -avx512vpopcntdq +bmi +bmi2 -cldemote -clflushopt -clwb -clzero +cmov +cx16 +cx8 -enqcmd +f16c +fma -fma4 +fsgsbase +fxsr -gfni +invpcid -lwp +lzcnt +mmx +movbe -movdir64b -movdiri -mwaitx +pclmul -pconfig -pku +popcnt -prefetchwt1 +prfchw -ptwrite -rdpid +rdrnd +rdseed +rtm +sahf -sgx -sha -shstk +sse +sse2 +sse3 +sse4.1 +sse4.2 -sse4a +ssse3 -tbm -vaes -vpclmulqdq -waitpkg -wbnoinvd -xop +xsave -xsavec +xsaveopt -xsaves" >> $GITHUB_ENV
+      shell: bash
+
+    # Set the CICD_RUNNING env so that numba knows it is running in a CI environment
+    - name: Set CICD_RUNNING env
+      run: echo "CICD_RUNNING=1" >> $GITHUB_ENV
+      shell: bash
+
+    # GNU tar on windows runs much faster than the default BSD tar
+    - name: "Use GNU tar instead BSD tar"
+      if: ${{ inputs.runner_os == 'Windows' }}
+      shell: cmd
+      run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
+
+    # Tries to restore or creates a new numba cache
+    - uses: actions/cache@v3
+      id: cache
+      with:
+        path: .numba_cache
+        key: numba-${{ runner.os }}-${{ inputs.cache_name }}
+#        lookup-only: true
+        restore-keys: |
+          numba-${{ runner.os }}-${{ inputs.cache_name }}
