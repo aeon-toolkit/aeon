@@ -18,6 +18,12 @@ from aeon.transformations.collection.interval_based import QUANTTransformer
 class QUANTClassifier(BaseClassifier):
     """QUANT classifier."""
 
+    _tags = {
+        "capability:multivariate": True,
+        "algorithm_type": "interval",
+        "python_dependencies": "torch",
+    }
+
     def __init__(self, depth=6, div=4, estimator=None, random_state=None):
         self.depth = depth
         self.div = div

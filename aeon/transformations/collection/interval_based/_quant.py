@@ -14,6 +14,12 @@ from aeon.transformations.collection import BaseCollectionTransformer
 class QUANTTransformer(BaseCollectionTransformer):
     """QUANT transform."""
 
+    _tags = {
+        "capability:multivariate": True,
+        "algorithm_type": "interval",
+        "python_dependencies": "torch",
+    }
+
     def __init__(self, depth=6, div=4):
         self.depth = depth
         self.div = div
