@@ -54,4 +54,4 @@ runs:
       id: cache
       with:
         path: .numba_cache
-        key: ${{ inputs.runner_os }}-${{ inputs.cache_name}}-${{ input.python_version }}-${{ hashFiles('pyproject.toml') }}-${{ steps.daily-date.outputs.date }}
+        key: ${{ inputs.runner_os }}-${{ inputs.cache_name}}-${{ inputs.python_version }}-${{ hashFiles('pyproject.toml') }}-${{ steps.daily-date.outputs.date }}
