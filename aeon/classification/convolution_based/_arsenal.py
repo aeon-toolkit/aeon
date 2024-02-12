@@ -72,7 +72,7 @@ class Arsenal(BaseClassifier):
         The number of classes.
     n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -147,7 +147,7 @@ class Arsenal(BaseClassifier):
         self.n_jobs = n_jobs
 
         self.n_cases_ = 0
-        self.n_dims_ = 0
+        self.n_channels_ = 0
         self.n_timepoints_ = 0
         self.estimators_ = []
         self.weights_ = []
@@ -282,7 +282,7 @@ class Arsenal(BaseClassifier):
         return results
 
     def _fit_arsenal(self, X, y, keep_transformed_data=False):
-        self.n_cases_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
         train_time = 0
@@ -290,7 +290,7 @@ class Arsenal(BaseClassifier):
         if self.rocket_transform == "rocket":
             base_rocket = Rocket(num_kernels=self.num_kernels)
         elif self.rocket_transform == "minirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 base_rocket = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -301,7 +301,7 @@ class Arsenal(BaseClassifier):
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                 )
         elif self.rocket_transform == "multirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 base_rocket = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,

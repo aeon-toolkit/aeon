@@ -120,7 +120,7 @@ class RocketClassifier(BaseClassifier):
         self.random_state = random_state
         self.estimator = estimator
         self.n_cases_ = 0
-        self.n_dims_ = 0
+        self.n_channels_ = 0
         self.n_timepoints_ = 0
         self.n_jobs = n_jobs
         super().__init__()
@@ -145,7 +145,7 @@ class RocketClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_cases_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         rocket_transform = self.rocket_transform.lower()
         if rocket_transform == "rocket":
             self._transformer = Rocket(
@@ -154,7 +154,7 @@ class RocketClassifier(BaseClassifier):
                 random_state=self.random_state,
             )
         elif rocket_transform == "minirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 self._transformer = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -169,7 +169,7 @@ class RocketClassifier(BaseClassifier):
                     random_state=self.random_state,
                 )
         elif rocket_transform == "multirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 self._transformer = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
