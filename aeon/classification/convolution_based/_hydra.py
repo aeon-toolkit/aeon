@@ -6,7 +6,7 @@ from aeon.classification import BaseClassifier
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
 
 
-class HYDRA(BaseClassifier):
+class HydraClassifier(BaseClassifier):
     """Hydra Classifier."""
 
     _tags = {

@@ -8,7 +8,7 @@ from aeon.transformations.collection.convolution_based import MultiRocket
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
 
 
-class MultiRocketHydra(BaseClassifier):
+class MultiRocketHydraClassifier(BaseClassifier):
     """MultiRocket-Hydra Classifier."""
 
     _tags = {
