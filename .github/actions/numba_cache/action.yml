@@ -39,7 +39,7 @@ runs:
 
     # GNU tar on windows runs much faster than the default BSD tar
     - name: "Use GNU tar instead BSD tar"
-      if: ${{ input.runner_os == 'Windows' }}
+      if: ${{ inputs.runner_os == 'Windows' }}
       shell: cmd
       run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
