@@ -39,9 +39,9 @@ jobs:
         run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
         shell: bash
 
-      - name: Set daily date for cache invalidation
+      - name: Cache invalidation date
         id: daily-date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))"
+        run: echo "name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))" >> $GITHUB_OUTPUT
         shell: bash
 
       # Python environment cache
@@ -90,9 +90,9 @@ jobs:
         run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
         shell: bash
 
-      - name: Set daily date for cache invalidation
+      - name: Cache invalidation date
         id: daily-date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))"
+        run: echo "name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))" >> $GITHUB_OUTPUT
         shell: bash
 
       # Numba cache
@@ -140,20 +140,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # Set CPU Features
-      - name: Set CPU Features
-        run: echo "NUMBA_CPU_FEATURES=${{ join(matrix.cpu-features, ' ') }}" >> $GITHUB_ENV
-        shell: bash
-
       # On Windows, GNU tar is much faster than the default BSD tar
       - name: "Use GNU tar instead BSD tar"
         if: ${{ runner.os == 'Windows' }}
         shell: cmd
         run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
-      - name: Set daily date for cache invalidation
+      - name: Cache invalidation date
         id: daily-date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))"
+        run: echo "name=date::$(date +'%Y-%m-%d' --date=@$(( $(date +%s) / (3 * 24 * 60 * 60) * (3 * 24 * 60 * 60) )))" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Restore Python Cache
@@ -174,9 +169,11 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
+        # run the full test suit if a PR has the 'full pytest actions' label
         run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
+    # run the code coverage job if a PR has the 'codecov actions' label
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
 
     needs: test-nosoftdeps
