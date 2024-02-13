@@ -7,6 +7,9 @@ inputs:
   runner_os:
     description: 'The runner os'
     required: true
+  python_version:
+    description: 'The python version'
+    required: true
   write_new_cache:
     description: 'If true, writes a new cache'
     required: true
@@ -46,7 +49,7 @@ runs:
       id: cache
       with:
         path: .numba_cache
-        key: numba-${{ inputs.cache_name }}-${{ github.run_id }}
+        key: numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ github.run_id }}
         lookup-only: ${{ !inputs.write_new_cache }}
         restore-keys: |
-          numba-${{ inputs.cache_name }}
+          numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-
