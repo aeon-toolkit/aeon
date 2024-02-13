@@ -10,10 +10,6 @@ inputs:
   python_version:
     description: 'The python version'
     required: true
-  write_new_cache:
-    description: 'If true, writes a new cache'
-    required: true
-    default: 'false'
 
 runs:
   using: 'composite'
@@ -44,22 +40,11 @@ runs:
       shell: cmd
       run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
-    # Create new cache if write_new_cache is true
-    - uses: actions/cache@v3
-      id: cache
-      if: ${{ inputs.write_new_cache == 'true' }}
-      with:
-        path: .numba_cache
-        key: numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ github.run_id }}
-        restore-keys: |
-          numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-
-
     # Restore cache if write_new_cache is false
     - uses: actions/cache/restore@v3
       id: restore-cache
-      if : ${{ inputs.write_new_cache == 'false' }}
       with:
-        path: .numba_cache
+        path: ${{ github.workspace }}/.numba_cache
         key: numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ github.run_id }}
         restore-keys: |
           numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-
