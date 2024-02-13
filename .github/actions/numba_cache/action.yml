@@ -46,7 +46,7 @@ runs:
       id: cache
       with:
         path: .numba_cache
-        key: numba-${{ inputs.cache_name }}
+        key: numba-${{ inputs.cache_name }}-${{ github.run_id }}
         lookup-only: ${{ !inputs.write_new_cache }}
         restore-keys: |
           numba-${{ inputs.cache_name }}
