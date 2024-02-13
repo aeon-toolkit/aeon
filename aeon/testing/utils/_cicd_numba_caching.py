@@ -72,7 +72,6 @@ def custom_load_index(self):
     if stamp[1] != self._source_stamp[1] or cache_filename in CHANGED_FILES:
         return {}
     else:
-        print("Using cache for", cache_filename)
         return overloads
 
 
