@@ -44,12 +44,22 @@ runs:
       shell: cmd
       run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
-    # Tries to restore or creates a new numba cache
+    # Create new cache if write_new_cache is true
     - uses: actions/cache@v3
       id: cache
+      if: ${{ inputs.write_new_cache == 'true' }}
       with:
         path: .numba_cache
         key: numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ github.run_id }}
-        lookup-only: ${{ !inputs.write_new_cache }}
+        restore-keys: |
+          numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-
+
+    # Restore cache if write_new_cache is false
+    - uses: actions/cache/restore@v3
+      id: cache
+      if : ${{ inputs.write_new_cache == 'false' }}
+      with:
+        path: .numba_cache
+        key: numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ github.run_id }}
         restore-keys: |
           numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-
