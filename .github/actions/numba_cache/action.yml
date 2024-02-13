@@ -56,7 +56,7 @@ runs:
 
     # Restore cache if write_new_cache is false
     - uses: actions/cache/restore@v3
-      id: cache
+      id: restore-cache
       if : ${{ inputs.write_new_cache == 'false' }}
       with:
         path: .numba_cache
