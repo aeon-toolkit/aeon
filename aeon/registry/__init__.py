@@ -6,6 +6,12 @@ from aeon.registry._base_classes import (
     BASE_CLASS_LOOKUP,
     BASE_CLASS_REGISTER,
 )
+from aeon.registry._data_types import (
+    ALL_TIME_SERIES_TYPES,
+    COLLECTIONS_DATA_TYPES,
+    HIERARCHICAL_DATA_TYPES,
+    SERIES_DATA_TYPES,
+)
 from aeon.registry._identifier import get_identifiers
 from aeon.registry._lookup import all_estimators, all_tags
 from aeon.registry._tags import (
@@ -25,4 +31,8 @@ __all__ = [
     "BASE_CLASS_LIST",
     "BASE_CLASS_LOOKUP",
     "BASE_CLASS_IDENTIFIER_LIST",
+    "ALL_TIME_SERIES_TYPES",
+    "COLLECTIONS_DATA_TYPES",
+    "SERIES_DATA_TYPES",
+    "HIERARCHICAL_DATA_TYPES",
 ]

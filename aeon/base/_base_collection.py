@@ -54,7 +54,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : collection
-            See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
+            See aeon.registry.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
 
         Returns
@@ -104,7 +104,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-           See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
+           See aeon.registry.COLLECTIONS_DATA_TYPES for details
            on aeon supported data structures.
 
         Returns
@@ -166,7 +166,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-        must be of type aeon.utils.conversion.COLLECTIONS_DATA_TYPES.
+        must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
 
         Returns
         -------

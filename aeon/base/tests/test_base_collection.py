@@ -6,7 +6,7 @@ from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
-from aeon.utils.registry._data_types import COLLECTIONS_DATA_TYPES
+from aeon.utils.registry import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_type
 
 
