@@ -3,7 +3,7 @@ name: Periodic Tests
 on:
   schedule:
     # every day at 1:30 AM UTC
-    - cron:  "30 1 * * *"
+    - cron:  "00 2 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -49,6 +49,12 @@ jobs:
         with:
           python-version: "3.10"
 
+      - uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "test-examples"
+          runner_os: ${{ runner.os }}
+          write_new_cache: "true"
+
       - name: Install dependencies
         uses: nick-fields/retry@v3
         with:
@@ -69,6 +75,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
+      - uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "test-no-softdeps"
+          runner_os: ${{ runner.os }}
+          write_new_cache: "true"
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -95,6 +107,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
+      - uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "test-no-softdeps-full"
+          runner_os: ${{ runner.os }}
+          write_new_cache: "true"
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -124,6 +142,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      - uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "pytest-${{ runner.os }}"
+          runner_os: ${{ runner.os }}
+          write_new_cache: "true"
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
