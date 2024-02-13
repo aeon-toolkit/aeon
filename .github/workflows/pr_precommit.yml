@@ -31,14 +31,14 @@ jobs:
 
       - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
         name: Full pre-commit
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
       - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
         name: Local pre-commit
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
 
       - if: ${{ failure() && github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
-        uses: pre-commit-ci/lite-action@v1.0.1
+        uses: pre-commit-ci/lite-action@v1.0.2
