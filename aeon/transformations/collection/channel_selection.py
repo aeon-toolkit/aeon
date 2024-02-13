@@ -292,7 +292,7 @@ class ElbowClassSum(BaseCollectionTransformer):
         "skip-inverse-transform": True,
         "y_inner_type": "numpy1D",
         "requires_y": True,
-        "fit_is_empty": False
+        "fit_is_empty": False,
     }
 
     def __init__(

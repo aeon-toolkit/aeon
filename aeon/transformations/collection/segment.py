@@ -60,10 +60,7 @@ class IntervalSegmenter(BaseCollectionTransformer):
         and the second column giving end points of intervals
     """
 
-    _tags = {
-        "capability:unequal_length:removes": True,
-        "fit_is_empty": False
-    }
+    _tags = {"capability:unequal_length:removes": True, "fit_is_empty": False}
 
     def __init__(self, intervals=10):
         self.intervals = intervals
