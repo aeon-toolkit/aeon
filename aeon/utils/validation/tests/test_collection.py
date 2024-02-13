@@ -5,7 +5,7 @@ import pytest
 
 from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.testing.utils.data_gen._collection import EQUAL_LENGTH_UNIVARIATE
-from aeon.utils.conversion._convert_collection import COLLECTIONS_DATA_TYPES
+from aeon.utils.registry._data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.collection import (
     _is_pd_wide,
     _nested_univ_is_equal,

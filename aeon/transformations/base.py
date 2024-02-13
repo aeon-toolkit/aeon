@@ -787,13 +787,13 @@ class BaseTransformer(BaseEstimator):
             else:
                 raise ValueError("no series scitypes supported, bug in estimator")
 
-        def _scitype_A_higher_B(scitypeA, scitypeB):
-            """Compare two scitypes regarding complexity."""
-            if scitypeA == "Series":
+        def _type_A_higher_B(typeA, typeB):
+            """Compare two abstract types regarding complexity."""
+            if typeA == "Series":
                 return False
-            if scitypeA == "Panel" and scitypeB == "Series":
+            if typeA == "Panel" and typeB == "Series":
                 return True
-            if scitypeA == "Hierarchical" and scitypeB != "Hierarchical":
+            if typeA == "Hierarchical" and typeB != "Hierarchical":
                 return True
             return False
 
@@ -815,16 +815,11 @@ class BaseTransformer(BaseEstimator):
         )
 
         msg_invalid_input = (
-            f"must be in an aeon compatible format, "
-            f"of scitype Series, Panel or Hierarchical, "
-            f"for instance a pandas.DataFrame with aeon compatible time indices, "
-            f"or with MultiIndex and last(-1) level an aeon compatible time index. "
-            f"Allowed compatible mtype format specifications are: {ALLOWED_MTYPES} ."
-            # f"See the transformers tutorial examples/05_transformers.ipynb."
-            f"If you think the data is already in an aeon supported input format, "
-            f"run aeon.datatypes.check_raise(data, mtype) to diagnose the error, "
-            f"where mtype is the string of the type specification you want. "
-            f"Error message for checked mtypes, in format [mtype: message], as follows:"
+            f"must be in an aeon compatible format for storing series, hierarchical "
+            f"series or collections of series. For example, a "
+            f"pandas.DataFrame with aeon compatible time indices for a single series, "
+            f"or a 3D numpy shape (n_cases, n_channels, n_timepoints) for a "
+            f"collection. Allowed compatible formats are described as {ALLOWED_MTYPES}."
         )
         if not X_valid:
             for mtype, err in msg.items():
@@ -843,7 +838,7 @@ class BaseTransformer(BaseEstimator):
         if X_scitype in X_inner_scitype:
             case = "case 1: scitype supported"
             req_vec_because_rows = False
-        elif any(_scitype_A_higher_B(x, X_scitype) for x in X_inner_scitype):
+        elif any(_type_A_higher_B(x, X_scitype) for x in X_inner_scitype):
             case = "case 2: higher scitype supported"
             req_vec_because_rows = False
         else:

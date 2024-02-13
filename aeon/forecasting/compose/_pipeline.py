@@ -5,9 +5,10 @@ __all__ = ["TransformedTargetForecaster", "ForecastingPipeline", "ForecastX"]
 
 import pandas as pd
 
-from aeon.base import ALL_TIME_SERIES_TYPES, _HeterogenousMetaEstimator
+from aeon.base import _HeterogenousMetaEstimator
 from aeon.forecasting.base._base import BaseForecaster
 from aeon.forecasting.base._delegate import _DelegatedForecaster
+from aeon.registry._data_types import ALL_TIME_SERIES_TYPES
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation.series import check_series
 
