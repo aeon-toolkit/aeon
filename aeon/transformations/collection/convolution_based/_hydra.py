@@ -23,7 +23,7 @@ class HydraTransformer(BaseCollectionTransformer):
     def _transform(self, X, y=None):
         import torch
 
-        from aeon.transformations.collection.convolution_based._torch import (
+        from aeon.transformations.collection.convolution_based._hydra_torch import (
             _HydraInternal,
         )
 

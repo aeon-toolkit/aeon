@@ -1,9 +1,14 @@
 """HYDRA internals."""
 
 import numpy as np
-import torch
-import torch.nn.functional as F
-from torch import nn
+
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+_check_soft_dependencies("torch")
+
+import torch  # noqa: E402
+import torch.nn.functional as F  # noqa: E402
+from torch import nn  # noqa: E402
 
 
 class _HydraInternal(nn.Module):
