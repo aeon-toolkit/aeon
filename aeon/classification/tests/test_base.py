@@ -5,6 +5,7 @@ import numpy.random
 import pandas as pd
 import pytest
 
+from aeon.registry import COLLECTIONS_DATA_TYPES
 from aeon.testing.mock_estimators import (
     MockClassifier,
     MockClassifierFullTags,
@@ -15,7 +16,6 @@ from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
-from aeon.utils.registry._data_types import COLLECTIONS_DATA_TYPES
 
 __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
 
