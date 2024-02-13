@@ -53,6 +53,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
 
     _tags = {
         "capability:multivariate": True,
+        "fit_is_empty": False
     }
 
     def __init__(
