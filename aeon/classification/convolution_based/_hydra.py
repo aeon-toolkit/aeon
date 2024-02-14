@@ -12,7 +12,7 @@ class HydraClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "classifier_type": "convolution",
+        "algorithm_type": "convolution",
         "python_dependencies": "torch",
     }
 
