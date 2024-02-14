@@ -40,11 +40,11 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         A list or tuple of transformers will extract intervals from
         all transformations concatenate the output. Including None in the list or tuple
         will use the series as is for interval extraction.
-    use_pycatch22 : bool, optional, default=True
+    use_pycatch22 : bool, optional, default=False
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    use_pyfftw : bool, default=True
+    use_pyfftw : bool, default=False
         Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
         package to be installed.
     estimator : sklearn regressor, default=None
