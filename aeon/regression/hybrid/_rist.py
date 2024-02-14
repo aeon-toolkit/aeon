@@ -68,6 +68,18 @@ class RISTRegressor(BaseRIST, BaseRegressor):
     n_timepoints_ : int
         The length of each series in the training set.
 
+    See Also
+    --------
+    BaseRIST
+    RISTClassifier
+
+    References
+    ----------
+    .. [1] Middlehurst, M. and Bagnall, A., 2023, September. Extracting Features from
+        Random Subseries: A Hybrid Pipeline for Time Series Classification and Extrinsic
+        Regression. In International Workshop on Advanced Analytics and Learning on
+        Temporal Data (pp. 113-126). Cham: Springer Nature Switzerland.
+
     Examples
     --------
     >>> from aeon.regression.hybrid import RISTRegressor

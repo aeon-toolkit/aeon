@@ -77,6 +77,18 @@ class RISTClassifier(BaseRIST, BaseClassifier):
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
 
+    See Also
+    --------
+    BaseRIST
+    RISTRegressor
+
+    References
+    ----------
+    .. [1] Middlehurst, M. and Bagnall, A., 2023, September. Extracting Features from
+        Random Subseries: A Hybrid Pipeline for Time Series Classification and Extrinsic
+        Regression. In International Workshop on Advanced Analytics and Learning on
+        Temporal Data (pp. 113-126). Cham: Springer Nature Switzerland.
+
     Examples
     --------
     >>> from aeon.classification.hybrid import RISTClassifier
