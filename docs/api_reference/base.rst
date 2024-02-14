@@ -24,7 +24,7 @@ Base classes
     BaseSeriesEstimator
 
 Estimator base classes
----------------------
+----------------------
 
 .. currentmodule:: aeon.base.estimator
 
