@@ -81,9 +81,12 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_preds and
-        _get_train_probs.
+    save_transformed_data : bool, default="deprecated"
+        Save the data transformed in ``fit``.
+
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
+        ``transformed_data_`` will also be removed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -162,7 +165,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         max_interval_length=np.inf,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -190,6 +193,21 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        return super()._predict_proba(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        return super()._fit_predict_proba(X, y)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -226,12 +244,6 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
                 "time_limit_in_minutes": 5,
                 "contract_max_n_estimators": 2,
                 "n_intervals": 2,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "n_intervals": 2,
-                "save_transformed_data": True,
             }
         else:
             return {"n_estimators": 2, "n_intervals": 2}

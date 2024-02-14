@@ -15,8 +15,8 @@ from joblib import Parallel, delayed
 from sklearn.base import clone
 
 from aeon.datatypes import convert, convert_to
-from aeon.datatypes._utilities import get_slice
 from aeon.forecasting.base import BaseForecaster
+from aeon.utils.index_functions import get_slice
 
 
 class ConformalIntervals(BaseForecaster):

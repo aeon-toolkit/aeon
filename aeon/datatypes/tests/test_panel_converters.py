@@ -31,8 +31,8 @@ from aeon.datatypes._panel._convert import (
 from aeon.testing.utils.data_gen import (
     make_example_long_table,
     make_example_multi_index_dataframe,
-    make_nested_dataframe_data,
-    make_unequal_length_test_data,
+    make_example_nested_dataframe,
+    make_example_unequal_length,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -47,7 +47,7 @@ N_CLASSES = [2, 5]
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_are_columns_nested(n_instances, n_channels, n_timepoints):
     """Test are_columns_nested for correctness."""
-    nested, _ = make_nested_dataframe_data(n_instances, n_channels, n_timepoints)
+    nested, _ = make_example_nested_dataframe(n_instances, n_channels, n_timepoints)
     zero_df = pd.DataFrame(np.zeros_like(nested))
     nested_heterogenous1 = pd.concat([zero_df, nested], axis=1)
     nested_heterogenous2 = nested.copy()
@@ -65,7 +65,7 @@ def test_are_columns_nested(n_instances, n_channels, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_3d_numpy(n_instances, n_channels, n_timepoints):
     """Test from_nested_to_3d_numpy for correctness."""
-    nested, _ = make_nested_dataframe_data(n_instances, n_channels, n_timepoints)
+    nested, _ = make_example_nested_dataframe(n_instances, n_channels, n_timepoints)
     array = from_nested_to_3d_numpy(nested)
 
     # check types and shapes
@@ -98,7 +98,7 @@ def test_from_3d_numpy_to_nested(n_instances, n_channels, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_2d_array(n_instances, n_channels, n_timepoints):
     """Test from_nested_to_2d_array for correctness."""
-    nested, _ = make_nested_dataframe_data(n_instances, n_channels, n_timepoints)
+    nested, _ = make_example_nested_dataframe(n_instances, n_channels, n_timepoints)
 
     array = from_nested_to_2d_array(nested)
     assert array.shape == (n_instances, n_channels * n_timepoints)
@@ -178,7 +178,7 @@ def test_from_multi_index_to_nested(n_instances, n_channels, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_multi_index(n_instances, n_channels, n_timepoints):
     """Test from_nested_to_multi_index for correctness."""
-    nested, _ = make_nested_dataframe_data(n_instances, n_channels, n_timepoints)
+    nested, _ = make_example_nested_dataframe(n_instances, n_channels, n_timepoints)
     mi_df = from_nested_to_multi_index(
         nested, instance_index="case_id", time_index="reading_id"
     )
@@ -196,7 +196,7 @@ def test_from_nested_to_multi_index(n_instances, n_channels, n_timepoints):
 def test_is_nested_dataframe(n_instances, n_channels, n_timepoints):
     """Test is_nested_dataframe for correctness."""
     array = np.random.normal(size=(n_instances, n_channels, n_timepoints))
-    nested, _ = make_nested_dataframe_data(n_instances, n_channels, n_timepoints)
+    nested, _ = make_example_nested_dataframe(n_instances, n_channels, n_timepoints)
     zero_df = pd.DataFrame(np.zeros_like(nested))
     nested_heterogenous = pd.concat([zero_df, nested], axis=1)
 
@@ -242,7 +242,7 @@ def test_from_long_to_nested(n_instances, n_channels, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_long(n_instances, n_channels, n_timepoints):
     """Test from_nested_to_long for correctness."""
-    nested, _ = make_nested_dataframe_data(n_instances, n_channels, n_timepoints)
+    nested, _ = make_example_nested_dataframe(n_instances, n_channels, n_timepoints)
     X_long = from_nested_to_long(
         nested,
         instance_column_name="case_id",
@@ -399,7 +399,7 @@ def test_from_dflist_to_nplist(n_instances, n_channels, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_nplist(n_instances, n_channels, n_timepoints):
     """Test from_nested_to_nplist for correctness."""
-    nested, _ = make_nested_dataframe_data(n_instances, n_channels, n_timepoints)
+    nested, _ = make_example_nested_dataframe(n_instances, n_channels, n_timepoints)
     np_list = from_nested_to_nplist(nested)
 
     # check types and shapes
@@ -417,7 +417,7 @@ def test_from_nested_to_nplist(n_instances, n_channels, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nplist_to_nested(n_instances, n_channels, n_timepoints):
     """Test from_nplist_to_nested for correctness."""
-    np_list, _ = make_unequal_length_test_data(
+    np_list, _ = make_example_unequal_length(
         n_instances, n_channels, n_timepoints, n_timepoints
     )
     nested = from_nplist_to_nested(np_list)

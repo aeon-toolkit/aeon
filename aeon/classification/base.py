@@ -29,14 +29,15 @@ from typing import final
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.sklearn import is_sklearn_transformer
+from aeon.utils.validation._check_collection import get_n_cases
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import get_n_cases
 
 
 class BaseClassifier(BaseCollectionEstimator, ABC):
@@ -78,6 +79,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         super().__init__()
         _check_estimator_deps(self)
 
+    # TODO: remove in v0.8.0
+    @deprecated(
+        version="0.7.0",
+        reason="The BaseClassifier __rmul__ (*) functionality will be removed "
+        "in v0.8.0.",
+        category=FutureWarning,
+    )
     def __rmul__(self, other):
         """Magic * method, return concatenated ClassifierPipeline, transformers on left.
 
@@ -249,8 +257,16 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
     def fit_predict(self, X, y) -> np.ndarray:
         """Fits the classifier and predicts class labels for X.
 
-        Default behaviour is to estimate predictions using 10x cross-validation.
-        Bespoke behaviour implemented through overriding method _fit_predict.
+        fit_predict produces prediction estimates using just the train data.
+        By default, this is through 10x cross validation, although some estimators may
+        utilise specialist techniques such as out-of-bag estimates or leave-one-out
+        cross-validation.
+
+        Classifiers which override _fit_predict will have the
+        ``capability:train_estimate`` tag set to True.
+
+        Generally, this will not be the same as fitting on the whole train data
+        then making train predictions. To do this, you should call fit(X,y).predict(X)
 
         Parameters
         ----------
@@ -295,8 +311,17 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
     def fit_predict_proba(self, X, y) -> np.ndarray:
         """Fits the classifier and predicts class label probabilities for X.
 
-        Default behaviour is to estimate probabilities using 10x cross-validation.
-        Bespoke behaviour implemented through overriding method _fit_predict_proba.
+        fit_predict_proba produces probability estimates using just the train data.
+        By default, this is through 10x cross validation, although some estimators may
+        utilise specialist techniques such as out-of-bag estimates or leave-one-out
+        cross-validation.
+
+        Classifiers which override _fit_predict_proba will have the
+        ``capability:train_estimate`` tag set to True.
+
+        Generally, this will not be the same as fitting on the whole train data
+        then making train predictions. To do this, you should call
+        fit(X,y).predict_proba(X)
 
         Parameters
         ----------
@@ -491,7 +516,6 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         # reset estimator at the start of fit
         self.reset()
 
-        # All of this can move up to BaseCollection
         X = self._preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
 
@@ -530,6 +554,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         return y
 
     def _fit_predict_default(self, X, y, method):
+        # fit the classifier
+        self._fit(X, y)
+
+        # predict using cross-validation
         cv_size = 10
         _, counts = np.unique(y, return_counts=True)
         min_class = np.min(counts)
