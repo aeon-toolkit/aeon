@@ -89,7 +89,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
     >>> clf.fit(X, y)
     RISTClassifier(...)
     >>> clf.predict(X)
-    array([0, 1, 1, 0, 0, 1, 0, 1])
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     def __init__(
@@ -103,7 +103,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         n_jobs=1,
         random_state=None,
     ):
-        d = []
+        d = ["statsmodels"]
         self.use_pycatch22 = use_pycatch22
         if use_pycatch22:
             d.append("pycatch22")
@@ -129,6 +129,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "hybrid",
+        "python_dependencies": "statsmodels",
     }
 
     @classmethod

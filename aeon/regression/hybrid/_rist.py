@@ -79,8 +79,8 @@ class RISTRegressor(BaseRIST, BaseRegressor):
     >>> reg.fit(X, y)
     RISTRegressor(...)
     >>> reg.predict(X)
-    array([0.31798318, 1.41426301, 1.06414747, 0.6924721 , 0.56660146,
-           1.26538944, 0.52324808, 1.0939405 ])
+    array([0.7252543 , 1.50132442, 0.95608366, 1.64399016, 0.42385504,
+           0.60639322, 1.01919317, 1.30157483, 1.66017354, 0.2900776 ])
     """
 
     def __init__(
@@ -94,7 +94,7 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         n_jobs=1,
         random_state=None,
     ):
-        d = []
+        d = ["statsmodels"]
         self.use_pycatch22 = use_pycatch22
         if use_pycatch22:
             d.append("pycatch22")
@@ -120,6 +120,7 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "hybrid",
+        "python_dependencies": "statsmodels",
     }
 
     @classmethod
