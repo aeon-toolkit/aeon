@@ -24,9 +24,9 @@ Base classes
     BaseSeriesEstimator
 
 Estimator base classes
-------------
+---------------------
 
-.. currentmodule:: aeon.base
+.. currentmodule:: aeon.base.estimator
 
 .. autosummary::
     :toctree: auto_generated/
