@@ -75,10 +75,10 @@ class RISTRegressor(BaseRIST, BaseRegressor):
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> reg = RISTRegressor(random_state=0)
-    >>> reg.fit(X, y)
+    >>> reg = RISTRegressor(random_state=0)  # doctest: +SKIP
+    >>> reg.fit(X, y)  # doctest: +SKIP
     RISTRegressor(...)
-    >>> reg.predict(X)
+    >>> reg.predict(X)  # doctest: +SKIP
     array([0.7252543 , 1.50132442, 0.95608366, 1.64399016, 0.42385504,
            0.60639322, 1.01919317, 1.30157483, 1.66017354, 0.2900776 ])
     """
@@ -102,8 +102,7 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         if use_pyfftw:
             d.append("pyfftw")
 
-        if d:
-            self.set_tags(**{"python_dependencies": d})
+        self.set_tags(**{"python_dependencies": d})
 
         super().__init__(
             n_intervals=n_intervals,

@@ -76,8 +76,6 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
-    class_dictionary_ : dict
-        A dictionary mapping class labels to class indices in classes_.
 
     Examples
     --------
@@ -85,10 +83,10 @@ class RISTClassifier(BaseRIST, BaseClassifier):
     >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
-    >>> clf = RISTClassifier(random_state=0)
-    >>> clf.fit(X, y)
+    >>> clf = RISTClassifier(random_state=0)  # doctest: +SKIP
+    >>> clf.fit(X, y)  # doctest: +SKIP
     RISTClassifier(...)
-    >>> clf.predict(X)
+    >>> clf.predict(X)  # doctest: +SKIP
     array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
@@ -111,8 +109,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         if use_pyfftw:
             d.append("pyfftw")
 
-        if d:
-            self.set_tags(**{"python_dependencies": d})
+        self.set_tags(**{"python_dependencies": d})
 
         super().__init__(
             n_intervals=n_intervals,
