@@ -64,14 +64,3 @@ class MultiRocketHydraClassifier(BaseClassifier):
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
 
         return self.classifier.predict(Xt)
-
-    def _predict_proba(self, X) -> np.ndarray:
-        Xt_hydra = self._transform_hydra.transform(X)
-        Xt_hydra = self._scale_hydra.transform(Xt_hydra)
-
-        Xt_multirocket = self._transform_multirocket.transform(X)
-        Xt_multirocket = self._scale_multirocket.transform(Xt_multirocket)
-
-        Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
-
-        return self.classifier.predict_proba(Xt)

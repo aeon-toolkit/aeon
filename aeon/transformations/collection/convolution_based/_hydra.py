@@ -6,6 +6,7 @@ class HydraTransformer(BaseCollectionTransformer):
     """Hydra Transformer."""
 
     _tags = {
+        "capability:multivariate": True,
         "output_data_type": "Tabular",
         "algorithm_type": "convolution",
         "python_dependencies": "torch",
@@ -23,7 +24,7 @@ class HydraTransformer(BaseCollectionTransformer):
     def _transform(self, X, y=None):
         import torch
 
-        from aeon.transformations.collection.convolution_based._hydra_torch import (
+        from aeon.transformations.collection.convolution_based._torch._hydra_torch import (  # noqa: E501
             _HydraInternal,
         )
 

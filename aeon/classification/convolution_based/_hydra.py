@@ -44,9 +44,6 @@ class HydraClassifier(BaseClassifier):
     def _predict(self, X) -> np.ndarray:
         return self._clf.predict(X)
 
-    def _predict_proba(self, X) -> np.ndarray:
-        return self._clf.predict_proba(X)
-
 
 class _SparseScaler:
     """Sparse Scaler for hydra transform."""
