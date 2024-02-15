@@ -6,7 +6,61 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class HydraTransformer(BaseCollectionTransformer):
-    """Hydra Transformer."""
+    """Hydra Transformer.
+
+    The algorithm utilises convolutional kernels grouped into ``g`` groups per dilation
+    with ``k`` kernels per group. It transforms input time series using these kernels
+    and counts the kernels representing the closest match to the input at each time
+    point. This counts for each group are then concatenated and returned.
+
+    The algorithm combines aspects of both Rocket (convolutional approach)
+    and traditional dictionary methods (pattern counting), It extracts features from
+    both the base series and first-order differences of the series.
+
+    Parameters
+    ----------
+    n_kernels : int, default=8
+        Number of kernels per group.
+    n_groups : int, default=64
+        Number of groups per dilation.
+    max_num_channels : int, default=8
+        Maximum number of channels to use for each dilation.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for both `fit` and `predict`.
+        ``-1`` means using all processors.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+
+    See Also
+    --------
+    HydraClassifier
+    MultiRocketHydraClassifier
+
+    Notes
+    -----
+    Original code: https://github.com/angus924/hydra
+
+    References
+    ----------
+    .. [1] Dempster, A., Schmidt, D.F. and Webb, G.I., 2023. Hydra: Competing
+        convolutional kernels for fast and accurate time series classification.
+        Data Mining and Knowledge Discovery, pp.1-27.
+
+    Examples
+    --------
+    >>> from aeon.transformations.collection.convolution_based import HydraTransformer
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> X, _ = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              random_state=0)
+    >>> clf = HydraTransformer(random_state=0)  # doctest: +SKIP
+    >>> clf.fit(X)  # doctest: +SKIP
+    HydraTransformer(random_state=0)
+    >>> clf.transform(X)[0]  # doctest: +SKIP
+    tensor([0.6077, 1.3868, 0.2571,  ..., 1.0000, 1.0000, 2.0000])
+    """
 
     _tags = {
         "capability:multivariate": True,
@@ -17,9 +71,11 @@ class HydraTransformer(BaseCollectionTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, k=8, g=64, max_num_channels=8, n_jobs=1, random_state=None):
-        self.k = k
-        self.g = g
+    def __init__(
+        self, n_kernels=8, n_groups=64, max_num_channels=8, n_jobs=1, random_state=None
+    ):
+        self.n_kernels = n_kernels
+        self.n_groups = n_groups
         self.max_num_channels = max_num_channels
         self.n_jobs = n_jobs
         self.random_state = random_state
@@ -38,8 +94,8 @@ class HydraTransformer(BaseCollectionTransformer):
         self.hydra = _HydraInternal(
             X.shape[2],
             X.shape[1],
-            k=self.k,
-            g=self.g,
+            k=self.n_kernels,
+            g=self.n_groups,
             max_num_channels=self.max_num_channels,
         )
         return self.hydra(torch.tensor(X).float())
