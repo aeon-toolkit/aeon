@@ -1,14 +1,7 @@
-"""QUANT: A Minimalist Interval Method for Time Series Classification.
-
-Angus Dempster, Daniel F Schmidt, Geoffrey I Webb
-https://arxiv.org/abs/2308.00928
-
-Original code: https://github.com/angus924/quant
-"""
+"""QUANT: A Minimalist Interval Method for Time Series Classification."""
 
 import numpy as np
 from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.utils.multiclass import check_classification_targets
 
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
@@ -16,7 +9,64 @@ from aeon.transformations.collection.interval_based import QUANTTransformer
 
 
 class QUANTClassifier(BaseClassifier):
-    """QUANT classifier."""
+    """QUANT interval classifier.
+
+    The classifier computes quantiles over a fixed set of dyadic intervals of
+    the input series and three transformations of the input time series. For each set of
+    intervals extracted, the window is shifted by half the interval length to extract
+    more intervals.
+
+    The feature extraction is performed on the first order differences, second order
+    differences, and a Fourier transform of the input series along with the original
+    series.
+
+    The transform output is then used to train an extra trees classifier by default.
+
+    Parameters
+    ----------
+    interval_depth : int, default=6
+        The depth to stop extracting intervals at. Starting with the full series, the
+        number of intervals extracted is 2 ** depth (starting at 0) for each level.
+        The features from all intervals extracted at each level are concatenated
+        together for the transform output.
+    quantile_divisor : int, default=4
+        The divisor to find the number of quantiles to extract from intervals. The
+        number of quantiles per interval is
+        ``1 + (interval_length - 1) // quantile_divisor``.
+    estimator : sklearn estimator, default=None
+        The estimator to use for classification. If None, an ExtraTreesClassifier
+        with 200 estimators is used.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+
+    See Also
+    --------
+    QUANTTransformer
+
+    Notes
+    -----
+    Original code: https://github.com/angus924/quant
+
+    References
+    ----------
+    .. [1] Dempster, A., Schmidt, D.F. and Webb, G.I., 2023. QUANT: A Minimalist
+        Interval Method for Time Series Classification. arXiv preprint arXiv:2308.00928.
+
+    Examples
+    --------
+    >>> from aeon.classification.interval_based import QUANTClassifier
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              random_state=0)
+    >>> clf = QUANTClassifier()
+    >>> clf.fit(X, y)
+    QUANTClassifier
+    >>> clf.predict(X)
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
+    """
 
     _tags = {
         "capability:multivariate": True,
@@ -24,9 +74,11 @@ class QUANTClassifier(BaseClassifier):
         "python_dependencies": "torch",
     }
 
-    def __init__(self, depth=6, div=4, estimator=None, random_state=None):
-        self.depth = depth
-        self.div = div
+    def __init__(
+        self, interval_depth=6, quantile_divisor=4, estimator=None, random_state=None
+    ):
+        self.interval_depth = interval_depth
+        self.quantile_divisor = quantile_divisor
         self.estimator = estimator
         self.random_state = random_state
 
@@ -47,21 +99,9 @@ class QUANTClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        check_classification_targets(y)
-
-        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
-        self.classes_ = np.unique(y)
-        self.n_classes_ = self.classes_.shape[0]
-        self.class_dictionary_ = {}
-        for index, class_val in enumerate(self.classes_):
-            self.class_dictionary_[class_val] = index
-
-        if self.n_classes_ == 1:
-            return self
-
         self._transformer = QUANTTransformer(
-            depth=self.depth,
-            div=self.div,
+            interval_depth=self.interval_depth,
+            quantile_divisor=self.quantile_divisor,
         )
 
         self._estimator = _clone_estimator(

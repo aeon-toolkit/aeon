@@ -1,10 +1,4 @@
-"""QUANT: A Minimalist Interval Method for Time Series Classification.
-
-Angus Dempster, Daniel F Schmidt, Geoffrey I Webb
-https://arxiv.org/abs/2308.00928
-
-Original code: https://github.com/angus924/quant
-"""
+"""QUANT, a minimalistic interval transform using quantile features."""
 
 import numpy as np
 
@@ -12,7 +6,59 @@ from aeon.transformations.collection import BaseCollectionTransformer
 
 
 class QUANTTransformer(BaseCollectionTransformer):
-    """QUANT transform."""
+    """QUANT interval transform.
+
+    The transform involves computing quantiles over a fixed set of dyadic intervals of
+    the input series and three transformations of the input time series. For each set of
+    intervals extracted, the window is shifted by half the interval length to extract
+    more intervals.
+
+    The feature extraction is performed on the first order differences, second order
+    differences, and a Fourier transform of the input series along with the original
+    series.
+
+    Parameters
+    ----------
+    interval_depth : int, default=6
+        The depth to stop extracting intervals at. Starting with the full series, the
+        number of intervals extracted is 2 ** depth (starting at 0) for each level.
+        The features from all intervals extracted at each level are concatenated
+        together for the transform output.
+    quantile_divisor : int, default=4
+        The divisor to find the number of quantiles to extract from intervals. The
+        number of quantiles per interval is
+        ``1 + (interval_length - 1) // quantile_divisor``.
+
+    Attributes
+    ----------
+    intervals_ : list of np.ndarray
+        The intervals extracted for each representation function.
+
+    See Also
+    --------
+    QUANTClassifier
+
+    Notes
+    -----
+    Original code: https://github.com/angus924/quant
+
+    References
+    ----------
+    .. [1] Dempster, A., Schmidt, D.F. and Webb, G.I., 2023. QUANT: A Minimalist
+        Interval Method for Time Series Classification. arXiv preprint arXiv:2308.00928.
+
+    Examples
+    --------
+    >>> from aeon.transformations.collection.interval_based import QUANTTransformer
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> X, _ = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              random_state=0)
+    >>> q = QUANTTransformer(interval_depth=2)
+    >>> q.fit(X)
+    QUANTTransformer(interval_depth=2)
+    >>> q.transform(X)
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
+    """
 
     _tags = {
         "capability:multivariate": True,
@@ -20,9 +66,9 @@ class QUANTTransformer(BaseCollectionTransformer):
         "python_dependencies": "torch",
     }
 
-    def __init__(self, depth=6, div=4):
-        self.depth = depth
-        self.div = div
+    def __init__(self, interval_depth=6, quantile_divisor=4):
+        self.interval_depth = interval_depth
+        self.quantile_divisor = quantile_divisor
 
         super().__init__()
 
@@ -32,48 +78,42 @@ class QUANTTransformer(BaseCollectionTransformer):
 
         X = torch.tensor(X).float()
 
-        if self.div < 1 or self.depth < 1:
+        if self.quantile_divisor < 1 or self.interval_depth < 1:
             raise ValueError("depth and div must be >= 1")
 
-        self.representation_functions = (
+        self._representation_functions = (
             lambda X: X,
             lambda X: F.avg_pool1d(F.pad(X.diff(), (2, 2), "replicate"), 5, 1),
             lambda X: X.diff(n=2),
             lambda X: torch.fft.rfft(X).abs(),
         )
 
-        self.intervals = []
-        for function in self.representation_functions:
+        self.intervals_ = []
+        for function in self._representation_functions:
             Z = function(X)
-            self.intervals.append(
-                self._make_intervals(
-                    input_length=Z.shape[-1],
-                    depth=self.depth,
-                )
-            )
+            self.intervals_.append(self._make_intervals(input_length=Z.shape[-1]))
 
         return self
 
-    def _transform(self, X):
+    def _transform(self, X, y=None):
         import torch
 
         X = torch.tensor(X).float()
 
         Xt = []
-        for index, function in enumerate(self.representation_functions):
+        for index, function in enumerate(self._representation_functions):
             Z = function(X)
             features = []
-            for a, b in self.intervals[index]:
-                features.append(self._f_quantile(Z[..., a:b], div=self.div).squeeze(1))
+            for a, b in self.intervals_[index]:
+                features.append(self._find_quantiles(Z[..., a:b]).squeeze(1))
             Xt.append(torch.cat(features, -1))
 
         return torch.cat(Xt, -1)
 
-    @staticmethod
-    def _make_intervals(input_length, depth):
+    def _make_intervals(self, input_length):
         import torch
 
-        exponent = min(depth, int(np.log2(input_length)) + 1)
+        exponent = min(self.interval_depth, int(np.log2(input_length)) + 1)
         intervals = []
         for n in 2 ** torch.arange(exponent):
             indices = torch.linspace(0, input_length, n + 1).long()
@@ -84,8 +124,7 @@ class QUANTTransformer(BaseCollectionTransformer):
                 intervals.append(intervals_n[:-1] + shift)
         return torch.cat(intervals)
 
-    @staticmethod
-    def _f_quantile(X, div=4):
+    def _find_quantiles(self, X):
         import torch
 
         n = X.shape[-1]
@@ -93,7 +132,7 @@ class QUANTTransformer(BaseCollectionTransformer):
         if n == 1:
             return X
         else:
-            num_quantiles = 1 + (n - 1) // div
+            num_quantiles = 1 + (n - 1) // self.quantile_divisor
             if num_quantiles == 1:
                 return X.quantile(torch.tensor([0.5]), dim=-1).permute(1, 2, 0)
             else:
