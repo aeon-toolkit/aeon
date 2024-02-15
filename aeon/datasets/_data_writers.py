@@ -19,7 +19,7 @@ def write_to_tsfile(
 
     Parameters
     ----------
-    X : np.ndarray (n_cases, n_channels, series_length) or list of np.ndarray[
+    X : np.ndarray (n_cases, n_channels, n_timepoints) or list of np.ndarray[
     n_cases] or pd.DataFrame with (n_cases,n_channels), each cell a pd.Series
         Collection of time series: univariate, multivariate, equal or unequal length.
     path : string.
@@ -127,15 +127,15 @@ def _write_data_to_tsfile(
             if length != len(X[i][0]):
                 equal_length = False
                 break
-    series_length = -1
+    n_timepoints = -1
     if equal_length:
-        series_length = len(X[0][0])
+        n_timepoints = len(X[0][0])
     file = _write_header(
         path,
         problem_name,
         univariate=univariate,
         equal_length=equal_length,
-        series_length=series_length,
+        n_timepoints=n_timepoints,
         class_labels=class_labels,
         comment=comment,
         regression=regression,
@@ -171,13 +171,13 @@ def _write_dataframe_to_tsfile(
     univariate = X.shape[1] == 1
     # dataframes are always equal length
     equal_length = True
-    series_length = X.shape[0]
+    n_timepoints = X.shape[0]
     file = _write_header(
         path,
         problem_name,
         univariate=univariate,
         equal_length=equal_length,
-        series_length=series_length,
+        n_timepoints=n_timepoints,
         class_labels=class_labels,
         comment=comment,
         regression=regression,
@@ -199,7 +199,7 @@ def _write_header(
     problem_name,
     univariate=True,
     equal_length=False,
-    series_length=-1,
+    n_timepoints=-1,
     comment=None,
     regression=False,
     class_labels=None,
@@ -231,8 +231,8 @@ def _write_header(
     file.write("@timestamps false\n")
     file.write(f"@univariate {str(univariate).lower()}\n")
     file.write(f"@equalLength {str(equal_length).lower()}\n")
-    if series_length > 0 and equal_length:
-        file.write(f"@seriesLength {series_length}\n")
+    if n_timepoints > 0 and equal_length:
+        file.write(f"@seriesLength {n_timepoints}\n")
     # write class labels line
     if class_labels is not None:
         space_separated_class_label = " ".join(str(label) for label in class_labels)
