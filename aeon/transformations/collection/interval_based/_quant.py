@@ -83,7 +83,7 @@ class QUANTTransformer(BaseCollectionTransformer):
         if self.quantile_divisor < 1 or self.interval_depth < 1:
             raise ValueError("depth and div must be >= 1")
 
-        self._representation_functions = (
+        representation_functions = (
             lambda X: X,
             lambda X: F.avg_pool1d(F.pad(X.diff(), (2, 2), "replicate"), 5, 1),
             lambda X: X.diff(n=2),
@@ -91,7 +91,7 @@ class QUANTTransformer(BaseCollectionTransformer):
         )
 
         self.intervals_ = []
-        for function in self._representation_functions:
+        for function in representation_functions:
             Z = function(X)
             self.intervals_.append(self._make_intervals(input_length=Z.shape[-1]))
 
@@ -99,18 +99,31 @@ class QUANTTransformer(BaseCollectionTransformer):
 
     def _transform(self, X, y=None):
         import torch
+        import torch.nn.functional as F
 
         X = torch.tensor(X).float()
 
+        representation_functions = (
+            lambda X: X,
+            lambda X: F.avg_pool1d(F.pad(X.diff(), (2, 2), "replicate"), 5, 1),
+            lambda X: X.diff(n=2),
+            lambda X: torch.fft.rfft(X).abs(),
+        )
+
         Xt = []
-        for index, function in enumerate(self._representation_functions):
+        for index, function in enumerate(representation_functions):
             Z = function(X)
             features = []
             for a, b in self.intervals_[index]:
                 features.append(self._find_quantiles(Z[..., a:b]).squeeze(1))
             Xt.append(torch.cat(features, -1))
 
-        return torch.cat(Xt, -1)
+        Xt = torch.cat(Xt, -1)
+
+        if len(Xt.shape) == 2:
+            return Xt.numpy()
+        else:
+            return np.reshape(Xt.numpy(), (Xt.shape[0], Xt.shape[1] * Xt.shape[2]))
 
     def _make_intervals(self, input_length):
         import torch
