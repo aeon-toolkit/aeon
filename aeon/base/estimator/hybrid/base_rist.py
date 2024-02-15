@@ -130,11 +130,6 @@ class BaseRIST(metaclass=ABCMeta):
                 )
             elif is_regressor(self):
                 self._estimator = ExtraTreesRegressor(n_estimators=200)
-            else:
-                raise ValueError(
-                    f"{self} must be a scikit-learn compatible classifier or "
-                    "regressor."
-                )
         # base_estimator must be an sklearn estimator
         elif not isinstance(self.estimator, BaseEstimator):
             raise ValueError(
@@ -145,8 +140,8 @@ class BaseRIST(metaclass=ABCMeta):
         self._estimator = _clone_estimator(self._estimator, rng)
 
         n_jobs = check_n_jobs(self.n_jobs)
-        m = getattr(self._estimator, "n_jobs", None)
-        if m is not None:
+        m = getattr(self._estimator, "n_jobs", "missing")
+        if m != "missing":
             self._estimator.n_jobs = n_jobs
 
         if self.series_transformers == "default":
@@ -176,8 +171,8 @@ class BaseRIST(metaclass=ABCMeta):
         self._transformers = []
         for st in self._series_transformers:
             if st is not None:
-                m = getattr(st, "n_jobs", None)
-                if m is not None:
+                m = getattr(st, "n_jobs", "missing")
+                if m != "missing":
                     st.n_jobs = n_jobs
 
                 s = st.fit_transform(X, y)
@@ -249,7 +244,7 @@ class BaseRIST(metaclass=ABCMeta):
             dists = np.zeros((X.shape[0], self.n_classes_))
             preds = self._estimator.predict(self._transform_data(X))
             for i in range(0, X.shape[0]):
-                dists[i, self.class_dictionary_[preds[i]]] = 1
+                dists[i, self._class_dictionary[preds[i]]] = 1
             return dists
 
     def _transform_data(self, X):
