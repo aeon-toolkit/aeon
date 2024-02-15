@@ -26,7 +26,7 @@ class QUANTClassifier(BaseClassifier):
     ----------
     interval_depth : int, default=6
         The depth to stop extracting intervals at. Starting with the full series, the
-        number of intervals extracted is 2 ** depth (starting at 0) for each level.
+        number of intervals extracted is ``2 ** depth`` (starting at 0) for each level.
         The features from all intervals extracted at each level are concatenated
         together for the transform output.
     quantile_divisor : int, default=4
