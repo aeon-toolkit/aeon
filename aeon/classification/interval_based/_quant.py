@@ -61,10 +61,10 @@ class QUANTClassifier(BaseClassifier):
     >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              random_state=0)
-    >>> clf = QUANTClassifier()
-    >>> clf.fit(X, y)
-    QUANTClassifier
-    >>> clf.predict(X)
+    >>> clf = QUANTClassifier()  # doctest: +SKIP
+    >>> clf.fit(X, y)  # doctest: +SKIP
+    QUANTClassifier()
+    >>> clf.predict(X)  # doctest: +SKIP
     array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 

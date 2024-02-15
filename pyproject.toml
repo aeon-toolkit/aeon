@@ -80,6 +80,7 @@ all_extras = [
     "tbats>=1.1.0",
     "tensorflow; python_version < '3.12'",
     "tensorflow-addons; python_version < '3.12'",
+    "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",

@@ -53,11 +53,13 @@ class QUANTTransformer(BaseCollectionTransformer):
     >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, _ = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              random_state=0)
-    >>> q = QUANTTransformer(interval_depth=2)
-    >>> q.fit(X)
-    QUANTTransformer(interval_depth=2)
-    >>> q.transform(X)
-    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
+    >>> q = QUANTTransformer(interval_depth=2, quantile_divisor=8)  # doctest: +SKIP
+    >>> q.fit(X)  # doctest: +SKIP
+    QUANTTransformer(interval_depth=2, quantile_divisor=8)
+    >>> q.transform(X)[0]  # doctest: +SKIP
+    tensor([ 0.0000,  0.7724,  1.1476,  1.3206,  1.1908, -0.3842,  0.6883,  0.2584,
+             0.0102,  0.0583, -1.6552,  2.1726, -0.1267, -0.7646, -0.7646,  1.6744,
+             1.7010,  1.2805,  1.6744])
     """
 
     _tags = {
