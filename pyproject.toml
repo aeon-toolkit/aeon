@@ -101,7 +101,7 @@ dev = [
     "pytest-cov",
     "pytest-randomly",
     "pytest-timeout",
-    "pytest-xdist[psutil]",
+    "pytest-xdist",
     "pytest-rerunfailures",
     "wheel",
     "boto3",  # mlflow related
