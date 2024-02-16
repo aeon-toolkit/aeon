@@ -1,3 +1,5 @@
+"""Test the plotting functions for forecasting."""
+
 import pytest
 
 from aeon.forecasting.model_selection import SlidingWindowSplitter
