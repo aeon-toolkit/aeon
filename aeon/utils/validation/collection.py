@@ -5,12 +5,37 @@ import pandas as pd
 
 
 def is_collection(X):
-    """Check X is a valid collection data structure."""
+    """Check X is a valid collection data structure.
+
+    Parameters
+    ----------
+    X: any
+
+    Returns
+    -------
+    bool
+        True if X is a valid collection data structure, False otherwise.
+    """
     try:
         get_type(X)
         return True
     except TypeError:
         return False
+
+
+def is_tabular(X):
+    """Check if X is a table.
+
+    legacy function for compatible with the type "Table".
+
+    """
+    if isinstance(X, np.ndarray):
+        if X.ndim > 2:
+            return False
+    if isinstance(X, pd.DataFrame) or isinstance(X, pd.Series):
+        if "object" == X.dtypes:
+            return False
+    return False
 
 
 def is_nested_univ_dataframe(X):
