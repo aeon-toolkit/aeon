@@ -10,16 +10,15 @@ import pytest
 from pandas.testing import assert_series_equal
 
 from aeon.datatypes import check_is_mtype, convert
-from aeon.datatypes._panel._convert import from_nested_to_multi_index
-from aeon.datatypes._utilities import get_cutoff, get_window
 from aeon.forecasting.arima import ARIMA
 from aeon.forecasting.base._base import _format_moving_cutoff_predictions
 from aeon.testing.utils.data_gen import (
     _make_hierarchical,
-    make_3d_test_data,
-    make_nested_dataframe_data,
+    make_example_3d_numpy,
     make_series,
 )
+from aeon.utils.conversion import convert_collection
+from aeon.utils.index_functions import get_cutoff, get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 COLLECTION_TYPES = ["pd-multiindex", "nested_univ", "numpy3D"]
@@ -27,13 +26,8 @@ HIER_TYPES = ["pd_multiindex_hier"]
 
 
 def _get_y(input_type, n_instances):
-    if input_type == "numpy3D":
-        y, _ = make_3d_test_data(n_cases=n_instances, random_state=42)
-    elif input_type == "nested_univ":
-        y, _ = make_nested_dataframe_data(n_cases=n_instances, random_state=42)
-    elif input_type == "pd-multiindex":
-        y, _ = make_nested_dataframe_data(n_cases=n_instances, random_state=42)
-        y = from_nested_to_multi_index(y)
+    y, _ = make_example_3d_numpy(n_cases=n_instances, random_state=42)
+    y = convert_collection(y, input_type)
     return y
 
 

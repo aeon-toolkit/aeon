@@ -7,7 +7,6 @@ import pandas as pd
 import pytest
 
 from aeon.datatypes import check_is_mtype
-from aeon.datatypes._utilities import get_cutoff
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.forecasting.model_selection import (
@@ -28,12 +27,12 @@ from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.testing.utils.data_gen import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,
-    _get_expected_index_for_update_predict,
     _get_n_columns,
     _make_fh,
     make_forecasting_problem,
     make_series,
 )
+from aeon.utils.index_functions import get_cutoff
 from aeon.utils.validation.forecasting import check_fh
 
 # get all forecasters
@@ -94,13 +93,13 @@ class ForecasterFixtureGenerator(BaseFixtureGenerator):
             ranges over 1 and 2 for forecasters which are both uni/multivariate
         """
         if "estimator_class" in kwargs.keys():
-            scitype_tag = kwargs["estimator_class"].get_class_tag("y_input_type")
+            y_input_type = kwargs["estimator_class"].get_class_tag("y_input_type")
         elif "estimator_instance" in kwargs.keys():
-            scitype_tag = kwargs["estimator_instance"].get_tag("y_input_type")
+            y_input_type = kwargs["estimator_instance"].get_tag("y_input_type")
         else:
             return []
 
-        n_columns_list = _get_n_columns(scitype_tag)
+        n_columns_list = _get_n_columns(y_input_type)
         if len(n_columns_list) == 1:
             n_columns_names = ["" for x in n_columns_list]
         else:
@@ -609,8 +608,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
             and does not have expected row and column indices
         """
         from aeon.datatypes import check_is_mtype
-        from aeon.datatypes._utilities import get_window
         from aeon.testing.utils.data_gen import _make_hierarchical
+        from aeon.utils.index_functions import get_window
 
         y_train = _make_hierarchical(
             hierarchy_levels=(2, 4),
@@ -651,3 +650,39 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         else:
             # if levels are added, all expected levels and times should be contained
             assert set(X_test.index).issubset(y_pred.index)
+
+
+def _get_expected_index_for_update_predict(y, fh, step_length, initial_window):
+    """Compute expected time index from update_predict()."""
+    # time points at which to make predictions
+    fh = check_fh(fh)
+    index = y.index
+
+    # only works with date-time index
+    assert isinstance(index, pd.DatetimeIndex)
+    assert hasattr(index, "freq") and index.freq is not None
+    assert fh.is_relative
+
+    freq = index.freq
+    start = index[0] + (-1 + initial_window) * freq  # initial cutoff
+    end = index[-1]  # last point to predict
+
+    # generate date-time range
+    cutoffs = pd.date_range(start, end)
+
+    # only predict at time points if all steps in fh can be predicted before
+    # the end of y_test
+    cutoffs = cutoffs[cutoffs + max(fh) * freq <= max(index)]
+
+    # apply step length and recast to ignore inferred freq value
+    cutoffs = cutoffs[::step_length]
+    cutoffs = pd.DatetimeIndex(cutoffs, freq=None)
+
+    # generate all predicted time points, including duplicates from overlapping fh steps
+    pred_index = pd.DatetimeIndex([])
+    for step in fh:
+        values = cutoffs + step * freq
+        pred_index = pred_index.append(values)
+
+    # return unique and sorted index
+    return pred_index.unique().sort_values()

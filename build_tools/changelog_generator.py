@@ -218,7 +218,9 @@ if __name__ == "__main__":
         ["Regression", ["regression"]],
         ["Segmentation", ["segmentation"]],
         ["Similarity Search", ["similarity search"]],
+        ["Unit Testing", ["testing"]],
         ["Transformations", ["transformations"]],
+        ["Visualisations", ["visualisation"]],
     ]
     categories = [
         ["Bug Fixes", ["bug"]],

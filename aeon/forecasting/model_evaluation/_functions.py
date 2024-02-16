@@ -149,15 +149,16 @@ def _evaluate_window(
         # predict
         start_pred = time.perf_counter()
 
-        if hasattr(scoring, "metric_args"):
-            metric_args = scoring.metric_args
+        scitype = None
+        metric_args = {}
+        from aeon.performance_metrics.forecasting.probabilistic import (
+            _BaseProbaForecastingErrorMetric,
+        )
 
-        try:
+        if isinstance(scoring, _BaseProbaForecastingErrorMetric):
+            if hasattr(scoring, "metric_args"):
+                metric_args = scoring.metric_args
             scitype = scoring.get_tag("y_input_type_pred")
-        except ValueError:
-            # If no scitype exists then metric is not proba and no args needed
-            scitype = None
-            metric_args = {}
 
         y_pred = eval(pred_type[scitype])(fh, X_test, **metric_args)
         pred_time = time.perf_counter() - start_pred
@@ -236,10 +237,10 @@ def evaluate(
         "refit" = forecaster is refitted to each training window
         "update" = forecaster is updated with training window data, in sequence provided
         "no-update_params" = fit to first training window, re-used without fit or update
-    scoring : subclass of aeon.performance_metrics.BaseMetric or list of same,
-        default=None. Used to get a score function that takes y_pred and y_test
-        arguments and accept y_train as keyword argument.
-        If None, then uses scoring = MeanAbsolutePercentageError().
+    scoring : Callable or None, default=None
+        Function in aeon.performance_metrics. Used to get a score function that takes
+        y_pred and y_test arguments and accept y_train as keyword argument.
+        If None, then uses scoring = mean_absolute_percentage_error.
     return_data : bool, default=False
         Returns three additional columns in the DataFrame, by default False.
         The cells of the columns contain each a pd.Series for y_train,
@@ -271,8 +272,8 @@ def evaluate(
         Row index is splitter index of train/test fold in `cv`.
         Entries in the i-th row are for the i-th train/test split in `cv`.
         Columns are as follows:
-        - test_{scoring.name}: (float) Model performance score. If `scoring` is a list,
-            then there is a column withname `test_{scoring.name}` for each scorer.
+        - test_{scoring.__name__}: (float) Model performance score. If `scoring` is a
+        list, then there is a column withname `test_{scoring.__name__}` for each scorer.
         - fit_time: (float) Time in sec for `fit` or `update` on train fold.
         - pred_time: (float) Time in sec to `predict` from fitted estimator.
         - len_train_window: (int) Length of train window.
@@ -287,7 +288,7 @@ def evaluate(
     Examples
     --------
         The type of evaluation that is done by `evaluate` depends on metrics in
-        param `scoring`. Default is `MeanAbsolutePercentageError`.
+        param `scoring`. Default is `mean_absolute_percentage_error`.
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.model_evaluation import evaluate
     >>> from aeon.forecasting.model_selection import ExpandingWindowSplitter
@@ -303,27 +304,18 @@ def evaluate(
         i.e., point forecast metrics, interval metrics, quantile foreast metrics.
         https://www.aeon-toolkit.org/en/stable/api_reference/performance_metrics.html?highlight=metrics
         To evaluate estimators using a specific metric, provide them to the scoring arg.
-    >>> from aeon.performance_metrics.forecasting import MeanAbsoluteError
-    >>> loss = MeanAbsoluteError()
+    >>> from aeon.performance_metrics.forecasting import mean_absolute_error as loss
     >>> results = evaluate(forecaster=forecaster, y=y, cv=cv, scoring=loss)
 
         Optionally, users can provide a list of metrics to `scoring` argument.
-    >>> from aeon.performance_metrics.forecasting import MeanSquaredError
+    >>> from aeon.performance_metrics.forecasting import mean_absolute_error as loss
+    >>> from aeon.performance_metrics.forecasting import mean_squared_error as loss2
     >>> results = evaluate(
     ...     forecaster=forecaster,
     ...     y=y,
     ...     cv=cv,
-    ...     scoring=[MeanSquaredError(square_root=True), MeanAbsoluteError()],
+    ...     scoring=[loss, loss2],
     ... )
-
-        An example of an interval metric is the `PinballLoss`.
-        It can be used with all probabilistic forecasters.
-    >>> from aeon.forecasting.naive import NaiveVariance
-    >>> from aeon.performance_metrics.forecasting.probabilistic import PinballLoss
-    >>> loss = PinballLoss()
-    >>> forecaster = NaiveForecaster(strategy="drift")
-    >>> results = evaluate(forecaster=NaiveVariance(forecaster),
-    ... y=y, cv=cv, scoring=loss)
     """
     if backend == "dask" and not _check_soft_dependencies("dask", severity="none"):
         raise RuntimeError(
@@ -366,11 +358,10 @@ def evaluate(
                 f"Expected X dtype {ALLOWED_SCITYPES!r}. Got {type(X)} instead."
             )
         X = convert_to(X, to_type=PANDAS_MTYPES)
-
     score_name = (
-        f"test_{scoring.name}"
+        f"test_{scoring.__name__}"
         if not isinstance(scoring, List)
-        else f"test_{scoring[0].name}"
+        else f"test_{scoring[0].__name__}"
     )
     cutoff_dtype = str(y.index.dtype)
     _evaluate_window_kwargs = {
@@ -464,9 +455,9 @@ def evaluate(
 
     if isinstance(scoring, List):
         for s in scoring[1:]:
-            results[f"test_{s.name}"] = np.nan
+            results[f"test_{s.__name__}"] = np.nan
             for row in range(len(results)):
-                results[f"test_{s.name}"].iloc[row] = s(
+                results[f"test_{s.__name__}"].iloc[row] = s(
                     results["y_test"].iloc[row],
                     results["y_pred"].iloc[row],
                     y_train=results["y_train"].iloc[row],

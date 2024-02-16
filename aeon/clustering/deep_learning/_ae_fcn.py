@@ -12,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEFCNNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class AEFCNClusterer(BaseDeepClusterer):
@@ -104,12 +103,6 @@ class AEFCNClusterer(BaseDeepClusterer):
     AEFCNClusterer(...)
     """
 
-    _tags = {
-        "python_dependencies": "tensorflow",
-        "capability:multivariate": True,
-        "algorithm_type": "deeplearning",
-    }
-
     def __init__(
         self,
         n_clusters,
@@ -139,19 +132,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         last_file_name="last_file",
         callbacks=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__(
-            n_clusters=n_clusters,
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
-            batch_size=batch_size,
-            last_file_name=last_file_name,
-        )
-        self.n_clusters = n_clusters
-        self.clustering_algorithm = clustering_algorithm
-        self.clustering_params = clustering_params
-        self.batch_size = batch_size
-        self.last_file_name = last_file_name
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
         self.n_layers = n_layers
@@ -173,6 +153,14 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
+
+        super().__init__(
+            n_clusters=n_clusters,
+            clustering_algorithm=clustering_algorithm,
+            clustering_params=clustering_params,
+            batch_size=batch_size,
+            last_file_name=last_file_name,
+        )
 
         self._network = AEFCNNetwork(
             latent_space_dim=self.latent_space_dim,
@@ -336,6 +324,8 @@ class AEFCNClusterer(BaseDeepClusterer):
             "batch_size": 4,
             "use_bias": False,
             "n_layers": 1,
+            "n_filters": 5,
+            "kernel_size": 3,
             "padding": "same",
             "strides": 1,
             "clustering_params": {

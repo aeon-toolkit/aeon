@@ -7,12 +7,14 @@ RotationForestClassifier.
 __author__ = ["MatthewMiddlehurst"]
 __all__ = ["FreshPRINCEClassifier"]
 
+import warnings
+
 import numpy as np
+from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
 from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
-from aeon.utils.validation.panel import check_X_y
 
 
 class FreshPRINCEClassifier(BaseClassifier):
@@ -30,8 +32,12 @@ class FreshPRINCEClassifier(BaseClassifier):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestClassifier ensemble.
-    save_transformed_data: bool, default=False
-        Whether to save the transformed data.
+    save_transformed_data : bool, default="deprecated"
+        Save the data transformed in ``fit``.
+
+        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
+        ``fit_predict_proba`` to generate train estimates instead.
+        ``transformed_data_`` will also be removed.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     n_jobs : int, default=1
@@ -75,7 +81,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         self,
         default_fc_parameters="comprehensive",
         n_estimators=200,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -84,7 +90,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         self.default_fc_parameters = default_fc_parameters
         self.n_estimators = n_estimators
 
-        self.save_transformed_data = save_transformed_data
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.chunksize = chunksize
@@ -97,6 +102,16 @@ class FreshPRINCEClassifier(BaseClassifier):
 
         self._rotf = None
         self._tsfresh = None
+
+        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
+        self.transformed_data_ = []
+        self.save_transformed_data = save_transformed_data
+        if save_transformed_data != "deprecated":
+            warnings.warn(
+                "the save_transformed_data parameter is deprecated and will be"
+                "removed in v0.8.0. transformed_data_ will also be removed.",
+                stacklevel=2,
+            )
 
         super().__init__()
 
@@ -120,28 +135,14 @@ class FreshPRINCEClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
-
-        self._rotf = RotationForestClassifier(
-            n_estimators=self.n_estimators,
-            save_transformed_data=self.save_transformed_data,
-            n_jobs=self._n_jobs,
-            random_state=self.random_state,
+        b = (
+            False
+            if isinstance(self.save_transformed_data, str)
+            else self.save_transformed_data
         )
-        self._tsfresh = TSFreshFeatureExtractor(
-            default_fc_parameters=self.default_fc_parameters,
-            n_jobs=self._n_jobs,
-            chunksize=self.chunksize,
-            show_warnings=self.verbose > 1,
-            disable_progressbar=self.verbose < 1,
-        )
-
-        X_t = self._tsfresh.fit_transform(X, y)
-        self._rotf.fit(X_t, y)
-
-        if self.save_transformed_data:
-            self.transformed_data_ = X_t
-
+        self.transformed_data_ = self._fit_fresh_prince(X, y)
+        if not b:
+            self.transformed_data_ = []
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -177,27 +178,40 @@ class FreshPRINCEClassifier(BaseClassifier):
         """
         return self._rotf.predict_proba(self._tsfresh.transform(X))
 
-    def _get_train_probs(self, X, y) -> np.ndarray:
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True)
+    def _fit_predict(self, X, y) -> np.ndarray:
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._fit_predict_proba(X, y)
+            ]
+        )
 
-        n_instances, n_dims, series_length = X.shape
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        Xt = self._fit_fresh_prince(X, y)
+        return self._rotf._get_train_probs(Xt, y)
 
-        if (
-            n_instances != self.n_instances_
-            or n_dims != self.n_dims_
-            or series_length != self.series_length_
-        ):
-            raise ValueError(
-                "n_instances, n_dims, series_length mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
+    def _fit_fresh_prince(self, X, y):
+        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
 
-        if not self.save_transformed_data:
-            raise ValueError("Currently only works with saved transform data from fit.")
+        self._rotf = RotationForestClassifier(
+            n_estimators=self.n_estimators,
+            save_transformed_data=self.save_transformed_data,
+            n_jobs=self._n_jobs,
+            random_state=self.random_state,
+        )
+        self._tsfresh = TSFreshFeatureExtractor(
+            default_fc_parameters=self.default_fc_parameters,
+            n_jobs=self._n_jobs,
+            chunksize=self.chunksize,
+            show_warnings=self.verbose > 1,
+            disable_progressbar=self.verbose < 1,
+        )
 
-        return self._rotf._get_train_probs(self.transformed_data_, y)
+        X_t = self._tsfresh.fit_transform(X, y)
+        self._rotf.fit(X_t, y)
+
+        return X_t
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -228,12 +242,6 @@ class FreshPRINCEClassifier(BaseClassifier):
             return {
                 "n_estimators": 10,
                 "default_fc_parameters": "minimal",
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "default_fc_parameters": "minimal",
-                "save_transformed_data": True,
             }
         else:
             return {

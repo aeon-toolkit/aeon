@@ -7,7 +7,7 @@ import time
 import pytest
 
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.testing.utils.data_gen import make_2d_test_data
+from aeon.testing.utils.data_gen import make_example_2d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __author__ = ["achieveordie", "hadifawaz1999"]
@@ -62,7 +62,7 @@ def test_dummy_deep_regressor():
 
     # generate random data
 
-    X, y = make_2d_test_data()
+    X, y = make_example_2d_numpy()
 
     # test fit function on random data
     dummy_deep_rg.fit(X=X, y=y)

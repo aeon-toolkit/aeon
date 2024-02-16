@@ -56,9 +56,9 @@ from aeon.datatypes import (
     check_is_scitype,
     convert_to,
     mtype_to_scitype,
-    update_data,
 )
 from aeon.datatypes._series_as_panel import convert_to_scitype
+from aeon.utils.index_functions import update_data
 from aeon.utils.sklearn import (
     is_sklearn_classifier,
     is_sklearn_regressor,
@@ -1042,7 +1042,7 @@ class BaseTransformer(BaseEstimator):
                 store=_converter_store_X,
                 store_behaviour="freeze",
             )
-        elif output_scitype == "Primitives":
+        elif output_scitype == "Tabular" or output_scitype == "Primitives":
             # we ensure the output is pd_DataFrame_Table
             # & ensure the returned index is sensible
             # for return index, we need to deal with last level, constant 0
