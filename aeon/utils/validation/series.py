@@ -23,18 +23,6 @@ assert set(RELATIVE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 assert set(ABSOLUTE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 
 
-def is_series(y):
-    """Check if the input is a valid series type."""
-    if is_univariate_series(y):
-        return True
-    if isinstance(y, np.ndarray):
-        if y.ndims == 2:
-            return True
-        return False
-
-    return False
-
-
 def is_univariate_series(y):
     """Check if series is univariate.
 
