@@ -80,8 +80,10 @@ class QUANTTransformer(BaseCollectionTransformer):
 
         X = torch.tensor(X).float()
 
-        if self.quantile_divisor < 1 or self.interval_depth < 1:
-            raise ValueError("depth and div must be >= 1")
+        if self.quantile_divisor < 1:
+            raise ValueError("quantile_divisor must be >= 1")
+        if self.interval_depth < 1:
+            raise ValueError("interval_depth must be >= 1")
 
         representation_functions = (
             lambda X: X,
