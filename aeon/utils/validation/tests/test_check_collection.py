@@ -27,7 +27,6 @@ def test__nested_univ_is_equal():
     Note that the function _nested_univ_is_equal assumes series are equal length
     over channels so only tests the first channel.
     """
-
     data = {
         "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
         "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
