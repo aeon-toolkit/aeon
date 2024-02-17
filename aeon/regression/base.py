@@ -28,8 +28,12 @@ from typing import final
 import numpy as np
 import pandas as pd
 from deprecated.sphinx import deprecated
+from sklearn.metrics import r2_score
+from sklearn.model_selection import cross_val_predict
+from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
+from aeon.base._base import _clone_estimator
 from aeon.utils.sklearn import is_sklearn_transformer
 
 
@@ -200,14 +204,14 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
     @final
     def fit_predict(self, X, y) -> np.ndarray:
-        """Fits the classifier and predicts class labels for X.
+        """Fits the regressor and predicts class labels for X.
 
         fit_predict produces prediction estimates using just the train data.
         By default, this is through 10x cross validation, although some estimators may
         utilise specialist techniques such as out-of-bag estimates or leave-one-out
         cross-validation.
 
-        Classifiers which override _fit_predict will have the
+        Regressors which override _fit_predict will have the
         ``capability:train_estimate`` tag set to True.
 
         Generally, this will not be the same as fitting on the whole train data
@@ -233,20 +237,19 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             length input. In both situations, a ``ValueError`` is raised if X has a
             characteristic that the estimator does not have the capability for is
             passed.
+        y : np.ndarray
+            1D np.array of float, of shape ``(n_instances)`` - regression targets for
+            fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        np.ndarray
-            shape ``[n_instances]`` - predicted class labels indices correspond to
-            instance indices in
+        predictions : np.ndarray
+            1D np.array of float, of shape (n_instances) - predicted regression labels
+            indices correspond to instance indices in X
         """
-        X, y, single_class = self._fit_setup(X, y)
+        X, y = self._fit_setup(X, y)
 
-        if single_class:
-            n_instances = get_n_cases(X)
-            y_pred = np.repeat(list(self._class_dictionary.keys()), n_instances)
-        else:
-            y_pred = self._fit_predict(X, y)
+        y_pred = self._fit_predict(X, y)
 
         # this should happen last
         self._is_fitted = True
@@ -258,26 +261,34 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         Parameters
         ----------
         X : np.ndarray
-            train data of shape ``(n_instances, n_channels, n_timepoints)`` for any
-            number of channels, equal length series, ``(n_instances, n_timepoints)``
-            for univariate, equal length series.
-            or list of shape ``[n_instances]`` of 2D np.array shape ``(n_channels,
-            n_timepoints_i)``, where n_timepoints_i is length of series i
-            other types are allowed and converted into one of the above.
+            Input data, any number of channels, equal length series of shape ``(
+            n_instances, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_instances, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. other types are
+            allowed and converted into one of the above.
+
+            Different estimators have different capabilities to handle different
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series, so either ``n_channels == 1`` is
+            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability for is
+            passed.
         y : np.ndarray
-            1D np.array of float, of shape ``(n_instances)`` - regression targets or
-            fitting indices correspond to instance indices in X.
+            1D np.array of float, of shape ``(n_instances)`` - regression targets for
+            fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        float, R-squared score of predict(X) vs y
+        score : float
+            R-squared score of predict(X) vs y
         """
-        from sklearn.metrics import r2_score
-
         self.check_is_fitted()
-        if isinstance(y, pd.Series):
-            y = pd.Series.to_numpy(y)
-        y = y.astype("float")
+        y = self._check_y(y, len(X))
         return r2_score(y, self.predict(X))
 
     @abstractmethod
@@ -288,15 +299,20 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_type")
-            if self.get_tag("X_inner_type") = "numpy3D":
-                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-        y : 1D np.array of float, of shape (n_instances) - regression labels for
-        fitting indices correspond to instance indices in X
+        X : Train data
+            guaranteed to be of a type in self.get_tag("X_inner_type")
+            if ``self.get_tag("X_inner_type")`` equals "numpy3D":
+                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+            if ``self.get_tag("X_inner_type")`` equals "np-list":
+                list of 2D np.ndarray of shape ``(n_instances)``
+        y : np.ndarray
+            1D np.array of float, of shape ``(n_instances)`` - regression targets for
+            fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        self : Reference to self.
+        self : BaseRegressor
+            Reference to self.
 
         Notes
         -----
@@ -312,16 +328,47 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_type")
-            if self.get_tag("X_inner_type") = "numpy3D":
-                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+        X : Train data
+            guaranteed to be of a type in self.get_tag("X_inner_type")
+            if ``self.get_tag("X_inner_type")`` equals "numpy3D":
+                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+            if ``self.get_tag("X_inner_type")`` equals "np-list":
+                list of 2D np.ndarray of shape ``(n_instances)``
 
         Returns
         -------
-        y : 1D np.array of float, of shape (n_instances) - predicted regression labels
+        predictions : np.ndarray
+            1D np.array of float, of shape (n_instances) - predicted regression labels
             indices correspond to instance indices in X
         """
         ...
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        # fit the regressor
+        self._fit(X, y)
+
+        # predict using cross-validation
+        random_state = getattr(self, "random_state", None)
+        estimator = _clone_estimator(self, random_state)
+
+        return cross_val_predict(
+            estimator,
+            X=X,
+            y=y,
+            cv=10,
+            method="predict",
+            n_jobs=self._n_jobs,
+        )
+
+    def _fit_setup(self, X, y):
+        # reset estimator at the start of fit
+        self.reset()
+
+        X = self._preprocess_collection(X)
+        y = self._check_y(y, self.metadata_["n_cases"])
+
+        # return processed X and y
+        return X, y
 
     def _check_y(self, y, n_cases):
         # Check y valid input for regression
@@ -331,18 +378,29 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             )
         if isinstance(y, np.ndarray) and y.ndim > 1:
             raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+
         # Check matching number of labels
         n_labels = len(y)
         if n_cases != n_labels:
             raise ValueError(
-                f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
-                f"{n_labels}"
+                f"Mismatch in number of cases. Found X = {n_cases} and y = {n_labels}"
             )
+
+        y_type = type_of_target(y)
+        if y_type != "continuous" and y_type != "multiclass":
+            raise ValueError(
+                f"y type is {y_type} which is not valid for regression. "
+                f"Should be continuous or multiclass according to "
+                f"sklearn.utils.multiclass.type_of_target"
+            )
+
         if isinstance(y, pd.Series):
             y = pd.Series.to_numpy(y)
-        if isinstance(y[0], str):
+
+        if any([isinstance(label, str) for label in y]):
             raise ValueError(
                 "y contains strings, cannot fit a regressor. If suitable, convert "
-                "to string."
+                "to floats or consider classification."
             )
-        return y
+
+        return y.astype(float)

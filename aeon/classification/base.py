@@ -30,6 +30,7 @@ from typing import final
 import numpy as np
 import pandas as pd
 from deprecated.sphinx import deprecated
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
@@ -297,10 +298,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             length input. In both situations, a ``ValueError`` is raised if X has a
             characteristic that the estimator does not have the capability for is
             passed.
+        y : np.ndarray
+            1D np.array of float or str, of shape ``(n_instances)`` - class labels for
+            fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        np.ndarray
+        predictions : np.ndarray
             shape ``[n_instances]`` - predicted class labels indices correspond to
             instance indices in
         """
@@ -352,10 +356,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             length input. In both situations, a ``ValueError`` is raised if X has a
             characteristic that the estimator does not have the capability for is
             passed.
+        y : np.ndarray
+            1D np.array of float or str, of shape ``(n_instances)`` - class labels for
+            fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        np.ndarray
+        probabilities: np.ndarray
             2D array of shape ``(n_cases, n_classes)`` - predicted class probabilities
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
@@ -396,19 +403,17 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             length input. In both situations, a ``ValueError`` is raised if X has a
             characteristic that the estimator does not have the capability for is
             passed.
-
         y : np.ndarray
-            array shape ``(n_instances)`` - class labels (ground truth)
-            indices correspond to instance indices in X.
+            1D np.array of float or str, of shape ``(n_instances)`` - class labels for
+            fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        float
-             accuracy score of predict(X) vs y.
+        score : float
+             Accuracy score of predict(X) vs y.
         """
-        from sklearn.metrics import accuracy_score
-
         self.check_is_fitted()
+        self._check_y(y, len(X))
         return accuracy_score(y, self.predict(X), normalize=True)
 
     @abstractmethod
@@ -431,7 +436,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Returns
         -------
-        self :
+        self : BaseClassifier
             Reference to self.
 
         Notes
@@ -505,40 +510,46 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         self.reset()
 
         X = self._preprocess_collection(X)
-        y = self._check_y(y, self.metadata_["n_cases"])
+        y = self._check_y(y, self.metadata_["n_cases"], update_classes=True)
 
         # return processed X and y, and whether there is only one class
         return X, y, len(self.classes_) == 1
 
-    def _check_y(self, y, n_cases):
-        # Check y valid input for classification task
+    def _check_y(self, y, n_cases, update_classes=False):
+        # Check y valid input for classification
         if not isinstance(y, (pd.Series, np.ndarray)):
             raise TypeError(
                 f"y must be a np.array or a pd.Series, but found type: {type(y)}"
             )
         if isinstance(y, np.ndarray) and y.ndim > 1:
             raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+
         # Check matching number of labels
         n_labels = y.shape[0]
         if n_cases != n_labels:
             raise ValueError(
-                f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
-                f"{n_labels}"
+                f"Mismatch in number of cases. Found X = {n_cases} and y = {n_labels}"
             )
+
         y_type = type_of_target(y)
         if y_type != "binary" and y_type != "multiclass":
             raise ValueError(
                 f"y type is {y_type} which is not valid for classification. "
-                f"Should be binary or multiclass according to type_of_target"
+                f"Should be binary or multiclass according to "
+                f"sklearn.utils.multiclass.type_of_target"
             )
+
         if isinstance(y, pd.Series):
             y = pd.Series.to_numpy(y)
+
         # remember class labels
-        self.classes_ = np.unique(y)
-        self.n_classes_ = self.classes_.shape[0]
-        self._class_dictionary = {}
-        for index, class_val in enumerate(self.classes_):
-            self._class_dictionary[class_val] = index
+        if update_classes:
+            self.classes_ = np.unique(y)
+            self.n_classes_ = self.classes_.shape[0]
+            self._class_dictionary = {}
+            for index, class_val in enumerate(self.classes_):
+                self._class_dictionary[class_val] = index
+
         return y
 
     def _fit_predict_default(self, X, y, method):
