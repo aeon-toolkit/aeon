@@ -2293,6 +2293,15 @@
       "contributions": [
         "data"
       ]
+    },
+    {
+      "login": "nimanzik",
+      "name": "Nima Nooshiri",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4640548?v=4",
+      "profile": "https://github.com/nimanzik",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
