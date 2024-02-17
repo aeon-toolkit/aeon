@@ -78,7 +78,7 @@ NAME_ALIASES = {
     "STC": {"ShapeletTransform", "STCClassifier", "RandomShapeletTransformClassifier"},
     "STSF": {"stsf", "STSFClassifier"},
     "ShapeDTW": {"ShapeDTWClassifier"},
-    "Signatures": {"SignaturesClassifier"},
+    "Signatures": {"SignaturesClassifier", "SignatureClassifier"},
     "TDE": {"tde", "TDEClassifier", "TemporalDictionaryEnsemble"},
     "TS-CHIEF": {"TSCHIEF", "TS_CHIEF"},
     "TSF": {"tsf", "TimeSeriesForest"},
