@@ -54,7 +54,7 @@ NAME_ALIASES = {
         "InceptionTimeClassifier",
         "InceptionTimeRegressor",
     },
-    "LiteTime": {"LiteTimeClassifier", "litetime", "LITE"},
+    "LiteTime": {"LiteTimeClassifier", "litetime", "LITE", "LITETimeClassifier"},
     "MR": {"multirocket", "MultiROCKET", "MultiRocket", "MRClassifier"},
     "MiniROCKET": {"MiniRocket", "MiniROCKETClassifier"},
     "MrSQM": {"mrsqm", "MrSQMClassifier"},
