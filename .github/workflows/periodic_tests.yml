@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   check-manifest:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
           extra_args: check-manifest --hook-stage manual
 
   pre-commit:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
           extra_args: --all-files
 
   run-notebook-examples:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4
@@ -61,7 +61,7 @@ jobs:
         shell: bash
 
   test-nosoftdeps:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
           python -m pytest --pyargs aeon.testing.test_softdeps
 
   test-nosoftdeps-full:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4
@@ -115,7 +115,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
+        os: [ ubuntu-20.04, macOS-13, windows-2022 ]
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
@@ -139,7 +139,7 @@ jobs:
         run: python -m pytest
 
   codecov:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4

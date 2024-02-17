@@ -69,6 +69,17 @@ Feature-based
 
     FreshPRINCERegressor
 
+Hybrid
+------
+
+.. currentmodule:: aeon.regression.hybrid
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RISTRegression
+
 
 Interval-based
 --------------
