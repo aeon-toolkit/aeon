@@ -47,7 +47,9 @@ def test_support_vector_machine(dist):
     X, y = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=10)
     pairwise = dist["pairwise_distance"]
     ft = FunctionTransformer(pairwise)
-    pipe = Pipeline(steps=[("FunctionTransformer", ft), ("SVM", SVC())])
+    pipe = Pipeline(
+        steps=[("FunctionTransformer", ft), ("SVM", SVC(kernel="precomputed"))]
+    )
     pipe.fit(X, y)
     preds = pipe.predict(X)
     assert len(preds) == len(X)
