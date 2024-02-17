@@ -98,6 +98,7 @@ Hybrid
 
     HIVECOTEV1
     HIVECOTEV2
+    RISTClassifier
 
 Interval-based
 --------------
