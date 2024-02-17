@@ -44,21 +44,25 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
     """
     Abstract base class for time series classifiers.
 
-    Attributes with an underscore suffix are set in the method fit.
-
+    The base classifier specifies the methods and method signatures that all
+    classifiers have to implement. Attributes with an underscore suffix are set in the
+    method fit.
 
     Attributes
     ----------
     classes_ : np.ndarray
-        Class labels, possibly strings.
-    n_classes_ : integer
+        Class labels, either integers or strings.
+    n_classes_ : int
         Number of classes (length of ``classes_``).
-    fit_time_ : integer
-        Time (in milliseconds) for fit to run.
+    fit_time_ : int
+        Time (in milliseconds) for ``fit`` to run.
     _class_dictionary : dict
-        Mapping of classes_ onto integers 0...``n_classes_``-1.
-    _n_jobs : number of threads to use in ``fit`` as determined by ``n_jobs``.
-    _estimator_type : string required by sklearn, set to "classifier"
+        Mapping of classes_ onto integers ``0 ... n_classes_-1``.
+    _n_jobs : int
+        Number of threads to use in estimator methods such as ``fit`` and ``predict``.
+        Determined by the ``n_jobs`` parameter if present.
+    _estimator_type : string
+        The type of estimator. Required by some ``sklearn`` tools, set to "classifier".
     """
 
     _tags = {
@@ -69,8 +73,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
     def __init__(self):
         # reserved attributes written to in fit
         self.classes_ = []  # classes seen in y, unique labels
-        self.n_classes_ = 0  # number of unique classes in y
+        self.n_classes_ = -1  # number of unique classes in y
         self._class_dictionary = {}
+        self.fit_time_ = -1
+        self._n_jobs = 1
 
         # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV
@@ -147,14 +153,14 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             length input. In both situations, a ``ValueError`` is raised if X has a
             characteristic that the estimator does not have the capability for is
             passed.
-
-        np.ndarray
-            shape ``(n_instances)`` - class labels for fitting indices correspond to
-            instance indices in X.
+        y : np.ndarray
+            1D np.array of float or str, of shape ``(n_instances)`` - class labels for
+            fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        self : Reference to self.
+        self : BaseClassifier
+            Reference to self.
 
         Notes
         -----
@@ -199,15 +205,17 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Returns
         -------
-        np.ndarray
-            shape ``[n_instances]`` - predicted class labels indices correspond to
-            instance indices in X
+        predictions : np.ndarray
+            1D np.array of float, of shape (n_instances) - predicted class labels
+            indices correspond to instance indices in X
         """
         self.check_is_fitted()
+
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
             n_instances = get_n_cases(X)
             return np.repeat(list(self._class_dictionary.keys()), n_instances)
+
         X = self._preprocess_collection(X)
         return self._predict(X)
 
@@ -238,7 +246,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Returns
         -------
-        np.ndarray
+        probabilities : np.ndarray
             2D array of shape ``(n_cases, n_classes)`` - predicted class probabilities
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
@@ -250,6 +258,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         if len(self._class_dictionary) == 1:
             n_instances = get_n_cases(X)
             return np.repeat([[1]], n_instances, axis=0)
+
         X = self._preprocess_collection(X)
         return self._predict_proba(X)
 
@@ -401,27 +410,6 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         self.check_is_fitted()
         return accuracy_score(y, self.predict(X), normalize=True)
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
-
-        Returns
-        -------
-        params : dict or list of dict, default={}
-            Parameters to create testing instances of the class.
-        """
-        return super().get_test_params(parameter_set=parameter_set)
 
     @abstractmethod
     def _fit(self, X, y):
