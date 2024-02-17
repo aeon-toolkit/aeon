@@ -185,7 +185,7 @@ NUMPY2D = [
 
 @pytest.mark.parametrize("function", NUMPY2D)
 def test_numpy2D_error(function):
-    """Test numpy flat converters only work with 2D numpy"""
+    """Test numpy flat converters only work with 2D numpy."""
     X = np.random.random(size=(10, 2, 20))
     with pytest.raises(TypeError, match="Error: Input numpy not of type numpy2D"):
         function(X)
@@ -197,7 +197,6 @@ def test__nested_univ_is_equal():
     Note that the function _nested_univ_is_equal assumes series are equal length
     over channels so only tests the first channel.
     """
-
     data = {
         "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
         "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
