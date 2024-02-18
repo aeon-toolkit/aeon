@@ -21,6 +21,7 @@ __all__ = [
     "BaseRegressor",
 ]
 __author__ = ["MatthewMiddlehurst", "TonyBagnll", "mloning", "fkiraly"]
+
 import time
 from abc import ABC, abstractmethod
 from typing import final
@@ -144,8 +145,8 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float, of shape ``(n_instances)`` - regression targets for
-            fitting indices corresponding to instance indices in X.
+            1D np.array of float, of shape ``(n_instances)`` - regression targets
+            (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
@@ -238,8 +239,8 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float, of shape ``(n_instances)`` - regression targets for
-            fitting indices corresponding to instance indices in X.
+            1D np.array of float, of shape ``(n_instances)`` - regression targets
+            (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
@@ -279,8 +280,8 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float, of shape ``(n_instances)`` - regression targets for
-            fitting indices corresponding to instance indices in X.
+            1D np.array of float, of shape ``(n_instances)`` - regression targets
+            (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
@@ -344,6 +345,26 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         ...
 
     def _fit_predict(self, X, y) -> np.ndarray:
+        """Fits and predicts labels for sequences in X.
+
+        Parameters
+        ----------
+        X : Train data
+            guaranteed to be of a type in self.get_tag("X_inner_type")
+            if ``self.get_tag("X_inner_type")`` equals "numpy3D":
+                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+            if ``self.get_tag("X_inner_type")`` equals "np-list":
+                list of 2D np.ndarray of shape ``(n_instances)``
+        y : np.ndarray
+            1D np.array of float, of shape ``(n_instances)`` - regression targets
+            (ground truth) for fitting indices corresponding to instance indices in X.
+
+        Returns
+        -------
+        predictions : np.ndarray
+            1D np.array of float, of shape (n_instances) - predicted regression labels
+            indices correspond to instance indices in X
+        """
         # fit the regressor
         self._fit(X, y)
 
