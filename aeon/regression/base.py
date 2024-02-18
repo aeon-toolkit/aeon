@@ -387,10 +387,10 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             )
 
         y_type = type_of_target(y)
-        if y_type != "continuous" and y_type != "multiclass":
+        if y_type != "continuous" and y_type != "binary" and y_type != "multiclass":
             raise ValueError(
                 f"y type is {y_type} which is not valid for regression. "
-                f"Should be continuous or multiclass according to "
+                f"Should be continuous, binary or multiclass according to "
                 f"sklearn.utils.multiclass.type_of_target"
             )
 
