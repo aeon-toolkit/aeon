@@ -233,7 +233,7 @@ def test_predict_proba_default():
     cls = MockClassifier()
 
     # fails if not fitted
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError, match="negative dimensions are not allowed"):
         cls._predict_proba(X)
 
     cls.fit(X, y)
