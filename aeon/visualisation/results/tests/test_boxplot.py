@@ -21,6 +21,7 @@ data_path = os.path.join(
     reason="skip test if required soft dependency not available",
 )
 def test_plot_boxplot_median():
+    """Test plot_boxplot_median."""
     import matplotlib
     import matplotlib.pyplot as plt
 

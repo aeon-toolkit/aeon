@@ -75,6 +75,7 @@ class FCNRegressor(BaseDeepRegressor):
         save_last_model is set to False, this parameter
         is discarded
     callbacks       : keras.callbacks, default = None
+
     Notes
     -----
     Adapted from the implementation from Fawaz et. al

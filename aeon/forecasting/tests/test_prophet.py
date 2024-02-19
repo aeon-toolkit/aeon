@@ -1,6 +1,4 @@
-"""Tests for Prophet.
-
-"""
+"""Tests for Prophet."""
 
 __author__ = ["fkiraly"]
 

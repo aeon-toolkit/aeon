@@ -180,7 +180,6 @@ def test_bit_size():
 
 def test_typed_dict():
     """Test typed dictionaries."""
-
     # load training data
     X = np.random.rand(10, 1, 150)
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
