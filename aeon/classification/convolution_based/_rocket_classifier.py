@@ -35,7 +35,7 @@ class RocketClassifier(BaseClassifier):
 
     Parameters
     ----------
-    num_kernels : int, optional, default=10,000
+    num_kernels : int, default=10,000
         The number of kernels for the Rocket transform.
     rocket_transform : str, default="rocket"
         The type of Rocket transformer to use.
@@ -44,16 +44,21 @@ class RocketClassifier(BaseClassifier):
         MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
     n_features_per_kernel : int, default=4
         MultiRocket only. The number of features per kernel.
-    random_state : int or None, default=None
-        Seed for random number generation.
     estimator : sklearn compatible classifier or None, default=None
-        If none, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
-    n_jobs : int, default 1
-        Number of threads to use for the convolutional transform.
+        The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+        is used.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for both `fit` and `predict`.
+        ``-1`` means using all processors.
 
     Attributes
     ----------
-    n_classes : int
+    n_classes_ : int
         The number of classes.
     classes_ : list
         The classes labels.
@@ -62,28 +67,20 @@ class RocketClassifier(BaseClassifier):
     --------
     Rocket
         Rocket transformers are in transformations/collection.
-
-    Notes
-    -----
-    For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/shapelet_based/ROCKETClassifier.java>`_.
+    RocketRegressor
 
     References
     ----------
-    .. [1] Dempster, Angus, François Petitjean, and Geoffrey I. Webb. "Rocket:
-       exceptionally fast and accurate time series classification using random
-       convolutional kernels." Data Mining and Knowledge Discovery 34.5 (2020)
-    .. [2] Dempster, Angus and Schmidt, Daniel F and Webb, Geoffrey I,
-        "MINIROCKET: A Very Fast (Almost) Deterministic Transform for Time Series
-        Classification",2020,
-        https://dl.acm.org/doi/abs/10.1145/3447548.3467231,
-        https://arxiv.org/abs/2012.08791
-    .. [3] Tan, Chang Wei and Dempster, Angus and Bergmeir, Christoph and Webb,
-        Geoffrey I, "MultiRocket: Multiple pooling operators and transformations
-        for fast and effective time series classification",2022,
-        https://link.springer.com/article/10.1007/s10618-022-00844-1
-        https://arxiv.org/abs/2102.00457
+    .. [1] Dempster, A., Petitjean, F. and Webb, G.I., 2020. ROCKET: exceptionally fast
+        and accurate time series classification using random convolutional kernels.
+        Data Mining and Knowledge Discovery, 34(5), pp.1454-1495.
+    .. [2] Dempster, A., Schmidt, D.F. and Webb, G.I., 2021, August. Minirocket: A very
+        fast (almost) deterministic transform for time series classification. In
+        Proceedings of the 27th ACM SIGKDD conference on knowledge discovery & data
+        mining (pp. 248-257).
+    .. [3] Tan, C.W., Dempster, A., Bergmeir, C. and Webb, G.I., 2022. MultiRocket:
+        multiple pooling operators and transformations for fast and effective time
+        series classification. Data Mining and Knowledge Discovery, 36(5), pp.1623-1646.
 
     Examples
     --------
@@ -109,8 +106,8 @@ class RocketClassifier(BaseClassifier):
         rocket_transform="rocket",
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
-        random_state=None,
         estimator=None,
+        random_state=None,
         n_jobs=1,
     ):
         self.num_kernels = num_kernels
@@ -119,10 +116,8 @@ class RocketClassifier(BaseClassifier):
         self.n_features_per_kernel = n_features_per_kernel
         self.random_state = random_state
         self.estimator = estimator
-        self.n_cases_ = 0
-        self.n_channels_ = 0
-        self.n_timepoints_ = 0
         self.n_jobs = n_jobs
+
         super().__init__()
 
     def _fit(self, X, y):
@@ -133,7 +128,7 @@ class RocketClassifier(BaseClassifier):
         X : 3D np.ndarray
             The training data of shape = (n_cases, n_channels, n_timepoints).
         y : 3D np.ndarray
-            The class labels shape = (n_cases,).
+            The class labels, shape = (n_cases,).
 
         Returns
         -------
@@ -146,6 +141,7 @@ class RocketClassifier(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+
         rocket_transform = self.rocket_transform.lower()
         if rocket_transform == "rocket":
             self._transformer = Rocket(
@@ -187,6 +183,7 @@ class RocketClassifier(BaseClassifier):
                 )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
+
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
             (
@@ -196,12 +193,14 @@ class RocketClassifier(BaseClassifier):
             ),
             self.random_state,
         )
+
         self.pipeline_ = make_pipeline(
             self._transformer,
             self._scaler,
             self._estimator,
         )
         self.pipeline_.fit(X, y)
+
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -209,12 +208,12 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_cases]
+        y : array-like, shape = (n_cases,)
             Predicted class labels.
         """
         return self.pipeline_.predict(X)
@@ -224,12 +223,12 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_cases, n_classes_]
+        y : array-like, shape = (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
         m = getattr(self._estimator, "predict_proba", None)

@@ -61,7 +61,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
     ...                              random_state=0)
     >>> clf = MultiRocketHydraClassifier(random_state=0)  # doctest: +SKIP
     >>> clf.fit(X, y)  # doctest: +SKIP
-    HydraClassifier(random_state=0)
+    MultiRocketHydraClassifier(random_state=0)
     >>> clf.predict(X)  # doctest: +SKIP
     array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """

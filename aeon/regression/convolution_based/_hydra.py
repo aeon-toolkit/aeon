@@ -1,19 +1,19 @@
 import numpy as np
-from sklearn.linear_model import RidgeClassifierCV
+from sklearn.linear_model import RidgeCV
 from sklearn.pipeline import make_pipeline
 
-from aeon.classification import BaseClassifier
+from aeon.regression import BaseRegressor
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
 
 
-class HydraClassifier(BaseClassifier):
-    """Hydra Classifier.
+class HydraRegressor(BaseRegressor):
+    """Hydra Regressor.
 
     The algorithm utilises convolutional kernels grouped into ``g`` groups per dilation
     with ``k`` kernels per group. It transforms input time series using these kernels
     and counts the kernels representing the closest match to the input at each time
     point. This counts for each group are then concatenated and used to train a linear
-    classifier.
+    regressor.
 
     The algorithm combines aspects of both Rocket (convolutional approach)
     and traditional dictionary methods (pattern counting), It extracts features from
@@ -34,17 +34,10 @@ class HydraClassifier(BaseClassifier):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
 
-    Attributes
-    ----------
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes_)
-        Holds the label for each class.
-
     See Also
     --------
     HydraTransformer
-    MultiRocketHydraClassifier
+    MultiRocketHydraRegressor
 
     Notes
     -----
@@ -58,13 +51,13 @@ class HydraClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.convolution_based import HydraClassifier
+    >>> from aeon.regression.convolution_based import HydraRegressor
     >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
-    ...                              random_state=0)
-    >>> clf = HydraClassifier(random_state=0)  # doctest: +SKIP
+    ...                              regression_target=True, random_state=0)
+    >>> clf = HydraRegressor(random_state=0)  # doctest: +SKIP
     >>> clf.fit(X, y)  # doctest: +SKIP
-    HydraClassifier(random_state=0)
+    HydraRegressor(random_state=0)
     >>> clf.predict(X)  # doctest: +SKIP
     array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
@@ -95,7 +88,7 @@ class HydraClassifier(BaseClassifier):
         self._clf = make_pipeline(
             transform,
             _SparseScaler(),
-            RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)),
+            RidgeCV(alphas=np.logspace(-3, 3, 10)),
         )
         self._clf.fit(X, y)
 

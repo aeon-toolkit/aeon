@@ -19,6 +19,8 @@ Convolution-based
     :template: class.rst
 
     RocketRegressor
+    HydraRegressor
+    MultiRocketHydraRegressor
 
 Deep learning
 -------------
