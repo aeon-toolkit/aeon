@@ -73,7 +73,7 @@ class ROCKETGPU(BaseROCKETGPU):
         """Define the parameters of ROCKET."""
         import numpy as np
 
-        np.random.seed(self.random_state)
+        rng = np.random.default_rng(self.random_state)
 
         self._list_of_kernels = []
         self._list_of_dilations = []
@@ -81,25 +81,23 @@ class ROCKETGPU(BaseROCKETGPU):
         self._list_of_biases = []
 
         for _ in range(self.n_filters):
-            _kernel_size = np.random.choice(self._kernel_size, size=1)[0]
-            _convolution_kernel = np.random.normal(
-                size=(_kernel_size, self.n_channels, 1)
-            )
+            _kernel_size = rng.choice(self._kernel_size, size=1)[0]
+            _convolution_kernel = rng.normal(size=(_kernel_size, self.n_channels, 1))
             _convolution_kernel = _convolution_kernel - _convolution_kernel.mean(
                 axis=0, keepdims=True
             )
 
             if self.use_dilation:
-                _dilation_rate = 2 ** np.random.uniform(
+                _dilation_rate = 2 ** rng.uniform(
                     0, np.log2((self.input_length - 1) / (_kernel_size - 1))
                 )
             else:
                 _dilation_rate = 1
 
-            _padding = np.random.choice(self._padding, size=1)[0]
+            _padding = rng.choice(self._padding, size=1)[0]
             assert _padding in ["SAME", "VALID"]
 
-            _bias = np.random.uniform(self._bias_range[0], self._bias_range[1])
+            _bias = rng.uniform(self._bias_range[0], self._bias_range[1])
 
             self._list_of_kernels.append(_convolution_kernel)
             self._list_of_dilations.append(_dilation_rate)
