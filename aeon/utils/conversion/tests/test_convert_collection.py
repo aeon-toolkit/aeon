@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from aeon.registry import COLLECTIONS_DATA_TYPES
 from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_MULTIVARIATE,
@@ -29,7 +30,6 @@ from aeon.utils.conversion._convert_collection import (
     resolve_equal_length_inner_type,
     resolve_unequal_length_inner_type,
 )
-from aeon.utils.registry._data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.collection import (
     _equal_length,
     _nested_univ_is_equal,
