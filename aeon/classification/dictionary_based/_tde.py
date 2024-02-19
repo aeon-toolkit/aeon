@@ -108,11 +108,11 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         The number of classes.
     classes_ : list
         The classes labels.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_dims_ : int
         The number of dimensions per case.
-    series_length_ : int
+    n_timepoints_ : int
         The length of each series.
     estimators_ : list of shape (n_estimators) of IndividualTDE
         The collections of estimators trained in fit.
@@ -199,9 +199,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-        self.n_instances_ = 0
+        self.n_cases_ = 0
         self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_timepoints_ = 0
         self.n_estimators_ = 0
         self.estimators_ = []
         self.weights_ = []
@@ -237,9 +237,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The class labels shape = (n_instances).
+            The class labels shape = (n_cases).
 
         Returns
         -------
@@ -259,7 +259,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 stacklevel=2,
             )
 
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_dims_, self.n_timepoints_ = X.shape
 
         self.estimators_ = []
         self.weights_ = []
@@ -267,8 +267,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         self._prev_parameters_y = []
 
         # Window length parameter space dependent on series length
-        max_window_searches = self.series_length_ / 4
-        max_window = int(self.series_length_ * self.max_win_len_prop)
+        max_window_searches = self.n_timepoints_ / 4
+        max_window = int(self.n_timepoints_ * self.max_win_len_prop)
 
         if self.min_window >= max_window:
             self._min_window = max_window
@@ -285,7 +285,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
 
         possible_parameters = self._unique_parameters(max_window, win_inc)
         num_classifiers = 0
-        subsample_size = int(self.n_instances_ * 0.7)
+        subsample_size = int(self.n_cases_ * 0.7)
         lowest_acc = 1
         lowest_acc_idx = 0
 
@@ -333,9 +333,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     rng.choice(np.flatnonzero(preds == preds.max()))
                 )
 
-            subsample = rng.choice(
-                self.n_instances_, size=subsample_size, replace=False
-            )
+            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
             X_subsample = X[subsample]
             y_subsample = y[subsample]
 
@@ -392,13 +390,13 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         1D np.ndarray
-            The predicted class labels shape = (n_instances).
+            The predicted class labels shape = (n_cases).
         """
         rng = check_random_state(self.random_state)
         return np.array(
@@ -415,18 +413,18 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         1D np.ndarray
             Predicted probabilities using the ordering in classes_, shape = (
-            n_instances, n_classes_).
+            n_cases, n_classes_).
 
         """
-        _, _, series_length = X.shape
-        if series_length != self.series_length_:
+        _, _, n_timepoints = X.shape
+        if n_timepoints != self.n_timepoints_:
             raise TypeError(
                 "ERROR number of attributes in the train does not match "
                 "that in the test data"
@@ -453,8 +451,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     def _fit_predict_proba(self, X, y) -> np.ndarray:
         self._fit(X, y, keep_train_preds=True)
 
-        results = np.zeros((self.n_instances_, self.n_classes_))
-        divisors = np.zeros(self.n_instances_)
+        results = np.zeros((self.n_cases_, self.n_classes_))
+        divisors = np.zeros(self.n_cases_)
 
         if self.train_estimate_method.lower() == "loocv":
             for i, clf in enumerate(self.estimators_):
@@ -467,7 +465,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     ] += self.weights_[i]
                     divisors[subsample[n]] += self.weights_[i]
         elif self.train_estimate_method.lower() == "oob":
-            indices = range(self.n_instances_)
+            indices = range(self.n_cases_)
             for i, clf in enumerate(self.estimators_):
                 oob = [n for n in indices if n not in clf._subsample]
 
@@ -484,7 +482,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 "Invalid train_estimate_method. Available options: loocv, oob"
             )
 
-        for i in range(self.n_instances_):
+        for i in range(self.n_cases_):
             results[i] = (
                 np.ones(self.n_classes_) * (1 / self.n_classes_)
                 if divisors[i] == 0
@@ -654,11 +652,11 @@ class IndividualTDE(BaseClassifier):
         The number of classes.
     classes_ : list
         The classes labels.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_dims_ : int
         The number of dimensions per case.
-    series_length_ : int
+    n_timepoints_ : int
         The length of each series.
 
     See Also
@@ -727,9 +725,9 @@ class IndividualTDE(BaseClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self.n_instances_ = 0
+        self.n_cases_ = 0
         self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_timepoints_ = 0
 
         # we will disable typed_dict if numba is disabled
         self._typed_dict = typed_dict and not os.environ.get("NUMBA_DISABLE_JIT") == "1"
@@ -778,14 +776,14 @@ class IndividualTDE(BaseClassifier):
             self._transformed_data = nl
 
     def _fit(self, X, y):
-        """Fit a single base TDE classifier on n_instances cases (X,y).
+        """Fit a single base TDE classifier on n_cases cases (X,y).
 
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The training labels, shape = (n_instances).
+            The training labels, shape = (n_cases).
 
         Returns
         -------
@@ -797,7 +795,7 @@ class IndividualTDE(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_dims_, self.n_timepoints_ = X.shape
         self._class_vals = y
 
         # select dimensions using accuracy estimate if multivariate
@@ -809,18 +807,18 @@ class IndividualTDE(BaseClassifier):
                     Dict.empty(
                         key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
                     )
-                    for _ in range(self.n_instances_)
+                    for _ in range(self.n_cases_)
                 ]
                 if self._typed_dict
-                else [defaultdict(int) for _ in range(self.n_instances_)]
+                else [defaultdict(int) for _ in range(self.n_cases_)]
             )
 
             for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(self.n_instances_, 1, self.series_length_)
+                X_dim = X[:, dim, :].reshape(self.n_cases_, 1, self.n_timepoints_)
                 dim_words = self._transformers[i].transform(X_dim, y)
                 dim_words = dim_words[0]
 
-                for n in range(self.n_instances_):
+                for n in range(self.n_cases_):
                     if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
@@ -863,13 +861,13 @@ class IndividualTDE(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         1D np.ndarray
-            The predicted class labels shape = (n_instances).
+            The predicted class labels shape = (n_cases).
         """
         num_cases = X.shape[0]
 
@@ -886,7 +884,7 @@ class IndividualTDE(BaseClassifier):
             )
 
             for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(num_cases, 1, self.series_length_)
+                X_dim = X[:, dim, :].reshape(num_cases, 1, self.n_timepoints_)
                 dim_words = self._transformers[i].transform(X_dim)
                 dim_words = dim_words[0]
 
@@ -959,7 +957,7 @@ class IndividualTDE(BaseClassifier):
                 )
             )
 
-            X_dim = X[:, i, :].reshape(self.n_instances_, 1, self.series_length_)
+            X_dim = X[:, i, :].reshape(self.n_cases_, 1, self.n_timepoints_)
 
             transformers[i].fit(X_dim, y)
             sfa = transformers[i].transform(
@@ -970,7 +968,7 @@ class IndividualTDE(BaseClassifier):
             transformers[i].binning_dft = None
 
             correct = 0
-            for i in range(self.n_instances_):
+            for i in range(self.n_cases_):
                 if self._train_predict(i, sfa[0]) == y[i]:
                     correct = correct + 1
 
