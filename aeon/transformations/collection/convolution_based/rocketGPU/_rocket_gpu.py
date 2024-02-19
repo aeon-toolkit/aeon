@@ -29,7 +29,7 @@ class ROCKETGPU(BaseROCKETGPU):
     kernel_size : list, default = None
         The list of possible kernel sizes, default is [7, 9, 11].
     padding : list, default = None
-        The list of possible tensorflow padding, default is ["SAME","VALID"].
+        The list of possible tensorflow padding, default is ["SAME", "VALID"].
     use_dilation : bool, default = True
         Whether or not to use dilation in convolution operations.
     bias_range : Tuple, default = None
