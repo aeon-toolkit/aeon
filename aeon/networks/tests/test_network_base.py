@@ -8,8 +8,9 @@ __author__ = ["hadifawaz1999"]
 
 
 class DummyDeepNetwork(BaseDeepNetwork):
+    """A Dummy Deep Network for testing empty base network class save utilities."""
+
     def __init__(self):
-        """Dummy Deep Network for testing empty base network class save utilities."""
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):

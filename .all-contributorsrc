@@ -2284,6 +2284,33 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "itsdivya1309",
+      "name": "Divya Tiwari",
+      "avatar_url": "https://avatars.githubusercontent.com/u/108270861?v=4",
+      "profile": "https://github.com/itsdivya1309",
+      "contributions": [
+        "data"
+      ]
+    },
+    {
+      "login": "nimanzik",
+      "name": "Nima Nooshiri",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4640548?v=4",
+      "profile": "https://github.com/nimanzik",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Vedant222",
+      "name": "Vedant",
+      "avatar_url": "https://avatars.githubusercontent.com/u/70121054?v=4",
+      "profile": "https://github.com/Vedant222",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"

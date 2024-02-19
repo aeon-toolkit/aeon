@@ -7,7 +7,6 @@ from aeon.transformations.collection.interpolate import TSInterpolator
 
 def test_interpolator():
     """Test TSInterpolator resizing."""
-
     X_list = []
     for i in range(10):
         X_list.append(np.random.rand(5, 10 + i))

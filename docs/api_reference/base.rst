@@ -22,3 +22,15 @@ Base classes
     BaseEstimator
     BaseCollectionEstimator
     BaseSeriesEstimator
+
+Estimator base classes
+----------------------
+
+.. currentmodule:: aeon.base.estimator
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    hybrid.BaseRIST
+    interval_based.BaseIntervalForest
