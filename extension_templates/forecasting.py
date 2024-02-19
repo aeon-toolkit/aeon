@@ -39,7 +39,7 @@ Testing - implement if aeon forecaster (not needed locally):
 # todo: write an informative docstring for the file or module, remove the above
 
 # todo: uncomment the following line, enter authors' GitHub IDs
-# __author__ = [authorGitHubID, anotherAuthorGitHubID]
+# __maintainer__ = []
 
 
 from aeon.forecasting.base import BaseForecaster

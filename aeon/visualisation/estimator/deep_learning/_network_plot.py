@@ -1,5 +1,5 @@
 __all__ = ["plot_network"]
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 

@@ -5,7 +5,7 @@ in the time series forest interval based classification algorithm. Fits sklearn
 conventions.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["ContinuousIntervalTree"]
 
 import math

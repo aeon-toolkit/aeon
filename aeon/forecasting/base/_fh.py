@@ -1,6 +1,6 @@
 """Implements functionality for specifying forecast horizons in aeon."""
 
-__author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]
+__maintainer__ = []
 __all__ = ["ForecastingHorizon"]
 
 from functools import lru_cache

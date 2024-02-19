@@ -1,6 +1,6 @@
 """Fourier features for time series with long/complex seasonality."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 import warnings
 from typing import List, Optional, Union
 

@@ -1,6 +1,6 @@
 """Random Interval Spectral Ensemble (RISE) classifier."""
 
-__author__ = ["TonyBagnall", "MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["RandomIntervalSpectralEnsembleClassifier"]
 
 import numpy as np

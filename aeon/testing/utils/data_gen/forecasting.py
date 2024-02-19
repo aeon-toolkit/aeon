@@ -1,6 +1,6 @@
 """Forecasting testing utils."""
 
-__author__ = ["mloning"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

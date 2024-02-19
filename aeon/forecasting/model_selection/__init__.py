@@ -1,6 +1,5 @@
 """Implements functionality for selecting forecasting models."""
 
-__author__ = ["mloning", "kkoralturk"]
 __all__ = [
     "CutoffSplitter",
     "SingleWindowSplitter",

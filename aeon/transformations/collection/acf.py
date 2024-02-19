@@ -3,7 +3,7 @@
 Efficient implementation for collections using numba.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["AutocorrelationFunctionTransformer"]
 
 import numpy as np

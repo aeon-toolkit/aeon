@@ -5,7 +5,7 @@ __all__ = [
     "get_estimator_results_as_array",
     "get_available_estimators",
 ]
-__author__ = ["TonyBagnall"]
+__maintainer__ = []
 
 
 import numpy as np

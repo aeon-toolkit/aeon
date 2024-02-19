@@ -18,7 +18,7 @@ State:
     fitted state flag       - check_is_fitted()
 """
 
-__author__ = ["satya-pattnaik ", "fkiraly"]
+__maintainer__ = []
 __all__ = ["BaseSeriesAnnotator"]
 
 from aeon.base import BaseEstimator

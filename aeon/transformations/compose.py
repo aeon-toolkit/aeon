@@ -17,7 +17,7 @@ from aeon.utils.sklearn import (
 )
 from aeon.utils.validation.series import check_series
 
-__author__ = ["fkiraly", "mloning", "miraep8", "aiwalter", "SveaMeyer13"]
+__maintainer__ = []
 __all__ = [
     "ColumnwiseTransformer",
     "ColumnConcatenator",

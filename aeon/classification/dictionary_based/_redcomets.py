@@ -6,7 +6,7 @@ Ensemble of symbolically represented time series using random forests as the bas
 classifier.
 """
 
-__author__ = ["zy18811"]
+__maintainer__ = []
 __all__ = ["REDCOMETS"]
 
 from collections import Counter

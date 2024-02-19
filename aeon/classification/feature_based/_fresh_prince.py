@@ -4,7 +4,7 @@ Pipeline classifier using the full set of TSFresh features and a
 RotationForestClassifier.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["FreshPRINCEClassifier"]
 
 import warnings

@@ -18,7 +18,7 @@ tests in this module:
     test_eq_dunder       - tests __eq__ dunder to compare parameter definition
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = [
     "test_get_class_tags",

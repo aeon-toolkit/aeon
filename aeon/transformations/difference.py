@@ -1,6 +1,6 @@
 """Class to iteratively apply differences to a time series."""
 
-__author__ = ["RNKuhns", "fkiraly"]
+__maintainer__ = []
 __all__ = ["Differencer"]
 
 from typing import Union

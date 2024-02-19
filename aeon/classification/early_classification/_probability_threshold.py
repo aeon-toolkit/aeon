@@ -4,7 +4,7 @@ An early classifier using a prediction probability threshold with a time series
 classifier.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["ProbabilityThresholdEarlyClassifier"]
 
 import copy

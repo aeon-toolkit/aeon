@@ -1,6 +1,6 @@
 """Random Supervised Time Series Forest (RSTSF) Classifier."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["RSTSF"]
 
 import numpy as np

@@ -1,6 +1,6 @@
 """Transformer to impute missing values in series."""
 
-__author__ = ["aiwalter"]
+__maintainer__ = []
 __all__ = ["Imputer"]
 
 

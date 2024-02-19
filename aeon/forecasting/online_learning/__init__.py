@@ -1,7 +1,5 @@
 """Implments algorithms for creating online ensembles of forecasters."""
 
-__author__ = ["William Zheng"]
-
 __all__ = [
     "NormalHedgeEnsemble",
     "NNLSEnsemble",

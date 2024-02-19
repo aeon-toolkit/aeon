@@ -4,7 +4,7 @@ Pipeline regressor using the full set of TSFresh features and a RotationForestRe
 regressor.
 """
 
-__author__ = ["MatthewMiddlehurst", "DavidGuijo-Rubio"]
+__maintainer__ = []
 __all__ = ["FreshPRINCERegressor"]
 
 import numpy as np

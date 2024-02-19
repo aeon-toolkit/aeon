@@ -3,7 +3,7 @@
 Pipeline classifier using the TSFresh transformer and an estimator.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["TSFreshClassifier"]
 
 import warnings

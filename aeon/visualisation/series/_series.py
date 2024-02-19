@@ -1,7 +1,7 @@
 """Common timeseries plotting functionality."""
 
 __all__ = ["plot_series", "plot_lags", "plot_correlations"]
-__author__ = ["mloning", "RNKuhns", "Drishti Bhasin", "chillerobscuro"]
+__maintainer__ = []
 
 import math
 from warnings import warn

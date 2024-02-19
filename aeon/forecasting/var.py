@@ -1,7 +1,7 @@
 """Implements VAR Model as interface to statsmodels."""
 
 __all__ = ["VAR"]
-__author__ = ["thayeylolu", "aiwalter", "lbventura"]
+__maintainer__ = []
 
 import itertools
 from collections import OrderedDict

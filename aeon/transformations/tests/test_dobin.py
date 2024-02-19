@@ -1,6 +1,6 @@
 """Tests for DOBIN (Distance based Outlier BasIs using Neighbors)."""
 
-__author__ = ["KatieBuc"]
+__maintainer__ = []
 
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, RobustScaler

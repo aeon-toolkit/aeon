@@ -4,7 +4,7 @@ Compare the distance calculations on the 1D and 2D (d,m) format input against th
 results generated with tsml, in distances.tests.TestDistances.
 """
 
-__author__ = ["chrisholder", "TonyBagnall"]
+__maintainer__ = []
 
 from numpy.testing import assert_almost_equal
 

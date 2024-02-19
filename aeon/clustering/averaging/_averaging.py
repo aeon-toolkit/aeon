@@ -1,6 +1,6 @@
 """Clustering averaging metrics."""
 
-__author__ = ["chrisholder", "TonyBagnall"]
+__maintainer__ = []
 
 from typing import Callable, Dict
 

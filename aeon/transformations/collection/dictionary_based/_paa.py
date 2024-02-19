@@ -1,6 +1,6 @@
 """Piecewise Aggregate Approximation Transformer (PAA)."""
 
-__author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
+__maintainer__ = []
 
 import numpy as np
 

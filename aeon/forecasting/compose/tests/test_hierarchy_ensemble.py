@@ -1,6 +1,6 @@
 """Unit tests of HierarchyEnsembleForecaster functionality."""
 
-__author__ = ["VyomkeshVyas"]
+__maintainer__ = []
 
 import numpy as np
 import pytest

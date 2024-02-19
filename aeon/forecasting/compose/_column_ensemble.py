@@ -1,6 +1,6 @@
 """Implements forecaster for applying different univariates by column."""
 
-__author__ = ["GuzalBulatova", "mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = ["ColumnEnsembleForecaster"]
 
 import numpy as np

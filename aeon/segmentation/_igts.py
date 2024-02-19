@@ -27,7 +27,7 @@ import pandas as pd
 from aeon.segmentation.base import BaseSegmenter
 
 __all__ = ["InformationGainSegmenter"]
-__author__ = ["lmmentel"]
+__maintainer__ = []
 
 
 @dataclass

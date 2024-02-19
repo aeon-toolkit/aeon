@@ -1,6 +1,6 @@
 """sklearn PCA applied as transformation."""
 
-__author__ = ["prockenschaub", "fkiraly", "aiwalter"]
+__maintainer__ = []
 __all__ = ["PCATransformer"]
 
 import pandas as pd

@@ -4,7 +4,7 @@ Creates univariate (optionally weighted)
 combination of the predictions from underlying forecasts.
 """
 
-__author__ = ["mloning", "GuzalBulatova", "aiwalter", "RNKuhns", "AnH0ang"]
+__maintainer__ = []
 __all__ = ["EnsembleForecaster", "AutoEnsembleForecaster"]
 
 import numpy as np

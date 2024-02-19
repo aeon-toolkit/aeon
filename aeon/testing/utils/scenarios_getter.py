@@ -1,6 +1,6 @@
 """Retrieval utility for test scenarios."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["retrieve_scenarios"]
 

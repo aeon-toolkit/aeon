@@ -1,6 +1,6 @@
 """Functions to compute stats and get p-values."""
 
-__author__ = ["SveaMeyer13", "dguijo", "TonyBagnall"]
+__maintainer__ = []
 
 __all__ = ["check_friedman", "nemenyi_test", "wilcoxon_test"]
 

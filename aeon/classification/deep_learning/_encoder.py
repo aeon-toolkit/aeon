@@ -1,6 +1,6 @@
 """Encoder Classifier."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["EncoderClassifier"]
 
 import gc

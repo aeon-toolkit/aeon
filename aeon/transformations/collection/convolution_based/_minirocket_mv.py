@@ -1,6 +1,6 @@
 """Multivariate MiniRocket transformer."""
 
-__author__ = ["angus924", "michaelfeil", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["MiniRocketMultivariateVariable"]
 
 import multiprocessing

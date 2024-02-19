@@ -12,7 +12,7 @@ As described in
 }
 """
 
-__author__ = ["ermshaua", "patrickzib"]
+__maintainer__ = []
 __all__ = ["ClaSPTransformer"]
 
 import warnings

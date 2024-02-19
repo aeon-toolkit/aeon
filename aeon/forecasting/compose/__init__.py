@@ -1,7 +1,5 @@
 """Implements composite forecasters."""
 
-__author__ = ["mloning"]
-
 __all__ = [
     "HierarchyEnsembleForecaster",
     "ColumnEnsembleForecaster",

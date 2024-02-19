@@ -1,6 +1,6 @@
 """Testing advanced functionality of the base class."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pandas as pd
 import pytest

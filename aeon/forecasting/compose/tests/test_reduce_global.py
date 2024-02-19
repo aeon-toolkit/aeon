@@ -1,6 +1,6 @@
 """Test extraction of features across (shifted) windows."""
 
-__author__ = ["danbartl"]
+__maintainer__ = []
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 

@@ -1,6 +1,6 @@
 """Residual Network (ResNet) (minus the final output layer)."""
 
-__author__ = ["James Large", "Withington", "nilesh05apr", "hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
 

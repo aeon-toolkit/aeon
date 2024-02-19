@@ -1,6 +1,6 @@
 """Encoder Classifier."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
 

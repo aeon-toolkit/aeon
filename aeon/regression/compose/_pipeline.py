@@ -9,7 +9,7 @@ from aeon.transformations.compose import TransformerPipeline
 from aeon.utils.conversion import convert_collection
 from aeon.utils.sklearn import is_sklearn_regressor
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = ["RegressorPipeline", "SklearnRegressorPipeline"]
 
 

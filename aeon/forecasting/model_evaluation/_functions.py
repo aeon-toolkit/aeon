@@ -1,6 +1,6 @@
 """Implements functions to be used in evaluating forecasting models."""
 
-__author__ = ["aiwalter", "mloning", "fkiraly", "topher-lo"]
+__maintainer__ = []
 __all__ = ["evaluate"]
 
 import time

@@ -1,6 +1,6 @@
 """General numba utilities."""
 
-__author__ = ["MatthewMiddlehurst", "baraline"]
+__maintainer__ = []
 __all__ = [
     "generate_new_default_njit_func",
     "unique_count",

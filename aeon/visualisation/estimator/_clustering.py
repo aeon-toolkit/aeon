@@ -1,6 +1,6 @@
 """Cluster plotting tools."""
 
-__author__ = ["Christopher Holder", "Tony Bagnall"]
+__maintainer__ = []
 
 __all__ = ["plot_cluster_algorithm"]
 

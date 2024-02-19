@@ -5,7 +5,7 @@ For that purpose, inherit from this estimator and then override only the methods
     that are not delegated.
 """
 
-__author__ = ["miraep8"]
+__maintainer__ = []
 __all__ = ["_DelegatedTransformer"]
 
 from aeon.transformations.base import BaseTransformer

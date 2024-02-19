@@ -4,7 +4,7 @@ Interval-based DrCIF classifier extracting catch22 features from random interval
 periodogram and differences representations as well as the base series.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["DrCIFClassifier"]
 
 import numpy as np

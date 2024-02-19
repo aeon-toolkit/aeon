@@ -3,7 +3,7 @@
 Dictionary based classifier based on SFA transform, BOSS and linear regression.
 """
 
-__author__ = ["patrickzib", "Arik Ermshaus"]
+__maintainer__ = []
 __all__ = ["WEASEL"]
 
 import math

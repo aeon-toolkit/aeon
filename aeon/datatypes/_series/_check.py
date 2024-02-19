@@ -32,7 +32,7 @@ metadata: dict - metadata about obj if valid, otherwise None
         "has_nans": bool, True iff the series contains NaN values
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["check_dict"]
 

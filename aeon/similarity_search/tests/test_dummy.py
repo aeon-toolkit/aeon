@@ -1,6 +1,6 @@
 """Tests for DummySimilaritySearch."""
 
-__author__ = ["baraline"]
+__maintainer__ = []
 
 
 import numpy as np

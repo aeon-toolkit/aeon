@@ -1,6 +1,6 @@
 """Testing machine type checkers for scitypes."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import numpy as np
 

@@ -1,6 +1,6 @@
 """Pipeline with a classifier."""
 
-__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
 
 

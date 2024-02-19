@@ -5,7 +5,7 @@ The class has hardcoded string references to numba based distances in aeon.dista
 It can also be used with callables, or aeon (pairwise transformer) estimators.
 """
 
-__author__ = ["TonyBagnall", "GuiArcencio"]
+__maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesRegressor"]
 
 import numpy as np

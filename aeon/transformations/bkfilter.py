@@ -5,7 +5,7 @@ Please see the original library
 (https://github.com/statsmodels/statsmodels/blob/main/statsmodels/tsa/filters/bk_filter.py)
 """
 
-__author__ = ["klam-data", "pyyim", "mgorlin"]
+__maintainer__ = []
 __all__ = ["BKFilter"]
 
 

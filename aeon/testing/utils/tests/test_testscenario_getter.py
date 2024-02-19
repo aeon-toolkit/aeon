@@ -1,4 +1,4 @@
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = []
 
 import numpy as np

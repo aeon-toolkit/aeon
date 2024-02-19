@@ -1,6 +1,6 @@
 """Tests for Mock Forecasters."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 from copy import deepcopy
 

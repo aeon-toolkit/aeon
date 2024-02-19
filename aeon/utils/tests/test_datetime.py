@@ -1,6 +1,6 @@
 """Tests for datetime functions."""
 
-__author__ = ["xiaobenbenecho", "khrapovs"]
+__maintainer__ = []
 
 import datetime
 

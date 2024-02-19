@@ -1,6 +1,6 @@
 """Time Convolutional Neural Network (CNN) (minus the final output layer)."""
 
-__author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
 

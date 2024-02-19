@@ -1,6 +1,6 @@
 """Multi Layer Perceptron Network (MLP) for classification."""
 
-__author__ = ["James-Large", "AurumnPegasus"]
+__maintainer__ = []
 __all__ = ["MLPClassifier"]
 
 import gc

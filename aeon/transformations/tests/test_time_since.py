@@ -1,6 +1,6 @@
 """Tests for TimeSince transformer."""
 
-__author__ = ["KishManani"]
+__maintainer__ = []
 
 
 import pandas as pd

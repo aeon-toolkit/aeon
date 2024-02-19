@@ -4,7 +4,7 @@ Interval-based STSF classifier extracting summary features from intervals select
 through a supervised process.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["SupervisedTimeSeriesForest"]
 
 

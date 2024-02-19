@@ -1,20 +1,6 @@
 """Utilities for loading datasets."""
 
-__author__ = [
-    "mloning",
-    "sajaysurya",
-    "big-o",
-    "SebasKoel",
-    "Emiliathewolf",
-    "TonyBagnall",
-    "yairbeer",
-    "patrickZIB",
-    "aiwalter",
-    "jasonlines",
-    "achieveordie",
-    "ciaran-g",
-]
-
+__maintainer__ = []
 __all__ = [
     "load_airline",
     "load_plaid",

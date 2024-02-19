@@ -1,6 +1,6 @@
 """Extract calendar features from datetimeindex."""
 
-__author__ = ["danbartl", "KishManani"]
+__maintainer__ = []
 __all__ = ["DateTimeFeatures"]
 
 import warnings

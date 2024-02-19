@@ -1,7 +1,5 @@
 """Mock forecasters for testing and debugging."""
 
-__author__ = ["ltsaprounis"]
-
 __all__ = [
     "MockForecaster",
     "MockUnivariateForecasterLogger",

@@ -1,6 +1,6 @@
 """Optimized distance profile for euclidean distance."""
 
-__author__ = ["baraline"]
+__maintainer__ = []
 
 
 import numpy as np

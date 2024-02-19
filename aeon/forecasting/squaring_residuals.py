@@ -1,7 +1,7 @@
 """Implements the probabilistic Squaring Residuals forecaster."""
 
 __all__ = ["SquaringResiduals"]
-__author__ = ["kcc-lion"]
+__maintainer__ = []
 
 from warnings import warn
 

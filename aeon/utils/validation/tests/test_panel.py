@@ -1,6 +1,6 @@
 """Unit tests for aeon.utils.validation.panel check functions."""
 
-__author__ = ["mloning", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["test_check_X_bad_input_args"]
 
 import numpy as np

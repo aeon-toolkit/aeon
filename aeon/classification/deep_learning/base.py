@@ -5,14 +5,7 @@ The reason for this class between BaseClassifier and deep_learning classifiers i
 because we can generalise tags, _predict and _predict_proba
 """
 
-__author__ = [
-    "James-Large",
-    "ABostrom",
-    "TonyBagnall",
-    "aurunmpegasus",
-    "achieveordie",
-    "hadifawaz1999",
-]
+__maintainer__ = []
 __all__ = ["BaseDeepClassifier"]
 
 from abc import ABC, abstractmethod

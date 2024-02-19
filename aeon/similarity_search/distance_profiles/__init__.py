@@ -1,6 +1,5 @@
 """Distance profiles."""
 
-__author__ = ["baraline"]
 __all__ = ["naive_distance_profile", "normalized_naive_distance_profile"]
 
 

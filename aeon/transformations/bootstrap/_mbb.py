@@ -1,6 +1,6 @@
 """Bootstrapping methods for time series."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 from copy import copy
 from typing import Tuple, Union

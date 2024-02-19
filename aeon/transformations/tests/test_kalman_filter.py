@@ -1,6 +1,6 @@
 """Kalman Filter transformers unit tests."""
 
-__author__ = ["NoaBenAmi", "hadifawaz1999", "lmmentel"]
+__maintainer__ = []
 
 import numpy as np
 import pytest

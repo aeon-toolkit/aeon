@@ -1,6 +1,6 @@
 """Implements adapter for pmdarima forecasters to be used in aeon framework."""
 
-__author__ = ["mloning", "hyang1996", "kejsitake", "fkiraly"]
+__maintainer__ = []
 __all__ = ["_PmdArimaAdapter"]
 
 import pandas as pd

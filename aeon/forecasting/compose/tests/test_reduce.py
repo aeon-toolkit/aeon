@@ -1,6 +1,6 @@
 """Test reduce."""
 
-__author__ = ["Lovkush-A", "mloning", "LuisZugasti", "AyushmaanSeth"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

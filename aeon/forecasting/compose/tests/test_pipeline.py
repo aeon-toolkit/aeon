@@ -1,6 +1,6 @@
 """Tests for forecasting pipelines."""
 
-__author__ = ["mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = []
 
 import numpy as np

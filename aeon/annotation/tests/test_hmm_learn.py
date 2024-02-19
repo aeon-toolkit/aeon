@@ -1,6 +1,6 @@
 """Tests for hmmlearn wrapper annotation estimator."""
 
-__author__ = ["miraep8", "klam-data", "pyyim", "mgorlin"]
+__maintainer__ = []
 
 import pytest
 from numpy import array_equal

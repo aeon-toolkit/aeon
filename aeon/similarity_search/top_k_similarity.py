@@ -1,6 +1,6 @@
 """TopKSimilaritySearch."""
 
-__author__ = ["baraline"]
+__maintainer__ = []
 
 import warnings
 

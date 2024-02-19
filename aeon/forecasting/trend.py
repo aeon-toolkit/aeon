@@ -1,6 +1,6 @@
 """Implements trend based forecasters."""
 
-__author__ = ["tensorflow-as-tf", "mloning", "aiwalter", "fkiraly"]
+__maintainer__ = []
 __all__ = ["TrendForecaster", "PolynomialTrendForecaster", "STLForecaster"]
 
 import pandas as pd

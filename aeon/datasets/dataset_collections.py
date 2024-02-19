@@ -26,7 +26,7 @@ Forecasting
 
 """
 
-__author__ = ["Tony Bagnall"]
+__maintainer__ = []
 __all__ = [
     "get_downloaded_tsc_tsr_datasets",
     "get_downloaded_tsf_datasets",

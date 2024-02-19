@@ -1,6 +1,6 @@
 """Test grid search CV."""
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = ["test_gscv", "test_rscv"]
 
 import numpy as np

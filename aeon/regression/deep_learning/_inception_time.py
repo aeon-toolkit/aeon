@@ -1,6 +1,6 @@
 """InceptionTime regressor."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["InceptionTimeRegressor"]
 
 import gc

@@ -1,6 +1,6 @@
 """Testing vectorization via VectorizedDF."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

@@ -1,6 +1,6 @@
 """Periodogram transformer."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["PeriodogramTransformer"]
 
 import math

@@ -1,6 +1,6 @@
 """A wrapper to treat a BaseCollectionTransformer as a BaseTransformer."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["CollectionToSeriesWrapper"]
 
 from aeon.base._base import _clone_estimator

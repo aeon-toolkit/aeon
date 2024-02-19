@@ -1,6 +1,6 @@
 """Symbolic Aggregate approXimation (SAX) transformer."""
 
-__author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["SAX", "_invert_sax_symbols"]
 
 import numpy as np

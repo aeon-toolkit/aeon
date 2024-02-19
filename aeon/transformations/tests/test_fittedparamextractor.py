@@ -1,6 +1,6 @@
 """Tests for FittedParamExtractor."""
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = []
 
 import pytest

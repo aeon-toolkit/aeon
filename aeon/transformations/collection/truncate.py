@@ -1,7 +1,7 @@
 """Truncation transformer - truncate unequal length panels to lower/upper bounds."""
 
 __all__ = ["TruncationTransformer"]
-__author__ = ["abostrom", "TonyBagnall"]
+__maintainer__ = []
 
 import numpy as np
 

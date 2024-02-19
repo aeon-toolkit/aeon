@@ -3,7 +3,7 @@
 Used in the forecasting module to test composites and pipelines.
 """
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 __all__ = ["MockForecaster", "MockUnivariateForecasterLogger"]
 

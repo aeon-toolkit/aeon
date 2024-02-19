@@ -4,7 +4,7 @@ A Rotation Forest aeon implementation for continuous values only. Fits sklearn
 conventions.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["RotationForestClassifier"]
 
 import time

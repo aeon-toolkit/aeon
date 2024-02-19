@@ -14,7 +14,7 @@ from scipy.stats import norm
 
 from aeon.segmentation.base import BaseSegmenter
 
-__author__ = ["miraep8"]
+__maintainer__ = []
 __all__ = ["HMMSegmenter"]
 
 

@@ -1,6 +1,6 @@
 """Tests for numba functions."""
 
-__author__ = ["TonyBagnall", "baraline"]
+__maintainer__ = []
 
 import numpy as np
 import pytest

@@ -1,6 +1,6 @@
 """Implements forecasters for combining forecasts via stacking."""
 
-__author__ = ["mloning", "fkiraly", "indinewton"]
+__maintainer__ = []
 __all__ = ["StackingForecaster"]
 
 from warnings import warn

@@ -3,7 +3,7 @@
 Pipeline classifier using the SAST transformer and an sklearn classifier.
 """
 
-__author__ = ["MichaelMbouopda"]
+__maintainer__ = []
 __all__ = ["SASTClassifier"]
 
 from operator import itemgetter

@@ -1,6 +1,6 @@
 """Time binning for turning series equally spaced."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import warnings
 

@@ -3,7 +3,7 @@
 A transformer for the extraction of features on randomly selected intervals.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["RandomIntervals"]
 
 import numpy as np

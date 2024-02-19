@@ -1,6 +1,6 @@
 """Residual Network (ResNet) for regression."""
 
-__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["ResNetRegressor"]
 
 import gc

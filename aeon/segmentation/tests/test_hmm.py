@@ -1,6 +1,6 @@
 """Tests for HMM annotation estimator."""
 
-__author__ = ["miraep8"]
+__maintainer__ = []
 
 import numpy as np
 import pytest

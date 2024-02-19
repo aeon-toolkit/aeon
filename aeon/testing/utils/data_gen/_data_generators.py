@@ -1,6 +1,6 @@
 """Data generators."""
 
-__author__ = ["MatthewMiddlehurst", "TonyBagnall"]
+__maintainer__ = []
 
 from typing import Dict, Tuple, Union
 

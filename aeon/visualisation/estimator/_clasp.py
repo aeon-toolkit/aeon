@@ -2,7 +2,7 @@ __all__ = [
     "plot_series_with_profiles",
 ]
 
-__author__ = ["patrickzib"]
+__maintainer__ = []
 
 import numpy as np
 

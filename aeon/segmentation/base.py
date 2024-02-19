@@ -1,7 +1,7 @@
 """Abstract base class for time series segmenters."""
 
 __all__ = ["BaseSegmenter"]
-__author__ = ["TonyBagnall"]
+__maintainer__ = []
 
 from abc import ABC, abstractmethod
 from typing import List, final

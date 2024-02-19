@@ -1,6 +1,6 @@
 """Tests for TopKSimilaritySearch."""
 
-__author__ = ["baraline"]
+__maintainer__ = []
 
 import numpy as np
 import pytest

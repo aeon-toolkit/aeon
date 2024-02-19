@@ -12,7 +12,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from aeon.transformations.base import BaseTransformer
 
-__author__ = ["KatieBuc"]
+__maintainer__ = []
 __all__ = ["DOBIN"]
 
 

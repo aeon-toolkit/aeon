@@ -1,6 +1,6 @@
 """Test FeatureSelection transformer."""
 
-__author__ = ["aiwalter"]
+__maintainer__ = []
 __all__ = []
 
 import math

@@ -1,6 +1,6 @@
 """Tests for check_estimator."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pytest
 

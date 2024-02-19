@@ -1,6 +1,6 @@
 """Tests for TSFreshFeatureExtractor."""
 
-__author__ = ["AyushmannSeth", "mloning"]
+__maintainer__ = []
 
 import numpy as np
 import pytest

@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.utils.stats import _weighted_percentile
 from sklearn.utils.validation import check_consistent_length
 
-__author__ = ["RNKuhns", "GuzalBulatova"]
+__maintainer__ = []
 __all__ = [
     "_weighted_geometric_mean",
     "_weighted_median",

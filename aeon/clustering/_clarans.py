@@ -1,6 +1,6 @@
 """Time series kmedoids."""
 
-__author__ = ["chrisholder", "TonyBagnall"]
+__maintainer__ = []
 
 import math
 from typing import Callable, Union

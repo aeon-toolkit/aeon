@@ -1,6 +1,6 @@
 """Unit tests of ColumnEnsembleForecaster functionality."""
 
-__author__ = ["GuzalBulatova", "canbooo", "fkiraly"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

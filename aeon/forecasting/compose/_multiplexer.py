@@ -4,7 +4,7 @@ from aeon.base import ALL_TIME_SERIES_TYPES, _HeterogenousMetaEstimator
 from aeon.forecasting.base._base import BaseForecaster
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 
-__author__ = ["kkoralturk", "aiwalter", "fkiraly", "miraep8"]
+__maintainer__ = []
 __all__ = ["MultiplexForecaster"]
 
 

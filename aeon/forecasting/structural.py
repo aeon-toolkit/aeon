@@ -1,7 +1,7 @@
 """Wraps the UnobservedComponents (state space) model from statsmodels."""
 
 __all__ = ["UnobservedComponents"]
-__author__ = ["juanitorduz"]
+__maintainer__ = []
 
 import pandas as pd
 

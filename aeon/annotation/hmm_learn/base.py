@@ -13,7 +13,7 @@ import pandas as pd
 
 from aeon.annotation.base import BaseSeriesAnnotator
 
-__author__ = ["miraep8"]
+__maintainer__ = []
 __all__ = ["BaseHMMLearn"]
 
 

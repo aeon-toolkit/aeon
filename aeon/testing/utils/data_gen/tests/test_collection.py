@@ -1,6 +1,6 @@
 """Tests for datagen functions."""
 
-__author__ = ["klam-data", "mgorlin", "pyyim"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
