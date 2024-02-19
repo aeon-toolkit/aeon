@@ -67,7 +67,10 @@ Feature-based
     :toctree: auto_generated/
     :template: class.rst
 
+    Catch22Regressor
     FreshPRINCERegressor
+    SummaryRegressor
+    TSFreshRegressor
 
 Hybrid
 ------

@@ -1,29 +1,29 @@
-"""TSFresh Classifier.
+"""TSFresh Regressor.
 
-Pipeline classifier using the TSFresh transformer and an estimator.
+Pipeline regressor using the TSFresh transformer and an estimator.
 """
 
 __author__ = ["MatthewMiddlehurst"]
-__all__ = ["TSFreshClassifier"]
+__all__ = ["TSFreshRegressor"]
 
 import warnings
 
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
-from aeon.classification.base import BaseClassifier
+from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.feature_based import (
     TSFreshFeatureExtractor,
     TSFreshRelevantFeatureExtractor,
 )
 
 
-class TSFreshClassifier(BaseClassifier):
+class TSFreshRegressor(BaseRegressor):
     """
-    Time Series Feature Extraction based on Scalable Hypothesis Tests classifier.
+    Time Series Feature Extraction based on Scalable Hypothesis Tests regressor.
 
-    This classifier simply transforms the input data using the TSFresh [1]_
+    This regressor simply transforms the input data using the TSFresh [1]_
     transformer and builds a provided estimator using the transformed data.
 
     Parameters
@@ -33,7 +33,7 @@ class TSFreshClassifier(BaseClassifier):
         "comprehensive".
     relevant_feature_extractor : bool, default=False
         Remove irrelevant features using the FRESH algorithm.
-    estimator : sklearn classifier, default=None
+    estimator : sklearn regressorr, default=None
         An sklearn estimator to be built using the transformed data. Defaults to a
         Random Forest with 200 trees.
     verbose : int, default=0
@@ -44,19 +44,18 @@ class TSFreshClassifier(BaseClassifier):
     chunksize : int or None, default=None
         Number of series processed in each parallel TSFresh job, should be optimised
         for efficient parallelisation.
-    random_state : int or None, default=None
-        Seed for random, integer.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
-    Attributes
-    ----------
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes_)
-        Holds the label for each class.
 
     See Also
     --------
-    TSFreshFeatureExtractor, TSFreshRelevantFeatureExtractor
+    TSFreshFeatureExtractor
+    TSFreshRelevantFeatureExtractor
+    TSFreshClassifier
 
     References
     ----------
@@ -107,7 +106,7 @@ class TSFreshClassifier(BaseClassifier):
         X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
-            The class labels.
+            The target labels.
 
         Returns
         -------
@@ -134,7 +133,7 @@ class TSFreshClassifier(BaseClassifier):
         )
         self._estimator = _clone_estimator(
             (
-                RandomForestClassifier(n_estimators=200)
+                RandomForestRegressor(n_estimators=200)
                 if self.estimator is None
                 else self.estimator
             ),
@@ -161,15 +160,15 @@ class TSFreshClassifier(BaseClassifier):
                 stacklevel=2,
             )
 
-            self._return_majority_class = True
-            self._majority_class = np.argmax(np.unique(y, return_counts=True)[1])
+            self._return_mean = True
+            self._mean = np.mean(y)
         else:
             self._estimator.fit(X_t, y)
 
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predict class values of n instances in X.
+        """Predict values of n instances in X.
 
         Parameters
         ----------
@@ -179,40 +178,12 @@ class TSFreshClassifier(BaseClassifier):
         Returns
         -------
         y : array-like, shape = [n_instances]
-            Predicted class labels.
+            Predicted labels.
         """
-        if self._return_majority_class:
-            return np.full(X.shape[0], self.classes_[self._majority_class])
+        if self._return_mean:
+            return np.full(X.shape[0], self._mean)
 
         return self._estimator.predict(self._transformer.transform(X))
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        if self._return_majority_class:
-            dists = np.zeros((X.shape[0], self.n_classes_))
-            dists[:, self._majority_class] = 1
-            return dists
-
-        m = getattr(self._estimator, "predict_proba", None)
-        if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
-        else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
-            for i in range(0, X.shape[0]):
-                dists[i, self._class_dictionary[preds[i]]] = 1
-            return dists
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -223,8 +194,8 @@ class TSFreshClassifier(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            TSFreshClassifier provides the following special sets:
-                 "results_comparison" - used in some classifiers to compare against
+            TSFreshRegressor provides the following special sets:
+                 "results_comparison" - used in some regressor to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
 
@@ -238,13 +209,13 @@ class TSFreshClassifier(BaseClassifier):
         """
         if parameter_set == "results_comparison":
             return {
-                "estimator": RandomForestClassifier(n_estimators=10),
+                "estimator": RandomForestRegressor(n_estimators=10),
                 "default_fc_parameters": "minimal",
                 "relevant_feature_extractor": False,
             }
         else:
             return {
-                "estimator": RandomForestClassifier(n_estimators=2),
+                "estimator": RandomForestRegressor(n_estimators=2),
                 "default_fc_parameters": "minimal",
                 "relevant_feature_extractor": False,
             }
