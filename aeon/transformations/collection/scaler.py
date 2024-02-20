@@ -1,6 +1,6 @@
 """Wrapper for sklearn StandardScaler."""
 
-__author__ = ["TonyBagnall"]
+__author__ = ["TonyBagnall", "dguijo"]
 __all__ = ["TimeSeriesScaler"]
 
 import numpy as np
@@ -32,16 +32,21 @@ class TimeSeriesScaler(BaseCollectionTransformer):
 
     Parameters
     ----------
+    copy : bool, default=True
+        If False, try to avoid a copy and do inplace scaling instead.
+        This is not guaranteed to always work inplace; e.g. if the data is
+        not a NumPy array, a copy may still be returned.
     with_mean : bool, default=True
         If True, center the data before scaling.
         This does not work (and will raise an exception) when attempted on
         sparse matrices, because centering them entails building a dense
         matrix which in common use cases is likely to be too large to fit in
         memory.
-
     with_std : bool, default=True
-        If True, scale the data to unit variance (or equivalently,
-        unit standard deviation).
+        If True, scale the data to unit variance (or equivalently, unit standard
+        deviation).
+    inverse_transform_needed : bool, default=False
+        If True, the inverse_transform method will be available.
 
     See Also
     --------
@@ -74,35 +79,75 @@ class TimeSeriesScaler(BaseCollectionTransformer):
         "capability:unequal_length": True,
     }
 
-    def __init__(self, copy=True, with_mean=True, with_std=True):
+    def __init__(
+        self, copy=True, with_mean=True, with_std=True, inverse_transform_needed=False
+    ):
         self.with_mean = with_mean
         self.with_std = with_std
         self.copy = copy
         self.scaler = StandardScaler(copy=copy, with_mean=with_mean, with_std=with_std)
+        self.inverse_transform_needed = inverse_transform_needed
+        if self.inverse_transform_needed:
+            self._tags["capability:inverse_transform"] = True
         super().__init__()
 
     def _transform(self, X, y=None):
-        """Transform X into the catch22 features.
+        """Scale X using StandardScaler.
 
         Parameters
         ----------
-        X : 3D np.ndarray (any number of channels, equal length series)
-                of shape ``(n_instances, n_channels, n_timepoints)``
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape ``[n_instances]``, 2D np.ndarray `
-                `(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length
-                of series i.
+        X : np.ndarray or list of np.ndarray
+            3D np.ndarray (any number of channels, equal length series) of shape
+            ``(n_instances, n_channels, n_timepoints)`` or list of numpy arrays (any
+            number of channels, unequal length series) of shape ``[n_instances]``, 2D
+            np.ndarray ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is
+            length of series i.
 
         Returns
         -------
-        Xt : same shape as input
+        X_scaled : np.array
+            Scaled time series dataset.
         """
-        X2 = [None] * len(X)
+        X_scaled = [None] * len(X)
+        if self.inverse_transform_needed:
+            self.individual_scalers_ = [None] * len(X)
         for i in range(len(X)):
+            self.scaler = StandardScaler(
+                copy=self.copy, with_mean=self.with_mean, with_std=self.with_std
+            )
             x1 = np.transpose(X[i])
             norm = self.scaler.fit_transform(x1)
-            x1 = np.transpose(norm)
-            X2[i] = x1
+            X_scaled[i] = np.transpose(norm)
+
+            if self.inverse_transform_needed:
+                self.individual_scalers_[i] = self.scaler
+
         if isinstance(X, np.ndarray):
-            X2 = np.array(X2)
-        return X2
+            X_scaled = np.array(X_scaled)
+        return X_scaled
+
+    def _inverse_transform(self, X, y=None):
+        """Perform the inverse transform over X using fitted StandardScaler.
+
+        Parameters
+        ----------
+        X : np.ndarray or list of np.ndarray
+            3D np.ndarray (any number of channels, equal length series) of shape
+            ``(n_instances, n_channels, n_timepoints)`` or list of numpy arrays (any
+            number of channels, unequal length series) of shape ``[n_instances]``, 2D
+            np.ndarray ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is
+            length of series i.
+
+        Returns
+        -------
+        X_original : np.array
+            Original time series dataset.
+        """
+        X_original = [None] * len(X)
+        for i in range(len(X)):
+            x1 = np.transpose(X[i])
+            norm = self.individual_scalers_[i].inverse_transform(x1)
+            X_original[i] = np.transpose(norm)
+        if isinstance(X, np.ndarray):
+            X_original = np.array(X_original)
+        return X_original
