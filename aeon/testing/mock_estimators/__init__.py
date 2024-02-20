@@ -14,7 +14,6 @@ __all__ = [
     "SupervisedMockSegmenter",
     "MockHandlesAllInput",
     "MockRegressor",
-    
 ]
 
 from aeon.testing.mock_estimators._mock_classifiers import (
@@ -28,14 +27,11 @@ from aeon.testing.mock_estimators._mock_forecasters import (
     MockUnivariateForecasterLogger,
     make_mock_estimator,
 )
+from aeon.testing.mock_estimators._mock_regressors import (
+    MockHandlesAllInput,
+    MockRegressor,
+)
 from aeon.testing.mock_estimators._mock_segmenters import (
     MockSegmenter,
     SupervisedMockSegmenter,
 )
-    
-from aeon.testing.mock_estimators._mock_regressors import (
-    MockRegressor,
-    MockHandlesAllInput,
-)
-
-

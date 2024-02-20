@@ -7,6 +7,7 @@ import numpy as np
 
 from aeon.regression.base import BaseRegressor
 
+
 class MockRegressor(BaseRegressor):
     """Dummy regressor for testing base class fit/predict."""
 
@@ -17,7 +18,7 @@ class MockRegressor(BaseRegressor):
     def _predict(self, X):
         """Predict dummy."""
         return np.random.random(size=(len(X)))
-    
+
 
 class MockHandlesAllInput(BaseRegressor):
     """Dummy regressor for testing base class fit/predict/predict_proba."""
