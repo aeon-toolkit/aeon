@@ -14,18 +14,18 @@ from aeon.transformations.collection import BaseCollectionTransformer
 class MiniRocket(BaseCollectionTransformer):
     """MINImally RandOm Convolutional KErnel Transform (MiniRocket).
 
-    MiniRocket [1]_ is an almost deterministic version of Rocket. If creates
-    convolutions of length of 9 with weights restricted to two values, and uses 84 fixed
+    MiniRocket [1]_ is an almost deterministic version of Rocket. It creates
+    convolutions of length 9 with weights restricted to two values, and uses 84 fixed
     convolutions with six of one weight, three of the second weight to seed dilations.
-    MiniRocket is for unviariate time series only.  Use class MiniRocketMultivariate
+    MiniRocket is for unviariate time series only. Use class MiniRocketMultivariate
     for multivariate time series.
 
     Parameters
     ----------
     num_kernels : int, default=10,000
-       number of random convolutional kernels.
+       Number of random convolutional kernels.
     max_dilations_per_kernel : int, default=32
-        maximum number of dilations per kernel.
+        Maximum number of dilations per kernel.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.

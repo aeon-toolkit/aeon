@@ -26,6 +26,7 @@ DATA = np.random.random((10, 1, 50))
 @pytest.mark.parametrize("data", [None, DATA])
 def test_get_100_param_options(dist, data):
     """Test the method to get 100 options per distance function.
+
     1. Test 100 returned.
     2. Test on specified range.
     """

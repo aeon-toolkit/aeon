@@ -115,6 +115,7 @@ Interval-based
     SupervisedTimeSeriesForest
     TimeSeriesForestClassifier
     RandomIntervalClassifier
+    QUANTClassifier
 
 Shapelet-based
 --------------

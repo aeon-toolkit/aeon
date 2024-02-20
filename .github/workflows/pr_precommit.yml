@@ -23,7 +23,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - uses: tj-actions/changed-files@v42.0.2
+      - uses: tj-actions/changed-files@v42.0.4
         id: changed-files
 
       - name: List changed files
