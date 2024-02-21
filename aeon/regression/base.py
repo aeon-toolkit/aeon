@@ -157,6 +157,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         self.check_is_fitted()
         X = self._preprocess_collection(X)
         return self._predict(X)
+
     def fit_predict(self, X, y) -> np.ndarray:
         """Fit time series regressor to training data and predict target variable.
 
