@@ -20,12 +20,16 @@ for creating a fork of `aeon`.
 3. Pick an `enhancement`, `documentation` or `maintenance` issue from the [issue list](https://github.com/aeon-toolkit/aeon/issues)
 to complete i.e. improving an algorithm, docstring or test. The [good first issue](https://github.com/aeon-toolkit/aeon/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
 list may be a good place to start.
-4. Create a [pull request (PR)](https://github.com/aeon-toolkit/aeon/compare)
+4. Post on the issue which you want to work on, so that others know you are working on
+it. If it is a larger issue with multiple components, indicate which part you are
+working on. A Core Developer may suggest a different issue if the one you chose is
+complex or somebody is already working on it.
+5. Create a [pull request (PR)](https://github.com/aeon-toolkit/aeon/compare)
 with your changes from your fork. For help, see the [GitHub documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
 or ask in Slack. Follow the PR template and checklist.
-5. A Core Developer will review your PR and may provide feedback, which you can then
+6. A Core Developer will review your PR and may provide feedback, which you can then
 address. If you are unsure about any feedback, please ask for clarification.
-6. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
+7. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
 making a contribution! Make sure you are included in the [list of contributors](contributors.md).
 
 Further guidance for contributing to `aeon` via GitHub can be found on the
