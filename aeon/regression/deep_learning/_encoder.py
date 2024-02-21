@@ -69,4 +69,91 @@ https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/encoder.py
 References
 ----------
 ..#need references
+
+_tags = {
+"python_dependencies": ["tensorflow", "tensorflow_addons"],
+}
+def __init__(
+self,
+n_epochs=100,
+batch_size=12,
+kernel_size=None,
+n_filters=None,
+dropout_proba=0.2,
+activation="sigmoid",
+max_pool_size=2,
+padding="same",
+strides=1,
+fc_units=256,
+callbacks=None,
+file_path="./",
+save_best_model=False,
+save_last_model=False,
+best_file_name="best_model",
+last_file_name="last_model",
+verbose=False,
+loss="categorical_crossentropy",
+metrics=None,
+random_state=None,
+use_bias=True,
+optimizer=None,
+):
+self.n_filters = n_filters
+self.max_pool_size = max_pool_size
+self.kernel_size = kernel_size
+self.strides = strides
+self.activation = activation
+self.padding = padding
+self.dropout_proba = dropout_proba
+self.fc_units = fc_units
+
+self.callbacks = callbacks
+self.file_path = file_path
+self.save_best_model = save_best_model
+self.save_last_model = save_last_model
+self.best_file_name = best_file_name
+self.n_epochs = n_epochs
+self.verbose = verbose
+self.loss = loss
+self.metrics = metrics
+self.use_bias = use_bias
+self.optimizer = optimizer
+
+self.history = None
+super().__init__(
+batch_size=batch_size,
+random_state=random_state,
+last_file_name=last_file_name
+)
+self._network = EncoderNetwork(
+kernel_size=self.kernel_size,
+max_pool_size=self.max_pool_size,
+n_filters=self.n_filters,
+fc_units=self.fc_units,
+strides=self.strides,
+padding=self.padding,
+dropout_proba=self.dropout_proba,
+activation=self.activation,
+random_state=self.random_state,
+)
+def build_model(self, input_shape, output_shape, **kwargs):
+Construct a compiled, un-trained, keras model that is ready for training.
+
+In aeon, time series are stored in numpy arrays of shape (d, m), where d
+is the number of dimensions, m is the series length. Keras/tensorflow assume
+data is in shape (m, d). This method also assumes (m, d). Transpose should
+happen in fit.
+
+Parameters
+----------
+input_shape : tuple
+The shape of the data fed into the input layer, should be (m, d).
+output_shape : int
+The number of output units, which becomes the size of the output layer.
+
+Gives
+-------
+output : a compiled Keras Model
 """
+
+# added a new line for W292
