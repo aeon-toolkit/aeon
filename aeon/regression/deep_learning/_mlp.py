@@ -25,12 +25,11 @@ class MLPRegressor(BaseDeepRegressor):
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
-    random_state : int or None, default=None
-        Seed for random number generation.
     verbose : boolean, default = False
         whether to output extra information
     loss : string, default="mean_squared_error"
         fit parameter for the keras model
+    metrics : list of strings, default=["accuracy"],
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -51,16 +50,17 @@ class MLPRegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    optimizer : keras.optimizer, default=keras.optimizers.Adadelta(),
-    metrics : list of strings, default=["accuracy"],
+    random_state : int or None, default=None
+        Seed for random number generation.
     activation : string or a tf callable, default="relu"
         Activation function used in the output linear layer.
         List of available activation functions:
         https://keras.io/api/layers/activations/
-    use_bias : boolean, default = True
-        whether the layer uses a bias vector.
     output_activation : str = "linear"
         Activation for the last layer in a Regressor
+    use_bias : boolean, default = True
+        whether the layer uses a bias vector.
+    optimizer : keras.optimizer, default=keras.optimizers.Adadelta()
 
 
     References
@@ -173,10 +173,10 @@ class MLPRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
+        X : np.ndarray of shape = (n_instances, n_channels, n_timepoints)
             The training input samples.
         y : np.ndarray of shape n
-            The training output data.
+            The training data target values.
 
         Returns
         -------
