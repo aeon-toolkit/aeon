@@ -173,7 +173,6 @@ class AEFCNClusterer(BaseDeepClusterer):
             padding=self.padding,
             activation=self.activation,
             use_bias=self.use_bias,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, **kwargs):
