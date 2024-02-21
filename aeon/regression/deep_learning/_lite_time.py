@@ -8,8 +8,9 @@ import os
 import time
 from copy import deepcopy
 
-from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.networks import LITENetwork
+from aeon.regression.deep_learning.base import BaseDeepRegressor
+
 
 class IndividualLITERegressor(BaseDeepRegressor):
     """Single LITETime Regressor.
