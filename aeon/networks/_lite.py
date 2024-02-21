@@ -55,7 +55,7 @@ class LITENetwork(BaseDeepNetwork):
         super().__init__()
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
-        """Construct the hybrid layer to compute features of cutom filters.
+        """Construct the hybrid layer to compute features of custom filters.
 
         Parameters
         ----------
