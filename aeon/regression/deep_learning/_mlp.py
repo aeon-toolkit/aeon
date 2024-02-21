@@ -53,17 +53,15 @@ class MLPRegressor(BaseDeepRegressor):
         is discarded
     optimizer : keras.optimizer, default=keras.optimizers.Adadelta(),
     metrics : list of strings, default=["accuracy"],
-    activation : string or a tf callable, default="sigmoid"
+    activation : string or a tf callable, default="relu"
         Activation function used in the output linear layer.
         List of available activation functions:
         https://keras.io/api/layers/activations/
     use_bias : boolean, default = True
         whether the layer uses a bias vector.
+    output_activation : str = "linear"
+        Activation for the last layer in a Regressor
 
-    Notes
-    -----
-    Adapted from the implementation from source code
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/mlp.py
 
     References
     ----------
@@ -73,12 +71,12 @@ class MLPRegressor(BaseDeepRegressor):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning import MLPClassifier
+    >>> from aeon.regression.deep_learning import MLPRegressor
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> mlp = MLPClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
+    >>> mlp = MLPRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> mlp.fit(X_train, y_train)  # doctest: +SKIP
-    MLPClassifier(...)
+    MLPRegressor(...)
     """
 
     def __init__(
@@ -87,7 +85,7 @@ class MLPRegressor(BaseDeepRegressor):
         batch_size=16,
         callbacks=None,
         verbose=False,
-        loss="categorical_crossentropy",
+        loss="mse",
         metrics=None,
         file_path="./",
         save_best_model=False,
@@ -95,7 +93,8 @@ class MLPRegressor(BaseDeepRegressor):
         best_file_name="best_model",
         last_file_name="last_model",
         random_state=None,
-        activation="sigmoid",
+        activation="relu",
+        output_activation = "linear",
         use_bias=True,
         optimizer=None,
     ):
@@ -112,6 +111,7 @@ class MLPRegressor(BaseDeepRegressor):
         self.best_file_name = best_file_name
         self.optimizer = optimizer
         self.random_state = random_state
+        self.output_activation = output_activation
 
         self.history = None
 
@@ -122,7 +122,7 @@ class MLPRegressor(BaseDeepRegressor):
 
         self._network = MLPNetwork()
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -134,8 +134,6 @@ class MLPRegressor(BaseDeepRegressor):
         ----------
         input_shape : tuple
             The shape of the data fed into the input layer, should be (m,d)
-        n_classes: int
-            The number of classes, which becomes the size of the output layer
 
         Returns
         -------
@@ -153,7 +151,7 @@ class MLPRegressor(BaseDeepRegressor):
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+            units=1, activation=self.output_activation, use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
@@ -169,14 +167,14 @@ class MLPRegressor(BaseDeepRegressor):
         return model
 
     def _fit(self, X, y):
-        """Fit the classifier on the training set (X, y).
+        """Fit the Regressor on the training set (X, y).
 
         Parameters
         ----------
         X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
             The training input samples.
         y : np.ndarray of shape n
-            The training data class labels.
+            The training output data.
 
         Returns
         -------
@@ -247,7 +245,7 @@ class MLPRegressor(BaseDeepRegressor):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
+            For Regressors, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
@@ -260,12 +258,11 @@ class MLPRegressor(BaseDeepRegressor):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        param1 = {
+        param = {
             "n_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
+            "n_layers": 1,
         }
 
-        test_params = [param1]
-
-        return test_params
+        return [param]
