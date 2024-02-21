@@ -1,4 +1,4 @@
-"""Multi Layer Perceptron Network (MLP) for classification."""
+"""Multi Layer Perceptron Network (MLP) for Regression."""
 
 __author__ = ["Aadya-Chinubhai"]
 __all__ = ["MLPRegressor"]
