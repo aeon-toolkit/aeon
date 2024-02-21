@@ -264,7 +264,6 @@ class MLPRegressor(BaseDeepRegressor):
             "n_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
-            "n_layers": 1,
         }
 
         return [param]
