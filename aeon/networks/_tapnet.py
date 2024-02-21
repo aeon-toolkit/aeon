@@ -22,7 +22,7 @@ class TapNetNetwork(BaseDeepNetwork):
         Specifying the length of the 1D convolution window.
     layers : array of int, default = (500, 300)
         Size of dense layers.
-    filter_sizes : array of int, shape = (nb_conv_layers), default = (256, 256, 128)
+    filter_sizes : array of int, shape = (n_conv_layers), default = (256, 256, 128)
     random_state : int, default = 1
         Seed to any needed random actions.
     rp_params : array of int, default = (-1, 3)
