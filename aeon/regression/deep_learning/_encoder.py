@@ -143,7 +143,7 @@ class EncoderRegressor(BaseDeepRegressor):
 
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
-        
+
         In aeon, time series are stored in numpy arrays of shape (d, m), where d
         is the number of dimensions, m is the series length. Keras/tensorflow assume
         data is in shape (m, d). This method also assumes (m, d). Transpose should
@@ -204,8 +204,6 @@ class EncoderRegressor(BaseDeepRegressor):
         """
         import tensorflow as tf
 
-        # Convert y to Keras
-        y_onehot = self.convert_y_to_keras(y)
         # Transpose X to conform to Keras input style
         X = X.transpose(0, 2, 1)
         check_random_state(self.random_state)
@@ -235,7 +233,7 @@ class EncoderRegressor(BaseDeepRegressor):
 
         self.history = self.training_model_.fit(
             X,
-            y_onehot,
+            y,
             batch_size=self.batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
