@@ -10,8 +10,6 @@ class MLPNetwork(BaseDeepNetwork):
 
     Adapted from the implementation used in [1]_
 
-    Parameters
-    ----------
 
     Notes
     -----
