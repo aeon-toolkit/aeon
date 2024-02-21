@@ -61,7 +61,7 @@ class EncoderRegressor(BaseDeepRegressor):
         is discarded.
     random_state : int, default = 0
         Seed to any needed random actions.
-    
+
     Notes
     -----
     Adapted from source code
