@@ -144,7 +144,6 @@ class EncoderClassifier(BaseDeepClassifier):
             padding=self.padding,
             dropout_proba=self.dropout_proba,
             activation=self.activation,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):

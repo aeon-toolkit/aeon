@@ -173,7 +173,6 @@ class CNNRegressor(BaseDeepRegressor):
             strides=self.strides,
             dilation_rate=self.dilation_rate,
             use_bias=self.use_bias,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, **kwargs):

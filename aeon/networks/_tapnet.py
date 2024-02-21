@@ -23,8 +23,6 @@ class TapNetNetwork(BaseDeepNetwork):
     layers : array of int, default = (500, 300)
         Size of dense layers.
     filter_sizes : array of int, shape = (n_conv_layers), default = (256, 256, 128)
-    random_state : int, default = 1
-        Seed to any needed random actions.
     rp_params : array of int, default = (-1, 3)
         Parameters for random permutation.
     dropout : float, default = 0.5
@@ -64,10 +62,8 @@ class TapNetNetwork(BaseDeepNetwork):
         use_att=True,
         use_lstm=True,
         use_cnn=True,
-        random_state=1,
         padding="same",
     ):
-        self.random_state = random_state
         self.kernel_size = kernel_size
         self.layers = layers
         self.rp_params = rp_params
