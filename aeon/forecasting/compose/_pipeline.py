@@ -8,8 +8,8 @@ import pandas as pd
 from aeon.base import _HeterogenousMetaEstimator
 from aeon.forecasting.base._base import BaseForecaster
 from aeon.forecasting.base._delegate import _DelegatedForecaster
-from aeon.registry._data_types import ALL_TIME_SERIES_TYPES
 from aeon.transformations.base import BaseTransformer
+from aeon.utils._data_types import ALL_TIME_SERIES_TYPES
 from aeon.utils.validation.series import check_series
 
 

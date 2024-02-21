@@ -5,13 +5,13 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_covid_3month
-from aeon.registry import COLLECTIONS_DATA_TYPES
 from aeon.regression._dummy import DummyRegressor
 from aeon.regression.base import BaseRegressor
 from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
+from aeon.utils import COLLECTIONS_DATA_TYPES
 
 
 class _TestRegressor(BaseRegressor):
