@@ -157,6 +157,30 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         self.check_is_fitted()
         X = self._preprocess_collection(X)
         return self._predict(X)
+    def fit_predict(self, X, y) -> np.ndarray:
+        """Fit time series regressor to training data and predict target variable.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            train data of shape ``(n_instances, n_channels, n_timepoints)`` for any
+            number of channels, equal length series, ``(n_instances, n_timepoints)``
+            for univariate, equal length series.
+            or list of shape ``[n_instances]`` of 2D np.array shape ``(n_channels,
+            n_timepoints_i)``, where n_timepoints_i is length of series i
+            other types are allowed and converted into one of the above.
+        y : np.ndarray
+            1D np.array of float, of shape ``(n_instances)`` - regression targets or
+            fitting indices correspond to instance indices in X.
+
+        Returns
+        -------
+        np.ndarray
+            1D np.array of float, of shape (n_instances) - predicted regression labels
+            indices correspond to instance indices in X
+        """
+        self.fit(X, y)
+        return self.predict(X)
 
     def score(self, X, y) -> float:
         """Scores predicted labels against ground truth labels on X.
