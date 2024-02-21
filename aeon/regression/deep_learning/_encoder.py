@@ -61,7 +61,7 @@ class EncoderRegressor(BaseDeepRegressor):
         is discarded.
     random_state : int, default = 0
         Seed to any needed random actions.
-    
+
     Notes
     -----
     Adapted from source code
@@ -143,7 +143,7 @@ class EncoderRegressor(BaseDeepRegressor):
 
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
-        
+
         In aeon, time series are stored in numpy arrays of shape (d, m), where d
         is the number of dimensions, m is the series length. Keras/tensorflow assume
         data is in shape (m, d). This method also assumes (m, d). Transpose should
