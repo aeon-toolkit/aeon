@@ -94,7 +94,7 @@ class MLPRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         random_state=None,
         activation="relu",
-        output_activation = "linear",
+        output_activation="linear",
         use_bias=True,
         optimizer=None,
     ):
