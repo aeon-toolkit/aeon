@@ -1,4 +1,4 @@
-"""Deep learning based regressors.
+"""Deep learning based regressors."""
 
 __all__ = [
     "CNNRegressor",
@@ -21,4 +21,3 @@ from aeon.regression.deep_learning._inception_time import (
 from aeon.regression.deep_learning._resnet import ResNetRegressor
 from aeon.regression.deep_learning._tapnet import TapNetRegressor
 from aeon.regression.deep_learning._base import BaseDeepRegressor
-"""
