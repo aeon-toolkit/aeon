@@ -8,8 +8,6 @@ import os
 import time
 from copy import deepcopy
 
-import numpy as np
-
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.networks import LITENetwork
 
