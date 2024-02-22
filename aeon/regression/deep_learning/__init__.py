@@ -8,6 +8,7 @@ __all__ = [
     "ResNetRegressor",
     "TapNetRegressor",
     "IndividualLITERegressor",
+    "LITETimeRegressor",
 ]
 
 from aeon.regression.deep_learning._cnn import CNNRegressor
@@ -18,4 +19,4 @@ from aeon.regression.deep_learning._inception_time import (
 )
 from aeon.regression.deep_learning._resnet import ResNetRegressor
 from aeon.regression.deep_learning._tapnet import TapNetRegressor
-from aeon.regression.deep_learning._lite_time import IndividualLITERegressor
+from aeon.regression.deep_learning._lite_time import IndividualLITERegressor, LITETimeRegressor
