@@ -17,6 +17,9 @@ from aeon.regression.deep_learning._inception_time import (
     InceptionTimeRegressor,
     IndividualInceptionRegressor,
 )
+from aeon.regression.deep_learning._lite_time import (
+    IndividualLITERegressor,
+    LITETimeRegressor,
+)
 from aeon.regression.deep_learning._resnet import ResNetRegressor
 from aeon.regression.deep_learning._tapnet import TapNetRegressor
-from aeon.regression.deep_learning._lite_time import IndividualLITERegressor, LITETimeRegressor

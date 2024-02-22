@@ -8,7 +8,6 @@ import os
 import time
 from copy import deepcopy
 
-
 import numpy as np
 from sklearn.utils import check_random_state
 
@@ -212,7 +211,7 @@ class LITETimeRegressor(BaseRegressor):
 
         """
         check_random_state(self.random_state)
-        vals = np.zeros((X.shape[0]))
+        vals = np.zeros(X.shape[0])
 
         for cls in self.regressors_:
             vals += cls._predict(X)
@@ -251,7 +250,7 @@ class LITETimeRegressor(BaseRegressor):
         }
 
         return [param1]
-    
+
 
 class IndividualLITERegressor(BaseDeepRegressor):
     """Single LITETime Regressor.
