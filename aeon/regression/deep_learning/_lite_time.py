@@ -1,16 +1,257 @@
 """LITETime Regressor."""
 
 __author__ = ["aadya940"]
-__all__ = ["IndividualLITERegressor"]
+__all__ = ["IndividualLITERegressor", "LITETimeRegressor"]
 
 import gc
 import os
 import time
 from copy import deepcopy
 
-from aeon.networks import LITENetwork
-from aeon.regression.deep_learning.base import BaseDeepRegressor
 
+import numpy as np
+from sklearn.utils import check_random_state
+
+from aeon.networks import LITENetwork
+from aeon.regression.deep_learning.base import BaseDeepRegressor, BaseRegressor
+
+
+class LITETimeRegressor(BaseRegressor):
+    """LITETime ensemble Regressor.
+
+    Ensemble of IndividualLITETimeRegressor objects, as described in [1]_.
+
+    Parameters
+    ----------
+    n_classifiers : int, default = 5,
+        the number of LITE models used for the
+        Ensemble in order to create
+        LITETime.
+    n_filters : int or list of int32, default = 32
+        The number of filters used in one lite layer, if not a list, the same
+        number of filters is used in all lite layers.
+    kernel_size : int or list of int, default = 40
+        The head kernel size used for each lite layer, if not a list, the same
+        is used in all lite module.
+    strides : int or list of int, default = 1
+        The strides of kernels in convolution layers for each lite layer,
+        if not a list, the same is used in all lite layers.
+    activation : str or list of str, default = 'relu'
+        The activation function used in each lite layer, if not a list,
+        the same is used in all lite layers.
+    batch_size : int, default = 64
+        the number of samples per gradient update.
+    use_mini_batch_size : bool, default = False
+        condition on using the mini batch size
+        formula Wang et al.
+    n_epochs : int, default = 1500
+        the number of epochs to train the model.
+    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
+        list of tf.keras.callbacks.Callback objects.
+    file_path : str, default = "./"
+        file_path when saving model_Checkpoint callback
+    save_best_model : bool, default = False
+        Whether or not to save the best model, if the
+        model checkpoint callback is used by default,
+        this condition, if True, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name
+    save_last_model : bool, default = False
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        save_last_model_to_file
+    best_file_name : str, default = "best_model"
+        The name of the file of the best model, if
+        save_best_model is set to False, this parameter
+        is discarded
+    last_file_name : str, default = "last_model"
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded
+    random_state : int, default = 0
+        seed to any needed random actions.
+    verbose : boolean, default = False
+        whether to output extra information
+    optimizer : keras optimizer, default = Adam
+    loss : keras loss, default = "mse"
+    metrics : keras metrics, default = None,
+        will be set to accuracy as default if None
+
+    Notes
+    -----
+    ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
+    tEchniques for Time Series Classification, IEEE International
+    Conference on Data Science and Advanced Analytics, 2023.
+
+    Adapted from the implementation from Ismail-Fawaz et. al
+    https://github.com/MSD-IRIMAS/LITE
+
+    Examples
+    --------
+    >>> from aeon.regression.deep_learning import LITETimeRegressor
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> ltime = LITETimeRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> ltime.fit(X_train, y_train)  # doctest: +SKIP
+    LITETimeRegressor(...)
+    """
+
+    _tags = {
+        "python_dependencies": "tensorflow",
+        "capability:multivariate": True,
+        "non-deterministic": True,
+        "cant-pickle": True,
+        "algorithm_type": "deeplearning",
+    }
+
+    def __init__(
+        self,
+        n_regressors=5,
+        n_filters=32,
+        kernel_size=40,
+        strides=1,
+        activation="relu",
+        file_path="./",
+        save_last_model=False,
+        save_best_model=False,
+        best_file_name="best_model",
+        last_file_name="last_model",
+        batch_size=64,
+        use_mini_batch_size=False,
+        n_epochs=1500,
+        callbacks=None,
+        random_state=None,
+        verbose=False,
+        loss="mse",
+        metrics=None,
+        optimizer=None,
+    ):
+        self.n_regressors = n_regressors
+
+        self.strides = strides
+        self.activation = activation
+        self.n_filters = n_filters
+
+        self.kernel_size = kernel_size
+        self.batch_size = batch_size
+        self.n_epochs = n_epochs
+
+        self.file_path = file_path
+
+        self.save_last_model = save_last_model
+        self.save_best_model = save_best_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
+
+        self.callbacks = callbacks
+        self.random_state = random_state
+        self.verbose = verbose
+        self.use_mini_batch_size = use_mini_batch_size
+        self.loss = loss
+        self.metrics = metrics
+        self.optimizer = optimizer
+
+        self.classifers_ = []
+
+        super().__init__()
+
+    def _fit(self, X, y):
+        """Fit the ensemble of IndividualLITERegressor models.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
+            The training input samples.
+        y : np.ndarray of shape n
+            The training data target values.
+
+        Returns
+        -------
+        self : object
+        """
+        self.regressors_ = []
+        rng = check_random_state(self.random_state)
+
+        for n in range(0, self.n_regressors):
+            cls = IndividualLITERegressor(
+                n_filters=self.n_filters,
+                kernel_size=self.kernel_size,
+                file_path=self.file_path,
+                save_best_model=self.save_best_model,
+                save_last_model=self.save_last_model,
+                best_file_name=self.best_file_name + str(n),
+                last_file_name=self.last_file_name + str(n),
+                batch_size=self.batch_size,
+                use_mini_batch_size=self.use_mini_batch_size,
+                n_epochs=self.n_epochs,
+                callbacks=self.callbacks,
+                loss=self.loss,
+                metrics=self.metrics,
+                optimizer=self.optimizer,
+                random_state=rng.randint(0, np.iinfo(np.int32).max),
+                verbose=self.verbose,
+            )
+            cls.fit(X, y)
+            self.regressors_.append(cls)
+            gc.collect()
+
+        return self
+
+    def _predict(self, X) -> np.ndarray:
+        """Predict the values of the test set using LITETime.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
+            The testing input samples.
+
+        Returns
+        -------
+        Y : np.ndarray of shape = (n_instances (n)), the predicted target values
+
+        """
+        check_random_state(self.random_state)
+        vals = np.zeros((X.shape[0]))
+
+        for cls in self.regressors_:
+            vals += cls._predict(X)
+
+        vals = vals / self.n_regressors
+
+        return vals
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+            For Regressors, a "default" set of parameters should be provided for
+            general testing, and a "results_comparison" set for comparing against
+            previously recorded results if the general set does not produce suitable
+            probabilities to compare against.
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`.
+        """
+        param1 = {
+            "n_regressors": 1,
+            "n_epochs": 10,
+            "batch_size": 4,
+            "kernel_size": 4,
+        }
+
+        return [param1]
+    
 
 class IndividualLITERegressor(BaseDeepRegressor):
     """Single LITETime Regressor.
