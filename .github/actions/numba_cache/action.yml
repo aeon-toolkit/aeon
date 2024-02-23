@@ -42,11 +42,6 @@ runs:
       run: echo "CURRENT_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
       shell: bash
 
-    # Get previous date for cache restore in case other fails
-    - name: Get Previous Date
-      run: echo "PREVIOUS_DATE=$(date -d "yesterday" +'%d/%m/%Y')" >> $GITHUB_ENV
-      shell: bash
-
       # GNU tar on windows runs much faster than the default BSD tar
     - name: "Use GNU tar instead BSD tar"
       if: ${{ inputs.runner_os == 'Windows' }}
@@ -63,4 +58,4 @@ runs:
         key: numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ env.CURRENT_DATE }}
         # If cant restore with todays date try yesterdays date
         restore-keys: |
-          numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ env.PREVIOUS_DATE }}
+          numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-
