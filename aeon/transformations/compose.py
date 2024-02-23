@@ -30,7 +30,7 @@ __all__ = [
     "TransformerPipeline",
     "YtoX",
 ]
-from aeon.registry import ALL_TIME_SERIES_TYPES
+from aeon.utils import ALL_TIME_SERIES_TYPES
 
 
 def _coerce_to_aeon(other):

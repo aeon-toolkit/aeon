@@ -58,12 +58,7 @@ from aeon.utils.sklearn import (
     is_sklearn_regressor,
     is_sklearn_transformer,
 )
-from aeon.utils.validation import (
-    is_collection,
-    is_hierarchical,
-    is_single_series,
-    is_univariate_series,
-)
+from aeon.utils.validation import is_univariate_series
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 # single/multiple primitives
@@ -810,23 +805,26 @@ class BaseTransformer(BaseEstimator):
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
         ALLOWED_MTYPES = self.ALLOWED_INPUT_TYPES
-        X_valid = is_hierarchical(X) or is_collection(X) or is_single_series(X)
-        if not X_valid:
-            raise TypeError(
-                "must be in an aeon compatible format for storing series, hierarchical "
-                "series or collections of series. For example, a "
-                "pandas.DataFrame with aeon compatible time indices for a single series"
-                " or a 3D numpy shape (n_cases, n_channels, n_timepoints) for a "
-                "collection."
-            )
 
         # checking X
-        _, _, X_metadata = check_is_scitype(
+        X_valid, msg, X_metadata = check_is_scitype(
             X,
             scitype=ALLOWED_SCITYPES,
             return_metadata=True,
             var_name="X",
         )
+
+        msg_invalid_input = (
+            f"must be in an aeon compatible format for storing series, hierarchical "
+            f"series or collections of series. For example, a "
+            f"pandas.DataFrame with aeon compatible time indices for a single series, "
+            f"or a 3D numpy shape (n_cases, n_channels, n_timepoints) for a "
+            f"collection. Allowed compatible formats are described as {ALLOWED_MTYPES}."
+        )
+        if not X_valid:
+            for mtype, err in msg.items():
+                msg_invalid_input += f" [{mtype}: {err}] "
+            raise TypeError("X " + msg_invalid_input)
 
         X_scitype = X_metadata["scitype"]
         X_mtype = X_metadata["mtype"]
@@ -835,7 +833,7 @@ class BaseTransformer(BaseEstimator):
         metadata["_X_input_scitype"] = X_scitype
 
         if X_mtype not in ALLOWED_MTYPES:
-            raise TypeError("Error in internal type")
+            raise TypeError("X " + msg_invalid_input)
 
         if X_scitype in X_inner_scitype:
             case = "case 1: scitype supported"
@@ -869,7 +867,7 @@ class BaseTransformer(BaseEstimator):
                 y, scitype=y_possible_scitypes, return_metadata=True, var_name="y"
             )
             if not y_valid:
-                raise TypeError("y not a valid input type")
+                raise TypeError("y " + msg_invalid_input)
 
             y_scitype = y_metadata["scitype"]
 

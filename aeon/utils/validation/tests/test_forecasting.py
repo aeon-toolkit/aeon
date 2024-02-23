@@ -32,7 +32,7 @@ def test_check_fh_empty_input(arg):
 
 
 def test_check_fh():
-    """Test enforce relative"""
+    """Test enforce relative."""
     fh = ForecastingHorizon(1, is_relative=False)
     with raises(ValueError, match="must be relative"):
         check_fh(fh, enforce_relative=True)

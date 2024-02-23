@@ -500,6 +500,7 @@ def get_slice(obj, start=None, end=None):
         must be int if obj is int indexed, timestamp if datetime indexed
         Exclusive end of slice. Default = None
         If None, then no slice at the end
+
     Returns
     -------
     obj sub-set sliced for `start` (inclusive) and `end` (exclusive) indices
