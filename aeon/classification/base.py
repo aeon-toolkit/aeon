@@ -136,13 +136,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
 
@@ -155,7 +155,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float or str, of shape ``(n_instances)`` - class labels
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
@@ -185,13 +185,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``
             other types are allowed and converted into one of the above.
 
@@ -207,15 +207,15 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         Returns
         -------
         predictions : np.ndarray
-            1D np.array of float, of shape (n_instances) - predicted class labels
+            1D np.array of float, of shape (n_cases) - predicted class labels
             indices correspond to instance indices in X
         """
         self.check_is_fitted()
 
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
-            n_instances = get_n_cases(X)
-            return np.repeat(list(self._class_dictionary.keys()), n_instances)
+            n_cases = get_n_cases(X)
+            return np.repeat(list(self._class_dictionary.keys()), n_cases)
 
         X = self._preprocess_collection(X)
         return self._predict(X)
@@ -226,13 +226,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
 
@@ -257,8 +257,8 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
-            n_instances = get_n_cases(X)
-            return np.repeat([[1]], n_instances, axis=0)
+            n_cases = get_n_cases(X)
+            return np.repeat([[1]], n_cases, axis=0)
 
         X = self._preprocess_collection(X)
         return self._predict_proba(X)
@@ -280,13 +280,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
 
@@ -299,20 +299,20 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float or str, of shape ``(n_instances)`` - class labels
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
         predictions : np.ndarray
-            shape ``[n_instances]`` - predicted class labels indices correspond to
+            shape ``[n_cases]`` - predicted class labels indices correspond to
             instance indices in
         """
         X, y, single_class = self._fit_setup(X, y)
 
         if single_class:
-            n_instances = get_n_cases(X)
-            y_pred = np.repeat(list(self._class_dictionary.keys()), n_instances)
+            n_cases = get_n_cases(X)
+            y_pred = np.repeat(list(self._class_dictionary.keys()), n_cases)
         else:
             y_pred = self._fit_predict(X, y)
 
@@ -338,13 +338,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
 
@@ -357,12 +357,12 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float or str, of shape ``(n_instances)`` - class labels
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        probabilities: np.ndarray
+        probabilities : np.ndarray
             2D array of shape ``(n_cases, n_classes)`` - predicted class probabilities
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
@@ -371,8 +371,8 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         X, y, single_class = self._fit_setup(X, y)
 
         if single_class:
-            n_instances = get_n_cases(X)
-            y_proba = np.repeat([[1]], n_instances, axis=0)
+            n_cases = get_n_cases(X)
+            y_proba = np.repeat([[1]], n_cases, axis=0)
         else:
             y_proba = self._fit_predict_proba(X, y)
 
@@ -385,13 +385,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
 
@@ -404,7 +404,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float or str, of shape ``(n_instances)`` - class labels
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
@@ -427,11 +427,11 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         X : Train data
             guaranteed to be of a type in self.get_tag("X_inner_type")
             if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
             if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_instances)``
+                list of 2D np.ndarray of shape ``(n_cases)``
         y : np.ndarray
-            1D np.array of float or str, of shape ``(n_instances)`` - class labels
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
@@ -457,14 +457,14 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         X : Train data
             guaranteed to be of a type in self.get_tag("X_inner_type")
             if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
             if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_instances)``
+                list of 2D np.ndarray of shape ``(n_cases)``
 
         Returns
         -------
         predictions : np.ndarray
-            shape ``[n_instances]`` - predicted class labels indices correspond to
+            shape ``[n_cases]`` - predicted class labels indices correspond to
             instance indices in
         """
         ...
@@ -481,13 +481,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         X : Train data
             guaranteed to be of a type in self.get_tag("X_inner_type")
             if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
             if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_instances)``
+                list of 2D np.ndarray of shape ``(n_cases)``
 
         Returns
         -------
-        probabilities: np.ndarray
+        probabilities : np.ndarray
             2D array of shape ``(n_cases, n_classes)`` - predicted class probabilities
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
@@ -509,17 +509,17 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         X : Train data
             guaranteed to be of a type in self.get_tag("X_inner_type")
             if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
             if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_instances)``
+                list of 2D np.ndarray of shape ``(n_cases)``
         y : np.ndarray
-            1D np.array of float or str, of shape ``(n_instances)`` - class labels
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
         predictions : np.ndarray
-            shape ``[n_instances]`` - predicted class labels indices correspond to
+            shape ``[n_cases]`` - predicted class labels indices correspond to
             instance indices in
         """
         return self._fit_predict_default(X, y, "predict")
@@ -532,16 +532,16 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         X : Train data
             guaranteed to be of a type in self.get_tag("X_inner_type")
             if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
             if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_instances)``
+                list of 2D np.ndarray of shape ``(n_cases)``
         y : np.ndarray
-            1D np.array of float or str, of shape ``(n_instances)`` - class labels
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        probabilities: np.ndarray
+        probabilities : np.ndarray
             2D array of shape ``(n_cases, n_classes)`` - predicted class probabilities
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is

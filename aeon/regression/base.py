@@ -29,12 +29,12 @@ from typing import final
 import numpy as np
 import pandas as pd
 from deprecated.sphinx import deprecated
-from sklearn.metrics import r2_score
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
+from aeon.performance_metrics.forecasting import mean_squared_error
 from aeon.utils.sklearn import is_sklearn_transformer
 
 
@@ -126,13 +126,13 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
 
@@ -145,7 +145,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float, of shape ``(n_instances)`` - regression targets
+            1D np.array of float, of shape ``(n_cases)`` - regression targets
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
@@ -174,13 +174,13 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``
             other types are allowed and converted into one of the above.
 
@@ -196,7 +196,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         Returns
         -------
         predictions : np.ndarray
-            1D np.array of float, of shape (n_instances) - predicted regression labels
+            1D np.array of float, of shape (n_cases) - predicted regression labels
             indices correspond to instance indices in X
         """
         self.check_is_fitted()
@@ -220,13 +220,13 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
 
@@ -239,13 +239,13 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float, of shape ``(n_instances)`` - regression targets
+            1D np.array of float, of shape ``(n_cases)`` - regression targets
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
         predictions : np.ndarray
-            1D np.array of float, of shape (n_instances) - predicted regression labels
+            1D np.array of float, of shape (n_cases) - predicted regression labels
             indices correspond to instance indices in X
         """
         X, y = self._fit_setup(X, y)
@@ -261,13 +261,13 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray or list
             Input data, any number of channels, equal length series of shape ``(
-            n_instances, n_channels, n_timepoints)``
+            n_cases, n_channels, n_timepoints)``
             or 2D np.array (univariate, equal length series) of shape
-            ``(n_instances, n_timepoints)``
+            ``(n_cases, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_instances]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. other types are
             allowed and converted into one of the above.
 
@@ -280,17 +280,17 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             characteristic that the estimator does not have the capability for is
             passed.
         y : np.ndarray
-            1D np.array of float, of shape ``(n_instances)`` - regression targets
+            1D np.array of float, of shape ``(n_cases)`` - regression targets
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
         score : float
-            R-squared score of predict(X) vs y
+            MSE score of predict(X) vs y
         """
         self.check_is_fitted()
         y = self._check_y(y, len(X))
-        return r2_score(y, self.predict(X))
+        return mean_squared_error(y, self.predict(X))
 
     @abstractmethod
     def _fit(self, X, y):
@@ -303,11 +303,11 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         X : Train data
             guaranteed to be of a type in self.get_tag("X_inner_type")
             if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
             if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_instances)``
+                list of 2D np.ndarray of shape ``(n_cases)``
         y : np.ndarray
-            1D np.array of float, of shape ``(n_instances)`` - regression targets for
+            1D np.array of float, of shape ``(n_cases)`` - regression targets for
             fitting indices corresponding to instance indices in X.
 
         Returns
@@ -332,14 +332,14 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         X : Train data
             guaranteed to be of a type in self.get_tag("X_inner_type")
             if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
             if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_instances)``
+                list of 2D np.ndarray of shape ``(n_cases)``
 
         Returns
         -------
         predictions : np.ndarray
-            1D np.array of float, of shape (n_instances) - predicted regression labels
+            1D np.array of float, of shape (n_cases) - predicted regression labels
             indices correspond to instance indices in X
         """
         ...
@@ -352,17 +352,17 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         X : Train data
             guaranteed to be of a type in self.get_tag("X_inner_type")
             if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_instances, n_channels, n_timepoints)``
+                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
             if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_instances)``
+                list of 2D np.ndarray of shape ``(n_cases)``
         y : np.ndarray
-            1D np.array of float, of shape ``(n_instances)`` - regression targets
+            1D np.array of float, of shape ``(n_cases)`` - regression targets
             (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
         predictions : np.ndarray
-            1D np.array of float, of shape (n_instances) - predicted regression labels
+            1D np.array of float, of shape (n_cases) - predicted regression labels
             indices correspond to instance indices in X
         """
         # fit the regressor
