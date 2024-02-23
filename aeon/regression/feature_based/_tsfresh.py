@@ -93,8 +93,8 @@ class TSFreshRegressor(BaseRegressor):
 
         self._transformer = None
         self._estimator = None
-        self._return_majority_class = False
-        self._majority_class = 0
+        self._return_mean = False
+        self._mean = 0
 
         super().__init__()
 
