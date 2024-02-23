@@ -59,10 +59,13 @@ a = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
 
 
 @pytest.mark.parametrize("with_mean", [True, False])
-def test_standard_scaler_mean(with_mean):
+@pytest.mark.parametrize("inverse_transform_needed", [True, False])
+def test_standard_scaler_mean(with_mean, inverse_transform_needed):
     """Test Standard scaler with and without mean, equal and unequal length."""
     # Equal length 2 channels, 2 cases
-    sc = TimeSeriesScaler(with_mean=with_mean)
+    sc = TimeSeriesScaler(
+        with_mean=with_mean, inverse_transform_needed=inverse_transform_needed
+    )
     X2 = sc.fit_transform(X)
     assert isinstance(X2, np.ndarray)
     assert X2.shape == X.shape
@@ -70,20 +73,41 @@ def test_standard_scaler_mean(with_mean):
         np.testing.assert_almost_equal(expected, X2)
     else:
         np.testing.assert_almost_equal(expected_no_mean, X2)
+
+    if inverse_transform_needed:
+        X3 = sc.inverse_transform(X2)
+        assert isinstance(X3, np.ndarray)
+        assert X3.shape == X2.shape
+        np.testing.assert_almost_equal(X, X3)
+
+    # Unequal length 2 channels, 2 cases
     if with_mean:
         X2 = sc.fit_transform(X_unequal)
         assert isinstance(X2, list)
         np.testing.assert_almost_equal(X2[0], a)
 
+        if inverse_transform_needed:
+            X3 = sc.inverse_transform(X2)
+            assert isinstance(X3, list)
+            np.testing.assert_almost_equal(X_unequal[0], X3[0])
+
 
 @pytest.mark.parametrize("with_std", [True, False])
-def test_standard_scaler_std_dev(with_std):
+@pytest.mark.parametrize("inverse_transform_needed", [True, False])
+def test_standard_scaler_std_dev(with_std, inverse_transform_needed):
     """Test Standard scaler with and without std."""
     # Equal length 2 channels, 2 cases
-    sc = TimeSeriesScaler(with_std=with_std)
+    sc = TimeSeriesScaler(
+        with_std=with_std, inverse_transform_needed=inverse_transform_needed
+    )
     X2 = sc.fit_transform(X)
     assert X2.shape == X.shape
     if with_std:
         np.testing.assert_almost_equal(expected, X2)
     else:
         np.testing.assert_almost_equal(expected_no_std, X2)
+
+    if inverse_transform_needed:
+        X3 = sc.inverse_transform(X2)
+        assert X3.shape == X2.shape
+        np.testing.assert_almost_equal(X, X3)
