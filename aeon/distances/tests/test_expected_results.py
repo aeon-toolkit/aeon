@@ -97,6 +97,13 @@ _expected_distance_results = {
         4.788349892989078,
         28.544576071968976,
     ],
+    "sbd": [
+        0.0,
+        0.37703586,
+        5.83679404,
+        0.54873524,
+        5.25349721,
+    ],
 }
 
 _expected_distance_results_params = {
