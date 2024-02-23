@@ -14,20 +14,20 @@ from aeon.utils.validation._check_collection import (
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test__is_nested_univ_dataframe(data):
+def test_is_nested_univ_dataframe(data):
+    """Test is_nested_univ_dataframe function for different datatypes."""
     if data == "nested_univ":
         assert is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
     else:
         assert not is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
 
 
-def test__nested_univ_is_equal():
+def test_nested_univ_is_equal():
     """Test _nested_univ_is_equal function for pd.DataFrame.
 
     Note that the function _nested_univ_is_equal assumes series are equal length
     over channels so only tests the first channel.
     """
-
     data = {
         "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
         "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
@@ -40,7 +40,8 @@ def test__nested_univ_is_equal():
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test__is_pd_wide(data):
+def test_is_pd_wide(data):
+    """Test _is_pd_wide function for different datatypes."""
     if data == "pd-wide":
         assert _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
     else:

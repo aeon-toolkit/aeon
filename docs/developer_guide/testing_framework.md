@@ -13,4 +13,4 @@
 * **low level**: testing individual functionality of estimators or other code, in individual files in `tests` folders.
 
 The `aeon` testing framework is under redesign. For information on the current state of the testing framework, please
-refer to the dcostring documentation of the `testing` module.
+refer to the docstring documentation of the `testing` module.
