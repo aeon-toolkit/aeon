@@ -195,6 +195,7 @@ class RandomIntervalRegressor(BaseRegressor):
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
+
         Returns
         -------
         params : dict or list of dict, default={}

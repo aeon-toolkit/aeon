@@ -26,6 +26,18 @@ from aeon.utils.validation._check_collection import (
     get_type,
 )
 
+COLLECTIONS_DATA_TYPES = [
+    "numpy3D",  # 3D np.ndarray of format (n_cases, n_channels, n_timepoints)
+    "np-list",  # python list of 2D numpy array of length [n_cases],
+    # each of shape (n_channels, n_timepoints_i)
+    "df-list",  # python list of 2D pd.DataFrames of length [n_cases], each a of
+    # shape (n_timepoints_i, n_channels)
+    "numpy2D",  # 2D np.ndarray of shape (n_cases, n_channels*n_timepoints)
+    "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
+    "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
+    "pd-multiindex",  # pd.DataFrame with multi-index,
+]
+
 
 def convert_identity(X):
     """Convert identity."""
@@ -478,19 +490,6 @@ def _from_pd_multiindex_to_nested_univ(X):
     assert (x_nested.columns == X.columns).all(), col_msg
 
     return x_nested
-
-
-COLLECTIONS_DATA_TYPES = [
-    "numpy3D",  # 3D np.ndarray of format (n_cases, n_channels, n_timepoints)
-    "np-list",  # python list of 2D numpy array of length [n_cases],
-    # each of shape (n_channels, n_timepoints_i)
-    "df-list",  # python list of 2D pd.DataFrames of length [n_cases], each a of
-    # shape (n_timepoints_i, n_channels)
-    "numpy2D",  # 2D np.ndarray of shape (n_cases, n_channels*n_timepoints)
-    "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
-    "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
-    "pd-multiindex",  # pd.DataFrame with multi-index,
-]
 
 
 convert_dictionary = dict()

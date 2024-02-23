@@ -17,6 +17,7 @@ __author__ = ["hadifawaz1999"]
     reason="skip test if required soft dependency not available",
 )
 def test_base_deep_clusterer():
+    """Test base deep clusterer."""
     with tempfile.TemporaryDirectory() as tmp:
         last_file_name = "temp"
         # create a dummy deep classifier

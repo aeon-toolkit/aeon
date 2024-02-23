@@ -27,7 +27,7 @@ class LITETimeClassifier(BaseClassifier):
         the number of LITE models used for the
         Ensemble in order to create
         LITETime.
-    nb_filters : int or list of int32, default = 32
+    n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
     kernel_size : int or list of int, default = 40
@@ -80,7 +80,7 @@ class LITETimeClassifier(BaseClassifier):
     Notes
     -----
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
+    tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
 
     Adapted from the implementation from Ismail-Fawaz et. al
@@ -108,7 +108,7 @@ class LITETimeClassifier(BaseClassifier):
     def __init__(
         self,
         n_classifiers=5,
-        nb_filters=32,
+        n_filters=32,
         kernel_size=40,
         strides=1,
         activation="relu",
@@ -131,7 +131,7 @@ class LITETimeClassifier(BaseClassifier):
 
         self.strides = strides
         self.activation = activation
-        self.nb_filters = nb_filters
+        self.n_filters = n_filters
 
         self.kernel_size = kernel_size
         self.batch_size = batch_size
@@ -175,7 +175,7 @@ class LITETimeClassifier(BaseClassifier):
 
         for n in range(0, self.n_classifiers):
             cls = IndividualLITEClassifier(
-                nb_filters=self.nb_filters,
+                n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
@@ -280,7 +280,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-        nb_filters : int or list of int32, default = 32
+        n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
     kernel_size : int or list of int, default = 40
@@ -352,7 +352,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        nb_filters=32,
+        n_filters=32,
         kernel_size=40,
         strides=1,
         activation="relu",
@@ -372,7 +372,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         # predefined
-        self.nb_filters = nb_filters
+        self.n_filters = n_filters
         self.strides = strides
         self.activation = activation
 
@@ -399,7 +399,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         )
 
         self._network = LITENetwork(
-            nb_filters=self.nb_filters,
+            n_filters=self.n_filters,
             kernel_size=self.kernel_size,
             strides=self.strides,
             activation=self.activation,
