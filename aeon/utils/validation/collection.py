@@ -9,7 +9,7 @@ def is_collection(X):
     try:
         get_type(X)
         return True
-    except TypeError:
+    except (TypeError, ValueError):
         return False
 
 
