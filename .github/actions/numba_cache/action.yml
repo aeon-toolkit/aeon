@@ -10,10 +10,10 @@ inputs:
   python_version:
     description: 'The python version'
     required: true
-  number_days_cache_invalidation:
-    description: 'The number of days to invalidate the cache'
-    required: true
-    default: '3'
+  restore_cache:
+    description: 'Whether to restore the cache'
+    required: false
+    default: 'true'
 runs:
   using: 'composite'
   steps:
@@ -37,22 +37,30 @@ runs:
       run: echo "CICD_RUNNING=1" >> $GITHUB_ENV
       shell: bash
 
-    # GNU tar on windows runs much faster than the default BSD tar
+    # Get current date for cache restore
+    - name: Get Current Date
+      run: echo "CURRENT_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
+      shell: bash
+
+    # Get previous date for cache restore in case other fails
+    - name: Get Previous Date
+      run: echo "PREVIOUS_DATE=$(date -d "yesterday" +'%d/%m/%Y')" >> $GITHUB_ENV
+      shell: bash
+
+      # GNU tar on windows runs much faster than the default BSD tar
     - name: "Use GNU tar instead BSD tar"
       if: ${{ inputs.runner_os == 'Windows' }}
       shell: cmd
       run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
-    # Set the date for cache invalidation set to every 3 days
-    - name: Cache invalidation date
-      run: |
-        echo "NUMBER_DAYS_CACHE_INVALIDATION=3" >> $GITHUB_ENV
-        echo "name=date::$(python -c 'import datetime, os; days=int(os.getenv("NUMBER_DAYS_CACHE_INVALIDATION")); print((datetime.datetime.now() - datetime.timedelta(days=days)).strftime("%Y-%m-%d"))')" >> $GITHUB_OUTPUT
-      shell: bash
-
-    # Tries to restore or creates a new numba cache
-    - uses: actions/cache@v3
-      id: cache
+    # Restore cache if write_new_cache is false
+    - uses: actions/cache/restore@v3
+      id: restore-cache
+      if: ${{ inputs.restore_cache == 'true' }}
       with:
-        path: .numba_cache
-        key: ${{ inputs.runner_os }}-${{ inputs.cache_name}}-${{ inputs.python_version }}-${{ hashFiles('pyproject.toml') }}-${{ steps.daily-date.outputs.date }}
+        path: ${{ github.workspace }}/.numba_cache
+        # Try restore using todays date
+        key: numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ env.CURRENT_DATE }}
+        # If cant restore with todays date try yesterdays date
+        restore-keys: |
+          numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ env.PREVIOUS_DATE }}

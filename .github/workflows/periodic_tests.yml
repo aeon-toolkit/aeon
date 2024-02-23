@@ -49,6 +49,13 @@ jobs:
         with:
           python-version: "3.10"
 
+      - uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "test-examples"
+          runner_os: ${{ runner.os }}
+          python_version: "3.10"
+          restore_cache: "false"
+
       - name: Install dependencies
         uses: nick-fields/retry@v3
         with:
@@ -60,6 +67,17 @@ jobs:
         run: build_tools/run_examples.sh
         shell: bash
 
+      - name: Get Current Date
+        id: current-date
+        run: echo "CURRENT_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
+
+      - uses: actions/cache/save@v3
+        id: save-cache
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-test-examples-3.10-${{ env.CURRENT_DATE }}
+
   test-nosoftdeps:
     runs-on: ubuntu-22.04
 
@@ -69,6 +87,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
+      - uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "test-no-softdeps"
+          runner_os: ${{ runner.os }}
+          python_version: "3.10"
+          restore_cache: "false"
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -86,6 +111,13 @@ jobs:
           python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
           python -m pytest --pyargs aeon.testing.test_softdeps
 
+      - uses: actions/cache/save@v3
+        id: save-cache
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-test-no-softdeps-3.10-${{ env.CURRENT_DATE }}
+
   test-nosoftdeps-full:
     runs-on: ubuntu-22.04
 
@@ -95,6 +127,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
+      - uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "test-no-softdeps-full"
+          runner_os: ${{ runner.os }}
+          python_version: "3.10"
+          restore_cache: "false"
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -108,6 +147,13 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
+
+      - uses: actions/cache/save@v3
+        id: save-cache
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-test-no-softdeps-full-3.10-${{ env.CURRENT_DATE }}
 
   pytest:
     runs-on: ${{ matrix.os }}
@@ -125,6 +171,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "pytest-${{ runner.os }}"
+          runner_os: ${{ runner.os }}
+          python_version: ${{ matrix.python-version }}
+          restore_cache: "false"
+
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
         with:
@@ -137,6 +190,13 @@ jobs:
 
       - name: Run tests
         run: python -m pytest
+
+      - uses: actions/cache/save@v3
+        id: save-cache
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-pytest-${{ runner.os }}-${{ matrix.python-version}}-${{ env.CURRENT_DATE }}
 
   codecov:
     runs-on: ubuntu-22.04

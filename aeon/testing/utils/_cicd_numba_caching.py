@@ -39,7 +39,18 @@ def get_invalid_numba_files():
     return clean_files
 
 
-CHANGED_FILES = get_invalid_numba_files()
+# Retry the git fetch and git diff commands in case of failure
+retry = 0
+while retry < 3:
+    try:
+        CHANGED_FILES = get_invalid_numba_files()
+        break
+    except subprocess.CalledProcessError:
+        retry += 1
+
+# If the retry count is reached, raise an error
+if retry == 3:
+    raise Exception("Failed to get the changed files from git.")
 
 
 def custom_load_index(self):
