@@ -10,8 +10,8 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.classification.deep_learning.base import BaseDeepRegressor
 from aeon.networks import EncoderNetwork
+from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 
 class EncoderRegressor(BaseDeepRegressor):
