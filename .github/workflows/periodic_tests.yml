@@ -49,9 +49,9 @@ jobs:
         with:
           python-version: "3.10"
 
-      - uses: ./.github/actions/numba_cache
+      - uses: ./.github/numba_cache
         with:
-          cache_name: "test-examples"
+          cache_name: "run-notebook-examples"
           runner_os: ${{ runner.os }}
           python_version: "3.10"
           restore_cache: "false"
@@ -72,7 +72,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-test-examples-3.10-${{ env.CURRENT_DATE }}
+          key: numba-test-examples-${{ runner.os }}-3.10
 
   test-nosoftdeps:
     runs-on: ubuntu-20.04
@@ -84,9 +84,9 @@ jobs:
         with:
           python-version: "3.10"
 
-      - uses: ./.github/actions/numba_cache
+      - uses: ./.github/numba_cache
         with:
-          cache_name: "test-no-softdeps"
+          cache_name: "test-nosoftdeps"
           runner_os: ${{ runner.os }}
           python_version: "3.10"
           restore_cache: "false"
@@ -112,7 +112,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-test-no-softdeps-3.10-${{ env.CURRENT_DATE }}
+          key: numba-test-nosoftdeps-${{ runner.os }}-3.10
 
   test-nosoftdeps-full:
     runs-on: ubuntu-20.04
@@ -124,9 +124,9 @@ jobs:
         with:
           python-version: "3.10"
 
-      - uses: ./.github/actions/numba_cache
+      - uses: ./.github/numba_cache
         with:
-          cache_name: "test-no-softdeps-full"
+          cache_name: "test-nosoftdeps-full"
           runner_os: ${{ runner.os }}
           python_version: "3.10"
           restore_cache: "false"
@@ -149,7 +149,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-test-no-softdeps-full-3.10-${{ env.CURRENT_DATE }}
+          key: numba-test-nosoftdeps-full-${{ runner.os }}-3.10
 
   pytest:
     runs-on: ${{ matrix.os }}
@@ -167,9 +167,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: ./.github/actions/numba_cache
+      - uses: ./.github/numba_cache
         with:
-          cache_name: "pytest-${{ runner.os }}"
+          cache_name: "pytest"
           runner_os: ${{ runner.os }}
           python_version: ${{ matrix.python-version }}
           restore_cache: "false"
@@ -192,7 +192,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-pytest-${{ runner.os }}-${{ matrix.python-version}}-${{ env.CURRENT_DATE }}
+          key: numba-pytest-${{ runner.os }}-${{ matrix.python-version}}
 
   codecov:
     runs-on: ubuntu-20.04

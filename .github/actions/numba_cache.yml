@@ -1,21 +1,23 @@
-name: 'Numba cache setup'
-description: 'Tries to restore the numba cache and sets relevant environment variables for numba to use'
+name: Numba cache setup
+description: "Tries to restore the numba cache and sets relevant environment variables for numba to use"
+
 inputs:
   cache_name:
-    description: 'The name of the cache'
+    description: "The name of the cache"
     required: true
   runner_os:
-    description: 'The runner os'
+    description: "The runner os"
     required: true
   python_version:
-    description: 'The python version'
+    description: "The python version"
     required: true
   restore_cache:
-    description: 'Whether to restore the cache'
+    description: "Whether to restore the cache"
     required: false
-    default: 'true'
+    default: "true"
+
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     # Set the location for numba cache to exist
     - name: Set numba cache env
@@ -43,19 +45,15 @@ runs:
       shell: bash
 
       # GNU tar on windows runs much faster than the default BSD tar
-    - name: "Use GNU tar instead BSD tar"
+    - name: Use GNU tar instead BSD tar if Windows
       if: ${{ inputs.runner_os == 'Windows' }}
       shell: cmd
       run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
-    # Restore cache if write_new_cache is false
+    # Restore cache if restore_cache is true
     - uses: actions/cache/restore@v3
       id: restore-cache
       if: ${{ inputs.restore_cache == 'true' }}
       with:
         path: ${{ github.workspace }}/.numba_cache
-        # Try restore using todays date
-        key: numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-${{ env.CURRENT_DATE }}
-        # If cant restore with todays date try yesterdays date
-        restore-keys: |
-          numba-${{ inputs.cache_name }}-${{ inputs.python_version }}-
+        key: numba-${{ inputs.cache_name }}-${{ inputs.runner_os }}-${{ inputs.python_version }}
