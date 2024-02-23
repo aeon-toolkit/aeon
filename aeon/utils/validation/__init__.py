@@ -15,6 +15,10 @@ __all__ = [
     "has_missing",
     "is_univariate",
     "is_nested_univ_dataframe",
+    "is_univariate_series",
+    "is_pred_interval_proba",
+    "is_pred_quantiles_proba",
+    "is_pdmultiindex_hierarchical",
 ]
 __author__ = ["mloning", "Taiwo Owoseni", "khrapovs", "TonyBagnall"]
 
@@ -32,6 +36,12 @@ from aeon.utils.validation._check_collection import (
     is_equal_length,
     is_nested_univ_dataframe,
     is_univariate,
+)
+from aeon.utils.validation.series import (
+    is_pdmultiindex_hierarchical,
+    is_pred_interval_proba,
+    is_pred_quantiles_proba,
+    is_univariate_series,
 )
 
 ACCEPTED_DATETIME_TYPES = np.datetime64, pd.Timestamp

@@ -12,7 +12,7 @@ class LITENetwork(BaseDeepNetwork):
 
     Parameters
     ----------
-    nb_filters : int or list of int32, default = 32
+    n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
     kernel_size : int or list of int, default = 40
@@ -40,13 +40,13 @@ class LITENetwork(BaseDeepNetwork):
 
     def __init__(
         self,
-        nb_filters=32,
+        n_filters=32,
         kernel_size=40,
         strides=1,
         activation="relu",
         random_state=0,
     ):
-        self.nb_filters = nb_filters
+        self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.activation = activation
         self.strides = strides
@@ -55,7 +55,7 @@ class LITENetwork(BaseDeepNetwork):
         super().__init__()
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
-        """Construct the hybrid layer to compute features of cutom filters.
+        """Construct the hybrid layer to compute features of custom filters.
 
         Parameters
         ----------
@@ -215,21 +215,21 @@ class LITENetwork(BaseDeepNetwork):
         input_inception = input_tensor
 
         if not use_multiplexing:
-            nb_convs = 1
-            nb_filters = self.nb_filters * 3
+            n_convs = 1
+            n_filters = self.n_filters * 3
 
         else:
-            nb_convs = 3
-            nb_filters = self.nb_filters
+            n_convs = 3
+            n_filters = self.n_filters
 
-        kernel_size_s = [self.kernel_size // (2**i) for i in range(nb_convs)]
+        kernel_size_s = [self.kernel_size // (2**i) for i in range(n_convs)]
 
         conv_list = []
 
         for i in range(len(kernel_size_s)):
             conv_list.append(
                 tf.keras.layers.Conv1D(
-                    filters=nb_filters,
+                    filters=n_filters,
                     kernel_size=kernel_size_s[i],
                     strides=stride,
                     padding="same",
@@ -260,14 +260,14 @@ class LITENetwork(BaseDeepNetwork):
         input_tensor,
         kernel_size=20,
         dilation_rate=2,
-        nb_filters=32,
+        n_filters=32,
         stride=1,
         activation="relu",
     ):
         import tensorflow as tf
 
         x = tf.keras.layers.SeparableConv1D(
-            filters=nb_filters,
+            filters=n_filters,
             kernel_size=kernel_size,
             padding="same",
             strides=stride,
@@ -315,7 +315,7 @@ class LITENetwork(BaseDeepNetwork):
             x = self._fcn_module(
                 input_tensor=input_tensor,
                 kernel_size=_kernel_size // (2**i),
-                nb_filters=self.nb_filters,
+                n_filters=self.n_filters,
                 dilation_rate=dilation_rate,
             )
 

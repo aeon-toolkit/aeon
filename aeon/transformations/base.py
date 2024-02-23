@@ -50,13 +50,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseEstimator
-from aeon.datatypes import (
-    VectorizedDF,
-    check_is_mtype,
-    check_is_scitype,
-    convert_to,
-    mtype_to_scitype,
-)
+from aeon.datatypes import VectorizedDF, check_is_scitype, convert_to, mtype_to_scitype
 from aeon.datatypes._series_as_panel import convert_to_scitype
 from aeon.utils.index_functions import update_data
 from aeon.utils.sklearn import (
@@ -64,6 +58,7 @@ from aeon.utils.sklearn import (
     is_sklearn_regressor,
     is_sklearn_transformer,
 )
+from aeon.utils.validation import is_univariate_series
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 # single/multiple primitives
@@ -1020,19 +1015,13 @@ class BaseTransformer(BaseEstimator):
             #   we cannot convert back to pd.Series, do pd.DataFrame instead then
             #   this happens only for Series, not Panel
             if X_input_scitype == "Series":
-                valid, msg, metadata = check_is_mtype(
-                    Xt,
-                    ["pd.DataFrame", "pd.Series", "np.ndarray"],
-                    return_metadata=True,
-                )
+                valid = isinstance(Xt, (pd.DataFrame, pd.Series, np.ndarray))
                 if not valid:
                     raise TypeError(
                         f"_transform output of {type(self)} does not comply "
-                        "with aeon mtype specifications. See datatypes.TYPE_REGISTER"
-                        " for mtype specifications. Returned error message:"
-                        f" {msg}. Returned object: {Xt}"
+                        "with aeon type specifications."
                     )
-                if not metadata["is_univariate"] and X_input_mtype == "pd.Series":
+                if not is_univariate_series(Xt) and X_input_mtype == "pd.Series":
                     X_output_mtype = "pd.DataFrame"
 
             Xt = convert_to(

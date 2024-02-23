@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   test-nosoftdeps:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
 
   test-nosoftdeps-full:
     needs: test-nosoftdeps
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4
@@ -87,7 +87,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
+        os: [ ubuntu-20.04, macOS-13, windows-2022 ]
         python-version: [ "3.8", "3.10", "3.12" ]
 
     steps:
@@ -123,7 +123,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
 
     needs: test-nosoftdeps
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4

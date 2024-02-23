@@ -70,11 +70,11 @@ class Arsenal(BaseClassifier):
     ----------
     n_classes_ : int
         The number of classes.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
-    series_length_ : int
+    n_timepoints_ : int
         The length of each series.
     classes_ : list
         The classes labels.
@@ -146,9 +146,9 @@ class Arsenal(BaseClassifier):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
         self.estimators_ = []
         self.weights_ = []
 
@@ -171,9 +171,9 @@ class Arsenal(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -199,12 +199,12 @@ class Arsenal(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         rng = check_random_state(self.random_state)
@@ -220,12 +220,12 @@ class Arsenal(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         y_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
@@ -267,12 +267,12 @@ class Arsenal(BaseClassifier):
         y_probas, weights, oobs = zip(*p)
 
         results = np.sum(y_probas, axis=0)
-        divisors = np.zeros(self.n_instances_)
+        divisors = np.zeros(self.n_cases_)
         for n, oob in enumerate(oobs):
             for inst in oob:
                 divisors[inst] += weights[n]
 
-        for i in range(self.n_instances_):
+        for i in range(self.n_cases_):
             results[i] = (
                 np.ones(self.n_classes_) * (1 / self.n_classes_)
                 if divisors[i] == 0
@@ -282,7 +282,7 @@ class Arsenal(BaseClassifier):
         return results
 
     def _fit_arsenal(self, X, y, keep_transformed_data=False):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
         train_time = 0
@@ -290,7 +290,7 @@ class Arsenal(BaseClassifier):
         if self.rocket_transform == "rocket":
             base_rocket = Rocket(num_kernels=self.num_kernels)
         elif self.rocket_transform == "minirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 base_rocket = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -301,7 +301,7 @@ class Arsenal(BaseClassifier):
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
                 )
         elif self.rocket_transform == "multirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 base_rocket = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -404,11 +404,11 @@ class Arsenal(BaseClassifier):
         return weights
 
     def _train_probas_for_estimator(self, Xt, y, idx, rng):
-        indices = range(self.n_instances_)
-        subsample = rng.choice(self.n_instances_, size=self.n_instances_)
+        indices = range(self.n_cases_)
+        subsample = rng.choice(self.n_cases_, size=self.n_cases_)
         oob = [n for n in indices if n not in subsample]
 
-        results = np.zeros((self.n_instances_, self.n_classes_))
+        results = np.zeros((self.n_cases_, self.n_classes_))
         if not oob:
             return results, 1, oob
 

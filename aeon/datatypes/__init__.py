@@ -27,8 +27,8 @@ from aeon.datatypes._registry import (
 from aeon.datatypes._vectorize import VectorizedDF
 
 __all__ = [
-    "ALL_TIME_SERIES_TYPES",
     "check_is_mtype",
+    "ALL_TIME_SERIES_TYPES",
     "check_is_scitype",
     "check_raise",
     "convert",

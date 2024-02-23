@@ -15,7 +15,7 @@ from aeon.forecasting.model_selection import (
     SlidingWindowSplitter,
 )
 from aeon.forecasting.naive import NaiveForecaster, NaiveVariance
-from aeon.performance_metrics.forecasting.probabilistic import PinballLoss
+from aeon.performance_metrics.forecasting import mean_squared_error
 from aeon.testing.test_config import PR_TESTING
 
 if PR_TESTING:
@@ -111,11 +111,11 @@ def test_evaluate_with_window_splitters(wrapper, splitter, strategy, sample_frac
         y=y,
         X=None,
         strategy=strategy,
-        scoring=PinballLoss(alpha=[0.1, 0.5, 0.9]),
+        scoring=mean_squared_error,
         return_data=True,
         error_score="raise",
         backend=None,
     )
 
     assert len(results) == 8
-    assert not results.test_PinballLoss.isna().any()
+    assert not results.test_mean_squared_error.isna().any()
