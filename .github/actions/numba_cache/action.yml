@@ -1,5 +1,5 @@
 name: 'Numba cache setup'
-description: 'Tries to restore the numba cache'
+description: 'Tries to restore the numba cache and sets relevant environment variables for numba to use'
 inputs:
   cache_name:
     description: 'The name of the cache'
