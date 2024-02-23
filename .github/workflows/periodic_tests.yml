@@ -67,10 +67,6 @@ jobs:
         run: build_tools/run_examples.sh
         shell: bash
 
-      - name: Get Current Date
-        id: current-date
-        run: echo "CURRENT_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
-
       - uses: actions/cache/save@v3
         id: save-cache
         with:
