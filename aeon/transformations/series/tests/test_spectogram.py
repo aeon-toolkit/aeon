@@ -1,6 +1,6 @@
 import numpy as np
 
-from aeon.transformations.series import SpectogramTransformer
+from aeon.transformations.series import SpectrogramTransformer
 
 
 def test_spectogram_transformer():
@@ -12,8 +12,8 @@ def test_spectogram_transformer():
         [[20101.22789116], [238581.86979207], [439788.78395447], [278571.85645754]]
     )
 
-    st = SpectogramTransformer()
-    res1, res2, res3 = st.transform(series)
+    st = SpectrogramTransformer()
+    res1, res2, res3 = st.fit_transform(series)
     np.testing.assert_allclose(
         np.array(
             [res1, res2, res3]),

@@ -1,11 +1,11 @@
 __author__ = ["aadya940"]
-__all__ = ["SpectogramTransformer"]
+__all__ = ["SpectrogramTransformer"]
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 from scipy.signal import spectrogram
 
 
-class SpectogramTransformer(BaseSeriesTransformer):
+class SpectrogramTransformer(BaseSeriesTransformer):
     '''
     Compute a spectrogram with consecutive Fourier transforms.
 
@@ -38,7 +38,7 @@ class SpectogramTransformer(BaseSeriesTransformer):
     >>> noise = rng.normal(scale=np.sqrt(noise_power), size=time.shape)
     >>> noise *= np.exp(-time/5)
     >>> x = carrier + noise
-    >>> transformer = SpectogramTransformer(fs)  # doctest: +SKIP
+    >>> transformer = SpectrogramTransformer(fs)  # doctest: +SKIP
     >>> mp = transformer.fit_transform(x)  # doctest: +SKIP
     '''
 
