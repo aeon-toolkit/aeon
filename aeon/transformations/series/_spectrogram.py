@@ -1,15 +1,16 @@
 __author__ = ["aadya940"]
 __all__ = ["SpectrogramTransformer"]
 
-from aeon.transformations.series.base import BaseSeriesTransformer
 from scipy.signal import spectrogram
+
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
 class SpectrogramTransformer(BaseSeriesTransformer):
-    '''
+    """
     Compute a spectrogram with consecutive Fourier transforms.
 
-    Spectrograms can be used as a way of visualizing the change 
+    Spectrograms can be used as a way of visualizing the change
     of a nonstationary signal's frequency content over time.
 
     For more info checkout, checkout the scipy docs:
@@ -23,7 +24,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     kwargs: Keyword arguments passed to `scipy.signal.spectogram`
             Checkout <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html>_.
 
-            
+
     Examples
     --------
     >>> from aeon.transformations.series import SpectogramTransformer
@@ -40,7 +41,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     >>> x = carrier + noise
     >>> transformer = SpectrogramTransformer(fs)  # doctest: +SKIP
     >>> mp = transformer.fit_transform(x)  # doctest: +SKIP
-    '''
+    """
 
     _tags = {
         "fit_is_empty": True,
@@ -76,15 +77,15 @@ class SpectrogramTransformer(BaseSeriesTransformer):
         segment_time:   ndarray
                     Array of segment times.
         spectogram:     ndarray
-                    Spectrogram of x. By default, the last axis of 
+                    Spectrogram of x. By default, the last axis of
                     spectogram corresponds to the segment times.
         """
-        
+
         self.sample_frequencies, self.segment_time, self.spectogram = spectrogram(
-            X, fs = self.fs, **kwargs
+            X, fs=self.fs, **kwargs
         )
         return self.sample_frequencies, self.segment_time, self.spectogram
-    
+
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """
