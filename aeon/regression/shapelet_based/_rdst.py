@@ -1,31 +1,31 @@
-"""Random Dilated Shapelet Transform (RDST) Classifier.
+"""Random Dilated Shapelet Transform (RDST) Regressor.
 
-A Random Dilated Shapelet Transform classifier pipeline that simply performs a random
-shapelet dilated transform and build (by default) a ridge classifier on the output.
+A Random Dilated Shapelet Transform regressor pipeline that simply performs a random
+shapelet dilated transform and build (by default) a ridge regressor on the output.
 """
 
 __author__ = ["baraline"]
-__all__ = ["RDSTClassifier"]
+__all__ = ["RDSTRegressor"]
 
 import numpy as np
-from sklearn.linear_model import RidgeClassifierCV
+from sklearn.linear_model import RidgeCV
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
-from aeon.classification.base import BaseClassifier
+from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.shapelet_based import (
     RandomDilatedShapeletTransform,
 )
 
 
-class RDSTClassifier(BaseClassifier):
+class RDSTRegressor(BaseRegressor):
     """
-    A random dilated shapelet transform (RDST) classifier.
+    A random dilated shapelet transform (RDST) regressor.
 
-    Implementation of the random dilated shapelet transform classifier pipeline
+    Implementation of the random dilated shapelet transform regressor pipeline
     along the lines of [1]_[2]_. Transforms the data using the
-    `RandomDilatedShapeletTransform` and then builds a `RidgeClassifierCV` classifier
+    `RandomDilatedShapeletTransform` and then builds a `RidgeCV` regressor
     with standard scalling.
 
     Parameters
@@ -74,10 +74,6 @@ class RDSTClassifier(BaseClassifier):
 
     Attributes
     ----------
-    classes_ : list
-        The unique class labels in the training set.
-    n_classes_ : int
-        The number of unique classes in the training set.
     fit_time_  : int
         The time (in milliseconds) for ``fit`` to run.
     transformed_data_ : list of shape (n_estimators) of ndarray
@@ -87,7 +83,6 @@ class RDSTClassifier(BaseClassifier):
     See Also
     --------
     RandomDilatedShapeletTransform : The randomly dilated shapelet transform.
-    RidgeClassifierCV : The default classifier used.
 
     References
     ----------
@@ -101,15 +96,15 @@ class RDSTClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.shapelet_based import RDSTClassifier
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> clf = RDSTClassifier(
+    >>> from aeon.regression.shapelet_based import RDSTRegressor
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
+    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
+    >>> clf = RDSTRegressor(
     ...     max_shapelets=10
     ... )
     >>> clf.fit(X_train, y_train)
-    RDSTClassifier(...)
+    RDSTRegressor(...)
     >>> y_pred = clf.predict(X_test)
     """
 
@@ -154,14 +149,14 @@ class RDSTClassifier(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
-        """Fit Classifier to training data.
+        """Fit regressor to training data.
 
         Parameters
         ----------
         X: np.ndarray shape (n_instances, n_channels, series_length)
             The training input samples.
         y: array-like or list
-            The class labels for samples in X.
+            The target labels for samples in X.
 
         Returns
         -------
@@ -186,7 +181,7 @@ class RDSTClassifier(BaseClassifier):
         if self.estimator is None:
             self._estimator = make_pipeline(
                 StandardScaler(with_mean=True),
-                RidgeClassifierCV(
+                RidgeCV(
                     alphas=np.logspace(-4, 4, 20),
                 ),
             )
@@ -222,31 +217,6 @@ class RDSTClassifier(BaseClassifier):
 
         return self._estimator.predict(X_t)
 
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
-
-        Parameters
-        ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        X_t = self._transformer.transform(X)
-
-        m = getattr(self._estimator, "predict_proba", None)
-        if callable(m):
-            return self._estimator.predict_proba(X_t)
-        else:
-            dists = np.zeros((len(X), self.n_classes_))
-            preds = self._estimator.predict(X_t)
-            for i in range(0, len(X)):
-                dists[i, np.where(self.classes_ == preds[i])] = 1
-            return dists
-
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
@@ -256,7 +226,7 @@ class RDSTClassifier(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
+            For regressor, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
