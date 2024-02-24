@@ -60,8 +60,20 @@ class EncoderRegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded.
-    random_state : int, default = 0
-        Seed to any needed random actions.
+    n_epochs:
+        The number of times the entire training dataset
+        will be passed forward and backward
+        through the neural network.
+    loss:
+        The loss function to use for training.
+    metrics:
+        The evaluation metrics to use during training.
+    use_bias:
+        Whether to use bias in the dense layers.
+    optimizer:
+        The optimizer to use for training.
+    verbose:
+        Whether to print progress messages during training.
 
     Notes
     -----
@@ -86,7 +98,7 @@ class EncoderRegressor(BaseDeepRegressor):
         kernel_size=None,
         n_filters=None,
         dropout_proba=0.2,
-        activation="linear",
+        output_activation="linear",
         max_pool_size=2,
         padding="same",
         strides=1,
@@ -99,8 +111,7 @@ class EncoderRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         verbose=False,
         loss="mean_squared_error",
-        metrics=("mean_squared_error",),
-        random_state=None,
+        metrics=None,
         use_bias=True,
         optimizer=None,
     ):
@@ -108,7 +119,7 @@ class EncoderRegressor(BaseDeepRegressor):
         self.max_pool_size = max_pool_size
         self.kernel_size = kernel_size
         self.strides = strides
-        self.activation = activation
+        self.activation = output_activation
         self.padding = padding
         self.dropout_proba = dropout_proba
         self.fc_units = fc_units
@@ -129,7 +140,6 @@ class EncoderRegressor(BaseDeepRegressor):
 
         super().__init__(
             batch_size=batch_size,
-            random_state=random_state,
             last_file_name=last_file_name,
         )
 
@@ -142,10 +152,9 @@ class EncoderRegressor(BaseDeepRegressor):
             padding=self.padding,
             dropout_proba=self.dropout_proba,
             activation=self.activation,
-            random_state=self.random_state,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d, m), where d
@@ -157,8 +166,6 @@ class EncoderRegressor(BaseDeepRegressor):
         ----------
         input_shape : tuple
         The shape of the data fed into the input layer, should be (m, d).
-        n_classes : int
-        The number of output units, which becomes the size of the output layer.
         Gives
         -------
         output : a compiled Keras Model
@@ -174,7 +181,7 @@ class EncoderRegressor(BaseDeepRegressor):
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+            units=1, activation=self.activation, use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
@@ -200,7 +207,7 @@ class EncoderRegressor(BaseDeepRegressor):
         X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
             The training input samples.
         y : np.ndarray of shape n
-            The training data class labels.
+            The training data Target Values.
 
         Gives
         -------
@@ -213,8 +220,7 @@ class EncoderRegressor(BaseDeepRegressor):
         check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
-        self.training_model_ = self.build_model(self.input_shape, 1)
-        # changed n_classes to 1
+        self.training_model_ = self.build_model(self.input_shape)
 
         if self.verbose:
             self.training_model_.summary()
