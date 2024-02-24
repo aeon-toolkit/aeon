@@ -46,7 +46,7 @@ class SpectogramTransformer(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, fs: float):
+    def __init__(self, fs: float = 1):
         # Inputs
         self.fs = fs
 
