@@ -204,8 +204,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         if self.weights == "distance":
             ws = distances[closest_idx]
-            ws = ws**2
-
+            ws = 1 / (ws + 1e-10)  # to avoid division by zero
+            ws = np.sqrt(ws)
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)
         elif self.weights == "uniform":
