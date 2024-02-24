@@ -204,7 +204,7 @@ class EncoderRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
+        X : np.ndarray of shape = (n_instances, n_channels, n_timepoints)
             The training input samples.
         y : np.ndarray of shape n
             The training data Target Values.
