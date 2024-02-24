@@ -67,14 +67,15 @@ class SpectogramTransformer(BaseSeriesTransformer):
         X : np.ndarray
             1D time series to be transformed
         y : ignored argument for interface compatibility
+        kwargs : kwargs to be passed to `scipy.signal.spectogram`
 
         Returns
         -------
         sample_frequencies: ndarray
-                            Array of sample frequencies.
-        segment_time: ndarray
-                      Array of segment times.
-        spectogram: ndarray
+                        Array of sample frequencies.
+        segment_time:   ndarray
+                    Array of segment times.
+        spectogram:     ndarray
                     Spectrogram of x. By default, the last axis of 
                     spectogram corresponds to the segment times.
         """
