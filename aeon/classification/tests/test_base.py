@@ -15,7 +15,7 @@ from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
-from aeon.utils.conversion._convert_collection import COLLECTIONS_DATA_TYPES
+from aeon.utils import COLLECTIONS_DATA_TYPES
 
 __author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
 
