@@ -2330,6 +2330,17 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "codelionx",
+      "name": "Sebastian Schmidl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10573700?v=4",
+      "profile": "https://github.com/codelionx",
+      "contributions": [
+        "code",
+        "doc",
+        "research"
+      ]
     }
   ],
   "commitType": "docs"
