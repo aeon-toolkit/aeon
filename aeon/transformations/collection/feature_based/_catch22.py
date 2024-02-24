@@ -141,10 +141,10 @@ class Catch22(BaseCollectionTransformer):
     def __init__(
         self,
         features="all",
-        catch24=True,
+        catch24=False,
         outlier_norm=False,
         replace_nans=False,
-        use_pycatch22=False,
+        use_pycatch22=True,
         n_jobs=1,
         parallel_backend=None,
     ):
