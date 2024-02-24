@@ -50,7 +50,6 @@ class InceptionNetwork(BaseDeepNetwork):
         The bottleneck size in case ``use_bottleneck = True``.
     use_custom_filters : bool, default = False
         Condition on whether or not to use custom filters in the first inception module.
-    random_state : int, default = 0
 
     Adapted from the implementation from Fawaz et. al
 
@@ -108,7 +107,6 @@ class InceptionNetwork(BaseDeepNetwork):
         bottleneck_size=32,
         depth=6,
         use_custom_filters=False,
-        random_state=0,
     ):
         self.n_filters = n_filters
         self.n_conv_per_layer = n_conv_per_layer
@@ -125,7 +123,6 @@ class InceptionNetwork(BaseDeepNetwork):
         self.depth = depth
         self.bottleneck_size = bottleneck_size
         self.use_custom_filters = use_custom_filters
-        self.random_state = random_state
 
         super().__init__()
 

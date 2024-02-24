@@ -10,10 +10,6 @@ class MLPNetwork(BaseDeepNetwork):
 
     Adapted from the implementation used in [1]_
 
-    Parameters
-    ----------
-    random_state : int, default = 0
-        Deed to any needed random actions/
 
     Notes
     -----
@@ -28,9 +24,7 @@ class MLPNetwork(BaseDeepNetwork):
 
     def __init__(
         self,
-        random_state=0,
     ):
-        self.random_state = random_state
 
         super().__init__()
 

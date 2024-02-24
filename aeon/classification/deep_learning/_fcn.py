@@ -151,7 +151,6 @@ class FCNClassifier(BaseDeepClassifier):
         )
 
         self._network = FCNNetwork(
-            random_state=self.random_state,
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,
             n_filters=self.n_filters,
