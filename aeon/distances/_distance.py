@@ -49,6 +49,7 @@ from aeon.distances._msm import (
     msm_distance,
     msm_pairwise_distance,
 )
+from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
 from aeon.distances._shape_dtw import (
     shape_dtw_alignment_path,
     shape_dtw_cost_matrix,
@@ -76,7 +77,6 @@ from aeon.distances._wdtw import (
     wdtw_pairwise_distance,
 )
 from aeon.distances.mpdist import mpdist
-from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
 AlignmentPathFunction = Callable[
