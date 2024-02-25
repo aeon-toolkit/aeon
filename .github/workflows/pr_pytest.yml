@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - uses: ./.github/actions/numba_cache
+      - uses: ./.github/numba_cache
         with:
           cache_name: "test-nosoftdeps"
           runner_os: ${{ runner.os }}
@@ -61,7 +61,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - uses: ./.github/actions/numba_cache
+      - uses: ./.github/numba_cache
         with:
           cache_name: "test-nosoftdeps-full"
           runner_os: ${{ runner.os }}
@@ -98,7 +98,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: ./.github/actions/numba_cache
+      - uses: ./.github/numba_cache
         with:
           cache_name: "pytest"
           runner_os: ${{ runner.os }}
