@@ -1,6 +1,6 @@
 """Rocket transformer."""
 
-__author__ = ["angus924"]
+__maintainer__ = []
 __all__ = ["Rocket"]
 
 import numpy as np
@@ -14,13 +14,14 @@ class Rocket(BaseCollectionTransformer):
     """RandOm Convolutional KErnel Transform (ROCKET).
 
     A kernel (or convolution) is a subseries used to create features that can be used
-    in machine learning tasks. ROCKET [1]_  generates a large number of random
+    in machine learning tasks. ROCKET [1]_ generates a large number of random
     convolutional kernels in the fit method. The length and dilation of each kernel
-    are also randomly generated. The kernels are use in the transform stage to
+    are also randomly generated. The kernels are used in the transform stage to
     generate a new set of features. A kernel is used to create an activation map for
     each series by running it across a time series, including random length and
     dilation. It transforms the time series with two features per kernel. The first
-    feature is global max pooling and the second is proportion of positive values.
+    feature is global max pooling and the second is proportion of positive values
+    (or PPV).
 
 
     Parameters
@@ -30,9 +31,10 @@ class Rocket(BaseCollectionTransformer):
     normalise : bool, default True
        Whether or not to normalise the input time series per instance.
     n_jobs : int, default=1
-       The number of jobs to run in parallel for `transform`. ``-1`` means use all
+       The number of jobs to run in parallel for `transform`. ``-1`` means using all
        processors.
     random_state : None or int, optional, default = None
+        Seed for random number generation.
 
     See Also
     --------

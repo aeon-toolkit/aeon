@@ -1,6 +1,6 @@
 """Temporal importance curve diagram generators for interval forests."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 
 __all__ = ["plot_temporal_importance_curves"]
 

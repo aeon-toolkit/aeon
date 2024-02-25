@@ -17,10 +17,10 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
+__maintainer__ = []
 __all__ = [
     "BaseRegressor",
 ]
-__author__ = ["MatthewMiddlehurst", "TonyBagnll", "mloning", "fkiraly"]
 
 import time
 from abc import ABC, abstractmethod

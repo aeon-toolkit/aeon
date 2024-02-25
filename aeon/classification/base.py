@@ -21,7 +21,7 @@ State:
 __all__ = [
     "BaseClassifier",
 ]
-__author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst"]
+__maintainer__ = []
 
 import time
 from abc import ABC, abstractmethod
@@ -37,8 +37,8 @@ from sklearn.utils.multiclass import type_of_target
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.sklearn import is_sklearn_transformer
-from aeon.utils.validation._check_collection import get_n_cases
 from aeon.utils.validation._dependencies import _check_estimator_deps
+from aeon.utils.validation.collection import get_n_cases
 
 
 class BaseClassifier(BaseCollectionEstimator, ABC):

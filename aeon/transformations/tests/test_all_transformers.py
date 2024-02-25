@@ -1,6 +1,6 @@
 """Unit tests common to all transformers."""
 
-__author__ = ["mloning", "fkiraly", "MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = []
 
 import numpy as np

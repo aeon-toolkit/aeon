@@ -4,7 +4,7 @@ A Random Dilated Shapelet Transform classifier pipeline that simply performs a r
 shapelet dilated transform and build (by default) a ridge classifier on the output.
 """
 
-__author__ = ["baraline"]
+__maintainer__ = []
 __all__ = ["RDSTClassifier"]
 
 import numpy as np
@@ -30,9 +30,6 @@ class RDSTClassifier(BaseClassifier):
 
     Parameters
     ----------
-    estimator : BaseEstimator or None, default=None
-        Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
-        `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
     max_shapelets : int, default=10000
         The maximum number of shapelet to keep for the final transformation.
         A lower number of shapelets can be kept if alpha similarity have discarded the
@@ -61,6 +58,11 @@ class RDSTClassifier(BaseClassifier):
         If True, restrict the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
+    estimator : BaseEstimator or None, default=None
+        Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
+        `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
+    save_transformed_data : bool, default=False
+        If True, the transformed training dataset for all classifiers will be saved.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
@@ -78,15 +80,13 @@ class RDSTClassifier(BaseClassifier):
         The number of unique classes in the training set.
     fit_time_  : int
         The time (in milliseconds) for ``fit`` to run.
-    series_length_ : int
-        The length of each series in the training set.
     transformed_data_ : list of shape (n_estimators) of ndarray
         The transformed training dataset for all classifiers. Only saved when
         ``save_transformed_data`` is `True`.
 
     See Also
     --------
-    RandomDilatedShapeletTransform : The randomly sampled shapelet transform.
+    RandomDilatedShapeletTransform : The randomly dilated shapelet transform.
     RidgeClassifierCV : The default classifier used.
 
     References

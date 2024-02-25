@@ -1,6 +1,6 @@
 """Tests for window forecasters."""
 
-__author__ = ["mloning"]
+__maintainer__ = []
 
 import numpy as np
 import pytest

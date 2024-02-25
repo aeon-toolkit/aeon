@@ -6,7 +6,7 @@ Ensemble of symbolically represented time series using random forests as the bas
 classifier.
 """
 
-__author__ = ["zy18811"]
+__maintainer__ = []
 __all__ = ["REDCOMETS"]
 
 from collections import Counter
@@ -135,10 +135,10 @@ class REDCOMETS(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            3D np.ndarray of shape (n_instances, n_channels, n_timepoints)
+            3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The training data.
         y : np.ndarray
-            1D np.ndarray of shape (n_instances)
+            1D np.ndarray of shape (n_cases)
             The class labels.
 
         Returns
@@ -180,10 +180,10 @@ class REDCOMETS(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            2D np.ndarray of shape (n_instances, n_timepoints)
+            2D np.ndarray of shape (n_cases, n_timepoints)
             The training data.
         y : np.ndarray
-            1D np.ndarray of shape (n_instances)
+            1D np.ndarray of shape (n_cases)
             The class labels.
 
         Returns
@@ -317,11 +317,11 @@ class REDCOMETS(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            3D np.ndarray of shape (n_instances, n_channels, n_timepoints)
+            3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The training data.
             ``n_channels > 1``
         y : np.ndarray
-            1D np.ndarray of shape (n_instances)
+            1D np.ndarray of shape (n_cases)
             The class labels.
 
         Returns
@@ -368,13 +368,13 @@ class REDCOMETS(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            3D np.ndarray of shape (n_instances, n_channels, n_timepoints)
+            3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The data to make predictions for.
 
         Returns
         -------
         y : np.ndarray
-            1D np.ndarray of shape (n_instances)
+            1D np.ndarray of shape (n_cases)
             Predicted class labels.
         """
         return np.array(
@@ -387,13 +387,13 @@ class REDCOMETS(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            3D np.ndarray of shape (n_instances, n_channels, n_timepoints)
+            3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The data to make predict probabilities for.
 
         Returns
         -------
         y : np.ndarray
-            2D np.ndarray of shape (n_instances, n_classes_)
+            2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
         if X.shape[1] == 1:  # Univariate
@@ -411,13 +411,13 @@ class REDCOMETS(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            2D np.ndarray of shape (n_instances, n_timepoints)
+            2D np.ndarray of shape (n_cases, n_timepoints)
             The data to make predict probabilities for.
 
         Returns
         -------
         y : np.ndarray
-            2D np.ndarray of shape (n_instances, n_classes_)
+            2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
         X = scale(X, axis=1)  # Z-normalise
@@ -456,14 +456,14 @@ class REDCOMETS(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            3D np.ndarray of shape (n_instances, n_channels, n_timepoints)
+            3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The data to make predict probabilities for.
             ``n_channels > 1``
 
         Returns
         -------
         y : np.ndarray
-            2D np.ndarray of shape (n_instances, n_classes_)
+            2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
         ensemble_pred_mats = None
@@ -560,7 +560,7 @@ class REDCOMETS(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            3D np.ndarray of shape (n_instances, n_channels, n_timepoints)
+            3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The training data.
         n_lenses : int
             Number of lenses to select.
@@ -601,7 +601,7 @@ class REDCOMETS(BaseClassifier):
         sax_transforms : list
             List of ``SAX()`` instances
         X : np.ndarray
-            2D np.ndarray of shape (n_instances, n_timepoints)
+            2D np.ndarray of shape (n_cases, n_timepoints)
             The data to transform.
         """
 
