@@ -201,9 +201,7 @@ class ROCKETGPU(BaseROCKETGPU):
                     padding=self._list_of_paddings[f],
                 )
 
-                _output_convolution = _output_convolution.numpy().reshape(
-                    (len(batch_indices), len(_output_convolution[0]))
-                )
+                _output_convolution = np.squeeze(_output_convolution.numpy(), axis=-1)
                 _output_convolution += self._list_of_biases[f]
 
                 _ppv = self._get_ppv(x=_output_convolution)
@@ -216,13 +214,37 @@ class ROCKETGPU(BaseROCKETGPU):
                     )
                 )
 
-            output_features.append(np.concatenate(output_features_filter, axis=0))
+            output_features.append(
+                np.expand_dims(np.concatenate(output_features_filter, axis=0), axis=0)
+            )
 
-        output_rocket = (
-            np.concatenate(output_features, axis=0)
-            .reshape(self.n_filters, len(X), 2)
-            .transpose([1, 0, 2])
+        output_rocket = np.concatenate(output_features, axis=0).swapaxes(0, 1)
+        output_rocket = output_rocket.reshape(
+            (output_rocket.shape[0], output_rocket.shape[1] * output_rocket.shape[2])
         )
-        output_rocket = output_rocket.reshape((len(X), self.n_filters * 2))
 
         return output_rocket
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`
+        """
+        params = {
+            "n_filters": 5,
+        }
+        return params
