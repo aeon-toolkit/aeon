@@ -1,6 +1,6 @@
 """Implements adaptor for applying Scikit-learn-like transformers to time series."""
 
-__author__ = ["mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = ["TabularToSeriesAdaptor"]
 
 import numpy as np

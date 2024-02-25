@@ -1,6 +1,6 @@
 """Tests for hierarchical aggregator."""
 
-__author__ = ["ciaran-g"]
+__maintainer__ = []
 
 import pytest
 

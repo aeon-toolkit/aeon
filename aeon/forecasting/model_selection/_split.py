@@ -7,7 +7,7 @@ __all__ = [
     "SingleWindowSplitter",
     "temporal_train_test_split",
 ]
-__author__ = ["mloning", "kkoralturk", "khrapovs", "chillerobscuro"]
+__maintainer__ = []
 
 from typing import Iterator, Optional, Tuple, Union
 

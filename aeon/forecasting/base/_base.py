@@ -32,7 +32,7 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
-__author__ = ["mloning", "big-o", "fkiraly", "sveameyer13", "miraep8"]
+__maintainer__ = []
 
 __all__ = ["BaseForecaster"]
 
@@ -1589,6 +1589,7 @@ class BaseForecaster(BaseEstimator):
                 pd.Series, pd.DataFrame, np.ndarray, of Series abstract type
                 pd.multiindex, numpy3D, nested_univ, df-list, of Panel abstract type
                 pd_multiindex_hier, of Hierarchical abstract type
+
         Notes
         -----
         Set self._cutoff to pandas.Index containing latest index seen in `y`.

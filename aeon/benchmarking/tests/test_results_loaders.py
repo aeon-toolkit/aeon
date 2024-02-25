@@ -114,6 +114,7 @@ def test_load_all_classifier_results():
     reason="Only run on overnights because it relies on external website.",
 )
 def test_get_available_estimators():
+    """Test the get_available_estimators function for tsc.com results."""
     with pytest.raises(ValueError, match="not available on tsc.com"):
         get_available_estimators(task="smiling")
     classifiers = get_available_estimators(task="classification")

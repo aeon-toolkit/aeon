@@ -1,6 +1,6 @@
 """Testing machine type converters for scitypes."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 from aeon.datatypes import DATATYPE_REGISTER, scitype_to_mtype
 from aeon.datatypes._convert import _conversions_defined, convert
