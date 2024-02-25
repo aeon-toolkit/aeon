@@ -68,7 +68,6 @@ jobs:
         shell: bash
 
       - uses: actions/cache/save@v3
-        id: save-cache
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
@@ -108,7 +107,6 @@ jobs:
           python -m pytest --pyargs aeon.testing.test_softdeps
 
       - uses: actions/cache/save@v3
-        id: save-cache
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
@@ -145,7 +143,6 @@ jobs:
         run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
 
       - uses: actions/cache/save@v3
-        id: save-cache
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
@@ -188,7 +185,6 @@ jobs:
         run: python -m pytest
 
       - uses: actions/cache/save@v3
-        id: save-cache
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
