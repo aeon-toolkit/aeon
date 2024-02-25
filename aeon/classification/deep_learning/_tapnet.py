@@ -155,7 +155,6 @@ class TapNetClassifier(BaseDeepClassifier):
             use_att=self.use_att,
             use_lstm=self.use_lstm,
             use_cnn=self.use_cnn,
-            random_state=self.random_state,
             padding=self.padding,
         )
 

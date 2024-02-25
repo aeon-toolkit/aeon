@@ -543,7 +543,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             bottleneck_size=self.bottleneck_size,
             depth=self.depth,
             use_custom_filters=self.use_custom_filters,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, **kwargs):

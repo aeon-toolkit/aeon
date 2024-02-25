@@ -35,8 +35,6 @@ class AEFCNNetwork(BaseDeepNetwork):
         Activation used after the convolution.
     use_bias : bool or list of bool, default = True
         Whether or not ot use bias in convolution.
-    random_state : int, default = 0
-        Seed to any needed random actions.
 
     Notes
     -----
@@ -70,7 +68,6 @@ class AEFCNNetwork(BaseDeepNetwork):
         padding="same",
         activation="relu",
         use_bias=True,
-        random_state=0,
     ):
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
@@ -82,7 +79,6 @@ class AEFCNNetwork(BaseDeepNetwork):
         self.strides = strides
         self.dilation_rate = dilation_rate
         self.use_bias = use_bias
-        self.random_state = random_state
 
         super().__init__()
 
