@@ -25,6 +25,7 @@ class MLPRegressor(BaseDeepRegressor):
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
+    callbacks : callable or None, default
     verbose : boolean, default = False
         whether to output extra information
     loss : string, default="mean_squared_error"

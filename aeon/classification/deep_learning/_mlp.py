@@ -25,6 +25,7 @@ class MLPClassifier(BaseDeepClassifier):
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
+    callbacks : callable or None, default
     random_state : int or None, default=None
         Seed for random number generation.
     verbose : boolean, default = False
