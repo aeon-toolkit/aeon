@@ -122,9 +122,11 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
+        # run the full test suit if a PR has the 'full pytest actions' label
         run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
+    # run the code coverage job if a PR has the 'codecov actions' label
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
 
     needs: test-nosoftdeps
@@ -133,3 +135,29 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Disable Numba JIT
+        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,unstable_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
