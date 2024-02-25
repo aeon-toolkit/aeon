@@ -1,6 +1,6 @@
 r"""Amercing dynamic time warping (ADTW) between two time series."""
 
-__author__ = ["chrisholder", "TonyBagnall"]
+__maintainer__ = []
 
 from typing import List, Tuple
 

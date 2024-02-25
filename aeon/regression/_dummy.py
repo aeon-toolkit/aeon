@@ -1,6 +1,6 @@
 """Dummy time series regressor."""
 
-__author__ = ["Badr-Eddine Marani"]
+__maintainer__ = []
 __all__ = ["DummyRegressor"]
 
 import numpy as np

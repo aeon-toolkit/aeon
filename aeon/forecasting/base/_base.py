@@ -32,7 +32,7 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
-__author__ = ["mloning", "big-o", "fkiraly", "sveameyer13", "miraep8"]
+__maintainer__ = []
 
 __all__ = ["BaseForecaster"]
 

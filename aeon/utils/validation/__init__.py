@@ -20,7 +20,6 @@ __all__ = [
     "is_pred_quantiles_proba",
     "is_pdmultiindex_hierarchical",
 ]
-__author__ = ["mloning", "Taiwo Owoseni", "khrapovs", "TonyBagnall"]
 
 import os
 from datetime import timedelta

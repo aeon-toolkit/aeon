@@ -1,8 +1,7 @@
 """Time Convolutional Neural Network (CNN) (minus the final output layer)."""
 
-__author__ = [
-    "Jack Russon",
-]
+__maintainer__ = []
+
 
 import math
 

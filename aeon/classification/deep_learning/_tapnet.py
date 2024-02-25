@@ -1,10 +1,6 @@
 """Time Convolutional Neural Network (CNN) for classification."""
 
-__author__ = [
-    "Jack Russon",
-    "TonyBagnall",
-    "achieveordie",
-]
+__maintainer__ = []
 __all__ = [
     "TapNetClassifier",
 ]

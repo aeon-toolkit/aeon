@@ -4,7 +4,7 @@ from aeon.datatypes import mtype_to_scitype
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.utils._data_types import ALL_TIME_SERIES_TYPES
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = ["ForecastByLevel"]
 
 

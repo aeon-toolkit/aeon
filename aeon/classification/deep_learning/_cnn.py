@@ -1,6 +1,6 @@
 """Time Convolutional Neural Network (CNN) for classification."""
 
-__author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["CNNClassifier"]
 
 import gc

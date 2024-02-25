@@ -1,6 +1,6 @@
 """Time Convolutional Neural Network (CNN) for regression."""
 
-__author__ = ["AurumnPegasus", "achieveordie", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["CNNRegressor"]
 
 import gc
