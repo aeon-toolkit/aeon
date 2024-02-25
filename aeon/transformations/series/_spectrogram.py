@@ -22,8 +22,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
         Sampling frequency of the time series. Defaults to 1.0.
 
     kwargs: Keyword arguments passed to `scipy.signal.spectogram`
-            Checkout <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html>_.
-
+            Checkout SciPy docs above.
 
     Examples
     --------
@@ -80,7 +79,6 @@ class SpectrogramTransformer(BaseSeriesTransformer):
                     Spectrogram of x. By default, the last axis of
                     spectogram corresponds to the segment times.
         """
-
         self.sample_frequencies, self.segment_time, self.spectogram = spectrogram(
             X, fs=self.fs, **kwargs
         )
