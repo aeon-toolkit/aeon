@@ -14,11 +14,6 @@ def test_spectogram_transformer():
 
     st = SpectrogramTransformer()
     res1, res2, res3 = st.fit_transform(series)
-    np.testing.assert_allclose(
-        np.array(
-            [res1, res2, res3]),
-            np.array(
-                [expected_sample_freq, expected_segment_time,\
-                expected_spectrogram]
-            ),
-        )
+    np.testing.assert_allclose(res1, expected_sample_freq)
+    np.testing.assert_allclose(res2, expected_segment_time)
+    np.testing.assert_allclose(res3, expected_spectrogram)
