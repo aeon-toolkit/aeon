@@ -21,7 +21,7 @@ class MockRegressor(BaseRegressor):
     def _predict(self, X):
         """Predict dummy."""
         return np.random.random(size=(len(X)))
-    
+
 
 class MockHandlesAllInput(BaseRegressor):
     """Dummy regressor for testing base class fit/predict/predict_proba."""
