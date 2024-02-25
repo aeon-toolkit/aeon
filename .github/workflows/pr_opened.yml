@@ -18,7 +18,7 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
         with:
-          ref: main
+          sparse-checkout: build_tools
 
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
