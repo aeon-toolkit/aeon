@@ -121,9 +121,7 @@ class MLPRegressor(BaseDeepRegressor):
             last_file_name=last_file_name,
         )
 
-        self._network = MLPNetwork(
-            random_state=self.random_state,
-        )
+        self._network = MLPNetwork()
 
     def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
