@@ -205,7 +205,8 @@ jobs:
       - name: Run tests
         run: python -m pytest
 
-      - uses: actions/cache/save@v3
+      - name: Save new cache
+        uses: actions/cache/save@v3
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
