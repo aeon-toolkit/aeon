@@ -15,18 +15,21 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
         with:
-          sparse-checkout: build_tools
+          ref: main
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
       - name: Install PyGithub
         run: pip install -Uq PyGithub
 
-      - uses: actions/create-github-app-token@v1
+      - name: Create app token
+        uses: actions/create-github-app-token@v1
         id: app-token
         with:
           app-id: ${{ vars.PR_APP_ID }}

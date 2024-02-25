@@ -15,13 +15,16 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - uses: pre-commit/action@v3.0.1
+      - name: Run check-manifest
+        uses: pre-commit/action@v3.0.1
         with:
           extra_args: check-manifest --hook-stage manual
 
@@ -29,13 +32,16 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - uses: pre-commit/action@v3.0.1
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
 
@@ -43,13 +49,16 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - uses: ./.github/actions/numba_cache
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
         with:
           cache_name: "run-notebook-examples"
           runner_os: ${{ runner.os }}
@@ -67,23 +76,27 @@ jobs:
         run: build_tools/run_examples.sh
         shell: bash
 
-      - uses: actions/cache/save@v3
+      - name: Save new cache
+        uses: actions/cache/save@v3
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-test-examples-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
+          key: numba-run-notebook-examples-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
 
   test-nosoftdeps:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - uses: ./.github/actions/numba_cache
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
         with:
           cache_name: "test-nosoftdeps"
           runner_os: ${{ runner.os }}
@@ -106,7 +119,8 @@ jobs:
           python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
           python -m pytest --pyargs aeon.testing.test_softdeps
 
-      - uses: actions/cache/save@v3
+      - name: Save new cache
+        uses: actions/cache/save@v3
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
@@ -116,13 +130,16 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - uses: ./.github/actions/numba_cache
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
         with:
           cache_name: "test-nosoftdeps-full"
           runner_os: ${{ runner.os }}
@@ -142,7 +159,8 @@ jobs:
       - name: Run tests
         run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
 
-      - uses: actions/cache/save@v3
+      - name: Save new cache
+        uses: actions/cache/save@v3
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
@@ -158,13 +176,16 @@ jobs:
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: ./.github/actions/numba_cache
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
         with:
           cache_name: "pytest"
           runner_os: ${{ runner.os }}
@@ -194,9 +215,11 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -216,6 +239,7 @@ jobs:
       - name: Run tests
         run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
 
-      - uses: codecov/codecov-action@v4
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

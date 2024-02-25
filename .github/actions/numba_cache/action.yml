@@ -51,8 +51,8 @@ runs:
       run: echo C:\Program Files\Git\usr\bin>>"%GITHUB_PATH%"
 
     # Restore cache if restore_cache is true
-    - uses: actions/cache/restore@v3
-      id: restore-cache
+    - name: Restore cache
+      uses: actions/cache/restore@v3
       if: ${{ inputs.restore_cache == 'true' }}
       with:
         path: ${{ github.workspace }}/.numba_cache
