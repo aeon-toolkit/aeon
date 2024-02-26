@@ -139,7 +139,18 @@ def all_estimators(
     import sys
     import warnings
 
-    MODULES_TO_IGNORE = ("tests", "setup", "contrib", "benchmarking", "utils", "all")
+    MODULES_TO_IGNORE = (
+        "tests",
+        "setup",
+        "benchmarking",
+        "utils",
+        "all",
+        "testing",
+        "datasets",
+        "registry",
+        "datatypes",
+        "visualisation",
+    )
 
     all_est = []
     ROOT = str(Path(__file__).parent.parent)  # aeon package root directory
