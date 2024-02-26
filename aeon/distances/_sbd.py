@@ -151,17 +151,17 @@ def sbd_pairwise_distance(
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> sbd_pairwise_distance(X)
-    array([[0. 0. 0.]
-           [0. 0. 0.]
-           [0. 0. 0.]])
+    array([[0., 0., 0.],
+           [0., 0., 0.],
+           [0., 0., 0.]])
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
     >>> sbd_pairwise_distance(X, y)
-    array([[0. 0. 0.]
-           [0. 0. 0.]
-           [0. 0. 0.]])
+    array([[0., 0., 0.],
+           [0., 0., 0.],
+           [0., 0., 0.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
