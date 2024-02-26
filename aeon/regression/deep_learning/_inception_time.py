@@ -237,10 +237,10 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data target values.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints).
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------
