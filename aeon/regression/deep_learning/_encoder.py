@@ -181,7 +181,7 @@ class EncoderRegressor(BaseDeepRegressor):
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
-            units=1, activation=self.activation, use_bias=self.use_bias
+            units=1, activation=self.output_activation, use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
