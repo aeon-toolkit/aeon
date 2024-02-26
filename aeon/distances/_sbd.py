@@ -215,10 +215,10 @@ def _univariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) ->
     x = x.astype(np.float64)
     y = y.astype(np.float64)
 
-    if x.size == 1 or y.size == 1:
-        return 0.0
-
     if standardize:
+        if x.size == 1 or y.size == 1:
+            return 0.0
+
         x = (x - np.mean(x)) / np.std(x)
         y = (y - np.mean(y)) / np.std(y)
 
