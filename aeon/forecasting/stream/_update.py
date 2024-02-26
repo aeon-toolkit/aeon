@@ -1,6 +1,6 @@
 """Compositors that control stream and refitting behaviour of update."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pandas as pd
 

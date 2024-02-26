@@ -1,7 +1,5 @@
 """Distance computation."""
 
-__author__ = ["chrisholder", "TonyBagnall", "baraline", "akshatvishu", "codelionx"]
-
 __all__ = [
     "create_bounding_matrix",
     "squared_distance",

@@ -3,7 +3,7 @@
 Pipeline classifier using the ROCKET transformer and an sklearn classifier.
 """
 
-__author__ = ["MatthewMiddlehurst", "victordremov", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["RocketClassifier"]
 
 import numpy as np

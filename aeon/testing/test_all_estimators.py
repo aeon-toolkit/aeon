@@ -3,7 +3,7 @@
 adapted from scikit-learn's estimator_checks
 """
 
-__author__ = ["mloning", "fkiraly", "achieveordie", "MatthewMiddlehurst"]
+__maintainer__ = []
 
 import numbers
 import types

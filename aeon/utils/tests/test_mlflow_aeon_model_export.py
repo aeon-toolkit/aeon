@@ -1,6 +1,6 @@
 """Tests for mlflow-aeon custom model flavor."""
 
-__author__ = ["benjaminbluhm"]
+__maintainer__ = []
 
 import sys
 from pathlib import Path

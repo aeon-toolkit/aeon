@@ -1,6 +1,6 @@
 """LITETime classifier."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["LITETimeClassifier"]
 
 import gc

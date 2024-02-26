@@ -1,6 +1,6 @@
 """Implements pipelines for forecasting."""
 
-__author__ = ["mloning", "aiwalter"]
+__maintainer__ = []
 __all__ = ["TransformedTargetForecaster", "ForecastingPipeline", "ForecastX"]
 
 import pandas as pd

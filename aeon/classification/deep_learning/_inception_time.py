@@ -1,6 +1,6 @@
 """InceptionTime classifier."""
 
-__author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["InceptionTimeClassifier"]
 
 import gc

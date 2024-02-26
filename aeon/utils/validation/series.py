@@ -1,6 +1,6 @@
 """Functions for checking input data."""
 
-__author__ = ["mloning", "Drishti Bhasin", "khrapovs"]
+__maintainer__ = []
 __all__ = [
     "check_series",
     "check_time_index",

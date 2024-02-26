@@ -1,6 +1,6 @@
 """Fully Convolutional Network (FCN) for regression."""
 
-__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["FCNRegressor"]
 
 import gc
@@ -151,7 +151,6 @@ class FCNRegressor(BaseDeepRegressor):
         super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
         self._network = FCNNetwork(
-            random_state=self.random_state,
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,
             n_filters=self.n_filters,

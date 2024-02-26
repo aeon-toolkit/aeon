@@ -1,6 +1,6 @@
 """Tests simple forecasts based on naive assumptions."""
 
-__author__ = ["mloning", "Piyush Gade", "Flix6x"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

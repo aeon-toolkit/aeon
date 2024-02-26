@@ -1,4 +1,4 @@
-__author__ = ["chrisholder", "TonyBagnall", "akshatvishu", "codelionx"]
+__maintainer__ = []
 
 from typing import Any, Callable, List, Tuple, Union
 
