@@ -21,7 +21,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     fs: float, optional
         Sampling frequency of the time series. Defaults to 1.0.
 
-    kwargs: Keyword arguments passed to `scipy.signal.spectogram`
+    kwargs: Keyword arguments passed to `scipy.signal.spectrogram`
             Checkout SciPy docs above.
 
     Examples
@@ -67,7 +67,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
         X : np.ndarray
             1D time series to be transformed
         y : ignored argument for interface compatibility
-        kwargs : kwargs to be passed to `scipy.signal.spectogram`
+        kwargs : kwargs to be passed to `scipy.signal.spectrogram`
 
         Returns
         -------
@@ -77,7 +77,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
                     Array of segment times.
         spectrogram:     ndarray
                     Spectrogram of x. By default, the last axis of
-                    spectogram corresponds to the segment times.
+                    spectrogram corresponds to the segment times.
         """
         self.sample_frequencies, self.segment_time, self.spectrogram = spectrogram(
             X, fs=self.fs, **kwargs
