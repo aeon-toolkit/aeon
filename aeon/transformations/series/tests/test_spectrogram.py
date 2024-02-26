@@ -3,7 +3,7 @@ import numpy as np
 from aeon.transformations.series import SpectrogramTransformer
 
 
-def test_spectogram_transformer():
+def test_spectrogram_transformer():
     series = np.array([584.0, -11.0, 23.0, 79.0, 1001.0, 0.0, -19.0])
 
     expected_sample_freq = np.array([0.0, 0.14285714, 0.28571429, 0.42857143])

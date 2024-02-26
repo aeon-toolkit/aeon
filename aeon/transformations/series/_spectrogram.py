@@ -53,7 +53,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
         # Outputs
         self.sample_frequencies = None
         self.segment_time = None
-        self.spectogram = None
+        self.spectrogram = None
 
         super().__init__()
 
@@ -75,14 +75,14 @@ class SpectrogramTransformer(BaseSeriesTransformer):
                         Array of sample frequencies.
         segment_time:   ndarray
                     Array of segment times.
-        spectogram:     ndarray
+        spectrogram:     ndarray
                     Spectrogram of x. By default, the last axis of
                     spectogram corresponds to the segment times.
         """
-        self.sample_frequencies, self.segment_time, self.spectogram = spectrogram(
+        self.sample_frequencies, self.segment_time, self.spectrogram = spectrogram(
             X, fs=self.fs, **kwargs
         )
-        return self.sample_frequencies, self.segment_time, self.spectogram
+        return self.sample_frequencies, self.segment_time, self.spectrogram
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
