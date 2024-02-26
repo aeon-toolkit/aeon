@@ -1,6 +1,6 @@
 """Test series module."""
 
-__author__ = ["benheid", "TonyBagnall"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

@@ -6,7 +6,7 @@ a certain module but otherwise not necessary.
 Adapted from code of mloning for the legacy Azure CI/CD build tools.
 """
 
-__author__ = ["mloning", "fkiraly"]
+__maintainer__ = []
 
 import pkgutil
 import re

@@ -1,6 +1,6 @@
 """LITETime classifier."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["LITETimeClassifier"]
 
 import gc
@@ -80,7 +80,7 @@ class LITETimeClassifier(BaseClassifier):
     Notes
     -----
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
+    tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
 
     Adapted from the implementation from Ismail-Fawaz et. al

@@ -1,6 +1,6 @@
 """Time series kmedoids."""
 
-__author__ = ["chrisholder", "TonyBagnall"]
+__maintainer__ = []
 
 import warnings
 from typing import Callable, Tuple, Union

@@ -4,13 +4,22 @@ import numpy as np
 import pandas as pd
 
 
+def is_collection(X):
+    """Check X is a valid collection data structure."""
+    try:
+        get_type(X)
+        return True
+    except TypeError:
+        return False
+
+
 def is_nested_univ_dataframe(X):
     """Check if X is nested dataframe.
 
     Parameters
     ----------
     X: collection
-        See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
+        See aeon.registry.COLLECTIONS_DATA_TYPES for details
         on aeon supported data structures.
     """
     # Otherwise check all entries are pd.Series
@@ -78,7 +87,7 @@ def get_n_cases(X):
     Parameters
     ----------
     X : collection
-        See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details.
+        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -96,7 +105,7 @@ def get_type(X):
     Parameters
     ----------
     X : collection
-        See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details.
+        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -171,7 +180,7 @@ def is_equal_length(X):
     Parameters
     ----------
     X : collection
-        See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details.
+        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
