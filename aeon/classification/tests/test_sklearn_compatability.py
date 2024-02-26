@@ -1,6 +1,6 @@
 """Unit tests for aeon classifier compatability with sklearn interfaces."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = [
     "test_sklearn_cross_validation",
     "test_sklearn_cross_validation_iterators",
@@ -79,8 +79,7 @@ COMPOSITE_ESTIMATORS = [
 
 
 def test_sklearn_cross_validation():
-    """Test sklearn cross-validation works with aeon time series data and
-    classifiers."""
+    """Test sklearn cross-validation works with aeon data and classifiers."""
     clf = CanonicalIntervalForestClassifier.create_test_instance()
     X, y = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=30)
     scores = cross_val_score(clf, X, y=y, cv=KFold(n_splits=2))
@@ -89,7 +88,7 @@ def test_sklearn_cross_validation():
 
 @pytest.mark.parametrize("cross_validation_method", CROSS_VALIDATION_METHODS)
 def test_sklearn_cross_validation_iterators(cross_validation_method):
-    """Test if sklearn cross-validation iterators can handle aeon time series data."""
+    """Test if sklearn cross-validation iterators can handle aeon data."""
     X, y = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=30)
     groups = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10]
 

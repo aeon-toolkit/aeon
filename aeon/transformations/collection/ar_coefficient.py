@@ -1,6 +1,6 @@
 """AR coefficient feature transformer."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["ARCoefficientTransformer"]
 
 

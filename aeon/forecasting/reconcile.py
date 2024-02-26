@@ -1,9 +1,7 @@
 """Implements reconciled forecasters for hierarchical data."""
 
+__maintainer__ = []
 __all__ = ["ReconcilerForecaster"]
-__author__ = [
-    "ciaran-g",
-]
 
 
 from warnings import warn

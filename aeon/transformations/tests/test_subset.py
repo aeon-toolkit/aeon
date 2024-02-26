@@ -1,6 +1,6 @@
 """Tests for the subsetting transformers."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pandas as pd
 import pytest

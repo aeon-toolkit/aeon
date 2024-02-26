@@ -20,7 +20,6 @@ __all__ = [
     "is_pred_quantiles_proba",
     "is_pdmultiindex_hierarchical",
 ]
-__author__ = ["mloning", "Taiwo Owoseni", "khrapovs", "TonyBagnall"]
 
 import os
 from datetime import timedelta
@@ -29,7 +28,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from aeon.utils.validation._check_collection import (
+from aeon.utils.validation.collection import (
     get_n_cases,
     get_type,
     has_missing,
