@@ -161,10 +161,11 @@ class LITETimeClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
             The training input samples.
-        y : np.ndarray of shape n
-            The training data class labels.
+        y : array-like, shape = (n_cases)
+            The class labels.
 
         Returns
         -------
