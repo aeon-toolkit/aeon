@@ -1,6 +1,6 @@
 """Time Convolutional Neural Network (CNN) for regression."""
 
-__author__ = ["AurumnPegasus", "achieveordie", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["CNNRegressor"]
 
 import gc
@@ -173,7 +173,6 @@ class CNNRegressor(BaseDeepRegressor):
             strides=self.strides,
             dilation_rate=self.dilation_rate,
             use_bias=self.use_bias,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, **kwargs):

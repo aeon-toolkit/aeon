@@ -23,7 +23,7 @@ from aeon.transformations.collection.segment import SlidingWindowSegmenter
 from aeon.transformations.collection.slope import SlopeTransformer
 from aeon.utils.numba.general import slope_derivative_3d
 
-__author__ = ["vincent-nich12"]
+__maintainer__ = []
 
 
 class ShapeDTW(BaseClassifier):

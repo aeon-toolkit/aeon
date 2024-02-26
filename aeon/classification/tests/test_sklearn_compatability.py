@@ -1,6 +1,6 @@
 """Unit tests for aeon classifier compatability with sklearn interfaces."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = [
     "test_sklearn_cross_validation",
     "test_sklearn_cross_validation_iterators",

@@ -1,6 +1,6 @@
 """Tests the SARIMAX model."""
 
-__author__ = ["TNTran92"]
+__maintainer__ = []
 
 import pytest
 from numpy.testing import assert_allclose

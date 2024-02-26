@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__author__ = ["KishManani"]
+__maintainer__ = []
 
 import datetime
 import warnings

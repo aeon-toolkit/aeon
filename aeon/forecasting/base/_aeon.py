@@ -1,6 +1,6 @@
 """aeon window forecaster base class."""
 
-__author__ = ["@mloning", "@big-o", "fkiraly"]
+__maintainer__ = []
 __all__ = ["_BaseWindowForecaster"]
 
 import numpy as np

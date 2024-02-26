@@ -1,6 +1,6 @@
 """LITE Network."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
 
@@ -44,13 +44,11 @@ class LITENetwork(BaseDeepNetwork):
         kernel_size=40,
         strides=1,
         activation="relu",
-        random_state=0,
     ):
         self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.activation = activation
         self.strides = strides
-        self.random_state = random_state
 
         super().__init__()
 

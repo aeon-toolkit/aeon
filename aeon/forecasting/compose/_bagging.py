@@ -1,6 +1,6 @@
 """Implements Bagging Forecaster."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 from typing import List, Union
 

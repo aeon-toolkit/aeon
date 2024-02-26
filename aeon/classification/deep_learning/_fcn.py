@@ -1,6 +1,6 @@
 """Fully Convolutional Network (FCN) for classification."""
 
-__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["FCNClassifier"]
 
 import gc
@@ -151,7 +151,6 @@ class FCNClassifier(BaseDeepClassifier):
         )
 
         self._network = FCNNetwork(
-            random_state=self.random_state,
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,
             n_filters=self.n_filters,
