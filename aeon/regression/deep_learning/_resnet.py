@@ -1,6 +1,6 @@
 """Residual Network (ResNet) for regression."""
 
-__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["ResNetRegressor"]
 
 import gc
@@ -177,7 +177,6 @@ class ResNetRegressor(BaseDeepRegressor):
             activation=self.activation,
             dilation_rate=self.dilation_rate,
             padding=self.padding,
-            random_state=random_state,
         )
 
     def build_model(self, input_shape, **kwargs):

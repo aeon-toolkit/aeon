@@ -1,6 +1,6 @@
 """Base class for deep clustering."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 from abc import ABC, abstractmethod
 

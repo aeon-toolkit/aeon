@@ -2320,6 +2320,26 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "aadya940",
+      "name": "Aadya Chinubhai",
+      "avatar_url": "https://avatars.githubusercontent.com/u/77720426?v=4",
+      "profile": "https://github.com/aadya940",
+      "contributions": [
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "codelionx",
+      "name": "Sebastian Schmidl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10573700?v=4",
+      "profile": "https://github.com/codelionx",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "commitType": "docs"

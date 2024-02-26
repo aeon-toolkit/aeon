@@ -92,6 +92,18 @@ Interval-based
 
     TimeSeriesForestRegressor
 
+Shapelet-based
+--------------
+
+.. currentmodule:: aeon.regression.shapelet_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RDSTRegressor
+
+
 sklearn
 -------
 

@@ -5,7 +5,7 @@ Time Series Classification.
 
 """
 
-__author__ = ["patrickzib"]
+__maintainer__ = []
 __all__ = ["WEASEL_V2", "WEASELTransformerV2"]
 
 import warnings
