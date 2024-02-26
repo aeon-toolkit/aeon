@@ -44,6 +44,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
 
     _tags = {
         "fit_is_empty": True,
+        "capability:inverse_transform": False,
     }
 
     def __init__(self, fs: float = 1):
