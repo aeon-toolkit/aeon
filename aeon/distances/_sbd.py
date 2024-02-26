@@ -1,6 +1,6 @@
-"""Shape-based distance (SBD) distance between two time series."""
+"""Shape-based distance (SBD) between two time series."""
 
-__author__ = ["codelionx"]
+__maintainer__ = ["codelionx"]
 
 from typing import Optional
 
@@ -214,47 +214,16 @@ def _sbd_pairwise_distance(
 def _univariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) -> float:
     x = x.astype(np.float64)
     y = y.astype(np.float64)
+
+    if x.size == 1 or y.size == 1:
+        return 0.0
+
     if standardize:
         x = (x - np.mean(x)) / np.std(x)
         y = (y - np.mean(y)) / np.std(y)
 
-    # option 1:
     with objmode(a="float64[:]"):
         a = correlate(x, y, method="fft")
-    # option 2:
-    # a = np.convolve(x, _reverse_and_conj(y))
 
     b = np.sqrt(np.dot(x, x) * np.dot(y, y))
     return np.abs(1.0 - np.max(a / b))
-
-
-@njit(cache=True, fastmath=True)
-def _reverse_and_conj(x: np.ndarray) -> np.ndarray:
-    """Reverse array `x` in all dimensions and perform the complex conjugate.
-
-    Implementation in scipy that is not compatible with Numba:
-
-        >>> reverse_mask = (slice(None, None, -1),) * x.ndim
-        >>> x = x[reverse_mask].conj()
-
-    Parameters
-    ----------
-    x : np.ndarray
-        Input array.
-
-    Returns
-    -------
-    np.ndarray
-        Reversed (in all dimensions) and conjugated array.
-    """
-    if x.ndim == 1:
-        return x[::-1].conj()
-    elif x.ndim == 2:
-        return x[::-1, ::-1].conj()
-    elif x.ndim == 3:
-        return x[::-1, ::-1, ::-1].conj()
-    else:
-        raise NotImplementedError(
-            "reverse_and_conj ist not implemented for arrays of "
-            "dimensionality 4 or larger!"
-        )
