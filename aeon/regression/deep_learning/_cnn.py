@@ -224,7 +224,7 @@ class CNNRegressor(BaseDeepRegressor):
         X : np.ndarray
             The training input samples of shape (n_cases, n_channels, n_timepoints).
         y : np.ndarray
-            The training data class labels of shape (n_cases,).
+            The training data target values of shape (n_cases,).
 
         Returns
         -------
