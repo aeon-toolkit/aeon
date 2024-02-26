@@ -21,7 +21,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     is used) invariant.
 
     For two series, possibly of unequal length, :math:`\mathbf{x}=\{x_1,x_2,\ldots,
-    x_n\}` and :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}`, BSD works by (optionally)
+    x_n\}` and :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}`, SBD works by (optionally)
     first standardizing both time series using the z-score
     (:math:`x' = \frac{x - \mu}{\sigma}`), then computing the cross-correlation
     between x and y (:math:`CC(\mathbf{x}, \mathbf{y})`), then deviding it by the
@@ -49,6 +49,9 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
             \mathcal{F}(\mathbf{x}) * \mathcal{F}(\mathbf{y})
         \}
 
+    For multivariate time series, SBD is computed independently for each channel and
+    then averaged.
+
     Parameters
     ----------
     x : np.ndarray
@@ -59,12 +62,12 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
         multivariate, shape ``(n_channels, n_timepoints)``.
     standardize : bool, default=True
         Apply z-score to both input time series for standardization before
-        computing the distance. This make SBD scaling invariant. Default is True.
+        computing the distance. This makes SBD scaling invariant. Default is True.
 
     Returns
     -------
     float
-        BSD distance between x and y.
+        SBD distance between x and y.
 
     Raises
     ------
@@ -123,15 +126,15 @@ def sbd_pairwise_distance(
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
-        If None, then the BSD is calculated between pairwise instances of x.
+        If None, then the SBD is calculated between pairwise instances of x.
     standardize : bool, default=True
         Apply z-score to both input time series for standardization before
-        computing the distance. This make SBD scaling invariant. Default is True.
+        computing the distance. This makes SBD scaling invariant. Default is True.
 
     Returns
     -------
     np.ndarray (n_instances, n_instances)
-        BSD matrix between the instances of x (and y).
+        SBD matrix between the instances of x (and y).
 
     Raises
     ------
