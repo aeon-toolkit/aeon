@@ -26,7 +26,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series import SpectogramTransformer
+    >>> from aeon.transformations.series import SpectrogramTransformer
     >>> import numpy as np
     >>> fs = 10e3
     >>> N = 1e5
