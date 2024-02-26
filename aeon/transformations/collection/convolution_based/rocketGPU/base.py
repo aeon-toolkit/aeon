@@ -1,6 +1,6 @@
 """Base of Rocket based transformer for GPU."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["BaseROCKETGPU"]
 
 from aeon.transformations.collection import BaseCollectionTransformer

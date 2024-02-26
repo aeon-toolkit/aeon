@@ -1,5 +1,8 @@
 """Unit tests for rocket GPU base functionality."""
 
+__maintainer__ = ["hadifawaz1999"]
+__all__ = ["test_base_rocketGPU_univariate", "test_base_rocketGPU_multivariate"]
+
 import pytest
 
 from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
@@ -7,9 +10,6 @@ from aeon.transformations.collection.convolution_based.rocketGPU.base import (
     BaseROCKETGPU,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-__author__ = ["hadifawaz1999"]
-__all__ = ["test_base_rocketGPU_univariate", "test_base_rocketGPU_multivariate"]
 
 
 class DummyROCKETGPU(BaseROCKETGPU):
