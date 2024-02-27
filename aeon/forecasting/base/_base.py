@@ -1350,8 +1350,8 @@ class BaseForecaster(BaseEstimator):
                     "where mtype is the string of the type specification you want for "
                     "y. Possible mtype specification strings are as follows. "
                 )
-            # Still need to extract the correct "scitype and "mtype" of y,
-            # is_univariate and _check_missing
+            # TODO: Still need to extract the correct "scitype and "mtype" of y,
+            #  is_univariate and _check_missing without check_is_scitype
             _, _, y_metadata = check_is_scitype(
                 y, scitype=ALLOWED_ABSTRACT_TYPES, return_metadata=True, var_name="y"
             )
@@ -1404,7 +1404,7 @@ class BaseForecaster(BaseEstimator):
                         "the type specification you want for y. "
                         "Possible mtype specification strings are as follows. "
                     )
-
+            # TODO: Still need to extract the "scitype" of y without check_is_scitype
             _, _, X_metadata = check_is_scitype(
                 X, scitype=ALLOWED_ABSTRACT_TYPES, return_metadata=True, var_name="X"
             )

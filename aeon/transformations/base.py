@@ -861,7 +861,7 @@ class BaseTransformer(BaseEstimator):
                 y_possible_scitypes = ["Panel", "Hierarchical"]
             if not (is_hierarchical(y) or is_collection(y) or is_single_series(y)):
                 raise TypeError("Error")
-
+            # TODO: Still need to extract the "scitype" of y without check_is_scitype
             _, _, y_metadata = check_is_scitype(
                 y, scitype=y_possible_scitypes, return_metadata=True, var_name="y"
             )

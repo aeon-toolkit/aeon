@@ -417,6 +417,7 @@ def get_window(obj, window_length=None, lag=None):
     valid = is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)
     if not valid:
         raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
+    # TODO: Still need to extract the "mtype" without check_is_scitype
     _, _, metadata = check_is_scitype(
         obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
     )
@@ -512,6 +513,7 @@ def get_slice(obj, start=None, end=None):
     valid = is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)
     if not valid:
         raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
+    # TODO: Still need to extract the "mtype" without check_is_scitype
     _, _, metadata = check_is_scitype(
         obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
     )

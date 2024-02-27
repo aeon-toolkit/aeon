@@ -543,6 +543,7 @@ class BaseSplitter(BaseObject):
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
             )
+        # TODO: Still need to extract the "mtype" of y without check_is_scitype
         _, _, y_metadata = check_is_scitype(
             y,
             scitype=["Hierarchical", "Panel", "Series"],
