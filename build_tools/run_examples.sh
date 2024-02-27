@@ -9,6 +9,7 @@ excluded=(
   "examples/datasets/load_data_from_web.ipynb"
   "examples/benchmarking/reference_results.ipynb"
   "examples/benchmarking/bakeoff_results.ipynb"
+  "examples/benchmarking/regression_results_per_dataset.ipynb"
 )
 
 shopt -s lastpipe
