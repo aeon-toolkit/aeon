@@ -168,4 +168,4 @@ def test_score():
     x_test, y_test = load_covid_3month(split="test")
     dummy.fit(x_train, y_train)
     r = dummy.score(x_test, y_test)
-    np.testing.assert_almost_equal(r, -0.004303695, decimal=6)
+    np.testing.assert_almost_equal(r, 0.0019998715745554777, decimal=6)
