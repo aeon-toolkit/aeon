@@ -2338,7 +2338,9 @@
       "profile": "https://github.com/codelionx",
       "contributions": [
         "bug",
-        "code"
+        "code",
+        "doc",
+        "research"
       ]
     }
   ],
