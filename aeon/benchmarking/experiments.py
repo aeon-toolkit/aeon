@@ -3,7 +3,7 @@
 Results are saved a standardised format used by both tsml and aeon.
 """
 
-__author__ = ["TonyBagnall"]
+__maintainer__ = []
 __all__ = [
     "run_clustering_experiment",
     "load_and_run_clustering_experiment",

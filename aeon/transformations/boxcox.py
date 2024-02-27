@@ -1,6 +1,6 @@
 """Implemenents Box-Cox and Log Transformations."""
 
-__author__ = ["mloning", "aiwalter", "fkiraly"]
+__maintainer__ = []
 __all__ = ["BoxCoxTransformer", "LogTransformer"]
 
 import numpy as np

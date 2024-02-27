@@ -4,7 +4,7 @@ Dictionary based cBOSS classifier based on SFA transform. Improves the ensemble
 structure of the original BOSS algorithm.
 """
 
-__author__ = ["MatthewMiddlehurst", "BINAYKUMAR943"]
+__maintainer__ = []
 
 __all__ = ["ContractableBOSS", "pairwise_distances"]
 
@@ -85,9 +85,9 @@ class ContractableBOSS(BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : list
         The classes labels.
-    n_instances_ : int
+    n_cases_ : int
         Number of instances. Extracted from the data.
-    series_length_ : int
+    n_timepoints_ : int
         Length of all series (assumed equal).
     estimators_ : list
        List of DecisionTree classifiers.
@@ -165,8 +165,8 @@ class ContractableBOSS(BaseClassifier):
         self.estimators_ = []
         self.weights_ = []
         self.n_estimators_ = 0
-        self.series_length_ = 0
-        self.n_instances_ = 0
+        self.n_timepoints_ = 0
+        self.n_cases_ = 0
 
         self._weight_sum = 0
         self._word_lengths = [16, 14, 12, 10, 8]
@@ -194,9 +194,9 @@ class ContractableBOSS(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The training labels, shape = (n_instances).
+            The training labels, shape = (n_cases).
 
         Returns
         -------
@@ -209,14 +209,14 @@ class ContractableBOSS(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         time_limit = self.time_limit_in_minutes * 60
-        self.n_instances_, _, self.series_length_ = X.shape
+        self.n_cases_, _, self.n_timepoints_ = X.shape
 
         self.estimators_ = []
         self.weights_ = []
 
         # Window length parameter space dependent on series length
-        max_window_searches = self.series_length_ / 4
-        max_window = int(self.series_length_ * self.max_win_len_prop)
+        max_window_searches = self.n_timepoints_ / 4
+        max_window = int(self.n_timepoints_ * self.max_win_len_prop)
         win_inc = int((max_window - self.min_window) / max_window_searches)
         win_inc = max(win_inc, 1)
         if self.min_window > max_window + 1:
@@ -232,7 +232,7 @@ class ContractableBOSS(BaseClassifier):
         num_classifiers = 0
         start_time = time.time()
         train_time = 0
-        subsample_size = int(self.n_instances_ * 0.7)
+        subsample_size = int(self.n_cases_ * 0.7)
         lowest_acc = 1
         lowest_acc_idx = 0
 
@@ -256,9 +256,7 @@ class ContractableBOSS(BaseClassifier):
                 rng.randint(0, len(possible_parameters))
             )
 
-            subsample = rng.choice(
-                self.n_instances_, size=subsample_size, replace=False
-            )
+            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
             X_subsample = X[subsample]
             y_subsample = y[subsample]
 
@@ -313,13 +311,13 @@ class ContractableBOSS(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         1D np.ndarray
-            Predicted class labels shape = (n_instances).
+            Predicted class labels shape = (n_cases).
 
         """
         rng = check_random_state(self.random_state)
@@ -336,13 +334,13 @@ class ContractableBOSS(BaseClassifier):
         Parameters
         ----------
          X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         2D np.ndarray
-            Predicted class labels shape = (n_instances).
+            Predicted class labels shape = (n_cases).
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 
@@ -368,8 +366,8 @@ class ContractableBOSS(BaseClassifier):
     def _fit_predict_proba(self, X, y) -> np.ndarray:
         self._fit(X, y, keep_train_preds=True)
 
-        results = np.zeros((self.n_instances_, self.n_classes_))
-        divisors = np.zeros(self.n_instances_)
+        results = np.zeros((self.n_cases_, self.n_classes_))
+        divisors = np.zeros(self.n_cases_)
 
         for i, clf in enumerate(self.estimators_):
             subsample = clf._subsample
@@ -379,7 +377,7 @@ class ContractableBOSS(BaseClassifier):
                 results[subsample[n]][self._class_dictionary[pred]] += self.weights_[i]
                 divisors[subsample[n]] += self.weights_[i]
 
-        for i in range(self.n_instances_):
+        for i in range(self.n_cases_):
             results[i] = (
                 np.ones(self.n_classes_) * (1 / self.n_classes_)
                 if divisors[i] == 0

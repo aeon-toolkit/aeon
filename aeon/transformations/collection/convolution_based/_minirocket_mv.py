@@ -1,6 +1,6 @@
 """Multivariate MiniRocket transformer."""
 
-__author__ = ["angus924", "michaelfeil", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["MiniRocketMultivariateVariable"]
 
 import multiprocessing
@@ -22,27 +22,29 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
     **Multivariate** and **unequal length**
 
     A provisional and naive extension of MINIROCKET to multivariate input
-    with unequal length provided by the authors [2]_ .  For better
+    with unequal length provided by the authors [2]_. For better
     performance, use the aeon class MiniRocket for univariate input,
-    and MiniRocketMultivariate to equal length multivariate input.
+    and MiniRocketMultivariate for equal-length multivariate input.
 
     Parameters
     ----------
     num_kernels : int, default=10,000
-       number of random convolutional kernels. The calculated number of features is the
-       nearest multiple of n_features_per_kernel(default 4)*84=336 < 50,000
-       (2*n_features_per_kernel(default 4)*num_kernels(default 10,000)).
+       Number of random convolutional kernels. The calculated number of features is the
+       nearest multiple of ``n_features_per_kernel(default 4)*84=336 < 50,000``
+       (``2*n_features_per_kernel(default 4)*num_kernels(default 10,000)``).
     max_dilations_per_kernel : int, default=32
-        maximum number of dilations per kernel.
+        Maximum number of dilations per kernel.
     reference_length : int or str, default = `'max'`
-        series-length of reference, str defines how to infer from X during 'fit'.
-        options are `'max'`, `'mean'`, `'median'`, `'min'`.
+        Series-length of reference, str defines how to infer from `X` during `fit`.
+        Options are `'max'`, `'mean'`, `'median'`, `'min'`.
     pad_value_short_series : float or None, default=None
-        if padding series with len<9 to value. if None, not padding is performed.
+        Whether padding series with length less than 9 to value. If None, no
+        padding is performed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
     random_state : None or int, default = None
+        Seed for random number generation.
 
     Examples
     --------

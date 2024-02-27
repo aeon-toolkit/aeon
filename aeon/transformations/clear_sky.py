@@ -1,6 +1,6 @@
 """Clear sky transformer for solar time-series."""
 
-__author__ = ["ciaran-g"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

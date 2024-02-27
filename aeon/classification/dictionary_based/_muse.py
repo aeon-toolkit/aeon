@@ -4,7 +4,7 @@ multivariate dictionary based classifier based on SFA transform, dictionaries
 and logistic regression.
 """
 
-__author__ = ["patrickzib", "BINAYKUMAR943"]
+__maintainer__ = []
 __all__ = ["MUSE"]
 
 import math
@@ -168,9 +168,9 @@ class MUSE(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The training labels, shape = (n_instances).
+            The training labels, shape = (n_cases).
 
         Returns
         -------
@@ -262,13 +262,13 @@ class MUSE(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         1D np.ndarray
-            The predicted class labels shape = (n_instances).
+            The predicted class labels shape = (n_cases).
         """
         bag = self._transform_words(X)
         return self.clf.predict(bag)
@@ -279,14 +279,14 @@ class MUSE(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         2D np.ndarray
             Predicted probabilities using the ordering in classes_, shape = (
-            n_instances, n_classes_).
+            n_cases, n_classes_).
         """
         bag = self._transform_words(X)
         if self.support_probabilities:
@@ -353,9 +353,9 @@ class MUSE(BaseClassifier):
         }
 
 
-def _compute_window_inc(series_length, window_inc):
+def _compute_window_inc(n_timepoints, window_inc):
     win_inc = window_inc
-    if series_length < 100:
+    if n_timepoints < 100:
         win_inc = 1  # less than 100 is ok time-wise
 
     return win_inc
@@ -401,11 +401,11 @@ def _parallel_fit(
 
     # On each dimension, perform SFA
     X_dim = X[:, ind]
-    series_length = X_dim.shape[-1]
+    n_timepoints = X_dim.shape[-1]
 
     # increment window size in steps of 'win_inc'
-    win_inc = _compute_window_inc(series_length, window_inc)
-    max_window = int(min(series_length, max_window))
+    win_inc = _compute_window_inc(n_timepoints, window_inc)
+    max_window = int(min(n_timepoints, max_window))
 
     if min_window > max_window:
         raise ValueError(

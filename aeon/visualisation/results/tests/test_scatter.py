@@ -27,6 +27,7 @@ data_path = os.path.join(
     reason="skip test if required soft dependency not available",
 )
 def test_plot_pairwise_scatter():
+    """Test plot_pairwise_scatter."""
     import matplotlib
     import matplotlib.pyplot as plt
 
@@ -90,6 +91,7 @@ def test_plot_pairwise_scatter():
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
+    # Test error handling for metrics
     with pytest.raises(ValueError):
         plot_pairwise_scatter(
             res[0], res[1], cls[0], cls[1], metric="error", lower_better=False
@@ -105,6 +107,7 @@ def test_plot_pairwise_scatter():
     reason="skip test if required soft dependency not available",
 )
 def test_plot_scatter_predictions():
+    """Test whether plot_scatter_predictions runs without error."""
     import matplotlib
     import matplotlib.pyplot as plt
 
@@ -127,6 +130,7 @@ def test_plot_scatter_predictions():
     reason="skip test if required soft dependency not available",
 )
 def test_plot_score_vs_time_scatter():
+    """Test whether plot_score_vs_time_scatter runs without error."""
     import matplotlib
     import matplotlib.pyplot as plt
 

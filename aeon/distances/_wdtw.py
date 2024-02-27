@@ -1,6 +1,6 @@
 r"""Weighted dynamic time warping (WDTW) distance between two time series."""
 
-__author__ = ["chrisholder", "TonyBagnall"]
+__maintainer__ = []
 
 from typing import List, Tuple
 

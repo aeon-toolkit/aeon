@@ -176,7 +176,7 @@ def assign_prs(
 
 
 def render_row(pr: Dict):  # noqa
-    """Render a single row with PR in Myst Markdown format"""
+    """Render a single row with PR in Myst Markdown format."""
     print(  # noqa: T201
         "-",
         pr["title"],

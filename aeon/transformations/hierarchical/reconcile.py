@@ -3,7 +3,7 @@
 These reconcilers only depend on the structure of the hierarchy.
 """
 
-__author__ = ["ciaran-g", "eenticott-shell", "k1m190r"]
+__maintainer__ = []
 
 from warnings import warn
 

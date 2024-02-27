@@ -29,15 +29,16 @@ Below we list further reading and guidance for specific topics in the developmen
 ```{toctree}
 :maxdepth: 1
 
-developer_guide/add_dataset
-developer_guide/add_estimators
-developer_guide/coding_standards
-developer_guide/continuous_integration
-developer_guide/dependencies
+developer_guide/add_dataset.md
+developer_guide/add_estimators.md
+developer_guide/aep.md
+developer_guide/coding_standards.md
+developer_guide/continuous_integration.md
+developer_guide/dependencies.md
 developer_guide/deprecation.md
 developer_guide/dev_installation.md
-developer_guide/documentation
-developer_guide/git_workflow
+developer_guide/documentation.md
+developer_guide/git_workflow.md
 developer_guide/release.md
-developer_guide/testing_framework
+developer_guide/testing_framework.md
 ```

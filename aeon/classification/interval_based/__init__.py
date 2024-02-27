@@ -10,6 +10,7 @@ __all__ = [
     "RSTSF",
     "SupervisedTimeSeriesForest",
     "TimeSeriesForestClassifier",
+    "QUANTClassifier",
 ]
 
 from aeon.classification.interval_based._cif import CanonicalIntervalForestClassifier
@@ -19,6 +20,7 @@ from aeon.classification.interval_based._interval_pipelines import (
     RandomIntervalClassifier,
     SupervisedIntervalClassifier,
 )
+from aeon.classification.interval_based._quant import QUANTClassifier
 from aeon.classification.interval_based._rise import (
     RandomIntervalSpectralEnsembleClassifier,
 )
