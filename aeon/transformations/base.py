@@ -813,7 +813,7 @@ class BaseTransformer(BaseEstimator):
         if not (is_hierarchical(X) or is_collection(X) or is_single_series(X)):
             raise TypeError(
                 "must be in an aeon compatible format for storing series, hierarchical "
-                "series or collections of series. For example, a "
+                "series or collections of series."
             )
         # checking X
         _, _, X_metadata = check_is_scitype(
