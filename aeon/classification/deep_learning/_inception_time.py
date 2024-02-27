@@ -1,6 +1,6 @@
 """InceptionTime classifier."""
 
-__author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["InceptionTimeClassifier"]
 
 import gc
@@ -29,12 +29,12 @@ class InceptionTimeClassifier(BaseClassifier):
         InceptionTime.
     depth               : int, default = 6,
             the number of inception modules used
-    nb_filters          : int or list of int32, default = 32,
+    n_filters          : int or list of int32, default = 32,
         the number of filters used in one inception
         module, if not a list,
         the same number of filters is used in
         all inception modules
-    nb_conv_per_layer   : int or list of int, default = 3,
+    n_conv_per_layer   : int or list of int, default = 3,
         the number of convolution layers in each inception
         module, if not a list,
         the same number of convolution layers is used
@@ -158,8 +158,8 @@ class InceptionTimeClassifier(BaseClassifier):
     def __init__(
         self,
         n_classifiers=5,
-        nb_filters=32,
-        nb_conv_per_layer=3,
+        n_filters=32,
+        n_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
         max_pool_size=3,
@@ -190,8 +190,8 @@ class InceptionTimeClassifier(BaseClassifier):
     ):
         self.n_classifiers = n_classifiers
 
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
+        self.n_filters = n_filters
+        self.n_conv_per_layer = n_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
         self.strides = strides
@@ -247,8 +247,8 @@ class InceptionTimeClassifier(BaseClassifier):
 
         for n in range(0, self.n_classifiers):
             cls = IndividualInceptionClassifier(
-                nb_filters=self.nb_filters,
-                nb_conv_per_layer=self.nb_conv_per_layer,
+                n_filters=self.n_filters,
+                n_conv_per_layer=self.n_conv_per_layer,
                 kernel_size=self.kernel_size,
                 use_max_pooling=self.use_max_pooling,
                 max_pool_size=self.max_pool_size,
@@ -367,10 +367,10 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
     ----------
         depth               : int, default = 6,
             the number of inception modules used
-        nb_filters          : int or list of int32, default = 32,
+        n_filters          : int or list of int32, default = 32,
             the number of filters used in one inception module, if not a list,
             the same number of filters is used in all inception modules
-        nb_conv_per_layer   : int or list of int, default = 3,
+        n_conv_per_layer   : int or list of int, default = 3,
             the number of convolution layers in each inception module, if not a list,
             the same number of convolution layers is used in all inception modules
         kernel_size         : int or list of int, default = 40,
@@ -476,8 +476,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        nb_filters=32,
-        nb_conv_per_layer=3,
+        n_filters=32,
+        n_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
         max_pool_size=3,
@@ -507,8 +507,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         optimizer=None,
     ):
         # predefined
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
+        self.n_filters = n_filters
+        self.n_conv_per_layer = n_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
         self.strides = strides
@@ -544,8 +544,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         )
 
         self._network = InceptionNetwork(
-            nb_filters=self.nb_filters,
-            nb_conv_per_layer=self.nb_conv_per_layer,
+            n_filters=self.n_filters,
+            n_conv_per_layer=self.n_conv_per_layer,
             kernel_size=self.kernel_size,
             use_max_pooling=self.use_max_pooling,
             max_pool_size=self.max_pool_size,

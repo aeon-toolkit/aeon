@@ -1,6 +1,6 @@
 """tsfresh interface class."""
 
-__author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
 
 import numpy as np

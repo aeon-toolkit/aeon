@@ -20,7 +20,7 @@ State:
 __all__ = [
     "BaseRegressor",
 ]
-__author__ = ["MatthewMiddlehurst", "TonyBagnll", "mloning", "fkiraly"]
+__maintainer__ = []
 import time
 from abc import ABC, abstractmethod
 from typing import final
