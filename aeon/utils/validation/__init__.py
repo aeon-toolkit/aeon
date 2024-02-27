@@ -24,7 +24,6 @@ __all__ = [
     "is_tabular",
     "is_hierarchical",
 ]
-__author__ = ["mloning", "Taiwo Owoseni", "khrapovs", "TonyBagnall"]
 
 import os
 from datetime import timedelta

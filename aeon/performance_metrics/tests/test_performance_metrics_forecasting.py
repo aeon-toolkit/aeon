@@ -1,4 +1,4 @@
-__author__ = ["Tomasz Chodakowski", "Ryan Kuhns"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

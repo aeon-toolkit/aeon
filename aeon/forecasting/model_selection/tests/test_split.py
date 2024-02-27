@@ -1,6 +1,6 @@
 """Tests for splitters."""
 
-__author__ = ["mloning", "kkoralturk", "khrapovs", "fkiraly"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

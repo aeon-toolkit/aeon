@@ -1,7 +1,7 @@
 """Implements transformations to detrend a time series."""
 
 __all__ = ["Detrender"]
-__author__ = ["mloning", "SveaMeyer13", "KishManani", "fkiraly"]
+__maintainer__ = []
 
 import pandas as pd
 

@@ -1,6 +1,5 @@
 """Base classes for defining estimators and other objects in aeon."""
 
-__author__ = ["mloning", "RNKuhns", "fkiraly", "TonyBagnall"]
 __all__ = [
     "BaseObject",
     "BaseEstimator",

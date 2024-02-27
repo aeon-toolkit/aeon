@@ -1,6 +1,6 @@
 """Time Convolutional Neural Network (CNN) for classification."""
 
-__author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["CNNClassifier"]
 
 import gc
@@ -163,7 +163,6 @@ class CNNClassifier(BaseDeepClassifier):
             strides=self.strides,
             dilation_rate=self.dilation_rate,
             use_bias=self.use_bias,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):

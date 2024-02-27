@@ -1,6 +1,6 @@
 """Implements automatic and manually exponential time series smoothing models."""
 
-__author__ = ["hyang1996"]
+__maintainer__ = []
 __all__ = ["AutoETS"]
 
 import warnings

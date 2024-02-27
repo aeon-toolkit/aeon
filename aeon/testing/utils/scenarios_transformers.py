@@ -3,7 +3,7 @@
 Contains TestScenario concrete children to run in tests for transformers.
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["scenarios_transformers"]
 
