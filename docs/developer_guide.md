@@ -1,35 +1,237 @@
 # Developer Guide
 
-Welcome to the `aeon` developer guide. This guide is intended for new developers who
-want to start contributing code to `aeon` and current developers who want to learn
-about specific topics for code and non-code developments.
+Welcome to the `aeon` developer guide. This guide is intended for new developers and
+current developers who want to learn about specific topics for code and non-code
+developments.
 
-The following is a quick checklist for new developers. At any point during the process,
-feel free to post questions on Slack or ask [core developers](./about.md#core-developers)
+For a step-by-step guide for setting up a development version of `aeon`
+and creating a pull request, see the [contributing guide](contributing.md). At any point
+during the process, feel free to post questions on Slack or ask [core developers](./about.md#core-developers)
 for help.
 
-- Fork the repository and install a [development version](developer_guide/dev_installation.md)
-of `aeon`.
-- Get familiar with the [git workflow](developer_guide/git_workflow.rst).
-- Set up [Continuous Integration (CI)](developer_guide/continuous_integration.rst)
-testing locally and learn how to check the status on pull requests.
-- Read up on the `aeon` [coding standards](developer_guide/coding_standards.rst) and
-pre-commit setup.
-
-`aeon` follows the `scikit-learn` API whenever possible. If you’re new to
-`scikit-learn`, take a look at their [getting-started guide](https://scikit-learn.org/stable/getting_started.html).
+`aeon` aims to follow the `scikit-learn` API and conventions whenever possible. If
+you’re new to `scikit-learn`, take a look at their [getting-started guide](https://scikit-learn.org/stable/getting_started.html).
 If you’re already familiar with `scikit-learn`, you may still learn something new from
 their [developer's guide](https://scikit-learn.org/stable/developers/index.html).
 
-## Specific Topics
+::::{grid} 1 2 3 3
+:gutter: 3
 
-Below we list further reading and guidance for specific topics in the development of
-`aeon`.
+:::{grid-item-card}
+:text-align: center
+
+Adding Estimators
+
+^^^
+
+A guide to creating new `aeon` estimators.
+
++++
+
+```{button-ref} developer_guide/add_estimators.md
+:color: primary
+:click-parent:
+:expand:
+
+Adding Estimators
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+AEP's
+
+^^^
+
+Writing `aeon` Enhancement Proposals (AEP).
+
++++
+
+```{button-ref} developer_guide/aep.md
+:color: primary
+:click-parent:
+:expand:
+
+AEP's
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+Coding Standards
+
+^^^
+
+Coding standards for the `aeon` code base.
+
++++
+
+```{button-ref} developer_guide/coding_standards.md
+:color: primary
+:click-parent:
+:expand:
+
+Coding Standards
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+CI/CD
+
+^^^
+
+A description of the `aeon` CI/CD pipeline.
+
++++
+
+```{button-ref} developer_guide/continuous_integration.md
+:color: primary
+:click-parent:
+:expand:
+
+CI/CD
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+Dependencies
+
+^^^
+
+A guide to the types of `aeon` dependencies.
+
++++
+
+```{button-ref} developer_guide/dependencies.md
+:color: primary
+:click-parent:
+:expand:
+
+Dependencies
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+Deprecation
+
+^^^
+
+Deprecation policy for `aeon`.
+
++++
+
+```{button-ref} developer_guide/deprecation.md
+:color: primary
+:click-parent:
+:expand:
+
+Deprecation
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+Developer Installation
+
+^^^
+
+A guide to installing `aeon` for development.
+
++++
+
+```{button-ref} developer_guide/dev_installation.md
+:color: primary
+:click-parent:
+:expand:
+
+Developer Installation
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+Documentation
+
+^^^
+
+A guide to writing `aeon` documentation and docstrings.
+
++++
+
+```{button-ref} developer_guide/documentation.md
+:color: primary
+:click-parent:
+:expand:
+
+Documentation
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+Release
+
+^^^
+
+The `aeon` release process.
+
++++
+
+```{button-ref} developer_guide/release.md
+:color: primary
+:click-parent:
+:expand:
+
+Release
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
+Testing
+
+^^^
+
+The `aeon` testing framework.
+
++++
+
+```{button-ref} developer_guide/testing.md
+:color: primary
+:click-parent:
+:expand:
+
+Testing
+```
+
+:::
+
+::::
 
 ```{toctree}
-:maxdepth: 1
+:hidden:
 
-developer_guide/add_dataset.md
 developer_guide/add_estimators.md
 developer_guide/aep.md
 developer_guide/coding_standards.md
@@ -38,7 +240,6 @@ developer_guide/dependencies.md
 developer_guide/deprecation.md
 developer_guide/dev_installation.md
 developer_guide/documentation.md
-developer_guide/git_workflow.md
 developer_guide/release.md
 developer_guide/testing_framework.md
 ```
