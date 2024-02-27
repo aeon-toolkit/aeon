@@ -512,26 +512,6 @@ class BaseSplitter(BaseObject):
         ------
         TypeError if y is not one of the permissible mtypes
         """
-        # ALLOWED_MTYPES = [
-        #     "pd.Series",
-        #     "pd.DataFrame",
-        #     "np.ndarray",
-        #     "nested_univ",
-        #     "numpy3D",
-        #     # "numpy2D",
-        #     "pd-multiindex",
-        #     # "pd-wide",
-        #     # "pd-long",
-        #     "df-list",
-        #     "pd_multiindex_hier",
-        # ]
-        # if is_hierarchical(y):
-        #     y_type = "Hierarchical"
-        # elif is_collection(y):
-        #     y_type = "Panel"
-        # elif is_single_series(y):
-        #     y_type = "Series"
-        # else:
         if not (is_hierarchical(y) or is_collection(y) or is_single_series(y)):
             raise TypeError(
                 "y must be in an aeon compatible format, "
