@@ -2,10 +2,11 @@
 
 __maintainer__ = ["codelionx"]
 
-from typing import Optional
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numba import njit, objmode
+from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
 from aeon.distances._utils import reshape_pairwise_to_multiple
@@ -111,9 +112,10 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     raise ValueError("x and y must be 1D or 2D")
 
 
-@njit(cache=True, fastmath=True)
 def sbd_pairwise_distance(
-    x: np.ndarray, y: Optional[np.ndarray] = None, standardize: bool = True
+    x: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    standardize: bool = True,
 ) -> np.ndarray:
     """
     Compute the shape-based distance (SBD) between all pairs of time series.
@@ -175,15 +177,48 @@ def sbd_pairwise_distance(
     """
     if y is None:
         # To self
-        if x.ndim == 3:
-            return _sbd_pairwise_distance_single(x, standardize)
-        elif x.ndim == 2:
-            _X = x.reshape((x.shape[0], 1, x.shape[1]))
-            return _sbd_pairwise_distance_single(_X, standardize)
+        if isinstance(x, List):
+            dims = [a.ndim for a in x]
+            if sum(dims) / len(dims) != dims[0]:
+                raise ValueError(
+                    "The number of array dimensions in all x must be the same!"
+                )
+            return _sbd_pairwise_distance_single_list(NumbaList(x), standardize)
+        elif isinstance(x, np.ndarray):
+            if x.ndim == 3:
+                return _sbd_pairwise_distance_single(x, standardize)
+            elif x.ndim == 2:
+                _X = x.reshape((x.shape[0], 1, x.shape[1]))
+                return _sbd_pairwise_distance_single(_X, standardize)
+
         raise ValueError("X must be 2D or 3D")
 
-    _x, _y = reshape_pairwise_to_multiple(x, y)
-    return _sbd_pairwise_distance(_x, _y, standardize)
+    if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
+        _x, _y = reshape_pairwise_to_multiple(x, y)
+        return _sbd_pairwise_distance(_x, _y, standardize)
+    elif isinstance(x, List) and isinstance(y, List):
+        dims = [a.ndim for a in x] + [a.ndim for a in y]
+        if sum(dims) / len(dims) != dims[0]:
+            raise ValueError(
+                "The number of array dimensions in both x and y must be the same!"
+            )
+        return _sbd_pairwise_distance_list(NumbaList(x), NumbaList(y), standardize)
+    else:
+        raise ValueError(
+            "x and y must have the same type (either np.ndarray or List[np.ndarray])!"
+        )
+
+
+@njit(cache=True, fastmath=True)
+def _reshape_pairwise(x: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    if x.ndim == y.ndim:
+        if y.ndim == 2 and x.ndim == 2:
+            return x, y
+        if y.ndim == 1 and x.ndim == 1:
+            _x = x.reshape((1, x.shape[0]))
+            _y = y.reshape((1, y.shape[0]))
+            return _x, _y
+    raise ValueError("x and y must be 1D or 2D arrays")
 
 
 @njit(cache=True, fastmath=True)
@@ -194,6 +229,22 @@ def _sbd_pairwise_distance_single(x: np.ndarray, standardize: bool) -> np.ndarra
     for i in range(n_instances):
         for j in range(i + 1, n_instances):
             distances[i, j] = sbd_distance(x[i], x[j], standardize)
+            distances[j, i] = distances[i, j]
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def _sbd_pairwise_distance_single_list(
+    x: NumbaList[np.ndarray], standardize: bool
+) -> np.ndarray:
+    n_instances = len(x)
+    distances = np.zeros((n_instances, n_instances))
+
+    for i in range(n_instances):
+        for j in range(i + 1, n_instances):
+            ts1, ts2 = _reshape_pairwise(x[i], x[j])
+            distances[i, j] = sbd_distance(ts1, ts2, standardize)
             distances[j, i] = distances[i, j]
 
     return distances
@@ -214,6 +265,21 @@ def _sbd_pairwise_distance(
 
 
 @njit(cache=True, fastmath=True)
+def _sbd_pairwise_distance_list(
+    x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], standardize: bool
+) -> np.ndarray:
+    n_instances = len(x)
+    m_instances = len(y)
+    distances = np.zeros((n_instances, m_instances))
+
+    for i in range(n_instances):
+        for j in range(m_instances):
+            ts1, ts2 = _reshape_pairwise(x[i], y[j])
+            distances[i, j] = sbd_distance(ts1, ts2, standardize)
+    return distances
+
+
+@njit(cache=True, fastmath=True)
 def _univariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) -> float:
     x = x.astype(np.float64)
     y = y.astype(np.float64)
@@ -230,3 +296,66 @@ def _univariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) ->
 
     b = np.sqrt(np.dot(x, x) * np.dot(y, y))
     return np.abs(1.0 - np.max(a / b))
+
+
+if __name__ == "__main__":
+    x = np.random.random(100)
+    y = np.random.random(100)
+
+    print("== same length ==")
+    print("simple distance")
+    d = sbd_distance(x, y)
+    print(d)
+
+    print("single pairwise")
+    x = x.reshape((5, -1))
+    matrix = sbd_pairwise_distance(x)
+    print(matrix)
+
+    print("multiple pairwise")
+    y = y.reshape((5, -1))
+    matrix = sbd_pairwise_distance(x, y)
+    print(matrix)
+
+    print("multiple pairwise multivariate")
+    x = x.reshape((5, -1, 10))
+    y = y.reshape((5, -1, 10))
+    matrix = sbd_pairwise_distance(x, y)
+    print(matrix)
+
+    print("\n==unequal length==")
+    print("simple distance")
+    x = np.random.random(100)
+    y = np.random.random(200)
+    d = sbd_distance(x, y)
+    print(d)
+
+    print("single pairwise")
+    x = [np.random.random(10), np.random.random(15), np.random.random(8)]
+    matrix = sbd_pairwise_distance(x)
+    print(matrix)
+
+    print("single pairwise multivariate")
+    x_multi = [
+        np.random.random((5, 10)),
+        np.random.random((15, 10)),
+        np.random.random((8, 10)),
+    ]
+    # expect ValueError:
+    # x_multi = [np.random.random((5, 10)), np.random.random(15), np.random.random((8, 10))]
+    matrix = sbd_pairwise_distance(x_multi)
+    print(matrix)
+
+    print("multiple pairwise")
+    y = [np.random.random(20), np.random.random(15), np.random.random(10)]
+    matrix = sbd_pairwise_distance(x, y)
+    print(matrix)
+
+    print("multiple pairwise multivariate")
+    y_multi = [
+        np.random.random((8, 10)),
+        np.random.random((15, 10)),
+        np.random.random((10, 10)),
+    ]
+    matrix = sbd_pairwise_distance(x_multi, y_multi)
+    print(matrix)
