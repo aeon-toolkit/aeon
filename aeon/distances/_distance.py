@@ -224,7 +224,7 @@ def distance(
             kwargs.get("warp_penalty", 1.0),
         )
     elif metric == "sbd":
-        return sbd_distance(x, y)
+        return sbd_distance(x, y, kwargs.get("standardize", True))
     else:
         if isinstance(metric, Callable):
             return metric(x, y, **kwargs)
@@ -389,7 +389,7 @@ def pairwise_distance(
             kwargs.get("warp_penalty", 1.0),
         )
     elif metric == "sbd":
-        return sbd_pairwise_distance(x, y)
+        return sbd_pairwise_distance(x, y, kwargs.get("standardize", True))
     else:
         if isinstance(metric, Callable):
             return _custom_func_pairwise(x, y, metric, **kwargs)
