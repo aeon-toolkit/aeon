@@ -31,6 +31,8 @@ class EncoderRegressor(BaseDeepRegressor):
         Size of the max pooling windows.
     activation : string, default = sigmoid
         Keras activation function.
+    output_activation   : str, default = "linear",
+        the output activation of the regressor
     dropout_proba : float, default = 0.2
         Specifying the dropout layer probability.
     padding : string, default = same
@@ -64,6 +66,8 @@ class EncoderRegressor(BaseDeepRegressor):
         The number of times the entire training dataset
         will be passed forward and backward
         through the neural network.
+    random_state : int or None, default=None
+        Seed for random number generation.
     loss:
         The loss function to use for training.
     metrics:
@@ -98,6 +102,7 @@ class EncoderRegressor(BaseDeepRegressor):
         kernel_size=None,
         n_filters=None,
         dropout_proba=0.2,
+        activation="sigmoid",
         output_activation="linear",
         max_pool_size=2,
         padding="same",
@@ -114,16 +119,18 @@ class EncoderRegressor(BaseDeepRegressor):
         metrics=None,
         use_bias=True,
         optimizer=None,
+        random_state=None,
     ):
         self.n_filters = n_filters
         self.max_pool_size = max_pool_size
         self.kernel_size = kernel_size
         self.strides = strides
-        self.activation = output_activation
+        self.activation = activation
+        self.output_activation = output_activation
         self.padding = padding
         self.dropout_proba = dropout_proba
         self.fc_units = fc_units
-
+        self.random_state = random_state
         self.callbacks = callbacks
         self.file_path = file_path
         self.save_best_model = save_best_model
