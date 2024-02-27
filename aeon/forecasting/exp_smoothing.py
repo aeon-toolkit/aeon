@@ -1,7 +1,7 @@
 """Implements Holt-Winters exponential smoothing."""
 
 __all__ = ["ExponentialSmoothing"]
-__author__ = ["mloning", "big-o"]
+__maintainer__ = []
 
 from aeon.forecasting.base.adapters import _StatsModelsAdapter
 

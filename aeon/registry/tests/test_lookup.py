@@ -1,6 +1,6 @@
 """Testing of registry lookup functionality."""
 
-__author__ = ["fkiraly", "MatthewMiddlehurst"]
+__maintainer__ = []
 
 import pytest
 

@@ -50,7 +50,7 @@ def test_distance_based(dist):
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_clusterer(dist):
-    """Test all distances work with SVM in a pipeline."""
+    """Test all distances work with DBSCAN."""
     X = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=10, return_y=False)
     db = DBSCAN(metric="precomputed", eps=2.5)
     preds = db.fit_predict(dist["pairwise_distance"](X))

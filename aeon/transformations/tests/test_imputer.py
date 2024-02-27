@@ -1,6 +1,6 @@
 """Unit tests of Imputer functionality."""
 
-__author__ = ["aiwalter"]
+__maintainer__ = []
 __all__ = []
 
 import numpy as np

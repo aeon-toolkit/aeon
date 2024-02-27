@@ -4,12 +4,13 @@ from aeon.networks.base import BaseDeepNetwork
 from aeon.testing.utils.data_gen import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 
 class DummyDeepNetwork(BaseDeepNetwork):
+    """A Dummy Deep Network for testing empty base network class save utilities."""
+
     def __init__(self):
-        """Dummy Deep Network for testing empty base network class save utilities."""
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):

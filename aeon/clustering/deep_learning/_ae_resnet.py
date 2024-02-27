@@ -1,6 +1,6 @@
 """Residual Network (ResNet) for clustering."""
 
-__author__ = ["xiaopu222"]
+__maintainer__ = []
 __all__ = ["AEResNetClusterer"]
 
 import gc
@@ -185,7 +185,6 @@ class AEResNetClusterer(BaseDeepClusterer):
             activation=self.activation,
             dilation_rate=self.dilation_rate,
             padding=self.padding,
-            random_state=random_state,
         )
 
     def build_model(self, input_shape, **kwargs):

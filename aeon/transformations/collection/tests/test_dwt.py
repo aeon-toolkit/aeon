@@ -1,3 +1,5 @@
+"""Test the DWT transformer."""
+
 import math
 
 import numpy as np
@@ -6,11 +8,13 @@ import pytest
 from aeon.transformations.collection.dwt import DWTTransformer
 
 
-# Check that exception is raised for bad num levels.
-# input types - string, float, negative int, negative float, empty dict.
-# correct input is meant to be a positive integer of 0 or more.
 @pytest.mark.parametrize("bad_num_levels", ["str", 1.2, -1.2, -1, {}])
 def test_bad_input_args(bad_num_levels):
+    """Check that exception is raised for bad num levels.
+
+    input types - string, float, negative int, negative float, empty dict.
+    correct input is meant to be a positive integer of 0 or more.
+    """
     X = np.ones(shape=(10, 1, 10))
 
     if not isinstance(bad_num_levels, int):
@@ -21,8 +25,8 @@ def test_bad_input_args(bad_num_levels):
             DWTTransformer(n_levels=bad_num_levels).fit(X).transform(X)
 
 
-# Check the transformer has changed the data correctly.
 def test_output_of_transformer():
+    """Check the transformer has changed the data correctly."""
     X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]])
 
     d = DWTTransformer(n_levels=2).fit(X)
@@ -51,8 +55,8 @@ def test_output_of_transformer():
     np.testing.assert_array_almost_equal(res, orig)
 
 
-# This is to test that if num_levels = 0 then no change occurs.
 def test_no_levels_does_no_change():
+    """Test that if num_levels = 0 no change occurs."""
     X = np.array([[[1, 2, 3, 4, 5, 56]]])
     d = DWTTransformer(n_levels=0).fit(X)
     res = d.transform(X)
@@ -61,6 +65,7 @@ def test_no_levels_does_no_change():
 
 @pytest.mark.parametrize("num_levels,corr_series_length", [(2, 12), (3, 11), (4, 12)])
 def test_output_dimensions(num_levels, corr_series_length):
+    """Check that the output dimensions are correct."""
     X = np.ones(shape=(10, 1, 13))
     d = DWTTransformer(n_levels=num_levels).fit(X)
     res = d.transform(X)
@@ -72,8 +77,8 @@ def test_output_dimensions(num_levels, corr_series_length):
     assert n_channels == 1
 
 
-# This is to check that DWT produces the same result along each dimension
 def test_dwt_performs_correcly_along_each_dim():
+    """Check that DWT produces the same result along each dimension."""
     X = np.array([[[1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]])
     d = DWTTransformer(n_levels=3).fit(X)
     res = d.transform(X)

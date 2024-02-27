@@ -8,7 +8,7 @@ Concrete transformer classes from aeon are imported to cover
 Transformer scenarios cover different combinations of input data types.
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = []
 
 from inspect import isclass
