@@ -37,7 +37,7 @@ Additional configurations for some hooks can be found in the [pyproject.toml](ht
 
 ### `aeon` specific code formatting conventions
 
-- Check out our [`glossary`](https://www.aeon-toolkit.org/en/stable/glossary.html) for
+- Check out our [glossary](glossary.md) for
 preferred terminology
 - Use underscores to separate words in non-class names i.e.`n_instances` rather than
 `ninstances`.

@@ -177,7 +177,7 @@ the estimator in the correct `rst` file inside `docs/api_reference`
 - Authors of the estimator should add themselves to `CODEOWNERS`, as owners of the
 contributed estimator
 - If the estimator relies on soft dependencies, or adds new soft dependencies, the
-steps in the [dependencies developer guide](https://github.com/aeon-toolkit/aeon/blob/main/docs/developer_guide/dependencies.md)
+steps in the [dependencies developer guide](developer_guide/dependencies.md)
 should be followed
 - Ensure that the estimator passes the entire local test suite of `aeon`, with the
 estimator in its target location. To run tests only for the estimator, the command
