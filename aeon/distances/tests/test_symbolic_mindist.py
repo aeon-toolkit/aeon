@@ -11,7 +11,6 @@ from aeon.distances._paa_sax_mindist import paa_sax_mindist
 from aeon.distances._sax_mindist import sax_mindist
 from aeon.distances._sfa_mindist import sfa_mindist
 from aeon.transformations.collection.dictionary_based import SAX, SFAFast
-from aeon.transformations.collection.dictionary_based._sfa_fast import _mft
 
 
 def test_sax_mindist():
