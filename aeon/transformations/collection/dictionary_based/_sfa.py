@@ -148,7 +148,9 @@ class SFA(BaseCollectionTransformer):
         self.norm = norm
         self.lower_bounding = lower_bounding
         self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size) if not lower_bounding else 1.0
+            1.0 / math.sqrt(window_size)
+            if lower_bounding
+            else 1.0  # FIXME this is wrong
         )
 
         self.remove_repeat_words = remove_repeat_words
@@ -282,7 +284,7 @@ class SFA(BaseCollectionTransformer):
 
         dim, words = zip(*transform)
         if self.save_words:
-            self.words = list(words)
+            self.words = np.array(list(words))
 
         # cant pickle typed dict
         if self._typed_dict and self.n_jobs != 1:

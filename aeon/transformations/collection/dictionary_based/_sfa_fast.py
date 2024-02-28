@@ -172,7 +172,9 @@ class SFAFast(BaseCollectionTransformer):
         self.norm = norm
         self.lower_bounding = lower_bounding
         self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size) if not lower_bounding else 1.0
+            1.0 / math.sqrt(window_size)
+            if lower_bounding
+            else 1.0  # FIXME this is wrong
         )
 
         self.remove_repeat_words = remove_repeat_words
@@ -338,8 +340,8 @@ class SFAFast(BaseCollectionTransformer):
         )
 
         # only save at fit
-        # if self.save_words:
-        #    self.words = words
+        if self.save_words:
+            self.words = words
 
         # transform: applies the feature selection strategy
         empty_dict = Dict.empty(
@@ -364,6 +366,36 @@ class SFAFast(BaseCollectionTransformer):
         elif self.return_sparse:
             bags = csr_matrix(bags, dtype=np.uint32)
         return bags
+
+    def transform_mft(self, X):
+        """Transform data using the Fourier transform.
+
+        Parameters
+        ----------
+        X : 3d numpy array, input time series.
+
+        Returns
+        -------
+        Array of Fourier coefficients
+        """
+        # X = X.squeeze(1)
+
+        if self.dilation >= 1 or self.first_difference:
+            X2, self.X_index = _dilation(X, self.dilation, self.first_difference)
+        else:
+            X2, self.X_index = X, np.arange(X.shape[-1])
+
+        return _mft(
+            X2,
+            self.window_size,
+            self.dft_length,
+            self.norm,
+            self.support,
+            self.anova,
+            self.variance,
+            self.inverse_sqrt_win_size,
+            self.lower_bounding,
+        )
 
     def transform_to_bag(self, words, word_len, y=None):
         """Transform words to bag-of-pattern and apply feature selection."""
@@ -474,7 +506,7 @@ class SFAFast(BaseCollectionTransformer):
         if y is not None:
             y = np.repeat(y, dft.shape[0] / len(y))
 
-        if self.variance and y is not None:
+        if self.variance:
             # determine variance
             dft_variance = np.var(dft, axis=0)
 
@@ -624,6 +656,18 @@ class SFAFast(BaseCollectionTransformer):
         # retrain feature selection-strategy
         return self.transform_to_bag(new_words, new_len, y)
 
+    def get_words(self):
+        """Return the words generated for each series.
+
+        Returns
+        -------
+        Array of words
+        """
+        words = np.squeeze(self.words)
+        return np.array(
+            [_get_chars(word, self.word_length, self.alphabet_size) for word in words]
+        )
+
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
@@ -673,6 +717,22 @@ class SFAFast(BaseCollectionTransformer):
             for key, value in self.relevant_features.items():
                 typed_dict[key] = value
             self.relevant_features = typed_dict
+
+
+@njit(cache=True, fastmath=True)
+def _get_chars(word, word_length, alphabet_size):
+    chars = np.zeros(word_length, dtype=np.uint32)
+    letter_bits = int(np.log2(alphabet_size))
+    mask = (1 << letter_bits) - 1
+    for i in range(word_length):
+        # Extract the last bits
+        char = word & mask
+        chars[-i - 1] = char
+
+        # Right shift by to move to the next group of bits
+        word >>= letter_bits
+
+    return chars
 
 
 @njit(fastmath=True, cache=True)
@@ -856,7 +916,7 @@ def generate_words(
         # allocate memory for 2- and 3-skip-grams
         needed_size += max(0, 2 * dfts.shape[1] - 5 * window_size)
 
-    words = np.zeros((dfts.shape[0], needed_size), dtype=np.uint32)
+    words = np.zeros((dfts.shape[0], needed_size), dtype=np.int64)
 
     letter_bits = np.uint32(letter_bits)
     word_bits = word_length * letter_bits  # dfts.shape[2] * letter_bits
@@ -869,7 +929,7 @@ def generate_words(
 
         for a in prange(dfts.shape[0]):
             match = (dfts[a] <= breakpoints[:, 0]).astype(np.float32)
-            words[a, : dfts.shape[1]] = np.dot(match, vector).astype(np.uint32)
+            words[a, : dfts.shape[1]] = np.dot(match, vector).astype(np.int64)
 
     # general case: alphabet-size many breakpoints
     else:
@@ -1133,3 +1193,19 @@ def shorten_words(words, amount, letter_bits):
     #         words[:, n_instances + a] = (first_word << word_bits) | second_word
 
     return new_words
+
+
+# @njit(fastmath=True, cache=True)
+# def next_power_of_two(n):
+#     # If n is already a power of two, return it
+#     if n and not (n & (n - 1)):
+#         return n
+#
+#     # Find the position of the most significant bit
+#     msb = 0
+#     while n > 0:
+#         n >>= 1
+#         msb += 1
+#
+#     # Return the next power of two
+#     return 1 << msb

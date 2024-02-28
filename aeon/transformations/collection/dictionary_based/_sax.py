@@ -36,7 +36,7 @@ class SAX(BaseCollectionTransformer):
         then the default setup is {"scale" : 1.0}
     znormalized : bool, default = True,
         this parameter is set to True when the input time series
-        are assume to be be z-normalized, i.e. the mean of each
+        are assume to be z-normalized, i.e. the mean of each
         time series should be 0 and the standard deviation should be
         equal to 1. If this parameter is set to False, the z-normalization
         is applied before the transformation.

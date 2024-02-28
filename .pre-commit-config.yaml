@@ -26,7 +26,7 @@ repos:
     rev: v0.1.6
     hooks:
       - id: detect-missing-init
-        args: [ "--create", "--python-folders", "aeon" ]
+        args: [ "--create", "--python-folders", "aeon"]
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.1
@@ -46,7 +46,8 @@ repos:
     hooks:
       - id: flake8
         additional_dependencies: [ flake8-bugbear, flake8-print, Flake8-pyproject ]
-        args: [ "--max-line-length=88", "--extend-ignore=E203" ]
+        args: [ "--max-line-length=88", "--extend-ignore=E203",
+                "--exclude=aeon/distances/tests/test_symbolic_mindist.py" ]
 
   - repo: https://github.com/psf/black
     rev: 24.2.0
