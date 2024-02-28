@@ -47,7 +47,8 @@ repos:
       - id: flake8
         additional_dependencies: [ flake8-bugbear, flake8-print, Flake8-pyproject ]
         args: [ "--max-line-length=88", "--extend-ignore=E203",
-                "--exclude=aeon/distances/tests/test_symbolic_mindist.py" ]
+                "--exclude=aeon/distances/tests/test_symbolic_mindist.py"
+            ]
 
   - repo: https://github.com/psf/black
     rev: 24.2.0
