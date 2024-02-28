@@ -28,7 +28,7 @@ A guide to creating new `aeon` estimators.
 
 +++
 
-```{button-ref} developer_guide/add_estimators.md
+```{button-ref} developer_guide/add_estimators
 :color: primary
 :click-parent:
 :expand:
@@ -49,7 +49,7 @@ Writing `aeon` Enhancement Proposals (AEP).
 
 +++
 
-```{button-ref} developer_guide/aep.md
+```{button-ref} developer_guide/aep
 :color: primary
 :click-parent:
 :expand:
@@ -70,7 +70,7 @@ Coding standards for the `aeon` code base.
 
 +++
 
-```{button-ref} developer_guide/coding_standards.md
+```{button-ref} developer_guide/coding_standards
 :color: primary
 :click-parent:
 :expand:
@@ -91,7 +91,7 @@ A description of the `aeon` CI/CD pipeline.
 
 +++
 
-```{button-ref} developer_guide/continuous_integration.md
+```{button-ref} developer_guide/continuous_integration
 :color: primary
 :click-parent:
 :expand:
@@ -112,7 +112,7 @@ A guide to the types of `aeon` dependencies.
 
 +++
 
-```{button-ref} developer_guide/dependencies.md
+```{button-ref} developer_guide/dependencies
 :color: primary
 :click-parent:
 :expand:
@@ -133,7 +133,7 @@ Deprecation policy for `aeon`.
 
 +++
 
-```{button-ref} developer_guide/deprecation.md
+```{button-ref} developer_guide/deprecation
 :color: primary
 :click-parent:
 :expand:
@@ -154,7 +154,7 @@ A guide to installing `aeon` for development.
 
 +++
 
-```{button-ref} developer_guide/dev_installation.md
+```{button-ref} developer_guide/dev_installation
 :color: primary
 :click-parent:
 :expand:
@@ -175,7 +175,7 @@ A guide to writing `aeon` documentation and docstrings.
 
 +++
 
-```{button-ref} developer_guide/documentation.md
+```{button-ref} developer_guide/documentation
 :color: primary
 :click-parent:
 :expand:
@@ -196,7 +196,7 @@ The `aeon` release process.
 
 +++
 
-```{button-ref} developer_guide/release.md
+```{button-ref} developer_guide/release
 :color: primary
 :click-parent:
 :expand:
@@ -217,7 +217,7 @@ The `aeon` testing framework.
 
 +++
 
-```{button-ref} developer_guide/testing.md
+```{button-ref} developer_guide/testing
 :color: primary
 :click-parent:
 :expand:

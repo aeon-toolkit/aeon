@@ -107,7 +107,7 @@ Mentoring and Projects
 
 ^^^
 
-`aeon` projects and mentoring oppertunities.
+`aeon` projects and mentoring opportunities.
 
 +++
 
