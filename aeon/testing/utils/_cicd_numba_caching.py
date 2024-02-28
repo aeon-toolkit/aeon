@@ -93,15 +93,16 @@ numba.core.caching.IndexDataCacheFile._load_index = custom_load_index
 # Force all numba functions to be cached
 original_jit = numba.core.decorators._jit
 
+
 def custom_njit(*args, **kwargs):
-    """Custom wrapper for numba's jit decorator to enforce caching.
+    """Force jit to cache.
 
     This is used for libraries like stumpy that doesn't cache by default. This
     function will force all functions running to be cache'd
     """
-    target = kwargs['targetoptions']
+    target = kwargs["targetoptions"]
     # This target can't be cached
-    if 'no_cpython_wrapper' not in target:
+    if "no_cpython_wrapper" not in target:
         kwargs["cache"] = True
     return original_jit(*args, **kwargs)
 
