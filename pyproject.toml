@@ -179,6 +179,7 @@ addopts = '''
     --reruns 2
     --only-rerun "crashed while running"
 '''
+
 filterwarnings = '''
     ignore::UserWarning
     ignore:numpy.dtype size changed
