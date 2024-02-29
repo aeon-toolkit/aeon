@@ -6,7 +6,7 @@ Objects compared can have one of the following valid types:
     lists, tuples, or dicts of a valid type (recursive)
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["deep_equals"]
 

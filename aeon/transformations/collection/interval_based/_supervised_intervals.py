@@ -4,7 +4,7 @@ A transformer for the extraction of features on intervals extracted from a super
 process.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["SupervisedIntervals"]
 
 import inspect

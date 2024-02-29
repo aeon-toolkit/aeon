@@ -1,6 +1,6 @@
 """Implements Theta-lines transformation for use with Theta forecasting."""
 
-__author__ = ["GuzalBulatova", "mloning"]
+__maintainer__ = []
 __all__ = ["ThetaLinesTransformer"]
 
 import numpy as np

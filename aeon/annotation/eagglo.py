@@ -9,7 +9,7 @@ from numba import njit
 
 from aeon.transformations.base import BaseTransformer
 
-__author__ = ["KatieBuc", "patrickzib"]
+__maintainer__ = []
 __all__ = ["EAgglo"]
 from deprecated.sphinx import deprecated
 

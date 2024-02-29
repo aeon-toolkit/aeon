@@ -14,7 +14,7 @@ mtype(obj, as_scitype: str = None)
     infer the mtype of obj, considering it as as_scitype
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = [
     "check_is_mtype",

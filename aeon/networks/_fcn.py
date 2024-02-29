@@ -1,6 +1,6 @@
 """Fully Convolutional Network (FCN) (minus the final output layer)."""
 
-__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
 

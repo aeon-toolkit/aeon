@@ -1,6 +1,6 @@
 """Utility to determine type identifier of estimator, based on base class type."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 from inspect import isclass
 

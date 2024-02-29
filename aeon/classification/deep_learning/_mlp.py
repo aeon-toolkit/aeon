@@ -1,6 +1,6 @@
 """Multi Layer Perceptron Network (MLP) for classification."""
 
-__author__ = ["James-Large", "AurumnPegasus"]
+__maintainer__ = []
 __all__ = ["MLPClassifier"]
 
 import gc
@@ -173,10 +173,10 @@ class MLPClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data class labels.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints)
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------

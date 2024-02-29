@@ -1,6 +1,6 @@
 """Auto-Encoder using Fully Convolutional Network (FCN)."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 import numpy as np
 
