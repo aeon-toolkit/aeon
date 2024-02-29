@@ -3,7 +3,7 @@
 Pipeline classifier using the basic summary statistics and an estimator.
 """
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["SummaryClassifier"]
 
 import numpy as np
