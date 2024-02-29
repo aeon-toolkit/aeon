@@ -3,7 +3,7 @@
 Pipeline regressor using the basic summary statistics and an estimator.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["SummaryRegressor"]
 
 import numpy as np
