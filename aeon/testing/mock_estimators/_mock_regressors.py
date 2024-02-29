@@ -1,6 +1,7 @@
 import numpy as np
-from sklearn.utils import check_random_state
 from aeon.regression.base import BaseRegressor
+from sklearn.utils import check_random_state
+
 
 class MockRegressor(BaseRegressor):
     """Dummy regressor for testing base class fit/predict."""
