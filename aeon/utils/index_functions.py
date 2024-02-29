@@ -5,6 +5,7 @@ import pandas as pd
 
 from aeon.datatypes import check_is_scitype, convert_to
 from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
+from aeon.utils.validation._input import validate_input
 
 
 def _get_index(x):
@@ -414,16 +415,12 @@ def get_window(obj, window_length=None, lag=None):
     """
     if obj is None or (window_length is None and lag is None):
         return obj
-    valid = is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)
+    valid, metadata = validate_input(obj)
     if not valid:
         raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
-    # TODO: Still need to extract the "mtype" without check_is_scitype
-    _, _, metadata = check_is_scitype(
-        obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
-    )
     obj_in_mtype = metadata["mtype"]
 
-    obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)
+    obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES, as_scitype=metadata["scitype"])
 
     # numpy3D (Panel) or np.npdarray (Series)
     if isinstance(obj, np.ndarray):

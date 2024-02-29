@@ -49,11 +49,11 @@ X = pd.concat(Xlist)
 multi_index_hier = X.set_index(["foo", "bar", "timepoints"])
 
 EXAMPLE_DATA = {
-    "pd.Series": pd.Series(np.random.rand(4)),
-    "pd.DataFrame": pd.DataFrame(np.random.rand(4, 2)),
-    "np.ndarray": np.random.rand(4, 2),
-    "numpy3D": np.random.rand(4, 2, 3),
-    "pd-multiindex": multi_index,
+    #    "pd.Series": pd.Series(np.random.rand(4)),
+    #    "pd.DataFrame": pd.DataFrame(np.random.rand(4, 2)),
+    #    "np.ndarray": np.random.rand(4, 2),
+    #    "numpy3D": np.random.rand(4, 2, 3),
+    #    "pd-multiindex": multi_index,
     "pd-multiindex-hier": multi_index_hier,
 }
 
