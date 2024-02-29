@@ -1,6 +1,6 @@
 """Encoder Classifier."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
 
@@ -30,8 +30,6 @@ class EncoderNetwork(BaseDeepNetwork):
     fc_units : int, default = 256
         Specifying the number of units in the hiddent fully connected layer used in
         the EncoderNetwork.
-    random_state : int, default = 0
-        Seed to any needed random actions.
 
     Notes
     -----
@@ -59,11 +57,9 @@ class EncoderNetwork(BaseDeepNetwork):
         padding="same",
         strides=1,
         fc_units=256,
-        random_state=0,
     ):
         self.kernel_size = kernel_size
         self.n_filters = n_filters
-        self.random_state = random_state
         self.padding = padding
         self.strides = strides
         self.max_pool_size = max_pool_size

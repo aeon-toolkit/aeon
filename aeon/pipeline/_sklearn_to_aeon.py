@@ -1,6 +1,6 @@
 """Sklearn to aeon coercion utility."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 from aeon.pipeline._make_pipeline import make_pipeline
 

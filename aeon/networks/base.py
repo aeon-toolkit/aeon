@@ -1,6 +1,6 @@
 """Abstract base class for deep learning networks."""
 
-__author__ = ["hadifawaz1999", "Withington", "TonyBagnall"]
+__maintainer__ = []
 
 from abc import ABC, abstractmethod
 

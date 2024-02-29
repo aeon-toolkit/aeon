@@ -1,24 +1,24 @@
-"""Summary Classifier.
+"""Summary Regressor.
 
-Pipeline classifier using the basic summary statistics and an estimator.
+Pipeline regressor using the basic summary statistics and an estimator.
 """
 
-__author__ = ["MatthewMiddlehurst"]
-__all__ = ["SummaryClassifier"]
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["SummaryRegressor"]
 
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
-from aeon.classification.base import BaseClassifier
+from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
 
 
-class SummaryClassifier(BaseClassifier):
+class SummaryRegressor(BaseRegressor):
     """
-    Summary statistic classifier.
+    Summary statistic regressor.
 
-    This classifier simply transforms the input data using the
+    This regressor simply transforms the input data using the
     SevenNumberSummaryTransformer transformer and builds a provided estimator using the
     transformed data.
 
@@ -32,36 +32,34 @@ class SummaryClassifier(BaseClassifier):
             - "percentiles": 0.215, 0.887, 0.25, 0.5, 0.75, 0.9113, 0.9785
             - "bowley": min, max, 0.1, 0.25, 0.5, 0.75, 0.9
             - "tukey": min, max, 0.125, 0.25, 0.5, 0.75, 0.875
-    estimator : sklearn classifier, default=None
+    estimator : sklearn regressor, default=None
         An sklearn estimator to be built using the transformed data. Defaults to a
         Random Forest with 200 trees.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random, integer.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
-    Attributes
-    ----------
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes)
-        Holds the label for each class.
 
     See Also
     --------
     SummaryTransformer
+    SummaryClassifier
 
     Examples
     --------
-    >>> from aeon.classification.feature_based import SummaryClassifier
-    >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> clf = SummaryClassifier(estimator=RandomForestClassifier(n_estimators=5))
+    >>> from aeon.regression.feature_based import SummaryRegressor
+    >>> from sklearn.ensemble import RandomForestRegressor
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
+    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
+    >>> clf = SummaryRegressor(estimator=RandomForestRegressor(n_estimators=5))
     >>> clf.fit(X_train, y_train)
-    SummaryClassifier(...)
+    SummaryRegressor(...)
     >>> y_pred = clf.predict(X_test)
     """
 
@@ -98,7 +96,7 @@ class SummaryClassifier(BaseClassifier):
         X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
         y : array-like, shape = [n_instances]
-            The class labels.
+            The target labels.
 
         Returns
         -------
@@ -116,7 +114,7 @@ class SummaryClassifier(BaseClassifier):
 
         self._estimator = _clone_estimator(
             (
-                RandomForestClassifier(n_estimators=200)
+                RandomForestRegressor(n_estimators=200)
                 if self.estimator is None
                 else self.estimator
             ),
@@ -138,7 +136,7 @@ class SummaryClassifier(BaseClassifier):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predict class values of n instances in X.
+        """Predict values of n instances in X.
 
         Parameters
         ----------
@@ -148,7 +146,7 @@ class SummaryClassifier(BaseClassifier):
         Returns
         -------
         y : array-like, shape = [n_instances]
-            Predicted class labels.
+            Predicted labels.
         """
         X_t = self._transformer.transform(X)
 
@@ -156,34 +154,6 @@ class SummaryClassifier(BaseClassifier):
             X_t = X_t.to_numpy().reshape((-1, self._transform_atts))
 
         return self._estimator.predict(X_t)
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        X_t = self._transformer.transform(X)
-
-        if X_t.shape[1] < self._transform_atts:
-            X_t = X_t.to_numpy().reshape((-1, self._transform_atts))
-
-        m = getattr(self._estimator, "predict_proba", None)
-        if callable(m):
-            return self._estimator.predict_proba(X_t)
-        else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(X_t)
-            for i in range(0, X.shape[0]):
-                dists[i, self._class_dictionary[preds[i]]] = 1
-            return dists
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -194,8 +164,8 @@ class SummaryClassifier(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            SummaryClassifier provides the following special sets:
-                 "results_comparison" - used in some classifiers to compare against
+            SummaryRegressor provides the following special sets:
+                 "results_comparison" - used in some regressors to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
 
@@ -208,6 +178,6 @@ class SummaryClassifier(BaseClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
-            return {"estimator": RandomForestClassifier(n_estimators=10)}
+            return {"estimator": RandomForestRegressor(n_estimators=10)}
         else:
-            return {"estimator": RandomForestClassifier(n_estimators=2)}
+            return {"estimator": RandomForestRegressor(n_estimators=2)}

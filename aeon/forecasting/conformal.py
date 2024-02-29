@@ -4,7 +4,7 @@ Code based partially on NaiveVariance by ilyasmoutawwakil.
 """
 
 __all__ = ["ConformalIntervals"]
-__author__ = ["fkiraly", "bethrice44"]
+__maintainer__ = []
 
 from math import floor
 from warnings import warn

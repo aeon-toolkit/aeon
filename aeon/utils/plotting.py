@@ -4,7 +4,7 @@ Moved to aeon.visualisation in v0.6.*. todo remove in v0.8.0
 """
 
 __all__ = ["plot_series", "plot_correlations", "plot_windows"]
-__author__ = ["mloning", "RNKuhns", "Drishti Bhasin", "chillerobscuro"]
+__maintainer__ = []
 
 import math
 from warnings import simplefilter, warn
