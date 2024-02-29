@@ -1,4 +1,3 @@
-import numpy as np
 from aeon.regression.base import BaseRegressor
 from sklearn.utils import check_random_state
 
