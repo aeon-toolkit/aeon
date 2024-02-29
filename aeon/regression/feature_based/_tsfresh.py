@@ -3,7 +3,7 @@
 Pipeline regressor using the TSFresh transformer and an estimator.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["TSFreshRegressor"]
 
 import warnings
