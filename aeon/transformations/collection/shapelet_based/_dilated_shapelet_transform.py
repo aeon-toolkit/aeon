@@ -4,7 +4,7 @@ A modification of the classic Shapelet Transform which add a dilation parameter 
 Shapelets.
 """
 
-__author__ = ["baraline"]
+__maintainer__ = []
 __all__ = ["RandomDilatedShapeletTransform"]
 
 import warnings

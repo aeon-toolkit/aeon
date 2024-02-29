@@ -1,6 +1,6 @@
 """Implements Prophet forecaster by wrapping fbprophet."""
 
-__author__ = ["aiwalter"]
+__maintainer__ = []
 __all__ = ["Prophet"]
 
 

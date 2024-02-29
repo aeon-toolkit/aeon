@@ -4,7 +4,7 @@ An early classifier using a one class SVM's to determine decision safety with a
 time series classifier.
 """
 
-__author__ = ["MatthewMiddlehurst", "patrickzib"]
+__maintainer__ = []
 __all__ = ["TEASER"]
 
 import copy

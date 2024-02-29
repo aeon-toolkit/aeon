@@ -10,7 +10,7 @@ from aeon.forecasting.base.adapters import _StatsModelsAdapter
 from aeon.forecasting.base.adapters._statsmodels import _coerce_int_to_range_index
 
 _all_ = ["ARDL"]
-__author__ = ["kcc-lion"]
+__maintainer__ = []
 
 
 class ARDL(_StatsModelsAdapter):

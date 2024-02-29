@@ -1,6 +1,6 @@
 """Implements framework for applying online ensembling algorithms to forecasters."""
 
-__author__ = ["magittan, mloning"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

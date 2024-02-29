@@ -1,6 +1,6 @@
 """Test functions for data input and output."""
 
-__author__ = ["SebasKoel", "Emiliathewolf", "TonyBagnall", "jasonlines", "achieveordie"]
+__maintainer__ = []
 
 __all__ = []
 

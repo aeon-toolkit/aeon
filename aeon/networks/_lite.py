@@ -1,6 +1,6 @@
 """LITE Network."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
 
@@ -44,18 +44,16 @@ class LITENetwork(BaseDeepNetwork):
         kernel_size=40,
         strides=1,
         activation="relu",
-        random_state=0,
     ):
         self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.activation = activation
         self.strides = strides
-        self.random_state = random_state
 
         super().__init__()
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
-        """Construct the hybrid layer to compute features of cutom filters.
+        """Construct the hybrid layer to compute features of custom filters.
 
         Parameters
         ----------

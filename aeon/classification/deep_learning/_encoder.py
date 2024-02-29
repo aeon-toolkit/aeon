@@ -1,6 +1,6 @@
 """Encoder Classifier."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["EncoderClassifier"]
 
 import gc
@@ -144,7 +144,6 @@ class EncoderClassifier(BaseDeepClassifier):
             padding=self.padding,
             dropout_proba=self.dropout_proba,
             activation=self.activation,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
@@ -200,10 +199,10 @@ class EncoderClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data class labels.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints)
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------

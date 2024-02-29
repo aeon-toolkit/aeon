@@ -1,6 +1,6 @@
 """LITETime classifier."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["LITETimeClassifier"]
 
 import gc
@@ -80,7 +80,7 @@ class LITETimeClassifier(BaseClassifier):
     Notes
     -----
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
+    tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
 
     Adapted from the implementation from Ismail-Fawaz et. al
@@ -161,10 +161,10 @@ class LITETimeClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data class labels.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints)
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------
@@ -456,11 +456,12 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : array-like of shape = (n_instances, n_channels, n_timepoints)
-            The training input samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-        y : array-like, shape = (n_instances)
-            The training data class labels.
+        X : np.ndarray
+            The training input samples of,
+            shape (n_instances, n_channels, n_timepoints).
+            If a 2D array-like is passed, n_channels is assumed to be 1.
+        y : np.ndarray
+            The training data class labels of shape (n_instances,).
 
         Returns
         -------

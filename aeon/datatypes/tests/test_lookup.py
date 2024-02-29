@@ -1,6 +1,6 @@
 """Testing mtype/scitypes lookup."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pytest
 
