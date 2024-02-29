@@ -5,10 +5,10 @@ Learning shapelet classifier that simply wraps the LearningShapelet class from t
 
 from tslearn.shapelets import LearningShapelets
 
-from aeon.base import BaseModelPackage
+from aeon.classification.base import BaseClassifier
 
 
-class LearningShapeletsAeon(BaseModelPackage):
+class LearningShapeletClassifier(BaseClassifier):
     """
     Learning Shapelet.
 
@@ -19,7 +19,7 @@ class LearningShapeletsAeon(BaseModelPackage):
         the number of such shapelets to be trained (value).
         If None, `grabocka_params_to_shapelet_size_dict` is used and the
         size used to compute is that of the shortest time series passed at fit
-        time.
+        time.a
 
     max_iter: int (default: 10,000)
         Number of training epochs.
@@ -65,6 +65,11 @@ class LearningShapeletsAeon(BaseModelPackage):
 
     """
 
+    _tags = {
+        "capability:multivariate": True,
+        "algorithm_type": "shapelet",
+    }
+
     def __init__(
         self,
         n_shapelets_per_size=None,
@@ -93,7 +98,7 @@ class LearningShapeletsAeon(BaseModelPackage):
         self.random_state = random_state
         self.model = None
 
-    def fit(self, X, y):
+    def _fit(self, X, y):
         """Learn time-series shapelets.
 
         Parameters
@@ -116,11 +121,9 @@ class LearningShapeletsAeon(BaseModelPackage):
             scale=self.scale,
             random_state=self.random_state,
         )
-
         self.model.fit(X, y)
-        return self
 
-    def predict(self, X):
+    def _predict(self, X):
         """Predict class for a given set of time series.
 
         Parameters
@@ -137,7 +140,7 @@ class LearningShapeletsAeon(BaseModelPackage):
         """
         return self.model.predict(X)
 
-    def predict_proba(self, X):
+    def _predict_proba(self, X):
         """Predict class probability for a given set of time series.
 
         Parameters
@@ -181,10 +184,6 @@ class LearningShapeletsAeon(BaseModelPackage):
             Location of the shapelet matches for the provided time series.
         """
         return self.model.locate(X)
-
-    def get_params(self, deep=True):
-        """Get model parameters that are sufficient to recapitulate it."""
-        return self.model.get_params(deep)
 
     # def set_params(self, **params):
     #    return self.model.set_params(**params)
