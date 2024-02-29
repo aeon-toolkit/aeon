@@ -70,6 +70,21 @@ mih2 = mih2.set_index(["foo", "bar", "timepoints"])
 mih_examples = [mih1, mih2]
 
 
+def get_hierarchical_examples():
+    """Get hierarchical for tests."""
+    return mih_examples
+
+
+def get_series_examples():
+    """Get single series examples."""
+    return [series_examples, dataframe_examples]
+
+
+def get_collection_examples():
+    """Get example collections."""
+    return [mih1]
+
+
 def get_examples(datatype: str):
     """Create two examples of each possible pandas type."""
     if datatype == "pd.Series":
