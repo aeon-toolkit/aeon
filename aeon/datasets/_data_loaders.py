@@ -1215,7 +1215,7 @@ def load_classification(
     Parameters
     ----------
     name : str
-        Name of data set. If a dataset that is listed in tsc_data_lists is given,
+        Name of data set. If a dataset that is listed in tsc_datasets is given,
         this function will look in the extract_path first, and if it is not present,
         attempt to download the data from www.timeseriesclassification.com, saving it to
         the extract_path.
@@ -1405,7 +1405,7 @@ def get_dataset_meta_data(
     """Retrieve dataset meta data from timeseriesclassification.com.
 
     Metadata includes the following information for each dataset:
-    - Dataset: name of the problem, set the lists in tsc_data_lists for valid names.
+    - Dataset: name of the problem, set the lists in tsc_datasets for valid names.
     - TrainSize: number of series in the default train set.
     - TestSize:	number of series in the default train set.
     - Length: length of the series. If the series are not all the same length,
