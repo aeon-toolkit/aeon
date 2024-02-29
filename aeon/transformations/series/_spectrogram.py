@@ -28,6 +28,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     --------
     >>> from aeon.transformations.series import SpectrogramTransformer
     >>> import numpy as np
+    >>> rng = np.random.default_rng()
     >>> fs = 10e3
     >>> N = 1e5
     >>> amp = 2 * np.sqrt(2)
