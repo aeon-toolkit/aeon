@@ -4,12 +4,22 @@ import numpy as np
 import pandas as pd
 
 
+def is_tabular(X):
+    """Check X is a 2D table."""
+    if isinstance(X, np.ndarray):
+        if X.ndim != 2:
+            return False
+        return True
+    if isinstance(X, pd.DataFrame):
+        return _is_pd_wide(X)
+
+
 def is_collection(X):
     """Check X is a valid collection data structure."""
     try:
         get_type(X)
         return True
-    except TypeError:
+    except (TypeError, ValueError):
         return False
 
 
