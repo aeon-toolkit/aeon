@@ -55,7 +55,7 @@ bot to do this for you. A list of relevant tags can be found [here](https://allc
 
 For further information on contributing to `aeon`, please see the following pages.
 
-::::{grid} 1 2 2 2
+::::{grid} 1 2 3 3
 :gutter: 3
 
 :::{grid-item-card}
@@ -107,7 +107,7 @@ Mentoring and Projects
 
 ^^^
 
-`aeon` projects and mentoring oppertunities.
+`aeon` projects and mentoring opportunities.
 
 +++
 

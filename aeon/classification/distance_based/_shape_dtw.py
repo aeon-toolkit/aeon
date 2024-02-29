@@ -115,11 +115,10 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
-            or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
-            The training input samples.
-        y : array-like, shape = (n_cases)
-            The class labels.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints)
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------
