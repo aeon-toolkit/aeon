@@ -28,8 +28,11 @@ from aeon.utils.validation import (
     array_is_datetime64,
     array_is_int,
     check_window_length,
+    is_collection,
     is_datetime,
+    is_hierarchical,
     is_int,
+    is_single_series,
     is_timedelta,
     is_timedelta_or_date_offset,
 )
@@ -455,9 +458,9 @@ class BaseSplitter(BaseObject):
 
         Yields
         ------
-        train : time series of same aeon mtype as `y`
+        train : time series of same aeon type as `y`
             training series in the split
-        test : time series of same aeon mtype as `y`
+        test : time series of same aeon type as `y`
             test series in the split
         """
         y, y_orig_mtype = self._check_y(y)
@@ -484,13 +487,13 @@ class BaseSplitter(BaseObject):
         y_index : y, if y was pd.Index; otherwise _check_y(y).index
         """
         if not isinstance(y, pd.Index):
-            y, _ = self._check_y(y, allow_index=True)
+            y, _ = self._check_y(y)
             y_index = y.index
         else:
             y_index = y
         return y_index
 
-    def _check_y(self, y, allow_index=False):
+    def _check_y(self, y):
         """Check and coerce y to a pandas based mtype.
 
         Parameters
@@ -509,52 +512,24 @@ class BaseSplitter(BaseObject):
         ------
         TypeError if y is not one of the permissible mtypes
         """
-        if allow_index and isinstance(y, pd.Index):
-            return y, "pd.Index"
-
-        ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-        ALLOWED_MTYPES = [
-            "pd.Series",
-            "pd.DataFrame",
-            "np.ndarray",
-            "nested_univ",
-            "numpy3D",
-            # "numpy2D",
-            "pd-multiindex",
-            # "pd-wide",
-            # "pd-long",
-            "df-list",
-            "pd_multiindex_hier",
-        ]
-        y_valid, _, y_metadata = check_is_scitype(
-            y, scitype=ALLOWED_SCITYPES, return_metadata=True, var_name="y"
-        )
-        if allow_index:
-            msg = (
-                "y must be a pandas.Index, or a time series in an aeon compatible "
-                "format, of scitype Series, Panel or Hierarchical, "
-                "for instance a pandas.DataFrame with aeon compatible time indices, "
-                "or with MultiIndex and last(-1) level an aeon compatible time index."
-                f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
-                "For further details see  examples/forecasting, or examples/datasets"
-                "If you think y is already in an aeon supported input format, "
-                "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
-                "where mtype is the string of the type specification you want for y. "
-            )
-        else:
-            msg = (
+        if not (is_hierarchical(y) or is_collection(y) or is_single_series(y)):
+            raise TypeError(
                 "y must be in an aeon compatible format, "
                 "of scitype Series, Panel or Hierarchical, "
                 "for instance a pandas.DataFrame with aeon compatible time indices, "
                 "or with MultiIndex and last(-1) level an aeon compatible time index."
-                f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
                 "See  examples/forecasting, or examples/datasets, "
                 "If you think y is already in an aeon supported input format, "
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
             )
-        if not y_valid:
-            raise TypeError(msg)
+        # TODO: Still need to extract the "mtype" of y without check_is_scitype
+        _, _, y_metadata = check_is_scitype(
+            y,
+            scitype=["Hierarchical", "Panel", "Series"],
+            return_metadata=True,
+            var_name="y",
+        )
 
         y_inner = convert_to(y, to_type=PANDAS_MTYPES)
 
