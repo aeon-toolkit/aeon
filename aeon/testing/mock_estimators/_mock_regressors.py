@@ -1,4 +1,4 @@
-pip install scikit-learn
+
 from aeon.regression.base import BaseRegressor
 from sklearn.utils import check_random_state
 
