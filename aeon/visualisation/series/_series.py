@@ -399,10 +399,10 @@ def plot_spectrogram(
     >>> x = carrier + noise
     >>> transformer = SpectrogramTransformer(fs=fs, return_onesided=True)  # doctest: +SKIP
     >>> f1, t1, Sxx1 = transformer.fit_transform(x)  # doctest: +SKIP
-    >>> plot_spectrogram(f1, t1, Sxx1, return_both=False)
-    >>> transformer2 = SpectrogramTransformer(fs=fs, return_onesided=False)
-    >>> f2, t2, Sxx2 = transformer.fit_transform(x)
-    >>> plot_spectrogram(f2, t2, Sxx2, return_both=True)
+    >>> plot_spectrogram(f1, t1, Sxx1, return_both=False)  # doctest: +SKIP       
+    >>> transformer2 = SpectrogramTransformer(fs=fs, return_onesided=False)  # doctest: +SKIP
+    >>> f2, t2, Sxx2 = transformer.fit_transform(x)  # doctest: +SKIP
+    >>> plot_spectrogram(f2, t2, Sxx2, return_both=True)  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
