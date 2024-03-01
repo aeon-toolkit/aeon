@@ -1,6 +1,6 @@
+from sklearn.utils import check_random_state
 
 from aeon.regression.base import BaseRegressor
-from sklearn.utils import check_random_state
 
 
 class MockRegressor(BaseRegressor):
