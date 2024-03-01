@@ -1,7 +1,7 @@
-"""Multi Layer Perceptron Network (MLP) for classification."""
+"""Multi Layer Perceptron Network (MLP) for Regression."""
 
-__maintainer__ = []
-__all__ = ["MLPClassifier"]
+__author__ = ["Aadya-Chinubhai"]
+__all__ = ["MLPRegressor"]
 
 import gc
 import os
@@ -10,11 +10,11 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import MLPNetwork
+from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 
-class MLPClassifier(BaseDeepClassifier):
+class MLPRegressor(BaseDeepRegressor):
     """Multi Layer Perceptron Network (MLP).
 
     Adapted from the implementation used in [1]_.
@@ -26,12 +26,11 @@ class MLPClassifier(BaseDeepClassifier):
     batch_size : int, default = 16
         the number of samples per gradient update.
     callbacks : callable or None, default
-    random_state : int or None, default=None
-        Seed for random number generation.
     verbose : boolean, default = False
         whether to output extra information
     loss : string, default="mean_squared_error"
         fit parameter for the keras model
+    metrics : list of strings, default=["accuracy"],
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -52,19 +51,18 @@ class MLPClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    optimizer : keras.optimizer, default=keras.optimizers.Adadelta(),
-    metrics : list of strings, default=["accuracy"],
-    activation : string or a tf callable, default="sigmoid"
+    random_state : int or None, default=None
+        Seed for random number generation.
+    activation : string or a tf callable, default="relu"
         Activation function used in the output linear layer.
         List of available activation functions:
         https://keras.io/api/layers/activations/
+    output_activation : str = "linear"
+        Activation for the last layer in a Regressor
     use_bias : boolean, default = True
         whether the layer uses a bias vector.
+    optimizer : keras.optimizer, default=keras.optimizers.Adadelta()
 
-    Notes
-    -----
-    Adapted from the implementation from source code
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/mlp.py
 
     References
     ----------
@@ -74,12 +72,12 @@ class MLPClassifier(BaseDeepClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning import MLPClassifier
+    >>> from aeon.regression.deep_learning import MLPRegressor
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> mlp = MLPClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
+    >>> mlp = MLPRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> mlp.fit(X_train, y_train)  # doctest: +SKIP
-    MLPClassifier(...)
+    MLPRegressor(...)
     """
 
     def __init__(
@@ -88,7 +86,7 @@ class MLPClassifier(BaseDeepClassifier):
         batch_size=16,
         callbacks=None,
         verbose=False,
-        loss="categorical_crossentropy",
+        loss="mse",
         metrics=None,
         file_path="./",
         save_best_model=False,
@@ -96,7 +94,8 @@ class MLPClassifier(BaseDeepClassifier):
         best_file_name="best_model",
         last_file_name="last_model",
         random_state=None,
-        activation="sigmoid",
+        activation="relu",
+        output_activation="linear",
         use_bias=True,
         optimizer=None,
     ):
@@ -112,18 +111,19 @@ class MLPClassifier(BaseDeepClassifier):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.optimizer = optimizer
+        self.random_state = random_state
+        self.output_activation = output_activation
 
         self.history = None
 
         super().__init__(
             batch_size=batch_size,
-            random_state=random_state,
             last_file_name=last_file_name,
         )
 
         self._network = MLPNetwork()
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -135,8 +135,6 @@ class MLPClassifier(BaseDeepClassifier):
         ----------
         input_shape : tuple
             The shape of the data fed into the input layer, should be (m,d)
-        n_classes: int
-            The number of classes, which becomes the size of the output layer
 
         Returns
         -------
@@ -154,7 +152,7 @@ class MLPClassifier(BaseDeepClassifier):
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+            units=1, activation=self.output_activation, use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
@@ -170,14 +168,14 @@ class MLPClassifier(BaseDeepClassifier):
         return model
 
     def _fit(self, X, y):
-        """Fit the classifier on the training set (X, y).
+        """Fit the Regressor on the training set (X, y).
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints)
-        y : np.ndarray
-            The training data class labels of shape (n_cases,).
+        X : np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+            The training input samples.
+        y : np.ndarray of shape n
+            The training data target values.
 
         Returns
         -------
@@ -185,14 +183,13 @@ class MLPClassifier(BaseDeepClassifier):
         """
         import tensorflow as tf
 
-        y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
         check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
-        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+        self.training_model_ = self.build_model(self.input_shape)
 
         if self.verbose:
             self.training_model_.summary()
@@ -218,7 +215,7 @@ class MLPClassifier(BaseDeepClassifier):
 
         self.history = self.training_model_.fit(
             X,
-            y_onehot,
+            y,
             batch_size=self.batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
@@ -249,7 +246,7 @@ class MLPClassifier(BaseDeepClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            For classifiers, a "default" set of parameters should be provided for
+            For Regressors, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
@@ -262,12 +259,10 @@ class MLPClassifier(BaseDeepClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        param1 = {
+        param = {
             "n_epochs": 10,
             "batch_size": 4,
             "use_bias": False,
         }
 
-        test_params = [param1]
-
-        return test_params
+        return [param]
