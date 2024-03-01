@@ -3,7 +3,7 @@
 Learning shapelet classifier that simply wraps the LearningShapelet class from tslearn.
 """
 
-from tslearn.shapelets import LearningShapelets
+import numpy as np
 
 from aeon.classification.base import BaseClassifier
 
@@ -68,6 +68,7 @@ class LearningShapeletClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "shapelet",
+        "python_dependencies": "tslearn",
     }
 
     def __init__(
@@ -96,19 +97,11 @@ class LearningShapeletClassifier(BaseClassifier):
         self.max_size = max_size
         self.scale = scale
         self.random_state = random_state
-        self.model = None
 
     def _fit(self, X, y):
-        """Learn time-series shapelets.
+        from tslearn.shapelets import LearningShapelets
 
-        Parameters
-        ----------
-        X : array-like of shape=(n_ts, sz, d)
-            Time series dataset.
-        y : array-like of shape=(n_ts, )
-            Time series labels.
-        """
-        self.model = LearningShapelets(
+        self.clf_ = LearningShapelets(
             n_shapelets_per_size=self.n_shapelets_per_size,
             max_iter=self.max_iter,
             batch_size=self.batch_size,
@@ -121,40 +114,16 @@ class LearningShapeletClassifier(BaseClassifier):
             scale=self.scale,
             random_state=self.random_state,
         )
-        self.model.fit(X, y)
+        self.clf_.fit(X, y)
+        return self
 
-    def _predict(self, X):
-        """Predict class for a given set of time series.
+    def _predict(self, X) -> np.ndarray:
+        return self.clf_.predict(X)
 
-        Parameters
-        ----------
-        X : array-like of shape=(n_ts, sz, d)
-            Time series dataset.
+    def _predict_proba(self, X) -> np.ndarray:
+        return self.clf_.predict_proba(X)
 
-        Returns
-        -------
-        array of shape=(n_ts, ) or (n_ts, n_classes), depending on the shape
-        of the label vector provided at training time.
-            Index of the cluster each sample belongs to or class probability
-            matrix, depending on what was provided at training time.
-        """
-        return self.model.predict(X)
-
-    def _predict_proba(self, X):
-        """Predict class probability for a given set of time series.
-
-        Parameters
-        ----------
-        X : array-like of shape=(n_ts, sz, d)
-            Time series dataset.
-
-        Returns
-        -------
-        array of shape=(n_ts, n_classes),
-            Class probability matrix.
-        """
-        return self.model.predict_proba(X)
-
+    @classmethod
     def transform(self, X):
         """Generate shapelet transform for a set of time series.
 
@@ -168,7 +137,7 @@ class LearningShapeletClassifier(BaseClassifier):
         array of shape=(n_ts, n_shapelets)
             Shapelet-Transform of the provided time series.
         """
-        return self.model.transform(X)
+        return self.clf_.transform(X)
 
     def locate(self, X):
         """Compute shapelet match location for a set of time series.
@@ -183,7 +152,4 @@ class LearningShapeletClassifier(BaseClassifier):
         array of shape=(n_ts, n_shapelets)
             Location of the shapelet matches for the provided time series.
         """
-        return self.model.locate(X)
-
-    # def set_params(self, **params):
-    #    return self.model.set_params(**params)
+        return self.clf_.locate(X)
