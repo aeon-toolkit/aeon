@@ -38,7 +38,7 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
-__author__ = ["mloning", "fkiraly", "miraep8"]
+__maintainer__ = []
 __all__ = [
     "BaseTransformer",
 ]
@@ -58,7 +58,12 @@ from aeon.utils.sklearn import (
     is_sklearn_regressor,
     is_sklearn_transformer,
 )
-from aeon.utils.validation import is_univariate_series
+from aeon.utils.validation import (
+    is_collection,
+    is_hierarchical,
+    is_single_series,
+    is_univariate_series,
+)
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 # single/multiple primitives
@@ -787,13 +792,13 @@ class BaseTransformer(BaseEstimator):
             else:
                 raise ValueError("no series scitypes supported, bug in estimator")
 
-        def _scitype_A_higher_B(scitypeA, scitypeB):
-            """Compare two scitypes regarding complexity."""
-            if scitypeA == "Series":
+        def _type_A_higher_B(typeA, typeB):
+            """Compare two abstract types regarding complexity."""
+            if typeA == "Series":
                 return False
-            if scitypeA == "Panel" and scitypeB == "Series":
+            if typeA == "Panel" and typeB == "Series":
                 return True
-            if scitypeA == "Hierarchical" and scitypeB != "Hierarchical":
+            if typeA == "Hierarchical" and typeB != "Hierarchical":
                 return True
             return False
 
@@ -805,31 +810,18 @@ class BaseTransformer(BaseEstimator):
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
         ALLOWED_MTYPES = self.ALLOWED_INPUT_TYPES
-
+        if not (is_hierarchical(X) or is_collection(X) or is_single_series(X)):
+            raise TypeError(
+                "must be in an aeon compatible format for storing series, hierarchical "
+                "series or collections of series."
+            )
         # checking X
-        X_valid, msg, X_metadata = check_is_scitype(
+        _, _, X_metadata = check_is_scitype(
             X,
             scitype=ALLOWED_SCITYPES,
             return_metadata=True,
             var_name="X",
         )
-
-        msg_invalid_input = (
-            f"must be in an aeon compatible format, "
-            f"of scitype Series, Panel or Hierarchical, "
-            f"for instance a pandas.DataFrame with aeon compatible time indices, "
-            f"or with MultiIndex and last(-1) level an aeon compatible time index. "
-            f"Allowed compatible mtype format specifications are: {ALLOWED_MTYPES} ."
-            # f"See the transformers tutorial examples/05_transformers.ipynb."
-            f"If you think the data is already in an aeon supported input format, "
-            f"run aeon.datatypes.check_raise(data, mtype) to diagnose the error, "
-            f"where mtype is the string of the type specification you want. "
-            f"Error message for checked mtypes, in format [mtype: message], as follows:"
-        )
-        if not X_valid:
-            for mtype, err in msg.items():
-                msg_invalid_input += f" [{mtype}: {err}] "
-            raise TypeError("X " + msg_invalid_input)
 
         X_scitype = X_metadata["scitype"]
         X_mtype = X_metadata["mtype"]
@@ -838,12 +830,12 @@ class BaseTransformer(BaseEstimator):
         metadata["_X_input_scitype"] = X_scitype
 
         if X_mtype not in ALLOWED_MTYPES:
-            raise TypeError("X " + msg_invalid_input)
+            raise TypeError("X an invalid internal type")
 
         if X_scitype in X_inner_scitype:
             case = "case 1: scitype supported"
             req_vec_because_rows = False
-        elif any(_scitype_A_higher_B(x, X_scitype) for x in X_inner_scitype):
+        elif any(_type_A_higher_B(x, X_scitype) for x in X_inner_scitype):
             case = "case 2: higher scitype supported"
             req_vec_because_rows = False
         else:
@@ -867,15 +859,13 @@ class BaseTransformer(BaseEstimator):
                 y_possible_scitypes = "Panel"
             elif X_scitype == "Hierarchical":
                 y_possible_scitypes = ["Panel", "Hierarchical"]
-
-            y_valid, _, y_metadata = check_is_scitype(
+            if not (is_hierarchical(y) or is_collection(y) or is_single_series(y)):
+                raise TypeError("Error, y is not a valid type for X type.")
+            # TODO: Still need to extract the "scitype" of y without check_is_scitype
+            _, _, y_metadata = check_is_scitype(
                 y, scitype=y_possible_scitypes, return_metadata=True, var_name="y"
             )
-            if not y_valid:
-                raise TypeError("y " + msg_invalid_input)
-
             y_scitype = y_metadata["scitype"]
-
         else:
             # y_scitype is used below - set to None if y is None
             y_scitype = None

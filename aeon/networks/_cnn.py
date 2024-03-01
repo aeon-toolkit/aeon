@@ -1,6 +1,6 @@
 """Time Convolutional Neural Network (CNN) (minus the final output layer)."""
 
-__author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
 
@@ -38,8 +38,6 @@ class CNNNetwork(BaseDeepNetwork):
     use_bias : bool or list of bool, default = True
         Condition on whether or not to use bias values for convolution layers, if not
         a list, the same condition is used for all layers.
-    random_state : int, default = 0
-        Seed to any needed random actions.
 
     Notes
     -----
@@ -63,10 +61,8 @@ class CNNNetwork(BaseDeepNetwork):
         strides=1,
         dilation_rate=1,
         use_bias=True,
-        random_state=0,
     ):
         self.n_layers = n_layers
-        self.random_state = random_state
         self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.avg_pool_size = avg_pool_size

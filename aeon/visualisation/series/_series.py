@@ -2,6 +2,7 @@
 
 __all__ = ["plot_series", "plot_lags", "plot_correlations", "plot_spectrogram"]
 __author__ = ["mloning", "RNKuhns", "Drishti Bhasin", "chillerobscuro", "aadya940"]
+__maintainer__ = []
 
 import math
 from warnings import warn

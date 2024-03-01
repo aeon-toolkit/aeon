@@ -1,12 +1,6 @@
 """Legacy functions that load collections of time series into nested dataframes."""
 
-__author__ = [
-    "Emiliathewolf",
-    "TonyBagnall",
-    "jasonlines",
-    "achieveordie",
-]
-
+__maintainer__ = []
 __all__ = [
     "load_from_tsfile_to_dataframe",
     "load_from_arff_to_dataframe",

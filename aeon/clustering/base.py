@@ -1,6 +1,6 @@
 """Base class for clustering."""
 
-__author__ = ["chrisholder", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["BaseClusterer"]
 
 import time

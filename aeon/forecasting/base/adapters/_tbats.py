@@ -1,6 +1,6 @@
 """Implements adapter for using tbats forecasters in aeon framework."""
 
-__author__ = ["mloning", "aiwalter", "k1m190r"]
+__maintainer__ = []
 __all__ = ["_TbatsAdapter"]
 
 import numpy as np

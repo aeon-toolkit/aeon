@@ -10,7 +10,7 @@ from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
-from aeon.utils.conversion import COLLECTIONS_DATA_TYPES
+from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.conversion._convert_collection import (
     _from_nested_univ_to_numpy2d,
     _from_nested_univ_to_pd_multiindex,
@@ -30,7 +30,7 @@ from aeon.utils.conversion._convert_collection import (
     resolve_equal_length_inner_type,
     resolve_unequal_length_inner_type,
 )
-from aeon.utils.validation._check_collection import (
+from aeon.utils.validation.collection import (
     _equal_length,
     _nested_univ_is_equal,
     get_n_cases,
