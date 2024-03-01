@@ -21,7 +21,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     fs: float, optional
         Sampling frequency of the time series. Defaults to 1.0.
     return_onesided: boolean, optional
-        If True, return a one-sided spectrum for real data. 
+        If True, return a one-sided spectrum for real data.
         If False return a two-sided spectrum. Defaults to True.
 
     Examples
@@ -39,7 +39,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     >>> noise = rng.normal(scale=np.sqrt(noise_power), size=time.shape)
     >>> noise *= np.exp(-time/5)
     >>> x = carrier + noise
-    >>> transformer = SpectrogramTransformer(fs=fs, return_onesided=True)  # doctest: +SKIP
+    >>> transformer = SpectrogramTransformer()  # doctest: +SKIP
     >>> mp = transformer.fit_transform(x)  # doctest: +SKIP
     """
 
