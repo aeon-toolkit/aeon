@@ -366,8 +366,7 @@ def plot_spectrogram(
     return_both=False,
 ):
     """
-    Plots the spectrogram with a given sample 
-    frequency, segment time and spectrogram.
+    Plot the spectrogram with a given sample frequency, segment time and spectrogram.
 
     Parameters
     ----------
@@ -380,7 +379,7 @@ def plot_spectrogram(
                 spectrogram corresponds to the segment times.
     return_both : boolean, default = False
                 Condition to allow negative frequency spectrum.
-    
+
     Examples
     --------
     >>> from aeon.transformations.series import SpectrogramTransformer
@@ -399,7 +398,7 @@ def plot_spectrogram(
     >>> x = carrier + noise
     >>> transformer = SpectrogramTransformer(fs=fs, return_onesided=True)  # doctest: +SKIP
     >>> f1, t1, Sxx1 = transformer.fit_transform(x)  # doctest: +SKIP
-    >>> plot_spectrogram(f1, t1, Sxx1, return_both=False)  # doctest: +SKIP       
+    >>> plot_spectrogram(f1, t1, Sxx1, return_both=False)  # doctest: +SKIP
     >>> transformer2 = SpectrogramTransformer(fs=fs, return_onesided=False)  # doctest: +SKIP
     >>> f2, t2, Sxx2 = transformer.fit_transform(x)  # doctest: +SKIP
     >>> plot_spectrogram(f2, t2, Sxx2, return_both=True)  # doctest: +SKIP
