@@ -45,4 +45,9 @@ from aeon.visualisation.series._collections import (
     plot_collection_by_class,
     plot_series_collection,
 )
-from aeon.visualisation.series._series import plot_correlations, plot_lags, plot_series, plot_spectrogram
+from aeon.visualisation.series._series import (
+    plot_correlations, 
+    plot_lags, 
+    plot_series, 
+    plot_spectrogram
+)
