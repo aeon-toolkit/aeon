@@ -380,6 +380,13 @@ def plot_spectrogram(
     return_both : boolean, default = False
                 Condition to allow negative frequency spectrum.
 
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The figure object.
+    ax : matplotlib.axes.Axes
+        The axes object.
+
     Examples
     --------
     >>> from aeon.transformations.series import SpectrogramTransformer
@@ -396,12 +403,12 @@ def plot_spectrogram(
     >>> noise = rng.normal(scale=np.sqrt(noise_power), size=time.shape)
     >>> noise *= np.exp(-time/5)
     >>> x = carrier + noise
-    >>> transformer = SpectrogramTransformer(fs=fs, return_onesided=True)  # doctest: +SKIP
+    >>> transformer=SpectrogramTransformer(fs=fs,return_onesided=True)  # doctest: +SKIP
     >>> f1, t1, Sxx1 = transformer.fit_transform(x)  # doctest: +SKIP
-    >>> plot_spectrogram(f1, t1, Sxx1, return_both=False)  # doctest: +SKIP
-    >>> transformer2 = SpectrogramTransformer(fs=fs, return_onesided=False)  # doctest: +SKIP
+    >>> fig, ax = plot_spectrogram(f1, t1, Sxx1, return_both=False)  # doctest: +SKIP
+    >>> transformer2=SpectrogramTransformer(fs=fs,return_onesided=False)  # doctest: +SKIP
     >>> f2, t2, Sxx2 = transformer.fit_transform(x)  # doctest: +SKIP
-    >>> plot_spectrogram(f2, t2, Sxx2, return_both=True)  # doctest: +SKIP
+    >>> fig, ax = plot_spectrogram(f2, t2, Sxx2, return_both=True)  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
@@ -409,12 +416,10 @@ def plot_spectrogram(
     if return_both:
         sample_freq = fftshift(sample_freq)
         spectrogram = fftshift(spectrogram, axes=0)
-        plt.pcolormesh(segment_time, sample_freq, spectrogram, shading="gouraud")
-        plt.ylabel("Frequency [Hz]")
-        plt.xlabel("Time [sec]")
-        plt.show()
-    else:
-        plt.pcolormesh(segment_time, sample_freq, spectrogram, shading="gouraud")
-        plt.ylabel("Frequency [Hz]")
-        plt.xlabel("Time [sec]")
-        plt.show()
+    fig, ax = plt.subplots()
+    pcm = ax.pcolormesh(segment_time, sample_freq, spectrogram, shading="gouraud")
+    ax.set_ylabel("Frequency [Hz]")
+    ax.set_xlabel("Time [sec]")
+    plt.colorbar(pcm, ax=ax)
+    plt.show()
+    return fig, ax
