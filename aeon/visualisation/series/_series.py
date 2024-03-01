@@ -403,10 +403,10 @@ def plot_spectrogram(
     >>> noise = rng.normal(scale=np.sqrt(noise_power), size=time.shape)
     >>> noise *= np.exp(-time/5)
     >>> x = carrier + noise
-    >>> transformer=SpectrogramTransformer(fs=fs,return_onesided=True)  # doctest: +SKIP
+    >>> transformer=SpectrogramTransformer(fs=fs)  # doctest: +SKIP
     >>> f1, t1, Sxx1 = transformer.fit_transform(x)  # doctest: +SKIP
     >>> fig, ax = plot_spectrogram(f1, t1, Sxx1, return_both=False)  # doctest: +SKIP
-    >>> transformer2=SpectrogramTransformer(fs=fs,return_onesided=False)  # doctest: +SKIP
+    >>> transformer=SpectrogramTransformer(return_onesided=False)  # doctest: +SKIP
     >>> f2, t2, Sxx2 = transformer.fit_transform(x)  # doctest: +SKIP
     >>> fig, ax = plot_spectrogram(f2, t2, Sxx2, return_both=True)  # doctest: +SKIP
     """
