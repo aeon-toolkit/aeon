@@ -1,5 +1,9 @@
 # Examples
 
+This webpage contains the notebook examples for the `aeon` library. The examples are
+organised into categories based on module and functionality. The examples are designed
+to provide a comprehensive overview of a module, functionality or a specific algorithm.
+
 ## Forecasting
 
 ::::{grid} 2 3 4 4
@@ -361,7 +365,7 @@ ClaSP segmentation
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/annotation/hidalgo_segmentation.ipynb
+:link: /examples/segmentation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
 
@@ -527,7 +531,7 @@ Loading data from the web
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/benchmarkings.ipynb
+:link: /examples/benchmarking/benchmarking.ipynb
 :link-type: ref
 :text-align: center
 
