@@ -1,6 +1,6 @@
 """Unit tests of AutoEnsembleForecaster functionality."""
 
-__author__ = ["mloning", "GuzalBulatova", "aiwalter", "RNKuhns", "AnH0ang"]
+__maintainer__ = []
 
 import pandas as pd
 import pytest

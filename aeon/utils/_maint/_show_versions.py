@@ -3,7 +3,7 @@
 adapted from :func:`sklearn.show_versions`
 """
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = ["show_versions"]
 
 import platform

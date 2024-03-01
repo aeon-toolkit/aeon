@@ -4,7 +4,7 @@ Dictionary based cBOSS classifier based on SFA transform. Improves the ensemble
 structure of the original BOSS algorithm.
 """
 
-__author__ = ["MatthewMiddlehurst", "BINAYKUMAR943"]
+__maintainer__ = []
 
 __all__ = ["ContractableBOSS", "pairwise_distances"]
 

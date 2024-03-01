@@ -1,6 +1,6 @@
 """Test extraction of features across (shifted) windows."""
 
-__author__ = ["danbartl"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

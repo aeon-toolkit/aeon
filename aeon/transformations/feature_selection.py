@@ -1,6 +1,6 @@
 """Implements feature selection algorithms."""
 
-__author__ = ["aiwalter"]
+__maintainer__ = []
 __all__ = ["FeatureSelection"]
 
 import math

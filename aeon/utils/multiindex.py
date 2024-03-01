@@ -1,6 +1,6 @@
 """Multiindex formatting related utilities."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = []
 
 import pandas as pd

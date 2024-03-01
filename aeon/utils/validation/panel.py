@@ -1,6 +1,6 @@
 """Utilities for validating panel data."""
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = [
     "check_X",
     "check_y",

@@ -1,6 +1,6 @@
 """InceptionTime regressor."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["InceptionTimeRegressor"]
 
 import gc
@@ -237,10 +237,10 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data target values.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints).
+        y : np.ndarray
+            The training data target values of shape (n_cases,).
 
         Returns
         -------
@@ -588,11 +588,12 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-        y : np.ndarray of shape (n_instances)
-            The training data target values.
+        X : np.ndarray
+            The training input samples of,
+            shape (n_instances, n_channels, n_timepoints).
+            If a 2D array-like is passed, n_channels is assumed to be 1.
+        y : np.ndarray
+            The training data target values of shape (n_instances,).
 
         Returns
         -------

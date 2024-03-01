@@ -1,6 +1,6 @@
 """Hierarchical Data Generators."""
 
-__author__ = ["ltsaprounis", "ciaran-g"]
+__maintainer__ = []
 
 from itertools import product
 from typing import Tuple, Union

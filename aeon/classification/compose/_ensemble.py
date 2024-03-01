@@ -1,6 +1,6 @@
 """Configurable time series ensembles."""
 
-__author__ = ["mloning", "AyushmaanSeth", "fkiraly"]
+__maintainer__ = []
 __all__ = ["WeightedEnsembleClassifier"]
 
 
