@@ -1,13 +1,14 @@
 """Common timeseries plotting functionality."""
 
-__all__ = ["plot_series", "plot_lags", "plot_correlations"]
-__author__ = ["mloning", "RNKuhns", "Drishti Bhasin", "chillerobscuro"]
+__all__ = ["plot_series", "plot_lags", "plot_correlations", "plot_spectrogram"]
+__author__ = ["mloning", "RNKuhns", "Drishti Bhasin", "chillerobscuro", "aadya940"]
 
 import math
 from warnings import warn
 
 import numpy as np
 import pandas as pd
+from scipy.fft import fftshift
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_interval_df, check_y
@@ -356,3 +357,65 @@ def plot_correlations(
         fig.suptitle(suptitle, size="xx-large")
 
     return fig, np.array(fig.get_axes())
+
+
+def plot_spectrogram(
+    sample_freq: np.ndarray,
+    segment_time: np.ndarray,
+    spectrogram: np.ndarray,
+    return_both=False,
+):
+    """
+    Plots the spectrogram with a given sample 
+    frequency, segment time and spectrogram.
+
+    Parameters
+    ----------
+    sample_frequencies : ndarray
+                    Array of sample frequencies.
+    segment_time :   ndarray
+                Array of segment times.
+    spectrogram :     ndarray
+                Spectrogram of x. By default, the last axis of
+                spectrogram corresponds to the segment times.
+    return_both : boolean, default = False
+                Condition to allow negative frequency spectrum.
+    
+    Examples
+    --------
+    >>> from aeon.transformations.series import SpectrogramTransformer
+    >>> from aeon.visualisation import plot_spectrogram
+    >>> import numpy as np
+    >>> rng = np.random.default_rng()
+    >>> fs = 10e3
+    >>> N = 1e5
+    >>> amp = 2 * np.sqrt(2)
+    >>> noise_power = 0.01 * fs / 2
+    >>> time = np.arange(N) / float(fs)
+    >>> mod = 500*np.cos(2*np.pi*0.25*time)
+    >>> carrier = amp * np.sin(2*np.pi*3e3*time + mod)
+    >>> noise = rng.normal(scale=np.sqrt(noise_power), size=time.shape)
+    >>> noise *= np.exp(-time/5)
+    >>> x = carrier + noise
+    >>> transformer = SpectrogramTransformer(fs=fs, return_onesided=True)  # doctest: +SKIP
+    >>> f1, t1, Sxx1 = transformer.fit_transform(x)  # doctest: +SKIP
+    >>> plot_spectrogram(f1, t1, Sxx1, return_both=False)
+    >>> transformer2 = SpectrogramTransformer(fs=fs, return_onesided=False)
+    >>> f2, t2, Sxx2 = transformer.fit_transform(x)
+    >>> plot_spectrogram(f2, t2, Sxx2, return_both=True)
+    """
+    _check_soft_dependencies("matplotlib")
+    import matplotlib.pyplot as plt
+
+    if return_both:
+        sample_freq = fftshift(sample_freq)
+        spectrogram = fftshift(spectrogram, axes=0)
+        plt.pcolormesh(segment_time, sample_freq, spectrogram, shading="gouraud")
+        plt.ylabel("Frequency [Hz]")
+        plt.xlabel("Time [sec]")
+        plt.show()
+    else:
+        plt.pcolormesh(segment_time, sample_freq, spectrogram, shading="gouraud")
+        plt.ylabel("Frequency [Hz]")
+        plt.xlabel("Time [sec]")
+        plt.show()

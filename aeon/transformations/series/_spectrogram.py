@@ -20,9 +20,9 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     ----------
     fs: float, optional
         Sampling frequency of the time series. Defaults to 1.0.
-
-    kwargs: Keyword arguments passed to `scipy.signal.spectrogram`
-            Checkout SciPy docs above.
+    return_onesided: boolean, optional
+        If True, return a one-sided spectrum for real data. 
+        If False return a two-sided spectrum. Defaults to True.
 
     Examples
     --------
@@ -39,7 +39,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     >>> noise = rng.normal(scale=np.sqrt(noise_power), size=time.shape)
     >>> noise *= np.exp(-time/5)
     >>> x = carrier + noise
-    >>> transformer = SpectrogramTransformer(fs)  # doctest: +SKIP
+    >>> transformer = SpectrogramTransformer(fs=fs, return_onesided=True)  # doctest: +SKIP
     >>> mp = transformer.fit_transform(x)  # doctest: +SKIP
     """
 
@@ -48,9 +48,10 @@ class SpectrogramTransformer(BaseSeriesTransformer):
         "capability:inverse_transform": False,
     }
 
-    def __init__(self, fs: float = 1):
+    def __init__(self, fs: float = 1, return_onesided=True):
         # Inputs
         self.fs = fs
+        self.return_onesided = return_onesided
 
         # Outputs
         self.sample_frequencies = None
@@ -59,7 +60,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
 
         super().__init__()
 
-    def _transform(self, X, y=None, **kwargs):
+    def _transform(self, X, y=None):
         """Transform X and return a transformed version.
 
         private _transform containing the core logic, called from transform
@@ -69,7 +70,6 @@ class SpectrogramTransformer(BaseSeriesTransformer):
         X : np.ndarray
             1D time series to be transformed
         y : ignored argument for interface compatibility
-        kwargs : kwargs to be passed to `scipy.signal.spectrogram`
 
         Returns
         -------
@@ -82,7 +82,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
                     spectrogram corresponds to the segment times.
         """
         self.sample_frequencies, self.segment_time, self.spectrogram = spectrogram(
-            X, fs=self.fs, **kwargs
+            X, fs=self.fs, return_onesided=self.return_onesided
         )
         return self.sample_frequencies, self.segment_time, self.spectrogram
 
