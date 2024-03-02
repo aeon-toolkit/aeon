@@ -1,3 +1,5 @@
+"""Unit tests for classifiers deep learning random_state functionality."""
+
 import inspect
 
 import numpy as np
