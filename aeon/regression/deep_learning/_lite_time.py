@@ -151,7 +151,7 @@ class LITETimeRegressor(BaseRegressor):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self.classifers_ = []
+        self.regressors_ = []
 
         super().__init__()
 
@@ -169,7 +169,6 @@ class LITETimeRegressor(BaseRegressor):
         -------
         self : object
         """
-        self.regressors_ = []
         rng = check_random_state(self.random_state)
 
         for n in range(0, self.n_regressors):
