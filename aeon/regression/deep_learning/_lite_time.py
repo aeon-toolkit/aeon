@@ -73,8 +73,8 @@ class LITETimeRegressor(BaseRegressor):
         whether to output extra information
     optimizer : keras optimizer, default = Adam
     loss : keras loss, default = "mean_squared_error"
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    metrics : keras metrics, default = mean_squared_error,
+        will be set to mean_squared_error as default if None
 
     Notes
     -----
@@ -307,8 +307,8 @@ class IndividualLITERegressor(BaseDeepRegressor):
         whether to output extra information
     optimizer : keras optimizer, default = Adam
     loss : keras loss, default = 'mean_squared_error'
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    metrics : keras metrics, default = mean_squared_error,
+        will be set to mean_squared_error as default if None
 
     Notes
     -----
