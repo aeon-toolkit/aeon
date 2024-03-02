@@ -22,7 +22,7 @@ class LITETimeRegressor(BaseRegressor):
 
     Parameters
     ----------
-    n_classifiers : int, default = 5,
+    n_regressors : int, default = 5,
         the number of LITE models used for the
         Ensemble in order to create
         LITETime.
@@ -67,12 +67,12 @@ class LITETimeRegressor(BaseRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state : int, default = 0
+    random_state : int, default = None
         seed to any needed random actions.
     verbose : boolean, default = False
         whether to output extra information
     optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = "mse"
+    loss : keras loss, default = "mean_squared_error"
     metrics : keras metrics, default = None,
         will be set to accuracy as default if None
 
@@ -122,7 +122,7 @@ class LITETimeRegressor(BaseRegressor):
         callbacks=None,
         random_state=None,
         verbose=False,
-        loss="mse",
+        loss="mean_squared_error",
         metrics=None,
         optimizer=None,
     ):
@@ -172,7 +172,7 @@ class LITETimeRegressor(BaseRegressor):
         rng = check_random_state(self.random_state)
 
         for n in range(0, self.n_regressors):
-            cls = IndividualLITERegressor(
+            rgs = IndividualLITERegressor(
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
                 file_path=self.file_path,
@@ -190,8 +190,8 @@ class LITETimeRegressor(BaseRegressor):
                 random_state=rng.randint(0, np.iinfo(np.int32).max),
                 verbose=self.verbose,
             )
-            cls.fit(X, y)
-            self.regressors_.append(cls)
+            rgs.fit(X, y)
+            self.regressors_.append(rgs)
             gc.collect()
 
         return self
@@ -212,8 +212,8 @@ class LITETimeRegressor(BaseRegressor):
         check_random_state(self.random_state)
         vals = np.zeros(X.shape[0])
 
-        for cls in self.regressors_:
-            vals += cls._predict(X)
+        for rgs in self.regressors_:
+            vals += rgs._predict(X)
 
         vals = vals / self.n_regressors
 
@@ -252,7 +252,7 @@ class LITETimeRegressor(BaseRegressor):
 
 
 class IndividualLITERegressor(BaseDeepRegressor):
-    """Single LITETime Regressor.
+    """Single LITE Regressor.
 
     One LITE deep model, as described in [1]_.
 
@@ -301,12 +301,12 @@ class IndividualLITERegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state : int, default = 0
+    random_state : int, default = None
         seed to any needed random actions.
     verbose : boolean, default = False
         whether to output extra information
     optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = 'mse'
+    loss : keras loss, default = 'mean_squared_error'
     metrics : keras metrics, default = None,
         will be set to accuracy as default if None
 
@@ -348,7 +348,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         callbacks=None,
         random_state=None,
         verbose=False,
-        loss="mse",
+        loss="mean_squared_error",
         metrics=None,
         optimizer=None,
     ):
@@ -413,7 +413,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         tf.random.set_seed(self.random_state)
 
         if self.metrics is None:
-            metrics = ["accuracy"]
+            metrics = ["mean_squared_error"]
         else:
             metrics = self.metrics
 
