@@ -111,7 +111,7 @@ class InceptionTimeClassifier(BaseClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state        : int, default = 0
+    random_state        : int, default = None
         seed to any needed random actions.
     verbose             : boolean, default = False
         whether to output extra information
@@ -440,7 +440,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
-        random_state        : int, default = 0
+        random_state        : int, default = None
             seed to any needed random actions.
         verbose             : boolean, default = False
             whether to output extra information
@@ -579,6 +579,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         """
         import tensorflow as tf
 
+        if self.random_state is not None:
+            tf.keras.utils.set_random_seed(self.random_state)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(n_classes, activation="softmax")(
@@ -586,8 +588,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        tf.random.set_seed(self.random_state)
 
         if self.metrics is None:
             metrics = ["accuracy"]

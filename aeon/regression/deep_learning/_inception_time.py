@@ -115,7 +115,7 @@ class InceptionTimeRegressor(BaseRegressor):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
-        random_state        : int, default = 0
+        random_state        : int, default = None
             seed to any needed random actions.
         verbose             : boolean, default = False
             whether to output extra information
@@ -427,7 +427,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
-        random_state        : int, default = 0
+        random_state        : int, default = None
             seed to any needed random actions.
         verbose             : boolean, default = False
             whether to output extra information
@@ -561,6 +561,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         """
         import tensorflow as tf
 
+        if self.random_state is not None:
+            tf.keras.utils.set_random_seed(self.random_state)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(1, activation=self.output_activation)(
@@ -568,8 +570,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        tf.random.set_seed(self.random_state)
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
@@ -600,9 +600,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self : object
         """
         import tensorflow as tf
-
-        rng = check_random_state(self.random_state)
-        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)

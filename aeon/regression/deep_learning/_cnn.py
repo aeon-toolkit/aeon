@@ -8,8 +8,6 @@ import os
 import time
 from copy import deepcopy
 
-from sklearn.utils import check_random_state
-
 from aeon.networks import CNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
@@ -52,7 +50,7 @@ class CNNRegressor(BaseDeepRegressor):
     use_bias        : bool or list of bool, default = True,
         condition on whether or not to use bias values for convolution layers,
         if not a list, the same condition is used for all layers
-    random_state    : int, default = 0
+    random_state    : int, default = None
         seed to any needed random actions
     n_epochs       : int, default = 2000
         the number of epochs to train the model
@@ -195,8 +193,8 @@ class CNNRegressor(BaseDeepRegressor):
         import tensorflow as tf
         from tensorflow import keras
 
-        tf.random.set_seed(self.random_state)
-
+        if self.random_state is not None:
+            tf.keras.utils.set_random_seed(self.random_state)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(units=1, activation=self.output_activation)(
@@ -209,10 +207,12 @@ class CNNRegressor(BaseDeepRegressor):
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
+        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
+
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=self.metrics,
+            metrics=metrics,
         )
         return model
 
@@ -234,8 +234,6 @@ class CNNRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)

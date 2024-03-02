@@ -8,8 +8,6 @@ import os
 import time
 from copy import deepcopy
 
-from sklearn.utils import check_random_state
-
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEResNetNetwork
 
@@ -68,6 +66,8 @@ class AEResNetClusterer(BaseDeepClusterer):
         Condition on using the mini batch size formula Wang et al.
     callbacks : callable or None, default ReduceOnPlateau and ModelCheckpoint
         List of tf.keras.callbacks.Callback objects.
+    random_state : int, default = None
+        Seed to any needed random actions.
     file_path : str, default = './'
         file_path when saving model_Checkpoint callback.
     save_best_model : bool, default = False
@@ -207,14 +207,14 @@ class AEResNetClusterer(BaseDeepClusterer):
         """
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
-
         self.optimizer_ = (
             tf.keras.optimizers.Adam(learning_rate=0.01)
             if self.optimizer is None
             else self.optimizer
         )
 
+        if self.random_state is not None:
+            tf.keras.utils.set_random_seed(self.random_state)
         encoder, decoder = self._network.build_network(input_shape, **kwargs)
 
         input_layer = tf.keras.layers.Input(input_shape, name="input layer")
@@ -249,8 +249,6 @@ class AEResNetClusterer(BaseDeepClusterer):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)

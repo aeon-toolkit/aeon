@@ -8,8 +8,6 @@ import os
 import time
 from copy import deepcopy
 
-from sklearn.utils import check_random_state
-
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import ResNetNetwork
 
@@ -58,6 +56,8 @@ class ResNetClassifier(BaseDeepClassifier):
         Condition on using the mini batch size formula Wang et al.
     callbacks : callable or None, default ReduceOnPlateau and ModelCheckpoint
         List of tf.keras.callbacks.Callback objects.
+    random_state : int or None, default=None
+        Seed for random number generation.
     file_path : str, default = './'
         file_path when saving model_Checkpoint callback.
     save_best_model : bool, default = False
@@ -190,8 +190,6 @@ class ResNetClassifier(BaseDeepClassifier):
         """
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
-
         self.optimizer_ = (
             tf.keras.optimizers.Adam(learning_rate=0.01)
             if self.optimizer is None
@@ -203,6 +201,8 @@ class ResNetClassifier(BaseDeepClassifier):
         else:
             metrics = self.metrics
 
+        if self.random_state is not None:
+            tf.keras.utils.set_random_seed(self.random_state)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
@@ -237,8 +237,6 @@ class ResNetClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)

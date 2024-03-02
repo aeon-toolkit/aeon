@@ -8,8 +8,6 @@ import os
 import time
 from copy import deepcopy
 
-from sklearn.utils import check_random_state
-
 from aeon.networks import FCNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
@@ -180,12 +178,10 @@ class FCNRegressor(BaseDeepRegressor):
         """
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
+        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
+        if self.random_state is not None:
+            tf.keras.utils.set_random_seed(self.random_state)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
@@ -224,8 +220,6 @@ class FCNRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)

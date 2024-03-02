@@ -8,8 +8,6 @@ import os
 import time
 from copy import deepcopy
 
-from sklearn.utils import check_random_state
-
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import CNNNetwork
 
@@ -48,7 +46,7 @@ class CNNClassifier(BaseDeepClassifier):
     use_bias : bool or list of bool, default = True
         Condition on whether to use bias values for convolution layers,
         if not a list, the same condition is used for all layers.
-    random_state : int, default = 0
+    random_state : int, default = None
         Seed to any needed random actions.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
@@ -186,12 +184,13 @@ class CNNClassifier(BaseDeepClassifier):
         """
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
-
         if self.metrics is None:
             metrics = ["accuracy"]
         else:
             metrics = self.metrics
+
+        if self.random_state is not None:
+            tf.keras.utils.set_random_seed(self.random_state)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
@@ -231,8 +230,6 @@ class CNNClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)

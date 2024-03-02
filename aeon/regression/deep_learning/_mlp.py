@@ -8,8 +8,6 @@ import os
 import time
 from copy import deepcopy
 
-from sklearn.utils import check_random_state
-
 from aeon.networks import MLPNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
@@ -145,10 +143,8 @@ class MLPRegressor(BaseDeepRegressor):
 
         tf.random.set_seed(self.random_state)
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
+        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
+
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
@@ -186,9 +182,10 @@ class MLPRegressor(BaseDeepRegressor):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
-        check_random_state(self.random_state)
-
         self.input_shape = X.shape[1:]
+
+        if self.random_state is not None:
+            tf.keras.utils.set_random_seed(self.random_state)
         self.training_model_ = self.build_model(self.input_shape)
 
         if self.verbose:

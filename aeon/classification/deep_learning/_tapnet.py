@@ -8,8 +8,6 @@ __all__ = [
 import gc
 from copy import deepcopy
 
-from sklearn.utils import check_random_state
-
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import TapNetNetwork
 
@@ -176,13 +174,13 @@ class TapNetClassifier(BaseDeepClassifier):
         import tensorflow as tf
         from tensorflow import keras
 
-        tf.random.set_seed(self.random_state)
-
         if self.metrics is None:
             metrics = ["accuracy"]
         else:
             metrics = self.metrics
 
+        if self.random_state is not None:
+            tf.keras.utils.set_random_seed(self.random_state)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
@@ -222,7 +220,6 @@ class TapNetClassifier(BaseDeepClassifier):
         # Transpose to conform to expectation format by keras
         X = X.transpose(0, 2, 1)
 
-        check_random_state(self.random_state)
         self.input_shape = X.shape[1:]
         self.model_ = self.build_model(self.input_shape, self.n_classes_)
         if self.verbose:
