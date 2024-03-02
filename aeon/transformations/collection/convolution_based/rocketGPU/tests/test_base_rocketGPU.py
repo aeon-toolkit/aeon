@@ -1,9 +1,12 @@
 """Unit tests for rocket GPU base functionality."""
 
-__maintainer__ = ["hadifawaz1999"]
+__maintainer__ = ["hadifawaz1999", "AnonymousCodes911"]
+
 __all__ = ["test_base_rocketGPU_univariate", "test_base_rocketGPU_multivariate"]
 
+import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal
 
 from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
 from aeon.transformations.collection.convolution_based.rocketGPU.base import (
@@ -14,8 +17,9 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 class DummyROCKETGPU(BaseROCKETGPU):
 
-    def __init__(self, n_filters=1):
+    def __init__(self, n_filters=1, random_seed=None):
         super().__init__(n_filters)
+        self.random_seed = random_seed
 
     def _fit(self, X, y=None):
         """Generate random kernels adjusted to time series shape.
@@ -54,7 +58,7 @@ class DummyROCKETGPU(BaseROCKETGPU):
 
         X = X.transpose(0, 2, 1)
 
-        rng = np.random.default_rng()
+        rng = np.random.default_rng(self.random_seed)
 
         _output_convolution = tf.nn.conv1d(
             input=X,
@@ -85,7 +89,7 @@ def test_base_rocketGPU_univariate():
     """Test base rocket GPU functionality univariate."""
     X, _ = make_example_2d_numpy()
 
-    dummy_transform = DummyROCKETGPU(n_filters=1)
+    dummy_transform = DummyROCKETGPU(n_filters=1, random_seed=10)
     dummy_transform.fit(X)
 
     X_transform = dummy_transform.transform(X)
@@ -93,9 +97,10 @@ def test_base_rocketGPU_univariate():
     assert X_transform.shape[0] == len(X)
     assert len(X_transform.shape) == 2
     assert X_transform.shape[1] == 2
-
-    # check all ppv values are >= 0
     assert (X_transform[:, 0] >= 0).sum() == len(X)
+
+    X_transform_expected = np.array([[0.1, 0.2], [0.3, 0.4]])
+    assert_array_almost_equal(X_transform, X_transform_expected, decimal=2)
 
 
 @pytest.mark.skipif(
@@ -106,7 +111,7 @@ def test_base_rocketGPU_multivariate():
     """Test base rocket GPU functionality multivariate."""
     X, _ = make_example_3d_numpy(n_channels=3)
 
-    dummy_transform = DummyROCKETGPU(n_filters=1)
+    dummy_transform = DummyROCKETGPU(n_filters=1, random_seed=10)
     dummy_transform.fit(X)
 
     X_transform = dummy_transform.transform(X)
@@ -114,6 +119,7 @@ def test_base_rocketGPU_multivariate():
     assert X_transform.shape[0] == len(X)
     assert len(X_transform.shape) == 2
     assert X_transform.shape[1] == 2
-
-    # check all ppv values are >= 0
     assert (X_transform[:, 0] >= 0).sum() == len(X)
+
+    X_transform_expected = np.array([[0.1, 0.2], [0.3, 0.4]])
+    assert_array_almost_equal(X_transform, X_transform_expected, decimal=2)
