@@ -1,6 +1,6 @@
 """Implements the scaled logit transformation."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 __all__ = ["ScaledLogitTransformer"]
 
 from copy import deepcopy

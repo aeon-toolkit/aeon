@@ -1,7 +1,5 @@
 """Distance computation."""
 
-__author__ = ["chrisholder", "TonyBagnall", "baraline", "akshatvishu"]
-
 __all__ = [
     "create_bounding_matrix",
     "squared_distance",
@@ -65,6 +63,8 @@ __all__ = [
     "shape_dtw_cost_matrix",
     "shape_dtw_alignment_path",
     "shape_dtw_pairwise_distance",
+    "sbd_distance",
+    "sbd_pairwise_distance",
 ]
 
 
@@ -125,6 +125,7 @@ from aeon.distances._msm import (
     msm_distance,
     msm_pairwise_distance,
 )
+from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
 from aeon.distances._shape_dtw import (
     shape_dtw_alignment_path,
     shape_dtw_cost_matrix,

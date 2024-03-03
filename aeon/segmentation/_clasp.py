@@ -2,7 +2,7 @@
 
 import warnings
 
-__author__ = ["ermshaua", "patrickzib"]
+__maintainer__ = []
 __all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
 
 from queue import PriorityQueue

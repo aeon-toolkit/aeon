@@ -92,7 +92,7 @@ Clustering
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/transformation.png
+:img-top: examples/transformations/img/transformations.png
 :class-img-top: aeon-card-image
 :text-align: center
 

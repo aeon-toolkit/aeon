@@ -8,7 +8,7 @@ import pandas as pd
 from aeon.forecasting.base.adapters import _StatsModelsAdapter
 
 _all_ = ["DynamicFactor"]
-__author__ = ["Ris-Bali", "lbventura"]
+__maintainer__ = []
 
 
 class DynamicFactor(_StatsModelsAdapter):

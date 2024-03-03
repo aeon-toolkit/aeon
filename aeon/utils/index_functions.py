@@ -3,6 +3,9 @@
 import numpy as np
 import pandas as pd
 
+from aeon.datatypes import check_is_scitype, convert_to
+from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
+
 
 def _get_index(x):
     if hasattr(x, "index"):
@@ -211,10 +214,7 @@ def get_cutoff(
     Raises
     ------
     ValueError, TypeError, if check_input or convert_input are True
-        exceptions from check or conversion failure, in check_is_scitype, convert_to
     """
-    from aeon.datatypes import check_is_scitype, convert_to
-
     # deal with VectorizedDF
     if hasattr(obj, "X"):
         obj = obj.X
@@ -225,8 +225,7 @@ def get_cutoff(
         )
 
     if check_input:
-        valid = check_is_scitype(obj, scitype=["Series", "Panel", "Hierarchical"])
-        if not valid:
+        if not (is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)):
             raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
 
     if convert_input:
@@ -413,16 +412,15 @@ def get_window(obj, window_length=None, lag=None):
         (cutoff - window_length - lag, cutoff - lag)
         None if obj was None
     """
-    from aeon.datatypes import check_is_scitype, convert_to
-
     if obj is None or (window_length is None and lag is None):
         return obj
-
-    valid, _, metadata = check_is_scitype(
-        obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
-    )
+    valid = is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)
     if not valid:
         raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
+    # TODO: Still need to extract the "mtype" without check_is_scitype
+    _, _, metadata = check_is_scitype(
+        obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
+    )
     obj_in_mtype = metadata["mtype"]
 
     obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)
@@ -503,21 +501,22 @@ def get_slice(obj, start=None, end=None):
         must be int if obj is int indexed, timestamp if datetime indexed
         Exclusive end of slice. Default = None
         If None, then no slice at the end
+
     Returns
     -------
     obj sub-set sliced for `start` (inclusive) and `end` (exclusive) indices
         None if obj was None
     """
-    from aeon.datatypes import check_is_scitype, convert_to
-
     if (start is None and end is None) or obj is None:
         return obj
 
-    valid, _, metadata = check_is_scitype(
-        obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
-    )
+    valid = is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)
     if not valid:
         raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
+    # TODO: Still need to extract the "mtype" without check_is_scitype
+    _, _, metadata = check_is_scitype(
+        obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
+    )
     obj_in_mtype = metadata["mtype"]
 
     obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)

@@ -3,7 +3,7 @@
 adapted from scikit-learn's estimator_checks
 """
 
-__author__ = ["mloning", "fkiraly", "achieveordie", "MatthewMiddlehurst"]
+__maintainer__ = []
 
 import numbers
 import types
@@ -1190,6 +1190,7 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
     def test_fit_deterministic(
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
+
         """Check that calling fit twice is equivalent to calling it once, and also
         tests pickling (done here to save time).
         """

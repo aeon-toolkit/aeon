@@ -1,6 +1,6 @@
 """Multiple Representations Sequence Miner (MrSQM) Classifier."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["MrSQMClassifier"]
 
 import numpy as np

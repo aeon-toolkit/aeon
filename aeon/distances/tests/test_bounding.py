@@ -1,6 +1,7 @@
 """Test for Bounding Matrix."""
-
 __author__ = ["chrisholder"]
+
+__maintainer__ = []
 
 import numpy as np
 
