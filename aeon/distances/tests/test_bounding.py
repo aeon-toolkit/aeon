@@ -1,3 +1,5 @@
+"""Test for Bounding Matrix."""
+
 __author__ = ["chrisholder"]
 
 import numpy as np

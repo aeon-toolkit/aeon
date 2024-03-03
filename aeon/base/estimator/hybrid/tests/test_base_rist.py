@@ -22,6 +22,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="skip test if required soft dependency not available",
 )
 def test_rist_soft_dependencies():
+    """Test the RISTClassifier class with different soft dependencies."""
     rist = RISTClassifier()
     assert rist.get_tag("python_dependencies") == "statsmodels"
 
