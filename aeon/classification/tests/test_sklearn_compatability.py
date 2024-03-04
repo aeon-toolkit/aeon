@@ -80,8 +80,7 @@ COMPOSITE_ESTIMATORS = [
 
 def test_sklearn_cross_validation():
     """Test sklearn cross-validation works with aeon time series data and
-    classifiers.
-    """
+    classifiers."""
     clf = CanonicalIntervalForestClassifier.create_test_instance()
     X, y = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=30)
     scores = cross_val_score(clf, X, y=y, cv=KFold(n_splits=2))

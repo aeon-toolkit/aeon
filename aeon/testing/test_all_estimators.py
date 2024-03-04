@@ -1191,8 +1191,7 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
         """Check that calling fit twice is equivalent to calling it once, and also
-        tests pickling (done here to save time).
-        """
+        tests pickling (done here to save time)."""
         # escape known non-deterministic estimators
         if estimator_instance.get_tag(
             "non-deterministic", tag_value_default=False, raise_error=False

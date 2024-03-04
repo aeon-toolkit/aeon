@@ -1,5 +1,3 @@
-"""Test For Cost Matrix."""
-
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
