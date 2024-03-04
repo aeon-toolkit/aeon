@@ -1,3 +1,5 @@
+from typing import List, Union
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -8,7 +10,7 @@ from aeon.distances.tests.test_utils import _create_test_distance_numpy, _make_3
 
 
 def _validate_pairwise_result(
-    x: np.ndarray,
+    x: Union[np.ndarray, List[np.ndarray]],
     name,
     distance,
     pairwise_distance,
@@ -19,10 +21,13 @@ def _validate_pairwise_result(
 
     assert isinstance(pairwise_result, np.ndarray)
     assert pairwise_result.shape == expected_size
-    assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=name))
-    assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=distance))
+    if isinstance(x, np.ndarray):
+        assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=name))
+        assert_almost_equal(
+            pairwise_result, compute_pairwise_distance(x, metric=distance)
+        )
 
-    x = _make_3d_series(x)
+        x = _make_3d_series(x)
 
     matrix = np.zeros((len(x), len(x)))
 
@@ -44,7 +49,12 @@ def _validate_multiple_to_multiple_result(
 ):
     multiple_to_multiple_result = multiple_to_multiple_distance(x, y)
 
-    if x.ndim == 1 and y.ndim == 1:
+    if (
+        isinstance(x, np.ndarray)
+        and x.ndim == 1
+        and isinstance(y, np.ndarray)
+        and y.ndim == 1
+    ):
         expected_size = (1, 1)
     else:
         expected_size = (len(x), len(y))
@@ -52,16 +62,17 @@ def _validate_multiple_to_multiple_result(
     assert isinstance(multiple_to_multiple_result, np.ndarray)
     assert multiple_to_multiple_result.shape == expected_size
 
-    assert_almost_equal(
-        multiple_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
-    )
-    assert_almost_equal(
-        multiple_to_multiple_result,
-        compute_pairwise_distance(x, y, metric=distance),
-    )
+    if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
+        assert_almost_equal(
+            multiple_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
+        )
+        assert_almost_equal(
+            multiple_to_multiple_result,
+            compute_pairwise_distance(x, y, metric=distance),
+        )
 
-    x = _make_3d_series(x)
-    y = _make_3d_series(y)
+        x = _make_3d_series(x)
+        y = _make_3d_series(y)
 
     matrix = np.zeros((len(x), len(y)))
 
@@ -103,6 +114,11 @@ def _validate_single_to_multiple_result(
         assert_almost_equal(dist, curr)
 
 
+def _supports_nonequal_length(dist) -> bool:
+    anns = dist["pairwise_distance"].__annotations__
+    return any(param in anns and str(List) in str(anns[param]) for param in ["x", "X"])
+
+
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_pairwise_distance(dist):
     """Test pairwise distance function."""
@@ -126,6 +142,29 @@ def test_pairwise_distance(dist):
         dist["distance"],
         dist["pairwise_distance"],
     )
+
+    # unequal-length
+    if _supports_nonequal_length(dist):
+        _validate_pairwise_result(
+            [_create_test_distance_numpy(5 + i) for i in range(5)],
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        _validate_pairwise_result(
+            [_create_test_distance_numpy(1, 5 + i) for i in range(5)],
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        _validate_pairwise_result(
+            [_create_test_distance_numpy(5, 5 + i) for i in range(5)],
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
@@ -199,6 +238,28 @@ def test_multiple_to_multiple_distances(dist):
         dist["distance"],
         dist["pairwise_distance"],
     )
+
+    # unequal-length
+    if _supports_nonequal_length(dist):
+        # univariate
+        _validate_multiple_to_multiple_result(
+            [_create_test_distance_numpy(5)],
+            [_create_test_distance_numpy(3)],
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # multivariate
+        _validate_multiple_to_multiple_result(
+            [_create_test_distance_numpy(5, 5 + i) for i in range(5)],
+            [_create_test_distance_numpy(5, 3 + i) for i in range(5)],
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # TODO: test other cases with unequal-length TS
 
 
 new_distance = ["euclidean", "dtw"]

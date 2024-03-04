@@ -484,7 +484,7 @@ def _msm_pairwise_distance_list(
         for j in range(i + 1, n_instances):
             x1, x2 = _reshape_pairwise_single(X[i], X[j])
             bounding_matrix = create_bounding_matrix(
-                x1.shape[2], x2.shape[2], window, itakura_max_slope
+                x1.shape[-1], x2.shape[-1], window, itakura_max_slope
             )
             distances[i, j] = _msm_distance(x1, x2, bounding_matrix, independent, c)
             distances[j, i] = distances[i, j]
@@ -531,7 +531,7 @@ def _msm_from_multiple_to_multiple_distance_list(
         for j in range(m_instances):
             x1, y1 = _reshape_pairwise_single(x[i], y[j])
             bounding_matrix = create_bounding_matrix(
-                x1.shape[2], y1.shape[2], window, itakura_max_slope
+                x1.shape[-1], y1.shape[-1], window, itakura_max_slope
             )
             distances[i, j] = _msm_distance(x1, y1, bounding_matrix, independent, c)
     return distances
