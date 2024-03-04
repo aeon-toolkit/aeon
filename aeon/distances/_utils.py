@@ -49,14 +49,7 @@ def reshape_pairwise_to_multiple(
             _y = y.reshape((1, 1, y.shape[0]))
             return _x, _y
         raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-
-    if not ensure_equal_dims:
-        if x.ndim == 3 and y.ndim == 2:
-            _y = y.reshape((1, y.shape[0], y.shape[1]))
-            return x, _y
-        if y.ndim == 3 and x.ndim == 2:
-            _x = x.reshape((1, x.shape[0], x.shape[1]))
-            return _x, y
+    else:
         if x.ndim == 2 and y.ndim == 1:
             _x = x.reshape((x.shape[0], 1, x.shape[1]))
             _y = y.reshape((1, 1, y.shape[0]))
@@ -65,14 +58,21 @@ def reshape_pairwise_to_multiple(
             _x = x.reshape((1, 1, x.shape[0]))
             _y = y.reshape((y.shape[0], 1, y.shape[1]))
             return _x, _y
-        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-
-    raise ValueError("x and y must have the same number of dimensions")
+        if ensure_equal_dims:
+            raise ValueError("x and y must have the same number of dimensions")
+        else:
+            if x.ndim == 3 and y.ndim == 2:
+                _y = y.reshape((1, y.shape[0], y.shape[1]))
+                return x, _y
+            if y.ndim == 3 and x.ndim == 2:
+                _x = x.reshape((1, x.shape[0], x.shape[1]))
+                return _x, y
+            raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
 @njit(cache=True, fastmath=True)
 def _reshape_pairwise_single(
-        x: np.ndarray, y: np.ndarray, ensure_equal_dims: bool = False
+    x: np.ndarray, y: np.ndarray, ensure_equal_dims: bool = False
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Reshape two time series for pairwise distance computation.
 
