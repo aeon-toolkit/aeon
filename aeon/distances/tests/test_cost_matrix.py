@@ -1,3 +1,5 @@
+"""Test For Cost Matrix."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -14,6 +16,16 @@ def _validate_cost_matrix_result(
     distance,
     cost_matrix,
 ):
+    """
+    Validate the result of the cost matrix function.
+
+    Parameters:
+        x (np.ndarray): The first input array.
+        y (np.ndarray): The second input array.
+        name: The name of the distance metric.
+        distance: The distance metric function.
+        cost_matrix: The cost matrix function.
+    """
     cost_matrix_result = cost_matrix(x, y)
 
     assert isinstance(cost_matrix_result, np.ndarray)
@@ -44,6 +56,7 @@ def _validate_cost_matrix_result(
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_cost_matrix(dist):
+    """Test for Cost matrix for various lengths."""
     if dist["name"] == "shape_dtw":
         return
 

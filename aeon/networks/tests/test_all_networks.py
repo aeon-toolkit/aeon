@@ -1,3 +1,5 @@
+"""Test All Networks."""
+
 import inspect
 
 import pytest

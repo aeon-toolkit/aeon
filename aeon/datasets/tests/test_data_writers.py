@@ -101,6 +101,15 @@ def test_write_to_tsfile_unequal_length(problem_name):
 
 
 def test_write_data_to_tsfile():
+    """
+    Test function to check the handling of invalid inputs by write_to_tsfile.
+
+    Raises
+    ------
+        TypeError: If the input data type is incorrect.
+        IndexError: If the number of cases in X do not,
+        match the number of values in y.
+    """
     with pytest.raises(TypeError, match="Wrong input data type"):
         write_to_tsfile("A string", "path")
     with pytest.raises(TypeError, match="Data provided must be a ndarray or a list"):
@@ -142,6 +151,13 @@ def test_write_dataframe_to_ts(tsfile_writer):
 
 
 def test__write_header():
+    """
+    Test function to check the header writing for the regression problem.
+
+    Raises
+    ------
+        ValueError: If class_labels is True for the regression problem.
+    """
     with tempfile.TemporaryDirectory() as tmp:
         problem_name = "header.csv"
         with pytest.raises(
@@ -159,6 +175,13 @@ def test__write_header():
 
 
 def test_write_to_arff_file():
+    """
+    Test function to check writing into an ARFF file and loading from it.
+
+    Raises
+    ------
+        AssertionError: If the loaded data is inconsistent.
+    """
     X, y = make_example_3d_numpy()
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -174,6 +197,13 @@ def test_write_to_arff_file():
 
 
 def test_write_results_to_uea_format():
+    """
+    Test function to check writing results into UEA format.
+
+    Raises
+    ------
+        IndexError: If the number of predicted values is inconsistent.
+    """
     with tempfile.TemporaryDirectory() as tmp:
         y_true = np.array([0, 1, 1, 0, 0])
         y_pred = np.array([0, 1, 1, 0])

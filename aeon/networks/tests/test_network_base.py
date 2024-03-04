@@ -1,3 +1,5 @@
+"""Base for DEEP LEARNING Networks."""
+
 import pytest
 
 from aeon.networks.base import BaseDeepNetwork
@@ -14,6 +16,7 @@ class DummyDeepNetwork(BaseDeepNetwork):
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):
+        """This is for building a neural network."""
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)

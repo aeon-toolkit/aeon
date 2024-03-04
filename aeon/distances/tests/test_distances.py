@@ -1,3 +1,5 @@
+"""Test for Computing Distances."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -16,6 +18,16 @@ from aeon.distances.tests.test_utils import _create_test_distance_numpy
 
 
 def _validate_distance_result(x, y, name, distance, expected_result=10):
+    """
+    Validate the distance result by comparing it with the expected result.
+
+    Args:
+        x (np.ndarray): First array.
+        y (np.ndarray): Second array.
+        name (str): Name of the distance metric.
+        distance (callable): Distance function.
+        expected_result (float): Expected distance result. Here 10.
+    """
     if expected_result is None:
         return
 
@@ -32,6 +44,7 @@ def _validate_distance_result(x, y, name, distance, expected_result=10):
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_distances(dist):
+    """Test the distance functions for various distances."""
     # Test univariate
     if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_distance_result(
@@ -78,10 +91,12 @@ def test_distances(dist):
 
 
 def test_get_distance_function_names():
+    """Test the get_distance_function_names function."""
     assert get_distance_function_names() == sorted([dist["name"] for dist in DISTANCES])
 
 
 def test__resolve_key_from_distance():
+    """Test the _resolve_key_from_distance function."""
     with pytest.raises(ValueError, match="Unknown metric"):
         _resolve_key_from_distance(metric="FOO", key="cost_matrix")
     with pytest.raises(ValueError):
@@ -94,6 +109,7 @@ def test__resolve_key_from_distance():
 
 
 def test_incorrect_inputs():
+    """Test the handling of incorrect inputs."""
     x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     with pytest.raises(

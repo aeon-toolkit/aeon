@@ -99,6 +99,15 @@ def test_basic_load_tsf_to_dataframe():
 
 
 def test_load_solar():
+    """
+    Test function to load solar data.
+
+    Test Cases; Check if solar data is loaded correctly:
+        - without any specified API version.
+        - with an incorrect API version.
+        - with the return_full_df parameter set to True.
+        - with the normalise parameter set to False.
+    """
     solar = load_solar(api_version=None)
     assert type(solar) is pd.Series
     assert solar.shape == (289,)

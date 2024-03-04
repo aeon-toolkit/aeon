@@ -14,6 +14,15 @@ from aeon.distances.tests.test_utils import _create_test_distance_numpy
 def _test_distance_params(
     param_list: List[Dict], distance_func: Callable, distance_str: str
 ):
+    """
+    Test function to check the parameters of distance functions.
+
+    Args:
+        param_list (List[Dict]): List of dictionaries,
+        containing parameters for the distance function.
+        distance_func (Callable): The distance function to be tested.
+        distance_str (str): The name of the distance function.
+    """
     x_univ = _create_test_distance_numpy(10, 1).reshape((1, 10))
     y_univ = _create_test_distance_numpy(10, 1, random_state=2).reshape((1, 10))
 
@@ -75,6 +84,12 @@ DIST_PARAMS = {
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_distance_params(dist):
+    """
+    Test function to check the parameters of new distance functions.
+
+    Args:
+        dist (Dict): Dictionary containing info about the distance function.
+    """
     if dist["name"] in DIST_PARAMS:
         _test_distance_params(
             DIST_PARAMS[dist["name"]],
