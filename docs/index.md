@@ -2,7 +2,7 @@
 hide-toc: true
 ---
 
-<h1 style="text-align: center;">Welcome to aeon</h1>
+<h1 style="text-align: center;">Welcome to <b>aeon</b></h1>
 
 `aeon` is a scikit-learn compatible toolkit for time series tasks such as
 forecasting, classification and clustering.</p>
@@ -91,7 +91,7 @@ Get started with time series clustering.
 
 +++
 
-```{button-ref} /examples/clustering/partitional_clustering.ipynb
+```{button-ref} /examples/clustering/clustering.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -140,49 +140,10 @@ Distances
 :::
 
 :::{grid-item-card}
-:img-top: examples/annotation/img/clasp.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Annotation
-
-+++
-
-```{button-ref} /examples/annotation/annotation.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Annotation
-```
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/networks/img/Inception.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Deep learning networks.
-
-+++
-
-```{button-ref} /examples/segmentation/segmentation.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Networks
-```
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/segmentation/img/segmentation.png
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Segmentation
 
 +++
@@ -193,6 +154,25 @@ Segmentation
 :expand:
 
 Segmentation
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/similarity_search/img/sim_search.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Similarity Search
+
++++
+
+```{button-ref} /examples/similarity_search/similarity_search.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Similarity Search
 ```
 
 :::
