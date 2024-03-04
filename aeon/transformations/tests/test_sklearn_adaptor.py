@@ -1,6 +1,6 @@
 """Tests for TabularToSeriesAdaptor."""
 
-__maintainer__ = []
+__author__ = ["mloning"]
 
 import numpy as np
 from scipy.stats import boxcox

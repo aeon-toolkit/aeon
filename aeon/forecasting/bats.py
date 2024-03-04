@@ -6,7 +6,7 @@ transformation, ARMA errors, Trend and Seasonal components.
 Wrapping implementation in [1]_ of method proposed in [2]_.
 """
 
-__maintainer__ = []
+__author__ = ["Martin Walter"]
 __all__ = ["BATS"]
 
 from aeon.forecasting.base.adapters import _TbatsAdapter

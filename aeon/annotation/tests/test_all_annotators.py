@@ -1,6 +1,6 @@
 """Tests for aeon annotators."""
 
-__maintainer__ = []
+__author__ = ["miraep8", "fkiraly", "klam-data", "pyyim", "mgorlin"]
 __all__ = []
 
 import numpy as np

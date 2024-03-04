@@ -67,10 +67,7 @@ Feature-based
     :toctree: auto_generated/
     :template: class.rst
 
-    Catch22Regressor
     FreshPRINCERegressor
-    SummaryRegressor
-    TSFreshRegressor
 
 Hybrid
 ------
@@ -94,18 +91,6 @@ Interval-based
     :template: class.rst
 
     TimeSeriesForestRegressor
-
-Shapelet-based
---------------
-
-.. currentmodule:: aeon.regression.shapelet_based
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    RDSTRegressor
-
 
 sklearn
 -------

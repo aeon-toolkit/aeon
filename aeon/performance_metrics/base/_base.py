@@ -1,6 +1,6 @@
 """Implements base class for defining performance metric in aeon."""
 
-__maintainer__ = []
+__author__ = ["rnkuhns", "fkiraly"]
 __all__ = ["BaseMetric"]
 
 from aeon.base import BaseObject

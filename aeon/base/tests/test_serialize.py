@@ -1,4 +1,4 @@
-"""Tests for serialisation."""
+"""Test save and load."""
 
 import os
 
@@ -10,7 +10,6 @@ from aeon.testing.utils.data_gen import make_example_3d_numpy
 
 
 def test_save_and_load():
-    """Test save and load."""
     X, y = make_example_3d_numpy()
     dummy = DummyClassifier()
     dummy.fit(X, y)

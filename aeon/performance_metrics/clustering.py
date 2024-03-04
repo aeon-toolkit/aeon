@@ -1,6 +1,6 @@
 """Clustering performance metric functions."""
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 
 __all__ = ["clustering_accuracy_score"]
 

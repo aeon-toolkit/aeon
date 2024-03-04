@@ -1,6 +1,6 @@
 """Wrapper for sklearn StandardScaler."""
 
-__maintainer__ = []
+__author__ = ["TonyBagnall"]
 __all__ = ["TimeSeriesScaler"]
 
 import numpy as np

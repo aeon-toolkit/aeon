@@ -21,7 +21,7 @@ Raises
 TypeError, if scitype cannot be inferred
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 __all__ = ["infer_mtype_dict"]
 

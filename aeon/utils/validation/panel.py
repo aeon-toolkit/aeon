@@ -1,6 +1,6 @@
 """Utilities for validating panel data."""
 
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = [
     "check_X",
     "check_y",
@@ -12,7 +12,7 @@ import pandas as pd
 from sklearn.utils.validation import check_consistent_length
 
 from aeon.utils.conversion import convert_collection
-from aeon.utils.validation.collection import is_nested_univ_dataframe
+from aeon.utils.validation._check_collection import is_nested_univ_dataframe
 
 VALID_X_TYPES = (pd.DataFrame, np.ndarray)  # nested pd.DataFrame, 2d or 3D np.ndarray
 VALID_Y_TYPES = (pd.Series, np.ndarray)  # 1-d vector
@@ -125,7 +125,6 @@ def check_y(y, enforce_min_instances=1, coerce_to_numpy=False):
     Returns
     -------
     y : pd.Series or np.array
-
     Raises
     ------
     ValueError
@@ -176,7 +175,6 @@ def check_X_y(
     -------
     X : pd.DataFrame or np.array
     y : pd.Series
-
     Raises
     ------
     ValueError

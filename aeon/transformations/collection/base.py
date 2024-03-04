@@ -19,7 +19,7 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = [
     "BaseCollectionTransformer",
 ]

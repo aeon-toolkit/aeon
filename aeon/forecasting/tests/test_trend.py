@@ -1,6 +1,6 @@
 """Test trend forecasters."""
 
-__maintainer__ = []
+__author__ = ["mloning", "fkiraly"]
 __all__ = ["get_expected_polynomial_coefs"]
 
 import numpy as np

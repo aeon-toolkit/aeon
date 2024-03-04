@@ -1,6 +1,6 @@
 """Implements autoregressive integrated moving average (ARIMA) models."""
 
-__maintainer__ = []
+__author__ = ["mloning", "hyang1996", "fkiraly", "ilkersigirci"]
 __all__ = ["AutoARIMA", "ARIMA"]
 
 from aeon.forecasting.base.adapters._pmdarima import _PmdArimaAdapter

@@ -1,6 +1,6 @@
 """Series of checks for annotation classes."""
 
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = ["check_fmt", "check_labels"]
 
 

@@ -1,12 +1,8 @@
 # Examples
 
-This webpage contains the notebook examples for the `aeon` library. The examples are
-organised into categories based on module and functionality. The examples are designed
-to provide a comprehensive overview of a module, functionality or a specific algorithm.
-
 ## Forecasting
 
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
@@ -68,7 +64,7 @@ Window splitters for forecasting
 
 ## Classification
 
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
@@ -180,11 +176,21 @@ Early TSC
 
 :::
 
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/classification/channel_selection.ipynb
+:link-type: ref
+:text-align: center
+
+Channel selection in multivariate TSC
+
+:::
+
 ::::
 
 ## Regression
-
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
@@ -202,13 +208,13 @@ Overview of Time Series Regression (TSR)
 
 ## Clustering
 
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
 :img-top: examples/clustering/img/tscl.png
 :class-img-top: aeon-card-image-m
-:link: /examples/clustering/clustering.ipynb
+:link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
 :text-align: center
 
@@ -216,32 +222,21 @@ Overview of Time Series Clustering (TSCL)
 
 :::
 
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/clustering/partitional_clustering.ipynb
-:link-type: ref
-:text-align: center
-
-Partitional TSCL
-
-:::
-
 ::::
 
 ## Transformation
 
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/transformations.png
+:img-top: examples/transformations/img/transformation.png
 :class-img-top: aeon-card-image-m
-:link: /examples/transformations/transformations.ipynb
+:link: /examples/transformations/transformation.ipynb
 :link-type: ref
 :text-align: center
 
-Overview of Transformations
+Overview of Transformation
 
 :::
 
@@ -252,18 +247,7 @@ Overview of Transformations
 :link-type: ref
 :text-align: center
 
-TSFresh transform
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/transformations/catch22.ipynb
-:link-type: ref
-:text-align: center
-
-Catch22 transform
+Feature based
 
 :::
 
@@ -274,29 +258,18 @@ Catch22 transform
 :link-type: ref
 :text-align: center
 
-Rocket transform
+Convolution based
 
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/leaves_shapelets.png
 :class-img-top: aeon-card-image-m
-:link: /examples/transformations/minirocket.ipynb
+:link: /examples/transformations/shapelets.ipynb
 :link-type: ref
 :text-align: center
 
-MiniRocket transform
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/transformations/sast.ipynb
-:link-type: ref
-:text-align: center
-
-SAST transform
+Shapelet based
 
 :::
 
@@ -308,6 +281,18 @@ SAST transform
 :text-align: center
 
 Interpolation
+
+:::
+
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/plateau.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/plateau_finder.ipynb
+:link-type: ref
+:text-align: center
+
+Plateau finding
 
 :::
 
@@ -335,26 +320,27 @@ Theta transform
 
 ::::
 
-## Segmentation
+## Annotation
 
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
+
 :::{grid-item-card}
-:img-top: examples/segmentation/img/segmentation.png
+:img-top: examples/annotation/img/segmentation_use_cases.png
 :class-img-top: aeon-card-image-m
-:link: /examples/segmentation/segmentation.ipynb
+:link: /examples/annotation/annotation.ipynb
 :link-type: ref
 :text-align: center
 
-Intro to segmentation
+Intro to annotation
 
 :::
 
 :::{grid-item-card}
-:img-top: examples/segmentation/img/clasp.png
+:img-top: examples/annotation/img/clasp.png
 :class-img-top: aeon-card-image-m
-:link: /examples/segmentation/segmentation_with_clasp.ipynb
+:link: /examples/annotation/segmentation_with_clasp.ipynb
 :link-type: ref
 :text-align: center
 
@@ -365,7 +351,7 @@ ClaSP segmentation
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/segmentation/hidalgo_segmentation.ipynb
+:link: /examples/annotation/hidalgo_segmentation.ipynb
 :link-type: ref
 :text-align: center
 
@@ -379,7 +365,7 @@ Hidalgo segmentation
 
 ## Distances
 
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
@@ -405,9 +391,11 @@ Using aeon distances with scikit-learn
 
 ::::
 
+
+
 ## Similarity search
 
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
 
@@ -450,7 +438,7 @@ Benchmarking of similarity search speed-ups
 
 ## Data Formatting and Loading
 
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
@@ -525,13 +513,13 @@ Loading data from the web
 
 ## Benchmarking
 
-::::{grid} 2 3 4 4
+::::{grid} 2 4 4 4
 :gutter: 1
 
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/benchmarking.ipynb
+:link: /examples/benchmarking/benchmarkings.ipynb
 :link-type: ref
 :text-align: center
 
@@ -542,102 +530,11 @@ Benchmarking algorithms
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/forecasting.ipynb
+:link: /examples/benchmarking/results_loading.ipynb
 :link-type: ref
 :text-align: center
 
-Benchmarking forecasting algorithms
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/regression.ipynb
-:link-type: ref
-:text-align: center
-
-Benchmarking extrinsic regression algorithms
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/regression_results_per_dataset.ipynb
-:link-type: ref
-:text-align: center
-
-Compare regression algorithms on a single dataset
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/reference_results.ipynb
-:link-type: ref
-:text-align: center
-
-Getting estimator reference results
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/bakeoff_results.ipynb
-:link-type: ref
-:text-align: center
-
-Getting published bakeoff results
-
-:::
-
-::::
-
-## Base
-
-::::{grid} 2 3 4 4
-:gutter: 1
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/base/base_classes.ipynb
-:link-type: ref
-:text-align: center
-
-`aeon` base classes
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/base/series_estimator.ipynb
-:link-type: ref
-:text-align: center
-
-Series base classes
-
-:::
-
-::::
-
-## Utils
-
-::::{grid} 2 3 4 4
-:gutter: 1
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/utils/preprocessing.ipynb
-:link-type: ref
-:text-align: center
-
-Preprocessing collections of time series
+Geting published results
 
 :::
 

@@ -4,7 +4,7 @@ A transformer that selects a subset of channels/dimensions for time series
 classification using a scoring system with an elbow point method.
 """
 
-__maintainer__ = []
+__author__ = ["haskarb"]
 __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 

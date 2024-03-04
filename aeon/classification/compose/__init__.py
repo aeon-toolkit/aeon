@@ -1,5 +1,6 @@
 """Compositions for classifiers."""
 
+__author__ = ["mloning", "fkiraly"]
 __all__ = [
     "ChannelEnsembleClassifier",
     "WeightedEnsembleClassifier",

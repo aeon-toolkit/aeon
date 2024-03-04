@@ -9,7 +9,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from aeon.transformations.base import BaseTransformer
 
-__maintainer__ = []
+__author__ = ["KatieBuc"]
 __all__ = ["STRAY"]
 
 

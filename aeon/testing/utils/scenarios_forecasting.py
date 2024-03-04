@@ -3,7 +3,7 @@
 Contains TestScenario concrete children to run in tests for forecasters.
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 __all__ = [
     "forecasting_scenarios_simple",

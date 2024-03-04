@@ -3,7 +3,7 @@
 Interval-based TSF regressor, extracts basic summary features from random intervals.
 """
 
-__maintainer__ = []
+__author__ = ["Matthew Middlehurst"]
 __all__ = ["TimeSeriesForestRegressor"]
 
 import numpy as np

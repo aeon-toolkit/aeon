@@ -1,6 +1,6 @@
 """Move-split-merge (MSM) distance between two time series."""
 
-__maintainer__ = []
+__author__ = ["chrisholder", "jlines", "TonyBagnall"]
 
 from typing import List, Tuple
 

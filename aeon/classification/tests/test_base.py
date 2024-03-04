@@ -15,9 +15,9 @@ from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.conversion._convert_collection import COLLECTIONS_DATA_TYPES
 
-__maintainer__ = []
+__author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst", "achieveordie"]
 
 
 multivariate_message = r"multivariate series"
@@ -233,7 +233,7 @@ def test_predict_proba_default():
     cls = MockClassifier()
 
     # fails if not fitted
-    with pytest.raises(ValueError, match="negative dimensions are not allowed"):
+    with pytest.raises(KeyError):
         cls._predict_proba(X)
 
     cls.fit(X, y)

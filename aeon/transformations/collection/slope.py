@@ -1,7 +1,7 @@
 """Slope transformer."""
 
 __all__ = ["SlopeTransformer"]
-__maintainer__ = []
+__author__ = ["mloning"]
 
 import math
 

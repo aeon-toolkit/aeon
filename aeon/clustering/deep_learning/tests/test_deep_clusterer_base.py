@@ -9,7 +9,7 @@ from aeon.testing.mock_estimators import MockDeepClusterer
 from aeon.testing.utils.data_gen import make_example_2d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-__maintainer__ = []
+__author__ = ["hadifawaz1999"]
 
 
 @pytest.mark.skipif(
@@ -17,7 +17,6 @@ __maintainer__ = []
     reason="skip test if required soft dependency not available",
 )
 def test_base_deep_clusterer():
-    """Test base deep clusterer."""
     with tempfile.TemporaryDirectory() as tmp:
         last_file_name = "temp"
         # create a dummy deep classifier

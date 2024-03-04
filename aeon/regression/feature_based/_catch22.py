@@ -3,7 +3,7 @@
 Pipeline regressor using the Catch22 transformer and an estimator.
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst", "RavenRudi", "TonyBagnall"]
 __all__ = ["Catch22Regressor"]
 
 import numpy as np

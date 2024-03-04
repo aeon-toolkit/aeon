@@ -9,7 +9,7 @@ from sklearn.pipeline import Pipeline
 
 from aeon.base import BaseObject
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 
 def is_sklearn_estimator(obj):

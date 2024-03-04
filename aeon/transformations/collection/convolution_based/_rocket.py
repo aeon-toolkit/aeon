@@ -1,6 +1,6 @@
 """Rocket transformer."""
 
-__maintainer__ = []
+__author__ = ["angus924"]
 __all__ = ["Rocket"]
 
 import numpy as np

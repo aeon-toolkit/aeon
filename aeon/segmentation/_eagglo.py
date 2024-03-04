@@ -9,7 +9,7 @@ from numba import njit
 
 from aeon.segmentation.base import BaseSegmenter
 
-__maintainer__ = []
+__author__ = ["KatieBuc", "patrickzib"]
 __all__ = ["EAggloSegmenter"]
 
 

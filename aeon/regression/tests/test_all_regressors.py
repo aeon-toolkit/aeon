@@ -1,6 +1,6 @@
 """Unit tests for all time series regressors."""
 
-__maintainer__ = []
+__author__ = ["mloning", "TonyBagnall", "fkiraly", "DavidGuijo-Rubio"]
 
 
 import numpy as np

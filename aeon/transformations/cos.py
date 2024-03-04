@@ -4,7 +4,7 @@ import numpy as np
 
 from aeon.transformations.base import BaseTransformer
 
-__maintainer__ = []
+__author__ = ["afzal442"]
 __all__ = ["CosineTransformer"]
 
 

@@ -1,6 +1,6 @@
 """Tests for performance metric functions."""
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 
 import numpy as np
 

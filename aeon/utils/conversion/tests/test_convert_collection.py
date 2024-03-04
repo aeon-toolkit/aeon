@@ -10,7 +10,7 @@ from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.conversion import COLLECTIONS_DATA_TYPES
 from aeon.utils.conversion._convert_collection import (
     _from_nested_univ_to_numpy2d,
     _from_nested_univ_to_pd_multiindex,
@@ -30,7 +30,7 @@ from aeon.utils.conversion._convert_collection import (
     resolve_equal_length_inner_type,
     resolve_unequal_length_inner_type,
 )
-from aeon.utils.validation.collection import (
+from aeon.utils.validation._check_collection import (
     _equal_length,
     _nested_univ_is_equal,
     get_n_cases,
@@ -185,7 +185,7 @@ NUMPY2D = [
 
 @pytest.mark.parametrize("function", NUMPY2D)
 def test_numpy2D_error(function):
-    """Test numpy flat converters only work with 2D numpy."""
+    """Test numpy flat converters only work with 2D numpy"""
     X = np.random.random(size=(10, 2, 20))
     with pytest.raises(TypeError, match="Error: Input numpy not of type numpy2D"):
         function(X)
@@ -197,6 +197,7 @@ def test__nested_univ_is_equal():
     Note that the function _nested_univ_is_equal assumes series are equal length
     over channels so only tests the first channel.
     """
+
     data = {
         "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
         "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],

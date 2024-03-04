@@ -1,4 +1,4 @@
-__maintainer__ = []
+__author__ = ["Tomasz Chodakowski", "Ryan Kuhns"]
 
 import numpy as np
 import pandas as pd
@@ -367,7 +367,7 @@ LOSS_RESULTS = {
 
 
 def _call_metrics(metric_func, metric_class, y_true, y_pred, y_train, y_pred_benchmark):
-    """Call function and class metrics and return results."""
+    """Call function and class metrics and return results"""
     class_attrs = metric_class.get_params()
     function_metric = metric_func(
         y_true,

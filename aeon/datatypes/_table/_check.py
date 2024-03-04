@@ -32,7 +32,7 @@ metadata: dict - metadata about obj if valid, otherwise None
         "n_instances": int, number of instances/rows in the table
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 __all__ = ["check_dict"]
 

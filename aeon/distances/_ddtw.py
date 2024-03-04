@@ -1,6 +1,6 @@
 """Derivative Dynamic Time Warping (DDTW) distance."""
 
-__maintainer__ = []
+__author__ = ["chrisholder", "tonybagnall"]
 
 from typing import List, Tuple
 

@@ -1,6 +1,6 @@
 """Conversion utilities for mtypes."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 
 def _concat(fun1, fun2):

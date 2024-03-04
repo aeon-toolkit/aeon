@@ -1,5 +1,6 @@
 """Custom exceptions and warnings."""
 
+__author__ = "mloning"
 __all__ = ["NotEvaluatedError", "NotFittedError", "FitFailedWarning"]
 
 

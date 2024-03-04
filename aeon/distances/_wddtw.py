@@ -1,6 +1,6 @@
 """Weighted derivative dynamic time warping (wddtw) distance between two series."""
 
-__maintainer__ = []
+__author__ = ["chrisholder", "tonybagnall"]
 
 from typing import List, Tuple
 

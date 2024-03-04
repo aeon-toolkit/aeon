@@ -1,6 +1,6 @@
 """Lagging transformer."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 from warnings import warn
 

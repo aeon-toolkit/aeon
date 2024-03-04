@@ -3,7 +3,7 @@
 An ensemble of elastic nearest neighbour classifiers.
 """
 
-__maintainer__ = []
+__author__ = ["jasonlines", "TonyBagnall"]
 __all__ = ["ElasticEnsemble"]
 
 import math

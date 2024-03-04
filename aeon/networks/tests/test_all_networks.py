@@ -5,7 +5,7 @@ import pytest
 from aeon import networks
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-__maintainer__ = []
+__author__ = ["hadifawaz1999"]
 
 
 @pytest.mark.skipif(

@@ -1,6 +1,6 @@
 """Fully Convolutional Network (FCN) (minus the final output layer)."""
 
-__maintainer__ = []
+__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
 
@@ -29,6 +29,8 @@ class FCNNetwork(BaseDeepNetwork):
         Activation used after the convolution.
     use_bias : bool or list of bool, default = True
         Whether or not ot use bias in convolution.
+    random_state    : int, default = 0
+        seed to any needed random actions.
 
     Notes
     -----
@@ -51,6 +53,7 @@ class FCNNetwork(BaseDeepNetwork):
         padding="same",
         activation="relu",
         use_bias=True,
+        random_state=0,
     ):
         self.n_layers = n_layers
         self.n_filters = n_filters
@@ -60,6 +63,7 @@ class FCNNetwork(BaseDeepNetwork):
         self.strides = strides
         self.dilation_rate = dilation_rate
         self.use_bias = use_bias
+        self.random_state = random_state
 
         super().__init__()
 

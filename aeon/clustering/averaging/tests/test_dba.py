@@ -152,9 +152,8 @@ def test_dba():
     PR_TESTING,
     reason="Only run on overnights because its very slow",
 )
-@pytest.mark.parametrize(
-    "distance",
-    [
+def test_elastic_dba_variations():
+    distances = [
         "dtw",
         "ddtw",
         "wdtw",
@@ -165,15 +164,13 @@ def test_dba():
         "msm",
         "shape_dtw",
         "adtw",
-    ],
-)
-def test_elastic_dba_variations(distance):
-    """Test dba functionality with different distance measures."""
-    X_train = _create_test_distance_numpy(4, 2, 10)
+    ]
+    for dist in distances:
+        X_train = _create_test_distance_numpy(4, 2, 10)
 
-    average_ts = elastic_barycenter_average(
-        X_train, distance=distance, window=0.2, independent=False
-    )
+        average_ts = elastic_barycenter_average(
+            X_train, distance=dist, window=0.2, independent=False
+        )
 
-    assert isinstance(average_ts, np.ndarray)
-    assert average_ts.shape == X_train[0].shape
+        assert isinstance(average_ts, np.ndarray)
+        assert average_ts.shape == X_train[0].shape

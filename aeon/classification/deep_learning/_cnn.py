@@ -1,6 +1,6 @@
 """Time Convolutional Neural Network (CNN) for classification."""
 
-__maintainer__ = []
+__author__ = ["James-Large", "TonyBagnall", "hadifawaz1999"]
 __all__ = ["CNNClassifier"]
 
 import gc
@@ -163,6 +163,7 @@ class CNNClassifier(BaseDeepClassifier):
             strides=self.strides,
             dilation_rate=self.dilation_rate,
             use_bias=self.use_bias,
+            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
@@ -216,11 +217,10 @@ class CNNClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints)
-        y : np.ndarray
-            The training data class labels of shape (n_cases,).
-
+        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
+            The training input samples.
+        y : np.ndarray of shape n
+            The training data class labels.
 
         Returns
         -------

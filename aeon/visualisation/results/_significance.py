@@ -1,6 +1,6 @@
 """Function to compute and plot significance."""
 
-__maintainer__ = []
+__author__ = ["dguijo", "TonyBagnall"]
 
 __all__ = [
     "plot_significance",

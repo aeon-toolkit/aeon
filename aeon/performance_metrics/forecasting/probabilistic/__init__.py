@@ -6,6 +6,8 @@ Function named as ``*_error`` or ``*_loss`` return a scalar value to minimize:
 the lower the better.
 """
 
+__author__ = ["euanenticott-shell"]
+
 __all__ = [
     "_BaseProbaForecastingErrorMetric",
     "PinballLoss",

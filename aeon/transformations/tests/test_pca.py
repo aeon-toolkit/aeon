@@ -1,6 +1,6 @@
 """Tests for PCATransformer."""
 
-__maintainer__ = []
+__author__ = ["aiwalter"]
 
 from aeon.testing.utils.data_gen import make_series
 from aeon.transformations.pca import PCATransformer

@@ -1,7 +1,7 @@
 """Time series interpolator/re-sampler."""
 
 __all__ = ["TSInterpolator"]
-__maintainer__ = []
+__author__ = ["mloning", "TonyBagnall"]
 
 import numpy as np
 

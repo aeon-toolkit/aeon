@@ -5,7 +5,7 @@ For that purpose, inherit from this estimator and then override only the methods
     that are not delegated.
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 __all__ = ["_DelegatedRegressor"]
 
 from aeon.regression.base import BaseRegressor

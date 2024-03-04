@@ -10,7 +10,7 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.testing.utils.data_gen import make_example_2d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-__maintainer__ = []
+__author__ = ["achieveordie", "hadifawaz1999"]
 
 
 class _DummyDeepRegressor(BaseDeepRegressor):

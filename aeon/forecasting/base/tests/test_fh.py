@@ -1,6 +1,6 @@
 """Tests for ForecastingHorizon object."""
 
-__maintainer__ = []
+__author__ = ["mloning", "khrapovs"]
 
 from datetime import timedelta
 

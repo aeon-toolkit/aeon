@@ -10,7 +10,6 @@ from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_n
 
 
 def test_predict_proba():
-    """Test ContinuousIntervalTree predict_proba."""
     X, y = make_example_2d_numpy(n_cases=5, n_labels=1)
     cit = ContinuousIntervalTree(max_depth=1)
     with pytest.raises(NotFittedError, match="please call `fit` first"):

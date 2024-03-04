@@ -1,6 +1,6 @@
 """Series transformers for time series augmentation."""
 
-__maintainer__ = []
+__author__ = ["MrPr3ntice", "MFehsenfeld", "iljamaurer"]
 __all__ = [
     "WhiteNoiseAugmenter",
     "ReverseAugmenter",

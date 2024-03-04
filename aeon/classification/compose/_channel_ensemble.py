@@ -3,7 +3,7 @@
 Builds classifiers on each channel (dimension) independently.
 """
 
-__maintainer__ = []
+__author__ = ["abostrom", "TonyBagnall"]
 __all__ = ["ChannelEnsembleClassifier"]
 
 from itertools import chain

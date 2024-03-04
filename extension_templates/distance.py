@@ -120,7 +120,6 @@ def foo_distance(
         If x and y are not 1D or 2D arrays.
 
     TODO give example output
-
     Examples
     --------
     >>> import numpy as np

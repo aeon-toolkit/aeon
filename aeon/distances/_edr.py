@@ -1,6 +1,6 @@
 """Edit distance for real sequences (EDR) between two time series."""
 
-__maintainer__ = []
+__author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
 

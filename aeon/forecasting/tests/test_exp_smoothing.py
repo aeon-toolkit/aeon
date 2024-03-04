@@ -1,6 +1,6 @@
 """Test exponential smoothing forecasters."""
 
-__maintainer__ = []
+__author__ = ["mloning", "@big-o"]
 __all__ = ["test_set_params"]
 
 import pytest

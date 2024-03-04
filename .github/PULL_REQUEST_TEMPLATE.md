@@ -52,10 +52,9 @@ Please go through the checklist below. Please feel free to remove points if they
 
 ##### For new estimators and functions
 - [ ] I've added the estimator to the online [API documentation](https://www.aeon-toolkit.org/en/latest/api_reference.html).
-- [ ] (OPTIONAL) I've added myself as a `__maintainer__` at the top of relevant files and want to be contacted regarding its maintenance. Unmaintained files may be removed.
 
 ##### For developers with write access
-- [ ] (OPTIONAL) I've updated aeon's [CODEOWNERS](https://github.com/aeon-toolkit/aeon/blob/main/CODEOWNERS) to receive notifications about future changes to these files.
+- [ ] Optionally, I've updated aeon's [CODEOWNERS](https://github.com/aeon-toolkit/aeon/blob/main/CODEOWNERS) to receive notifications about future changes to these files.
 
 
 <!--

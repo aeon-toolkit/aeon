@@ -5,3 +5,5 @@ from aeon.performance_metrics.segmentation.metrics import (  # noqa
     hausdorff_error,
     prediction_ratio,
 )
+
+__author__ = ["lmmentel"]

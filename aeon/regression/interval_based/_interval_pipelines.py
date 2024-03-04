@@ -3,7 +3,7 @@
 Pipeline regressors which extract interval features then build a base estimator.
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 __all__ = ["RandomIntervalRegressor"]
 
 import numpy as np
@@ -195,7 +195,6 @@ class RandomIntervalRegressor(BaseRegressor):
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
-
         Returns
         -------
         params : dict or list of dict, default={}

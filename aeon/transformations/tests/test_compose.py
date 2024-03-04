@@ -1,6 +1,6 @@
 """Unit tests for transformer composition functionality attached to the base class."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 __all__ = []
 
 import pandas as pd

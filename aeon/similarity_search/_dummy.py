@@ -1,6 +1,6 @@
 """Dummy similarity seach estimator."""
 
-__maintainer__ = []
+__author__ = ["baraline"]
 __all__ = ["DummySimilaritySearch"]
 
 

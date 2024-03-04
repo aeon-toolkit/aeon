@@ -3,7 +3,7 @@
 Pipeline regressor using the ROCKET transformer and RidgeCV estimator.
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 __all__ = ["RocketRegressor"]
 
 import numpy as np

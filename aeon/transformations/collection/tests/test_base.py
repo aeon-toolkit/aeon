@@ -1,6 +1,6 @@
 """Test input for the BaseCollectionTransformer."""
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst", "TonyBagnall"]
 
 import numpy as np
 import pytest

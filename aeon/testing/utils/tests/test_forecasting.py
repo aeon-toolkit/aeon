@@ -1,4 +1,4 @@
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = []
 
 import pandas as pd

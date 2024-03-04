@@ -1,6 +1,6 @@
 """Implements transformers for detecting outliers in a time series."""
 
-__maintainer__ = []
+__author__ = ["aiwalter"]
 __all__ = ["HampelFilter"]
 
 import warnings

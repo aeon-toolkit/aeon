@@ -1,6 +1,6 @@
 """Test functionality of summary transformer."""
 
-__maintainer__ = []
+__author__ = ["RNKuhns"]
 import re
 
 import numpy as np

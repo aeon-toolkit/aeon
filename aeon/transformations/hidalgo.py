@@ -1,6 +1,6 @@
 """Hidalgo (Heterogeneous Intrinsic Dimensionality Algorithm) Segmentation."""
 
-__maintainer__ = []
+__author__ = ["KatieBuc"]
 __all__ = ["Hidalgo"]
 
 

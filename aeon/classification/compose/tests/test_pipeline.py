@@ -1,6 +1,6 @@
 """Unit tests for (dunder) composition functionality attached to the base class."""
 
-__maintainer__ = []
+__author__ = ["fkiraly", "TonyBagnall"]
 
 import numpy as np
 import pytest

@@ -1,6 +1,6 @@
 """Time format related utilities."""
 
-__maintainer__ = []
+__author__ = ["mloning", "xiaobenbenecho", "khrapovs"]
 __all__ = []
 
 import warnings

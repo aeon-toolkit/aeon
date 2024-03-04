@@ -1,6 +1,6 @@
 """Implements transformers raise time series to user provided exponent."""
 
-__maintainer__ = []
+__author__ = ["Ryan Kuhns"]
 __all__ = ["ExponentTransformer", "SqrtTransformer"]
 
 from warnings import warn

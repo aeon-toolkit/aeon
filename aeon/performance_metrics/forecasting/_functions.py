@@ -17,7 +17,7 @@ from sklearn.utils.validation import check_consistent_length
 from aeon.utils.stats import _weighted_geometric_mean
 from aeon.utils.validation.series import check_series
 
-__maintainer__ = []
+__author__ = ["mloning", "Tomasz Chodakowski", "RNKuhns"]
 __all__ = [
     "relative_loss",
     "mean_linex_error",

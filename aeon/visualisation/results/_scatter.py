@@ -1,6 +1,6 @@
 """Functions for plotting results scatter diagrams."""
 
-__maintainer__ = []
+__author__ = ["dguijo"]
 
 __all__ = [
     "plot_pairwise_scatter",

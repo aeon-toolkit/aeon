@@ -1,6 +1,6 @@
 """Unit tests of FitInTransform functionality."""
 
-__maintainer__ = []
+__author__ = ["aiwalter"]
 __all__ = []
 
 from pandas.testing import assert_series_equal

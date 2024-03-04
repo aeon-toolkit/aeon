@@ -1,6 +1,6 @@
 """Function to compute and plot critical difference diagrams."""
 
-__maintainer__ = []
+__author__ = ["SveaMeyer13", "dguijo", "TonyBagnall"]
 
 __all__ = [
     "plot_critical_difference",

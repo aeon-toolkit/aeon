@@ -1,6 +1,14 @@
 """Composition functionality for reduction approaches to forecasting."""
 
-__maintainer__ = []
+__author__ = [
+    "mloning",
+    "AyushmaanSeth",
+    "kAnand77",
+    "LuisZugasti",
+    "Lovkush-A",
+    "fkiraly",
+]
+
 __all__ = [
     "make_reduction",
     "DirectTimeSeriesRegressionForecaster",

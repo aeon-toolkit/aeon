@@ -4,7 +4,7 @@ Module :mod:`aeon.transformations` implements auto-correlation
 transformers.
 """
 
-__maintainer__ = []
+__author__ = ["afzal442"]
 __all__ = ["AutoCorrelationTransformer", "PartialAutoCorrelationTransformer"]
 
 import pandas as pd

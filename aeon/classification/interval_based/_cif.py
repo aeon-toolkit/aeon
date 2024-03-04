@@ -3,7 +3,7 @@
 Interval based CIF classifier extracting catch22 features from random intervals.
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 __all__ = ["CanonicalIntervalForestClassifier"]
 
 import numpy as np

@@ -1,4 +1,4 @@
-__maintainer__ = []
+__author__ = ["chrisholder", "TonyBagnall", "akshatvishu"]
 
 from typing import Any, Callable, List, Tuple, Union
 
@@ -49,7 +49,6 @@ from aeon.distances._msm import (
     msm_distance,
     msm_pairwise_distance,
 )
-from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
 from aeon.distances._shape_dtw import (
     shape_dtw_alignment_path,
     shape_dtw_cost_matrix,
@@ -223,8 +222,6 @@ def distance(
             kwargs.get("itakura_max_slope"),
             kwargs.get("warp_penalty", 1.0),
         )
-    elif metric == "sbd":
-        return sbd_distance(x, y, kwargs.get("standardize", True))
     else:
         if isinstance(metric, Callable):
             return metric(x, y, **kwargs)
@@ -388,8 +385,6 @@ def pairwise_distance(
             kwargs.get("itakura_max_slope"),
             kwargs.get("warp_penalty", 1.0),
         )
-    elif metric == "sbd":
-        return sbd_pairwise_distance(x, y, kwargs.get("standardize", True))
     else:
         if isinstance(metric, Callable):
             return _custom_func_pairwise(x, y, metric, **kwargs)
@@ -763,7 +758,6 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
     'squared'       distances.squared_distance
     'manhattan'     distances.manhattan_distance
     'minkowski'     distances.minkowski_distance
-    'sbd'           distances.sbd_distance
     =============== ========================================
 
     Parameters
@@ -820,7 +814,6 @@ def get_pairwise_distance_function(
     'squared'       distances.squared_pairwise_distance
     'manhattan'     distances.manhattan_pairwise_distance
     'minkowski'     distances.minkowski_pairwise_distance
-    'sbd'           distances.sbd_pairwise_distance
     =============== ========================================
 
     Parameters
@@ -1068,11 +1061,6 @@ DISTANCES = [
         "pairwise_distance": shape_dtw_pairwise_distance,
         "cost_matrix": shape_dtw_cost_matrix,
         "alignment_path": shape_dtw_alignment_path,
-    },
-    {
-        "name": "sbd",
-        "distance": sbd_distance,
-        "pairwise_distance": sbd_pairwise_distance,
     },
 ]
 

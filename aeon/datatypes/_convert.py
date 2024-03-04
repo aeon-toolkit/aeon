@@ -56,7 +56,7 @@ str - the type to convert "obj" to, a valid mtype string
     or None, if obj is None
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 __all__ = [
     "convert",

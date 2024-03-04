@@ -1,6 +1,6 @@
 # noqa: D100
 
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = []
 
 from warnings import warn

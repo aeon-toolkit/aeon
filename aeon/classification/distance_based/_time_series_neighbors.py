@@ -5,7 +5,7 @@ The class can take callables or uses string references to utilise the numba base
 distances in aeon.distances.
 """
 
-__maintainer__ = []
+__author__ = ["TonyBagnall", "GuiArcencio"]
 __all__ = ["KNeighborsTimeSeriesClassifier"]
 
 import numpy as np

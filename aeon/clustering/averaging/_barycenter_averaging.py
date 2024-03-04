@@ -1,4 +1,4 @@
-__maintainer__ = []
+__author__ = ["chrisholder"]
 
 from typing import Tuple
 

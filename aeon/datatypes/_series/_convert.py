@@ -26,7 +26,7 @@ ValueError and TypeError, if requested conversion is not possible
                             (depending on conversion logic)
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 __all__ = ["convert_dict"]
 

@@ -1,4 +1,4 @@
-__maintainer__ = []
+__author__ = ["Ryan Kuhns"]
 __all__ = []
 
 import pytest

@@ -37,7 +37,7 @@ metadata: dict - metadata about obj if valid, otherwise None
         "n_panels": int, number of flat panels in the hierarchical panel
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 __all__ = ["check_dict"]
 

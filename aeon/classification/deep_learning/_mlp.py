@@ -1,6 +1,6 @@
 """Multi Layer Perceptron Network (MLP) for classification."""
 
-__maintainer__ = []
+__author__ = ["James-Large", "AurumnPegasus"]
 __all__ = ["MLPClassifier"]
 
 import gc
@@ -25,7 +25,6 @@ class MLPClassifier(BaseDeepClassifier):
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
-    callbacks : callable or None, default
     random_state : int or None, default=None
         Seed for random number generation.
     verbose : boolean, default = False
@@ -121,7 +120,9 @@ class MLPClassifier(BaseDeepClassifier):
             last_file_name=last_file_name,
         )
 
-        self._network = MLPNetwork()
+        self._network = MLPNetwork(
+            random_state=self.random_state,
+        )
 
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -174,10 +175,10 @@ class MLPClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints)
-        y : np.ndarray
-            The training data class labels of shape (n_cases,).
+        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
+            The training input samples.
+        y : np.ndarray of shape n
+            The training data class labels.
 
         Returns
         -------

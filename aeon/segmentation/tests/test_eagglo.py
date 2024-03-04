@@ -1,6 +1,6 @@
 """Tests for E-Agglo (agglomerative clustering algorithm)."""
 
-__maintainer__ = []
+__author__ = ["KatieBuc"]
 
 import numpy as np
 import pandas as pd

@@ -8,7 +8,7 @@ tests are run on each operating system at least once, and on each python version
 least once, but not necessarily on each operating system / python version combination.
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly", "MatthewMiddlehurst"]
 
 from aeon.testing import test_config
 

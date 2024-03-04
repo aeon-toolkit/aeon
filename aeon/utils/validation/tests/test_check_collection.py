@@ -5,8 +5,8 @@ import pytest
 
 from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.testing.utils.data_gen._collection import EQUAL_LENGTH_UNIVARIATE
-from aeon.utils import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation.collection import (
+from aeon.utils.conversion._convert_collection import COLLECTIONS_DATA_TYPES
+from aeon.utils.validation._check_collection import (
     _is_pd_wide,
     _nested_univ_is_equal,
     is_nested_univ_dataframe,
@@ -14,20 +14,20 @@ from aeon.utils.validation.collection import (
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_is_nested_univ_dataframe(data):
-    """Test is_nested_univ_dataframe function for different datatypes."""
+def test__is_nested_univ_dataframe(data):
     if data == "nested_univ":
         assert is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
     else:
         assert not is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
 
 
-def test_nested_univ_is_equal():
+def test__nested_univ_is_equal():
     """Test _nested_univ_is_equal function for pd.DataFrame.
 
     Note that the function _nested_univ_is_equal assumes series are equal length
     over channels so only tests the first channel.
     """
+
     data = {
         "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
         "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
@@ -40,8 +40,7 @@ def test_nested_univ_is_equal():
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_is_pd_wide(data):
-    """Test _is_pd_wide function for different datatypes."""
+def test__is_pd_wide(data):
     if data == "pd-wide":
         assert _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
     else:

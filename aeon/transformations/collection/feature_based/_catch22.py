@@ -3,7 +3,7 @@
 A transformer for the Catch22 features.
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 __all__ = ["Catch22"]
 
 import math

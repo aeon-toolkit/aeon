@@ -4,7 +4,7 @@ In particular, function `evaluate`, that performs time series
 cross-validation, is tested with various configurations for correct output.
 """
 
-__maintainer__ = []
+__author__ = ["aiwalter", "mloning", "fkiraly"]
 __all__ = [
     "test_evaluate_common_configs",
     "test_evaluate_initial_window",

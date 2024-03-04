@@ -1,6 +1,6 @@
 """Implements transformations to deseasonalize a timeseries."""
 
-__maintainer__ = []
+__author__ = ["mloning", "eyalshafran", "aiwalter"]
 __all__ = ["Deseasonalizer", "ConditionalDeseasonalizer", "STLTransformer"]
 
 import numpy as np

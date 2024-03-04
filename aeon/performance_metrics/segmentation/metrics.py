@@ -10,7 +10,7 @@ import numpy.typing as npt
 from scipy.spatial.distance import directed_hausdorff
 from sklearn.utils import check_array
 
-__maintainer__ = []
+__author__ = ["lmmentel"]
 
 
 def count_error(

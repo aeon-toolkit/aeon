@@ -1,6 +1,6 @@
 """Implements meta forecaster for forecasters composed of other estimators."""
 
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = ["_HeterogenousEnsembleForecaster"]
 
 from joblib import Parallel, delayed

@@ -1,6 +1,6 @@
 """Tests for MultiplexForecaster and associated dunders."""
 
-__maintainer__ = []
+__author__ = ["miraep8"]
 
 import pytest
 

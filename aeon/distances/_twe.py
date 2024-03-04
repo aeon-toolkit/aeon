@@ -1,6 +1,6 @@
 """Time Warp Edit (TWE) distance between two time series."""
 
-__maintainer__ = []
+__author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
 

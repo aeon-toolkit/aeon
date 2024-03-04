@@ -1,5 +1,7 @@
 """Module exports: data type definitions, checks, validation, fixtures, converters."""
 
+__author__ = ["fkiraly"]
+
 from aeon.datatypes._check import (
     check_is_mtype,
     check_is_scitype,

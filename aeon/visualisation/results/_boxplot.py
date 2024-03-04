@@ -1,6 +1,6 @@
 """Functions for plotting results boxplot diagrams."""
 
-__maintainer__ = []
+__author__ = ["dguijo"]
 
 __all__ = [
     "plot_boxplot_median",

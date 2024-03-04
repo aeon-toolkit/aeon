@@ -1,6 +1,6 @@
 """Frequency filters."""
 
-__maintainer__ = []
+__author__ = ["sveameyer13"]
 __all__ = ["Filter"]
 
 import numpy as np

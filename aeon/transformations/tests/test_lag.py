@@ -1,6 +1,6 @@
 """Tests for Lag transformer."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 import itertools
 

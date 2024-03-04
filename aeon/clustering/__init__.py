@@ -9,6 +9,7 @@ __all__ = [
     "TimeSeriesKShapes",
     "TimeSeriesKernelKMeans",
 ]
+__author__ = ["chrisholder", "TonyBagnall"]
 
 from aeon.clustering._clara import TimeSeriesCLARA
 from aeon.clustering._clarans import TimeSeriesCLARANS

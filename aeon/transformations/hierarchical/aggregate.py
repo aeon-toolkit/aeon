@@ -1,6 +1,6 @@
 """Implements a transfromer to generate hierarcical data from bottom level."""
 
-__maintainer__ = []
+__author__ = ["ciaran-g"]
 
 from warnings import warn
 

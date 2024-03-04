@@ -3,7 +3,7 @@
 Pipeline classifiers which extract interval features then build a base estimator.
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 __all__ = ["RandomIntervalClassifier", "SupervisedIntervalClassifier"]
 
 import numpy as np

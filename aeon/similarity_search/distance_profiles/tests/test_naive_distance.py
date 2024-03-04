@@ -1,6 +1,6 @@
 """Tests for naive Euclidean distance profile."""
 
-__maintainer__ = []
+__author__ = ["baraline"]
 
 import numpy as np
 import pytest

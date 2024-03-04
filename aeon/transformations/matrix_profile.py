@@ -1,6 +1,6 @@
 """Implements matrix profile transformation."""
 
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = ["MatrixProfileTransformer"]
 
 from deprecated.sphinx import deprecated

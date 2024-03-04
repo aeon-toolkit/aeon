@@ -9,7 +9,7 @@ from aeon.forecasting.tests.test_trend import get_expected_polynomial_coefs
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.transformations.detrend import Detrender
 
-__maintainer__ = []
+__author__ = ["mloning", "KishManani"]
 __all__ = []
 
 

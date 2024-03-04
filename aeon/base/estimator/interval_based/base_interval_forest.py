@@ -1,6 +1,6 @@
 """A base class for interval extracting forest estimators."""
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseIntervalForest"]
 
 import inspect

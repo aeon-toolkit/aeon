@@ -1,6 +1,6 @@
 """Pipeline making utility."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 
 def make_pipeline(*steps):

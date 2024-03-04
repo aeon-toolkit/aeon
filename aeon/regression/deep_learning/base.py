@@ -5,7 +5,7 @@ The reason for this class between BaseClassifier and deep_learning classifiers i
 because we can generalise tags and _predict
 """
 
-__maintainer__ = []
+__author__ = ["AurumnPegasus", "achieveordie"]
 __all__ = ["BaseDeepRegressor"]
 
 from abc import ABC, abstractmethod

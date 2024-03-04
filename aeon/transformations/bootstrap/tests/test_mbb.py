@@ -1,6 +1,6 @@
 """Unit tests for Bootrstapping transformers."""
 
-__maintainer__ = []
+__author__ = ["ltsaprounis"]
 
 import pandas as pd
 import pytest

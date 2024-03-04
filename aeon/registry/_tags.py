@@ -40,7 +40,7 @@ check_tag_is_valid(tag_name, tag_value) - checks whether tag_value is valid for 
 
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly", "victordremov", "TonyBagnall"]
 
 import pandas as pd
 

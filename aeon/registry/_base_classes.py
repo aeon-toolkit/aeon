@@ -28,7 +28,7 @@ BASE_CLASS_LOOKUP - dictionary
 
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
 
 import pandas as pd
 

@@ -1,6 +1,6 @@
 """Discrete wavelet transform."""
 
-__maintainer__ = []
+__author__ = "Vincent Nicholson"
 
 import math
 

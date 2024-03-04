@@ -1,6 +1,6 @@
 """Implements FunctionTransformer, a class to create custom transformers."""
 
-__maintainer__ = []
+__author__ = ["BoukePostma"]
 __all__ = ["FunctionTransformer"]
 
 import numpy as np

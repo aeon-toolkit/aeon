@@ -1,6 +1,8 @@
-"""Tests for ThetaForecaster."""
+"""Tests for ThetaForecaster.
 
-__maintainer__ = []
+"""
+
+__author__ = ["@big-o", "kejsitake"]
 
 import numpy as np
 import pytest

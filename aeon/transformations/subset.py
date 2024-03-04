@@ -1,6 +1,6 @@
 """Transformers for index and column subsetting."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 import pandas as pd
 from pandas.api.types import is_integer_dtype

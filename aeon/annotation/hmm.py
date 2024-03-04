@@ -15,7 +15,7 @@ from scipy.stats import norm
 
 from aeon.annotation.base._base import BaseSeriesAnnotator
 
-__maintainer__ = []
+__author__ = ["miraep8"]
 __all__ = ["HMM"]
 
 

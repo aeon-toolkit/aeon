@@ -3,7 +3,7 @@
 Exports create_conditional_fixtures_and_names utility
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 __all__ = ["create_conditional_fixtures_and_names"]
 

@@ -3,7 +3,7 @@
 Interval-based TSF classifier, extracts basic summary features from random intervals.
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 __all__ = ["TimeSeriesForestClassifier"]
 
 import numpy as np

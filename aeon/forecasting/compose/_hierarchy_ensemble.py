@@ -1,6 +1,6 @@
 """Implements forecaster for applying different univariates on hierarchical data."""
 
-__maintainer__ = []
+__author__ = ["VyomkeshVyas"]
 __all__ = ["HierarchyEnsembleForecaster"]
 
 

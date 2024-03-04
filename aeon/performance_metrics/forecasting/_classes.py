@@ -40,7 +40,7 @@ from aeon.performance_metrics.forecasting._functions import (
     relative_loss,
 )
 
-__maintainer__ = []
+__author__ = ["mloning", "Tomasz Chodakowski", "RNKuhns", "fkiraly"]
 __all__ = [
     "make_forecasting_scorer",
     "MeanAbsoluteScaledError",

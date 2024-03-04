@@ -21,20 +21,11 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
-      - name: Use numba cache to set env variables and restore cache
-        uses: ./.github/actions/numba_cache
-        with:
-          cache_name: "test-nosoftdeps"
-          runner_os: ${{ runner.os }}
-          python_version: "3.10"
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -57,20 +48,11 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
-      - name: Use numba cache to set env variables and restore cache
-        uses: ./.github/actions/numba_cache
-        with:
-          cache_name: "test-nosoftdeps-full"
-          runner_os: ${{ runner.os }}
-          python_version: "3.10"
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -96,20 +78,11 @@ jobs:
         python-version: [ "3.8", "3.10", "3.12" ]
 
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Use numba cache to set env variables and restore cache
-        uses: ./.github/actions/numba_cache
-        with:
-          cache_name: "pytest"
-          runner_os: ${{ runner.os }}
-          python_version: ${{ matrix.python-version }}
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -133,11 +106,9 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -155,9 +126,8 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
+        run: python -m pytest --cov=aeon --cov-report=xml  --timeout 1800
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

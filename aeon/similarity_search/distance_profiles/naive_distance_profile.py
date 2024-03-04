@@ -1,6 +1,6 @@
 """Naive distance profile computation."""
 
-__maintainer__ = []
+__author__ = ["baraline"]
 
 
 import numpy as np

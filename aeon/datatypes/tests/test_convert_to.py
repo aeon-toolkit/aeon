@@ -1,6 +1,6 @@
 """Testing machine type converters for scitypes - covert_to utility."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 from aeon.datatypes._convert import convert_to
 from aeon.datatypes._examples import get_examples

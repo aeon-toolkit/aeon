@@ -1,6 +1,6 @@
 """Tests the VARMAX model."""
 
-__maintainer__ = []
+__author__ = ["KatieBuc"]
 
 import numpy as np
 import pandas as pd

@@ -1,7 +1,7 @@
 """Implements SARIMAX."""
 
 __all__ = ["SARIMAX"]
-__maintainer__ = []
+__author__ = ["TNTran92"]
 
 from aeon.forecasting.base.adapters import _StatsModelsAdapter
 

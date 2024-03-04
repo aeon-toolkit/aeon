@@ -1,6 +1,6 @@
 """Tests for numba utils functions related to statistical operations."""
 
-__maintainer__ = []
+__author__ = ["baraline"]
 
 import numpy as np
 from numpy.testing import assert_array_equal

@@ -35,7 +35,7 @@ The release process is as follows, on high-level:
   notes in the changelog, following the pattern of current GitHub release notes. The
   full GitHub commit log between releases can also be included.
 
-## `pypi` release and release validation
+## ``pypi`` release and release validation
 
 Creation of the GitHub release trigger the `pypi` release workflow.
 
@@ -49,13 +49,6 @@ Creation of the GitHub release trigger the `pypi` release workflow.
   should be carried out according to the installation instructions. If the installation
   does not succeed or wheels have not been uploaded, action to diagnose and remedy must
   be taken.
-
-## `conda-forge` release and release validation
-
-7. **Merge the ``conda-forge`` release PR.**
-  After some time a PR will be automatically created in the [aeon conda-forge feedstock](https://github.com/conda-forge/aeon-feedstock).
-  Follow the instructions in the PR to merge it, making sure to update any dependencies
-  that have changed and dependency version bounds.
 
 ## Release notes
 

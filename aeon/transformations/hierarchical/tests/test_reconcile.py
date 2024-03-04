@@ -1,6 +1,6 @@
 """Tests for hierarchical reconcilers."""
 
-__maintainer__ = []
+__author__ = ["ciaran-g"]
 
 import numpy as np
 import pytest

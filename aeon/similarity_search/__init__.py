@@ -1,5 +1,6 @@
 """BaseSimilaritySearch."""
 
+__author__ = ["baraline"]
 __all__ = [
     "BaseSimiliaritySearch",
     "TopKSimilaritySearch",

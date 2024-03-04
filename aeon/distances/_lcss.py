@@ -1,6 +1,6 @@
 r"""Longest common subsequence (LCSS) between two time series."""
 
-__maintainer__ = []
+__author__ = ["chrisholder", "TonyBagnall"]
 
 from typing import List, Tuple
 

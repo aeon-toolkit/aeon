@@ -1,6 +1,6 @@
 """Implements adapter for statsmodels forecasters to be used in aeon framework."""
 
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = ["_StatsModelsAdapter"]
 
 import inspect

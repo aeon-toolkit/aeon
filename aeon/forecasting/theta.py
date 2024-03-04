@@ -1,7 +1,7 @@
 """Theta forecasters."""
 
 __all__ = ["ThetaForecaster", "ThetaModularForecaster"]
-__maintainer__ = []
+__author__ = ["big-o", "mloning", "kejsitake", "fkiraly", "GuzalBulatova"]
 
 from warnings import warn
 

@@ -3,7 +3,7 @@
 Pipeline classifier using the Matrix Profile transformer and an estimator.
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 __all__ = ["MatrixProfileClassifier"]
 
 import numpy as np

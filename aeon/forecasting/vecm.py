@@ -1,7 +1,7 @@
 """VECM Forecaster."""
 
 __all__ = ["VECM"]
-__maintainer__ = []
+__author__ = ["thayeylolu", "AurumnPegasus"]
 
 import numpy as np
 import pandas as pd

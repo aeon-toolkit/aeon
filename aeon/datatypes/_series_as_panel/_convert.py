@@ -13,7 +13,7 @@ convert_Hierarchical_to_Panel(obj, store=None)
     converts to pd.DataFrame based data container in the target scitype
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 import numpy as np
 import pandas as pd

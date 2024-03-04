@@ -1,6 +1,6 @@
 """Estimator checker for extension."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 __all__ = ["check_estimator"]
 
 from inspect import isclass

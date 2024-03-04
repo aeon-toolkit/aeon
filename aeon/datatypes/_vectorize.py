@@ -595,7 +595,6 @@ def _enforce_index_freq(item: pd.Series) -> pd.Series:
     Parameters
     ----------
     item : pd.Series
-
     Returns
     -------
     pd.Series

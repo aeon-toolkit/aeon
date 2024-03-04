@@ -1,6 +1,6 @@
 """Tests for datetime functions."""
 
-__maintainer__ = []
+__author__ = ["xiaobenbenecho", "khrapovs"]
 
 import datetime
 
@@ -68,6 +68,7 @@ def test_coerce_duration_to_int() -> None:
 
 def test_infer_freq() -> None:
     """Test frequency inference."""
+
     y = pd.Series(dtype=int)
     assert infer_freq(y) is None
 

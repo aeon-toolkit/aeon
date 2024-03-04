@@ -1,6 +1,6 @@
 """Tests for Deseasonalizer."""
 
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = []
 
 import numpy as np

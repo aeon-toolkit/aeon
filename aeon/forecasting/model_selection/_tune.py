@@ -1,6 +1,6 @@
 """Implements grid search functionality to tune forecasters."""
 
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = ["ForecastingGridSearchCV", "ForecastingRandomizedSearchCV"]
 
 from collections.abc import Sequence

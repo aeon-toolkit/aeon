@@ -1,6 +1,6 @@
 """Fully Convolutional Network (FCN) for classification."""
 
-__maintainer__ = []
+__author__ = ["James-Large", "AurumnPegasus", "hadifawaz1999"]
 __all__ = ["FCNClassifier"]
 
 import gc
@@ -73,7 +73,6 @@ class FCNClassifier(BaseDeepClassifier):
         save_last_model is set to False, this parameter
         is discarded.
     callbacks : keras.callbacks, default = None
-
     Notes
     -----
     Adapted from the implementation from Fawaz et. al
@@ -151,6 +150,7 @@ class FCNClassifier(BaseDeepClassifier):
         )
 
         self._network = FCNNetwork(
+            random_state=self.random_state,
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,
             n_filters=self.n_filters,
@@ -212,10 +212,10 @@ class FCNClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints)
-        y : np.ndarray
-            The training data class labels of shape (n_cases,).
+        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
+            The training input samples.
+        y : np.ndarray of shape n
+            The training data class labels.
 
         Returns
         -------

@@ -1,6 +1,6 @@
 """Residual Network (ResNet) for regression."""
 
-__maintainer__ = []
+__author__ = ["James-Large", "AurumnPegasus", "nilesh05apr", "hadifawaz1999"]
 __all__ = ["ResNetRegressor"]
 
 import gc
@@ -177,6 +177,7 @@ class ResNetRegressor(BaseDeepRegressor):
             activation=self.activation,
             dilation_rate=self.dilation_rate,
             padding=self.padding,
+            random_state=random_state,
         )
 
     def build_model(self, input_shape, **kwargs):
@@ -232,10 +233,10 @@ class ResNetRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints).
-        y : np.ndarray
-            The training data target values of shape (n_cases,).
+        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
+            The training input samples.
+        y : np.ndarray of shape n
+            The training data target values.
 
         Returns
         -------

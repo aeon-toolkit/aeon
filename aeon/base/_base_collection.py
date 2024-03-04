@@ -7,13 +7,13 @@ from aeon.utils.conversion import (
     resolve_unequal_length_inner_type,
 )
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import (
+from aeon.utils.validation._check_collection import (
     get_n_cases,
     has_missing,
     is_equal_length,
     is_univariate,
 )
+from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseCollectionEstimator(BaseEstimator):
@@ -54,7 +54,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : collection
-            See aeon.registry.COLLECTIONS_DATA_TYPES for details
+            See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
 
         Returns
@@ -104,7 +104,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-           See aeon.registry.COLLECTIONS_DATA_TYPES for details
+           See aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
            on aeon supported data structures.
 
         Returns
@@ -166,7 +166,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-        must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
+        must be of type aeon.utils.conversion.COLLECTIONS_DATA_TYPES.
 
         Returns
         -------

@@ -1,6 +1,6 @@
 """Base class for similarity search."""
 
-__maintainer__ = []
+__author__ = ["baraline"]
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable

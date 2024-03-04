@@ -1,6 +1,6 @@
 """Implements adapter for StatsForecast forecasters to be used in aeon framework."""
 
-__maintainer__ = []
+__author__ = ["FedericoGarza"]
 __all__ = ["_StatsForecastAdapter"]
 
 

@@ -1,6 +1,6 @@
 """Unit tests for sklearn classifiers."""
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 
 from sklearn.utils.estimator_checks import parametrize_with_checks
 

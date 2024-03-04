@@ -1,8 +1,16 @@
 """Implements simple forecasts based on naive assumptions."""
 
-__maintainer__ = []
 __all__ = ["NaiveForecaster", "NaiveVariance"]
-
+__author__ = [
+    "mloning",
+    "piyush1729",
+    "sri1419",
+    "Flix6x",
+    "aiwalter",
+    "IlyasMoutawwakil",
+    "fkiraly",
+    "bethrice44",
+]
 
 import math
 from warnings import warn

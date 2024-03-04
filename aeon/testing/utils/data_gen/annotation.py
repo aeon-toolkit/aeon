@@ -1,6 +1,6 @@
 """Annotation testing utils."""
 
-__maintainer__ = []
+__author__ = []
 __all__ = []
 
 from sklearn.utils import check_random_state

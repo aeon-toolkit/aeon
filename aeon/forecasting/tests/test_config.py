@@ -1,4 +1,4 @@
-__maintainer__ = []
+__author__ = ["mloning"]
 
 import numpy as np
 import pandas as pd

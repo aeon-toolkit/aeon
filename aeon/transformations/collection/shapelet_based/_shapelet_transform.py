@@ -3,7 +3,7 @@
 A transformer from the time domain into the shapelet domain.
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst", "jasonlines", "dguijo", "TonyBagnall"]
 __all__ = ["RandomShapeletTransform"]
 
 import heapq

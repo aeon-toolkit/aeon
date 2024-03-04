@@ -1,7 +1,7 @@
 """Vector Autoregressive Moving Average with eXogenous regressors model (VARMAX)."""
 
 __all__ = ["VARMAX"]
-__maintainer__ = []
+__author__ = ["KatieBuc"]
 
 import warnings
 

@@ -1,4 +1,4 @@
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
 import os
@@ -14,9 +14,6 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # whether to use smaller parameter matrices for test generation and subsample estimators
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
-
-if os.environ.get("CICD_RUNNING") == "1":
-    import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 
 EXCLUDE_ESTIMATORS = []
 

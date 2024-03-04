@@ -1,6 +1,6 @@
 """Tests for BKfilter wrapper annotation estimator."""
 
-__maintainer__ = []
+__author__ = ["klam-data", "pyyim"]
 
 import pandas as pd
 import pytest

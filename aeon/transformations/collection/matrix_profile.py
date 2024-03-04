@@ -1,6 +1,6 @@
 """Matrix profile transformer."""
 
-__maintainer__ = []
+__author__ = ["Claudia Rincon Sanchez"]
 
 import numpy as np
 

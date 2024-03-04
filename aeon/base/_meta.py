@@ -1,6 +1,6 @@
 """Implements meta estimator for estimators composed of other estimators."""
 
-__maintainer__ = []
+__author__ = ["mloning, fkiraly"]
 __all__ = ["_HeterogenousMetaEstimator"]
 
 from inspect import isclass

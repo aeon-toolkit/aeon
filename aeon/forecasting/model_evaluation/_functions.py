@@ -1,6 +1,6 @@
 """Implements functions to be used in evaluating forecasting models."""
 
-__maintainer__ = []
+__author__ = ["aiwalter", "mloning", "fkiraly", "topher-lo"]
 __all__ = ["evaluate"]
 
 import time
@@ -10,10 +10,9 @@ from typing import List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import convert_to
+from aeon.datatypes import check_is_scitype, convert_to
 from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.base import ForecastingHorizon
-from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_cv, check_scoring
 
@@ -331,9 +330,12 @@ def evaluate(
     else:
         scoring = check_scoring(scoring)
 
-    if not (is_single_series(y) or is_hierarchical(y) or is_collection(y)):
+    ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
+
+    y_valid, _, _ = check_is_scitype(y, scitype=ALLOWED_SCITYPES, return_metadata=True)
+    if not y_valid:
         raise TypeError(
-            f"Expected a series, collection or hierarchy. Got {type(y)} instead."
+            f"Expected y dtype {ALLOWED_SCITYPES!r}. Got {type(y)} instead."
         )
 
     y = convert_to(y, to_type=PANDAS_MTYPES)
@@ -348,9 +350,12 @@ def evaluate(
         pass
 
     if X is not None:
-        if not (is_single_series(X) or is_hierarchical(X) or is_collection(X)):
+        X_valid, _, _ = check_is_scitype(
+            X, scitype=ALLOWED_SCITYPES, return_metadata=True
+        )
+        if not X_valid:
             raise TypeError(
-                f"Expected a series, collection or hierarchy. Got {type(y)} instead."
+                f"Expected X dtype {ALLOWED_SCITYPES!r}. Got {type(X)} instead."
             )
         X = convert_to(X, to_type=PANDAS_MTYPES)
     score_name = (

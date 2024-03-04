@@ -1,6 +1,6 @@
 r"""Shape Dynamic time warping (ShapeDTW) between two time series."""
 
-__maintainer__ = []
+__author__ = ["hadifawaz1999"]
 
 from typing import List, Tuple
 

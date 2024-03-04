@@ -1,6 +1,8 @@
 """Time Convolutional Neural Network (CNN) for classification."""
 
-__maintainer__ = []
+__author__ = [
+    "Jack Russon",
+]
 __all__ = [
     "TapNetRegressor",
 ]
@@ -146,6 +148,7 @@ class TapNetRegressor(BaseDeepRegressor):
             use_att=self.use_att,
             use_lstm=self.use_lstm,
             use_cnn=self.use_cnn,
+            random_state=self.random_state,
             padding=self.padding,
         )
 
@@ -200,10 +203,10 @@ class TapNetRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints).
-        y : np.ndarray
-            The training data target values of shape (n_cases,).
+        X   : np.ndarray of shape = (n_instances(n), n_channels(d), series_length(m))
+            Input training samples
+        y   : np.ndarray of shape n
+            Input training responses
 
         Returns
         -------

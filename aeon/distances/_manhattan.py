@@ -1,4 +1,4 @@
-__maintainer__ = []
+__author__ = ["chrisholder", "TonyBagnall", "baraline"]
 
 import numpy as np
 from numba import njit

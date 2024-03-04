@@ -4,7 +4,7 @@ Dictionary based BOSS classifiers based on SFA transform.
 Contains a single BOSS and a BOSS ensemble.
 """
 
-__maintainer__ = []
+__author__ = ["patrickzib", "MatthewMiddlehurst"]
 __all__ = ["BOSSEnsemble", "IndividualBOSS", "pairwise_distances"]
 
 import warnings
@@ -82,9 +82,9 @@ class BOSSEnsemble(BaseClassifier):
 
     Attributes
     ----------
-    n_cases_ : int
+    n_instances_ : int
         Number of train instances in data passed to fit.
-    n_timepoints_ : int
+    series_length_ : int
         Length of all series (assumed equal).
     n_estimators_ : int
         The final number of classifiers used. Will be <= `max_ensemble_size` if
@@ -151,8 +151,8 @@ class BOSSEnsemble(BaseClassifier):
 
         self.estimators_ = []
         self.n_estimators_ = 0
-        self.n_timepoints_ = 0
-        self.n_cases_ = 0
+        self.series_length_ = 0
+        self.n_instances_ = 0
         self.feature_selection = feature_selection
 
         self._word_lengths = [16, 14, 12, 10, 8]
@@ -180,9 +180,9 @@ class BOSSEnsemble(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_cases, n_channels, n_timepoints).
+            The training data shape = (n_instances, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The training labels, shape = (n_cases).
+            The training labels, shape = (n_instances).
 
         Returns
         -------
@@ -194,13 +194,13 @@ class BOSSEnsemble(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_cases_, _, self.n_timepoints_ = X.shape
+        self.n_instances_, _, self.series_length_ = X.shape
 
         self.estimators_ = []
 
         # Window length parameter space dependent on series length
-        max_window_searches = self.n_timepoints_ / 4
-        max_window = int(self.n_timepoints_ * self.max_win_len_prop)
+        max_window_searches = self.series_length_ / 4
+        max_window = int(self.series_length_ * self.max_win_len_prop)
         win_inc = max(1, int((max_window - self.min_window) / max_window_searches))
 
         if self.min_window > max_window + 1:
@@ -244,7 +244,7 @@ class BOSSEnsemble(BaseClassifier):
                     boss._accuracy = self._individual_train_acc(
                         boss,
                         y,
-                        self.n_cases_,
+                        self.n_instances_,
                         best_acc_for_win_size,
                         keep_train_preds,
                     )
@@ -295,13 +295,13 @@ class BOSSEnsemble(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_cases, n_channels,
+            The data to make predictions for, shape = (n_instances, n_channels,
             n_timepoints).
 
         Returns
         -------
         y : 1D np.ndarray
-            The predicted class labels, shape = (n_cases).
+            The predicted class labels, shape = (n_instances).
         """
         rng = check_random_state(self.random_state)
         return np.array(
@@ -317,14 +317,14 @@ class BOSSEnsemble(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_cases, n_channels,
+            The data to make predictions for, shape = (n_instances, n_channels,
             n_timepoints).
 
         Returns
         -------
         y : 2D np.ndarray
             Predicted probabilities using the ordering in classes_ shape = (
-            n_cases, n_classes_).
+            n_instances, n_classes_).
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 
@@ -346,8 +346,8 @@ class BOSSEnsemble(BaseClassifier):
     def _fit_predict_proba(self, X, y) -> np.ndarray:
         self._fit(X, y, keep_train_preds=True)
 
-        results = np.zeros((self.n_cases_, self.n_classes_))
-        divisors = np.zeros(self.n_cases_)
+        results = np.zeros((self.n_instances_, self.n_classes_))
+        divisors = np.zeros(self.n_instances_)
 
         for clf in self.estimators_:
             preds = clf._train_predictions
@@ -355,7 +355,7 @@ class BOSSEnsemble(BaseClassifier):
                 results[n][self._class_dictionary[pred]] += 1
                 divisors[n] += 1
 
-        for i in range(self.n_cases_):
+        for i in range(self.n_instances_):
             results[i] = (
                 np.ones(self.n_classes_) * (1 / self.n_classes_)
                 if divisors[i] == 0
@@ -572,13 +572,13 @@ class IndividualBOSS(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
-        """Fit a single boss classifier on n_cases cases (X,y).
+        """Fit a single boss classifier on n_instances cases (X,y).
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The training data.
-        y : array-like, shape = [n_cases]
+        y : array-like, shape = [n_instances]
             The class labels.
 
         Returns
@@ -614,12 +614,12 @@ class IndividualBOSS(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_cases]
+        y : array-like, shape = [n_instances]
             Predicted class labels.
         """
         test_bags = self._transformer.transform(X)

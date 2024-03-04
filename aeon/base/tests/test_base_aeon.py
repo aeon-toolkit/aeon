@@ -1,6 +1,6 @@
 """Tests for BaseObject universal base class that require aeon or sklearn imports."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 
 def test_get_fitted_params_sklearn():

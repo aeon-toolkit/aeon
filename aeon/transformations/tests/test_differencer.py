@@ -1,6 +1,6 @@
 """Unit tests of Differencer functionality."""
 
-__maintainer__ = []
+__author__ = ["RNKuhns", "fkiraly", "ilkersigirci"]
 __all__ = []
 
 import numpy as np

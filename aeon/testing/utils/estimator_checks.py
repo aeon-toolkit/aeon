@@ -1,6 +1,6 @@
 """Utility function for estimator testing."""
 
-__maintainer__ = []
+__author__ = ["mloning", "fkiraly"]
 
 from inspect import isclass, signature
 

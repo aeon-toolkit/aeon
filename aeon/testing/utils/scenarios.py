@@ -3,7 +3,7 @@
 Contains TestScenario class which applies method/args subsequently
 """
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 __all__ = ["TestScenario"]
 

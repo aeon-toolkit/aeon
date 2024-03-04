@@ -32,7 +32,7 @@ mlflow.pyfunc
     `pyfunc.predict()` will return output from aeon `predict()` method.
 """
 
-__maintainer__ = []
+__author__ = ["benjaminbluhm"]
 __all__ = [
     "get_default_pip_requirements",
     "get_default_conda_env",

@@ -80,7 +80,7 @@ class BaseSeriesEstimator(BaseEstimator):
         ----------
         X : data structure
            A valid aeon collection data structure. See
-           aeon.registry.COLLECTIONS_DATA_TYPES for details
+           aeon.utils.conversion.COLLECTIONS_DATA_TYPES for details
            on aeon supported data structures.
 
         Returns

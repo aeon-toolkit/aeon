@@ -1,6 +1,6 @@
 """Numba statistic utilities."""
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 __all__ = [
     "mean",
     "row_mean",

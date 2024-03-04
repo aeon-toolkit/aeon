@@ -1,6 +1,6 @@
 """Tabularizer transform, for pipelining."""
 
-__maintainer__ = []
+__author__ = ["mloning", "fkiraly", "kcc-lion"]
 __all__ = ["Tabularizer"]
 
 from aeon.transformations.collection import BaseCollectionTransformer

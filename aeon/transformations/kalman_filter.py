@@ -5,7 +5,7 @@ and a transformer which is an adapter for the external package
 FilterPy.
 """
 
-__maintainer__ = []
+__author__ = ["NoaBenAmi", "lielleravid", "hadifawaz1999", "lmmentel"]
 __all__ = [
     "BaseKalmanFilter",
     "KalmanFilterTransformer",

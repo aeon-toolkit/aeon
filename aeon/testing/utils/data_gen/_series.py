@@ -1,6 +1,6 @@
 """Series testing utils."""
 
-__maintainer__ = []
+__author__ = ["mloning"]
 __all__ = ["make_series", "make_forecasting_problem"]
 
 import numpy as np

@@ -1,6 +1,6 @@
 """Residual Network (ResNet) (minus the final output layer)."""
 
-__maintainer__ = []
+__author__ = ["James Large", "Withington", "nilesh05apr", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
 
@@ -41,6 +41,8 @@ class ResNetNetwork(BaseDeepNetwork):
         Condition on whether or not to use bias values in the convolution layers in
         one residual block, if not a list, the same kernel size is used in all
         convolution layers.
+    random_state : int, default = 0
+        The random seed to use random activities.
 
     Notes
     -----
@@ -72,6 +74,7 @@ class ResNetNetwork(BaseDeepNetwork):
         padding="same",
         activation="relu",
         use_bias=True,
+        random_state=0,
     ):
         self.n_filters = n_filters
         self.kernel_size = kernel_size
@@ -82,6 +85,7 @@ class ResNetNetwork(BaseDeepNetwork):
         self.use_bias = use_bias
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
+        self.random_state = random_state
 
         super().__init__()
 

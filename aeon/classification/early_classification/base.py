@@ -24,7 +24,7 @@ State:
 __all__ = [
     "BaseEarlyClassifier",
 ]
-__maintainer__ = []
+__author__ = ["mloning", "fkiraly", "TonyBagnall", "MatthewMiddlehurst"]
 
 import time
 from abc import ABC, abstractmethod

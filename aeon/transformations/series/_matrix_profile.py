@@ -1,6 +1,6 @@
 """Implements matrix profile transformation."""
 
-__maintainer__ = []
+__author__ = ["mloning", "TonyBagnall"]
 __all__ = ["MatrixProfileSeriesTransformer"]
 
 from aeon.transformations.series.base import BaseSeriesTransformer

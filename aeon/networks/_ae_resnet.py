@@ -45,6 +45,8 @@ class AEResNetNetwork(BaseDeepNetwork):
         Condition on whether or not to use bias values in the convolution layers in
         one residual block, if not a list, the same kernel size is used in all
         convolution layers.
+    random_state : int, default = 0
+        The random seed to use random activities.
 
     Notes
     -----
@@ -78,6 +80,7 @@ class AEResNetNetwork(BaseDeepNetwork):
         padding="same",
         activation="relu",
         use_bias=True,
+        random_state=0,
     ):
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
@@ -90,6 +93,7 @@ class AEResNetNetwork(BaseDeepNetwork):
         self.use_bias = use_bias
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
+        self.random_state = random_state
 
         super().__init__()
 

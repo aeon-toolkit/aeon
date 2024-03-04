@@ -3,7 +3,7 @@
 Pipeline classifier using the Catch22 transformer and an estimator.
 """
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst", "RavenRudi", "TonyBagnall"]
 __all__ = ["Catch22Classifier"]
 
 import numpy as np

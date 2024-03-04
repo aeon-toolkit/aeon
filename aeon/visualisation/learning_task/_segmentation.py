@@ -4,7 +4,7 @@ __all__ = [
     "plot_series_with_change_points",
 ]
 
-__maintainer__ = []
+__author__ = ["patrickzib"]
 
 import numpy as np
 

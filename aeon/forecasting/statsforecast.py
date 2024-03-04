@@ -1,6 +1,6 @@
 """Implements AutoARIMA model from statsforecast by Nixtla."""
 
-__maintainer__ = []
+__author__ = ["FedericoGarza"]
 __all__ = ["StatsForecastAutoARIMA"]
 
 

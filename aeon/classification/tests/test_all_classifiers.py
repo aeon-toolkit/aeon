@@ -1,6 +1,6 @@
 """Unit tests for classifier/regressor input output."""
 
-__maintainer__ = []
+__author__ = ["mloning", "TonyBagnall", "fkiraly"]
 
 import inspect
 

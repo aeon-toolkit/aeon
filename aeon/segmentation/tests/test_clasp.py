@@ -1,6 +1,6 @@
 """Simple ClaSP test."""
 
-__maintainer__ = []
+__author__ = ["patrickzib"]
 __all__ = []
 
 from aeon.datasets import load_gun_point_segmentation

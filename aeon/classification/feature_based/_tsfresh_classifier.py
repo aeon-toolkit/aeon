@@ -1,96 +1,101 @@
-"""Summary Classifier.
+"""TSFresh Classifier.
 
-Pipeline classifier using the basic summary statistics and an estimator.
+Pipeline classifier using the TSFresh transformer and an estimator.
 """
 
-__maintainer__ = ["MatthewMiddlehurst"]
-__all__ = ["SummaryClassifier"]
+__author__ = ["MatthewMiddlehurst"]
+__all__ = ["TSFreshClassifier"]
+
+import warnings
 
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import (
+    TSFreshFeatureExtractor,
+    TSFreshRelevantFeatureExtractor,
+)
 
 
-class SummaryClassifier(BaseClassifier):
+class TSFreshClassifier(BaseClassifier):
     """
-    Summary statistic classifier.
+    Time Series Feature Extraction based on Scalable Hypothesis Tests classifier.
 
-    This classifier simply transforms the input data using the
-    SevenNumberSummaryTransformer transformer and builds a provided estimator using the
-    transformed data.
+    This classifier simply transforms the input data using the TSFresh [1]_
+    transformer and builds a provided estimator using the transformed data.
 
     Parameters
     ----------
-    summary_stats : ["default", "percentiles", "bowley", "tukey"], default="default"
-        The summary statistics to compute.
-        The options are as follows, with float denoting the percentile value extracted
-        from the series:
-            - "default": mean, std, min, max, 0.25, 0.5, 0.75
-            - "percentiles": 0.215, 0.887, 0.25, 0.5, 0.75, 0.9113, 0.9785
-            - "bowley": min, max, 0.1, 0.25, 0.5, 0.75, 0.9
-            - "tukey": min, max, 0.125, 0.25, 0.5, 0.75, 0.875
+    default_fc_parameters : str, default="efficient"
+        Set of TSFresh features to be extracted, options are "minimal", "efficient" or
+        "comprehensive".
+    relevant_feature_extractor : bool, default=False
+        Remove irrelevant features using the FRESH algorithm.
     estimator : sklearn classifier, default=None
         An sklearn estimator to be built using the transformed data. Defaults to a
         Random Forest with 200 trees.
+    verbose : int, default=0
+        Level of output printed to the console (for information only).
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    chunksize : int or None, default=None
+        Number of series processed in each parallel TSFresh job, should be optimised
+        for efficient parallelisation.
+    random_state : int or None, default=None
+        Seed for random, integer.
 
     Attributes
     ----------
     n_classes_ : int
         Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes)
+    classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
 
     See Also
     --------
-    SummaryTransformer
-    SummaryRegressor
+    TSFreshFeatureExtractor, TSFreshRelevantFeatureExtractor
 
-    Examples
-    --------
-    >>> from aeon.classification.feature_based import SummaryClassifier
-    >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> clf = SummaryClassifier(estimator=RandomForestClassifier(n_estimators=5))
-    >>> clf.fit(X_train, y_train)
-    SummaryClassifier(...)
-    >>> y_pred = clf.predict(X_test)
+    References
+    ----------
+    .. [1] Christ, Maximilian, et al. "Time series feature extraction on basis of
+        scalable hypothesis tests (tsfresh–a python package)." Neurocomputing 307
+        (2018): 72-77.
+        https://www.sciencedirect.com/science/article/pii/S0925231218304843
     """
 
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "feature",
+        "python_dependencies": "tsfresh",
     }
 
     def __init__(
         self,
-        summary_stats="default",
+        default_fc_parameters="efficient",
+        relevant_feature_extractor=True,
         estimator=None,
+        verbose=0,
         n_jobs=1,
+        chunksize=None,
         random_state=None,
     ):
-        self.summary_stats = summary_stats
+        self.default_fc_parameters = default_fc_parameters
+        self.relevant_feature_extractor = relevant_feature_extractor
         self.estimator = estimator
 
+        self.verbose = verbose
         self.n_jobs = n_jobs
+        self.chunksize = chunksize
         self.random_state = random_state
 
         self._transformer = None
         self._estimator = None
-        self._transform_atts = 0
+        self._return_majority_class = False
+        self._majority_class = 0
 
         super().__init__()
 
@@ -114,10 +119,19 @@ class SummaryClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = SevenNumberSummaryTransformer(
-            summary_stats=self.summary_stats,
+        self._transformer = (
+            TSFreshRelevantFeatureExtractor(
+                default_fc_parameters=self.default_fc_parameters,
+                n_jobs=self._n_jobs,
+                chunksize=self.chunksize,
+            )
+            if self.relevant_feature_extractor
+            else TSFreshFeatureExtractor(
+                default_fc_parameters=self.default_fc_parameters,
+                n_jobs=self._n_jobs,
+                chunksize=self.chunksize,
+            )
         )
-
         self._estimator = _clone_estimator(
             (
                 RandomForestClassifier(n_estimators=200)
@@ -127,17 +141,30 @@ class SummaryClassifier(BaseClassifier):
             self.random_state,
         )
 
+        if self.verbose < 2:
+            self._transformer.show_warnings = False
+            if self.verbose < 1:
+                self._transformer.disable_progressbar = True
+
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
             self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 
-        if X_t.shape[0] > len(y):
-            X_t = X_t.to_numpy().reshape((len(y), -1))
-            self._transform_atts = X_t.shape[1]
+        if X_t.shape[1] == 0:
+            warnings.warn(
+                "TSFresh has extracted no features from the data. Returning the "
+                "majority class in predictions. Setting "
+                "relevant_feature_extractor=False will keep all features.",
+                UserWarning,
+                stacklevel=2,
+            )
 
-        self._estimator.fit(X_t, y)
+            self._return_majority_class = True
+            self._majority_class = np.argmax(np.unique(y, return_counts=True)[1])
+        else:
+            self._estimator.fit(X_t, y)
 
         return self
 
@@ -154,12 +181,10 @@ class SummaryClassifier(BaseClassifier):
         y : array-like, shape = [n_instances]
             Predicted class labels.
         """
-        X_t = self._transformer.transform(X)
+        if self._return_majority_class:
+            return np.full(X.shape[0], self.classes_[self._majority_class])
 
-        if X_t.shape[1] < self._transform_atts:
-            X_t = X_t.to_numpy().reshape((-1, self._transform_atts))
-
-        return self._estimator.predict(X_t)
+        return self._estimator.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for n instances in X.
@@ -174,17 +199,17 @@ class SummaryClassifier(BaseClassifier):
         y : array-like, shape = [n_instances, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        X_t = self._transformer.transform(X)
-
-        if X_t.shape[1] < self._transform_atts:
-            X_t = X_t.to_numpy().reshape((-1, self._transform_atts))
+        if self._return_majority_class:
+            dists = np.zeros((X.shape[0], self.n_classes_))
+            dists[:, self._majority_class] = 1
+            return dists
 
         m = getattr(self._estimator, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(X_t)
+            return self._estimator.predict_proba(self._transformer.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(X_t)
+            preds = self._estimator.predict(self._transformer.transform(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists
@@ -198,7 +223,7 @@ class SummaryClassifier(BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            SummaryClassifier provides the following special sets:
+            TSFreshClassifier provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
@@ -212,6 +237,14 @@ class SummaryClassifier(BaseClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
-            return {"estimator": RandomForestClassifier(n_estimators=10)}
+            return {
+                "estimator": RandomForestClassifier(n_estimators=10),
+                "default_fc_parameters": "minimal",
+                "relevant_feature_extractor": False,
+            }
         else:
-            return {"estimator": RandomForestClassifier(n_estimators=2)}
+            return {
+                "estimator": RandomForestClassifier(n_estimators=2),
+                "default_fc_parameters": "minimal",
+                "relevant_feature_extractor": False,
+            }

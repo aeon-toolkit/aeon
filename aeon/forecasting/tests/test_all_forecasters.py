@@ -1,6 +1,8 @@
-"""Tests for BaseForecaster API points."""
+"""Tests for BaseForecaster API points.
 
-__maintainer__ = []
+"""
+
+__author__ = ["mloning", "kejsitake", "fkiraly"]
 
 import numpy as np
 import pandas as pd
@@ -607,6 +609,7 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         AssertionError - if forecast is not expected mtype pd_multiindex_hier,
             and does not have expected row and column indices
         """
+
         y_train = _make_hierarchical(
             hierarchy_levels=(2, 4),
             n_columns=n_columns,

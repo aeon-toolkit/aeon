@@ -1,6 +1,6 @@
 """Tests for sklearn typing utilities in utils.aeon."""
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 
 
 import pytest

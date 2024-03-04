@@ -77,7 +77,7 @@ pip freeze  # see all installed packages for the current environment
 For more information on the dependencies of `aeon` and more dependencies groups (such
 as only dependencies for deep learning, or a list less stable dependencies excluded
 from `all_extras`), see the
-[`pyproject.toml`](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml)
+[pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml)
 configuration file.
 
 ## Install the latest release from conda-forge
@@ -113,9 +113,9 @@ installed, you will have to uninstall it prior to following these instructions:
 pip uninstall aeon
 ```
 
-The latest developments and bugfixes for `aeon` are available on the [`aeon`
+The latest developments and bugfixes for `aeon` are available on the [aeon
 GitHub](https://github.com/aeon-toolkit/aeon) `main` branch. The `main` branch can be
-installed directly from GitHub using `pip insall`:
+installed directly from GitHub using `pip`:
 
 ```{code-block} powershell
 pip install -U git+https://github.com/aeon-toolkit/aeon.git@main
@@ -129,14 +129,14 @@ pip install -U "aeon[all_extras] @ git+https://github.com/aeon-toolkit/aeon.git@
 ```
 
 The same warnings and information regarding the MacOS ARM processor,
-checking install versioning and `pyproject.toml` dependencies given in the previous
+checking install versioning and pyproject.toml dependencies given in the previous
 section apply here as well.
 
 ## Using a pip venv
 
 In order to avoid potential conflicts with other packages, we strongly recommended
 using a [virtual environment (venv)](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/)
-or a fresh conda environment for the above installation options.
+or a fresh `conda` environment for the above installation options.
 
 You can create a virtual environment using the following commands. The name virtual
 environment name `aeon-venv` can be replaced with a name of your choosing.
@@ -170,7 +170,7 @@ activate it again.
 If the common errors below do not help, it may be worth checking out the [scikit-learn
 troubleshooting section](https://scikit-learn.org/stable/install.html#troubleshooting)
 
-### `ModuleNotFoundError`
+### ModuleNotFoundError
 
 The most frequent reason for `ModuleNotFoundError` is installing `aeon` with
 minimum dependencies (i.e. just `pip install aeon`) and using an estimator which
@@ -178,7 +178,7 @@ interfaces a package that has not been installed in the environment. To resolve 
 install the missing package, or install `aeon` with maximum dependencies (see above)
 or install the individual packages as prompted by the error.
 
-### `ImportError`
+### ImportError
 
 Import errors are often caused by an improperly linked virtual environment. Make sure
 that your environment is activated and linked to whatever IDE you are using. You can

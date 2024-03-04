@@ -1,6 +1,6 @@
 """Randomised Interval-Shapelet Transformation (RIST) pipeline estimators."""
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 
 
 from sklearn.ensemble import ExtraTreesClassifier

@@ -1,10 +1,10 @@
 """Implements compositors for performing forecasting by group."""
 
+from aeon.base import ALL_TIME_SERIES_TYPES
 from aeon.datatypes import mtype_to_scitype
 from aeon.forecasting.base._delegate import _DelegatedForecaster
-from aeon.utils._data_types import ALL_TIME_SERIES_TYPES
 
-__maintainer__ = []
+__author__ = ["fkiraly"]
 __all__ = ["ForecastByLevel"]
 
 

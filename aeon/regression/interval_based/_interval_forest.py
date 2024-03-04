@@ -1,6 +1,6 @@
 """Interval forest regressor."""
 
-__maintainer__ = []
+__author__ = ["MatthewMiddlehurst"]
 __all__ = ["IntervalForestRegressor"]
 
 import numpy as np

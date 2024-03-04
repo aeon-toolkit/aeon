@@ -1,6 +1,6 @@
 """UnobservedComponents Tests."""
 
-__maintainer__ = []
+__author__ = ["juanitorduz"]
 
 import numpy as np
 import pandas as pd

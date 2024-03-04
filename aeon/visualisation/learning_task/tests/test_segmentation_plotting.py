@@ -1,5 +1,3 @@
-"""Test the plotting functions for segmentation."""
-
 import numpy as np
 import pytest
 

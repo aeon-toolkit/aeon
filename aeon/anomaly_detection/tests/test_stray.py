@@ -1,6 +1,6 @@
 """Tests for STRAY outlier estimator."""
 
-__maintainer__ = []
+__author__ = ["KatieBuc"]
 
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
