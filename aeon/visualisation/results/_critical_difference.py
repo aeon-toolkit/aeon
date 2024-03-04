@@ -181,7 +181,8 @@ def plot_critical_difference(
     ordered_avg_ranks = ranks.mean(axis=0)
     # Sort labels and ranks
     ordered_labels_ranks = np.array(
-        [(l, float(r)) for r, l in sorted(zip(ordered_avg_ranks, labels))], dtype=object
+        [(labels, float(r)) for r, labels in sorted(zip(ordered_avg_ranks, labels))],
+        dtype=object,
     )
     ordered_labels = np.array([la for la, _ in ordered_labels_ranks], dtype=str)
     ordered_avg_ranks = np.array([r for _, r in ordered_labels_ranks], dtype=np.float32)
