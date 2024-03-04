@@ -32,7 +32,8 @@ def test_cost_matrix(dist):
     """
     Test function to check the cost matrix for various distances.
 
-    Parameters:
+    Parameters
+    ----------
         dist(dict): A dictionary containing the details of the distances.
     """
     if "alignment_path" not in dist:

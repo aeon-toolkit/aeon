@@ -15,6 +15,7 @@ __maintainer__ = []
     reason="skip test if required soft dependency not available",
 )
 def test_all_networks_functionality():
+    """Test the functionality of all the Networks."""
     network_classes = [
         member[1] for member in inspect.getmembers(networks, inspect.isclass)
     ]

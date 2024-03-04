@@ -22,7 +22,8 @@ def test_load_from_tsfile_to_dataframe():
     """
     Test function to check functionality of load_from_tsfile_to_dataframe.
 
-    Raises:
+    Raises
+    ------
         AssertionError: If the loaded data does not match the expected shape or type.
     """
     data_path = os.path.join(
@@ -44,7 +45,8 @@ def test_load_from_arff_to_dataframe():
     """
     Test function to check functionality of load_from_arff_to_dataframe.
 
-    Raises:
+    Raises
+    ------
         AssertionError: If the loaded data does not match the expected shape or type.
     """
     data_path = os.path.join(
@@ -66,7 +68,8 @@ def test_load_from_ucr_tsv_to_dataframe():
     """
     Test function to check functionality of load_from_ucr_tsv_to_dataframe.
 
-    Raises:
+    Raises
+    ------
         AssertionError: If the loaded data does not match the expected shape or type.
     """
     data_path = os.path.join(

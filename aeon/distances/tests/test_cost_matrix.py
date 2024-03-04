@@ -19,7 +19,8 @@ def _validate_cost_matrix_result(
     """
     Validate the result of the cost matrix function.
 
-    Parameters:
+    Parameters
+    ----------
         x (np.ndarray): The first input array.
         y (np.ndarray): The second input array.
         name: The name of the distance metric.

@@ -1,3 +1,5 @@
+"""Test for Pairwise Distances."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -13,6 +15,15 @@ def _validate_pairwise_result(
     distance,
     pairwise_distance,
 ):
+    """
+    Validate pairwise result.
+
+    Args:
+        x: Input np.ndarray.
+        name: Name of the distance metric.
+        distance: Distance function.
+        pairwise_distance: Pairwise distance function.
+    """
     pairwise_result = pairwise_distance(x)
 
     expected_size = (len(x), len(x))
@@ -42,6 +53,14 @@ def _validate_multiple_to_multiple_result(
     distance,
     multiple_to_multiple_distance,
 ):
+    """
+    Validate multiple to multiple result.
+
+    Args:
+        x: Input array.
+        y: Input array.
+        multiple_to_multiple_distance: Mul-to-Mul distance function.
+    """
     multiple_to_multiple_result = multiple_to_multiple_distance(x, y)
 
     if x.ndim == 1 and y.ndim == 1:
@@ -81,6 +100,16 @@ def _validate_single_to_multiple_result(
     distance,
     single_to_multiple_distance,
 ):
+    """
+    Validate single to multiple result.
+
+    Args:
+        x: Input array.
+        y: Input array.
+        name: Name of the distance metric.
+        distance: Distance function.
+        single_to_multiple_distance: Single to multiple distance function.
+    """
     single_to_multiple_result = single_to_multiple_distance(x, y)
 
     expected_size = len(y)
