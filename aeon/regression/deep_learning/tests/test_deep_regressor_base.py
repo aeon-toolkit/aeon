@@ -55,6 +55,7 @@ class _DummyDeepRegressor(BaseDeepRegressor):
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_regressor():
+    """Test for Dummy Regressor."""
     last_file_name = str(time.time_ns())
 
     # create a dummy regressor
