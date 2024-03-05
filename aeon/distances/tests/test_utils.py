@@ -56,13 +56,9 @@ def test_reshape_pairwise_single():
     y = np.random.rand(5, 10)
     x2, y2 = _reshape_pairwise_single(x, y)
     assert x2.shape == y2.shape == (5, 10)
-    x2, y2 = _reshape_pairwise_single(x, y, ensure_equal_dims=True)
-    assert x2.shape == y2.shape == (5, 10)
     x = np.random.rand(10)
     y = np.random.rand(10)
     x2, y2 = _reshape_pairwise_single(x, y)
-    assert x2.shape == y2.shape == (1, 10)
-    x2, y2 = _reshape_pairwise_single(x, y, ensure_equal_dims=True)
     assert x2.shape == y2.shape == (1, 10)
     x = np.random.rand(5, 10)
     y = np.random.rand(10)
@@ -74,7 +70,3 @@ def test_reshape_pairwise_single():
     assert x2.ndim == y2.ndim == 2
     assert x2.shape == (5, 10)
     assert y2.shape == (1, 10)
-    with pytest.raises(
-        ValueError, match="x and y must have the same number of dimensions"
-    ):
-        _reshape_pairwise_single(x, y, ensure_equal_dims=True)

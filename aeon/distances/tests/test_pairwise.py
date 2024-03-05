@@ -41,8 +41,8 @@ def _validate_pairwise_result(
 
 
 def _validate_multiple_to_multiple_result(
-    x,
-    y,
+    x: Union[np.ndarray, List[np.ndarray]],
+    y: Union[np.ndarray, List[np.ndarray]],
     name,
     distance,
     multiple_to_multiple_distance,
@@ -239,7 +239,7 @@ def test_multiple_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
-    # unequal-length
+    # unequal-length (within dataset)
     if _supports_nonequal_length(dist):
         # univariate
         _validate_multiple_to_multiple_result(
@@ -250,19 +250,22 @@ def test_multiple_to_multiple_distances(dist):
             dist["pairwise_distance"],
         )
 
-        # multivariate
+        # multivariate dataset
         _validate_multiple_to_multiple_result(
-            [_create_test_distance_numpy(5, 5 + i) for i in range(5)],
-            [_create_test_distance_numpy(5, 3 + i) for i in range(5)],
+            [_create_test_distance_numpy(1, 5 + i) for i in range(5)],
+            [_create_test_distance_numpy(1, 3 + i, random_state=2) for i in range(5)],
             dist["name"],
             dist["distance"],
             dist["pairwise_distance"],
         )
 
-        # TODO: test other cases with unequal-length TS
-
-
-new_distance = ["euclidean", "dtw"]
+        _validate_multiple_to_multiple_result(
+            [_create_test_distance_numpy(5, 5 + i) for i in range(5)],
+            [_create_test_distance_numpy(5, 3 + i, random_state=2) for i in range(5)],
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
