@@ -146,6 +146,7 @@ class ElasticEnsemble(BaseClassifier):
                 "lcss",
                 "erp",
                 "msm",
+                "euclidean",
             ]
         else:
             self._distance_measures = self.distance_measures
