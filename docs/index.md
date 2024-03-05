@@ -2,7 +2,7 @@
 hide-toc: true
 ---
 
-<h1 style="text-align: center;">Welcome to aeon</h1>
+<h1 style="text-align: center;">Welcome to <b>aeon</b></h1>
 
 `aeon` is a scikit-learn compatible toolkit for time series tasks such as
 forecasting, classification and clustering.</p>
@@ -11,6 +11,16 @@ forecasting, classification and clustering.</p>
 - Efficient implementation of time series algorithms using numba.
 - Interfaces with other time series packages to provide a single framework for algorithm
 comparison.
+
+```{admonition} GSoC 2024
+`aeon` is participating in Google Summer of Code 2024 under the NumFOCUS umbrella. If
+you are interested in participating, please see our [GSoC 2024 project page](https://github.com/aeon-toolkit/aeon-admin/blob/main/gsoc/gsoc-2024-projects.md).
+
+Feel free to ask questions on the dedicated [GitHub discussion](https://github.com/aeon-toolkit/aeon/discussions/1121)
+or our [Slack channel](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA).
+If you are interested in contributing, click on the "Contributing to aeon" link in the
+sidebar for a contribution guide.
+```
 
 ::::{grid} 1 2 2 2
 :gutter: 3
@@ -81,7 +91,7 @@ Get started with time series clustering.
 
 +++
 
-```{button-ref} /examples/clustering/partitional_clustering.ipynb
+```{button-ref} /examples/clustering/clustering.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -130,49 +140,10 @@ Distances
 :::
 
 :::{grid-item-card}
-:img-top: examples/annotation/img/clasp.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Annotation
-
-+++
-
-```{button-ref} /examples/annotation/annotation.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Annotation
-```
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/networks/img/Inception.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Deep learning networks.
-
-+++
-
-```{button-ref} /examples/segmentation/segmentation.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Networks
-```
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/segmentation/img/segmentation.png
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Segmentation
 
 +++
@@ -183,6 +154,25 @@ Segmentation
 :expand:
 
 Segmentation
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/similarity_search/img/sim_search.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Similarity Search
+
++++
+
+```{button-ref} /examples/similarity_search/similarity_search.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Similarity Search
 ```
 
 :::
