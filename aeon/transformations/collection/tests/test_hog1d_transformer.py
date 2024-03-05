@@ -1,3 +1,5 @@
+"""Test for HOG1DTransformer."""
+
 import numbers
 
 import numpy as np
@@ -10,6 +12,7 @@ from aeon.transformations.collection.hog1d import HOG1DTransformer
 # (num_intervals is 2 by default)
 @pytest.mark.parametrize("num_bins,corr_series_length", [(4, 8), (8, 16), (12, 24)])
 def test_output_dimensions(num_bins, corr_series_length):
+    """Test output dimensions of HOG1DTransformer."""
     X = np.ones(shape=(10, 1, 13))
     h = HOG1DTransformer(n_bins=num_bins).fit(X)
     res = h.transform(X)
@@ -28,6 +31,7 @@ def test_output_dimensions(num_bins, corr_series_length):
 # correct input is meant to be a positive integer of 1 or more.
 @pytest.mark.parametrize("bad_num_intervals", ["str", 1.2, -1.2, -1, {}, 11, 0])
 def test_bad_num_intervals(bad_num_intervals):
+    """Test handling of bad input for number of intervals."""
     X = np.ones(shape=(10, 1, 10))
 
     if not isinstance(bad_num_intervals, int):
@@ -45,6 +49,7 @@ def test_bad_num_intervals(bad_num_intervals):
 # ints shouldn't raise an error).
 @pytest.mark.parametrize("bad_scaling_factor", ["str", 1.2, -1.2, -1, {}, 0])
 def test_bad_scaling_factor(bad_scaling_factor):
+    """Test handling of bad input for scaling factor."""
     X = np.ones(shape=(10, 1, 10))
 
     if not isinstance(bad_scaling_factor, numbers.Number):
@@ -56,6 +61,7 @@ def test_bad_scaling_factor(bad_scaling_factor):
 
 # Check the transformer has changed the data correctly.
 def test_output_of_transformer():
+    """Test correctness of transformed data."""
     X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]])
     h = HOG1DTransformer().fit(X)
     res = h.transform(X)

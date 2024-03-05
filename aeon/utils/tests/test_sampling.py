@@ -48,6 +48,7 @@ def test_seed(n, k, seed):
 
 @pytest.mark.parametrize("input_type", INPUT_TYPES)
 def test_stratified_resample(input_type):
+    """Test stratified resampling."""
     random_state = np.random.RandomState(0)
     if input_type == "numpy3D":
         X_train = random_state.random((10, 1, 100))

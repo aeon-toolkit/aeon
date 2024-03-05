@@ -1,3 +1,5 @@
+"""Unit test for tabularizer."""
+
 import numpy as np
 
 from aeon.transformations.collection.reduce import Tabularizer

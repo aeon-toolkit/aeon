@@ -166,6 +166,12 @@ ignore = [
     "docs/examples/**",
 ]
 
+[tool.ruff.lint]
+select = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
 [tool.pytest.ini_options]
 # ignore certain folders and pytest warnings
 testpaths = "aeon"

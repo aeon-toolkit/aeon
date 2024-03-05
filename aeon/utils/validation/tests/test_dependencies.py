@@ -8,6 +8,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 # Currently just partial testing of soft dep checks.
 def test__check_soft_dependencies():
+    """Test _check_soft_dependencies function."""
     with pytest.raises(TypeError, match="packages must be str or tuple of str"):
         _check_soft_dependencies((1, 2, 3))
     with pytest.raises(TypeError, match="package_import_alias must be a dict"):

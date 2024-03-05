@@ -51,6 +51,11 @@ def test_truncation_parameterised_transformer():
 
 
 def test_truncation_fill_unequal_length():
+    """
+    Test function to ensure TruncationTransformer.
+
+    handles input sequences of unequal length correctly.
+    """
     X = []
     for i in range(10):
         X.append(np.random.random((10, 15 + i)))

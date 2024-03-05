@@ -16,6 +16,7 @@ N_ITER = 10
 
 @pytest.mark.parametrize("n_intervals", [1, 2, 5, 6, 50])
 def test_interval_segmenters(n_intervals):
+    """Test IntervalSegmenter with specified number of intervals."""
     X = np.ones((10, 1, 100))
     trans = IntervalSegmenter(intervals=n_intervals)
     Xt = trans.fit_transform(X)

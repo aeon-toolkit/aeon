@@ -1,3 +1,5 @@
+"""Unit test for slope transformer."""
+
 import math
 
 import numpy as np
@@ -11,6 +13,11 @@ from aeon.transformations.collection.slope import SlopeTransformer
 # correct input is meant to be a positive integer of 1 or more.
 @pytest.mark.parametrize("bad_num_intervals", ["str", 1.2, -1.2, -1, {}, 0])
 def test_bad_input_args(bad_num_intervals):
+    """
+    Test function to check if exceptions.
+
+    are raised for bad input arguments.
+    """
     X = np.ones(shape=(10, 10, 1))
     if not isinstance(bad_num_intervals, int):
         with pytest.raises(TypeError):
@@ -22,6 +29,7 @@ def test_bad_input_args(bad_num_intervals):
 
 # Check the transformer has changed the data correctly.
 def test_output_of_transformer():
+    """Test function to verify the output of the SlopeTransformer."""
     X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]])
     s = SlopeTransformer(n_intervals=2).fit(X)
     res = s.transform(X)
@@ -46,6 +54,7 @@ def test_output_of_transformer():
 
 @pytest.mark.parametrize("num_intervals,corr_series_length", [(2, 2), (5, 5), (8, 8)])
 def test_output_dimensions(num_intervals, corr_series_length):
+    """Test function to verify the output dimensions of the SlopeTransformer."""
     X = np.ones(shape=(10, 1, 13))
     s = SlopeTransformer(n_intervals=num_intervals).fit(X)
     res = s.transform(X)
@@ -58,6 +67,11 @@ def test_output_dimensions(num_intervals, corr_series_length):
 
 # This is to check that Slope produces the same result along each dimension
 def test_slope_performs_correcly_along_each_dim():
+    """
+    Test function to check if SlopeTransformer.
+
+    produces consistent results along each dimension.
+    """
     X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5], [4, 6, 10, 12, 8, 6, 5, 5]]])
     s = SlopeTransformer(n_intervals=2).fit(X)
     res = s.transform(X)

@@ -52,7 +52,8 @@ def test_euclidean_euclidean_constant_case(dtype):
 
 def test_non_alteration_of_inputs_euclidean():
     """
-    Test if input arrays are not altered during,
+    Test if input arrays are not altered during.
+
     Euclidean distance profile calculation.
     """
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
@@ -133,7 +134,8 @@ def test_normalized_euclidean_constant_case(dtype):
 
 def test_non_alteration_of_inputs_normalized_euclidean():
     """
-    Test if input arrays are not altered during,
+    Test if input arrays are not altered during.
+
     normalized Euclidean distance profile calculation.
     """
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])

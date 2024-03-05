@@ -79,7 +79,7 @@ def test_rist_estimator_input():
     reason="skip test if required soft dependency not available",
 )
 def test_rist_series_transform_input():
-    """Test the RISTClassifier class with Tansform input."""
+    """Test the RISTClassifier class with tansform input."""
     X, y = make_example_3d_numpy()
 
     rist = RISTClassifier(

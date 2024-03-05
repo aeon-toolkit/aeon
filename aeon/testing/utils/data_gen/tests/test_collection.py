@@ -136,6 +136,7 @@ def test_make_unequal_length_data(
 def test_make_example_nested_dataframe(
     n_cases, n_channels, n_timepoints, n_classes, regression
 ):
+    """Test to make examples using nested dataframes."""
     X, y = make_example_nested_dataframe(
         n_cases=n_cases,
         n_labels=n_classes,

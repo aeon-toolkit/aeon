@@ -51,7 +51,8 @@ def test_TopKSimilaritySearch_euclidean(dtype):
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_TopKSimilaritySearch_custom_func(dtype):
     """
-    Test the Euclidean functionality for TopKSimilaritySearch,
+    Test the Euclidean functionality for TopKSimilaritySearch.
+
     using a custom function.
     """
 
@@ -89,7 +90,8 @@ def test_TopKSimilaritySearch_custom_func(dtype):
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_TopKSimilaritySearch_change_args(dtype):
     """
-    Test the Euclidean functionality for TopKSimilaritySearch,
+    Test the Euclidean functionality for TopKSimilaritySearch.
+
     by changing the arguments.
     """
     X = np.asarray(

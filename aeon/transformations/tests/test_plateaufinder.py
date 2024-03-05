@@ -1,3 +1,5 @@
+"""Test for PlateauFinder."""
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -7,6 +9,11 @@ from aeon.transformations.summarize import PlateauFinder
 
 @pytest.mark.parametrize("value", [np.nan, -10, 10, -0.5, 0.5])
 def test_plateau_finder(value):
+    """
+    Test the PlateauFinder transformer.
+
+    to identify plateaus in a DataFrame.
+    """
     # generate test data
     value = np.nan
     X = pd.DataFrame(

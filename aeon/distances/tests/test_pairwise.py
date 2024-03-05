@@ -236,7 +236,6 @@ new_distance = ["euclidean", "dtw"]
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_single_to_multiple_distances(dist):
     """Test new single to multiple distances."""
-
     if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_single_to_multiple_result(
             np.array([10.0]),

@@ -59,10 +59,10 @@ def test_naive_euclidean_constant_case(dtype):
 
 def test_non_alteration_of_inputs_naive_euclidean():
     """
-    Test that input arrays are not altered during,
+    Test that input arrays are not altered during.
+
     the computation of naive Euclidean distance.
     """
-
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
     X_copy = np.copy(X)
     q = np.asarray([[3, 4, 5]])
@@ -149,10 +149,10 @@ def test_normalized_naive_euclidean_constant_case(dtype):
 
 def test_non_alteration_of_inputs_normalized_naive_euclidean():
     """
-    Test that input arrays are not altered during,
+    Test that input arrays are not altered during.
+
     the Normalized computation of naive Euclidean distance.
     """
-
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
     X_copy = np.copy(X)
     q = np.asarray([[3, 4, 5]])

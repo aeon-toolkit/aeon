@@ -16,8 +16,7 @@ class DummyDeepNetwork(BaseDeepNetwork):
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):
-        """Function to Build a Neural Network."""
-
+        """Build a neural network."""
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)

@@ -1,3 +1,5 @@
+"""Test for PAA transformations on time series."""
+
 import numpy as np
 import pytest
 
@@ -6,6 +8,11 @@ from aeon.transformations.collection.dictionary_based import PAA
 
 @pytest.mark.parametrize("n_segments", [8])
 def test_equal_length_univariate_paa(n_segments):
+    """
+    Test if PAA transformation and inverse transformation.
+
+    maintain equal length for univariate time series.
+    """
     X = np.random.normal(size=(10, 1, 100))
 
     # normalize input
@@ -24,6 +31,11 @@ def test_equal_length_univariate_paa(n_segments):
 
 @pytest.mark.parametrize("n_segments", [8])
 def test_equal_length_multivariate_paa(n_segments):
+    """
+    Test if PAA transformation and inverse transformation.
+
+    maintain equal length for multivariate time series.
+    """
     X = np.random.normal(size=(10, 3, 100))
 
     # normalize input

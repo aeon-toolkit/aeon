@@ -32,7 +32,8 @@ def test_window_bounding():
 
 def test_itakura_parallelogram():
     """
-    Test function to check the creation of an,
+    Test function to check the creation of an.
+
     Itakura parallelogram bounding matrix.
     """
     matrix = create_bounding_matrix(10, 10, itakura_max_slope=0.2)
