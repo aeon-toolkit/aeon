@@ -83,6 +83,7 @@ all_extras = [
     "tslearn>=0.5.2",
     "xarray",
 
+    "mlflow<2.4.0; python_version < '3.12'",
     "cloudpickle<=2.2.1",
     "pytz<=2023.4",
     "urllib3<=2.0.7",
