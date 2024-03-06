@@ -267,11 +267,57 @@ def test_multiple_to_multiple_distances(dist):
             dist["pairwise_distance"],
         )
 
+        # multivariate with different number of channels
+        if dist["name"] != "sbd":
+            # - different between x and y
+            _validate_multiple_to_multiple_result(
+                [_create_test_distance_numpy(2, 5 + i) for i in range(5)],
+                [
+                    _create_test_distance_numpy(3, 3 + i, random_state=2)
+                    for i in range(5)
+                ],
+                dist["name"],
+                dist["distance"],
+                dist["pairwise_distance"],
+            )
+            # - different just in x
+            _validate_multiple_to_multiple_result(
+                [_create_test_distance_numpy(1 + i % 2, 5 + i) for i in range(5)],
+                [
+                    _create_test_distance_numpy(1, 3 + i, random_state=2)
+                    for i in range(5)
+                ],
+                dist["name"],
+                dist["distance"],
+                dist["pairwise_distance"],
+            )
+            # - different just in y
+            _validate_multiple_to_multiple_result(
+                [_create_test_distance_numpy(1, 5 + i) for i in range(5)],
+                [
+                    _create_test_distance_numpy(1 + i % 2, 3 + i, random_state=2)
+                    for i in range(5)
+                ],
+                dist["name"],
+                dist["distance"],
+                dist["pairwise_distance"],
+            )
+            # - different in both
+            _validate_multiple_to_multiple_result(
+                [_create_test_distance_numpy(1 + i % 2, 5 + i) for i in range(5)],
+                [
+                    _create_test_distance_numpy(1 + i % 2, 3 + i, random_state=2)
+                    for i in range(5)
+                ],
+                dist["name"],
+                dist["distance"],
+                dist["pairwise_distance"],
+            )
+
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_single_to_multiple_distances(dist):
     # Univariate tests
-
     if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_single_to_multiple_result(
             np.array([10.0]),
