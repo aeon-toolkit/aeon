@@ -68,21 +68,21 @@ class DummyClassifier(BaseClassifier):
 
     >>> clf = DummyClassifier(strategy="prior")
     >>> clf.fit(X_train, y_train)
-    DummyClassifier(strategy="prior")
-    >>> clf.predict(X_test)
-
+    DummyClassifier()
+    >>> clf.predict(X_test)[:5]
+    array(['1', '1', '1', '1', '1'], dtype='<U1')
 
     >>> clf = DummyClassifier(strategy="uniform", random_state=0)
     >>> clf.fit(X_train, y_train)
-    DummyClassifier(strategy="uniform", random_state=0)
-    >>> clf.predict(X_test)
+    DummyClassifier(random_state=0, strategy='uniform')
+    >>> clf.predict(X_test)[:5]
+    array(['1', '2', '2', '1', '2'], dtype='<U1')
 
-
-    >>> clf = DummyClassifier(strategy="constant", constant=0)
+    >>> clf = DummyClassifier(strategy="constant", constant="2")
     >>> clf.fit(X_train, y_train)
-    DummyClassifier(strategy="constant", constant=0)
-    >>> clf.predict(X_test)
-
+    DummyClassifier(constant='2', strategy='constant')
+    >>> clf.predict(X_test)[:5]
+    array(['2', '2', '2', '2', '2'], dtype='<U1')
     """
 
     _tags = {

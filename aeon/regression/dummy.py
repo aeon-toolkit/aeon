@@ -50,27 +50,27 @@ class DummyRegressor(BaseRegressor):
 
     >>> reg = DummyRegressor(strategy="mean")
     >>> reg.fit(X_train, y_train)
-    DummyRegressor(strategy="mean")
-    >>> reg.predict(X_test)
-
+    DummyRegressor()
+    >>> reg.predict(X_test)[:5]
+    array([0.03689763, 0.03689763, 0.03689763, 0.03689763, 0.03689763])
 
     >>> reg = DummyRegressor(strategy="quantile", quantile=0.75)
     >>> reg.fit(X_train, y_train)
-    DummyRegressor(strategy="quantile", quantile=0.75)
-    >>> reg.predict(X_test)
-
+    DummyRegressor(quantile=0.75, strategy='quantile')
+    >>> reg.predict(X_test)[:5]
+    array([0.05559524, 0.05559524, 0.05559524, 0.05559524, 0.05559524])
 
     >>> reg = DummyRegressor(strategy="constant", constant=0.5)
     >>> reg.fit(X_train, y_train)
-    DummyRegressor(strategy="constant", constant=0.5)
-    >>> reg.predict(X_test)
-
+    DummyRegressor(constant=0.5, strategy='constant')
+    >>> reg.predict(X_test)[:5]
+    array([0.5, 0.5, 0.5, 0.5, 0.5])
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:missing_values": True,
-        "capability:unequal_length": False,
+        "capability:unequal_length": True,
         "capability:multivariate": True,
     }
 
