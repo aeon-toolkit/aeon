@@ -8,9 +8,20 @@ from itertools import chain
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.utils import check_random_state
 
 
+# TODO: remove in v0.9.0
+@deprecated(
+    version="0.8.0",
+    reason=(
+        "stratified_resample is moving to "
+        "benchmarking/experiments.py, "
+        "this version will be removed in v0.9.0."
+    ),
+    category=FutureWarning,
+)
 def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
     """Stratified resample data without replacement using a random state.
 
