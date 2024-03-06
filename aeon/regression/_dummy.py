@@ -75,7 +75,7 @@ class DummyRegressor(BaseRegressor):
         -------
         self : reference to self.
         """
-        self.sklearn_dummy_regressor.fit(None, y)
+        self.sklearn_dummy_regressor.fit(X, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -89,4 +89,4 @@ class DummyRegressor(BaseRegressor):
         -------
         y : predictions of target values for X, np.ndarray
         """
-        return self.sklearn_dummy_regressor.predict(np.zeros(X.shape))
+        return self.sklearn_dummy_regressor.predict(X)
