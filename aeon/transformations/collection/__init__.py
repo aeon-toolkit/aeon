@@ -22,8 +22,10 @@ __all__ = [
     "SlopeTransformer",
     "TimeSeriesScaler",
     "TruncationTransformer",
+    "BroadcastTransformer",
 ]
 
+from aeon.transformations.collection._broadcaster import BroadcastTransformer
 from aeon.transformations.collection._collection_wrapper import (
     CollectionToSeriesWrapper,
 )
