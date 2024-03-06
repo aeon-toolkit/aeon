@@ -2291,7 +2291,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/108270861?v=4",
       "profile": "https://github.com/itsdivya1309",
       "contributions": [
-        "data"
+        "data",
+        "code"
       ]
     },
     {
@@ -2318,7 +2319,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/108270861?v=4",
       "profile": "https://github.com/itsdivya1309",
       "contributions": [
-        "code"
+        "code",
+        "data"
       ]
     },
     {
@@ -2345,13 +2347,13 @@
     },
     {
       "login": "AnonymousCodes911",
-    "name": "Utkarsh Kumar",
-    "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
-    "profile": "https://github.com/AnonymousCodes911",
-    "contributions": [
-      "code",
-      "doc"
-    ]
+      "name": "Utkarsh Kumar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
+      "profile": "https://github.com/AnonymousCodes911",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
