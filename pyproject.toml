@@ -84,6 +84,7 @@ all_extras = [
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
+    "pycatch22<=0.4.3",
 ]
 dl = [
     "keras-self-attention",
@@ -92,7 +93,6 @@ dl = [
 ]
 unstable_extras = [
     "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
-    "pycatch22<=0.4.3",  # known to fail installation on some setups
 ]
 dev = [
     "backoff",
