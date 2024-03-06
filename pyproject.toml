@@ -83,7 +83,7 @@ all_extras = [
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
-    # "pytz<2024.1",
+    "pytz<2024.1",
 ]
 dl = [
     "keras-self-attention",
