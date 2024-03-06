@@ -68,7 +68,6 @@ all_extras = [
     "keras-self-attention",
     "kotsu>=0.3.1",
     "matplotlib>=3.3.2",
-    "mlflow<2.4.0; python_version < '3.12'", # see https://github.com/mlflow/mlflow/issues/8629
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
     "pydot>=2.0.0",
@@ -105,9 +104,6 @@ dev = [
     "pytest-xdist",
     "pytest-rerunfailures",
     "wheel",
-    "boto3",  # mlflow related
-    "botocore",  # mlflow related
-    "moto",  # mlflow related
 ]
 binder = [
     "notebook",
