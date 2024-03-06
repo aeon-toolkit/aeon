@@ -57,7 +57,6 @@ dependencies = [
 
 [project.optional-dependencies]
 all_extras = [
-    "cloudpickle<=2.2.1",
     "dask; python_version < '3.12'",
     "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
     "filterpy>=1.4.5",
@@ -83,8 +82,14 @@ all_extras = [
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
+
+    "cloudpickle<=2.2.1",
     "pytz<=2023.4",
     "urllib3<=2.0.7",
+    "importlib-metadata<=6.11.0",
+    "boto3",  # mlflow related
+    "botocore",  # mlflow related
+    "moto",  # mlflow related
 ]
 dl = [
     "keras-self-attention",
