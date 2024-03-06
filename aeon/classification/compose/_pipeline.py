@@ -1,14 +1,14 @@
 """Pipeline with a classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ClassifierPipeline", "SklearnClassifierPipeline"]
 
 
 import numpy as np
 from deprecated.sphinx import deprecated
-from sklearn.base import BaseEstimator as SklearnBaseEstimator
 
-from aeon.base import BaseEstimator, _HeterogenousMetaEstimator
+from aeon.base import _HeterogenousMetaEstimator
+from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.compose import TransformerPipeline
@@ -16,12 +16,12 @@ from aeon.utils.conversion import convert_collection
 from aeon.utils.sklearn import is_sklearn_classifier
 
 
-class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
+class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
     """Pipeline of transformers and a classifier.
 
     The `ClassifierPipeline` compositor chains transformers and a single classifier.
     The pipeline is constructed with a list of aeon transformers, plus a classifier,
-        i.e., estimators following the BaseTransformer resp BaseClassifier interface.
+        i.e., estimators following the BaseTransformer and BaseClassifier interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
@@ -43,20 +43,20 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
 
     Parameters
     ----------
-    classifier : aeon or sklearn classifier
-        A classifier to use at the end of the pipeline.
-        The object is cloned prior, as such the state of the input will not be modified
-        by fitting the pipeline.
     transformers : aeon or sklearn transformer or list of transformers
         A transform or list of transformers to use prior to classification.
         List of tuples (str, transformer) of transformers can also be passed, where
         the str is used to name the transformer.
         The objecst are cloned prior, as such the state of the input will not be
         modified by fitting the pipeline.
+    classifier : aeon or sklearn classifier
+        A classifier to use at the end of the pipeline.
+        The object is cloned prior, as such the state of the input will not be modified
+        by fitting the pipeline.
 
     Attributes
     ----------
-    steps_ : list of tuples (str, estimator) of tansformers and classifier
+    steps_ : list of tuples (str, estimator) of transformers and classifier
         Clones of transformers and the classifier which are fitted in the pipeline.
         Will always be in (str, estimator) format, even if transformers input is a
         singular transform or list of transformers.
@@ -77,198 +77,14 @@ class ClassifierPipeline(_HeterogenousMetaEstimator, BaseClassifier):
     >>> y_pred = pipeline.predict(X_test)
     """
 
-    # TODO: remove in v0.8.0
-    @deprecated(
-        version="0.7.0",
-        reason="The position of the classifier and transformers argument for "
-        "ClassifierPipeline __init__ will be swapped in v0.8.0. Use "
-        "keyword arguments to avoid breakage.",
-        category=FutureWarning,
-    )
-    def __init__(self, classifier, transformers):
-        self.classifier = classifier
-        self.transformers = transformers
-
-        self._steps = (
-            [t for t in transformers]
-            if isinstance(transformers, list)
-            else [transformers]
-        )
-        self._steps.append(classifier)
-        self._steps = self._check_estimators(
-            self._steps,
-            attr_name="_steps",
-            cls_type=SklearnBaseEstimator,
-            clone_ests=False,
-        )
-
-        super().__init__()
-
-        # can handle multivariate if: both classifier and all transformers can
-        multivariate_tags = [
-            (
-                t[1].get_tag("capability:multivariate", False, raise_error=False)
-                if isinstance(t[1], BaseEstimator)
-                else False
-            )
-            for t in self._steps
-        ]
-        multivariate = all(multivariate_tags)
-
-        # can handle missing values if: both classifier and all transformers can,
-        #   *or* transformer chain removes missing data
-        missing_tags = [
-            (
-                t[1].get_tag("capability:missing_values", False, raise_error=False)
-                if isinstance(t[1], BaseEstimator)
-                else False
-            )
-            for t in self._steps
-        ]
-        missing_rm_rags = [
-            (
-                t[1].get_tag(
-                    "capability:missing_values:removes", False, raise_error=False
-                )
-                if isinstance(t[1], BaseEstimator)
-                else False
-            )
-            for t in self._steps
-        ]
-        missing = all(missing_tags) or any(missing_rm_rags)
-
-        # can handle unequal length if: classifier can and transformers can,
-        #   *or* transformer chain renders the series equal length
-        unequal_tags = [
-            (
-                t[1].get_tag("capability:unequal_length", False, raise_error=False)
-                if isinstance(t[1], BaseEstimator)
-                else False
-            )
-            for t in self._steps
-        ]
-        unequal_rm_tags = [
-            (
-                t[1].get_tag(
-                    "capability:unequal_length:removes", False, raise_error=False
-                )
-                if isinstance(t[1], BaseEstimator)
-                else False
-            )
-            for t in self._steps
-        ]
-        unequal = all(unequal_tags) or any(unequal_rm_tags)
-
-        tags_to_set = {
-            "capability:multivariate": multivariate,
-            "capability:missing_values": missing,
-            "capability:unequal_length": unequal,
-        }
-        self.set_tags(**tags_to_set)
-
     _tags = {
         "X_inner_type": ["np-list", "numpy3D"],
     }
 
-    # TODO: remove in v0.8.0
-    @deprecated(
-        version="0.7.0",
-        reason="The ClassifierPipeline __rmul__ (*) functionality will be removed "
-        "in v0.8.0.",
-        category=FutureWarning,
-    )
-    def __rmul__(self, other):
-        """Magic * method, return concatenated ClassifierPipeline, transformers on left.
+    def __init__(self, transformers, classifier):
+        self.classifier = classifier
 
-        Implemented for `other` being a transformer, otherwise returns `NotImplemented`.
-
-        Parameters
-        ----------
-        other: `aeon` transformer, must inherit from BaseTransformer
-            otherwise, `NotImplemented` is returned
-
-        Returns
-        -------
-        ClassifierPipeline object, concatenation of `other` (first) with `self` (last).
-        """
-        if isinstance(other, BaseTransformer):
-            # use the transformers dunder to get a TransformerPipeline
-            trafo_pipeline = other * self.transformers_
-            return ClassifierPipeline(
-                classifier=self.classifier,
-                transformers=trafo_pipeline.steps,
-            )
-        else:
-            return NotImplemented
-
-    def _fit(self, X, y):
-        """Fit time series classifier to training data.
-
-        Parameters
-        ----------
-        X : Training data of type self.get_tag("X_inner_type")
-        y : array-like, shape = [n_instances] - the class labels
-
-        Returns
-        -------
-        self : reference to self.
-
-        State change
-        ------------
-        creates fitted model (attributes ending in "_")
-        """
-        self.steps_ = self._check_estimators(
-            self._steps, attr_name="steps_", cls_type=SklearnBaseEstimator
-        )
-
-        # fit transforms sequentially
-        Xt = X
-        for i in range(len(self.steps_) - 1):
-            Xt = self.steps_[i][1].fit_transform(X=Xt, y=y)
-        # fit classifier
-        self.steps_[-1][1].fit(X=Xt, y=y)
-
-        return self
-
-    def _predict(self, X) -> np.ndarray:
-        """Predict labels for sequences in X.
-
-        Parameters
-        ----------
-        X : data not used in training, of type self.get_tag("X_inner_type")
-
-        Returns
-        -------
-        y : predictions of labels for X, np.ndarray
-        """
-        # transform
-        Xt = X
-        for i in range(len(self.steps_) - 1):
-            Xt = self.steps_[i][1].transform(X=Xt)
-        # predict
-        return self.steps_[-1][1].predict(X=Xt)
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
-
-        Default behaviour is to call _predict and set the predicted class probability
-        to 1, other class probabilities to 0. Override if better estimates are
-        obtainable.
-
-        Parameters
-        ----------
-        X : data to predict y with, of type self.get_tag("X_inner_type")
-
-        Returns
-        -------
-        y : predictions of probabilities for class values of X, np.ndarray
-        """
-        # transform
-        Xt = X
-        for i in range(len(self.steps_) - 1):
-            Xt = self.steps_[i][1].transform(X=Xt)
-        # predict
-        return self.steps_[-1][1].predict_proba(X=Xt)
+        super().__init__(transformers=transformers, _estimator=classifier)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

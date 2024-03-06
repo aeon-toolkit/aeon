@@ -46,7 +46,7 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "input_data_type": "Collection",
+        "X_inner_type": ["np-list", "numpy3D"],
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "capability:unequal_length": True,

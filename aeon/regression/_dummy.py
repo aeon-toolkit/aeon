@@ -48,10 +48,10 @@ class DummyRegressor(BaseRegressor):
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",
         "capability:missing_values": True,
-        "capability:unequal_length": False,
+        "capability:unequal_length": True,
         "capability:multivariate": True,
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def __init__(self, strategy="mean", constant=None, quantile=None):
