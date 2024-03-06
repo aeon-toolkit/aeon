@@ -119,7 +119,7 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
                 TruncationTransformer(truncated_length=5),
                 SevenNumberSummaryTransformer(),
             ],
-            "classifier": KNeighborsTimeSeriesRegressor(distance="euclidean"),
+            "regressor": KNeighborsTimeSeriesRegressor(distance="euclidean"),
         }
 
 
