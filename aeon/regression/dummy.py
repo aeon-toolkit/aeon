@@ -1,6 +1,6 @@
 """Dummy time series regressor."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["DummyRegressor"]
 
 import numpy as np
@@ -13,38 +13,58 @@ class DummyRegressor(BaseRegressor):
     """
     DummyRegressor makes predictions that ignore the input features.
 
-    This regressor serves as a simple baseline to compare against other more
-    complex regressors.
-    The specific behavior of the baseline is selected with the `strategy`
-    parameter.
+    This regressor is a wrapper for the scikit-learn DummyClassifier that serves as a
+    simple baseline to compare against other more complex regressors.
+    The specific behavior of the baseline is selected with the `strategy` parameter.
 
     All strategies make predictions that ignore the input feature values passed
     as the `X` argument to `fit` and `predict`. The predictions, however,
     typically depend on values observed in the `y` parameter passed to `fit`.
 
-    Function-identical to `sklearn.dummy.DummyRegressor`, which is called
-    inside.
+    Function-identical to `sklearn.dummy.DummyRegressor`, which is called inside.
 
     Parameters
     ----------
     strategy : {"mean", "median", "quantile", "constant"}, default="mean"
         Strategy to use to generate predictions.
-
         * "mean": always predicts the mean of the training set
         * "median": always predicts the median of the training set
         * "quantile": always predicts a specified quantile of the training set,
         provided with the quantile parameter.
         * "constant": always predicts a constant value that is provided by
         the user.
-
     constant : int or float or array-like of shape (n_outputs,), default=None
         The explicit constant as predicted by the "constant" strategy. This
         parameter is useful only for the "constant" strategy.
-
     quantile : float in [0.0, 1.0], default=None
         The quantile to predict using the "quantile" strategy. A quantile of
         0.5 corresponds to the median, while 0.0 to the minimum and 1.0 to the
         maximum.
+
+    Examples
+    --------
+    >>> from aeon.regression.dummy import DummyRegressor
+    >>> from aeon.datasets import load_covid_3month
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
+
+    >>> reg = DummyRegressor(strategy="mean")
+    >>> reg.fit(X_train, y_train)
+    DummyRegressor(strategy="mean")
+    >>> reg.predict(X_test)
+
+
+    >>> reg = DummyRegressor(strategy="quantile", quantile=0.75)
+    >>> reg.fit(X_train, y_train)
+    DummyRegressor(strategy="quantile", quantile=0.75)
+    >>> reg.predict(X_test)
+
+
+    >>> reg = DummyRegressor(strategy="constant", constant=0.5)
+    >>> reg.fit(X_train, y_train)
+    DummyRegressor(strategy="constant", constant=0.5)
+    >>> reg.predict(X_test)
+
     """
 
     _tags = {
@@ -58,12 +78,14 @@ class DummyRegressor(BaseRegressor):
         self.strategy = strategy
         self.constant = constant
         self.quantile = quantile
+
         self.sklearn_dummy_regressor = SklearnDummyRegressor(
             strategy=strategy, constant=constant, quantile=quantile
         )
+
         super().__init__()
 
-    def _fit(self, X, y) -> np.ndarray:
+    def _fit(self, X, y):
         """Fit the dummy regressor.
 
         Parameters
@@ -75,7 +97,7 @@ class DummyRegressor(BaseRegressor):
         -------
         self : reference to self.
         """
-        self.sklearn_dummy_regressor.fit(None, y)
+        self.sklearn_dummy_regressor.fit(X, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -89,4 +111,4 @@ class DummyRegressor(BaseRegressor):
         -------
         y : predictions of target values for X, np.ndarray
         """
-        return self.sklearn_dummy_regressor.predict(np.zeros(X.shape))
+        return self.sklearn_dummy_regressor.predict(X)
