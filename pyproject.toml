@@ -57,7 +57,7 @@ dependencies = [
 
 [project.optional-dependencies]
 all_extras = [
-    "cloudpickle<=3.0.0",
+    "cloudpickle<=2.2.1",
     "dask; python_version < '3.12'",
     "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
     "filterpy>=1.4.5",
@@ -83,6 +83,7 @@ all_extras = [
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
+    # "pytz<2024.1",
 ]
 dl = [
     "keras-self-attention",
