@@ -57,7 +57,7 @@ dependencies = [
 
 [project.optional-dependencies]
 all_extras = [
-    "cloudpickle",
+    "cloudpickle<=3.0.0",
     "dask; python_version < '3.12'",
     "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
     "filterpy>=1.4.5",
