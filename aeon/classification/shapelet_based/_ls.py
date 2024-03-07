@@ -98,7 +98,15 @@ class LearningShapeletClassifier(BaseClassifier):
         self.scale = scale
         self.random_state = random_state
 
-    def _fit(self, X, y):
+    def _X_trnasformed_tslearn(self, X):
+
+        if X.ndim == 3:
+            X_transformed = np.transpose(X, (0, 2, 1))
+        elif X.ndim == 2:
+            X_transformed = np.transpose(X)
+        return X_transformed
+
+    def _fit(self, X_transformed, y):
         from tslearn.shapelets import LearningShapelets
 
         self.clf_ = LearningShapelets(
@@ -114,17 +122,16 @@ class LearningShapeletClassifier(BaseClassifier):
             scale=self.scale,
             random_state=self.random_state,
         )
-        self.clf_.fit(X, y)
+        self.clf_.fit(X_transformed, y)
         return self
 
-    def _predict(self, X) -> np.ndarray:
-        return self.clf_.predict(X)
+    def _predict(self, X_transformed) -> np.ndarray:
+        return self.clf_.predict(X_transformed)
 
-    def _predict_proba(self, X) -> np.ndarray:
-        return self.clf_.predict_proba(X)
+    def _predict_proba(self, X_transformed) -> np.ndarray:
+        return self.clf_.predict_proba(X_transformed)
 
-    @classmethod
-    def transform(self, X):
+    def transform(self, X_transformed):
         """Generate shapelet transform for a set of time series.
 
         Parameters
@@ -137,9 +144,9 @@ class LearningShapeletClassifier(BaseClassifier):
         array of shape=(n_ts, n_shapelets)
             Shapelet-Transform of the provided time series.
         """
-        return self.clf_.transform(X)
+        return self.clf_.transform(X_transformed)
 
-    def locate(self, X):
+    def locate(self, X_transformed):
         """Compute shapelet match location for a set of time series.
 
         Parameters
@@ -152,4 +159,4 @@ class LearningShapeletClassifier(BaseClassifier):
         array of shape=(n_ts, n_shapelets)
             Location of the shapelet matches for the provided time series.
         """
-        return self.clf_.locate(X)
+        return self.clf_.locate(X_transformed)
