@@ -334,7 +334,7 @@ def test_plot_spectrogram():
 
     from aeon.transformations.series._spectrogram import SpectrogramTransformer
 
-    transformer = SpectrogramTransformer(fs=1)
+    transformer = SpectrogramTransformer(fs=1, return_all_transformations=True)
     f, t, Sxx = transformer.fit_transform(y_airline)
     fig, ax = plot_spectrogram(f, t, Sxx)
 
