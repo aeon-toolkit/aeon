@@ -84,7 +84,7 @@ all_extras = [
     "tslearn>=0.5.2",
     "xarray",
 
-    # for some reason a heirarchical dask test fails on Python 3.10 with the leter
+    # for some reason, a heirarchical dask test fails on Python 3.10 with the leter
     # versions of pyarrow
     "pyarrow<12; python_version == '3.10'",
     "pyarrow-hotfix; python_version == '3.10'",
