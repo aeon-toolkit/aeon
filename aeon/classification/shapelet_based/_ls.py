@@ -3,6 +3,8 @@
 Learning shapelet classifier that simply wraps the LearningShapelet class from tslearn.
 """
 
+__all__ = ["LearningShapeletClassifier"]
+
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
