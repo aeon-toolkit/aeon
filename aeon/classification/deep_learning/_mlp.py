@@ -25,6 +25,8 @@ class MLPClassifier(BaseDeepClassifier):
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
+    use_mini_batch_size : boolean, default = False
+        Condition on using the mini batch size formula
     callbacks : callable or None, default
     random_state : int or None, default=None
         Seed for random number generation.
@@ -86,6 +88,7 @@ class MLPClassifier(BaseDeepClassifier):
         self,
         n_epochs=2000,
         batch_size=16,
+        use_mini_batch_size=False,
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
@@ -105,6 +108,7 @@ class MLPClassifier(BaseDeepClassifier):
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
+        self.use_mini_batch_size = use_mini_batch_size
         self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
@@ -216,10 +220,15 @@ class MLPClassifier(BaseDeepClassifier):
             else self.callbacks
         )
 
+        if self.use_mini_batch_size:
+            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+        else:
+            mini_batch_size = self.batch_size
+
         self.history = self.training_model_.fit(
             X,
             y_onehot,
-            batch_size=self.batch_size,
+            batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
