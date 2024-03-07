@@ -1,4 +1,6 @@
-__author__ = ["aadya940"]
+"""Implements Spectrogram Transformations."""
+
+__maintainer__ = ["aadya940"]
 __all__ = ["SpectrogramTransformer"]
 
 from scipy.signal import spectrogram
@@ -13,20 +15,27 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     Spectrograms can be used as a way of visualizing the change
     of a nonstationary signal's frequency content over time.
 
+    `SpectrogramTransformer` is a simple wrapper to `scipy.signal.spectrogram`.
+
     For more info checkout, checkout the scipy docs:
     <https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.spectrogram.html>_.
 
     Parameters
     ----------
-    fs: float, optional
-        Sampling frequency of the time series. Defaults to 1.0.
-    return_onesided: boolean, optional
+    fs : float, default=1.0
+        Sampling frequency of the time series.
+    return_onesided: boolean, default = True
         If True, return a one-sided spectrum for real data.
-        If False return a two-sided spectrum. Defaults to True.
+        If False return a two-sided spectrum.
+    return_all_transformations: boolean, default = False
+        If True, returns `sample_frequencies` and `segment_time`
+        after the Transformation
 
     Examples
     --------
     >>> from aeon.transformations.series import SpectrogramTransformer
+    >>> # Generates a noisy AM signal with a carrier frequency of 3 kHz,
+    >>> # modulated by a 500 Hz cosine wave.
     >>> import numpy as np
     >>> rng = np.random.default_rng()
     >>> fs = 10e3
@@ -37,10 +46,10 @@ class SpectrogramTransformer(BaseSeriesTransformer):
     >>> mod = 500*np.cos(2*np.pi*0.25*time)
     >>> carrier = amp * np.sin(2*np.pi*3e3*time + mod)
     >>> noise = rng.normal(scale=np.sqrt(noise_power), size=time.shape)
-    >>> noise *= np.exp(-time/5)
+    >>> noise *= np.exp(-time/5) # Gaussian noise with decreasing power over time
     >>> x = carrier + noise
-    >>> transformer = SpectrogramTransformer()  # doctest: +SKIP
-    >>> mp = transformer.fit_transform(x)  # doctest: +SKIP
+    >>> transformer = SpectrogramTransformer()
+    >>> mp = transformer.fit_transform(x)
     """
 
     _tags = {
@@ -48,10 +57,13 @@ class SpectrogramTransformer(BaseSeriesTransformer):
         "capability:inverse_transform": False,
     }
 
-    def __init__(self, fs: float = 1, return_onesided=True):
+    def __init__(
+        self, fs: float = 1, return_onesided=True, return_all_transformations=False
+    ):
         # Inputs
         self.fs = fs
         self.return_onesided = return_onesided
+        self.return_all_ = return_all_transformations
 
         # Outputs
         self.sample_frequencies = None
@@ -73,31 +85,19 @@ class SpectrogramTransformer(BaseSeriesTransformer):
 
         Returns
         -------
-        sample_frequencies: ndarray
-                        Array of sample frequencies.
-        segment_time:   ndarray
-                    Array of segment times.
-        spectrogram:     ndarray
-                    Spectrogram of x. By default, the last axis of
-                    spectrogram corresponds to the segment times.
+        sample_frequencies : ndarray
+                             Array of sample frequencies.
+        segment_time :       ndarray
+                             Array of segment times.
+        spectrogram :        ndarray
+                             Spectrogram of x. By default, the last axis of
+                             spectrogram corresponds to the segment times.
         """
         self.sample_frequencies, self.segment_time, self.spectrogram = spectrogram(
             X, fs=self.fs, return_onesided=self.return_onesided
         )
-        return self.sample_frequencies, self.segment_time, self.spectrogram
 
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """
-        Return testing parameter settings for the estimator.
+        if self.return_all_:
+            return self.sample_frequencies, self.segment_time, self.spectrogram
 
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class.
-        """
-        return {}
+        return self.spectrogram

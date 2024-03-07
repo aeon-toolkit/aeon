@@ -372,14 +372,15 @@ def plot_spectrogram(
     Parameters
     ----------
     sample_frequencies : ndarray
-                    Array of sample frequencies.
-    segment_time :   ndarray
-                Array of segment times.
-    spectrogram :     ndarray
-                Spectrogram of x. By default, the last axis of
-                spectrogram corresponds to the segment times.
-    return_both : boolean, default = False
-                Condition to allow negative frequency spectrum.
+                         Array of sample frequencies.
+    segment_time :       ndarray
+                         Array of segment times.
+    spectrogram :        ndarray
+                         Spectrogram of x. By default, the last axis of
+                         spectrogram corresponds to the segment times.
+    return_both :        boolean, default = False
+                         Condition to allow negative frequency spectrum.
+
 
     Returns
     -------
@@ -407,7 +408,10 @@ def plot_spectrogram(
     >>> transformer=SpectrogramTransformer(fs=fs)  # doctest: +SKIP
     >>> f1, t1, Sxx1 = transformer.fit_transform(x)  # doctest: +SKIP
     >>> fig, ax = plot_spectrogram(f1, t1, Sxx1, return_both=False)  # doctest: +SKIP
-    >>> transformer=SpectrogramTransformer(return_onesided=False)  # doctest: +SKIP
+    >>> transformer = SpectrogramTransformer(
+    ...     return_onesided=False,
+    ...     return_all_transformations=True
+    ... )  # doctest: +SKIP
     >>> f2, t2, Sxx2 = transformer.fit_transform(x)  # doctest: +SKIP
     >>> fig, ax = plot_spectrogram(f2, t2, Sxx2, return_both=True)  # doctest: +SKIP
     """
