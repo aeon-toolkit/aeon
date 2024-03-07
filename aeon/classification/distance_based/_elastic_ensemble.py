@@ -447,6 +447,8 @@ class ElasticEnsemble(BaseClassifier):
                     {"c": x} for x in np.concatenate([a, b[1:], c[1:], d[1:]])
                 ]
             }
+        elif distance_measure == "euclidean":
+            return {"distance_params": [{}]}  # No parameters for Euclidean distance
         else:
             raise NotImplementedError(
                 "EE does not currently support: " + str(distance_measure)
