@@ -63,7 +63,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
         # Inputs
         self.fs = fs
         self.return_onesided = return_onesided
-        self.return_all_ = return_all_transformations
+        self.return_all_transformations = return_all_transformations
 
         # Outputs
         self.sample_frequencies = None
@@ -97,7 +97,7 @@ class SpectrogramTransformer(BaseSeriesTransformer):
             X, fs=self.fs, return_onesided=self.return_onesided
         )
 
-        if self.return_all_:
+        if self.return_all_transformations:
             return self.sample_frequencies, self.segment_time, self.spectrogram
 
         return self.spectrogram
