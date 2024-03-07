@@ -84,13 +84,6 @@ all_extras = [
     "xarray",
 
     "mlflow<2.4.0; python_version < '3.12'",
-    "cloudpickle<=2.2.1",
-    "pytz<=2023.4",
-    "urllib3<=2.0.7",
-    "importlib-metadata<=6.11.0",
-    "boto3",  # mlflow related
-    "botocore",  # mlflow related
-    "moto",  # mlflow related
 ]
 dl = [
     "keras-self-attention",
