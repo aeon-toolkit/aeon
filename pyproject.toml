@@ -84,15 +84,13 @@ all_extras = [
     "tslearn>=0.5.2",
     "xarray",
 
-
-    "sqlalchemy<3,>=1.4.0",
-    "gunicorn<21; platform_system != 'Windows'",
-    "waitress<3; platform_system == 'Windows'",
-    "scikit-learn<2",
-    "markdown<4,>=3.3",
-    "Jinja2<4,>=2.11; platform_system != 'Windows'",
-    "Jinja2<4,>=3.0; platform_system == 'Windows'",
-    "matplotlib<4",
+    "alembic<2,!=1.10.0",
+    "docker<7,>=4.0.0",
+    "Flask<3",
+    "numpy<2",
+    "scipy<2",
+    "pandas<3",
+    "querystring_parser<2",
 ]
 dl = [
     "keras-self-attention",
