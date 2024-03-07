@@ -84,13 +84,10 @@ all_extras = [
     "tslearn>=0.5.2",
     "xarray",
 
-    "alembic<2,!=1.10.0",
-    "docker<7,>=4.0.0",
-    "Flask<3",
-    "numpy<2",
-    "scipy<2",
-    "pandas<3",
-    "querystring_parser<2",
+    # for some reason a heirarchical dask test fails on Python 3.10 with the leter
+    # versions of pyarrow
+    "pyarrow<12; python_version == '3.10'",
+    "pyarrow-hotfix; python_version == '3.10'",
 ]
 dl = [
     "keras-self-attention",
