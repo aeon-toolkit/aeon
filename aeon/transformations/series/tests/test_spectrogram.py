@@ -12,7 +12,7 @@ def test_spectrogram_transformer():
         [[20101.22789116], [238581.86979207], [439788.78395447], [278571.85645754]]
     )
 
-    st = SpectrogramTransformer()
+    st = SpectrogramTransformer(return_all_transformations=True)
     res1, res2, res3 = st.fit_transform(series)
     np.testing.assert_allclose(res1, expected_sample_freq, rtol=1e-04, atol=1e-04)
     np.testing.assert_allclose(res2, expected_segment_time, rtol=1e-04, atol=1e-04)
