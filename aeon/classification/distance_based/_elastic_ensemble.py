@@ -147,6 +147,7 @@ class ElasticEnsemble(BaseClassifier):
                 "erp",
                 "msm",
                 "euclidean",
+                "twe",
             ]
         else:
             self._distance_measures = self.distance_measures
@@ -449,6 +450,23 @@ class ElasticEnsemble(BaseClassifier):
             }
         elif distance_measure == "euclidean":
             return {"distance_params": [{}]}  # No parameters for Euclidean distance
+        elif distance_measure == "twe":
+            train_std = np.std(train_x)
+            band_sizes = get_inclusive(0, 0.25, 10)
+            nu_values = get_inclusive(0.001, 0.100, 10)
+            lambda_values = get_inclusive(1.0, 5.0, 10)
+            b_and_nu_and_lambda = list(product(band_sizes, nu_values, lambda_values))
+            return {
+                "distance_params": [
+                    {
+                        "window": b_and_nu_and_lambda[x][0],
+                        "nu": b_and_nu_and_lambda[x][1],
+                        "lambda": b_and_nu_and_lambda[x][2],
+                    }
+                    for x in range(0, len(b_and_nu_and_lambda))
+                ]
+            }
+
         else:
             raise NotImplementedError(
                 "EE does not currently support: " + str(distance_measure)
