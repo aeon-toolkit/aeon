@@ -11,6 +11,8 @@ DISTANCE = [
     "wdtw",
     "erp",
     "msm",
+    "euclidean",
+    "twe",
 ]
 PARAS = {
     "dtw": {"window"},
@@ -18,6 +20,8 @@ PARAS = {
     "lcss": {"epsilon", "window"},
     "erp": {"g", "window"},
     "msm": {"c"},
+    "euclidean": {},
+    "twe": {"nu", "lambda", "window"},
 }
 DATA = np.random.random((10, 1, 50))
 
