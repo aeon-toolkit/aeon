@@ -44,7 +44,10 @@ def test_get_100_param_options(dist, data):
         paras = ElasticEnsemble._get_100_param_options(dist, data)
         para_values = paras["distance_params"]
         # Check correct number of para combos
-        assert len(para_values) == 100
+        if dist == "euclidean":
+            assert len(para_values) == 0
+        else:
+            assert len(para_values) == 100
         # Check all provided parameters are valid for this distance
         expected_paras = PARAS[dist]
         for p in para_values:
