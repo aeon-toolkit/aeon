@@ -324,17 +324,6 @@ LOSS_RESULTS = {
 }
 
 
-def _call_metrics(metric_func, y_true, y_pred, y_train, y_pred_benchmark):
-    """Call function and class metrics and return results."""
-    function_metric = metric_func(
-        y_true,
-        y_pred,
-        y_train=y_train,
-        y_pred_benchmark=y_pred_benchmark,
-    )
-    return function_metric
-
-
 @pytest.mark.parametrize("metric_func_name", LOSS_RESULTS.keys())
 @pytest.mark.parametrize("n_test_case", [1, 2, 3])
 def test_univariate_loss_expected_zero(n_test_case, metric_func_name):
@@ -349,9 +338,29 @@ def test_univariate_loss_expected_zero(n_test_case, metric_func_name):
     y_pred = y_true
     y_pred_benchmark = y_true
 
-    function_loss = _call_metrics(
-        metric_func, y_true, y_pred, y_train, y_pred_benchmark
-    )
+    if metric_func_name.startswith("root_"):
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+            square_root=True,
+        )
+    elif metric_func_name.startswith("symmetric_"):
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+            symetric=True,
+        )
+    else:
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+        )
 
     # Assertion for functions
     assert np.isclose(function_loss, true_loss), " ".join(
@@ -376,9 +385,7 @@ def test_univariate_loss_against_expected_value(n_test_case, metric_func_name):
     # Just using this nonsensical approach to generate  benchmark for testing
     y_pred_benchmark = 0.6 * y_pred
 
-    function_loss = _call_metrics(
-        metric_func, y_true, y_pred, y_train, y_pred_benchmark
-    )
+    function_loss = metric_func(metric_func, y_true, y_pred, y_train, y_pred_benchmark)
 
     # Assertion for functions
     assert np.isclose(function_loss, true_loss), " ".join(
