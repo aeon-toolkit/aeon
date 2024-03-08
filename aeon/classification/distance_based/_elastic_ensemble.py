@@ -451,9 +451,9 @@ class ElasticEnsemble(BaseClassifier):
         elif distance_measure == "euclidean":
             return {"distance_params": [{}]}  # No parameters for Euclidean distance
         elif distance_measure == "twe":
-            band_sizes = get_inclusive(0, 0.25, 10)
+            band_sizes = get_inclusive(0, 0.25, 5)
             nu_values = get_inclusive(0.0001, 0.001, 10)
-            lambda_values = get_inclusive(1.0, 2.0, 10)
+            lambda_values = get_inclusive(1.0, 2.0, 2)
             b_and_nu_and_lambda = list(product(band_sizes, nu_values, lambda_values))
             return {
                 "distance_params": [
