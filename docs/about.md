@@ -195,3 +195,9 @@ Outreachy.
 We would also like to thank [GitHub Actions](https://github.com/features/actions)
 and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers
 and documentation hosting.
+
+## Affiliation
+
+`aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
+
+![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=200px}
