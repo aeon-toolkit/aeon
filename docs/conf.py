@@ -132,8 +132,8 @@ remove_from_toctrees = ["api_reference/auto_generated/*"]
 # the corresponding warning that this override happens.
 suppress_warnings = ["myst.mathjax"]
 
-# Recommended by sphinx_design when using the MyST Parser
-myst_enable_extensions = ["colon_fence", "html_image"]
+# "colon_fence" and "html_image" recommended by sphinx_design when using the MyST Parser
+myst_enable_extensions = ["colon_fence", "html_image", "attrs_inline"]
 
 myst_heading_anchors = 4
 
@@ -187,6 +187,7 @@ html_theme = "furo"
 # documentation.
 
 html_theme_options = {
+    "announcement": "<em>Announcement</em>: aeon is taking part in the Google Summer of Code (GSoC) 2024! See the home page for more information.",  # noqa: E501
     "sidebar_hide_name": True,
     "top_of_page_button": "edit",
     "source_repository": "https://github.com/aeon-toolkit/aeon/",

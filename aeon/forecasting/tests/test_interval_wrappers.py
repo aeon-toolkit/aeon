@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.datatypes import convert_to, scitype_to_mtype
+from aeon.datatypes import convert_to
 from aeon.forecasting.conformal import ConformalIntervals
 from aeon.forecasting.model_evaluation import evaluate
 from aeon.forecasting.model_selection import (
@@ -29,7 +29,7 @@ else:
     CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
     EVALUATE_STRATEGY = ["update", "refit"]
     SAMPLE_FRACS = [None, 0.5]
-    SERIES_TYPES = scitype_to_mtype("Series", softdeps="present")
+    SERIES_TYPES = ["pd.Series", "pd.DataFrame", "np.ndarray"]
 
 
 @pytest.mark.parametrize("wrapper", INTERVAL_WRAPPERS)

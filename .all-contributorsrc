@@ -2286,15 +2286,6 @@
       ]
     },
     {
-      "login": "itsdivya1309",
-      "name": "Divya Tiwari",
-      "avatar_url": "https://avatars.githubusercontent.com/u/108270861?v=4",
-      "profile": "https://github.com/itsdivya1309",
-      "contributions": [
-        "data"
-      ]
-    },
-    {
       "login": "nimanzik",
       "name": "Nima Nooshiri",
       "avatar_url": "https://avatars.githubusercontent.com/u/4640548?v=4",
@@ -2318,7 +2309,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/108270861?v=4",
       "profile": "https://github.com/itsdivya1309",
       "contributions": [
-        "code"
+        "code",
+        "data"
       ]
     },
     {
@@ -2335,6 +2327,28 @@
       "name": "Aadya Chinubhai",
       "avatar_url": "https://avatars.githubusercontent.com/u/77720426?v=4",
       "profile": "https://github.com/aadya940",
+      "contributions": [
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "codelionx",
+      "name": "Sebastian Schmidl",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10573700?v=4",
+      "profile": "https://github.com/codelionx",
+      "contributions": [
+        "bug",
+        "code",
+        "doc",
+        "research"
+      ]
+    },
+    {
+      "login": "AnonymousCodes911",
+      "name": "Utkarsh Kumar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
+      "profile": "https://github.com/AnonymousCodes911",
       "contributions": [
         "code",
         "doc"
