@@ -35,6 +35,8 @@ class Rocket(BaseCollectionTransformer):
        processors.
     random_state : None or int, optional, default = None
         Seed for random number generation.
+    n_filters : int, default=10,000
+       Number of random convolutional filters.
 
     See Also
     --------
@@ -68,11 +70,19 @@ class Rocket(BaseCollectionTransformer):
         "algorithm_type": "convolution",
     }
 
-    def __init__(self, num_kernels=10_000, normalise=True, n_jobs=1, random_state=None):
+    def __init__(
+        self,
+        num_kernels=10_000,
+        n_filters=1000,
+        normalise=True,
+        n_jobs=1,
+        random_state=None,
+    ):
         self.num_kernels = num_kernels
         self.normalise = normalise
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.n_filters = n_filters
         super().__init__()
 
     def _fit(self, X, y=None):
