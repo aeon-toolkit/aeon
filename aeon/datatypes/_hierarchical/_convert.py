@@ -25,7 +25,7 @@ for tp in TYPE_LIST_HIERARCHICAL:
 
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import (
+    from aeon.utils.conversion.dask_to_pd import (
         convert_dask_to_pandas,
         convert_pandas_to_dask,
     )

@@ -63,7 +63,7 @@ example_dict[("pd_multiindex_hier", "Hierarchical", 0)] = X
 example_dict_lossy[("pd_multiindex_hier", "Hierarchical", 0)] = False
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import convert_pandas_to_dask
+    from aeon.utils.conversion.dask_to_pd import convert_pandas_to_dask
 
     df_dask = convert_pandas_to_dask(
         example_dict[("pd_multiindex_hier", "Hierarchical", 0)], npartitions=1
@@ -105,7 +105,7 @@ example_dict[("pd_multiindex_hier", "Hierarchical", 1)] = X
 example_dict_lossy[("pd_multiindex_hier", "Hierarchical", 1)] = False
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import convert_pandas_to_dask
+    from aeon.utils.conversion.dask_to_pd import convert_pandas_to_dask
 
     df_dask = convert_pandas_to_dask(
         example_dict[("pd_multiindex_hier", "Hierarchical", 1)], npartitions=1

@@ -8,8 +8,8 @@ import pytest
 
 from aeon.datatypes import DATATYPE_REGISTER, TYPE_REGISTER
 from aeon.datatypes._check import AMBIGUOUS_MTYPES, check_is_mtype
-from aeon.datatypes._examples import get_examples
 from aeon.datatypes._vectorize import VectorizedDF, _enforce_index_freq
+from aeon.testing.utils.data_gen import get_examples
 from aeon.testing.utils.deep_equals import deep_equals
 
 SCITYPES = ["Panel", "Hierarchical"]
