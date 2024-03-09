@@ -78,7 +78,7 @@ all_extras = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow; python_version < '3.12'",
+    "tensorflow>=2.12; python_version < '3.12'",
     "tensorflow-addons; python_version < '3.12'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
@@ -87,7 +87,7 @@ all_extras = [
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow; python_version < '3.12'",
+    "tensorflow>=2.12; python_version < '3.12'",
     "tensorflow-addons; python_version < '3.12'",
 ]
 unstable_extras = [
