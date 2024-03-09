@@ -57,7 +57,6 @@ from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_cutoff, update_data
 from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation._input import validate_input
 from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index
 
@@ -1406,7 +1405,12 @@ class BaseForecaster(BaseEstimator):
                         "the type specification you want for y. "
                         "Possible mtype specification strings are as follows. "
                     )
-            _, X_metadata = validate_input(X)
+            # TODO: Still need to extract the "scitype" and has_nans of X without
+            #  check_is_scitype
+            _, _, X_metadata = check_is_scitype(
+                X, scitype=ALLOWED_ABSTRACT_TYPES, return_metadata=True, var_name="X"
+            )
+
             X_type = X_metadata["scitype"]
             X_requires_vectorization = X_type not in X_inner_abstract_type
             requires_vectorization = requires_vectorization or X_requires_vectorization
