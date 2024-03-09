@@ -73,7 +73,7 @@ def test_dummy_deep_classifier():
     # test save last model to file than delete it
     dummy_deep_clf.save_last_model_to_file()
 
-    os.remove("./" + last_file_name + ".hdf5")
+    os.remove("./" + last_file_name + ".keras")
 
     # test summary of model
     assert dummy_deep_clf.summary() is not None
