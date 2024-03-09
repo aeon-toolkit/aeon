@@ -3,7 +3,12 @@
 import numpy as np
 import pandas as pd
 
-from aeon.utils.validation.collection import get_type, has_missing, is_collection
+from aeon.utils.validation.collection import (
+    get_type,
+    has_missing,
+    is_collection,
+    is_univariate,
+)
 from aeon.utils.validation.series import is_hierarchical, is_single_series
 
 
@@ -26,7 +31,7 @@ def validate_input(X):
         metadata["scitype"] = "Series"
         if isinstance(X, np.ndarray):
             metadata["mtype"] = "np.ndarray"
-            metadata["is_univariate"] = True
+            #            metadata["is_univariate"] =
             metadata["has_nans"] = np.isnan(X).any()
         elif isinstance(X, pd.Series):
             metadata["mtype"] = "pd.Series"
@@ -39,7 +44,7 @@ def validate_input(X):
     elif is_collection(X):
         metadata["scitype"] = "Panel"
         metadata["mtype"] = get_type(X)
-        #        metadata["is_univariate"] =
+        metadata["is_univariate"] = is_univariate(X)
         metadata["has_nans"] = has_missing(X)
 
     else:
