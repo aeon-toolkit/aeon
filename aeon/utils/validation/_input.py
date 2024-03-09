@@ -20,14 +20,17 @@ def validate_input(X):
     if is_hierarchical(X):
         metadata["scitype"] = "Hierarchical"
         metadata["mtype"] = "pd_multiindex_hier"
+        metadata["is_univariate"] = False
     elif is_single_series(X):
         metadata["scitype"] = "Series"
         if isinstance(X, np.ndarray):
             metadata["mtype"] = "np.ndarray"
         elif isinstance(X, pd.Series):
             metadata["mtype"] = "pd.Series"
+            metadata["is_univariate"] = True
         else:
             metadata["mtype"] = "pd.DataFrame"
+            metadata["is_univariate"] = X.ncols == 1
     elif is_collection(X):
         metadata["scitype"] = "Panel"
         metadata["mtype"] = get_type(X)
