@@ -15,12 +15,19 @@ def is_tabular(X):
 
 
 def is_collection(X):
-    """Check X is a valid collection data structure."""
-    try:
-        get_type(X)
-        return True
-    except (TypeError, ValueError):
-        return False
+    """Check X is a valid collection data structure.
+
+    Currently this is limited to 3D numpy, hierarchical pandas and nested pandas
+    """
+    if isinstance(X, np.ndarray):
+        if X.ndim == 3:
+            return True
+    if isinstance(X, pd.DataFrame):
+        if X.index.nlevels == 2:
+            return True
+        if is_nested_univ_dataframe(X):
+            return True
+    return False
 
 
 def is_nested_univ_dataframe(X):

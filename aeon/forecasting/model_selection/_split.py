@@ -16,7 +16,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split as _train_test_split
 
 from aeon.base import BaseObject
-from aeon.datatypes import check_is_scitype, convert_to
+from aeon.datatypes import convert_to
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._fh import VALID_FORECASTING_HORIZON_TYPES
 from aeon.utils.index_functions import get_index_for_series, get_time_index, get_window
@@ -36,6 +36,7 @@ from aeon.utils.validation import (
     is_timedelta,
     is_timedelta_or_date_offset,
 )
+from aeon.utils.validation._input import validate_input
 from aeon.utils.validation.forecasting import (
     VALID_CUTOFF_TYPES,
     check_cutoffs,
@@ -523,13 +524,7 @@ class BaseSplitter(BaseObject):
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
             )
-        # TODO: Still need to extract the "mtype" of y without check_is_scitype
-        _, _, y_metadata = check_is_scitype(
-            y,
-            scitype=["Hierarchical", "Panel", "Series"],
-            return_metadata=True,
-            var_name="y",
-        )
+        _, y_metadata = validate_input(y)
 
         y_inner = convert_to(y, to_type=PANDAS_MTYPES)
 

@@ -58,13 +58,9 @@ from aeon.utils.sklearn import (
     is_sklearn_regressor,
     is_sklearn_transformer,
 )
-from aeon.utils.validation import (
-    is_collection,
-    is_hierarchical,
-    is_single_series,
-    is_univariate_series,
-)
+from aeon.utils.validation import is_univariate_series
 from aeon.utils.validation._dependencies import _check_estimator_deps
+from aeon.utils.validation._input import validate_input
 
 # single/multiple primitives
 Primitive = Union[np.integer, int, float, str]
@@ -810,12 +806,15 @@ class BaseTransformer(BaseEstimator):
 
         ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
         ALLOWED_MTYPES = self.ALLOWED_INPUT_TYPES
-        if not (is_hierarchical(X) or is_collection(X) or is_single_series(X)):
+
+        valid, X_metadata = validate_input(X)
+
+        if not valid:
             raise TypeError(
                 "must be in an aeon compatible format for storing series, hierarchical "
                 "series or collections of series."
             )
-        # checking X
+        # TODO: remove this
         _, _, X_metadata = check_is_scitype(
             X,
             scitype=ALLOWED_SCITYPES,
@@ -851,20 +850,18 @@ class BaseTransformer(BaseEstimator):
         # end checking X
 
         if y_inner_type != ["None"] and y is not None:
-            if "Table" in y_inner_scitype:
-                y_possible_scitypes = "Table"
-            elif X_scitype == "Series":
-                y_possible_scitypes = "Series"
-            elif X_scitype == "Panel":
-                y_possible_scitypes = "Panel"
-            elif X_scitype == "Hierarchical":
-                y_possible_scitypes = ["Panel", "Hierarchical"]
-            if not (is_hierarchical(y) or is_collection(y) or is_single_series(y)):
+            # if "Table" in y_inner_scitype:
+            #     y_possible_scitypes = "Table"
+            # elif X_scitype == "Series":
+            #     y_possible_scitypes = "Series"
+            # elif X_scitype == "Panel":
+            #     y_possible_scitypes = "Panel"
+            # elif X_scitype == "Hierarchical":
+            #     y_possible_scitypes = ["Panel", "Hierarchical"]
+
+            valid, y_metadata = validate_input(y)
+            if not valid:
                 raise TypeError("Error, y is not a valid type for X type.")
-            # TODO: Still need to extract the "scitype" of y without check_is_scitype
-            _, _, y_metadata = check_is_scitype(
-                y, scitype=y_possible_scitypes, return_metadata=True, var_name="y"
-            )
             y_scitype = y_metadata["scitype"]
         else:
             # y_scitype is used below - set to None if y is None

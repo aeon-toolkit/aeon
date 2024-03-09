@@ -45,6 +45,8 @@ def is_single_series(y):
     if isinstance(y, pd.DataFrame):
         if "object" in y.dtypes.values:
             return False
+        if y.index.nlevels > 1:
+            return False
         return True
     if isinstance(y, np.ndarray):
         if y.ndim > 2:

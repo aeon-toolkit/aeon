@@ -19,7 +19,7 @@ def validate_input(X):
     metadata = {}
     if is_hierarchical(X):
         metadata["scitype"] = "Hierarchical"
-        metadata["mtype"] = "pd-multiindex-hier"
+        metadata["mtype"] = "pd_multiindex_hier"
     elif is_single_series(X):
         metadata["scitype"] = "Series"
         if isinstance(X, np.ndarray):
@@ -31,7 +31,6 @@ def validate_input(X):
     elif is_collection(X):
         metadata["scitype"] = "Panel"
         metadata["mtype"] = get_type(X)
-
     else:
         return False, None
     return True, metadata
