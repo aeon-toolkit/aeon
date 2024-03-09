@@ -31,8 +31,11 @@ def validate_input(X):
         metadata["scitype"] = "Series"
         if isinstance(X, np.ndarray):
             metadata["mtype"] = "np.ndarray"
-            #            metadata["is_univariate"] =
             metadata["has_nans"] = np.isnan(X).any()
+            if X.ndim == 1:
+                metadata["is_univariate"] = True
+            elif X.ndim == 2 and (X.shape[0] == 1 or X.shape[1] == 1):
+                metadata["is_univariate"] = True
         elif isinstance(X, pd.Series):
             metadata["mtype"] = "pd.Series"
             metadata["is_univariate"] = True
