@@ -814,7 +814,7 @@ class BaseTransformer(BaseEstimator):
                 "must be in an aeon compatible format for storing series, hierarchical "
                 "series or collections of series."
             )
-        # TODO: remove this
+        # # TODO: add is_univariate to meta data
         _, _, X_metadata = check_is_scitype(
             X,
             scitype=ALLOWED_SCITYPES,
