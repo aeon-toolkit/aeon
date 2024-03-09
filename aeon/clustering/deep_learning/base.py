@@ -93,7 +93,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         -------
         None
         """
-        self.model_.save(file_path + self.last_file_name + ".hdf5")
+        self.model_.save(file_path + self.last_file_name + ".keras")
 
     def _fit_clustering(self, X):
         """Train the clustering algorithm in the latent space.
