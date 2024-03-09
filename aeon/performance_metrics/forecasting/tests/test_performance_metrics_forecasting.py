@@ -352,7 +352,7 @@ def test_univariate_loss_expected_zero(n_test_case, metric_func_name):
             y_pred,
             y_train=y_train,
             y_pred_benchmark=y_pred_benchmark,
-            symetric=True,
+            symmetric=True,
         )
     else:
         function_loss = metric_func(
@@ -384,9 +384,29 @@ def test_univariate_loss_against_expected_value(n_test_case, metric_func_name):
 
     # Just using this nonsensical approach to generate  benchmark for testing
     y_pred_benchmark = 0.6 * y_pred
-
-    function_loss = metric_func(metric_func, y_true, y_pred, y_train, y_pred_benchmark)
-
+    if metric_func_name.startswith("root_"):
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+            square_root=True,
+        )
+    elif metric_func_name.startswith("symmetric_"):
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            symmetric=True,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+        )
+    else:
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_pred_benchmark=y_pred_benchmark,
+            y_train=y_train,
+        )
     # Assertion for functions
     assert np.isclose(function_loss, true_loss), " ".join(
         [
