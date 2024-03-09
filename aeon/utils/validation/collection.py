@@ -27,6 +27,10 @@ def is_collection(X):
             return True
         if is_nested_univ_dataframe(X):
             return True
+    if isinstance(X, list):
+        if isinstance(X[0], np.ndarray):
+            if X[0].ndim == 2:
+                return True
     return False
 
 
