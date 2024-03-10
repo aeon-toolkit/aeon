@@ -301,7 +301,9 @@ def pairwise_distance(
     elif metric == "manhattan":
         return manhattan_pairwise_distance(x, y)
     elif metric == "minkowski":
-        return minkowski_pairwise_distance(x, y)
+        return minkowski_pairwise_distance(
+            x, y, kwargs.get("p", 2.0), kwargs.get("w", None)
+        )
     elif metric == "dtw":
         return dtw_pairwise_distance(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
