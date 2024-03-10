@@ -2,7 +2,6 @@ from typing import Tuple
 
 import numpy as np
 from numba import njit
-from sklearn.utils import check_random_state
 
 
 @njit(cache=True, fastmath=True)
@@ -69,40 +68,6 @@ def reshape_pairwise_to_multiple(
             _y = y.reshape((y.shape[0], 1, y.shape[1]))
             return _x, _y
         raise ValueError("x and y must be 2D or 3D arrays")
-
-
-def _create_test_distance_numpy(
-    n_instance: int,
-    n_channels: int = None,
-    n_timepoints: int = None,
-    random_state: int = 1,
-):
-    """Create a test numpy distance.
-
-    Parameters
-    ----------
-    n_instance: int
-        Number of instances to create.
-    n_channels: int
-        Number of channels to create.
-    n_timepoints: int, default=None
-        Number of timepoints to create in each channel.
-    random_state: int, default=1
-        Random state to initialise with.
-
-    Returns
-    -------
-    np.ndarray 2D or 3D numpy
-        Numpy array of shape specific. If 1 instance then 2D array returned,
-        if > 1 instance then 3D array returned.
-    """
-    rng = check_random_state(random_state)
-    # Generate data as 3d numpy array
-    if n_timepoints is None and n_channels is None:
-        return rng.normal(scale=0.5, size=(1, n_instance))
-    if n_timepoints is None:
-        return rng.normal(scale=0.5, size=(n_instance, n_channels))
-    return rng.normal(scale=0.5, size=(n_instance, n_channels, n_timepoints))
 
 
 def _make_3d_series(x: np.ndarray) -> np.ndarray:
