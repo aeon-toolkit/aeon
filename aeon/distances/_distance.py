@@ -138,7 +138,7 @@ def distance(
     elif metric == "manhattan":
         return manhattan_distance(x, y)
     elif metric == "minkowski":
-        return minkowski_distance(x, y)
+        return minkowski_distance(x, y, kwargs.get("p", 2.0), kwargs.get("w", None))
     elif metric == "dtw":
         return dtw_distance(x, y, kwargs.get("window"), kwargs.get("itakura_max_slope"))
     elif metric == "ddtw":

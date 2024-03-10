@@ -52,6 +52,14 @@ def reshape_pairwise_to_multiple(
         if y.ndim == 3 and x.ndim == 2:
             _x = x.reshape((1, x.shape[0], x.shape[1]))
             return _x, y
+        if x.ndim == 3 and y.ndim == 1:
+            _x = x
+            _y = y.reshape((1, 1, y.shape[0]))
+            return _x, _y
+        if x.ndim == 1 and y.ndim == 3:
+            _x = x.reshape((1, 1, x.shape[0]))
+            _y = y
+            return _x, _y
         if x.ndim == 2 and y.ndim == 1:
             _x = x.reshape((x.shape[0], 1, x.shape[1]))
             _y = y.reshape((1, 1, y.shape[0]))
