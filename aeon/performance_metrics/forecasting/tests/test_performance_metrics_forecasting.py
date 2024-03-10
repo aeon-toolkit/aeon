@@ -8,24 +8,6 @@ import pytest
 from pandas.api.types import is_numeric_dtype
 
 from aeon.performance_metrics.forecasting import (
-    GeometricMeanRelativeAbsoluteError,
-    GeometricMeanRelativeSquaredError,
-    MeanAbsoluteError,
-    MeanAbsolutePercentageError,
-    MeanAbsoluteScaledError,
-    MeanAsymmetricError,
-    MeanRelativeAbsoluteError,
-    MeanSquaredError,
-    MeanSquaredPercentageError,
-    MeanSquaredScaledError,
-    MedianAbsoluteError,
-    MedianAbsolutePercentageError,
-    MedianAbsoluteScaledError,
-    MedianRelativeAbsoluteError,
-    MedianSquaredError,
-    MedianSquaredPercentageError,
-    MedianSquaredScaledError,
-    RelativeLoss,
     geometric_mean_relative_absolute_error,
     geometric_mean_relative_squared_error,
     mean_absolute_error,
@@ -202,196 +184,152 @@ LOSS_RESULTS = {
         "test_case_2": 0.950832524,
         "test_case_3": 0.33045977,
         "func": mean_absolute_scaled_error,
-        "class": MeanAbsoluteScaledError(),
     },
     "median_absolute_scaled_error": {
         "test_case_1": 0.997448587,
         "test_case_2": 0.975921875,
         "test_case_3": 1.0,
         "func": median_absolute_scaled_error,
-        "class": MedianAbsoluteScaledError(),
     },
     "root_mean_squared_scaled_error": {
         "test_case_1": 1.001351033,
         "test_case_2": 0.854561506,
         "test_case_3": 0.289374954,
         "func": mean_squared_scaled_error,
-        "class": MeanSquaredScaledError(square_root=True),
     },
     "root_median_squared_scaled_error": {
         "test_case_1": 0.998411526,
         "test_case_2": 0.990760662,
         "test_case_3": 1.0,
         "func": median_squared_scaled_error,
-        "class": MedianSquaredScaledError(square_root=True),
     },
     "mean_absolute_error": {
         "test_case_1": 0.285709251,
         "test_case_2": 0.252975912,
         "test_case_3": 0.833333333,
         "func": mean_absolute_error,
-        "class": MeanAbsoluteError(),
     },
     "mean_squared_error": {
         "test_case_1": 0.103989049,
         "test_case_2": 0.07852696,
         "test_case_3": 1.5,
         "func": mean_squared_error,
-        "class": MeanSquaredError(),
     },
     "root_mean_squared_error": {
         "test_case_1": 0.322473331,
         "test_case_2": 0.280226623,
         "test_case_3": 1.224744871,
         "func": mean_squared_error,
-        "class": MeanSquaredError(square_root=True),
     },
     "median_absolute_error": {
         "test_case_1": 0.298927846,
         "test_case_2": 0.240438602,
         "test_case_3": 1.0,
         "func": median_absolute_error,
-        "class": MedianAbsoluteError(),
     },
     "median_squared_error": {
         "test_case_1": 0.089530473,
         "test_case_2": 0.059582098,
         "test_case_3": 1.0,
         "func": median_squared_error,
-        "class": MedianSquaredError(),
     },
     "root_median_squared_error": {
         "test_case_1": 0.299216432,
         "test_case_2": 0.244094445,
         "test_case_3": 1.0,
         "func": median_squared_error,
-        "class": MedianSquaredError(square_root=True),
     },
     "symmetric_mean_absolute_percentage_error": {
         "test_case_1": 0.16206745335345693,
         "test_case_2": 0.17096048184064724,
         "test_case_3": 1.0833333333333333,
         "func": mean_absolute_percentage_error,
-        "class": MeanAbsolutePercentageError(symmetric=True),
     },
     "symmetric_median_absolute_percentage_error": {
         "test_case_1": 0.17291559217102262,
         "test_case_2": 0.15323286657516913,
         "test_case_3": 1.5,
         "func": median_absolute_percentage_error,
-        "class": MedianAbsolutePercentageError(symmetric=True),
     },
     "mean_absolute_percentage_error": {
         "test_case_1": 0.16426360194846226,
         "test_case_2": 0.16956968442429066,
         "test_case_3": 1125899906842624.2,
         "func": mean_absolute_percentage_error,
-        "class": MeanAbsolutePercentageError(symmetric=False),
     },
     "median_absolute_percentage_error": {
         "test_case_1": 0.17200352348889714,
         "test_case_2": 0.1521891319356885,
         "test_case_3": 1.0,
         "func": median_absolute_percentage_error,
-        "class": MedianAbsolutePercentageError(symmetric=False),
     },
     "mean_squared_percentage_error": {
         "test_case_1": 0.03203423036447087,
         "test_case_2": 0.03427486821803671,
         "test_case_3": 5.070602400912918e30,
         "func": mean_squared_percentage_error,
-        "class": MeanSquaredPercentageError(symmetric=False),
     },
     "median_squared_percentage_error": {
         "test_case_1": 0.029589708748632582,
         "test_case_2": 0.023172298452886965,
         "test_case_3": 1.0,
         "func": median_squared_percentage_error,
-        "class": MedianSquaredPercentageError(symmetric=False),
     },
     "root_mean_squared_percentage_error": {
         "test_case_1": 0.17898108940463758,
         "test_case_2": 0.18513472990780716,
         "test_case_3": 2251799813685248.0,
         "func": mean_squared_percentage_error,
-        "class": MeanSquaredPercentageError(square_root=True, symmetric=False),
     },
     "root_median_squared_percentage_error": {
         "test_case_1": 0.17201659439900727,
         "test_case_2": 0.15222450017289255,
         "test_case_3": 1.0,
         "func": median_squared_percentage_error,
-        "class": MedianSquaredPercentageError(square_root=True, symmetric=False),
     },
     "mean_relative_absolute_error": {
         "test_case_1": 0.485695805,
         "test_case_2": 0.477896036,
         "test_case_3": 0.875,
         "func": mean_relative_absolute_error,
-        "class": MeanRelativeAbsoluteError(),
     },
     "median_relative_absolute_error": {
         "test_case_1": 0.411364556,
         "test_case_2": 0.453437859,
         "test_case_3": 1.0,
         "func": median_relative_absolute_error,
-        "class": MedianRelativeAbsoluteError(),
     },
     "geometric_mean_relative_absolute_error": {
         "test_case_1": 0.363521894,
         "test_case_2": 0.402438951,
         "test_case_3": 3.6839e-07,
         "func": geometric_mean_relative_absolute_error,
-        "class": GeometricMeanRelativeAbsoluteError(),
     },
     "geometric_mean_relative_squared_error": {
         "test_case_1": 0.132148167,
         "test_case_2": 0.161957109,
         "test_case_3": 4.517843023201426e-07,
         "func": geometric_mean_relative_squared_error,
-        "class": GeometricMeanRelativeSquaredError(),
     },
     "mean_aymmetric_error": {
         "test_case_1": 0.17139968,
         "test_case_2": 0.163956601,
         "test_case_3": 1.000000,
         "func": mean_asymmetric_error,
-        "class": MeanAsymmetricError(),
     },
     "relative_loss": {
         "test_case_1": 0.442644622,
         "test_case_2": 0.416852592,
         "test_case_3": 1.315789474,
         "func": relative_loss,
-        "class": RelativeLoss(),
     },
 }
-
-
-def _call_metrics(metric_func, metric_class, y_true, y_pred, y_train, y_pred_benchmark):
-    """Call function and class metrics and return results."""
-    class_attrs = metric_class.get_params()
-    function_metric = metric_func(
-        y_true,
-        y_pred,
-        y_train=y_train,
-        y_pred_benchmark=y_pred_benchmark,
-        **class_attrs,
-    )
-    class_metric = metric_class(
-        y_true,
-        y_pred,
-        y_train=y_train,
-        y_pred_benchmark=y_pred_benchmark,
-    )
-    return function_metric, class_metric
 
 
 @pytest.mark.parametrize("metric_func_name", LOSS_RESULTS.keys())
 @pytest.mark.parametrize("n_test_case", [1, 2, 3])
 def test_univariate_loss_expected_zero(n_test_case, metric_func_name):
     """Test cases where the expected loss is zero for perfect forecast."""
-    metric_class = LOSS_RESULTS[metric_func_name]["class"]
     metric_func = LOSS_RESULTS[metric_func_name]["func"]
 
     y_true = Y_TEST_CASES[f"test_case_{n_test_case}"]["test"]
@@ -402,21 +340,34 @@ def test_univariate_loss_expected_zero(n_test_case, metric_func_name):
     y_pred = y_true
     y_pred_benchmark = y_true
 
-    function_loss, class_loss = _call_metrics(
-        metric_func, metric_class, y_true, y_pred, y_train, y_pred_benchmark
-    )
+    if metric_func_name.startswith("root_"):
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+            square_root=True,
+        )
+    elif metric_func_name.startswith("symmetric_"):
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+            symmetric=True,
+        )
+    else:
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+        )
 
     # Assertion for functions
     assert np.isclose(function_loss, true_loss), " ".join(
         [
             f"Loss function {metric_func.__name__} returned {function_loss}",
-            f"loss, but {true_loss} loss expected",
-        ]
-    )
-    # Assertion for classes
-    assert np.isclose(class_loss, true_loss), " ".join(
-        [
-            f"Loss function {metric_class.name} returned {class_loss}",
             f"loss, but {true_loss} loss expected",
         ]
     )
@@ -426,7 +377,6 @@ def test_univariate_loss_expected_zero(n_test_case, metric_func_name):
 @pytest.mark.parametrize("n_test_case", [1, 2, 3])
 def test_univariate_loss_against_expected_value(n_test_case, metric_func_name):
     """Test univariate loss against expected value."""
-    metric_class = LOSS_RESULTS[metric_func_name]["class"]
     metric_func = LOSS_RESULTS[metric_func_name]["func"]
     true_loss = LOSS_RESULTS[metric_func_name][f"test_case_{n_test_case}"]
     y_true = Y_TEST_CASES[f"test_case_{n_test_case}"]["test"]
@@ -437,49 +387,34 @@ def test_univariate_loss_against_expected_value(n_test_case, metric_func_name):
 
     # Just using this nonsensical approach to generate  benchmark for testing
     y_pred_benchmark = 0.6 * y_pred
-
-    function_loss, class_loss = _call_metrics(
-        metric_func, metric_class, y_true, y_pred, y_train, y_pred_benchmark
-    )
-
+    if metric_func_name.startswith("root_"):
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+            square_root=True,
+        )
+    elif metric_func_name.startswith("symmetric_"):
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            symmetric=True,
+            y_train=y_train,
+            y_pred_benchmark=y_pred_benchmark,
+        )
+    else:
+        function_loss = metric_func(
+            y_true,
+            y_pred,
+            y_pred_benchmark=y_pred_benchmark,
+            y_train=y_train,
+        )
     # Assertion for functions
     assert np.isclose(function_loss, true_loss), " ".join(
         [
             f"Loss function {metric_func.__name__} returned {function_loss}",
             f"loss, but {true_loss} loss expected",
-        ]
-    )
-    # Assertion for classes
-    assert np.isclose(class_loss, true_loss), " ".join(
-        [
-            f"Loss function {metric_class.name} returned {class_loss}",
-            f"loss, but {true_loss} loss expected",
-        ]
-    )
-
-
-@pytest.mark.parametrize("metric_func_name", LOSS_RESULTS.keys())
-@pytest.mark.parametrize("random_state", RANDOM_STATES)
-def test_univariate_metric_function_class_equality(metric_func_name, random_state):
-    """Test Univariate Metric for class equality."""
-    metric_class = LOSS_RESULTS[metric_func_name]["class"]
-    metric_func = LOSS_RESULTS[metric_func_name]["func"]
-
-    y = make_series(n_timepoints=75, random_state=random_state)
-    y_train, y_true = y.iloc[:50], y.iloc[50:]
-    y_pred = y.shift(1).iloc[50:]
-    y_pred_benchmark = y.rolling(2).mean().iloc[50:]
-
-    function_loss, class_loss = _call_metrics(
-        metric_func, metric_class, y_true, y_pred, y_train, y_pred_benchmark
-    )
-
-    # Assertion for functions and class having same result
-    assert np.isclose(function_loss, class_loss), " ".join(
-        [
-            "Expected loss function and class to return equal values,",
-            f"but loss function {metric_func.__name__} returned {function_loss}",
-            f"and {metric_class.name} returned {class_loss}.",
         ]
     )
 
