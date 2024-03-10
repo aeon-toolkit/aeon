@@ -25,7 +25,10 @@ def validate_input(X):
     if is_hierarchical(X):
         metadata["scitype"] = "Hierarchical"
         metadata["mtype"] = "pd_multiindex_hier"
-        metadata["is_univariate"] = False
+        if X.ndim == 2 and (X.shape[0] == 1 or X.shape[1] == 1):
+            metadata["is_univariate"] = True
+        else:
+            metadata["is_univariate"] = False
         metadata["has_nans"] = X.isna().any().any()
     elif is_single_series(X):
         metadata["scitype"] = "Series"
