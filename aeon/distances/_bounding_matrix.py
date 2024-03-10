@@ -93,6 +93,7 @@ def _itakura_parallelogram(x_size: int, y_size: int, max_slope_percent: float):
     return bounding_matrix
 
 
+@njit(cache=True)
 def _sakoe_chiba_bounding(
     x_size: int, y_size: int, radius_percent: float
 ) -> np.ndarray:
