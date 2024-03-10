@@ -128,6 +128,18 @@ Move-Split-Merge (MSM)
     msm_cost_matrix
     msm_alignment_path
 
+Shape-based Distance (SBD)
+--------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    sbd_distance
+    sbd_pairwise_distance
+
 Shape Dynamic Time Warping (Shape DTW)
 --------------------------------------
 
