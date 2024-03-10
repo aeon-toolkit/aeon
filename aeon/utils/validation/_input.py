@@ -36,6 +36,8 @@ def validate_input(X):
                 metadata["is_univariate"] = True
             elif X.ndim == 2 and (X.shape[0] == 1 or X.shape[1] == 1):
                 metadata["is_univariate"] = True
+            else:
+                metadata["is_univariate"] = False
         elif isinstance(X, pd.Series):
             metadata["mtype"] = "pd.Series"
             metadata["is_univariate"] = True

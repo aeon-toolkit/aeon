@@ -613,8 +613,8 @@ def test_numpy_format_outputs():
     bc = BoxCoxTransformer()
 
     u1d = bc.fit_transform(X[0][0])
-    # 2d numpy arrays are (length, channels) while 3d numpy arrays are
-    # (cases, channels, length)
+    # 2d numpy arrays are (n_timepoints, n_channels) while 3d numpy arrays are
+    # (n_cases, n_channels, n_timepoints)
     u2d = bc.fit_transform(X[0].transpose()).transpose()
     u3d = bc.fit_transform(X)
 

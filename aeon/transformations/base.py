@@ -50,7 +50,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseEstimator
-from aeon.datatypes import VectorizedDF, check_is_scitype, convert_to, mtype_to_scitype
+from aeon.datatypes import VectorizedDF, convert_to, mtype_to_scitype
 from aeon.datatypes._series_as_panel import convert_to_scitype
 from aeon.utils.index_functions import update_data
 from aeon.utils.sklearn import (
@@ -804,24 +804,14 @@ class BaseTransformer(BaseEstimator):
         X_inner_scitype = mtype_to_scitype(X_inner_type, return_unique=True)
         y_inner_scitype = mtype_to_scitype(y_inner_type, return_unique=True)
 
-        ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
         ALLOWED_MTYPES = self.ALLOWED_INPUT_TYPES
 
         valid, X_metadata = validate_input(X)
-
         if not valid:
             raise TypeError(
                 "must be in an aeon compatible format for storing series, hierarchical "
                 "series or collections of series."
             )
-        # # TODO: add is_univariate to meta data
-        _, _, X_metadata = check_is_scitype(
-            X,
-            scitype=ALLOWED_SCITYPES,
-            return_metadata=True,
-            var_name="X",
-        )
-
         X_scitype = X_metadata["scitype"]
         X_mtype = X_metadata["mtype"]
         # remember these for potential back-conversion (in transform etc)
