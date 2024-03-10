@@ -453,16 +453,16 @@ class ElasticEnsemble(BaseClassifier):
         elif distance_measure == "twe":
             band_sizes = get_inclusive(0, 0.25, 10)
             nu_values = get_inclusive(0.0001, 0.001, 5)
-            lambda_values = get_inclusive(1.0, 2.0, 2)
-            b_and_nu_and_lambda = list(product(band_sizes, nu_values, lambda_values))
+            lmbda_values = get_inclusive(1.0, 2.0, 2)
+            b_and_nu_and_lmbda = list(product(band_sizes, nu_values, lmbda_values))
             return {
                 "distance_params": [
                     {
-                        "window": b_and_nu_and_lambda[x][0],
-                        "nu": b_and_nu_and_lambda[x][1],
-                        "lambda": b_and_nu_and_lambda[x][2],
+                        "window": b_and_nu_and_lmbda[x][0],
+                        "nu": b_and_nu_and_lmbda[x][1],
+                        "lmbda": b_and_nu_and_lmbda[x][2],
                     }
-                    for x in range(0, len(b_and_nu_and_lambda))
+                    for x in range(0, len(b_and_nu_and_lmbda))
                 ]
             }
 
