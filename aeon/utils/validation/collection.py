@@ -3,9 +3,21 @@
 import numpy as np
 import pandas as pd
 
+__maintainer__ = ["TonyBagnall"]
+
 
 def is_tabular(X):
-    """Check if input is a 2D table."""
+    """Check if input is a 2D table.
+
+    Parameters
+    ----------
+    X : array-like
+
+    Returns
+    -------
+    bool
+        True if input is 2D, False otherwise.
+    """
     if isinstance(X, np.ndarray):
         if X.ndim != 2:
             return False
@@ -17,7 +29,17 @@ def is_tabular(X):
 def is_collection(X):
     """Check X is a valid collection data structure.
 
-    Currently this is limited to 3D numpy, hierarchical pandas and nested pandas
+    Currently this is limited to 3D numpy, hierarchical pandas and nested pandas.
+
+    Parameters
+    ----------
+    X : array-like
+        Input data to be checked.
+
+    Returns
+    -------
+    bool
+        True if input is a collection, False otherwise.
     """
     if isinstance(X, np.ndarray):
         if X.ndim == 3:
@@ -42,6 +64,11 @@ def is_nested_univ_dataframe(X):
     X: collection
         See aeon.registry.COLLECTIONS_DATA_TYPES for details
         on aeon supported data structures.
+
+    Returns
+    -------
+    bool
+        True if input is a nested dataframe, False otherwise.
     """
     # Otherwise check all entries are pd.Series
     if not isinstance(X, pd.DataFrame):

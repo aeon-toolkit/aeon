@@ -1,6 +1,5 @@
 """Functions for checking input data."""
 
-__maintainer__ = []
 __all__ = [
     "check_series",
     "check_time_index",
@@ -9,6 +8,7 @@ __all__ = [
     "is_hierarchical",
     "is_single_series",
 ]
+__maintainer__ = ["TonyBagnall"]
 
 from typing import Union
 

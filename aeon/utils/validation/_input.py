@@ -5,6 +5,8 @@ hierarchical time series. Each of these abstract types is stored in either panda
 numpy data structure.
 """
 
+__maintainer__ = ["TonyBagnall"]
+
 import numpy as np
 import pandas as pd
 

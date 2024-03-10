@@ -1,12 +1,12 @@
 """Utilities for validating panel data."""
 
-__maintainer__ = []
 __all__ = [
     "check_X",
     "check_y",
     "check_X_y",
 ]
 
+__maintainer__ = ["TonyBagnall"]
 import numpy as np
 import pandas as pd
 from sklearn.utils.validation import check_consistent_length
