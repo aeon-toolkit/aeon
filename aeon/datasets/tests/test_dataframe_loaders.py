@@ -19,13 +19,7 @@ from aeon.testing.test_config import PR_TESTING
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test_load_from_tsfile_to_dataframe():
-    """
-    Test function to check functionality of load_from_tsfile_to_dataframe.
-
-    Raises
-    ------
-        AssertionError: If the loaded data does not match the expected shape or type.
-    """
+    """Test function to check functionality of load_from_tsfile_to_dataframe."""
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/UnitTest_TRAIN.ts",
@@ -42,13 +36,7 @@ def test_load_from_tsfile_to_dataframe():
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test_load_from_arff_to_dataframe():
-    """
-    Test function to check functionality of load_from_arff_to_dataframe.
-
-    Raises
-    ------
-        AssertionError: If the loaded data does not match the expected shape or type.
-    """
+    """Test function to check functionality of load_from_arff_to_dataframe."""
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/GunPoint/GunPoint_TRAIN.arff",
@@ -65,13 +53,7 @@ def test_load_from_arff_to_dataframe():
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 def test_load_from_ucr_tsv_to_dataframe():
-    """
-    Test function to check functionality of load_from_ucr_tsv_to_dataframe.
-
-    Raises
-    ------
-        AssertionError: If the loaded data does not match the expected shape or type.
-    """
+    """Test function to check functionality of load_from_ucr_tsv_to_dataframe."""
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/GunPoint/GunPoint_TRAIN.tsv",

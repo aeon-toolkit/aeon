@@ -78,7 +78,7 @@ VALID_TYPES = [
 
 
 def test_univariate_convert_X():
-    """Test _covert_X on univariate series."""
+    """Test _convert_X on univariate series."""
     # np.ndarray inner, no multivariate. Univariate are always series,
     # not dataframes, axis is ignored
     dummy1 = BaseSeriesEstimator()
@@ -94,7 +94,7 @@ def test_univariate_convert_X():
 
 
 def test_multivariate_convert_X():
-    """Test _Convert_X on multivariate series."""
+    """Test _convert_X on multivariate series."""
     # np.ndarray inner multivariate capable. Multivariate are always DataFrames,
     # not Series. 1D np.ndarray converted to 2D. Capability is tested in check_X,
     # not here
@@ -116,8 +116,8 @@ def test_multivariate_convert_X():
 
 @pytest.mark.parametrize("input_type", VALID_TYPES)
 @pytest.mark.parametrize("inner_type", VALID_TYPES)
-def test__preprocess_series(input_type, inner_type):
-    """Test for Pre-Processing Series."""
+def test_preprocess_series(input_type, inner_type):
+    """Test _preprocess_series."""
     dummy1 = BaseSeriesEstimator(axis=0)
     inner = inner_type.split(".")[1]
     if inner_type != "pd.DataFrame":
@@ -148,13 +148,13 @@ INPUT_WRONG = [
 
 
 @pytest.mark.parametrize("y_correct", INPUT_CORRECT)
-def test__check_y_correct(y_correct):
+def test_check_y_correct(y_correct):
     """Test the _check_y method with correct input."""
     assert BaseSeriesEstimator._check_y(None, y_correct) is None
 
 
 @pytest.mark.parametrize("y_wrong", INPUT_WRONG)
-def test__check_y_wrong(y_wrong):
+def test_check_y_wrong(y_wrong):
     """Test the _check_y method with incorrect input."""
     with pytest.raises(ValueError, match="Error in input type for y"):
         BaseSeriesEstimator._check_y(None, y_wrong)

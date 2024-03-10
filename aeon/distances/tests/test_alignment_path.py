@@ -1,4 +1,4 @@
-"""Test for Path Alignment."""
+"""Tests for alignment paths."""
 
 import numpy as np
 import pytest
@@ -29,13 +29,7 @@ def _validate_cost_matrix_result(
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_cost_matrix(dist):
-    """
-    Test function to check the cost matrix for various distances.
-
-    Parameters
-    ----------
-        dist(dict): A dictionary containing the details of the distances.
-    """
+    """Test function to check the cost matrix for various distances."""
     if "alignment_path" not in dist:
         return
 

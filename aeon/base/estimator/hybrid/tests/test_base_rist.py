@@ -1,4 +1,4 @@
-"""Test for the RISTClassifier."""
+"""Tests for the RIST estimators."""
 
 import numpy as np
 import pytest
@@ -24,7 +24,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="skip test if required soft dependency not available",
 )
 def test_rist_soft_dependencies():
-    """Test the RISTClassifier class with different soft dependencies."""
+    """Test the RIST class with different soft dependencies."""
     rist = RISTClassifier()
     assert rist.get_tag("python_dependencies") == "statsmodels"
 
@@ -44,7 +44,7 @@ def test_rist_soft_dependencies():
     reason="skip test if required soft dependency not available",
 )
 def test_rist_estimator_input():
-    """Test the RISTClassifier class with estimator input."""
+    """Test the RIST class different with estimator input."""
     X, y = make_example_3d_numpy()
 
     rist = RISTClassifier(n_intervals=3, n_shapelets=3, series_transformers=None)
@@ -79,7 +79,7 @@ def test_rist_estimator_input():
     reason="skip test if required soft dependency not available",
 )
 def test_rist_series_transform_input():
-    """Test the RISTClassifier class with tansform input."""
+    """Test the RIST class series transformer input."""
     X, y = make_example_3d_numpy()
 
     rist = RISTClassifier(
@@ -124,7 +124,7 @@ def test_rist_series_transform_input():
     reason="skip test if required soft dependency not available",
 )
 def test_rist_n_interval_and_n_shapelet_lambda():
-    """Test the RISTClassifier class with N-Shapelet Lambda."""
+    """Test the RIST lambda input for n_intervals and n_shapelets."""
     X, y = make_example_3d_numpy()
 
     rist = RISTClassifier(

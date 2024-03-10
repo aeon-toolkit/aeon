@@ -1,4 +1,4 @@
-"""Test for Computing Distances."""
+"""Tests for computing distances."""
 
 import numpy as np
 import pytest
@@ -13,8 +13,10 @@ from aeon.distances._distance import (
     _custom_func_pairwise,
     _resolve_key_from_distance,
 )
-from aeon.distances.tests.test_expected_results import _expected_distance_results
 from aeon.distances.tests.test_utils import _create_test_distance_numpy
+from aeon.testing.expected_results.test_expected_results import (
+    _expected_distance_results,
+)
 
 
 def _validate_distance_result(x, y, name, distance, expected_result=10):
@@ -26,7 +28,7 @@ def _validate_distance_result(x, y, name, distance, expected_result=10):
         y (np.ndarray): Second array.
         name (str): Name of the distance metric.
         distance (callable): Distance function.
-        expected_result (float): Expected distance result. Here 10.
+        expected_result (float): Expected distance result.
     """
     if expected_result is None:
         return
@@ -44,7 +46,7 @@ def _validate_distance_result(x, y, name, distance, expected_result=10):
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_distances(dist):
-    """Test the distance functions for various distances."""
+    """Test distance functions."""
     # Test univariate
     if dist["name"] != "ddtw" and dist["name"] != "wddtw":
         _validate_distance_result(
@@ -91,12 +93,12 @@ def test_distances(dist):
 
 
 def test_get_distance_function_names():
-    """Test the get_distance_function_names function."""
+    """Test get_distance_function_names."""
     assert get_distance_function_names() == sorted([dist["name"] for dist in DISTANCES])
 
 
-def test__resolve_key_from_distance():
-    """Test the _resolve_key_from_distance function."""
+def test_resolve_key_from_distance():
+    """Test _resolve_key_from_distance."""
     with pytest.raises(ValueError, match="Unknown metric"):
         _resolve_key_from_distance(metric="FOO", key="cost_matrix")
     with pytest.raises(ValueError):

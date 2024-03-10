@@ -1,4 +1,4 @@
-"""Test for Pairwise Distances."""
+"""Test for pairwise distances."""
 
 import numpy as np
 import pytest
@@ -59,6 +59,8 @@ def _validate_multiple_to_multiple_result(
     Args:
         x: Input array.
         y: Input array.
+        name: Name of the distance metric.
+        distance: Distance function.
         multiple_to_multiple_distance: Mul-to-Mul distance function.
     """
     multiple_to_multiple_result = multiple_to_multiple_distance(x, y)

@@ -1,4 +1,4 @@
-"""Test For Cost Matrix."""
+"""Tests for cost matrix."""
 
 import numpy as np
 import pytest
@@ -16,8 +16,7 @@ def _validate_cost_matrix_result(
     distance,
     cost_matrix,
 ):
-    """
-    Validate the result of the cost matrix function.
+    """Validate the result of the cost matrix function.
 
     Parameters
     ----------
@@ -57,7 +56,7 @@ def _validate_cost_matrix_result(
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_cost_matrix(dist):
-    """Test for Cost matrix for various lengths."""
+    """Test for cost matrix for various distances."""
     if dist["name"] == "shape_dtw":
         return
 
