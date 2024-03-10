@@ -1,6 +1,6 @@
 """Test series module."""
 
-__author__ = ["benheid", "TonyBagnall"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -9,12 +9,25 @@ import pytest
 from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.utils.validation.series import (
     _check_is_multivariate,
-    _check_is_univariate,
     check_consistent_index_type,
     check_equal_time_index,
+    check_is_univariate,
     check_series,
     check_time_index,
+    is_univariate_series,
 )
+
+
+def test_is_univariate_series():
+    """Test Univariate Series."""
+    assert not is_univariate_series(None)
+    assert is_univariate_series(pd.Series([1, 2, 3, 4, 5]))
+    assert is_univariate_series(np.array([1, 2, 3, 4, 5]))
+    assert is_univariate_series(pd.DataFrame({"A": [1, 2, 3, 4, 5]}))
+    assert not is_univariate_series(
+        pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [6, 7, 8, 9, 10]})
+    )
+    assert not is_univariate_series(np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]))
 
 
 def test_check_equal_time_index():
@@ -36,17 +49,17 @@ def test_check_equal_time_index():
 
 
 def test__check_is_univariate():
-    """Test _check_is_univariate."""
+    """Test check_is_univariate."""
     X = np.random.random(size=(10, 1, 20))
-    _check_is_univariate(X)
+    check_is_univariate(X)
     X = np.random.random(size=(10, 3, 20))
     with pytest.raises(ValueError, match="must be univariate"):
-        _check_is_univariate(X)
+        check_is_univariate(X)
     X, _ = make_example_nested_dataframe(n_cases=4, n_channels=1, n_timepoints=10)
-    _check_is_univariate(X)
+    check_is_univariate(X)
     X, _ = make_example_nested_dataframe(n_cases=4, n_channels=2, n_timepoints=10)
     with pytest.raises(ValueError, match="must be univariate"):
-        _check_is_univariate(X)
+        check_is_univariate(X)
 
 
 def test__check_is_multivariate():

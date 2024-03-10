@@ -10,14 +10,10 @@ from aeon.base import _HeterogenousMetaEstimator
 from aeon.transformations._delegate import _DelegatedTransformer
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.multiindex import flatten_multiindex
-from aeon.utils.sklearn import (
-    is_sklearn_classifier,
-    is_sklearn_regressor,
-    is_sklearn_transformer,
-)
+from aeon.utils.sklearn import is_sklearn_regressor, is_sklearn_transformer
 from aeon.utils.validation.series import check_series
 
-__author__ = ["fkiraly", "mloning", "miraep8", "aiwalter", "SveaMeyer13"]
+__maintainer__ = []
 __all__ = [
     "ColumnwiseTransformer",
     "ColumnConcatenator",
@@ -30,19 +26,7 @@ __all__ = [
     "TransformerPipeline",
     "YtoX",
 ]
-
-
-CORE_TYPES = [
-    "pd.DataFrame",
-    "np.ndarray",
-    "pd.Series",
-    "pd-multiindex",
-    "df-list",
-    "nested_univ",
-    "numpy3D",
-    "np-list",
-    "pd_multiindex_hier",
-]
+from aeon.utils import ALL_TIME_SERIES_TYPES
 
 
 def _coerce_to_aeon(other):
@@ -155,7 +139,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
 
     _tags = {
         # we let all X inputs through to be handled by first transformer
-        "X_inner_type": CORE_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
         "univariate-only": False,
     }
 
@@ -244,14 +228,9 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         TransformerPipeline object, concatenation of `self` (first) with `other` (last).
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
-        from aeon.classification.compose import SklearnClassifierPipeline
         from aeon.regression.compose import SklearnRegressorPipeline
 
         other = _coerce_to_aeon(other)
-
-        # if sklearn classifier, use sklearn classifier pipeline
-        if is_sklearn_classifier(other):
-            return SklearnClassifierPipeline(classifier=other, transformers=self.steps)
 
         # if sklearn regressor, use sklearn regressor pipeline
         if is_sklearn_regressor(other):
@@ -932,7 +911,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
         self.clone_tags(self.transformer_)
         self.set_tags(**{"fit_is_empty": False})
         # this ensures that we convert in the inner estimator, not in the multiplexer
-        self.set_tags(**{"X_inner_type": CORE_TYPES})
+        self.set_tags(**{"X_inner_type": ALL_TIME_SERIES_TYPES})
 
     @property
     def _transformers(self):
@@ -1214,7 +1193,7 @@ class Id(BaseTransformer):
     _tags = {
         "capability:inverse_transform": True,  # can the transformer inverse transform?
         "univariate-only": False,  # can the transformer handle multivariate X?
-        "X_inner_type": CORE_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
         "y_inner_type": "None",
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": True,
@@ -1340,7 +1319,7 @@ class OptionalPassthrough(_DelegatedTransformer):
         "output_data_type": "Series",
         # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,
-        "X_inner_type": CORE_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
         "y_inner_type": "None",
         "univariate-only": False,
         "fit_is_empty": False,

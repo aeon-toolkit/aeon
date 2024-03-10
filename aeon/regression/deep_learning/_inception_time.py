@@ -1,6 +1,6 @@
 """InceptionTime regressor."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["InceptionTimeRegressor"]
 
 import gc
@@ -30,12 +30,12 @@ class InceptionTimeRegressor(BaseRegressor):
             InceptionTime.
         depth               : int, default = 6,
             the number of inception modules used
-        nb_filters          : int or list of int32, default = 32,
+        n_filters          : int or list of int32, default = 32,
             the number of filters used in one inception
             module, if not a list,
             the same number of filters is used in
             all inception modules
-        nb_conv_per_layer   : int or list of int, default = 3,
+        n_conv_per_layer   : int or list of int, default = 3,
             the number of convolution layers in each inception
             module, if not a list,
             the same number of convolution layers is used
@@ -163,8 +163,8 @@ class InceptionTimeRegressor(BaseRegressor):
     def __init__(
         self,
         n_regressors=5,
-        nb_filters=32,
-        nb_conv_per_layer=3,
+        n_filters=32,
+        n_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
         max_pool_size=3,
@@ -195,8 +195,8 @@ class InceptionTimeRegressor(BaseRegressor):
     ):
         self.n_regressors = n_regressors
 
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
+        self.n_filters = n_filters
+        self.n_conv_per_layer = n_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
         self.strides = strides
@@ -237,10 +237,10 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data target values.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints).
+        y : np.ndarray
+            The training data target values of shape (n_cases,).
 
         Returns
         -------
@@ -252,8 +252,8 @@ class InceptionTimeRegressor(BaseRegressor):
 
         for n in range(0, self.n_regressors):
             rgs = IndividualInceptionRegressor(
-                nb_filters=self.nb_filters,
-                nb_conv_per_layer=self.nb_conv_per_layer,
+                n_filters=self.n_filters,
+                n_conv_per_layer=self.n_conv_per_layer,
                 kernel_size=self.kernel_size,
                 use_max_pooling=self.use_max_pooling,
                 max_pool_size=self.max_pool_size,
@@ -352,10 +352,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
     ----------
         depth               : int, default = 6,
             the number of inception modules used
-        nb_filters          : int or list of int32, default = 32,
+        n_filters          : int or list of int32, default = 32,
             the number of filters used in one inception module, if not a list,
             the same number of filters is used in all inception modules
-        nb_conv_per_layer   : int or list of int, default = 3,
+        n_conv_per_layer   : int or list of int, default = 3,
             the number of convolution layers in each inception module, if not a list,
             the same number of convolution layers is used in all inception modules
         kernel_size         : int or list of int, default = 40,
@@ -463,8 +463,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        nb_filters=32,
-        nb_conv_per_layer=3,
+        n_filters=32,
+        n_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
         max_pool_size=3,
@@ -494,8 +494,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         optimizer=None,
     ):
         # predefined
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
+        self.n_filters = n_filters
+        self.n_conv_per_layer = n_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
         self.strides = strides
@@ -528,8 +528,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
         self._network = InceptionNetwork(
-            nb_filters=self.nb_filters,
-            nb_conv_per_layer=self.nb_conv_per_layer,
+            n_filters=self.n_filters,
+            n_conv_per_layer=self.n_conv_per_layer,
             kernel_size=self.kernel_size,
             use_max_pooling=self.use_max_pooling,
             max_pool_size=self.max_pool_size,
@@ -543,7 +543,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             bottleneck_size=self.bottleneck_size,
             depth=self.depth,
             use_custom_filters=self.use_custom_filters,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, **kwargs):
@@ -589,11 +588,12 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-        y : np.ndarray of shape (n_instances)
-            The training data target values.
+        X : np.ndarray
+            The training input samples of,
+            shape (n_instances, n_channels, n_timepoints).
+            If a 2D array-like is passed, n_channels is assumed to be 1.
+        y : np.ndarray
+            The training data target values of shape (n_instances,).
 
         Returns
         -------
@@ -630,7 +630,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -650,10 +650,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".hdf5")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 

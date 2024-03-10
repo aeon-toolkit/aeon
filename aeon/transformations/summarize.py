@@ -1,6 +1,6 @@
 """Implement transformers for summarizing a time series."""
 
-__author__ = ["mloning", "RNKuhns", "danbartl", "grzegorzrut"]
+__maintainer__ = []
 __all__ = ["SummaryTransformer", "WindowSummarizer"]
 
 import numpy as np

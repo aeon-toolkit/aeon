@@ -3,7 +3,7 @@
 Pipeline classifier using the ROCKET transformer and an sklearn classifier.
 """
 
-__author__ = ["MatthewMiddlehurst", "victordremov", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["RocketClassifier"]
 
 import numpy as np
@@ -119,9 +119,9 @@ class RocketClassifier(BaseClassifier):
         self.n_features_per_kernel = n_features_per_kernel
         self.random_state = random_state
         self.estimator = estimator
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
         self.n_jobs = n_jobs
         super().__init__()
 
@@ -131,9 +131,9 @@ class RocketClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data of shape = (n_instances, n_channels, n_timepoints).
+            The training data of shape = (n_cases, n_channels, n_timepoints).
         y : 3D np.ndarray
-            The class labels shape = (n_instances,).
+            The class labels shape = (n_cases,).
 
         Returns
         -------
@@ -145,7 +145,7 @@ class RocketClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         rocket_transform = self.rocket_transform.lower()
         if rocket_transform == "rocket":
             self._transformer = Rocket(
@@ -154,7 +154,7 @@ class RocketClassifier(BaseClassifier):
                 random_state=self.random_state,
             )
         elif rocket_transform == "minirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 self._transformer = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -169,7 +169,7 @@ class RocketClassifier(BaseClassifier):
                     random_state=self.random_state,
                 )
         elif rocket_transform == "multirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 self._transformer = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -209,12 +209,12 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         return self.pipeline_.predict(X)
@@ -224,12 +224,12 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         m = getattr(self._estimator, "predict_proba", None)

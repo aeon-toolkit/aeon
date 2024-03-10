@@ -1,6 +1,6 @@
 """Implements functions to be used in evaluating forecasting models."""
 
-__author__ = ["aiwalter", "mloning", "fkiraly", "topher-lo"]
+__maintainer__ = []
 __all__ = ["evaluate"]
 
 import time
@@ -10,9 +10,10 @@ from typing import List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import check_is_scitype, convert_to
+from aeon.datatypes import convert_to
 from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.base import ForecastingHorizon
+from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_cv, check_scoring
 
@@ -240,7 +241,7 @@ def evaluate(
     scoring : Callable or None, default=None
         Function in aeon.performance_metrics. Used to get a score function that takes
         y_pred and y_test arguments and accept y_train as keyword argument.
-        If None, then uses scoring = MeanAbsolutePercentageError().
+        If None, then uses scoring = mean_absolute_percentage_error.
     return_data : bool, default=False
         Returns three additional columns in the DataFrame, by default False.
         The cells of the columns contain each a pd.Series for y_train,
@@ -272,8 +273,8 @@ def evaluate(
         Row index is splitter index of train/test fold in `cv`.
         Entries in the i-th row are for the i-th train/test split in `cv`.
         Columns are as follows:
-        - test_{scoring.name}: (float) Model performance score. If `scoring` is a list,
-            then there is a column withname `test_{scoring.name}` for each scorer.
+        - test_{scoring.__name__}: (float) Model performance score. If `scoring` is a
+        list, then there is a column withname `test_{scoring.__name__}` for each scorer.
         - fit_time: (float) Time in sec for `fit` or `update` on train fold.
         - pred_time: (float) Time in sec to `predict` from fitted estimator.
         - len_train_window: (int) Length of train window.
@@ -288,7 +289,7 @@ def evaluate(
     Examples
     --------
         The type of evaluation that is done by `evaluate` depends on metrics in
-        param `scoring`. Default is `MeanAbsolutePercentageError`.
+        param `scoring`. Default is `mean_absolute_percentage_error`.
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.model_evaluation import evaluate
     >>> from aeon.forecasting.model_selection import ExpandingWindowSplitter
@@ -316,15 +317,6 @@ def evaluate(
     ...     cv=cv,
     ...     scoring=[loss, loss2],
     ... )
-
-        An example of an interval metric is the `PinballLoss`.
-        It can be used with all probabilistic forecasters.
-    >>> from aeon.forecasting.naive import NaiveVariance
-    >>> from aeon.performance_metrics.forecasting.probabilistic import PinballLoss
-    >>> loss = PinballLoss()
-    >>> forecaster = NaiveForecaster(strategy="drift")
-    >>> results = evaluate(forecaster=NaiveVariance(forecaster),
-    ... y=y, cv=cv, scoring=loss)
     """
     if backend == "dask" and not _check_soft_dependencies("dask", severity="none"):
         raise RuntimeError(
@@ -339,12 +331,9 @@ def evaluate(
     else:
         scoring = check_scoring(scoring)
 
-    ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-
-    y_valid, _, _ = check_is_scitype(y, scitype=ALLOWED_SCITYPES, return_metadata=True)
-    if not y_valid:
+    if not (is_single_series(y) or is_hierarchical(y) or is_collection(y)):
         raise TypeError(
-            f"Expected y dtype {ALLOWED_SCITYPES!r}. Got {type(y)} instead."
+            f"Expected a series, collection or hierarchy. Got {type(y)} instead."
         )
 
     y = convert_to(y, to_type=PANDAS_MTYPES)
@@ -359,12 +348,9 @@ def evaluate(
         pass
 
     if X is not None:
-        X_valid, _, _ = check_is_scitype(
-            X, scitype=ALLOWED_SCITYPES, return_metadata=True
-        )
-        if not X_valid:
+        if not (is_single_series(X) or is_hierarchical(X) or is_collection(X)):
             raise TypeError(
-                f"Expected X dtype {ALLOWED_SCITYPES!r}. Got {type(X)} instead."
+                f"Expected a series, collection or hierarchy. Got {type(y)} instead."
             )
         X = convert_to(X, to_type=PANDAS_MTYPES)
     score_name = (

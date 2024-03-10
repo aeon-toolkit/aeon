@@ -1,13 +1,13 @@
 """Tests the conformal interval wrapper."""
 
-__author__ = ["fkiraly", "bethrice44"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.datatypes import convert_to, scitype_to_mtype
+from aeon.datatypes import convert_to
 from aeon.forecasting.conformal import ConformalIntervals
 from aeon.forecasting.model_evaluation import evaluate
 from aeon.forecasting.model_selection import (
@@ -15,7 +15,7 @@ from aeon.forecasting.model_selection import (
     SlidingWindowSplitter,
 )
 from aeon.forecasting.naive import NaiveForecaster, NaiveVariance
-from aeon.performance_metrics.forecasting.probabilistic import PinballLoss
+from aeon.performance_metrics.forecasting import mean_squared_error
 from aeon.testing.test_config import PR_TESTING
 
 if PR_TESTING:
@@ -29,7 +29,7 @@ else:
     CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
     EVALUATE_STRATEGY = ["update", "refit"]
     SAMPLE_FRACS = [None, 0.5]
-    SERIES_TYPES = scitype_to_mtype("Series", softdeps="present")
+    SERIES_TYPES = ["pd.Series", "pd.DataFrame", "np.ndarray"]
 
 
 @pytest.mark.parametrize("wrapper", INTERVAL_WRAPPERS)
@@ -111,11 +111,11 @@ def test_evaluate_with_window_splitters(wrapper, splitter, strategy, sample_frac
         y=y,
         X=None,
         strategy=strategy,
-        scoring=PinballLoss(alpha=[0.1, 0.5, 0.9]),
+        scoring=mean_squared_error,
         return_data=True,
         error_score="raise",
         backend=None,
     )
 
     assert len(results) == 8
-    assert not results.test_PinballLoss.isna().any()
+    assert not results.test_mean_squared_error.isna().any()

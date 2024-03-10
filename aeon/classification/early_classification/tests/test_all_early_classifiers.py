@@ -1,6 +1,6 @@
 """Unit tests for early classifier input output."""
 
-__author__ = ["mloning", "TonyBagnall", "fkiraly", "MatthewMiddlehurst"]
+__maintainer__ = []
 
 import numpy as np
 from sklearn.utils._testing import set_random_state

@@ -8,7 +8,7 @@ Concrete transformer classes from aeon are imported to cover
 Transformer scenarios cover different combinations of input data types.
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = []
 
 from inspect import isclass
@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
 
-from aeon.datatypes import check_is_scitype, mtype_to_scitype
+from aeon.datatypes import mtype_to_scitype
 from aeon.testing.utils.data_gen import get_examples, make_series
 from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
@@ -30,6 +30,12 @@ from aeon.testing.utils.scenarios_transformers import (
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import FitInTransform
+from aeon.utils.validation import (
+    is_collection,
+    is_hierarchical,
+    is_single_series,
+    is_tabular,
+)
 
 
 def inner_X_types(est):
@@ -68,7 +74,7 @@ def test_series_in_series_out_not_supported_but_panel():
         "fit_is_empty" = False
         "X_inner_type" does not support "Series" but does support "Panel"
 
-    X input to fit/transform has Series type
+    X input to fit/transform is a Series
     X output from fit/transform should be Series
     """
     cls = _DummyOne
@@ -81,11 +87,12 @@ def test_series_in_series_out_not_supported_but_panel():
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
 
-    valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
-    assert valid, "fit.transform does not return a Series when given a Series"
+    assert is_single_series(Xt), (
+        "fit.transform does not return a Series when given a " "Series"
+    )
 
 
-def test_panel_in_panel_out_supported():
+def test_collection_in_collection_out_supported():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
@@ -105,8 +112,9 @@ def test_panel_in_panel_out_supported():
     assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformPanelUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Panel", return_metadata=True)
-    assert valid, "fit.transform does not return a Panel when given a Panel"
+    assert is_collection(Xt), (
+        "fit.transform does not return a collection when given " "a collection"
+    )
 
 
 class _DummyTwo(BaseTransformer):
@@ -142,11 +150,12 @@ def test_series_in_series_out_supported():
     assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
-    assert valid, "fit.transform does not return a Series when given a Series"
+    assert is_single_series(
+        Xt
+    ), "fit.transform does not return a Series when given a Series"
 
 
-def test_panel_in_panel_out_not_supported_but_series():
+def test_collection_in_collection_out_not_supported_but_series():
     """Test that fit/transform runs and returns the correct output type.
 
     Setting: transformer has tags
@@ -168,11 +177,12 @@ def test_panel_in_panel_out_not_supported_but_series():
     assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformPanelUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Panel", return_metadata=True)
-    assert valid, "fit.transform does not return a Panel when given a Panel"
+    assert is_collection(Xt), (
+        "fit.transform does not return a collection when given " "a collection"
+    )
 
 
-def test_vectorization_multivariate_no_row_vectorization_empty_fit():
+def test_broadcast_multivariate_no_row_broadcast_empty_fit():
     """Test that multivariate vectorization of univariate transformers works.
 
     This test should trigger column (variable) vectorization, but not row vectorization.
@@ -197,8 +207,9 @@ def test_vectorization_multivariate_no_row_vectorization_empty_fit():
     assert est.get_tag("univariate-only")
     scenario = TransformerFitTransformSeriesMultivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
-    assert valid, "fit.transform does not return a Series when given a Series"
+    assert is_single_series(
+        Xt
+    ), "fit.transform does not return a series when given a series"
     # length of Xt should be number of hierarchy levels times number of time points
     assert len(Xt) == len(scenario.args["fit"]["X"])
     assert len(Xt.columns) == len(scenario.args["fit"]["X"].columns)
@@ -226,8 +237,9 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series():
     assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformHierarchicalUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Hierarchical", return_metadata=True)
-    assert valid, "fit.transform does not return a Hierarchical when given Hierarchical"
+    assert is_hierarchical(Xt), (
+        "fit.transform does not return a Hierarchical when " "given Hierarchical"
+    )
     # length of Xt should be number of hierarchy levels times number of time points
     assert len(Xt) == 2 * 4 * 12
 
@@ -258,8 +270,9 @@ def test_vectorization_multivariate_and_hierarchical():
     assert est.get_tag("univariate-only")
     scenario = TransformerFitTransformHierarchicalMultivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Hierarchical", return_metadata=True)
-    assert valid, "fit.transform does not return a Hierarchical when given Hierarchical"
+    assert is_hierarchical(Xt), (
+        "fit.transform does not return a Hierarchical when " "given Hierarchical"
+    )
     # length of Xt should be number of hierarchy levels times number of time points
     assert len(Xt) == len(scenario.args["fit"]["X"])
     assert len(Xt.columns) == len(scenario.args["fit"]["X"].columns)
@@ -291,8 +304,9 @@ def test_vectorization_multivariate_and_hierarchical_empty_fit():
     assert est.get_tag("univariate-only")
     scenario = TransformerFitTransformHierarchicalMultivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Hierarchical", return_metadata=True)
-    assert valid, "fit.transform does not return a Hierarchical when given Hierarchical"
+    assert is_hierarchical(Xt), (
+        "fit.transform does not return a Hierarchical when " "given Hierarchical"
+    )
     # length of Xt should be number of hierarchy levels times number of time points
     assert len(Xt) == len(scenario.args["fit"]["X"])
     assert len(Xt.columns) == len(scenario.args["fit"]["X"].columns)
@@ -330,8 +344,9 @@ def test_series_in_series_out_supported_fit_in_transform():
     assert est.get_class_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
-    assert valid, "fit.transform does not return a Series when given a Series"
+    assert is_single_series(
+        Xt
+    ), "fit.transform does not return a series when given a series"
 
 
 def test_hierarchical_in_hierarchical_out_not_supported_but_series_fit_in_transform():
@@ -356,8 +371,9 @@ def test_hierarchical_in_hierarchical_out_not_supported_but_series_fit_in_transf
     assert est.get_tag("output_data_type") == "Series"
     scenario = TransformerFitTransformHierarchicalUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Hierarchical", return_metadata=True)
-    assert valid, "fit.transform does not return a Hierarchical when given Hierarchical"
+    assert is_hierarchical(Xt), (
+        "fit.transform does not return a Hierarchical when " "given Hierarchical"
+    )
     # length of Xt should be number of hierarchy levels times number of time points
     assert len(Xt) == 2 * 4 * 12
 
@@ -395,8 +411,7 @@ def test_series_in_primitives_out_supported_fit_in_transform():
     assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
-    assert valid, "fit.transform does not return a Table when given a Series"
+    assert is_tabular(Xt), "fit.transform does not return a Table when given a Series"
     # length of Xt should be one, for a single series passed
     assert len(Xt) == 1
 
@@ -423,8 +438,7 @@ def test_panel_in_primitives_out_not_supported_fit_in_transform():
     assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformPanelUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
-    assert valid, "fit.transform does not return a Table when given a Panel"
+    assert is_tabular(Xt), "fit.transform does not return a Table when given a Panel"
     # length of Xt should be seven = number of samples in the scenario
     assert len(Xt) == 7
 
@@ -489,8 +503,7 @@ def test_series_in_primitives_out_not_supported_fit_in_transform():
     assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
-    assert valid, "fit.transform does not return a Table when given a Series"
+    assert is_tabular(Xt), "fit.transform does not return a Table when given a Series"
     # length of Xt should be one, for a single series passed
     assert len(Xt) == 1
 
@@ -530,8 +543,7 @@ def test_panel_in_primitives_out_supported_with_y_in_fit_but_not_transform():
     assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformPanelUnivariateWithClassYOnlyFit()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Table", return_metadata=True)
-    assert valid, "fit.transform does not return a Table when given a Panel"
+    assert is_tabular(Xt), "fit.transform does not return a Table when given a Panel"
     # length of Xt should be seven = number of samples in the scenario
     assert len(Xt) == 7
 
@@ -560,8 +572,9 @@ def test_vectorization_multivariate_no_row_vectorization():
     assert est.get_tag("univariate-only")
     scenario = TransformerFitTransformSeriesMultivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    valid, _, _ = check_is_scitype(Xt, scitype="Series", return_metadata=True)
-    assert valid, "fit.transform does not return a Series when given a Series"
+    assert is_single_series(
+        Xt
+    ), "fit.transform does not return a Series when given a Series"
     # length of Xt should be number of hierarchy levels times number of time points
     assert len(Xt) == len(scenario.args["fit"]["X"])
     assert len(Xt.columns) == len(scenario.args["fit"]["X"].columns)

@@ -9,7 +9,7 @@ from typing import Dict
 
 from aeon.annotation.hmm_learn import BaseHMMLearn
 
-__author__ = ["klam-data", "pyyim", "mgorlin"]
+__maintainer__ = []
 __all__ = ["PoissonHMM"]
 
 

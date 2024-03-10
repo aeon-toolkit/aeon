@@ -20,7 +20,8 @@ legacy code supported "dask_panel" but it is not actually used anywhere.
 import numpy as np
 import pandas as pd
 
-from aeon.utils.validation._check_collection import (
+from aeon.utils._data_types import COLLECTIONS_DATA_TYPES
+from aeon.utils.validation.collection import (
     _equal_length,
     _nested_univ_is_equal,
     get_type,
@@ -478,19 +479,6 @@ def _from_pd_multiindex_to_nested_univ(X):
     assert (x_nested.columns == X.columns).all(), col_msg
 
     return x_nested
-
-
-COLLECTIONS_DATA_TYPES = [
-    "numpy3D",  # 3D np.ndarray of format (n_cases, n_channels, n_timepoints)
-    "np-list",  # python list of 2D numpy array of length [n_cases],
-    # each of shape (n_channels, n_timepoints_i)
-    "df-list",  # python list of 2D pd.DataFrames of length [n_cases], each a of
-    # shape (n_timepoints_i, n_channels)
-    "numpy2D",  # 2D np.ndarray of shape (n_cases, n_channels*n_timepoints)
-    "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_channels*n_timepoints)
-    "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
-    "pd-multiindex",  # pd.DataFrame with multi-index,
-]
 
 
 convert_dictionary = dict()

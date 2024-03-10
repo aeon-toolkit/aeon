@@ -10,7 +10,7 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.testing.utils.data_gen import make_example_2d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-__author__ = ["achieveordie", "hadifawaz1999"]
+__maintainer__ = []
 
 
 class _DummyDeepRegressor(BaseDeepRegressor):
@@ -71,7 +71,7 @@ def test_dummy_deep_regressor():
 
     dummy_deep_rg.save_last_model_to_file()
 
-    os.remove("./" + last_file_name + ".hdf5")
+    os.remove("./" + last_file_name + ".keras")
 
     # test summary of model
 

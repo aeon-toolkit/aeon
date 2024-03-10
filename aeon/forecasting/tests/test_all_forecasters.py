@@ -1,14 +1,11 @@
-"""Tests for BaseForecaster API points.
+"""Tests for BaseForecaster API points."""
 
-"""
-
-__author__ = ["mloning", "kejsitake", "fkiraly"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datatypes import check_is_mtype
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.forecasting.model_selection import (
@@ -31,10 +28,12 @@ from aeon.testing.utils.data_gen import (
     _assert_correct_pred_time_index,
     _get_n_columns,
     _make_fh,
+    _make_hierarchical,
     make_forecasting_problem,
     make_series,
 )
-from aeon.utils.index_functions import get_cutoff
+from aeon.utils.index_functions import get_cutoff, get_window
+from aeon.utils.validation import is_pdmultiindex_hierarchical, is_pred_interval_proba
 from aeon.utils.validation.forecasting import check_fh
 
 # get all forecasters
@@ -330,9 +329,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
             pred_ints = estimator_instance.predict_interval(
                 fh_int_oos, coverage=coverage
             )
-            valid, msg, _ = check_is_mtype(
-                pred_ints, mtype="pred_interval", scitype="Proba", return_metadata=True
-            )  # type: ignore
+            valid = is_pred_interval_proba(pred_ints)
+            msg = "Prediction intervals are not valid"
             assert valid, msg
 
         else:
@@ -609,10 +607,6 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         AssertionError - if forecast is not expected mtype pd_multiindex_hier,
             and does not have expected row and column indices
         """
-        from aeon.datatypes import check_is_mtype
-        from aeon.testing.utils.data_gen import _make_hierarchical
-        from aeon.utils.index_functions import get_window
-
         y_train = _make_hierarchical(
             hierarchy_levels=(2, 4),
             n_columns=n_columns,
@@ -636,7 +630,7 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
         y_pred = estimator_instance.predict(X=X_test)
 
         assert isinstance(y_pred, pd.DataFrame)
-        assert check_is_mtype(y_pred, "pd_multiindex_hier")
+        assert is_pdmultiindex_hierarchical(y_pred)
         msg = (
             "returned columns after predict are not as expected. "
             f"expected: {y_train.columns}. Found: {y_pred.columns}"

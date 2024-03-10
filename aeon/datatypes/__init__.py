@@ -1,7 +1,5 @@
 """Module exports: data type definitions, checks, validation, fixtures, converters."""
 
-__author__ = ["fkiraly"]
-
 from aeon.datatypes._check import (
     check_is_mtype,
     check_is_scitype,
@@ -27,8 +25,8 @@ from aeon.datatypes._registry import (
 from aeon.datatypes._vectorize import VectorizedDF
 
 __all__ = [
-    "ALL_TIME_SERIES_TYPES",
     "check_is_mtype",
+    "ALL_TIME_SERIES_TYPES",
     "check_is_scitype",
     "check_raise",
     "convert",

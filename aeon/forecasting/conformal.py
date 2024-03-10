@@ -4,7 +4,7 @@ Code based partially on NaiveVariance by ilyasmoutawwakil.
 """
 
 __all__ = ["ConformalIntervals"]
-__author__ = ["fkiraly", "bethrice44"]
+__maintainer__ = []
 
 from math import floor
 from warnings import warn
@@ -353,6 +353,7 @@ class ConformalIntervals(BaseForecaster):
         update : bool
             Whether residuals_matrix has been calculated previously and just
             needs extending. Default = False
+
         Returns
         -------
         residuals_matrix : pd.DataFrame, row and column index = y.index[initial_window:]

@@ -14,7 +14,7 @@ the representation is considered "lossy" if the representation is incomplete
 
 from aeon.datatypes._registry import mtype_to_scitype
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = [
     "get_examples",

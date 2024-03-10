@@ -6,30 +6,7 @@ Function named as ``*_error`` or ``*_loss`` return a scalar value to minimize:
 the lower the better.
 """
 
-__author__ = ["mloning", "Tomasz Chodakowski", "aiwalter", "RNKuhns"]
 __all__ = [
-    "make_forecasting_scorer",
-    "MeanAbsoluteScaledError",
-    "MedianAbsoluteScaledError",
-    "MeanSquaredScaledError",
-    "MedianSquaredScaledError",
-    "MeanAbsoluteError",
-    "MeanSquaredError",
-    "MedianAbsoluteError",
-    "MedianSquaredError",
-    "GeometricMeanAbsoluteError",
-    "GeometricMeanSquaredError",
-    "MeanAbsolutePercentageError",
-    "MedianAbsolutePercentageError",
-    "MeanSquaredPercentageError",
-    "MedianSquaredPercentageError",
-    "MeanRelativeAbsoluteError",
-    "MedianRelativeAbsoluteError",
-    "GeometricMeanRelativeAbsoluteError",
-    "GeometricMeanRelativeSquaredError",
-    "MeanAsymmetricError",
-    "MeanLinexError",
-    "RelativeLoss",
     "mean_absolute_scaled_error",
     "median_absolute_scaled_error",
     "mean_squared_scaled_error",
@@ -53,30 +30,6 @@ __all__ = [
     "relative_loss",
 ]
 
-from aeon.performance_metrics.forecasting._classes import (
-    GeometricMeanAbsoluteError,
-    GeometricMeanRelativeAbsoluteError,
-    GeometricMeanRelativeSquaredError,
-    GeometricMeanSquaredError,
-    MeanAbsoluteError,
-    MeanAbsolutePercentageError,
-    MeanAbsoluteScaledError,
-    MeanAsymmetricError,
-    MeanLinexError,
-    MeanRelativeAbsoluteError,
-    MeanSquaredError,
-    MeanSquaredPercentageError,
-    MeanSquaredScaledError,
-    MedianAbsoluteError,
-    MedianAbsolutePercentageError,
-    MedianAbsoluteScaledError,
-    MedianRelativeAbsoluteError,
-    MedianSquaredError,
-    MedianSquaredPercentageError,
-    MedianSquaredScaledError,
-    RelativeLoss,
-    make_forecasting_scorer,
-)
 from aeon.performance_metrics.forecasting._functions import (
     geometric_mean_absolute_error,
     geometric_mean_relative_absolute_error,

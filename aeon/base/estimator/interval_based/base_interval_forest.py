@@ -1,6 +1,6 @@
 """A base class for interval extracting forest estimators."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["BaseIntervalForest"]
 
 import inspect
@@ -148,7 +148,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_channels_ : int
         The number of channels per case.
@@ -309,13 +309,13 @@ class BaseIntervalForest(metaclass=ABCMeta):
             y_preds, oobs = zip(*p)
 
             results = np.sum(y_preds, axis=0)
-            divisors = np.zeros(self.n_instances_)
+            divisors = np.zeros(self.n_cases_)
             for oob in oobs:
                 for inst in oob:
                     divisors[inst] += 1
 
             label_average = np.mean(y)
-            for i in range(self.n_instances_):
+            for i in range(self.n_cases_):
                 results[i] = (
                     label_average if divisors[i] == 0 else results[i] / divisors[i]
                 )
@@ -354,12 +354,12 @@ class BaseIntervalForest(metaclass=ABCMeta):
         y_probas, oobs = zip(*p)
 
         results = np.sum(y_probas, axis=0)
-        divisors = np.zeros(self.n_instances_)
+        divisors = np.zeros(self.n_cases_)
         for oob in oobs:
             for inst in oob:
                 divisors[inst] += 1
 
-        for i in range(self.n_instances_):
+        for i in range(self.n_cases_):
             results[i] = (
                 np.ones(self.n_classes_) * (1 / self.n_classes_)
                 if divisors[i] == 0
@@ -371,7 +371,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
     def _fit_forest(self, X, y, save_transformed_data=False):
         rng = check_random_state(self.random_state)
 
-        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
@@ -889,7 +889,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         intervals = []
         transform_data_lengths = []
-        interval_features = np.empty((self.n_instances_, 0))
+        interval_features = np.empty((self.n_cases_, 0))
 
         # for each transformed series
         for r in range(len(Xt)):
@@ -1078,7 +1078,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         ]
 
     def _predict_setup(self, X):
-        n_instances, n_channels, n_timepoints = X.shape
+        n_cases, n_channels, n_timepoints = X.shape
 
         if n_channels != self.n_channels_:
             raise ValueError(
@@ -1126,14 +1126,14 @@ class BaseIntervalForest(metaclass=ABCMeta):
             return estimator.predict(interval_features)
 
     def _train_estimate_for_estimator(self, Xt, y, idx, rng, probas=False):
-        indices = range(self.n_instances_)
-        subsample = rng.choice(self.n_instances_, size=self.n_instances_)
+        indices = range(self.n_cases_)
+        subsample = rng.choice(self.n_cases_, size=self.n_cases_)
         oob = [n for n in indices if n not in subsample]
 
         results = (
-            np.zeros((self.n_instances_, self.n_classes_))
+            np.zeros((self.n_cases_, self.n_classes_))
             if probas
-            else np.zeros(self.n_instances_)
+            else np.zeros(self.n_cases_)
         )
         if len(oob) == 0:
             return [results, oob]
