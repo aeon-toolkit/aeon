@@ -87,13 +87,12 @@ def _nested_univ_is_equal(X):
 
 
 def _is_pd_wide(X):
-    """Check whether the input nested DataFrame is "pd-wide" type."""
+    """Check whether the input DataFrame is "pd-wide" type."""
     # only test is if all values are float.
     if isinstance(X, pd.DataFrame) and not isinstance(X.index, pd.MultiIndex):
         if is_nested_univ_dataframe(X):
             return False
-        float_cols = X.select_dtypes(include=[float]).columns
-        for col in float_cols:
+        for col in X:
             if not np.issubdtype(X[col].dtype, np.floating):
                 return False
         return True
@@ -153,15 +152,14 @@ def get_type(X):
             return "numpy2D"
         else:
             raise ValueError(
-                f"ERROR np.ndarray must be either 2D or 3D but found " f"{X.ndim}"
+                f"ERROR np.ndarray must be 2D or 3D but found " f"{X.ndim}"
             )
     elif isinstance(X, list):  # np-list or df-list
         if isinstance(X[0], np.ndarray):  # if one a numpy they must all be 2D numpy
             for a in X:
                 if not (isinstance(a, np.ndarray) and a.ndim == 2):
                     raise TypeError(
-                        f"ERROR np-list np.ndarray must be either 2D or "
-                        f"3D, found {a.ndim}"
+                        f"ERROR nnp-list must contain 2D np.ndarray but found {a.ndim}"
                     )
             return "np-list"
         elif isinstance(X[0], pd.DataFrame):
