@@ -45,7 +45,7 @@ import pandas as pd
 from scipy.stats import norm
 
 from aeon.base import BaseEstimator
-from aeon.datatypes import VectorizedDF, convert_to, mtype_to_scitype, scitype_to_mtype
+from aeon.datatypes import VectorizedDF, convert_to, mtype_to_scitype
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_cutoff, update_data
@@ -1316,13 +1316,6 @@ class BaseForecaster(BaseEstimator):
         X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
         y_inner_abstract_type = mtype_to_scitype(y_inner_type, return_unique=True)
         X_inner_abstract_type = mtype_to_scitype(X_inner_type, return_unique=True)
-
-        ALLOWED_ABSTRACT_TYPES = ["Series", "Panel", "Hierarchical"]
-        FORBIDDEN_TYPES = ["numpy2D", "pd-wide"]
-
-        for abs in ALLOWED_ABSTRACT_TYPES:
-            types = set(scitype_to_mtype(abs))
-            types = list(types.difference(FORBIDDEN_TYPES))
 
         # checking y
         if y is not None:

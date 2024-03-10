@@ -839,15 +839,6 @@ class BaseTransformer(BaseEstimator):
         # end checking X
 
         if y_inner_type != ["None"] and y is not None:
-            # if "Table" in y_inner_scitype:
-            #     y_possible_scitypes = "Table"
-            # elif X_scitype == "Series":
-            #     y_possible_scitypes = "Series"
-            # elif X_scitype == "Panel":
-            #     y_possible_scitypes = "Panel"
-            # elif X_scitype == "Hierarchical":
-            #     y_possible_scitypes = ["Panel", "Hierarchical"]
-
             valid, y_metadata = validate_input(y)
             if not valid:
                 raise TypeError("Error, y is not a valid type for X type.")
