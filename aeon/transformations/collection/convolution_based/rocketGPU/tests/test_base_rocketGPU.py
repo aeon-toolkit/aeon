@@ -129,17 +129,17 @@ def test_base_rocketGPU_multivariate():
     assert (X_transform[:, 0] >= 0).sum() == len(X)
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("tensorflow", severity="none"),
-    reason="skip test if required soft dependency not available",
-)
 @pytest.fixture
 def random_seed():
     return 42
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("n_channels", [1, 3])
-def test_rocket_cpu_gpu(n_channels):
+def test_rocket_cpu_gpu(random_seed, n_channels):
     """Test consistency between CPU and GPU versions of ROCKET."""
     n_instances = 100
     if n_channels == 1:
@@ -151,7 +151,9 @@ def test_rocket_cpu_gpu(n_channels):
     n_filters = 100
     random_seed = 42
 
-    rocket_cpu = Rocket(n_filters=n_filters, random_state=random_seed)
+    rocket_cpu = Rocket(
+        num_kernels=n_filters, random_state=random_seed, normalize=False
+    )
     rocket_cpu.fit(X)
 
     rocket_gpu = ROCKETGPU(n_filters=n_filters, random_state=random_seed)

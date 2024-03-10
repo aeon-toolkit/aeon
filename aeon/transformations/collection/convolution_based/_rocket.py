@@ -73,16 +73,16 @@ class Rocket(BaseCollectionTransformer):
     def __init__(
         self,
         num_kernels=10_000,
-        n_filters=1000,
         normalise=True,
         n_jobs=1,
         random_state=None,
+        normalize=False,
     ):
         self.num_kernels = num_kernels
         self.normalise = normalise
         self.n_jobs = n_jobs
         self.random_state = random_state
-        self.n_filters = n_filters
+        self.normalize = normalize
         super().__init__()
 
     def _fit(self, X, y=None):
