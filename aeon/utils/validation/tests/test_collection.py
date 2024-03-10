@@ -81,6 +81,7 @@ def test_get_type():
 
 
 def test_has_missing():
+    """Test has_missing function."""
     d1 = np.random.random(size=(10, 10))
     assert not has_missing(d1)
     d1[0, 0] = np.nan

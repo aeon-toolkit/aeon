@@ -514,7 +514,7 @@ def is_pdmultiindex_hierarchical(y):
         True if y is pd multindex hierarchical.
 
     """
-    if not isinstance(y, pd.DataFrame) and not isinstance(y.index, pd.MultiIndex):
+    if not isinstance(y, pd.DataFrame) or not isinstance(y.index, pd.MultiIndex):
         return False
     if not y.columns.is_unique:
         return False
