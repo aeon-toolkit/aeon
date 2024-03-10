@@ -108,4 +108,4 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         -------
         None
         """
-        self.model_.save(file_path + self.last_file_name + ".hdf5")
+        self.model_.save(file_path + self.last_file_name + ".keras")

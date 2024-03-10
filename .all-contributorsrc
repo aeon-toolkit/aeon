@@ -2286,15 +2286,6 @@
       ]
     },
     {
-      "login": "itsdivya1309",
-      "name": "Divya Tiwari",
-      "avatar_url": "https://avatars.githubusercontent.com/u/108270861?v=4",
-      "profile": "https://github.com/itsdivya1309",
-      "contributions": [
-        "data"
-      ]
-    },
-    {
       "login": "nimanzik",
       "name": "Nima Nooshiri",
       "avatar_url": "https://avatars.githubusercontent.com/u/4640548?v=4",
@@ -2317,6 +2308,16 @@
       "name": "Divya Tiwari",
       "avatar_url": "https://avatars.githubusercontent.com/u/108270861?v=4",
       "profile": "https://github.com/itsdivya1309",
+      "contributions": [
+        "code",
+        "data"
+      ]
+    },
+    {
+      "login": "AnonymousCodes911",
+      "name": "Utkarsh Kumar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
+      "profile": "https://github.com/AnonymousCodes911",
       "contributions": [
         "code"
       ]
@@ -2345,13 +2346,13 @@
     },
     {
       "login": "AnonymousCodes911",
-    "name": "Utkarsh Kumar",
-    "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
-    "profile": "https://github.com/AnonymousCodes911",
-    "contributions": [
-      "code",
-      "doc"
-    ]
+      "name": "Utkarsh Kumar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
+      "profile": "https://github.com/AnonymousCodes911",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
