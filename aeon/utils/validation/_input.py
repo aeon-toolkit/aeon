@@ -1,4 +1,9 @@
-"""Checks of any valid type."""
+"""Input checks for aeon types.
+
+time series input should either be a single series, a collection of series or a
+hierarchical time series. Each of these abstract types is stored in either pandas or
+numpy data structure.
+"""
 
 import numpy as np
 import pandas as pd
@@ -13,14 +18,40 @@ from aeon.utils.validation.series import is_hierarchical, is_single_series
 
 
 def is_valid_input(X):
-    """Test if input valid."""
+    """Test if input valid.
+
+    Parameters
+    ----------
+    X : array-like
+        Input data to be checked.
+
+    Returns
+    -------
+    bool
+        True if input is either a single series, a collection or a hierarchy.
+    """
     if is_hierarchical(X) or is_collection(X) or is_single_series(X):
         return True
     return False
 
 
 def validate_input(X):
-    """Validate input."""
+    """Validate input.
+
+    Parameters
+    ----------
+    X : array-like
+        Input data to be checked.
+
+    Returns
+    -------
+    valid: bool
+        True if input is either a single series, a collection or a hierarchy.
+    metadata: dict
+        Dictionary containing metadata about the input. This includes the
+        abstract type (Series, Collection or Hierarchy, the data type (see LOCATION),
+        whether the data is univariate and whether it contains missing values.
+    """
     metadata = {}
     if is_hierarchical(X):
         metadata["scitype"] = "Hierarchical"

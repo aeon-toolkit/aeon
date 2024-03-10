@@ -4,8 +4,12 @@ import numpy as np
 import pandas as pd
 
 from aeon.datatypes import convert_to
-from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
-from aeon.utils.validation._input import validate_input
+from aeon.utils.validation import (
+    is_collection,
+    is_hierarchical,
+    is_single_series,
+    validate_input,
+)
 
 
 def _get_index(x):

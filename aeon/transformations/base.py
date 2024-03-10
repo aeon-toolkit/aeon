@@ -58,9 +58,8 @@ from aeon.utils.sklearn import (
     is_sklearn_regressor,
     is_sklearn_transformer,
 )
-from aeon.utils.validation import is_univariate_series
+from aeon.utils.validation import is_univariate_series, validate_input
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation._input import validate_input
 
 # single/multiple primitives
 Primitive = Union[np.integer, int, float, str]

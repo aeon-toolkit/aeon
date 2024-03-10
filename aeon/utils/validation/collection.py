@@ -5,7 +5,7 @@ import pandas as pd
 
 
 def is_tabular(X):
-    """Check X is a 2D table."""
+    """Check if input is a 2D table."""
     if isinstance(X, np.ndarray):
         if X.ndim != 2:
             return False

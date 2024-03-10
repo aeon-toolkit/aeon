@@ -35,8 +35,8 @@ from aeon.utils.validation import (
     is_single_series,
     is_timedelta,
     is_timedelta_or_date_offset,
+    validate_input,
 )
-from aeon.utils.validation._input import validate_input
 from aeon.utils.validation.forecasting import (
     VALID_CUTOFF_TYPES,
     check_cutoffs,
