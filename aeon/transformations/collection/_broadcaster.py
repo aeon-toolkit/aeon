@@ -1,5 +1,8 @@
 """Class to broadcast a single series transformer over a collection."""
 
+__maintainer__ = ["baraline"]
+__all__ = ["BroadcastTransformer"]
+
 import numpy as np
 from joblib import Parallel, delayed
 
@@ -9,11 +12,11 @@ from aeon.utils.validation import check_n_jobs
 
 
 def _joblib_container_fit(transformer, X, y):
-    return transformer._fit(X, y=y)
+    return transformer.fit(X, y=y)
 
 
 def _joblib_container_transform(transformer, X, y):
-    return transformer._transform(X, y=y)
+    return transformer.transform(X, y=y)
 
 
 class BroadcastTransformer(BaseCollectionTransformer):
@@ -51,7 +54,10 @@ class BroadcastTransformer(BaseCollectionTransformer):
     """
 
     def __init__(
-        self, transformer: BaseSeriesTransformer, n_jobs=1, joblib_backend="loky"
+        self,
+        transformer: BaseSeriesTransformer,
+        n_jobs: int = 1,
+        joblib_backend: str = "loky",
     ):
         self.transformer = transformer
         self.n_jobs = n_jobs
@@ -163,7 +169,6 @@ class BroadcastTransformer(BaseCollectionTransformer):
             y = [None] * n_samples
 
         n_jobs_joblib, _ = self._check_n_jobs_broadcast(n_samples)
-
         if self.get_tag("fit_is_empty"):
             Xt = Parallel(n_jobs=n_jobs_joblib, backend=self.joblib_backend)(
                 delayed(_joblib_container_transform)(self.transformer, X[i], y[i])
@@ -176,5 +181,4 @@ class BroadcastTransformer(BaseCollectionTransformer):
                 )
                 for i in range(len(X))
             )
-
         return np.asarray(Xt)

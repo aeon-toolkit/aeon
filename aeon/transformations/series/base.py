@@ -78,7 +78,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         return self
 
     @final
-    def transform(self, X, axis=None):
+    def transform(self, X, y=None, axis=None):
         """Transform X and return a transformed version.
 
         State required:
@@ -108,8 +108,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
         if axis is None:
             axis = self.axis
+
         X = self._preprocess_series(X, axis=axis)
-        return self._transform(X)
+        return self._transform(X, y=y)
 
     @final
     def fit_transform(self, X, y=None, axis=None):
