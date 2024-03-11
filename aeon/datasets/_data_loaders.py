@@ -1268,9 +1268,10 @@ def load_classification(
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     path = os.path.join(local_module, local_dirname)
-    if name not in get_downloaded_tsc_tsr_datasets(extract_path):
+    if name not in get_downloaded_tsc_tsr_datasets(path):
         if extract_path is None:
             local_dirname = "local_data"
+            path = os.path.join(local_module, local_dirname)
         if not os.path.exists(os.path.join(local_module, local_dirname)):
             os.makedirs(os.path.join(local_module, local_dirname))
         if name not in get_downloaded_tsc_tsr_datasets(
