@@ -1,6 +1,7 @@
 """Tests for broadcaster transformer"""
 
 import numpy as np
+import pytest
 
 from aeon.transformations.collection import BroadcastTransformer
 from aeon.transformations.series import (
@@ -8,31 +9,38 @@ from aeon.transformations.series import (
     DummySeriesTransformer_no_fit,
 )
 
+INPUT_SHAPES = [(2, 1, 10), (2, 2, 10)]
 
-def test_BroadcastTransformer_fit():
+
+@pytest.mark.parametrize("input_shape", INPUT_SHAPES)
+def test_BroadcastTransformer_fit(input_shape):
     constant = 1
     broadcaster = BroadcastTransformer(DummySeriesTransformer(constant=constant))
-    X = np.zeros((2, 1, 10))
+    X = np.zeros(input_shape)
     broadcaster.fit(X)
     Xt = broadcaster.transform(X)
-    assert hasattr(
-        broadcaster, "series_transformers"
-    ) and broadcaster.series_transformers == len(X)
-
+    Xit = broadcaster.inverse_transform(Xt)
+    assert hasattr(broadcaster, "series_transformers") and len(
+        broadcaster.series_transformers
+    ) == len(X)
     for i in range(len(X)):
         assert np.all(
             Xt[i] == constant + broadcaster.series_transformers[i].random_value_
         )
-    assert Xt.shape == (2, 1, 10)
+    np.testing.assert_array_equal(Xit, X)
+    assert Xt.shape == Xit.shape == X.shape
 
 
-def test_BroadcastTransformer_no_fit():
+@pytest.mark.parametrize("input_shape", INPUT_SHAPES)
+def test_BroadcastTransformer_no_fit(input_shape):
     constant = 1
     broadcaster = BroadcastTransformer(DummySeriesTransformer_no_fit(constant=constant))
-    X = np.zeros((2, 1, 10))
+    X = np.zeros(input_shape)
     broadcaster.fit(X)
     Xt = broadcaster.transform(X)
+    Xit = broadcaster.inverse_transform(Xt)
     assert not hasattr(broadcaster, "series_transformers")
     for i in range(len(X)):
         assert np.all(Xt[i] == constant)
-    assert Xt.shape == (2, 1, 10)
+    np.testing.assert_array_equal(Xit, X)
+    assert Xt.shape == Xit.shape == X.shape

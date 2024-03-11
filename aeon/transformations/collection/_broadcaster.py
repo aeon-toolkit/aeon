@@ -19,6 +19,10 @@ def _joblib_container_transform(transformer, X, y):
     return transformer.transform(X, y=y)
 
 
+def _joblib_container_inverse_transform(transformer, X, y):
+    return transformer.inverse_transform(X, y=y)
+
+
 class BroadcastTransformer(BaseCollectionTransformer):
     """Broadcasts a single series transformer over a collection.
 
@@ -53,6 +57,19 @@ class BroadcastTransformer(BaseCollectionTransformer):
     >>> transformer.fit_transform(X)
     """
 
+    _tags_to_inherit = [
+        "capability:unequal_length",
+        "capability:missing_values",
+        "univariate-only",
+        "capability:multivariate",
+        "capability:inverse_transform",
+        "requires_y",
+        "transform_labels",
+        "fit_is_empty",
+        "X-y-must-have-same-index",
+        "skip-inverse-transform",
+    ]
+
     def __init__(
         self,
         transformer: BaseSeriesTransformer,
@@ -62,9 +79,12 @@ class BroadcastTransformer(BaseCollectionTransformer):
         self.transformer = transformer
         self.n_jobs = n_jobs
         self.joblib_backend = joblib_backend
-        # Copy tags from transformer
-        self.set_tags(**transformer.get_tags())
         super().__init__()
+        # Setting tags before __init__() cause them to be overwriten.
+        _tags = {key: transformer.get_tags()[key] for key in self._tags_to_inherit}
+        if _tags["fit_is_empty"]:
+            transformer._is_fitted = True
+        self.set_tags(**_tags)
 
     def _check_n_jobs_broadcast(self, n_instances):
         """
@@ -177,6 +197,45 @@ class BroadcastTransformer(BaseCollectionTransformer):
         else:
             Xt = Parallel(n_jobs=n_jobs_joblib, backend=self.joblib_backend)(
                 delayed(_joblib_container_transform)(
+                    self.series_transformers[i], X[i], y[i]
+                )
+                for i in range(len(X))
+            )
+        return np.asarray(Xt)
+
+    def _inverse_transform(self, X, y=None):
+        """
+        Call the inverse_transform function of each transformer for each sample.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+            The collection of time series to transform.
+        y : 1D np.ndarray of shape = (n_instances), optional
+            Class of the samples. The default is None, which means this parameter
+            is ignored.
+
+        Returns
+        -------
+        Xt : np.ndarray
+            The transformed collection of time series.
+
+        """
+        n_samples = len(X)
+        if y is None:
+            y = [None] * n_samples
+
+        n_jobs_joblib, _ = self._check_n_jobs_broadcast(n_samples)
+        if self.get_tag("fit_is_empty"):
+            Xt = Parallel(n_jobs=n_jobs_joblib, backend=self.joblib_backend)(
+                delayed(_joblib_container_inverse_transform)(
+                    self.transformer, X[i], y[i]
+                )
+                for i in range(len(X))
+            )
+        else:
+            Xt = Parallel(n_jobs=n_jobs_joblib, backend=self.joblib_backend)(
+                delayed(_joblib_container_inverse_transform)(
                     self.series_transformers[i], X[i], y[i]
                 )
                 for i in range(len(X))

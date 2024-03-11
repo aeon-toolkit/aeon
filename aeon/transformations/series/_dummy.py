@@ -22,6 +22,7 @@ class DummySeriesTransformer(BaseSeriesTransformer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:inverse_transform": True,
     }
 
     def __init__(self, constant=0, axis=1, random_state=None):
@@ -60,7 +61,23 @@ class DummySeriesTransformer(BaseSeriesTransformer):
         np.ndarray
             2D transformed version of X
         """
-        return X + self.constant + self.random_value_
+        return X + (self.constant + self.random_value_)
+
+    def _inverse_transform(self, X, y=None):
+        """Inverse transform X by substracting the constant and random value.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            2D time series to be transformed
+        y : ignored argument for interface compatibility
+
+        Returns
+        -------
+        np.ndarray
+            2D inverse transformed version of X
+        """
+        return X - (self.constant + self.random_value_)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -91,6 +108,7 @@ class DummySeriesTransformer_no_fit(BaseSeriesTransformer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:inverse_transform": True,
         "fit_is_empty": True,
     }
 
@@ -113,6 +131,22 @@ class DummySeriesTransformer_no_fit(BaseSeriesTransformer):
             2D transformed version of X
         """
         return X + self.constant
+
+    def _inverse_transform(self, X, y=None):
+        """Inverse transform X by substracting the constant.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            2D time series to be transformed
+        y : ignored argument for interface compatibility
+
+        Returns
+        -------
+        np.ndarray
+            2D inverse transformed version of X
+        """
+        return X - self.constant
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
