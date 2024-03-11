@@ -17,6 +17,8 @@ convert_collection.
 Legacy code supported "dask_panel" but it is not actually used anywhere; thus, removed.
 """
 
+from typing import Sequence
+
 import numpy as np
 import pandas as pd
 
@@ -570,12 +572,12 @@ def convert_collection(X, output_type):
     return convert_dictionary[(input_type, output_type)](X)
 
 
-def resolve_equal_length_inner_type(inner_types):
+def resolve_equal_length_inner_type(inner_types: Sequence[str]) -> str:
     """Hierarchy of preference for internal supported types for equal length.
 
     Parameter
     ---------
-    inner_types: str
+    inner_types: Sequence[str]
         The inner types to be resolved to a single type.
     """
     if "numpy3D" in inner_types:
@@ -598,12 +600,12 @@ def resolve_equal_length_inner_type(inner_types):
     )
 
 
-def resolve_unequal_length_inner_type(inner_types):
+def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
     """Hierarchy of preference for internal supported types for unequal length.
 
     Parameter
     ---------
-    inner_types: str
+    inner_types: Sequence[str]
         The inner types to be resolved to a single type.
     """
     if "np-list" in inner_types:
