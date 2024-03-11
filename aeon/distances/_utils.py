@@ -118,14 +118,14 @@ def _make_3d_series(x: np.ndarray) -> np.ndarray:
     -------
     np.ndarray, 3d
     """
-    num_dims = x.ndim
-    if num_dims == 1:
+    n_channels = x.ndim
+    if n_channels == 1:
         shape = x.shape
         _x = np.reshape(x, (1, 1, shape[0]))
-    elif num_dims == 2:
+    elif n_channels == 2:
         shape = x.shape
         _x = np.reshape(x, (shape[0], 1, shape[1]))
-    elif num_dims > 3:
+    elif n_channels > 3:
         raise ValueError(
             "The matrix provided has more than 3 dimensions. This is not"
             "supported. Please provide a matrix with less than "
