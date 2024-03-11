@@ -86,7 +86,7 @@ class BroadcastTransformer(BaseCollectionTransformer):
             transformer._is_fitted = True
         self.set_tags(**_tags)
 
-    def _check_n_jobs_broadcast(self, n_instances):
+    def _check_n_jobs_broadcast(self, n_instances: int) -> (int, int):
         """
         Check the n_jobs parameters of the broadcaster and the transform.
 

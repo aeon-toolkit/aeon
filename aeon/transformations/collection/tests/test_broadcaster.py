@@ -12,6 +12,14 @@ from aeon.transformations.series import (
 INPUT_SHAPES = [(2, 1, 10), (2, 2, 10)]
 
 
+def test_BroadcastTransformer_tag_inheritance():
+    broadcaster = BroadcastTransformer(DummySeriesTransformer_no_fit())
+    broadcaster_tags = broadcaster.get_tags()
+    dummy_tags = DummySeriesTransformer_no_fit().get_tags()
+    for key in broadcaster._tags_to_inherit:
+        assert broadcaster_tags[key] == dummy_tags[key]
+
+
 @pytest.mark.parametrize("input_shape", INPUT_SHAPES)
 def test_BroadcastTransformer_fit(input_shape):
     constant = 1

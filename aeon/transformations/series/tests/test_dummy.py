@@ -8,7 +8,7 @@ from aeon.transformations.series import (
     DummySeriesTransformer_no_fit,
 )
 
-INPUT_SHAPES = [(2, 5), (1, 5), (5)]
+INPUT_SHAPES = [(2, 5), (1, 5)]
 
 
 @pytest.mark.parametrize("input_shape", INPUT_SHAPES)
@@ -22,6 +22,16 @@ def test_DummySeriesTransformer(input_shape):
     )
     Xit = transformer.inverse_transform(Xt)
     assert np.all(Xit == X) and Xit.shape == input_shape
+
+
+def test_DummySeriesTransformer_1D_convertion():
+    constant = 1
+    X = np.zeros(5)
+    transformer = DummySeriesTransformer(constant=constant).fit(X)
+    Xt = transformer.transform(X)
+    assert np.all(Xt == constant + transformer.random_value_) and Xt.shape == (1, 5)
+    Xit = transformer.inverse_transform(Xt)
+    assert np.all(Xit == X) and Xit.shape == (1, 5)
 
 
 @pytest.mark.parametrize("input_shape", INPUT_SHAPES)
