@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeon"
-version = "0.7.0"
+version = "0.7.1"
 description = "A toolkit for conducting machine learning tasks with time series data"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
@@ -68,7 +68,6 @@ all_extras = [
     "keras-self-attention",
     "kotsu>=0.3.1",
     "matplotlib>=3.3.2",
-    "mlflow<2.4.0; python_version < '3.12'", # see https://github.com/mlflow/mlflow/issues/8629
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
     "pydot>=2.0.0",
@@ -78,16 +77,21 @@ all_extras = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow; python_version < '3.12'",
+    "tensorflow>=2.12; python_version < '3.12' and python_version >= '3.9'",
     "tensorflow-addons; python_version < '3.12'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
+
+    # for some reason, a heirarchical dask test fails on Python 3.10 with the leter
+    # versions of pyarrow
+    "pyarrow<12; python_version == '3.10'",
+    "pyarrow-hotfix; python_version == '3.10'",
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow; python_version < '3.12'",
+    "tensorflow>=2.12; python_version < '3.12' and python_version >= '3.9'",
     "tensorflow-addons; python_version < '3.12'",
 ]
 unstable_extras = [
@@ -105,9 +109,6 @@ dev = [
     "pytest-xdist",
     "pytest-rerunfailures",
     "wheel",
-    "boto3",  # mlflow related
-    "botocore",  # mlflow related
-    "moto",  # mlflow related
 ]
 binder = [
     "notebook",
