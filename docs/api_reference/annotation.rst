@@ -38,10 +38,3 @@ detection and time series segmentation, which are now in their own module.
     :template: class.rst
 
     PoissonHMM
-
-Data Generation
----------------
-
-.. automodule:: aeon.annotation.datagen
-    :no-members:
-    :no-inherited-members:
