@@ -7,7 +7,7 @@ import numpy as np
 from joblib import Parallel, delayed
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.series import BaseSeriesTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import check_n_jobs
 
 
