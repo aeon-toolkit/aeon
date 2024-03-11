@@ -25,7 +25,7 @@ class DummySeriesTransformer(BaseSeriesTransformer):
         "capability:inverse_transform": True,
     }
 
-    def __init__(self, constant=0, axis=1, random_state=None):
+    def __init__(self, constant: int = 0, axis: int = 1, random_state=None) -> None:
         self.constant = constant
         self.random_state = random_state
         super().__init__(axis=axis)
@@ -112,7 +112,7 @@ class DummySeriesTransformer_no_fit(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, constant=0, axis=1):
+    def __init__(self, constant: int = 0, axis: int = 1) -> None:
         self.constant = constant
         super().__init__(axis=axis)
 

@@ -11,15 +11,17 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import check_n_jobs
 
 
-def _joblib_container_fit(transformer, X, y):
+def _joblib_container_fit(
+    transformer: BaseSeriesTransformer, X, y
+) -> BaseSeriesTransformer:
     return transformer.fit(X, y=y)
 
 
-def _joblib_container_transform(transformer, X, y):
+def _joblib_container_transform(transformer: BaseSeriesTransformer, X, y):
     return transformer.transform(X, y=y)
 
 
-def _joblib_container_inverse_transform(transformer, X, y):
+def _joblib_container_inverse_transform(transformer: BaseSeriesTransformer, X, y):
     return transformer.inverse_transform(X, y=y)
 
 
@@ -50,10 +52,10 @@ class BroadcastTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection import BroadcastTransformer
-    >>> from aeon.transformations.series import MatrixProfileSeriesTransformer
+    >>> from aeon.transformations.series import DummySeriesTransformer
     >>> from aeon.datasets import load_unit_test
     >>> X, y = load_unit_test()
-    >>> transformer = BroadcastTransformer(MatrixProfileSeriesTransformer())
+    >>> transformer = BroadcastTransformer(DummySeriesTransformer())
     >>> transformer.fit_transform(X)
     """
 
@@ -75,7 +77,7 @@ class BroadcastTransformer(BaseCollectionTransformer):
         transformer: BaseSeriesTransformer,
         n_jobs: int = 1,
         joblib_backend: str = "loky",
-    ):
+    ) -> None:
         self.transformer = transformer
         self.n_jobs = n_jobs
         self.joblib_backend = joblib_backend
