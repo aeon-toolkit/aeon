@@ -85,14 +85,14 @@ class IntervalSegmenter(BaseCollectionTransformer):
         -------
         self : an instance of self.
         """
-        n_instances, n_channels, series_length = X.shape
+        n_cases, n_channels, series_length = X.shape
         if n_channels > 1:
             raise ValueError(
                 f"IntervalSegmenter only works with univariate series, "
                 f"data with {n_channels} was passed"
             )
 
-        self.input_shape_ = n_instances, n_channels, series_length
+        self.input_shape_ = n_cases, n_channels, series_length
 
         self._time_index = np.arange(series_length)
 
@@ -402,7 +402,7 @@ class SlidingWindowSegmenter(BaseCollectionTransformer):
 
     Returns
     -------
-        np.array [n_instances, n_timepoints, window_length]
+        np.array [n_cases, n_timepoints, window_length]
 
     Examples
     --------
@@ -443,22 +443,22 @@ class SlidingWindowSegmenter(BaseCollectionTransformer):
         X = X.squeeze(1)
 
         n_timepoints = X.shape[1]
-        n_instances = X.shape[0]
+        n_cases = X.shape[0]
 
         # Check the parameters are appropriate
         self._check_parameters(n_timepoints)
 
         pad_amnt = math.floor(self.window_length / 2)
-        padded_data = np.zeros((n_instances, n_timepoints + (2 * pad_amnt)))
+        padded_data = np.zeros((n_cases, n_timepoints + (2 * pad_amnt)))
 
         # Pad both ends of X
-        for i in range(n_instances):
+        for i in range(n_cases):
             padded_data[i] = np.pad(X[i], pad_amnt, mode="edge")
 
-        subsequences = np.zeros((n_instances, n_timepoints, self.window_length))
+        subsequences = np.zeros((n_cases, n_timepoints, self.window_length))
 
         # Extract subsequences
-        for i in range(n_instances):
+        for i in range(n_cases):
             subsequences[i] = self._extract_subsequences(padded_data[i], n_timepoints)
         return np.array(subsequences)
 

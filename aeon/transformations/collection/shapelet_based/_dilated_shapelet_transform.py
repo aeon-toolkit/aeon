@@ -170,7 +170,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, series_length)
             The training input samples.
         y: array-like or list, default=None
             The class values for X. If not specified, a random sample (i.e. not of the
@@ -188,8 +188,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         else:
             self._random_state = np.int32(np.random.randint(0, 2**31))
 
-        n_instances_ = len(X)
-        self.min_series_length_ = min([X[i].shape[1] for i in range(n_instances_)])
+        n_cases_ = len(X)
+        self.min_series_length_ = min([X[i].shape[1] for i in range(n_cases_)])
 
         self._check_input_params()
 
@@ -197,7 +197,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         set_num_threads(self._n_jobs)
 
         if y is None:
-            y = np.zeros(n_instances_)
+            y = np.zeros(n_cases_)
         else:
             y = LabelEncoder().fit_transform(y)
 
@@ -242,12 +242,12 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray shape (n_instances, n_channels, series_length)
+        X : np.ndarray shape (n_cases, n_channels, series_length)
             The input data to transform.
 
         Returns
         -------
-        X_new : 2D np.array of shape = (n_instances, 3*n_shapelets)
+        X_new : 2D np.array of shape = (n_cases, 3*n_shapelets)
             The transformed data.
         """
         for i in range(0, len(X)):
@@ -452,14 +452,14 @@ def _init_random_shapelet_params(
 
 @njit(cache=True)
 def _get_admissible_sampling_point(current_mask):
-    n_instances = len(current_mask)
+    n_cases = len(current_mask)
     # Count the number of admissible points per sample as cumsum
     n_admissible_points = 0
-    for i in range(n_instances):
+    for i in range(n_cases):
         n_admissible_points += current_mask[i].shape[0]
     if n_admissible_points > 0:
         idx_choice = np.random.choice(n_admissible_points)
-        for i in range(n_instances):
+        for i in range(n_cases):
             _new_val = idx_choice - current_mask[i].shape[0]
             if _new_val < 0 and current_mask[i].shape[0] > 0:
                 return i, idx_choice
@@ -484,9 +484,9 @@ def random_dilated_shapelet_extraction(
 
     Parameters
     ----------
-    X : array, shape (n_instances, n_channels, series_length)
+    X : array, shape (n_cases, n_channels, series_length)
         Time series dataset
-    y : array, shape (n_instances)
+    y : array, shape (n_cases)
         Class of each input time series
     max_shapelets : int
         The maximum number of shapelet to keep for the final transformation.
@@ -535,10 +535,10 @@ def random_dilated_shapelet_extraction(
         - stds : array, shape (max_shapelets, n_channels)
             Standard deviation of the shapelets
     """
-    n_instances = len(X)
+    n_cases = len(X)
     n_channels = X[0].shape[0]
-    series_lengths = np.zeros(n_instances, dtype=np.int64)
-    for i in range(n_instances):
+    series_lengths = np.zeros(n_cases, dtype=np.int64)
+    for i in range(n_cases):
         series_lengths[i] = X[i].shape[1]
     min_series_length = series_lengths.min()
     max_series_length = series_lengths.max()
@@ -569,8 +569,8 @@ def random_dilated_shapelet_extraction(
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
         # (2, _, _): Mask is different for normalized and non-normalized shapelets
-        alpha_mask = np.ones((2, n_instances, max_series_length), dtype=np.bool_)
-        for _i in range(n_instances):
+        alpha_mask = np.ones((2, n_cases, max_series_length), dtype=np.bool_)
+        for _i in range(n_cases):
             # For the unequal length case, we scale the mask up and set to False
             alpha_mask[:, _i, series_lengths[_i] :] = False
 
@@ -587,7 +587,7 @@ def random_dilated_shapelet_extraction(
                 np.where(
                     alpha_mask[norm, _i, : series_lengths[_i] - (length - 1) * dilation]
                 )[0]
-                for _i in range(n_instances)
+                for _i in range(n_cases)
             ]
             idx_sample, idx_timestamp = _get_admissible_sampling_point(current_mask)
             if idx_sample >= 0:
@@ -666,7 +666,7 @@ def dilated_shapelet_transform(X, shapelets):
 
     Parameters
     ----------
-    X : array, shape (n_instances, n_channels, series_length)
+    X : array, shape (n_cases, n_channels, series_length)
         Time series dataset
     shapelets : tuple
         The returned tuple contains 7 arrays describing the shapelets parameters:
@@ -687,26 +687,26 @@ def dilated_shapelet_transform(X, shapelets):
 
     Returns
     -------
-    X_new : array, shape=(n_instances, 3*n_shapelets)
+    X_new : array, shape=(n_cases, 3*n_shapelets)
         The transformed input time series with each shapelet extracting 3
         feature from the distance vector computed on each time series.
 
     """
     (values, lengths, dilations, threshold, normalize, means, stds) = shapelets
     n_shapelets = len(lengths)
-    n_instances = len(X)
+    n_cases = len(X)
     n_ft = 3
 
     # (u_l * u_d , 2)
     params_shp = combinations_1d(lengths, dilations)
 
-    X_new = np.zeros((n_instances, n_ft * n_shapelets))
+    X_new = np.zeros((n_cases, n_ft * n_shapelets))
     for i_params in prange(params_shp.shape[0]):
         length = params_shp[i_params, 0]
         dilation = params_shp[i_params, 1]
         id_shps = np.where((lengths == length) & (dilations == dilation))[0]
 
-        for i_x in prange(n_instances):
+        for i_x in prange(n_cases):
             X_subs = get_all_subsequences(X[i_x], length, dilation)
             idx_no_norm = id_shps[np.where(~normalize[id_shps])[0]]
             for i_shp in idx_no_norm:

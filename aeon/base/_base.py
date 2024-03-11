@@ -568,9 +568,9 @@ class BaseObject(_BaseEstimator):
                 )
             objs += [cls(**params)]
 
-        num_instances = len(param_list)
-        if num_instances > 1:
-            names = [cls.__name__ + "-" + str(i) for i in range(num_instances)]
+        num_cases = len(param_list)
+        if num_cases > 1:
+            names = [cls.__name__ + "-" + str(i) for i in range(num_cases)]
         else:
             names = [cls.__name__]
 

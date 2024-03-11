@@ -229,7 +229,7 @@ def test_item_len(scitype, mtype, fixture_index, iterate_as, iterate_cols):
         _, _, metadata = check_is_mtype(
             fixture, mtype=mtype, scitype=scitype, return_metadata=True
         )
-        true_length = metadata["n_instances"]
+        true_length = metadata["n_cases"]
     elif iterate_as == "Panel":
         _, _, metadata = check_is_mtype(
             fixture, mtype=mtype, scitype=scitype, return_metadata=True
@@ -245,7 +245,7 @@ def test_item_len(scitype, mtype, fixture_index, iterate_as, iterate_cols):
     if iterate_cols:
         true_length = true_length * len(X_vect.X_multiindex.columns)
 
-    # check length against n_instances metadata field
+    # check length against n_cases metadata field
     assert len(X_vect) == true_length, (
         "X_vect.__len__ returns incorrect length.",
         f"True={true_length}, returned={len(X_vect)}",

@@ -104,7 +104,7 @@ time series will often be accompanied by an array of target variables.
 
 We use the terms case or instance when referring to a single time series
 contained in a collection. The size of a collection of time series is referred to as
-`n_cases` or `n_instances`. Collections of time typically follows the shape `
+`n_cases` or `n_cases`. Collections of time typically follows the shape `
 (n_cases, n_channels, n_timepoints)` if the series are equal length, but `n_timepoints`
 may vary between cases.
 
@@ -643,7 +643,7 @@ or as parts of pipelines, while the functions give you the tools to build your o
 estimators that would rely on similarity search at some point.
 
 The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
-class accepts as inputs 3D time series (n_instances, n_channels, n_timepoints) for the
+class accepts as inputs 3D time series (n_cases, n_channels, n_timepoints) for the
 fit method. Univariate and single series can still be used, but will need to be reshaped
 to this format.
 
@@ -664,7 +664,7 @@ function.
 >>> from aeon.similarity_search import TopKSimilaritySearch
 >>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
 ...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
->>> X = np.array(X) # X is of shape (2, 1, 7) : (n_instances, n_channels, n_timepoints)
+>>> X = np.array(X) # X is of shape (2, 1, 7) : (n_cases, n_channels, n_timepoints)
 >>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
 >>> topk.fit(X)  # fit the estimator on train data
 ...

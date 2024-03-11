@@ -18,32 +18,32 @@ from aeon.testing.utils.data_gen import (
     piecewise_poisson,
 )
 
-N_INSTANCES = [10]
+n_caseS = [10]
 N_CHANNELS = [1, 3]
 N_TIMEPOINTS = [3, 5]
 N_CLASSES = [2, 5]
 
 
-def _check_X_y_pandas(X, y, n_instances, n_columns, n_timepoints):
+def _check_X_y_pandas(X, y, n_cases, n_columns, n_timepoints):
     assert isinstance(X, pd.DataFrame)
     assert isinstance(y, pd.Series)
-    assert X.shape[0] == y.shape[0] == n_instances
+    assert X.shape[0] == y.shape[0] == n_cases
     assert X.shape[1] == n_columns
     assert X.iloc[0, 0].shape == (n_timepoints,)
 
 
-def _check_X_y_numpy(X, y, n_instances, n_columns, n_timepoints):
+def _check_X_y_numpy(X, y, n_cases, n_columns, n_timepoints):
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
-    assert X.shape == (n_instances, n_columns, n_timepoints)
-    assert y.shape == (n_instances,)
+    assert X.shape == (n_cases, n_columns, n_timepoints)
+    assert y.shape == (n_cases,)
 
 
-def _check_X_y(X, y, n_instances, n_columns, n_timepoints, check_numpy=False):
+def _check_X_y(X, y, n_cases, n_columns, n_timepoints, check_numpy=False):
     if check_numpy:
-        _check_X_y_numpy(X, y, n_instances, n_columns, n_timepoints)
+        _check_X_y_numpy(X, y, n_cases, n_columns, n_timepoints)
     else:
-        _check_X_y_pandas(X, y, n_instances, n_columns, n_timepoints)
+        _check_X_y_pandas(X, y, n_cases, n_columns, n_timepoints)
 
 
 @pytest.mark.parametrize(
@@ -58,7 +58,7 @@ def test_piecewise_poisson(lambdas, lengths, random_state, output):
     assert array_equal(piecewise_poisson(lambdas, lengths, random_state), output)
 
 
-@pytest.mark.parametrize("n_cases", N_INSTANCES)
+@pytest.mark.parametrize("n_cases", n_caseS)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
@@ -81,7 +81,7 @@ def test_make_example_3d_numpy(
         assert len(np.unique(y)) == n_classes
 
 
-@pytest.mark.parametrize("n_cases", N_INSTANCES)
+@pytest.mark.parametrize("n_cases", n_caseS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
 @pytest.mark.parametrize("regression", [True, False])
@@ -101,7 +101,7 @@ def test_make_example_2d_numpy(n_cases, n_timepoints, n_classes, regression):
         assert len(np.unique(y)) == n_classes
 
 
-@pytest.mark.parametrize("n_cases", N_INSTANCES)
+@pytest.mark.parametrize("n_cases", n_caseS)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
@@ -128,7 +128,7 @@ def test_make_unequal_length_data(
         assert len(np.unique(y)) == n_classes
 
 
-@pytest.mark.parametrize("n_cases", N_INSTANCES)
+@pytest.mark.parametrize("n_cases", n_caseS)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
@@ -161,6 +161,6 @@ def test_uncovered():
     y = _make_regression_y(return_numpy=False)
     assert isinstance(y, pd.Series)
     with pytest.raises(ValueError, match="n_cases must be bigger than n_classes"):
-        y = _make_classification_y(n_instances=4, n_classes=5)
+        y = _make_classification_y(n_cases=4, n_classes=5)
     x = _make_nested_from_array(make_example_3d_numpy(n_channels=2), 2)
     assert isinstance(x, pd.DataFrame)

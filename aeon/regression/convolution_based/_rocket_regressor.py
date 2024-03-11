@@ -119,9 +119,9 @@ class RocketRegressor(BaseRegressor):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data of shape = (n_instances, n_channels, n_timepoints).
+            The training data of shape = (n_cases, n_channels, n_timepoints).
         y : 3D np.ndarray
-            The target variable values, shape = (n_instances,).
+            The target variable values, shape = (n_cases,).
 
         Returns
         -------
@@ -133,7 +133,7 @@ class RocketRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_dims_, self.series_length_ = X.shape
 
         if self.rocket_transform == "rocket":
             self._transformer = Rocket(
@@ -197,12 +197,12 @@ class RocketRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         return self.pipeline_.predict(X)

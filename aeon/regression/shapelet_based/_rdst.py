@@ -153,7 +153,7 @@ class RDSTRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, series_length)
             The training input samples.
         y: array-like or list
             The target labels for samples in X.
@@ -205,12 +205,12 @@ class RDSTRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, series_length)
             The data to make prediction for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         X_t = self._transformer.transform(X)

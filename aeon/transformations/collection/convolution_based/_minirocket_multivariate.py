@@ -94,7 +94,7 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -119,7 +119,7 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -158,7 +158,7 @@ def _fit_biases_multi(
     if seed is not None:
         np.random.seed(seed)
 
-    n_instances, n_columns, n_timepoints = X.shape
+    n_cases, n_columns, n_timepoints = X.shape
 
     # equivalent to:
     # >>> from itertools import combinations
@@ -452,7 +452,7 @@ def _fit_biases_multi(
                 num_channels_start:num_channels_end
             ]
 
-            _X = X[np.random.randint(n_instances)][channels_this_combination]
+            _X = X[np.random.randint(n_cases)][channels_this_combination]
 
             A = -_X  # A = alpha * X = -X
             G = _X + _X + _X  # G = gamma * X = 3X
@@ -607,7 +607,7 @@ def _PPV(a, b):
     cache=True,
 )
 def _transform_multi(X, parameters):
-    n_instances, n_columns, n_timepoints = X.shape
+    n_cases, n_columns, n_timepoints = X.shape
 
     (
         num_channels_per_combination,
@@ -883,9 +883,9 @@ def _transform_multi(X, parameters):
 
     num_features = num_kernels * np.sum(num_features_per_dilation)
 
-    features = np.zeros((n_instances, num_features), dtype=np.float32)
+    features = np.zeros((n_cases, num_features), dtype=np.float32)
 
-    for example_index in prange(n_instances):
+    for example_index in prange(n_cases):
         _X = X[example_index]
 
         A = -_X  # A = alpha * X = -X

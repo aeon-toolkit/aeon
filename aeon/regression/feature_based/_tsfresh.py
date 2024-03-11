@@ -103,9 +103,9 @@ class TSFreshRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The target labels.
 
         Returns
@@ -172,12 +172,12 @@ class TSFreshRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted labels.
         """
         if self._return_mean:

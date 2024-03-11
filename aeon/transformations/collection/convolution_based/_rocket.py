@@ -83,7 +83,7 @@ class Rocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
 
@@ -107,13 +107,13 @@ class Rocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        np.ndarray [n_instances, num_kernels], transformed features
+        np.ndarray [n_cases, num_kernels], transformed features
         """
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
@@ -291,14 +291,12 @@ def _apply_kernels(X, kernels):
         channel_indices,
     ) = kernels
 
-    n_instances, n_channels, _ = X.shape
+    n_cases, n_channels, _ = X.shape
     num_kernels = len(lengths)
 
-    _X = np.zeros(
-        (n_instances, num_kernels * 2), dtype=np.float32
-    )  # 2 features per kernel
+    _X = np.zeros((n_cases, num_kernels * 2), dtype=np.float32)  # 2 features per kernel
 
-    for i in prange(n_instances):
+    for i in prange(n_cases):
         a1 = 0  # for weights
         a2 = 0  # for channel_indices
         a3 = 0  # for features

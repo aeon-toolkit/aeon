@@ -83,7 +83,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_channels, series_length)
+        X : an np.ndarray of shape = (n_cases, n_channels, series_length)
             The training input samples.
 
         Returns

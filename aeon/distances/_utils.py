@@ -14,12 +14,12 @@ def reshape_pairwise_to_multiple(
     Parameters
     ----------
     x : np.ndarray
-        One or more time series of shape (n_instances, n_channels,
+        One or more time series of shape (n_cases, n_channels,
         n_timepoints) or
-            (n_instances, n_timepoints) or (n_timepoints,).
+            (n_cases, n_timepoints) or (n_timepoints,).
     y : np.ndarray
-        One or more time series of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,)
+        One or more time series of shape (m_cases, m_channels, m_timepoints) or
+            (m_cases, m_timepoints) or (m_timepoints,)
 
     Returns
     -------
@@ -64,7 +64,7 @@ def reshape_pairwise_to_multiple(
 
 
 def _create_test_distance_numpy(
-    n_instance: int,
+    n_case: int,
     n_channels: int = None,
     n_timepoints: int = None,
     random_state: int = 1,
@@ -73,7 +73,7 @@ def _create_test_distance_numpy(
 
     Parameters
     ----------
-    n_instance: int
+    n_case: int
         Number of instances to create.
     n_channels: int
         Number of channels to create.
@@ -91,10 +91,10 @@ def _create_test_distance_numpy(
     rng = check_random_state(random_state)
     # Generate data as 3d numpy array
     if n_timepoints is None and n_channels is None:
-        return rng.normal(scale=0.5, size=(1, n_instance))
+        return rng.normal(scale=0.5, size=(1, n_case))
     if n_timepoints is None:
-        return rng.normal(scale=0.5, size=(n_instance, n_channels))
-    return rng.normal(scale=0.5, size=(n_instance, n_channels, n_timepoints))
+        return rng.normal(scale=0.5, size=(n_case, n_channels))
+    return rng.normal(scale=0.5, size=(n_case, n_channels, n_timepoints))
 
 
 def _make_3d_series(x: np.ndarray) -> np.ndarray:

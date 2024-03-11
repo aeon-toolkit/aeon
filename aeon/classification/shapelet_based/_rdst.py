@@ -158,7 +158,7 @@ class RDSTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, series_length)
             The training input samples.
         y: array-like or list
             The class labels for samples in X.
@@ -210,12 +210,12 @@ class RDSTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, series_length)
             The data to make prediction for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         X_t = self._transformer.transform(X)
@@ -227,12 +227,12 @@ class RDSTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, series_length)
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         X_t = self._transformer.transform(X)

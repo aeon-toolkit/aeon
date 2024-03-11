@@ -15,8 +15,8 @@ class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
     """Piecewise slope transformation.
 
     Class to perform a slope transformation on a collection of time series.
-    Numpy array of shape (n_instances, n_channels, series_length) is
-    transformed to numpy array of shape (n_instances, n_channels, n_intervals).
+    Numpy array of shape (n_cases, n_channels, series_length) is
+    transformed to numpy array of shape (n_cases, n_channels, n_intervals).
     The new feature is the slope over that interval found using a
     total least squares regression (note that total least squares is different
     from ordinary least squares regression.)
@@ -51,13 +51,13 @@ class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
         collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        3D np.ndarray of shape = [n_cases, n_channels, series_length]
         collection of time series to transform
         """
         # Get information about the dataframe

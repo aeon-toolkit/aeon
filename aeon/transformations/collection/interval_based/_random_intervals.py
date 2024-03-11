@@ -74,7 +74,7 @@ class RandomIntervals(BaseCollectionTransformer):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_dims_ : int
         The number of dimensions per case.
@@ -252,7 +252,7 @@ class RandomIntervals(BaseCollectionTransformer):
         self.intervals_ = []
         self._transform_features = None
 
-        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_dims_, self.n_timepoints_ = X.shape
 
         self._min_interval_length = self.min_interval_length
         if self.min_interval_length < 3:
@@ -351,7 +351,7 @@ class RandomIntervals(BaseCollectionTransformer):
         while interval_length / dilation < self._min_interval_length:
             dilation -= 1
 
-        Xt = np.empty((self.n_instances_, 0)) if transform else None
+        Xt = np.empty((self.n_cases_, 0)) if transform else None
         intervals = []
 
         for feature in self._features:

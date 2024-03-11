@@ -870,7 +870,7 @@ class FittedParamExtractor(BaseTransformer):
             Extracted parameters; columns are parameter values
         """
         param_names = self._check_param_names(self.param_names)
-        n_instances = X.shape[0]
+        n_cases = X.shape[0]
 
         def _fit_extract(forecaster, x, param_names):
             forecaster.fit(x)
@@ -889,7 +889,7 @@ class FittedParamExtractor(BaseTransformer):
             delayed(_fit_extract)(
                 self.forecaster.clone(), _get_instance(X, i), param_names
             )
-            for i in range(n_instances)
+            for i in range(n_cases)
         )
 
         return pd.DataFrame(extracted_params, columns=param_names)

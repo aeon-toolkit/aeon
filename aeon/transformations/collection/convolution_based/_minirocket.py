@@ -81,7 +81,7 @@ class MiniRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -110,7 +110,7 @@ class MiniRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -142,7 +142,7 @@ def _fit_biases(X, dilations, num_features_per_dilation, quantiles, seed):
     if seed is not None:
         np.random.seed(seed)
 
-    n_instances, n_timepoints = X.shape
+    n_cases, n_timepoints = X.shape
 
     # equivalent to:
     # >>> from itertools import combinations
@@ -423,7 +423,7 @@ def _fit_biases(X, dilations, num_features_per_dilation, quantiles, seed):
         for kernel_index in range(num_kernels):
             feature_index_end = feature_index_start + num_features_this_dilation
 
-            _X = X[np.random.randint(n_instances)]
+            _X = X[np.random.randint(n_cases)]
 
             A = -_X  # A = alpha * X = -X
             G = _X + _X + _X  # G = gamma * X = 3X
@@ -531,7 +531,7 @@ def _PPV(a, b):
     cache=True,
 )
 def _transform(X, parameters):
-    n_instances, n_timepoints = X.shape
+    n_cases, n_timepoints = X.shape
 
     dilations, num_features_per_dilation, biases = parameters
 
@@ -801,9 +801,9 @@ def _transform(X, parameters):
 
     num_features = num_kernels * np.sum(num_features_per_dilation)
 
-    features = np.zeros((n_instances, num_features), dtype=np.float32)
+    features = np.zeros((n_cases, num_features), dtype=np.float32)
 
-    for example_index in prange(n_instances):
+    for example_index in prange(n_cases):
         _X = X[example_index]
 
         A = -_X  # A = alpha * X = -X

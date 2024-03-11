@@ -59,16 +59,16 @@ class SupervisedIntervals(BaseCollectionTransformer):
         The minimum length of extracted intervals. Minimum value of 3.
     features : callable, list of callables, default=None
         Functions used to extract features from selected intervals. Must take a 2d
-        array of shape (n_instances, interval_length) and return a 1d array of shape
-        (n_instances) containing the features.
+        array of shape (n_cases, interval_length) and return a 1d array of shape
+        (n_cases) containing the features.
         If None, defaults to the following statistics used in [2]:
         [mean, median, std, slope, min, max, iqr, count_mean_crossing,
         count_above_mean].
     metric : ["fisher"] or callable, default="fisher"
         The metric used to evaluate the usefulness of a feature extracted on an
         interval. If "fisher", the Fisher score is used. If a callable, it must take
-        a 1d array of shape (n_instances) and return a 1d array of scores of shape
-        (n_instances).
+        a 1d array of shape (n_cases) and return a 1d array of scores of shape
+        (n_cases).
     randomised_split_point : bool, default=True
         If True, the split point for interval extraction is randomised as is done in [2]
         rather than split in half.
@@ -90,7 +90,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_dims_ : int
         The number of dimensions per case.
@@ -259,9 +259,9 @@ class SupervisedIntervals(BaseCollectionTransformer):
     def _fit_setup(self, X, y):
         self.intervals_ = []
 
-        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_dims_, self.n_timepoints_ = X.shape
 
-        if self.n_instances_ <= 1:
+        if self.n_cases_ <= 1:
             raise ValueError(
                 "Supervised intervals requires more than 1 training time series."
             )
@@ -356,7 +356,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     def _generate_intervals(self, X, X_norm, y, seed, keep_transform):
         rng = check_random_state(seed)
 
-        Xt = np.empty((self.n_instances_, 0)) if keep_transform else None
+        Xt = np.empty((self.n_cases_, 0)) if keep_transform else None
         intervals = []
 
         for i in range(self.n_dims_):

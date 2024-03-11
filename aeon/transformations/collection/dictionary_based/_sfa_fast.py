@@ -187,7 +187,7 @@ class SFAFast(BaseCollectionTransformer):
         self.skip_grams = skip_grams
         self.n_jobs = n_jobs
 
-        self.n_instances = 0
+        self.n_cases = 0
         self.series_length = 0
         self.letter_bits = 0
 
@@ -254,7 +254,7 @@ class SFAFast(BaseCollectionTransformer):
         else:
             X2, self.X_index = X, np.arange(X.shape[-1])
 
-        self.n_instances, self.series_length = X2.shape
+        self.n_cases, self.series_length = X2.shape
         self.breakpoints = self._binning(X2, y)
         self._is_fitted = True
 
@@ -1024,10 +1024,10 @@ def create_feature_names(sfa_words):
 
 @njit(cache=True, fastmath=True)
 def create_bag_none(
-    X_index, breakpoints, n_instances, sfa_words, word_length, remove_repeat_words
+    X_index, breakpoints, n_cases, sfa_words, word_length, remove_repeat_words
 ):
     feature_count = np.uint32(breakpoints.shape[1] ** word_length)
-    all_win_words = np.zeros((n_instances, feature_count), dtype=np.uint32)
+    all_win_words = np.zeros((n_cases, feature_count), dtype=np.uint32)
 
     for j in prange(sfa_words.shape[0]):
         # this mask is used to encode the repeated words
@@ -1045,7 +1045,7 @@ def create_bag_none(
 @njit(cache=True, fastmath=True)
 def create_bag_feature_selection(
     X_index,
-    n_instances,
+    n_cases,
     relevant_features_idx,
     feature_names,
     sfa_words,
@@ -1062,7 +1062,7 @@ def create_bag_feature_selection(
         if 0 in relevant_features:
             del relevant_features[0]
 
-    all_win_words = np.zeros((n_instances, len(relevant_features_idx)), dtype=np.uint32)
+    all_win_words = np.zeros((n_cases, len(relevant_features_idx)), dtype=np.uint32)
     for j in range(sfa_words.shape[0]):
         for key in sfa_words[j]:
             if key in relevant_features:
@@ -1127,9 +1127,9 @@ def shorten_words(words, amount, letter_bits):
 
     # TODO Bigrams
     # if bigrams:
-    #     for a in range(0, n_instances):
+    #     for a in range(0, n_cases):
     #         first_word = new_words[:, a]
     #         second_word = new_words[:, a + window_size]
-    #         words[:, n_instances + a] = (first_word << word_bits) | second_word
+    #         words[:, n_cases + a] = (first_word << word_bits) | second_word
 
     return new_words

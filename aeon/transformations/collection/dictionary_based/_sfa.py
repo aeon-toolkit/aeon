@@ -176,7 +176,7 @@ class SFA(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self.n_instances = 0
+        self.n_cases = 0
         self.series_length = 0
         self.letter_bits = 0
         self.letter_max = 0
@@ -250,7 +250,7 @@ class SFA(BaseCollectionTransformer):
             self.level_bits = math.ceil(math.log2(quadrants))
             self.level_max = pow(2, self.level_bits) - 1
 
-        self.n_instances, self.series_length = X.shape
+        self.n_cases, self.series_length = X.shape
         self.breakpoints = self._binning(X, y)
 
         self._is_fitted = True
@@ -405,7 +405,7 @@ class SFA(BaseCollectionTransformer):
         dft = np.array(
             [
                 self._binning_dft(X[i, :], num_windows_per_inst)
-                for i in range(self.n_instances)
+                for i in range(self.n_cases)
             ]
         )
         if self.keep_binning_dft:
@@ -459,7 +459,7 @@ class SFA(BaseCollectionTransformer):
 
     def _mcb(self, dft):
         num_windows_per_inst = math.ceil(self.series_length / self.window_size)
-        total_num_windows = int(self.n_instances * num_windows_per_inst)
+        total_num_windows = int(self.n_cases * num_windows_per_inst)
         breakpoints = np.zeros((self.word_length, self.alphabet_size))
 
         for letter in range(self.word_length):

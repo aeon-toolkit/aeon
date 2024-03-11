@@ -56,7 +56,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     max_shapelets : int or None, default=None
         Max number of shapelets to keep for the final transform. Each class value will
         have its own max, set to n_classes / max_shapelets. If None uses the min between
-        10 * n_instances and 1000.
+        10 * n_cases and 1000.
     min_shapelet_length : int, default=3
         Lower bound on candidate shapelet lengths.
     max_shapelet_length : int or None, default= None
@@ -86,7 +86,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     ----------
     n_classes_ : int
         The number of classes.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_channels_ : int
         The number of dimensions per case.
@@ -179,7 +179,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         # The following set in method fit
         self.n_classes_ = 0
-        self.n_instances_ = 0
+        self.n_cases_ = 0
         self.n_channels_ = 0
         self.min_series_length_ = 0
         self.classes_ = []
@@ -221,16 +221,16 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         le = preprocessing.LabelEncoder()
         y = le.fit_transform(y)
 
-        self.n_instances_ = len(X)
+        self.n_cases_ = len(X)
         self.n_channels_ = X[0].shape[0]
         # Set series length to the minimum
         self.min_series_length_ = X[0].shape[1]
-        for i in range(1, self.n_instances_):
+        for i in range(1, self.n_cases_):
             if X[i].shape[1] < self.min_series_length_:
                 self.min_series_length_ = X[i].shape[1]
 
         if self.max_shapelets is None:
-            self._max_shapelets = min(10 * self.n_instances_, 1000)
+            self._max_shapelets = min(10 * self.n_cases_, 1000)
         if self._max_shapelets < self.n_classes_:
             self._max_shapelets = self.n_classes_
         if self.max_shapelet_length is None:
@@ -363,7 +363,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         Returns
         -------
-        output : 2D np.array of shape = (n_instances, n_shapelets)
+        output : 2D np.array of shape = (n_cases, n_shapelets)
             The transformed data.
         """
         output = np.zeros((len(X), len(self.shapelets)))
@@ -420,7 +420,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     def _extract_random_shapelet(
         self, X, y, i, shapelets, max_shapelets_per_class, rng
     ):
-        inst_idx = i % self.n_instances_
+        inst_idx = i % self.n_cases_
         cls_idx = int(y[inst_idx])
         worst_quality = (
             shapelets[cls_idx][0][0]
@@ -453,7 +453,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             channel,
             inst_idx,
             self._class_counts[cls_idx],
-            self.n_instances_ - self._class_counts[cls_idx],
+            self.n_cases_ - self._class_counts[cls_idx],
             worst_quality,
         )
 

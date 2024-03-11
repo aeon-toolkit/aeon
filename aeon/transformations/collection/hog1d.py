@@ -48,13 +48,13 @@ class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, 1, series_length]
+        X : 3D np.ndarray of shape = [n_cases, 1, series_length]
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        X : 3D np.ndarray of shape = [n_instances, 1, feature_length]
+        X : 3D np.ndarray of shape = [n_cases, 1, feature_length]
             collection of time series to transform
 
         """

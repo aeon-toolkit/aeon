@@ -59,7 +59,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     ----------
     n_classes_ : int
         The number of classes.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_dims_ : int
         The number of dimensions per case.
@@ -117,14 +117,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         self._estimators = []
         self._classification_points = []
 
-        self.n_instances_ = 0
+        self.n_cases_ = 0
         self.n_dims_ = 0
         self.series_length_ = 0
 
         super().__init__()
 
     def _fit(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_dims_, self.series_length_ = X.shape
 
         self._estimator = (
             DrCIFClassifier() if self.estimator is None else self.estimator
@@ -179,7 +179,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         return self._proba_output_to_preds(out)
 
     def _predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
-        n_instances, _, series_length = X.shape
+        n_cases, _, series_length = X.shape
 
         # maybe use the largest index that is smaller than the series length
         next_idx = self._get_next_idx(series_length) + 1
@@ -315,14 +315,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         # stores whether we have made a final decision on a prediction, if true
         # state info won't be edited in later time stamps
         finished = state_info[:, 1] >= self.consecutive_predictions
-        n_instances = len(preds)
+        n_cases = len(preds)
 
         full_length_ts = idx == len(self._classification_points) - 1
         if full_length_ts:
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
         else:
             offsets = np.argwhere(finished == 0).flatten()
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
             if len(offsets) > 0:
                 p = probas[offsets, preds[offsets]]
                 accept_decision[offsets] = p >= self.probability_threshold
@@ -335,14 +335,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
                     if not finished[i]
                     else state_info[i]
                 )
-                for i in range(n_instances)
+                for i in range(n_cases)
             ]
         )
 
         # check safety of decisions
         if full_length_ts:
             # Force prediction at last time stamp
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
         else:
             accept_decision = state_info[:, 1] >= self.consecutive_predictions
 

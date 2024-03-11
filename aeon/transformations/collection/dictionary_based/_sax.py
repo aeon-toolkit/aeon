@@ -105,12 +105,12 @@ class SAX(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances, n_channels, series_length)
+        X : np.ndarray of shape = (n_cases, n_channels, series_length)
             The input time series
 
         Returns
         -------
-        X_paa : np.ndarray of shape = (n_instances, n_channels, n_segments)
+        X_paa : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the PAA transformation
         """
         if not self.znormalized:
@@ -131,14 +131,14 @@ class SAX(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances, n_channels, series_length)
+        X : np.ndarray of shape = (n_cases, n_channels, series_length)
             The input time series
-        y : np.ndarray of shape = (n_instances,), default = None
+        y : np.ndarray of shape = (n_cases,), default = None
             The labels are not used
 
         Returns
         -------
-        sax_symbols : np.ndarray of shape = (n_instances, n_channels, n_segments)
+        sax_symbols : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the SAX transformation
         """
         X_paa = self._get_paa(X=X)
@@ -150,12 +150,12 @@ class SAX(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X_paa : np.ndarray of shape = (n_instances, n_channels, n_segments)
+        X_paa : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the PAA transformation
 
         Returns
         -------
-        sax_symbols : np.ndarray of shape = (n_instances, n_channels, n_segments)
+        sax_symbols : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the SAX transformation using np.digitize
         """
         sax_symbols = np.digitize(x=X_paa, bins=self.breakpoints)
@@ -166,14 +166,14 @@ class SAX(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances, n_channels, n_segments)
+        X : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the SAX transformation
-        y : np.ndarray of shape = (n_instances,), default = None
+        y : np.ndarray of shape = (n_cases,), default = None
             The labels are not used
 
         Returns
         -------
-        sax_inverse : np.ndarray(n_instances, n_channels, series_length)
+        sax_inverse : np.ndarray(n_cases, n_channels, series_length)
             The inverse of sax transform
         """
         sax_inverse = _invert_sax_symbols(
@@ -253,7 +253,7 @@ def _invert_sax_symbols(sax_symbols, series_length, breakpoints_mid):
 
     Parameters
     ----------
-    sax_symbols : np.ndarray(n_instances, n_channels, n_segments)
+    sax_symbols : np.ndarray(n_cases, n_channels, n_segments)
         The sax output transformation
     series_length : int
         The original time series length
@@ -262,7 +262,7 @@ def _invert_sax_symbols(sax_symbols, series_length, breakpoints_mid):
 
     Returns
     -------
-    sax_inverse : np.ndarray(n_instances, n_channels, series_length)
+    sax_inverse : np.ndarray(n_cases, n_channels, series_length)
         The inverse of sax transform
     """
     n_samples, n_channels, sax_length = sax_symbols.shape

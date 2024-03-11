@@ -208,7 +208,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
 
         Returns
         -------
-           np.ndarray, size (n_instances, num_kernels)
+           np.ndarray, size (n_cases, num_kernels)
 
         Raises
         ------
@@ -239,7 +239,7 @@ def _np_list_transposed2D_array_and_len_list(
     Parameters
     ----------
     X : List of dataframes
-        List of length n_instances, with
+        List of length n_cases, with
         dataframes of series_length-rows and n_channels-columns
     pad : float or None. if float/int,pads multivariate series with 'pad',
         so that each series has at least length 9.
@@ -248,9 +248,9 @@ def _np_list_transposed2D_array_and_len_list(
     Returns
     -------
     np.ndarray: 2D array of shape =
-        [n_channels, sum(length_series(i) for i in n_instances)],
+        [n_channels, sum(length_series(i) for i in n_cases)],
         np.float32
-    np.ndarray: 1D array of shape = [n_instances]
+    np.ndarray: 1D array of shape = [n_cases]
         with length of each series, np.int32
 
     Raises
@@ -312,7 +312,7 @@ def _fit_biases_multi_var(
 ):
     if seed is not None:
         np.random.seed(seed)
-    n_instances = len(L)
+    n_cases = len(L)
 
     num_channels, _ = X.shape
 
@@ -610,7 +610,7 @@ def _fit_biases_multi_var(
                 num_channels_start:num_channels_end
             ]
 
-            example_index = np.random.randint(n_instances)
+            example_index = np.random.randint(n_cases)
 
             input_length = np.int64(L[example_index])
 
@@ -793,7 +793,7 @@ def _PPV(a, b):
     cache=True,
 )
 def _transform_multi_var(X, L, parameters):
-    n_instances = len(L)
+    n_cases = len(L)
 
     num_channels, _ = X.shape
 
@@ -1073,9 +1073,9 @@ def _transform_multi_var(X, L, parameters):
 
     num_features = num_kernels * np.sum(num_features_per_dilation)
 
-    features = np.zeros((n_instances, num_features), dtype=np.float32)
+    features = np.zeros((n_cases, num_features), dtype=np.float32)
 
-    for example_index in prange(n_instances):
+    for example_index in prange(n_cases):
         input_length = np.int64(L[example_index])
 
         b = np.sum(L[0 : example_index + 1])
