@@ -9,10 +9,10 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import ParameterGrid, ParameterSampler, check_cv
 
-from aeon.datatypes import mtype_to_scitype
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.forecasting.model_evaluation import evaluate
+from aeon.utils.validation import abstract_types
 from aeon.utils.validation.forecasting import check_scoring
 
 
@@ -90,12 +90,12 @@ class BaseGridSearch(_DelegatedForecaster):
         tagval = self.get_tag(tagname)
         if not isinstance(tagval, list):
             tagval = [tagval]
-        scitypes = mtype_to_scitype(tagval, return_unique=True)
-        if "Series" not in scitypes:
+        abs_types = abstract_types(tagval)
+        if "Series" not in abs_types:
             tagval = tagval + ["pd.DataFrame"]
-        if "Panel" not in scitypes:
+        if "Panel" not in abs_types:
             tagval = tagval + ["pd-multiindex"]
-        if "Hierarchical" not in scitypes:
+        if "Hierarchical" not in abs_types:
             tagval = tagval + ["pd_multiindex_hier"]
         self.set_tags(**{tagname: tagval})
 

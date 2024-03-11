@@ -18,6 +18,50 @@ from aeon.utils.validation.collection import (
 )
 from aeon.utils.validation.series import is_hierarchical, is_single_series
 
+# String identifiers for the different types of time series data
+COLLECTIONS = ["numpy3D", "nested_univ", "pd-multiindex"]
+SERIES = ["pd.Series", "pd.DataFrame", "np.ndarray"]
+HIERARCHICAL = ["pd_multiindex_hier"]
+# not needed PROBA = ["pred_interval", "pred_quantiles", "pred_var"]
+
+
+def _abstract_type(input_type: str) -> str:
+    """Return the abstract type based on the string identifier of the input.
+
+    Parameters
+    ----------
+    input_type : str
+        String representation of the input type.
+
+    Returns
+    -------
+    str
+        Abstract type of the input, one of Series, Panel, Hierarchical or Unknown.
+    """
+    if input_type in SERIES:
+        return "Series"
+    if input_type in COLLECTIONS:
+        return "Panel"
+    if input_type in HIERARCHICAL:
+        return "Hierarchical"
+    return "Unknown"
+
+
+def abstract_types(input_types: list[str]) -> list[str]:
+    """Return the abstract types based on the string identifier of the input.
+
+    Parameters
+    ----------
+    input_types : list of str
+        List of string representation of the input types.
+
+    Returns
+    -------
+    list of str
+        Abstract type of the input, one of Series, Panel, Hiersarchical or Unknown.
+    """
+    return [_abstract_type(x) for x in input_types]
+
 
 def is_valid_input(X):
     """Test if input valid.
