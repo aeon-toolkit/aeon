@@ -1,9 +1,9 @@
 import numpy as np
-from sklearn.linear_model import RidgeClassifierCV
+from sklearn.linear_model import RidgeCV
 from sklearn.preprocessing import StandardScaler
 
-from aeon.classification import BaseClassifier
-from aeon.classification.convolution_based._hydra import _SparseScaler
+from aeon.regression import BaseRegressor
+from aeon.regression.convolution_based._hydra import _SparseScaler
 from aeon.transformations.collection.convolution_based import (
     MultiRocket,
     MultiRocketMultivariate,
@@ -11,14 +11,14 @@ from aeon.transformations.collection.convolution_based import (
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
 
 
-class MultiRocketHydraClassifier(BaseClassifier):
-    """MultiRocket-Hydra Classifier.
+class MultiRocketHydraRegressor(BaseRegressor):
+    """MultiRocket-Hydra Regressor.
 
     A combination of the Hydra and MultiRocket algorithms. The algorithm concatenates
-    the output of both algorithms and trains a linear classifier on the combined
+    the output of both algorithms and trains a linear regressor on the combined
     features.
 
-    See both individual classifier/transformation for more details.
+    See both individual regressor/transformation for more details.
 
     Parameters
     ----------
@@ -35,17 +35,10 @@ class MultiRocketHydraClassifier(BaseClassifier):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
 
-    Attributes
-    ----------
-    n_classes_ : int
-        Number of classes. Extracted from the data.
-    classes_ : ndarray of shape (n_classes_)
-        Holds the label for each class.
-
     See Also
     --------
-    HydraClassifier
-    RocketClassifier
+    HydraRegressor
+    RocketRegressor
 
     References
     ----------
@@ -55,13 +48,13 @@ class MultiRocketHydraClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.convolution_based import MultiRocketHydraClassifier
+    >>> from aeon.regression.convolution_based import MultiRocketHydraRegressor
     >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
-    ...                              random_state=0)
-    >>> clf = MultiRocketHydraClassifier(random_state=0)  # doctest: +SKIP
+    ...                              regression_target=True, random_state=0)
+    >>> clf = MultiRocketHydraRegressor(random_state=0)  # doctest: +SKIP
     >>> clf.fit(X, y)  # doctest: +SKIP
-    MultiRocketHydraClassifier(random_state=0)
+    MultiRocketHydraRegressor(random_state=0)
     >>> clf.predict(X)  # doctest: +SKIP
     array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
@@ -71,6 +64,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
         "capability:multithreading": True,
         "algorithm_type": "convolution",
         "python_dependencies": "torch",
+        "non-deterministic": True,  # todo, presumed issue with mutlirocket
     }
 
     def __init__(self, n_kernels=8, n_groups=64, n_jobs=1, random_state=None):
@@ -111,7 +105,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
 
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
 
-        self.classifier = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+        self.classifier = RidgeCV(alphas=np.logspace(-3, 3, 10))
         self.classifier.fit(Xt, y)
 
         return self
