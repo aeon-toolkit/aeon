@@ -24,6 +24,7 @@ def create_bounding_matrix(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+        Itakura parallelogram does not support unequal length time series.
 
     Returns
     -------
@@ -58,9 +59,15 @@ def create_bounding_matrix(
 def _itakura_parallelogram(x_size: int, y_size: int, max_slope_percent: float):
     """Itakura parallelogram bounding matrix.
 
-    This code was adapted from tslearn. This link to the orginal code line 974:
+    This code was adapted from tslearn. This link to the original code line 974:
     https://github.com/tslearn-team/tslearn/blob/main/tslearn/metrics/dtw_variants.py
     """
+    if x_size != y_size:
+        raise ValueError(
+            """Itakura parallelogram does not support unequal length time series.
+Please consider using a full bounding matrix or a sakoe chiba bounding matrix
+instead."""
+        )
     one_percent = min(x_size, y_size) / 100
     max_slope = math.floor((max_slope_percent * one_percent) * 100)
     min_slope = 1 / float(max_slope)
@@ -97,16 +104,26 @@ def _itakura_parallelogram(x_size: int, y_size: int, max_slope_percent: float):
 def _sakoe_chiba_bounding(
     x_size: int, y_size: int, radius_percent: float
 ) -> np.ndarray:
-    if y_size < x_size:
+
+    if x_size > y_size:
         return _sakoe_chiba_bounding(y_size, x_size, radius_percent).T
 
-    one_percent = x_size / 100
-    radius = math.floor((radius_percent * one_percent) * 100)
-    bounding_matrix = np.full((x_size, y_size), False)
-    width = y_size - x_size + radius
-    for i in range(x_size):
-        lower = max(0, i - radius)
-        upper = min(y_size, i + width) + 1
-        bounding_matrix[i, lower:upper] = True
+    matrix = np.full((x_size, y_size), False)  # Create a matrix filled with False
+    matrix[0, 0] = True
+    matrix[x_size - 1, y_size - 1] = True
 
-    return bounding_matrix
+    max_size = max(x_size, y_size)
+
+    shortest_dimension = min(x_size, y_size)
+    thickness = int(radius_percent * shortest_dimension) // 2
+
+    for step in range(max_size):
+        x_index = math.floor((step / max_size) * x_size)
+        y_index = math.floor((step / max_size) * y_size)
+
+        upper = max(0, (x_index - thickness - 1))
+        lower = min(x_size, (x_index + thickness + 1 + 1))
+
+        matrix[upper:lower, y_index] = True
+
+    return matrix
