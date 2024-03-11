@@ -56,7 +56,7 @@ class BroadcastTransformer(BaseCollectionTransformer):
     >>> from aeon.datasets import load_unit_test
     >>> X, y = load_unit_test()
     >>> transformer = BroadcastTransformer(DummySeriesTransformer())
-    >>> transformer.fit_transform(X)
+    >>> X_t = transformer.fit_transform(X)
     """
 
     _tags_to_inherit = [
