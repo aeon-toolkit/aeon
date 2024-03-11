@@ -292,7 +292,7 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_cases, n_channels, series_length)
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The testing input samples.
 
         Returns

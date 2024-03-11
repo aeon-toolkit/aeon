@@ -65,7 +65,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
     Raises
     ------
     ValueError
-        If any multivariate series_length in X is < 9 and
+        If any multivariate n_timepoints in X is < 9 and
         pad_value_short_series is set to None
 
     See Also
@@ -147,7 +147,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         Raises
         ------
         ValueError
-            If any multivariate series_length in X is < 9 and
+            If any multivariate n_timepoints in X is < 9 and
             pad_value_short_series is set to None
         """
         X_2d_t, lengths_1darray = _np_list_transposed2D_array_and_len_list(
@@ -213,7 +213,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         Raises
         ------
         ValueError
-            If any multivariate series_length in X is < 9 and
+            If any multivariate n_timepoints in X is < 9 and
             pad_value_short_series is set to None
         """
         X_2d_t, L = _np_list_transposed2D_array_and_len_list(
@@ -240,7 +240,7 @@ def _np_list_transposed2D_array_and_len_list(
     ----------
     X : List of dataframes
         List of length n_cases, with
-        dataframes of series_length-rows and n_channels-columns
+        dataframes of n_timepoints-rows and n_channels-columns
     pad : float or None. if float/int,pads multivariate series with 'pad',
         so that each series has at least length 9.
         if None, no padding is applied.
@@ -256,7 +256,7 @@ def _np_list_transposed2D_array_and_len_list(
     Raises
     ------
     ValueError
-        If any multivariate series_length in X is < 9 and
+        If any multivariate n_timepoints in X is < 9 and
         pad_value_short_series is set to None
     """
     vec = []
@@ -273,8 +273,8 @@ def _np_list_transposed2D_array_and_len_list(
                 vec.append(np.transpose(x_pad))
             else:
                 raise ValueError(
-                    "X series_length must be >= 9 for all samples"
-                    f"but sample with series_length {_x_shape[1]} found. Consider"
+                    "X n_timepoints must be >= 9 for all samples"
+                    f"but sample with n_timepoints {_x_shape[1]} found. Consider"
                     " padding, discard, or setting a pad_value_short_series value"
                 )
         else:

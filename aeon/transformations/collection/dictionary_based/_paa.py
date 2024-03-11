@@ -53,7 +53,7 @@ class PAA(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_cases, n_channels, series_length)
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The input time series
         y : np.ndarray of shape = (n_cases,), default = None
             The labels are not used

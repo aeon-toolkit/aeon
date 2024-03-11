@@ -164,7 +164,7 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
         y - training data classes of shape [n_cases].
         """
         self._metric_params = {k.lower(): v for k, v in self._metric_params.items()}

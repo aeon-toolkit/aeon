@@ -36,13 +36,13 @@ from aeon.testing.utils.data_gen import (
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-n_caseS = [10, 15]
+N_CASES = [10, 15]
 N_CHANNELS = [3, 5]
 N_TIMEPOINTS = [3, 5]
 N_CLASSES = [2, 5]
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_are_columns_nested(n_cases, n_channels, n_timepoints):
@@ -60,7 +60,7 @@ def test_are_columns_nested(n_cases, n_channels, n_timepoints):
     assert [*are_columns_nested(nested_heterogenous2)] == [True] * n_channels + [False]
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_3d_numpy(n_cases, n_channels, n_timepoints):
@@ -76,7 +76,7 @@ def test_from_nested_to_3d_numpy(n_cases, n_channels, n_timepoints):
     np.testing.assert_array_equal(nested.iloc[1, 0], array[1, 0, :])
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_3d_numpy_to_nested(n_cases, n_channels, n_timepoints):
@@ -93,7 +93,7 @@ def test_from_3d_numpy_to_nested(n_cases, n_channels, n_timepoints):
     np.testing.assert_array_equal(nested.iloc[1, 0], array[1, 0, :])
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_2d_array(n_cases, n_channels, n_timepoints):
@@ -105,7 +105,7 @@ def test_from_nested_to_2d_array(n_cases, n_channels, n_timepoints):
     assert array.index.equals(nested.index)
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_3d_numpy_to_2d_array(n_cases, n_channels, n_timepoints):
@@ -116,7 +116,7 @@ def test_from_3d_numpy_to_2d_array(n_cases, n_channels, n_timepoints):
     assert array_2d.shape == (n_cases, n_channels * n_timepoints)
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_multi_index_to_3d_numpy(n_cases, n_channels, n_timepoints):
@@ -131,7 +131,7 @@ def test_from_multi_index_to_3d_numpy(n_cases, n_channels, n_timepoints):
     assert array.shape == (n_cases, n_channels, n_timepoints)
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_3d_numpy_to_multi_index(n_cases, n_channels, n_timepoints):
@@ -156,7 +156,7 @@ def test_from_3d_numpy_to_multi_index(n_cases, n_channels, n_timepoints):
     assert (mi_df_named.columns == col_names).all()
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_multi_index_to_nested(n_cases, n_channels, n_timepoints):
@@ -173,7 +173,7 @@ def test_from_multi_index_to_nested(n_cases, n_channels, n_timepoints):
     assert (nested_df.columns == mi_df.columns).all()
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_multi_index(n_cases, n_channels, n_timepoints):
@@ -190,7 +190,7 @@ def test_from_nested_to_multi_index(n_cases, n_channels, n_timepoints):
     assert mi_df.index.names == ["case_id", "reading_id"]
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_is_nested_dataframe(n_cases, n_channels, n_timepoints):
@@ -210,7 +210,7 @@ def test_is_nested_dataframe(n_cases, n_channels, n_timepoints):
     assert is_nested_dataframe(nested_heterogenous)
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_2d_array_to_nested(n_cases, n_channels, n_timepoints):
@@ -223,7 +223,7 @@ def test_from_2d_array_to_nested(n_cases, n_channels, n_timepoints):
     assert nested_df.shape == (n_cases, 1)
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_long_to_nested(n_cases, n_channels, n_timepoints):
@@ -237,7 +237,7 @@ def test_from_long_to_nested(n_cases, n_channels, n_timepoints):
     assert nested_df.shape == (n_cases, n_channels)
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_long(n_cases, n_channels, n_timepoints):
@@ -259,7 +259,7 @@ def test_from_nested_to_long(n_cases, n_channels, n_timepoints):
     not _check_soft_dependencies("gluonts", severity="none"),
     reason="requires gluonts package in the example",
 )
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_multiindex_to_listdataset(n_cases, n_channels, n_timepoints):
@@ -355,7 +355,7 @@ def test_from_multiindex_to_listdataset(n_cases, n_channels, n_timepoints):
             )
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_3d_numpy_to_nplist(n_cases, n_channels, n_timepoints):
@@ -373,7 +373,7 @@ def test_from_3d_numpy_to_nplist(n_cases, n_channels, n_timepoints):
     np.testing.assert_array_equal(np_list[0], array[0])
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_dflist_to_nplist(n_cases, n_channels, n_timepoints):
@@ -392,7 +392,7 @@ def test_from_dflist_to_nplist(n_cases, n_channels, n_timepoints):
     np.testing.assert_array_equal(df_list[0], array[0].transpose())
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nested_to_nplist(n_cases, n_channels, n_timepoints):
@@ -410,7 +410,7 @@ def test_from_nested_to_nplist(n_cases, n_channels, n_timepoints):
     np.testing.assert_array_equal(nested.iloc[1, 0], np_list[1][0])
 
 
-@pytest.mark.parametrize("n_cases", n_caseS)
+@pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nplist_to_nested(n_cases, n_channels, n_timepoints):

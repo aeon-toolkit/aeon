@@ -188,7 +188,7 @@ class SFAFast(BaseCollectionTransformer):
         self.n_jobs = n_jobs
 
         self.n_cases = 0
-        self.series_length = 0
+        self.n_timepoints = 0
         self.letter_bits = 0
 
         self.dilation = dilation
@@ -254,7 +254,7 @@ class SFAFast(BaseCollectionTransformer):
         else:
             X2, self.X_index = X, np.arange(X.shape[-1])
 
-        self.n_cases, self.series_length = X2.shape
+        self.n_cases, self.n_timepoints = X2.shape
         self.breakpoints = self._binning(X2, y)
         self._is_fitted = True
 
@@ -464,7 +464,7 @@ class SFAFast(BaseCollectionTransformer):
         dft = _binning_dft(
             X,
             self.window_size,
-            self.series_length,
+            self.n_timepoints,
             self.dft_length,
             self.norm,
             self.inverse_sqrt_win_size,
@@ -679,13 +679,13 @@ class SFAFast(BaseCollectionTransformer):
 def _binning_dft(
     X,
     window_size,
-    series_length,
+    n_timepoints,
     dft_length,
     norm,
     inverse_sqrt_win_size,
     lower_bounding,
 ):
-    num_windows_per_inst = math.ceil(series_length / window_size)
+    num_windows_per_inst = math.ceil(n_timepoints / window_size)
 
     # Splits individual time series into windows and returns the DFT for each
     data = np.zeros((len(X), num_windows_per_inst, window_size))
@@ -693,8 +693,8 @@ def _binning_dft(
         for j in range(num_windows_per_inst - 1):
             data[i, j] = X[i, window_size * j : window_size * (j + 1)]
 
-        start = series_length - window_size
-        data[i, -1] = X[i, start:series_length]
+        start = n_timepoints - window_size
+        data[i, -1] = X[i, start:n_timepoints]
 
     dft = np.zeros((len(X), num_windows_per_inst, dft_length))
     for i in prange(len(X)):

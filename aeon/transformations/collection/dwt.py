@@ -43,13 +43,13 @@ class DWTTransformer(BaseCollectionTransformer):
 
         private _transform containing core logic, called from transform
 
-        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
+        Xt : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of transformed time series
         """
         n_cases, n_channels, n_timepoints = X.shape

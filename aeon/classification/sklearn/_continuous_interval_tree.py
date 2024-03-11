@@ -444,12 +444,12 @@ class _TreeNode:
         entropy_right = _entropy(dist_right, sum_right)
         entropy_missing = _entropy(dist_missing, sum_missing)
 
-        num_cases = X.shape[0]
+        n_cases = X.shape[0]
         info_gain = (
             parent_entropy
-            - sum_left / num_cases * entropy_left
-            - sum_right / num_cases * entropy_right
-            - sum_missing / num_cases * entropy_missing
+            - sum_left / n_cases * entropy_left
+            - sum_right / n_cases * entropy_right
+            - sum_missing / n_cases * entropy_missing
         )
 
         return (

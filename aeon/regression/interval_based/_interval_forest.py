@@ -44,7 +44,7 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
 
         A list or tuple of ints and/or strs will extract the number of intervals using
         the above rules and sum the results for the final n_intervals. i.e. [4, "sqrt"]
-        will extract sqrt(series_length) + 4 intervals.
+        will extract sqrt(n_timepoints) + 4 intervals.
 
         Different number of intervals for each series_transformers series can be
         specified using a nested list or tuple. Any list or tuple input containing

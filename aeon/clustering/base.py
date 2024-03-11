@@ -94,8 +94,8 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_cases, series_length) or shape
-            (n_cases, n_channels, series_length)).
+        X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
+            (n_cases, n_channels, n_timepoints)).
             Time series instances to train clusterer and then have indexes each belong
             to return.
         y: ignored, exists for API consistency reasons.
@@ -144,8 +144,8 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_cases, series_length) or shape
-            (n_cases, n_channels, series_length)).
+        X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
+            (n_cases, n_channels, n_timepoints)).
             Time series instances to train clusterer and then have indexes each belong
             to return.
         y: ignored, exists for API consistency reasons.
@@ -204,8 +204,8 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_cases, series_length) or shape
-            (n_cases,n_channels,series_length)).
+        X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
+            (n_cases,n_channels,n_timepoints)).
             Time series instances to predict their cluster indexes.
         y: ignored, exists for API consistency reasons.
 
@@ -222,8 +222,8 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Parameters
         ----------
-        X : np.ndarray (2d or 3d array of shape (n_cases, series_length) or shape
-            (n_cases,n_channels,series_length)).
+        X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
+            (n_cases,n_channels,n_timepoints)).
             Training time series instances to cluster.
 
         Returns

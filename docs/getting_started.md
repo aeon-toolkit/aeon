@@ -77,7 +77,7 @@ Quarter
 ```
 
 We commonly refer to the number of observations for a time series as `n_timepoints` or
-`series_length`. If a series is multivariate, we refer to the dimensions as channels
+`n_timepoints`. If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`.
 Dimensions may also be referred to as variables.
 
@@ -418,8 +418,8 @@ series and process unequal length collections.
 >>> from aeon.testing.utils.data_gen import make_example_unequal_length
 >>> X, _ = make_example_unequal_length(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
-...     min_series_length=8,
-...     max_series_length=12,
+...     min_n_timepoints=8,
+...     max_n_timepoints=12,
 ...     random_state=0,
 ... )
 >>> print(X[0])

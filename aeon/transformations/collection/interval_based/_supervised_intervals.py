@@ -92,7 +92,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     ----------
     n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -259,7 +259,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     def _fit_setup(self, X, y):
         self.intervals_ = []
 
-        self.n_cases_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         if self.n_cases_ <= 1:
             raise ValueError(
@@ -359,7 +359,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
         Xt = np.empty((self.n_cases_, 0)) if keep_transform else None
         intervals = []
 
-        for i in range(self.n_dims_):
+        for i in range(self.n_channels_):
             for feature in self._features:
                 random_cut_point = int(rng.randint(1, self.n_timepoints_ - 1))
                 while (

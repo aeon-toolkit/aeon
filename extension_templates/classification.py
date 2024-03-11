@@ -121,7 +121,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_type")
             if self.get_tag("X_inner_type") = "numpy3D":
-                3D np.ndarray of shape = [n_cases, n_channels, series_length]
+                3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
         y : 1D np.array of int, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 

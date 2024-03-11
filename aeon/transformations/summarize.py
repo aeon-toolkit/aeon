@@ -765,7 +765,7 @@ class PlateauFinder(BaseTransformer):
 
         Parameters
         ----------
-        X : numpy3D array shape (n_cases, 1, series_length)
+        X : numpy3D array shape (n_cases, 1, n_timepoints)
 
         Returns
         -------
@@ -859,7 +859,7 @@ class FittedParamExtractor(BaseTransformer):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, 1, series_length)
+        X: np.ndarray shape (n_time_series, 1, n_timepoints)
             The training input samples.
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation

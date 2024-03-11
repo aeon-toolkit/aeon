@@ -61,7 +61,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     shapelet_lengths : array, default=None
         The set of possible length for shapelets. Each shapelet length is uniformly
         drawn from this set. If None, the shapelets length will be equal to
-        min(max(2,series_length//2),11).
+        min(max(2,n_timepoints//2),11).
     proba_normalization : float, default=0.8
         This probability (between 0 and 1) indicate the chance of each shapelet to be
         initialized such as it will use a z-normalized distance, inducing either scale
@@ -100,7 +100,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             - standard deviation parameter
     max_shapelet_length_ : int
         The maximum actual shapelet length fitted to train data.
-    min_series_length_ : int
+    min_n_timepoints_ : int
         The minimum length of series in train data.
 
     Notes
@@ -170,7 +170,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_cases, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
         y: array-like or list, default=None
             The class values for X. If not specified, a random sample (i.e. not of the
@@ -189,7 +189,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self._random_state = np.int32(np.random.randint(0, 2**31))
 
         n_cases_ = len(X)
-        self.min_series_length_ = min([X[i].shape[1] for i in range(n_cases_)])
+        self.min_n_timepoints_ = min([X[i].shape[1] for i in range(n_cases_)])
 
         self._check_input_params()
 
@@ -201,11 +201,11 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         else:
             y = LabelEncoder().fit_transform(y)
 
-        if any(self.shapelet_lengths_ > self.min_series_length_):
+        if any(self.shapelet_lengths_ > self.min_n_timepoints_):
             raise ValueError(
                 "Shapelets lengths can't be superior to input length,",
                 f"but got shapelets_lengths = {self.shapelet_lengths_} ",
-                f"with an input length = {self.min_series_length_}",
+                f"with an input length = {self.min_n_timepoints_}",
             )
         self.shapelets_ = random_dilated_shapelet_extraction(
             X,
@@ -242,7 +242,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray shape (n_cases, n_channels, series_length)
+        X : np.ndarray shape (n_cases, n_channels, n_timepoints)
             The input data to transform.
 
         Returns
@@ -282,7 +282,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self.shapelet_lengths_ = self.shapelet_lengths
         if self.shapelet_lengths_ is None:
             self.shapelet_lengths_ = np.array(
-                [min(max(2, self.min_series_length_ // 2), 11)]
+                [min(max(2, self.min_n_timepoints_ // 2), 11)]
             )
         else:
             if not isinstance(self.shapelet_lengths_, (list, tuple, np.ndarray)):
@@ -302,14 +302,14 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                     self.shapelet_lengths_ >= 2
                 ]
 
-            if not np.all(self.shapelet_lengths_ <= self.min_series_length_):
+            if not np.all(self.shapelet_lengths_ <= self.min_n_timepoints_):
                 warnings.warn(
                     "All the values in 'shapelet_lengths' must be lower or equal to"
                     + "the series length. Shapelet lengths above it will be ignored.",
                     stacklevel=2,
                 )
                 self.shapelet_lengths_ = self.shapelet_lengths_[
-                    self.shapelet_lengths_ <= self.min_series_length_
+                    self.shapelet_lengths_ <= self.min_n_timepoints_
                 ]
 
             if len(self.shapelet_lengths_) == 0:
@@ -367,7 +367,7 @@ def _init_random_shapelet_params(
     proba_normalization,
     use_prime_dilations,
     n_channels,
-    series_length,
+    n_timepoints,
 ):
     """Randomly initialize the parameters of the shapelets.
 
@@ -391,7 +391,7 @@ def _init_random_shapelet_params(
         short shapelet length, possibly at the cost of some accuracy.
     n_channels : int
         Number of channels of the input time series.
-    series_length : int
+    n_timepoints : int
         Size of the input time series.
 
     Returns
@@ -417,7 +417,7 @@ def _init_random_shapelet_params(
     lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
     # Upper bound values for dilations
     dilations = np.zeros(max_shapelets, dtype=np.int32)
-    upper_bounds = np.log2(np.floor_divide(series_length - 1, lengths - 1))
+    upper_bounds = np.log2(np.floor_divide(n_timepoints - 1, lengths - 1))
 
     if use_prime_dilations:
         _primes = prime_up_to(np.int32(2 ** upper_bounds.max()))
@@ -484,7 +484,7 @@ def random_dilated_shapelet_extraction(
 
     Parameters
     ----------
-    X : array, shape (n_cases, n_channels, series_length)
+    X : array, shape (n_cases, n_channels, n_timepoints)
         Time series dataset
     y : array, shape (n_cases)
         Class of each input time series
@@ -537,11 +537,11 @@ def random_dilated_shapelet_extraction(
     """
     n_cases = len(X)
     n_channels = X[0].shape[0]
-    series_lengths = np.zeros(n_cases, dtype=np.int64)
+    n_timepointss = np.zeros(n_cases, dtype=np.int64)
     for i in range(n_cases):
-        series_lengths[i] = X[i].shape[1]
-    min_series_length = series_lengths.min()
-    max_series_length = series_lengths.max()
+        n_timepointss[i] = X[i].shape[1]
+    min_n_timepoints = n_timepointss.min()
+    max_n_timepoints = n_timepointss.max()
     # Fix the random seed
     set_numba_random_seed(seed)
 
@@ -560,7 +560,7 @@ def random_dilated_shapelet_extraction(
         proba_normalization,
         use_prime_dilations,
         n_channels,
-        min_series_length,
+        min_n_timepoints,
     )
     # Get unique dilations to loop over
     unique_dil = np.unique(dilations)
@@ -569,10 +569,10 @@ def random_dilated_shapelet_extraction(
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
         # (2, _, _): Mask is different for normalized and non-normalized shapelets
-        alpha_mask = np.ones((2, n_cases, max_series_length), dtype=np.bool_)
+        alpha_mask = np.ones((2, n_cases, max_n_timepoints), dtype=np.bool_)
         for _i in range(n_cases):
             # For the unequal length case, we scale the mask up and set to False
-            alpha_mask[:, _i, series_lengths[_i] :] = False
+            alpha_mask[:, _i, n_timepointss[_i] :] = False
 
         id_shps = np.where(dilations == unique_dil[i_dilation])[0]
         min_len = min(lengths[id_shps])
@@ -585,7 +585,7 @@ def random_dilated_shapelet_extraction(
             # Possible sampling points given self similarity mask
             current_mask = [
                 np.where(
-                    alpha_mask[norm, _i, : series_lengths[_i] - (length - 1) * dilation]
+                    alpha_mask[norm, _i, : n_timepointss[_i] - (length - 1) * dilation]
                 )[0]
                 for _i in range(n_cases)
             ]
@@ -666,7 +666,7 @@ def dilated_shapelet_transform(X, shapelets):
 
     Parameters
     ----------
-    X : array, shape (n_cases, n_channels, series_length)
+    X : array, shape (n_cases, n_channels, n_timepoints)
         Time series dataset
     shapelets : tuple
         The returned tuple contains 7 arrays describing the shapelets parameters:

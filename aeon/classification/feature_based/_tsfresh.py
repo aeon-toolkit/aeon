@@ -109,7 +109,7 @@ class TSFreshClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
         y : array-like, shape = [n_cases]
             The class labels.
@@ -178,7 +178,7 @@ class TSFreshClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
@@ -196,7 +196,7 @@ class TSFreshClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns

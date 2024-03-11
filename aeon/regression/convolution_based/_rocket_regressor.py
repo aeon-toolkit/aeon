@@ -133,7 +133,7 @@ class RocketRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_cases_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         if self.rocket_transform == "rocket":
             self._transformer = Rocket(
@@ -142,7 +142,7 @@ class RocketRegressor(BaseRegressor):
                 random_state=self.random_state,
             )
         elif self.rocket_transform == "minirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 self._transformer = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -157,7 +157,7 @@ class RocketRegressor(BaseRegressor):
                     random_state=self.random_state,
                 )
         elif self.rocket_transform == "multirocket":
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 self._transformer = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -197,7 +197,7 @@ class RocketRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns

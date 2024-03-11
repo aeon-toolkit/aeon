@@ -105,7 +105,7 @@ class SAX(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_cases, n_channels, series_length)
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The input time series
 
         Returns
@@ -131,7 +131,7 @@ class SAX(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_cases, n_channels, series_length)
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The input time series
         y : np.ndarray of shape = (n_cases,), default = None
             The labels are not used
@@ -173,12 +173,12 @@ class SAX(BaseCollectionTransformer):
 
         Returns
         -------
-        sax_inverse : np.ndarray(n_cases, n_channels, series_length)
+        sax_inverse : np.ndarray(n_cases, n_channels, n_timepoints)
             The inverse of sax transform
         """
         sax_inverse = _invert_sax_symbols(
             sax_symbols=X,
-            series_length=original_length,
+            n_timepoints=original_length,
             breakpoints_mid=self.breakpoints_mid,
         )
 
@@ -246,7 +246,7 @@ class SAX(BaseCollectionTransformer):
 
 
 @njit(parallel=True, fastmath=True)
-def _invert_sax_symbols(sax_symbols, series_length, breakpoints_mid):
+def _invert_sax_symbols(sax_symbols, n_timepoints, breakpoints_mid):
     """Reconstruct the original time series using a Gaussian estimation.
 
     In other words, try to inverse the SAX transformation.
@@ -255,20 +255,20 @@ def _invert_sax_symbols(sax_symbols, series_length, breakpoints_mid):
     ----------
     sax_symbols : np.ndarray(n_cases, n_channels, n_segments)
         The sax output transformation
-    series_length : int
+    n_timepoints : int
         The original time series length
     breakpoints_mid : np.ndarray(alphabet_size)
         The Gaussian estimation of the value for each breakpoint interval
 
     Returns
     -------
-    sax_inverse : np.ndarray(n_cases, n_channels, series_length)
+    sax_inverse : np.ndarray(n_cases, n_channels, n_timepoints)
         The inverse of sax transform
     """
     n_samples, n_channels, sax_length = sax_symbols.shape
 
-    segment_length = int(series_length / sax_length)
-    sax_inverse = np.zeros((n_samples, n_channels, series_length))
+    segment_length = int(n_timepoints / sax_length)
+    sax_inverse = np.zeros((n_samples, n_channels, n_timepoints))
 
     for i in prange(n_samples):
         for c in prange(n_channels):

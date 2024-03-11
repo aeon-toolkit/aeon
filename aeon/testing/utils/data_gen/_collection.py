@@ -116,7 +116,7 @@ def make_example_2d_numpy(
     Returns
     -------
     X : np.ndarray
-        Randomly generated 2D data.
+        Randomly generated 1D data.
     y : np.ndarray
         Randomly generated labels if return_y is True.
 
@@ -148,14 +148,87 @@ def make_example_2d_numpy(
     return X
 
 
-def make_example_unequal_length(
+def make_example_2d_unequal_length(
     n_cases: int = 10,
-    n_channels: int = 1,
-    min_series_length: int = 6,
-    max_series_length: int = 8,
+    min_n_timepoints: int = 6,
+    max_n_timepoints: int = 8,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
+    return_y: bool = True,
+) -> Union[List[np.ndarray], Tuple[List[np.ndarray], np.ndarray]]:
+    """Randomly generate 2D unequal length X and y for testing.
+
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
+
+    Parameters
+    ----------
+    n_cases : int
+        The number of samples to generate.
+    min_n_timepoints : int
+        The minimum number of features/series length to generate for invidiaul series.
+    max_n_timepoints : int
+        The maximum number of features/series length to generate for invidiaul series.
+    n_labels : int
+        The number of unique labels to generate.
+    regression_target : bool
+        If True, the target will be a scalar float, otherwise an int.
+    random_state : int or None
+        Seed for random number generation.
+    return_y : bool, default = True
+        Return the y target variable.
+
+    Returns
+    -------
+    X : list of np.ndarray
+        Randomly generated unequal length 2D data.
+    y : np.ndarray
+        Randomly generated labels.
+
+    Examples
+    --------
+    >>> from aeon.testing.utils.data_gen import make_example_2d_unequal_length
+    >>> data, labels = make_example_2d_unequal_length(
+    ...     n_cases=20,
+    ...     min_n_timepoints=8,
+    ...     max_n_timepoints=12,
+    ...     n_labels=3,
+    ... )
+    """
+    rng = np.random.RandomState(random_state)
+    X = []
+    y = np.zeros(n_cases, dtype=np.int32)
+    for i in range(n_cases):
+        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
+        x = n_labels * rng.uniform(size=n_timepoints)
+        label = x[0].astype(int)
+        if i < n_labels and n_cases > i:
+            x[0] = i
+            label = i
+        x = x * (label + 1)
+
+        X.append(x)
+        y[i] = label
+
+    if regression_target:
+        y = y.astype(np.float32)
+        y += rng.uniform(size=y.shape)
+
+    if return_y:
+        return X, y
+    return X
+
+
+def make_example_unequal_length(
+    n_cases: int = 10,
+    n_channels: int = 1,
+    min_n_timepoints: int = 6,
+    max_n_timepoints: int = 8,
+    n_labels: int = 2,
+    regression_target: bool = False,
+    random_state: Union[int, None] = None,
+    return_y: bool = True,
 ) -> Tuple[List[np.ndarray], np.ndarray]:
     """Randomly generate unequal length X and y for testing.
 
@@ -168,9 +241,9 @@ def make_example_unequal_length(
         The number of samples to generate.
     n_channels : int
         The number of series channels to generate.
-    min_series_length : int
+    min_n_timepoints : int
         The minimum number of features/series length to generate for invidiaul series.
-    max_series_length : int
+    max_n_timepoints : int
         The maximum number of features/series length to generate for invidiaul series.
     n_labels : int
         The number of unique labels to generate.
@@ -178,6 +251,8 @@ def make_example_unequal_length(
         If True, the target will be a scalar float, otherwise an int.
     random_state : int or None
         Seed for random number generation.
+    return_y : bool, default = True
+        Return the y target variable.
 
     Returns
     -------
@@ -192,8 +267,8 @@ def make_example_unequal_length(
     >>> data, labels = make_example_unequal_length(
     ...     n_cases=20,
     ...     n_channels=2,
-    ...     min_series_length=8,
-    ...     max_series_length=12,
+    ...     min_n_timepoints=8,
+    ...     max_n_timepoints=12,
     ...     n_labels=3,
     ... )
     """
@@ -202,8 +277,8 @@ def make_example_unequal_length(
     y = np.zeros(n_cases, dtype=np.int32)
 
     for i in range(n_cases):
-        series_length = rng.randint(min_series_length, max_series_length + 1)
-        x = n_labels * rng.uniform(size=(n_channels, series_length))
+        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
+        x = n_labels * rng.uniform(size=(n_channels, n_timepoints))
         label = x[0, 0].astype(int)
         if i < n_labels and n_cases > i:
             x[0, 0] = i
@@ -217,7 +292,9 @@ def make_example_unequal_length(
         y = y.astype(np.float32)
         y += rng.uniform(size=y.shape)
 
-    return X, y
+    if return_y:
+        return X, y
+    return X
 
 
 def make_example_nested_dataframe(

@@ -92,7 +92,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         The number of dimensions per case.
     max_shapelet_length_ : int
         The maximum actual shapelet length fitted to train data.
-    min_series_length_ : int
+    min_n_timepoints_ : int
         The minimum length of series in train data.
     classes_ : list
         The classes labels.
@@ -181,7 +181,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self.n_classes_ = 0
         self.n_cases_ = 0
         self.n_channels_ = 0
-        self.min_series_length_ = 0
+        self.min_n_timepoints_ = 0
         self.classes_ = []
         self.shapelets = []
 
@@ -224,17 +224,17 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self.n_cases_ = len(X)
         self.n_channels_ = X[0].shape[0]
         # Set series length to the minimum
-        self.min_series_length_ = X[0].shape[1]
+        self.min_n_timepoints_ = X[0].shape[1]
         for i in range(1, self.n_cases_):
-            if X[i].shape[1] < self.min_series_length_:
-                self.min_series_length_ = X[i].shape[1]
+            if X[i].shape[1] < self.min_n_timepoints_:
+                self.min_n_timepoints_ = X[i].shape[1]
 
         if self.max_shapelets is None:
             self._max_shapelets = min(10 * self.n_cases_, 1000)
         if self._max_shapelets < self.n_classes_:
             self._max_shapelets = self.n_classes_
         if self.max_shapelet_length is None:
-            self._max_shapelet_length = self.min_series_length_
+            self._max_shapelet_length = self.min_n_timepoints_
 
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
@@ -358,7 +358,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray shape (n_time_series, n_channels, series_length)
+        X : np.ndarray shape (n_time_series, n_channels, n_timepoints)
             The input data to transform.
 
         Returns
@@ -432,7 +432,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             rng.randint(0, self._max_shapelet_length - self.min_shapelet_length)
             + self.min_shapelet_length
         )
-        position = rng.randint(0, self.min_series_length_ - length)
+        position = rng.randint(0, self.min_n_timepoints_ - length)
         channel = rng.randint(0, self.n_channels_)
 
         shapelet = z_normalise_series(

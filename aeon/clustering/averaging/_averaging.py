@@ -14,12 +14,12 @@ def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
 
     Parameters
     ----------
-    X : np.ndarray (3d array of shape (n_cases, n_channels, series_length))
+    X : np.ndarray (3d array of shape (n_cases, n_channels, n_timepoints))
         Time series instances compute average from.
 
     Returns
     -------
-    np.ndarray (2d array of shape (n_channels, series_length)
+    np.ndarray (2d array of shape (n_channels, n_timepoints)
         The time series that is the mean.
     """
     if X.shape[0] <= 1:

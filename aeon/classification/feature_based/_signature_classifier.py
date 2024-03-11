@@ -149,7 +149,7 @@ class SignatureClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_cases, n_channels, series_length)
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
         y : array-like, shape = (n_cases) The class labels.
 
         Returns
@@ -183,7 +183,7 @@ class SignatureClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_cases, n_channels, series_length)
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
 
         Returns
         -------

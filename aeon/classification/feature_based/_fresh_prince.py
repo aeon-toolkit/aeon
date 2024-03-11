@@ -96,8 +96,8 @@ class FreshPRINCEClassifier(BaseClassifier):
         self.random_state = random_state
 
         self.n_cases_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
         self.transformed_data_ = []
 
         self._rotf = None
@@ -192,7 +192,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         return self._rotf._get_train_probs(Xt, y)
 
     def _fit_fresh_prince(self, X, y):
-        self.n_cases_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,

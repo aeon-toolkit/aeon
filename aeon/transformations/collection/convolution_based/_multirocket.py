@@ -104,7 +104,7 @@ class MultiRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -131,7 +131,7 @@ class MultiRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
