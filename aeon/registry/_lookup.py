@@ -10,16 +10,7 @@ all_tags(estimator_identifiers)
     lookup and filtering of estimator tags
 """
 
-__author__ = [
-    "fkiraly",
-    "mloning",
-    "katiebuc",
-    "miraep8",
-    "xloem",
-    "MatthewMiddlehurst",
-]
-# all_estimators is also based on the sklearn utility of the same name
-
+__maintainer__ = []
 
 import inspect
 import pkgutil
@@ -59,6 +50,8 @@ def all_estimators(
 
     Not included are: the base classes themselves, classes defined in test
     modules.
+
+    Based on the sklearn utility of the same name.
 
     Parameters
     ----------
@@ -146,7 +139,18 @@ def all_estimators(
     import sys
     import warnings
 
-    MODULES_TO_IGNORE = ("tests", "setup", "contrib", "benchmarking", "utils", "all")
+    MODULES_TO_IGNORE = (
+        "tests",
+        "setup",
+        "benchmarking",
+        "utils",
+        "all",
+        "testing",
+        "datasets",
+        "registry",
+        "datatypes",
+        "visualisation",
+    )
 
     all_est = []
     ROOT = str(Path(__file__).parent.parent)  # aeon package root directory

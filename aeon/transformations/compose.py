@@ -10,14 +10,10 @@ from aeon.base import _HeterogenousMetaEstimator
 from aeon.transformations._delegate import _DelegatedTransformer
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.multiindex import flatten_multiindex
-from aeon.utils.sklearn import (
-    is_sklearn_classifier,
-    is_sklearn_regressor,
-    is_sklearn_transformer,
-)
+from aeon.utils.sklearn import is_sklearn_regressor, is_sklearn_transformer
 from aeon.utils.validation.series import check_series
 
-__author__ = ["fkiraly", "mloning", "miraep8", "aiwalter", "SveaMeyer13"]
+__maintainer__ = []
 __all__ = [
     "ColumnwiseTransformer",
     "ColumnConcatenator",
@@ -232,14 +228,9 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         TransformerPipeline object, concatenation of `self` (first) with `other` (last).
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
-        from aeon.classification.compose import SklearnClassifierPipeline
         from aeon.regression.compose import SklearnRegressorPipeline
 
         other = _coerce_to_aeon(other)
-
-        # if sklearn classifier, use sklearn classifier pipeline
-        if is_sklearn_classifier(other):
-            return SklearnClassifierPipeline(classifier=other, transformers=self.steps)
 
         # if sklearn regressor, use sklearn regressor pipeline
         if is_sklearn_regressor(other):

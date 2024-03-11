@@ -8,7 +8,7 @@ import pandas as pd
 from aeon.forecasting.base.adapters import _StatsModelsAdapter
 
 _all_ = ["DynamicFactor"]
-__author__ = ["Ris-Bali", "lbventura"]
+__maintainer__ = []
 
 
 class DynamicFactor(_StatsModelsAdapter):
@@ -259,7 +259,7 @@ class DynamicFactor(_StatsModelsAdapter):
                 Upper/lower interval end forecasts are equivalent to
                 quantile forecasts at alpha = 0.5 - c/2, 0.5 + c/2 for c in coverage.
         """
-        if type(coverage) is not list:
+        if not isinstance(coverage, list):
             coverage_list = [coverage]
         else:
             coverage_list = coverage

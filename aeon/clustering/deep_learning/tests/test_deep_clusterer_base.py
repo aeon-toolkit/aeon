@@ -9,7 +9,7 @@ from aeon.testing.mock_estimators import MockDeepClusterer
 from aeon.testing.utils.data_gen import make_example_2d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 
 @pytest.mark.skipif(

@@ -1,6 +1,6 @@
 """Multi Layer Perceptron Network (MLP) for classification."""
 
-__author__ = ["James-Large", "AurumnPegasus"]
+__maintainer__ = []
 __all__ = ["MLPClassifier"]
 
 import gc
@@ -25,6 +25,9 @@ class MLPClassifier(BaseDeepClassifier):
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
+    use_mini_batch_size : boolean, default = False
+        Condition on using the mini batch size formula
+    callbacks : callable or None, default
     random_state : int or None, default=None
         Seed for random number generation.
     verbose : boolean, default = False
@@ -85,6 +88,7 @@ class MLPClassifier(BaseDeepClassifier):
         self,
         n_epochs=2000,
         batch_size=16,
+        use_mini_batch_size=False,
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
@@ -104,6 +108,7 @@ class MLPClassifier(BaseDeepClassifier):
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
+        self.use_mini_batch_size = use_mini_batch_size
         self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
@@ -120,9 +125,7 @@ class MLPClassifier(BaseDeepClassifier):
             last_file_name=last_file_name,
         )
 
-        self._network = MLPNetwork(
-            random_state=self.random_state,
-        )
+        self._network = MLPNetwork()
 
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -175,10 +178,10 @@ class MLPClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (d), series_length (m))
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data class labels.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints)
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------
@@ -208,7 +211,7 @@ class MLPClassifier(BaseDeepClassifier):
                     monitor="loss", factor=0.5, patience=200, min_lr=0.1
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -217,10 +220,15 @@ class MLPClassifier(BaseDeepClassifier):
             else self.callbacks
         )
 
+        if self.use_mini_batch_size:
+            mini_batch_size = min(self.batch_size, X.shape[0] // 10)
+        else:
+            mini_batch_size = self.batch_size
+
         self.history = self.training_model_.fit(
             X,
             y_onehot,
-            batch_size=self.batch_size,
+            batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
@@ -228,10 +236,10 @@ class MLPClassifier(BaseDeepClassifier):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".hdf5")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 

@@ -6,7 +6,7 @@ All estimator specific functionality should be in
 the class methods `load_from_serial` and `load_from_path`.
 """
 
-__author__ = ["fkiraly", "achieveordie"]
+__maintainer__ = []
 
 
 def load(serial):

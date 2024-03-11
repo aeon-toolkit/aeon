@@ -5,7 +5,7 @@ The reason for this class between BaseClassifier and deep_learning classifiers i
 because we can generalise tags and _predict
 """
 
-__author__ = ["AurumnPegasus", "achieveordie"]
+__maintainer__ = []
 __all__ = ["BaseDeepRegressor"]
 
 from abc import ABC, abstractmethod
@@ -108,4 +108,4 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         -------
         None
         """
-        self.model_.save(file_path + self.last_file_name + ".hdf5")
+        self.model_.save(file_path + self.last_file_name + ".keras")

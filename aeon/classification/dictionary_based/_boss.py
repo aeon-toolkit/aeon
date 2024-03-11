@@ -4,7 +4,7 @@ Dictionary based BOSS classifiers based on SFA transform.
 Contains a single BOSS and a BOSS ensemble.
 """
 
-__author__ = ["patrickzib", "MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["BOSSEnsemble", "IndividualBOSS", "pairwise_distances"]
 
 import warnings

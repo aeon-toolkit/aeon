@@ -1,6 +1,6 @@
 """InceptionTime regressor."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["InceptionTimeRegressor"]
 
 import gc
@@ -237,10 +237,10 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data target values.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints).
+        y : np.ndarray
+            The training data target values of shape (n_cases,).
 
         Returns
         -------
@@ -543,7 +543,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             bottleneck_size=self.bottleneck_size,
             depth=self.depth,
             use_custom_filters=self.use_custom_filters,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, **kwargs):
@@ -589,11 +588,12 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-        y : np.ndarray of shape (n_instances)
-            The training data target values.
+        X : np.ndarray
+            The training input samples of,
+            shape (n_instances, n_channels, n_timepoints).
+            If a 2D array-like is passed, n_channels is assumed to be 1.
+        y : np.ndarray
+            The training data target values of shape (n_instances,).
 
         Returns
         -------
@@ -630,7 +630,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -650,10 +650,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".hdf5")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 

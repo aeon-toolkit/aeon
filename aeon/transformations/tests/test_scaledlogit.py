@@ -1,6 +1,6 @@
 """ScaledLogit transform unit tests."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 from warnings import warn
 

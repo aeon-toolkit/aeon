@@ -10,7 +10,7 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.testing.utils.data_gen import make_example_2d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-__author__ = ["achieveordie", "hadifawaz1999"]
+__maintainer__ = []
 
 
 class _DummyDeepClassifier(BaseDeepClassifier):
@@ -73,7 +73,7 @@ def test_dummy_deep_classifier():
     # test save last model to file than delete it
     dummy_deep_clf.save_last_model_to_file()
 
-    os.remove("./" + last_file_name + ".hdf5")
+    os.remove("./" + last_file_name + ".keras")
 
     # test summary of model
     assert dummy_deep_clf.summary() is not None

@@ -186,7 +186,6 @@ Composition
 
     ClassifierPipeline
     ChannelEnsembleClassifier
-    SklearnClassifierPipeline
     WeightedEnsembleClassifier
 
 

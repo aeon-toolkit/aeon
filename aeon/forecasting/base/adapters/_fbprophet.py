@@ -1,6 +1,6 @@
 """Implements adapter for Facebook prophet to be used in aeon framework."""
 
-__author__ = ["mloning", "aiwalter", "fkiraly"]
+__maintainer__ = []
 __all__ = ["_ProphetAdapter"]
 
 import os
