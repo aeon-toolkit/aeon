@@ -173,13 +173,13 @@ testpaths = "aeon"
 addopts = '''
     --doctest-modules
     --durations 20
-    --timeout 600
-    --showlocals
-    --numprocesses auto
-    --dist worksteal
-    --reruns 2
-    --only-rerun "crashed while running"
 '''
+#--timeout 600
+#--showlocals
+#--numprocesses auto
+#--dist worksteal
+#--reruns 2
+#--only-rerun "crashed while running"
 filterwarnings = '''
     ignore::UserWarning
     ignore:numpy.dtype size changed

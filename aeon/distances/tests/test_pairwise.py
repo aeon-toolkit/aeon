@@ -36,13 +36,19 @@ def _validate_pairwise_result(
     assert np.allclose(matrix, pairwise_result)
 
 
+SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw"]
+
+
 def _validate_multiple_to_multiple_result(
     x,
     y,
     name,
     distance,
     multiple_to_multiple_distance,
+    recursive_call=False,
 ):
+    original_x = x.copy()
+    original_y = y.copy()
     multiple_to_multiple_result = multiple_to_multiple_distance(x, y)
 
     if x.ndim == 1 and y.ndim == 1:
@@ -73,6 +79,17 @@ def _validate_multiple_to_multiple_result(
             matrix[i, j] = distance(curr_x, curr_y)
 
     assert np.allclose(matrix, multiple_to_multiple_result)
+
+    # For unequal length tests try the same thing but reversed
+    if x.shape[-1] != y.shape[-1] and not recursive_call:
+        _validate_multiple_to_multiple_result(
+            original_y,
+            original_x,
+            name,
+            distance,
+            multiple_to_multiple_distance,
+            recursive_call=True,
+        )
 
 
 def _validate_single_to_multiple_result(
@@ -114,6 +131,8 @@ def _validate_single_to_multiple_result(
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_pairwise_distance(dist):
     """Test pairwise distance function."""
+
+    # Collection of univariate time series in the shape (n_instances, n_timepoints)
     _validate_pairwise_result(
         make_series(5, 5, return_numpy=True, random_state=1),
         dist["name"],
@@ -121,15 +140,19 @@ def test_pairwise_distance(dist):
         dist["pairwise_distance"],
     )
 
+    # Collection of univariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
     _validate_pairwise_result(
-        make_example_3d_numpy(5, 1, 5, random_state=1)[0],
+        make_example_3d_numpy(5, 1, 5, random_state=1, return_y=False),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
     )
 
+    # Collection of multivariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
     _validate_pairwise_result(
-        make_example_3d_numpy(5, 5, 5, random_state=1)[0],
+        make_example_3d_numpy(5, 5, 5, random_state=1, return_y=False),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
@@ -139,8 +162,8 @@ def test_pairwise_distance(dist):
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_multiple_to_multiple_distances(dist):
     """Test multiple to multiple distances."""
-    # Univariate tests
-    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+    # Single point univariate time series
+    if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
         _validate_multiple_to_multiple_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -149,6 +172,7 @@ def test_multiple_to_multiple_distances(dist):
             dist["pairwise_distance"],
         )
 
+    # Universal time series in the shape (n_timepoints)
     _validate_multiple_to_multiple_result(
         make_series(5, return_numpy=True, random_state=1),
         make_series(5, return_numpy=True, random_state=2),
@@ -157,7 +181,7 @@ def test_multiple_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
-    # Multivariate tests
+    # Collection of univariate time series in the shape (n_instances, n_timepoints)
     _validate_multiple_to_multiple_result(
         make_series(5, 5, return_numpy=True, random_state=1),
         make_series(5, 5, return_numpy=True, random_state=2),
@@ -166,24 +190,29 @@ def test_multiple_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
-    # Dataset tests
+    # Collection of univariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
     _validate_multiple_to_multiple_result(
-        make_example_3d_numpy(5, 1, 5, random_state=1)[0],
-        make_example_3d_numpy(5, 1, 5, random_state=2)[0],
+        make_example_3d_numpy(5, 1, 5, random_state=1, return_y=False),
+        make_example_3d_numpy(5, 1, 5, random_state=2, return_y=False),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
     )
 
+    # Collection of multivariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
     _validate_multiple_to_multiple_result(
-        make_example_3d_numpy(5, 5, 5, random_state=1)[0],
-        make_example_3d_numpy(5, 5, 5, random_state=2)[0],
+        make_example_3d_numpy(5, 5, 5, random_state=1, return_y=False),
+        make_example_3d_numpy(5, 5, 5, random_state=2, return_y=False),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
     )
 
-    # Unequal length tests
+    # ==================== Unequal length tests ====================
+
+    # Unequal univariate time series in the shape (n_instances, n_timepoints)
     _validate_multiple_to_multiple_result(
         make_series(5, return_numpy=True, random_state=1),
         make_series(3, return_numpy=True, random_state=2),
@@ -192,31 +221,33 @@ def test_multiple_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
+    # Collection of unequal univariate time series in the shape
+    # (n_instances, n_timepoints)
     _validate_multiple_to_multiple_result(
         make_series(5, 5, return_numpy=True, random_state=1),
-        make_series(5, 3, return_numpy=True, random_state=2),
+        make_series(3, 5, return_numpy=True, random_state=2),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
     )
 
+    # Collection of unequal length multivariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
     _validate_multiple_to_multiple_result(
-        make_example_3d_numpy(5, 5, 5, random_state=1)[0],
-        make_example_3d_numpy(5, 5, 3, random_state=2)[0],
+        make_example_3d_numpy(5, 5, 5, random_state=1, return_y=False),
+        make_example_3d_numpy(5, 5, 3, random_state=2, return_y=False),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
     )
-
-
-new_distance = ["euclidean", "dtw"]
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_single_to_multiple_distances(dist):
-    # Univariate tests
-
-    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+    # Single point univariate time series in the shape (n_timepoints, ) compared to a
+    # collection that has a single univariate time series in the shape
+    # (n_instances, n_timepoints)
+    if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
         _validate_single_to_multiple_result(
             np.array([10.0]),
             np.array([[15.0]]),
@@ -225,59 +256,156 @@ def test_new_single_to_multiple_distances(dist):
             dist["pairwise_distance"],
         )
 
+        # Single multivariate time series with 1 timepoint in the shape
+        # (n_channels, n_timepoints) compared to a collection of multivariate time
+        # series in the shape (n_instances, n_channels, n_timepoints)
+        _validate_single_to_multiple_result(
+            make_series(1, 5, return_numpy=True, random_state=1),
+            make_example_3d_numpy(5, 5, 1, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+    # Single point univariate time series in the shape (n_timepoints, ) compared to a
+    # collection of univariate time series in the shape (n_instances, n_timepoints)
+    _validate_single_to_multiple_result(
+        make_series(5, return_numpy=True, random_state=1),
+        make_series(5, 5, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
+    # Single point univariate time series in the shape (n_timepoints, ) compared to a
+    # collection of univariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
+    _validate_single_to_multiple_result(
+        make_series(5, return_numpy=True, random_state=1),
+        make_example_3d_numpy(5, 1, 5, random_state=2, return_y=False),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
+    # Single point univariate time series in the shape (n_channels, n_timepoints)
+    # compared to a collection of univariate time series in the shape
+    # (n_instances, n_timepoints)
     _validate_single_to_multiple_result(
         make_series(5, 1, return_numpy=True, random_state=1),
-        make_example_3d_numpy(3, 1, 5, random_state=2)[0],
+        make_series(5, 5, return_numpy=True, random_state=2),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
     )
 
+    # Single point univariate time series in the shape (n_channels, n_timepoints)
+    # compared to a collection of univariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
     _validate_single_to_multiple_result(
-        make_series(1, 5, return_numpy=True, random_state=1),
-        make_example_3d_numpy(5, 1, 5, random_state=2)[0],
+        make_series(5, 1, return_numpy=True, random_state=1),
+        make_example_3d_numpy(5, 1, 5, random_state=2, return_y=False),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
     )
 
-    # Multivariate tests
-    _validate_single_to_multiple_result(
-        make_series(5, 5, return_numpy=True, random_state=1),
-        make_example_3d_numpy(5, 5, 5, random_state=2)[0],
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
-    # Unequal length tests
-    _validate_single_to_multiple_result(
-        make_series(3, return_numpy=True, random_state=1),
-        make_example_3d_numpy(3, 1, 5, random_state=2)[0],
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
-    _validate_single_to_multiple_result(
-        make_series(3, return_numpy=True, random_state=1),
-        make_example_3d_numpy(3, 1, 3, random_state=2)[0],
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
-    _validate_single_to_multiple_result(
-        make_series(5, 3, return_numpy=True, random_state=1),
-        make_example_3d_numpy(5, 5, 5, random_state=2)[0],
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
+    # Single multivariate time series in the shape (n_channels, n_timepoints) compared
+    # to a collection of multivariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
     _validate_single_to_multiple_result(
         make_series(5, 5, return_numpy=True, random_state=1),
-        make_example_3d_numpy(5, 5, 3, random_state=2)[0],
+        make_example_3d_numpy(5, 5, 5, random_state=2, return_y=False),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
+    # ==================== Unequal length tests ====================
+
+    if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
+        # Single multivariate time series with timepoint in the shape
+        # (n_channels, n_timepoints) compared to an unequal collection of multivariate
+        # time series with 1 timepoint in the shape
+        # (n_instances, n_channels, n_timepoints)
+        _validate_single_to_multiple_result(
+            make_series(1, 5, return_numpy=True, random_state=1),
+            make_example_3d_numpy(5, 5, 2, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # Same as above but swapped where the unequal length is from the collection to
+        # the series
+        _validate_single_to_multiple_result(
+            make_series(2, 5, return_numpy=True, random_state=1),
+            make_example_3d_numpy(5, 5, 1, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+    # Single point univariate time series in the shape (n_timepoints, ) compared
+    # to a  collection of unequal univariate time series in the shape
+    # (n_instances, n_timepoints)
+    _validate_single_to_multiple_result(
+        make_series(5, return_numpy=True, random_state=1),
+        make_series(5, 3, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
+    # Same as above but swapped where the unequal length is from the collection to
+    # the series
+    _validate_single_to_multiple_result(
+        make_series(3, return_numpy=True, random_state=1),
+        make_series(5, 5, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
+    # Single point univariate time series in the shape (n_timepoints, ) compared to a
+    # collection of univariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
+    _validate_single_to_multiple_result(
+        make_series(5, return_numpy=True, random_state=1),
+        make_example_3d_numpy(5, 1, 5, random_state=2, return_y=False),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
+    # Single point univariate time series in the shape (n_channels, n_timepoints)
+    # compared to a collection of univariate time series in the shape
+    # (n_instances, n_timepoints)
+    _validate_single_to_multiple_result(
+        make_series(5, 1, return_numpy=True, random_state=1),
+        make_series(5, 5, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
+    # Single point univariate time series in the shape (n_channels, n_timepoints)
+    # compared to a collection of univariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
+    _validate_single_to_multiple_result(
+        make_series(5, 1, return_numpy=True, random_state=1),
+        make_example_3d_numpy(5, 1, 5, random_state=2, return_y=False),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
+    # Single multivariate time series in the shape (n_channels, n_timepoints) compared
+    # to a collection of multivariate time series in the shape
+    # (n_instances, n_channels, n_timepoints)
+    _validate_single_to_multiple_result(
+        make_series(5, 5, return_numpy=True, random_state=1),
+        make_example_3d_numpy(5, 5, 5, random_state=2, return_y=False),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
