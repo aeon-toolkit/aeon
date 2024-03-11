@@ -35,14 +35,14 @@ def create_bounding_matrix(
     Examples
     --------
     >>> create_bounding_matrix(8, 8, window=0.5)
-    array([[ True,  True,  True,  True,  True, False, False, False],
-           [ True,  True,  True,  True,  True,  True, False, False],
-           [ True,  True,  True,  True,  True,  True,  True, False],
-           [ True,  True,  True,  True,  True,  True,  True,  True],
-           [ True,  True,  True,  True,  True,  True,  True,  True],
-           [False,  True,  True,  True,  True,  True,  True,  True],
-           [False, False,  True,  True,  True,  True,  True,  True],
-           [False, False, False,  True,  True,  True,  True,  True]])
+    array([[ True,  True,  True, False, False, False, False, False],
+           [ True,  True,  True,  True, False, False, False, False],
+           [ True,  True,  True,  True,  True, False, False, False],
+           [False,  True,  True,  True,  True,  True, False, False],
+           [False, False,  True,  True,  True,  True,  True, False],
+           [False, False, False,  True,  True,  True,  True,  True],
+           [False, False, False, False,  True,  True,  True,  True],
+           [False, False, False, False, False,  True,  True,  True]])
     """
     if itakura_max_slope is not None:
         if itakura_max_slope < 0 or itakura_max_slope > 1:
@@ -109,20 +109,24 @@ def _sakoe_chiba_bounding(
         return _sakoe_chiba_bounding(y_size, x_size, radius_percent).T
 
     matrix = np.full((x_size, y_size), False)  # Create a matrix filled with False
-    matrix[0, 0] = True
-    matrix[x_size - 1, y_size - 1] = True
 
-    max_size = max(x_size, y_size)
+    max_size = max(x_size, y_size) + 1
 
     shortest_dimension = min(x_size, y_size)
     thickness = int(radius_percent * shortest_dimension) // 2
+
+    matrix_2 = matrix.copy()
 
     for step in range(max_size):
         x_index = math.floor((step / max_size) * x_size)
         y_index = math.floor((step / max_size) * y_size)
 
-        upper = max(0, (x_index - thickness - 1))
-        lower = min(x_size, (x_index + thickness + 1 + 1))
+        upper = max(0, (x_index - thickness))
+
+        # Add 1 to lower bound because tslearn does it
+        lower = min(x_size, (x_index + thickness + 1))
+
+        matrix_2[upper:lower, y_index] = True
 
         matrix[upper:lower, y_index] = True
 

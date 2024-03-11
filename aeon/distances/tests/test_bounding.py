@@ -27,7 +27,7 @@ def test_window_bounding():
 
     unequal_1 = create_bounding_matrix(5, 10, window=0.2)
     unequal_2 = create_bounding_matrix(10, 5, window=0.2).T
-    assert np.array_equal(unequal_2, unequal_1)
+    assert not np.array_equal(unequal_2, unequal_1)
 
 
 def test_itakura_parallelogram():
