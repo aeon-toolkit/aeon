@@ -138,17 +138,10 @@ def _ensure_equal_dims_in_list(
     x_dims = np.array([a.ndim for a in x], dtype=np.int_)
 
     if y is None:
-        if np.any(x_dims == 1):
-            # all time series must be univariate
-            multivariate_ts = np.array(
-                [s[0] != 1 for s in x_shapes if len(s) == 2], dtype=np.bool_
-            )
-            if np.any(multivariate_ts):
-                raise ValueError("x and y must have the same number of channels")
-        else:
+        if np.any(x_dims > 1):
             # the number of channels must be the same for multivariate time series
-            x_n_channels = [s[0] for s in x_shapes]
-            if sum(x_n_channels) / len(x_n_channels) != x_n_channels[0]:
+            n_channels = [s[0] for s in x_shapes]
+            if sum(n_channels) / len(n_channels) != n_channels[0]:
                 raise ValueError("x and y must have the same number of channels")
 
     else:

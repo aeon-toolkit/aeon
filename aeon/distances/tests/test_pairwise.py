@@ -395,14 +395,40 @@ def test_new_single_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
-    # Multivariate tests
-    _validate_single_to_multiple_result(
-        make_series(5, 5, return_numpy=True, random_state=1).T,
-        make_example_3d_numpy(5, 5, 5, random_state=2)[0],
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
+    # Multivariate tests: different number of dimensions
+    if dist["name"] == "sbd":
+        # 5 instances of (1, 5)
+        x = make_series(5, 5, return_numpy=True, random_state=1).T
+        # 5 instances of (5, 5)
+        y = make_example_3d_numpy(5, 5, 5, random_state=2)[0]
+        with pytest.raises(
+            ValueError, match="x and y must have the same number of channels"
+        ):
+            dist["pairwise_distance"](x, y)
+    else:
+        _validate_single_to_multiple_result(
+            make_series(5, 5, return_numpy=True, random_state=1).T,
+            make_example_3d_numpy(5, 5, 5, random_state=2)[0],
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        _validate_single_to_multiple_result(
+            make_series(3, 5, return_numpy=True, random_state=1).T,
+            make_example_3d_numpy(5, 5, 5, random_state=2)[0],
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        _validate_single_to_multiple_result(
+            make_series(5, 5, return_numpy=True, random_state=1).T,
+            make_example_3d_numpy(5, 3, 5, random_state=2)[0],
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
 
     # Unequal length tests
     _validate_single_to_multiple_result(
@@ -416,22 +442,6 @@ def test_new_single_to_multiple_distances(dist):
     _validate_single_to_multiple_result(
         make_series(3, return_numpy=True, random_state=1),
         make_example_3d_numpy(3, 1, 5, random_state=2)[0],
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
-    _validate_single_to_multiple_result(
-        make_series(3, 5, return_numpy=True, random_state=1).T,
-        make_example_3d_numpy(5, 5, 5, random_state=2)[0],
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
-    _validate_single_to_multiple_result(
-        make_series(5, 5, return_numpy=True, random_state=1).T,
-        make_example_3d_numpy(5, 5, 3, random_state=2)[0],
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],

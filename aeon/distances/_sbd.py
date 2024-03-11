@@ -13,8 +13,8 @@ from aeon.distances._utils import (
     _ensure_equal_dims,
     _ensure_equal_dims_in_list,
     _reshape_pairwise_single,
-    reshape_pairwise_to_multiple,
 )
+from aeon.utils.conversion import convert_collection
 
 
 @njit(cache=True, fastmath=True)
@@ -109,7 +109,12 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
         else:
             _ensure_equal_dims(x, y)
             # compute the multivariate distance channel-independent:
-            nchannels = x.shape[0]
+            # (3, 5)
+            # (1, 5)
+            assert (
+                x.shape[0] == y.shape[0]
+            ), "Time series must have the same number of channels!"
+            nchannels = min(x.shape[0], y.shape[0])
             distance = 0.0
             for i in range(nchannels):
                 distance += _univariate_sbd_distance(x[i], y[i], standardize)
@@ -193,60 +198,46 @@ def sbd_pairwise_distance(
         if isinstance(x, List):
             _x = NumbaList(x)
             _ensure_equal_dims_in_list(_x)
-            return _sbd_pairwise_distance_single_list(_x, standardize)
+            return _sbd_pairwise_distance_single(_x, standardize)
 
         if isinstance(x, np.ndarray):
             if x.ndim == 3:
-                return _sbd_pairwise_distance_single(x, standardize)
+                _x: List[np.ndarray] = convert_collection(x, "np-list")
+                return _sbd_pairwise_distance_single(NumbaList(_x), standardize)
             if x.ndim == 2:
-                _X = x.reshape((x.shape[0], 1, x.shape[1]))
-                return _sbd_pairwise_distance_single(_X, standardize)
+                _x: np.ndarray = x.reshape((x.shape[0], 1, x.shape[1]))
+                _x2: List[np.ndarray] = convert_collection(_x, "np-list")
+                return _sbd_pairwise_distance_single(NumbaList(_x2), standardize)
 
         raise ValueError("X must be 2D or 3D")
 
-    if isinstance(x, List) and isinstance(y, List):
-        _x = NumbaList(x)
-        _y = NumbaList(y)
-        _ensure_equal_dims_in_list(_x, _y)
-        return _sbd_pairwise_distance_list(_x, _y, standardize)
+    if isinstance(x, np.ndarray):
+        if x.ndim == 1:
+            _x: List[np.ndarray] = [x.reshape(1, -1)]
+        else:
+            _x = convert_collection(x, "np-list")
+    elif isinstance(x, List):
+        _x = x
+    else:
+        raise ValueError("x must be either np.ndarray or List[np.ndarray]")
 
-    if isinstance(x, List) and isinstance(y, np.ndarray):
-        _x = NumbaList(x)
-        _y = NumbaList(y)
-        _ensure_equal_dims_in_list(_x)
-        return _sbd_pairwise_distance_list(_x, _y, standardize)
+    if isinstance(y, np.ndarray):
+        if y.ndim == 1:
+            _y: List[np.ndarray] = [y.reshape(1, -1)]
+        else:
+            _y = convert_collection(y, "np-list")
+    elif isinstance(y, List):
+        _y = y
+    else:
+        raise ValueError("y must be either np.ndarray or List[np.ndarray]")
 
-    if isinstance(x, np.ndarray) and isinstance(y, List):
-        _x = NumbaList(x)
-        _y = NumbaList(y)
-        _ensure_equal_dims_in_list(_y)
-        return _sbd_pairwise_distance_list(_x, _y, standardize)
-
-    if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
-        _x, _y = reshape_pairwise_to_multiple(x, y)
-        _ensure_equal_dims(_x, _y)
-        return _sbd_pairwise_distance(_x, _y, standardize)
-
-    raise ValueError(
-        "x and y must have a compatible type (either np.ndarray or List[np.ndarray])!"
-    )
+    _x, _y = NumbaList(_x), NumbaList(_y)
+    _ensure_equal_dims_in_list(_x, _y)
+    return _sbd_pairwise_distance(_x, _y, standardize)
 
 
 @njit(cache=True, fastmath=True)
-def _sbd_pairwise_distance_single(x: np.ndarray, standardize: bool) -> np.ndarray:
-    n_instances = x.shape[0]
-    distances = np.zeros((n_instances, n_instances))
-
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
-            distances[i, j] = sbd_distance(x[i], x[j], standardize)
-            distances[j, i] = distances[i, j]
-
-    return distances
-
-
-@njit(cache=True, fastmath=True)
-def _sbd_pairwise_distance_single_list(
+def _sbd_pairwise_distance_single(
     x: NumbaList[np.ndarray], standardize: bool
 ) -> np.ndarray:
     n_instances = len(x)
@@ -263,20 +254,6 @@ def _sbd_pairwise_distance_single_list(
 
 @njit(cache=True, fastmath=True)
 def _sbd_pairwise_distance(
-    x: np.ndarray, y: np.ndarray, standardize: bool
-) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
-
-    for i in range(n_instances):
-        for j in range(m_instances):
-            distances[i, j] = sbd_distance(x[i], y[j], standardize)
-    return distances
-
-
-@njit(cache=True, fastmath=True)
-def _sbd_pairwise_distance_list(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], standardize: bool
 ) -> np.ndarray:
     n_instances = len(x)

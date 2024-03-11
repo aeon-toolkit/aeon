@@ -15,6 +15,7 @@ from aeon.distances._alignment_paths import (
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import _univariate_squared_distance
 from aeon.distances._utils import _reshape_pairwise_single, reshape_pairwise_to_multiple
+from aeon.utils.conversion import convert_collection
 
 
 @njit(cache=True, fastmath=True)
@@ -418,59 +419,58 @@ def msm_pairwise_distance(
     if y is None:
         # To self
         if isinstance(X, List):
-            return _msm_pairwise_distance_list(
+            return _msm_pairwise_distance(
                 NumbaList(X), window, independent, c, itakura_max_slope
             )
+
         if isinstance(X, np.ndarray):
             if X.ndim == 3:
+                _X: List[np.ndarray] = convert_collection(X, "np-list")
                 return _msm_pairwise_distance(
-                    X, window, independent, c, itakura_max_slope
+                    NumbaList(_X), window, independent, c, itakura_max_slope
                 )
             if X.ndim == 2:
-                _X = X.reshape((X.shape[0], 1, X.shape[1]))
+                _X: np.ndarray = X.reshape((X.shape[0], 1, X.shape[1]))
+                _X2: List[np.ndarray] = convert_collection(_X, "np-list")
                 return _msm_pairwise_distance(
-                    _X, window, independent, c, itakura_max_slope
+                    NumbaList(_X2), window, independent, c, itakura_max_slope
                 )
 
-        raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("X must be 2D or 3D")
 
-    if isinstance(X, List) or isinstance(y, List):
-        return _msm_from_multiple_to_multiple_distance_list(
-            NumbaList(X), NumbaList(y), window, independent, c, itakura_max_slope
-        )
     if isinstance(X, np.ndarray) and isinstance(y, np.ndarray):
-        if y.ndim == X.ndim:
-            # Multiple to multiple
-            if y.ndim == 3 and X.ndim == 3:
-                return _msm_from_multiple_to_multiple_distance(
-                    X, y, window, independent, c, itakura_max_slope
-                )
-            if y.ndim == 2 and X.ndim == 2:
-                _x = X.reshape((X.shape[0], 1, X.shape[1]))
-                _y = y.reshape((y.shape[0], 1, y.shape[1]))
-                return _msm_from_multiple_to_multiple_distance(
-                    _x, _y, window, independent, c, itakura_max_slope
-                )
-            if y.ndim == 1 and X.ndim == 1:
-                _x = X.reshape((1, 1, X.shape[0]))
-                _y = y.reshape((1, 1, y.shape[0]))
-                return _msm_from_multiple_to_multiple_distance(
-                    _x, _y, window, independent, c, itakura_max_slope
-                )
-            raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-
-        _x, _y = reshape_pairwise_to_multiple(X, y)
+        _X, _y = reshape_pairwise_to_multiple(X, y)
         return _msm_from_multiple_to_multiple_distance(
-            _x, _y, window, independent, c, itakura_max_slope
+            NumbaList(_X), NumbaList(_y), window, independent, c, itakura_max_slope
         )
 
-    raise ValueError(
-        "x and y must have a compatible type (either np.ndarray or List[np.ndarray])!"
+    if isinstance(X, np.ndarray):
+        if X.ndim == 1:
+            _X: List[np.ndarray] = [X.reshape(1, -1)]
+        else:
+            _X = convert_collection(X, "np-list")
+    elif isinstance(X, List):
+        _X = X
+    else:
+        raise ValueError("x must be either np.ndarray or List[np.ndarray]")
+
+    if isinstance(y, np.ndarray):
+        if y.ndim == 1:
+            _y: List[np.ndarray] = [y.reshape(1, -1)]
+        else:
+            _y = convert_collection(y, "np-list")
+    elif isinstance(y, List):
+        _y = y
+    else:
+        raise ValueError("y must be either np.ndarray or List[np.ndarray]")
+
+    return _msm_from_multiple_to_multiple_distance(
+        NumbaList(_X), NumbaList(_y), window, independent, c, itakura_max_slope
     )
 
 
 @njit(cache=True, fastmath=True)
-def _msm_pairwise_distance_list(
+def _msm_pairwise_distance(
     X: NumbaList[np.ndarray],
     window: float,
     independent: bool,
@@ -480,9 +480,15 @@ def _msm_pairwise_distance_list(
     n_instances = len(X)
     distances = np.zeros((n_instances, n_instances))
 
+    # if window == 1:
+    #     max_shape = max([x.shape[-1] for x in X])
+    #     bounding_matrix: np.ndarray = create_bounding_matrix(
+    #         max_shape, max_shape, window, itakura_max_slope
+    #     )
     for i in range(n_instances):
         for j in range(i + 1, n_instances):
-            x1, x2 = _reshape_pairwise_single(X[i], X[j])
+            x1, x2 = _reshape_pairwise_single(X[i], X[j])  # FIXME: move out of loop
+            # TODO: just recompute in loop if necessary (see above)
             bounding_matrix = create_bounding_matrix(
                 x1.shape[-1], x2.shape[-1], window, itakura_max_slope
             )
@@ -493,29 +499,7 @@ def _msm_pairwise_distance_list(
 
 
 @njit(cache=True, fastmath=True)
-def _msm_pairwise_distance(
-    X: np.ndarray,
-    window: float,
-    independent: bool,
-    c: float,
-    itakura_max_slope: float,
-) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
-    bounding_matrix = create_bounding_matrix(
-        X.shape[2], X.shape[2], window, itakura_max_slope
-    )
-
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
-            distances[i, j] = _msm_distance(X[i], X[j], bounding_matrix, independent, c)
-            distances[j, i] = distances[i, j]
-
-    return distances
-
-
-@njit(cache=True, fastmath=True)
-def _msm_from_multiple_to_multiple_distance_list(
+def _msm_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
     window: float,
@@ -534,28 +518,6 @@ def _msm_from_multiple_to_multiple_distance_list(
                 x1.shape[-1], y1.shape[-1], window, itakura_max_slope
             )
             distances[i, j] = _msm_distance(x1, y1, bounding_matrix, independent, c)
-    return distances
-
-
-@njit(cache=True, fastmath=True)
-def _msm_from_multiple_to_multiple_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: float,
-    independent: bool,
-    c: float,
-    itakura_max_slope: float,
-) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
-    bounding_matrix = create_bounding_matrix(
-        x.shape[2], y.shape[2], window, itakura_max_slope
-    )
-
-    for i in range(n_instances):
-        for j in range(m_instances):
-            distances[i, j] = _msm_distance(x[i], y[j], bounding_matrix, independent, c)
     return distances
 
 
