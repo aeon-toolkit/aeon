@@ -23,14 +23,6 @@ detection and time series segmentation, which are now in their own module.
 
     GMMHMM
 
-.. currentmodule:: aeon.annotation.hmm
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    HMM
-
 .. currentmodule:: aeon.annotation.hmm_learn.poisson
 
 .. autosummary::
