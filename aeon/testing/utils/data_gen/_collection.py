@@ -116,7 +116,7 @@ def make_example_2d_numpy(
     Returns
     -------
     X : np.ndarray
-        Randomly generated 2D data.
+        Randomly generated 1D data.
     y : np.ndarray
         Randomly generated labels if return_y is True.
 
