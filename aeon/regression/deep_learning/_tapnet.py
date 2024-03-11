@@ -59,7 +59,9 @@ class TapNetRegressor(BaseDeepRegressor):
     verbose         : bool, default = False
         whether to output extra information
     random_state    : int or None, default = None
-        seed for random
+        seed for random. On CPU its guaranteed to end up with
+        same outcome, but on GPU no given the nature of numerical executions
+        being non deterministic on GPU.
 
     References
     ----------

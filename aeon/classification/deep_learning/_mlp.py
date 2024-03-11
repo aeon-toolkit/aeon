@@ -25,7 +25,9 @@ class MLPClassifier(BaseDeepClassifier):
         the number of samples per gradient update.
     callbacks : callable or None, default
     random_state : int or None, default=None
-        Seed for random number generation.
+        Seed for random number generation. On CPU its guaranteed to end up with
+            same outcome, but on GPU no given the nature of numerical executions
+            being non deterministic on GPU.
     verbose : boolean, default = False
         whether to output extra information
     loss : string, default="mean_squared_error"

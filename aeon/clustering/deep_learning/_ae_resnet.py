@@ -67,7 +67,9 @@ class AEResNetClusterer(BaseDeepClusterer):
     callbacks : callable or None, default ReduceOnPlateau and ModelCheckpoint
         List of tf.keras.callbacks.Callback objects.
     random_state : int, default = None
-        Seed to any needed random actions.
+        Seed to any needed random actions. On CPU its guaranteed to end up with
+        same outcome, but on GPU no given the nature of numerical executions
+        being non deterministic on GPU.
     file_path : str, default = './'
         file_path when saving model_Checkpoint callback.
     save_best_model : bool, default = False

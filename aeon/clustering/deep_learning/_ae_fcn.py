@@ -50,7 +50,9 @@ class AEFCNClusterer(BaseDeepClusterer):
     use_mini_batch_size : bool, default = True,
         Whether or not to use the mini batch size formula.
     random_state : int or None, default=None
-        Seed for random number generation.
+        Seed for random number generation. On CPU its guaranteed to end up with
+        same outcome, but on GPU no given the nature of numerical executions
+        being non deterministic on GPU.
     verbose : boolean, default = False
         Whether to output extra information.
     loss : string, default="mean_squared_error"

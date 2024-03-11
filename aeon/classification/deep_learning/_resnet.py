@@ -57,7 +57,9 @@ class ResNetClassifier(BaseDeepClassifier):
     callbacks : callable or None, default ReduceOnPlateau and ModelCheckpoint
         List of tf.keras.callbacks.Callback objects.
     random_state : int or None, default=None
-        Seed for random number generation.
+        Seed for random number generation. On CPU its guaranteed to end up with
+            same outcome, but on GPU no given the nature of numerical executions
+            being non deterministic on GPU.
     file_path : str, default = './'
         file_path when saving model_Checkpoint callback.
     save_best_model : bool, default = False

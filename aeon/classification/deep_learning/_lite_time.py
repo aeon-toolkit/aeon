@@ -69,7 +69,9 @@ class LITETimeClassifier(BaseClassifier):
         save_last_model is set to False, this parameter
         is discarded
     random_state : int, default = None
-        seed to any needed random actions.
+        seed to any needed random actions. On CPU its guaranteed to end up with
+            same outcome, but on GPU no given the nature of numerical executions
+            being non deterministic on GPU.
     verbose : boolean, default = False
         whether to output extra information
     optimizer : keras optimizer, default = Adam
@@ -322,7 +324,9 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         save_last_model is set to False, this parameter
         is discarded
     random_state : int, default = None
-        seed to any needed random actions.
+        seed to any needed random actions. On CPU its guaranteed to end up with
+            same outcome, but on GPU no given the nature of numerical executions
+            being non deterministic on GPU.
     verbose : boolean, default = False
         whether to output extra information
     optimizer : keras optimizer, default = Adam

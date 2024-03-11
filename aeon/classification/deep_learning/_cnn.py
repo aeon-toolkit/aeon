@@ -47,7 +47,9 @@ class CNNClassifier(BaseDeepClassifier):
         Condition on whether to use bias values for convolution layers,
         if not a list, the same condition is used for all layers.
     random_state : int, default = None
-        Seed to any needed random actions.
+        Seed to any needed random actions. On CPU its guaranteed to end up with
+            same outcome, but on GPU no given the nature of numerical executions
+            being non deterministic on GPU.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16

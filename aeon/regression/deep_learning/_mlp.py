@@ -50,7 +50,9 @@ class MLPRegressor(BaseDeepRegressor):
         save_last_model is set to False, this parameter
         is discarded
     random_state : int or None, default=None
-        Seed for random number generation.
+        Seed for random number generation. On CPU its guaranteed to end up with
+        same outcome, but on GPU no given the nature of numerical executions
+        being non deterministic on GPU.
     activation : string or a tf callable, default="relu"
         Activation function used in the output linear layer.
         List of available activation functions:
