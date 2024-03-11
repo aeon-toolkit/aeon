@@ -1,4 +1,4 @@
-"""Test Performace Metrics for Forecasting."""
+"""Tests for forecasting performance metrics."""
 
 __maintainer__ = []
 
@@ -422,7 +422,7 @@ def test_univariate_loss_against_expected_value(n_test_case, metric_func_name):
 @pytest.mark.parametrize("random_state", RANDOM_STATES)
 @pytest.mark.parametrize("metric_func_name", LOSS_RESULTS.keys())
 def test_univariate_function_output_type(metric_func_name, random_state):
-    """Test Univariate loss function for output type."""
+    """Test univariate loss function for output type."""
     metric_func = LOSS_RESULTS[metric_func_name]["func"]
     y = make_series(n_timepoints=75, random_state=random_state)
     y_train, y_true = y.iloc[:50], y.iloc[50:]
@@ -461,7 +461,7 @@ def test_y_true_y_pred_inconsistent_n_outputs_raises_error(metric_func_name):
 
 @pytest.mark.parametrize("metric_func_name", LOSS_RESULTS.keys())
 def test_y_true_y_pred_inconsistent_n_timepoints_raises_error(metric_func_name):
-    """Test error for inconsistent number of outputs in y_true and y_pred."""
+    """Test error for inconsistent number of timepoints in y_true and y_pred."""
     metric_func = LOSS_RESULTS[metric_func_name]["func"]
     y = make_series(n_timepoints=75, random_state=RANDOM_STATES[0])
     y_train, y_true = y.iloc[:50], y.iloc[50:]

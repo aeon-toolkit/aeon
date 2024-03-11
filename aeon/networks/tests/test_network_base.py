@@ -1,4 +1,4 @@
-"""Base for DEEP LEARNING Networks."""
+"""Base for deep learning network base."""
 
 import pytest
 
@@ -30,7 +30,7 @@ class DummyDeepNetwork(BaseDeepNetwork):
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_network():
-    """Creating An Instance for DummyDeep Network."""
+    """Test the dummy network."""
     dummy_network = DummyDeepNetwork()
 
     X, y = make_example_3d_numpy()

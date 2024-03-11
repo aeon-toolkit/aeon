@@ -1,4 +1,4 @@
-"""Unit Testing for Time Series Forecasting."""
+"""Small testing config for Time Series Forecasting."""
 
 __maintainer__ = []
 

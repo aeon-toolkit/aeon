@@ -48,7 +48,7 @@ def _assert_output(output, dense, length):
 
 @pytest.mark.parametrize("segmenter", ALL_SEGMENTERS)
 def test_segmenter_instance(segmenter):
-    """Test for Segmenter Instance."""
+    """Test segmenters."""
     instance = segmenter.create_test_instance()
     multivariate = segmenter.get_class_tag(tag_name="capability:multivariate")
     X = np.random.random(size=(5, 20))

@@ -1,4 +1,4 @@
-"""Unit Test for random segmenter."""
+"""Tests for random segmenter."""
 
 import numpy as np
 import pandas as pd

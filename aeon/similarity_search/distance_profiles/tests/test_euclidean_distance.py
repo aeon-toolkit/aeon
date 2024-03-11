@@ -22,7 +22,7 @@ DATATYPES = ["float64", "int64"]
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_euclidean_distance(dtype):
-    """Test for Euclidean distance."""
+    """Test Euclidean distance."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -37,8 +37,8 @@ def test_euclidean_distance(dtype):
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
-def test_euclidean_euclidean_constant_case(dtype):
-    """Test Euclidean distance profile calculation for the constant case."""
+def test_euclidean_constant_case(dtype):
+    """Test Euclidean distance profile calculation."""
     X = np.ones((2, 1, 10), dtype=dtype)
     q = np.zeros((1, 3), dtype=dtype)
 
@@ -51,11 +51,7 @@ def test_euclidean_euclidean_constant_case(dtype):
 
 
 def test_non_alteration_of_inputs_euclidean():
-    """
-    Test if input arrays are not altered during.
-
-    Euclidean distance profile calculation.
-    """
+    """Test if input is altered during Euclidean distance profile."""
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
     X_copy = np.copy(X)
     q = np.asarray([[3, 4, 5]])
@@ -69,7 +65,7 @@ def test_non_alteration_of_inputs_euclidean():
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_normalized_euclidean_distance(dtype):
-    """Test normalized Euclidean distance profile calculation."""
+    """Test normalised Euclidean distance profile calculation."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -103,7 +99,7 @@ def test_normalized_euclidean_distance(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_normalized_euclidean_constant_case(dtype):
-    """Test normalized Euclidean distance profile calculation for the constant case."""
+    """Test normalised Euclidean distance profile calculation."""
     X = np.ones((2, 2, 10), dtype=dtype)
     q = np.zeros((2, 3), dtype=dtype)
 
@@ -133,11 +129,7 @@ def test_normalized_euclidean_constant_case(dtype):
 
 
 def test_non_alteration_of_inputs_normalized_euclidean():
-    """
-    Test if input arrays are not altered during.
-
-    normalized Euclidean distance profile calculation.
-    """
+    """Test if input is altered during normalized Euclidean distance profile."""
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
     X_copy = np.copy(X)
     q = np.asarray([[3, 4, 5]])

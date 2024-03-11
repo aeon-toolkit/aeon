@@ -1,4 +1,4 @@
-"""Unit Tests for Time Series Forecasting(Full)."""
+"""Full testing config for Time Series Forecasting."""
 
 __maintainer__ = []
 
