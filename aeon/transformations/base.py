@@ -962,7 +962,7 @@ class BaseTransformer(BaseEstimator):
         if case == "case 2: higher scitype supported" and output_scitype == "Series":
             Xt = convert_to(
                 Xt,
-                to_type=["pd-multiindex", "numpy3D", "df-list", "pd_multiindex_hier"],
+                to_type=["pd-multiindex", "numpy3D", "np-list", "pd_multiindex_hier"],
             )
             Xt = convert_to_scitype(Xt, to_scitype=X_input_scitype)
 

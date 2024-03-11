@@ -1567,7 +1567,7 @@ class BaseForecaster(BaseEstimator):
         y : aeon compatible time series data container
             must be of one of the following mtypes:
                 pd.Series, pd.DataFrame, np.ndarray, of Series abstract type
-                pd.multiindex, numpy3D, nested_univ, df-list, of Panel abstract type
+                pd.multiindex, numpy3D, nested_univ, of Panel abstract type
                 pd_multiindex_hier, of Hierarchical abstract type
 
         Notes

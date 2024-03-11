@@ -47,7 +47,7 @@ def _abstract_type(input_type: str) -> str:
     return "Unknown"
 
 
-def abstract_types(input_types: list[str]) -> list[str]:
+def abstract_types(input_types: list) -> list:
     """Return the abstract types based on the string identifier of the input.
 
     Parameters
