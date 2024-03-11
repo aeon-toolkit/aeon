@@ -4,24 +4,10 @@ import numpy as np
 import pytest
 
 from aeon.distances._utils import (
-    _create_test_distance_numpy,
     _make_3d_series,
     _reshape_pairwise_single,
     reshape_pairwise_to_multiple,
 )
-
-
-def test_create_test_distance_numpy():
-    """Test function to create distance test instance."""
-    x = _create_test_distance_numpy(10)
-    assert isinstance(x, np.ndarray)
-    assert x.shape == (1, 10)
-    x = _create_test_distance_numpy(10, n_channels=4)
-    assert isinstance(x, np.ndarray)
-    assert x.shape == (10, 4)
-    x = _create_test_distance_numpy(10, n_channels=4, n_timepoints=20)
-    assert isinstance(x, np.ndarray)
-    assert x.shape == (10, 4, 20)
 
 
 def test_incorrect_input():

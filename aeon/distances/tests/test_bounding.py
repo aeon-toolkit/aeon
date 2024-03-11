@@ -1,5 +1,3 @@
-__maintainer__ = []
-
 import numpy as np
 
 from aeon.distances import create_bounding_matrix

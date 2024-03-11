@@ -12,7 +12,7 @@ from aeon.distances._distance import (
     _resolve_key_from_distance,
 )
 from aeon.distances.tests.test_expected_results import _expected_distance_results
-from aeon.distances.tests.test_utils import _create_test_distance_numpy
+from aeon.testing.utils.data_gen import make_series
 
 
 def _validate_distance_result(x, y, name, distance, expected_result=10):
@@ -43,8 +43,8 @@ def test_distances(dist):
         )
 
     _validate_distance_result(
-        _create_test_distance_numpy(10),
-        _create_test_distance_numpy(10, random_state=2),
+        make_series(10, return_numpy=True, random_state=1),
+        make_series(10, return_numpy=True, random_state=2),
         dist["name"],
         dist["distance"],
         _expected_distance_results[dist["name"]][1],
@@ -52,8 +52,8 @@ def test_distances(dist):
 
     # Test multivariate
     _validate_distance_result(
-        _create_test_distance_numpy(10, 10),
-        _create_test_distance_numpy(10, 10, random_state=2),
+        make_series(10, 10, return_numpy=True, random_state=1),
+        make_series(10, 10, return_numpy=True, random_state=2),
         dist["name"],
         dist["distance"],
         _expected_distance_results[dist["name"]][2],
@@ -61,16 +61,16 @@ def test_distances(dist):
 
     # Test unequal length
     _validate_distance_result(
-        _create_test_distance_numpy(5),
-        _create_test_distance_numpy(10, random_state=2),
+        make_series(5, return_numpy=True, random_state=1),
+        make_series(10, return_numpy=True, random_state=2),
         dist["name"],
         dist["distance"],
         _expected_distance_results[dist["name"]][3],
     )
 
     _validate_distance_result(
-        _create_test_distance_numpy(10, 5),
-        _create_test_distance_numpy(10, 10, random_state=2),
+        make_series(5, 10, return_numpy=True, random_state=1).T,
+        make_series(10, 10, return_numpy=True, random_state=2).T,
         dist["name"],
         dist["distance"],
         _expected_distance_results[dist["name"]][4],
