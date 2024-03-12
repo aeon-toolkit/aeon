@@ -470,7 +470,7 @@ check_dict[("numpy2D", "Panel")] = check_numpy2D_Panel
 
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.utils.conversion.dask_converters import check_dask_frame
+    from aeon.datatypes._adapter.dask_to_pd import check_dask_frame
 
     def check_dask_panel(obj, return_metadata=False, var_name="obj"):
         return check_dask_frame(

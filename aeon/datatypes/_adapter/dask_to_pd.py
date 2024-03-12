@@ -14,6 +14,7 @@ index is replaced by a string index where tuples are replaced with str coerced e
 """
 
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 
 def _is_mi_col(x):
@@ -36,6 +37,13 @@ def _get_mi_cols(obj):
     return [x for x in obj.columns if _is_mi_col(x)]
 
 
+# TODO: remove in v0.8.0
+@deprecated(
+    version="0.6.0",
+    reason="convert_dask_to_pandas will be moved from datatypes in v0.8.0 to "
+    "utils.conversion in v0.8.0",
+    category=FutureWarning,
+)
 def convert_dask_to_pandas(obj):
     """Convert dask DataFrame to pandas DataFrame, preserving MultiIndex.
 
