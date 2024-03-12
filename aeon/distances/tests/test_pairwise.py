@@ -207,8 +207,7 @@ def test_pairwise_distance(dist):
 def test_multiple_to_multiple_distances(dist):
     """Test multiple to multiple distances."""
     # ================== Test equal length ==================
-    # Test passing two singular univariate time series of shape (n_timepoints,) and
-    # (n_timepoints,)
+    # Test passing two singular univariate time series of shape (n_timepoints,)
     _validate_multiple_to_multiple_result(
         make_series(5, return_numpy=True, random_state=1),
         make_series(5, return_numpy=True, random_state=2),
@@ -218,7 +217,7 @@ def test_multiple_to_multiple_distances(dist):
     )
 
     # Test passing two collections of univariate time series of shape
-    # (n_cases, n_timepoints) and (n_cases, n_timepoints)
+    # (n_cases, n_timepoints)
     _validate_multiple_to_multiple_result(
         make_example_2d_numpy(5, 5, random_state=1, return_y=False),
         make_example_2d_numpy(10, 5, random_state=2, return_y=False),
@@ -228,7 +227,7 @@ def test_multiple_to_multiple_distances(dist):
     )
 
     # Test passing two collections of univariate time series of shape
-    # (n_cases, 1, n_timepoints) and (n_cases, 1, n_timepoints)
+    # (n_cases, 1, n_timepoints)
     _validate_multiple_to_multiple_result(
         make_example_3d_numpy(5, 1, 5, random_state=1, return_y=False),
         make_example_3d_numpy(10, 1, 5, random_state=2, return_y=False),
@@ -238,7 +237,7 @@ def test_multiple_to_multiple_distances(dist):
     )
 
     # Test passing two collections of multivariate time series of shape
-    # (n_cases, n_channels, n_timepoints) and (n_cases, n_channels, n_timepoints)
+    # (n_cases, n_channels, n_timepoints)
     _validate_multiple_to_multiple_result(
         make_example_3d_numpy(5, 5, 5, random_state=1, return_y=False),
         make_example_3d_numpy(10, 5, 5, random_state=2, return_y=False),
