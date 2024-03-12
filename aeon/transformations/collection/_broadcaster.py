@@ -88,7 +88,7 @@ class BroadcastTransformer(BaseCollectionTransformer):
             transformer._is_fitted = True
         self.set_tags(**_tags)
 
-    def _check_n_jobs_broadcast(self, n_instances: int) -> (int, int):
+    def _check_n_jobs_broadcast(self, n_cases: int) -> (int, int):
         """
         Check the n_jobs parameters of the broadcaster and the transform.
 
@@ -100,7 +100,7 @@ class BroadcastTransformer(BaseCollectionTransformer):
 
         Parameters
         ----------
-        n_instances : int
+        n_cases : int
             Number of samples to transform. Used to limit the number of jobs of the
             broadcaster, which don't need to be higher than the number of instances,
             as it will loop on them.
@@ -127,7 +127,7 @@ class BroadcastTransformer(BaseCollectionTransformer):
 
             joblib_n_jobs = true_n_jobs // transformer_n_jobs
             if joblib_n_jobs > 0:
-                return min(n_instances, joblib_n_jobs), transformer_n_jobs
+                return min(n_cases, joblib_n_jobs), transformer_n_jobs
             else:
                 raise ValueError(
                     f"Got {joblib_n_jobs} jobs for parallel broadcasting of "
@@ -145,9 +145,9 @@ class BroadcastTransformer(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The collection of time series to transform.
-        y : 1D np.ndarray of shape = (n_instances), optional
+        y : 1D np.ndarray of shape = (n_cases), optional
             Class of the samples. The default is None, which means this parameter
             is ignored.
 
@@ -174,9 +174,9 @@ class BroadcastTransformer(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The collection of time series to transform.
-        y : 1D np.ndarray of shape = (n_instances), optional
+        y : 1D np.ndarray of shape = (n_cases), optional
             Class of the samples. The default is None, which means this parameter
             is ignored.
 
@@ -211,9 +211,9 @@ class BroadcastTransformer(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The collection of time series to transform.
-        y : 1D np.ndarray of shape = (n_instances), optional
+        y : 1D np.ndarray of shape = (n_cases), optional
             Class of the samples. The default is None, which means this parameter
             is ignored.
 
