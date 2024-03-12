@@ -56,8 +56,8 @@ def elastic_barycenter_average(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints)
+    X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+            (n_cases, n_timepoints)
         A collection of time series instances to take the average from.
     distance: str or Callable, default='dtw'
         String defining the distance to use for averaging. Distance to

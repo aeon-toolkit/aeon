@@ -99,7 +99,7 @@ example_dict_metadata[("Panel", 0)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 3,
+    "n_cases": 3,
 }
 
 ###
@@ -170,7 +170,7 @@ example_dict_metadata[("Panel", 1)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 3,
+    "n_cases": 3,
 }
 
 ###
@@ -234,5 +234,5 @@ example_dict_metadata[("Panel", 2)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 1,
+    "n_cases": 1,
 }

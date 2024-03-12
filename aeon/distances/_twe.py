@@ -259,11 +259,11 @@ def twe_pairwise_distance(
     Parameters
     ----------
     X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the twe pairwise distance between the instances of X is
         calculated.
     window : float, default=None
@@ -280,7 +280,7 @@ def twe_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         twe pairwise matrix between the instances of X.
 
     Raises
@@ -337,8 +337,8 @@ def _twe_pairwise_distance(
     lmbda: float,
     itakura_max_slope: float,
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
     bounding_matrix = create_bounding_matrix(
         X.shape[2], X.shape[2], window, itakura_max_slope
     )
@@ -348,8 +348,8 @@ def _twe_pairwise_distance(
     for i in range(X.shape[0]):
         padded_X[i] = _pad_arrs(X[i])
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = _twe_distance(
                 padded_X[i], padded_X[j], bounding_matrix, nu, lmbda
             )
@@ -367,9 +367,9 @@ def _twe_from_multiple_to_multiple_distance(
     lmbda: float,
     itakura_max_slope: float,
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
     bounding_matrix = create_bounding_matrix(
         x.shape[2], y.shape[2], window, itakura_max_slope
     )
@@ -383,8 +383,8 @@ def _twe_from_multiple_to_multiple_distance(
     for i in range(y.shape[0]):
         padded_y[i] = _pad_arrs(y[i])
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = _twe_distance(
                 padded_x[i], padded_y[j], bounding_matrix, nu, lmbda
             )

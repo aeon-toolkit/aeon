@@ -210,7 +210,7 @@ def check_dask_frame(
 
     if return_metadata and scitype in ["Panel", "Hierarchical"]:
         instance_cols = index_cols[:-1]
-        metadata["n_instances"] = len(obj[instance_cols].drop_duplicates())
+        metadata["n_cases"] = len(obj[instance_cols].drop_duplicates())
 
     if return_metadata and scitype in ["Hierarchical"]:
         panel_cols = index_cols[:-2]

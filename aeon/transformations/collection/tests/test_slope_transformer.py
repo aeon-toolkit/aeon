@@ -44,14 +44,14 @@ def test_output_of_transformer():
     np.testing.assert_array_almost_equal(res, orig, decimal=5)
 
 
-@pytest.mark.parametrize("num_intervals,corr_series_length", [(2, 2), (5, 5), (8, 8)])
-def test_output_dimensions(num_intervals, corr_series_length):
+@pytest.mark.parametrize("num_intervals,corr_n_timepoints", [(2, 2), (5, 5), (8, 8)])
+def test_output_dimensions(num_intervals, corr_n_timepoints):
     X = np.ones(shape=(10, 1, 13))
     s = SlopeTransformer(n_intervals=num_intervals).fit(X)
     res = s.transform(X)
-    n_cases, n_channels, series_length = res.shape
+    n_cases, n_channels, n_timepoints = res.shape
 
-    assert series_length == corr_series_length
+    assert n_timepoints == corr_n_timepoints
     assert n_cases == 10
     assert n_channels == 1
 

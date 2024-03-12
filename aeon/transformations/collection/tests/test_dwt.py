@@ -63,16 +63,16 @@ def test_no_levels_does_no_change():
     np.testing.assert_array_almost_equal(res, X)
 
 
-@pytest.mark.parametrize("num_levels,corr_series_length", [(2, 12), (3, 11), (4, 12)])
-def test_output_dimensions(num_levels, corr_series_length):
+@pytest.mark.parametrize("num_levels,corr_n_timepoints", [(2, 12), (3, 11), (4, 12)])
+def test_output_dimensions(num_levels, corr_n_timepoints):
     """Check that the output dimensions are correct."""
     X = np.ones(shape=(10, 1, 13))
     d = DWTTransformer(n_levels=num_levels).fit(X)
     res = d.transform(X)
 
-    n_cases, n_channels, series_length = res.shape
+    n_cases, n_channels, n_timepoints = res.shape
 
-    assert series_length == corr_series_length
+    assert n_timepoints == corr_n_timepoints
     assert n_cases == 10
     assert n_channels == 1
 
