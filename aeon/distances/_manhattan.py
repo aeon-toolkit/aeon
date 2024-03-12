@@ -77,18 +77,18 @@ def manhattan_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
     Parameters
     ----------
     X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the manhattan pairwise distance between the instances of X is
         calculated.
 
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         manhattan pairwise matrix between the instances of X.
 
     Raises
@@ -136,11 +136,11 @@ def manhattan_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
 
 @njit(cache=True, fastmath=True)
 def _manhattan_pairwise_distance(X: np.ndarray) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = manhattan_distance(X[i], X[j])
             distances[j, i] = distances[i, j]
 
@@ -151,11 +151,11 @@ def _manhattan_pairwise_distance(X: np.ndarray) -> np.ndarray:
 def _manhattan_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = manhattan_distance(x[i], y[j])
     return distances

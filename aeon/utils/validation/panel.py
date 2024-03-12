@@ -29,7 +29,7 @@ VALID_Y_TYPES = (pd.Series, np.ndarray)  # 1-d vector
 def check_X(
     X,
     enforce_univariate=False,
-    enforce_min_instances=1,
+    enforce_min_cases=1,
     enforce_min_columns=1,
     coerce_to_numpy=False,
     coerce_to_pandas=False,
@@ -42,7 +42,7 @@ def check_X(
         Input data
     enforce_univariate : bool, optional (default=False)
         Enforce that X is univariate.
-    enforce_min_instances : int, optional (default=1)
+    enforce_min_cases : int, optional (default=1)
         Enforce minimum number of instances.
     enforce_min_columns : int, optional (default=1)
         Enforce minimum number of columns (or time-series variables).
@@ -102,8 +102,8 @@ def check_X(
         )
 
     # enforce minimum number of instances
-    if enforce_min_instances > 0:
-        _enforce_min_instances(X, min_instances=enforce_min_instances)
+    if enforce_min_cases > 0:
+        _enforce_min_cases(X, min_cases=enforce_min_cases)
 
     # check pd.DataFrame
     if isinstance(X, pd.DataFrame):
@@ -126,13 +126,13 @@ def check_X(
     "replaced by functionality that splits validation and conversion.",
     category=FutureWarning,
 )
-def check_y(y, enforce_min_instances=1, coerce_to_numpy=False):
+def check_y(y, enforce_min_cases=1, coerce_to_numpy=False):
     """Validate input data.
 
     Parameters
     ----------
     y : pd.Series or np.array
-    enforce_min_instances : int, optional (default=1)
+    enforce_min_cases : int, optional (default=1)
         Enforce minimum number of instances.
     coerce_to_numpy : bool, optional (default=False)
         If True, y will be coerced to a numpy array.
@@ -152,8 +152,8 @@ def check_y(y, enforce_min_instances=1, coerce_to_numpy=False):
             f"but found type: {type(y)}"
         )
 
-    if enforce_min_instances > 0:
-        _enforce_min_instances(y, min_instances=enforce_min_instances)
+    if enforce_min_cases > 0:
+        _enforce_min_cases(y, min_cases=enforce_min_cases)
 
     if coerce_to_numpy and isinstance(y, pd.Series):
         y = y.to_numpy()
@@ -171,7 +171,7 @@ def check_X_y(
     X,
     y,
     enforce_univariate=False,
-    enforce_min_instances=1,
+    enforce_min_cases=1,
     enforce_min_columns=1,
     coerce_to_numpy=False,
     coerce_to_pandas=False,
@@ -184,7 +184,7 @@ def check_X_y(
     y : pd.Series or np.array
     enforce_univariate : bool, optional (default=False)
         Enforce that X is univariate.
-    enforce_min_instances : int, optional (default=1)
+    enforce_min_cases : int, optional (default=1)
         Enforce minimum number of instances.
     enforce_min_columns : int, optional (default=1)
         Enforce minimum number of columns (or time-series variables).
@@ -212,17 +212,17 @@ def check_X_y(
         X,
         enforce_univariate=enforce_univariate,
         enforce_min_columns=enforce_min_columns,
-        enforce_min_instances=enforce_min_instances,
+        enforce_min_cases=enforce_min_cases,
         coerce_to_numpy=coerce_to_numpy,
         coerce_to_pandas=coerce_to_pandas,
     )
     return X, y
 
 
-def _enforce_min_instances(x, min_instances=1):
-    n_instances = x.shape[0]
-    if n_instances < min_instances:
+def _enforce_min_cases(x, min_cases=1):
+    n_cases = x.shape[0]
+    if n_cases < min_cases:
         raise ValueError(
-            f"Found array with: {n_instances} instance(s) "
-            f"but a minimum of: {min_instances} is required."
+            f"Found array with: {n_cases} instance(s) "
+            f"but a minimum of: {min_cases} is required."
         )

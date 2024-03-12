@@ -208,11 +208,11 @@ def adtw_pairwise_distance(
     Parameters
     ----------
     X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the adtw pairwise distance between the instances of X is
         calculated.
 
@@ -232,8 +232,8 @@ def adtw_pairwise_distance(
     -------
     np.ndarray
         ADTW pairwise matrix between the instances of X of shape
-        ``(n_instances, n_instances)`` or between X and y of shape ``(n_instances,
-        n_instances)``.
+        ``(n_cases, n_cases)`` or between X and y of shape ``(n_cases,
+        n_cases)``.
 
     Raises
     ------
@@ -284,14 +284,14 @@ def adtw_pairwise_distance(
 def _adtw_pairwise_distance(
     X: np.ndarray, window: float, itakura_max_slope: float, warp_penalty: float
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
     bounding_matrix = create_bounding_matrix(
         X.shape[2], X.shape[2], window, itakura_max_slope
     )
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = _adtw_distance(X[i], X[j], bounding_matrix, warp_penalty)
             distances[j, i] = distances[i, j]
 
@@ -306,15 +306,15 @@ def _adtw_from_multiple_to_multiple_distance(
     itakura_max_slope: float,
     warp_penalty: float,
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
     bounding_matrix = create_bounding_matrix(
         x.shape[2], y.shape[2], window, itakura_max_slope
     )
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = _adtw_distance(x[i], y[j], bounding_matrix, warp_penalty)
     return distances
 

@@ -35,7 +35,7 @@ def convert_identity(X):
 
 NUMPY3D_ERROR = (
     "Error: Input should be 3-dimensional NumPy array with shape ("
-    "n_instances, n_channels, n_timepoints)."
+    "n_cases, n_channels, n_timepoints)."
 )
 NUMPY2D_OUTPUT_ERROR = "Error: Cannot convert multivariate series to numpy 2D arrays."
 NUMPY2D_INPUT_ERROR = "Error: Input numpy not of type numpy2D."
@@ -44,17 +44,17 @@ NUMPY2D_INPUT_ERROR = "Error: Input numpy not of type numpy2D."
 def _from_numpy3d_to_np_list(X):
     """Convert 3D np.ndarray to a list of 2D numpy.
 
-    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
-    a 2D list length [n_instances] each of shape (n_channels, n_timepoints)
+    Converts 3D numpy array (n_cases, n_channels, n_timepoints) to
+    a 2D list length [n_cases] each of shape (n_channels, n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
-        The input array with shape (n_instances, n_channels, n_timepoints)
+        The input array with shape (n_cases, n_channels, n_timepoints)
 
     Returns
     -------
-    list : list [n_instances] np.ndarray
+    list : list [n_cases] np.ndarray
         A list of np.ndarray
     """
     if X.ndim != 3:
@@ -68,13 +68,13 @@ def _from_numpy3d_to_np_list(X):
 def _from_numpy3d_to_df_list(X):
     """Convert 3D np.darray to a list of dataframes in wide format.
 
-    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
-    a 2D list length [n_instances] of pd.DataFrames shape (n_channels, n_timepoints)
+    Converts 3D numpy array (n_cases, n_channels, n_timepoints) to
+    a 2D list length [n_cases] of pd.DataFrames shape (n_channels, n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
-        The input array with shape (n_instances, n_channels, n_timepoints)
+        The input array with shape (n_cases, n_channels, n_timepoints)
 
     Returns
     -------
@@ -95,17 +95,17 @@ def _from_numpy3d_to_df_list(X):
 def _from_numpy3d_to_pd_wide(X):
     """Convert 3D np.darray to a list of dataframes in wide format.
 
-    Only valid with univariate time series. Converts 3D numpy array (n_instances, 1,
-    n_timepoints) to a dataframe (n_instances, n_timepoints)
+    Only valid with univariate time series. Converts 3D numpy array (n_cases, 1,
+    n_timepoints) to a dataframe (n_cases, n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
-        The input array with shape (n_instances, n_channels, n_timepoints)
+        The input array with shape (n_cases, n_channels, n_timepoints)
 
     Returns
     -------
-    df : a dataframe (n_instances,n_channels*n_timepoints)
+    df : a dataframe (n_cases,n_channels*n_timepoints)
 
     Raise
     -----
@@ -134,9 +134,9 @@ def _from_numpy3d_to_pd_multiindex(X):
     if X.ndim != 3:
         raise TypeError(NUMPY3D_ERROR)
 
-    n_instances, n_channels, n_timepoints = X.shape
+    n_cases, n_channels, n_timepoints = X.shape
     multi_index = pd.MultiIndex.from_product(
-        [range(n_instances), range(n_channels), range(n_timepoints)],
+        [range(n_cases), range(n_channels), range(n_timepoints)],
         names=["instances", "columns", "timepoints"],
     )
 
@@ -150,7 +150,7 @@ def _from_numpy3d_to_nested_univ(X):
     """Convert numpy3D collection to nested_univ pd.DataFrame."""
     if X.ndim != 3:
         raise TypeError(NUMPY3D_ERROR)
-    n_instances, n_channels, n_timepoints = X.shape
+    n_cases, n_channels, n_timepoints = X.shape
     array_type = X.dtype
     container = pd.Series
     column_names = [f"var_{i}" for i in range(n_channels)]
@@ -225,8 +225,7 @@ def _from_np_list_to_pd_multiindex(X):
 
 
 df_list_error = (
-    "Input should be 2-dimensional np.ndarray with shape (n_instances, "
-    "n_timepoints).",
+    "Input should be 2-dimensional np.ndarray with shape (n_cases, " "n_timepoints).",
 )
 
 
@@ -317,13 +316,11 @@ def _from_numpy2d_to_nested_univ(X):
     if not isinstance(X, np.ndarray) or X.ndim != 2:
         raise TypeError(NUMPY2D_INPUT_ERROR)
     container = pd.Series
-    n_instances, n_timepoints = X.shape
+    n_cases, n_timepoints = X.shape
     time_index = np.arange(n_timepoints)
     kwargs = {"index": time_index}
 
-    Xt = pd.DataFrame(
-        pd.Series([container(X[i, :], **kwargs) for i in range(n_instances)])
-    )
+    Xt = pd.DataFrame(pd.Series([container(X[i, :], **kwargs) for i in range(n_cases)]))
     return Xt
 
 

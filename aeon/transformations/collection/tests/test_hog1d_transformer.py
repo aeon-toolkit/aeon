@@ -8,16 +8,16 @@ from aeon.transformations.collection.hog1d import HOG1DTransformer
 
 # the time series length should always be num_bins*num_intervals
 # (num_intervals is 2 by default)
-@pytest.mark.parametrize("num_bins,corr_series_length", [(4, 8), (8, 16), (12, 24)])
-def test_output_dimensions(num_bins, corr_series_length):
+@pytest.mark.parametrize("num_bins,corr_n_timepoints", [(4, 8), (8, 16), (12, 24)])
+def test_output_dimensions(num_bins, corr_n_timepoints):
     X = np.ones(shape=(10, 1, 13))
     h = HOG1DTransformer(n_bins=num_bins).fit(X)
     res = h.transform(X)
 
     # get the dimension of the generated numpy array.
-    n_cases, n_channels, series_length = res.shape
+    n_cases, n_channels, n_timepoints = res.shape
 
-    assert series_length == corr_series_length
+    assert n_timepoints == corr_n_timepoints
     assert n_cases == 10
     assert n_channels == 1
 
