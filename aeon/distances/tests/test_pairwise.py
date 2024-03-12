@@ -137,7 +137,7 @@ def test_pairwise_distance(dist):
     """Test pairwise distance function."""
 
     # ================== Test equal length ==================
-    # Test collection of univariate time series in the shape (n_instances, n_timepoints)
+    # Test collection of univariate time series in the shape (n_cases, n_timepoints)
     _validate_pairwise_result(
         make_example_2d_numpy(5, 5, random_state=1, return_y=False),
         dist["name"],
@@ -146,7 +146,7 @@ def test_pairwise_distance(dist):
     )
 
     # Test collection of univariate time series in the shape
-    # (n_instances, n_channels, n_timepoints)
+    # (n_cases, n_channels, n_timepoints)
     _validate_pairwise_result(
         make_example_3d_numpy(5, 1, 5, random_state=1, return_y=False),
         dist["name"],
@@ -155,7 +155,7 @@ def test_pairwise_distance(dist):
     )
 
     # Test collection of multivariate time series in the shape
-    # (n_instances, n_channels, n_timepoints)
+    # (n_cases, n_channels, n_timepoints)
     _validate_pairwise_result(
         make_example_3d_numpy(5, 5, 5, random_state=1, return_y=False),
         dist["name"],
@@ -166,7 +166,7 @@ def test_pairwise_distance(dist):
     # TODO: Uncomment in PR #1287
     # # ================== Test unequal length ==================
     # # Test collection of unequal length univariate time series in the shape
-    # # (n_instances, n_timepoints)
+    # # (n_cases, n_timepoints)
     # _validate_pairwise_result(
     #     make_example_2d_unequal_length(5, random_state=1, return_y=False),
     #     dist["name"],
@@ -175,7 +175,7 @@ def test_pairwise_distance(dist):
     # )
     #
     # # Test collection of unequal length univariate time series in the shape
-    # # (n_instances, n_channels, n_timepoints)
+    # # (n_cases, n_channels, n_timepoints)
     # _validate_pairwise_result(
     #     make_example_unequal_length(5, 1, random_state=1, return_y=False),
     #     dist["name"],
@@ -184,7 +184,7 @@ def test_pairwise_distance(dist):
     # )
     #
     # # Test collection of unequal length multivariate time series in the shape
-    # # (n_instances, n_channels, n_timepoints)
+    # # (n_cases, n_channels, n_timepoints)
     # _validate_pairwise_result(
     #     make_example_unequal_length(5, 5, random_state=1, return_y=False),
     #     dist["name"],
