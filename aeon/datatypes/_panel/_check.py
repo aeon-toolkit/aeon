@@ -32,7 +32,7 @@ metadata: dict - metadata about obj if valid, otherwise None
         "is_empty": bool, True iff one or more of the series in the panel are empty
         "is_one_series": bool, True iff there is only one series in the panel
         "has_nans": bool, True iff the panel contains NaN values
-        "n_instances": int, number of instances in the panel
+        "n_cases": int, number of instances in the panel
 """
 
 __maintainer__ = []
@@ -117,7 +117,7 @@ def check_dflist_panel(obj, return_metadata=False, var_name="obj"):
     metadata["n_panels"] = 1
     metadata["is_one_panel"] = True
 
-    metadata["n_instances"] = n
+    metadata["n_cases"] = n
 
     return _ret(True, None, metadata, return_metadata)
 
@@ -159,7 +159,7 @@ def check_nplist_panel(np_list, return_metadata=False, var_name="np_list"):
     if return_metadata:
         metadata = dict()
         metadata["is_univariate"] = np_list[0].ndim == 1
-        metadata["n_instances"] = n
+        metadata["n_cases"] = n
         metadata["is_equally_spaced"] = False
         metadata["is_equal_length"] = False
         metadata["has_nans"] = False  # Temp, need to check for nans _has_nans(np_list)
@@ -187,7 +187,7 @@ def check_numpy3d_panel(obj, return_metadata=False, var_name="obj"):
     metadata["is_equally_spaced"] = True
     metadata["is_equal_length"] = True
 
-    metadata["n_instances"] = obj.shape[0]
+    metadata["n_cases"] = obj.shape[0]
     metadata["is_one_series"] = obj.shape[0] == 1
     metadata["n_panels"] = 1
     metadata["is_one_panel"] = True
@@ -288,7 +288,7 @@ def check_pdmultiindex_panel(obj, return_metadata=False, var_name="obj", panel=T
     metadata["is_empty"] = len(obj.index) < 1 or len(obj.columns) < 1
     metadata["n_panels"] = len(panel_inds)
     metadata["is_one_panel"] = len(panel_inds) == 1
-    metadata["n_instances"] = len(inst_inds)
+    metadata["n_cases"] = len(inst_inds)
     metadata["is_one_series"] = len(inst_inds) == 1
     metadata["has_nans"] = obj.isna().values.any()
     metadata["is_equal_length"] = is_equal_length.nunique().shape[0] == 1
@@ -420,7 +420,7 @@ def is_nested_dataframe(obj, return_metadata=False, var_name="obj"):
 
     metadata = dict()
     metadata["is_univariate"] = obj.shape[1] < 2
-    metadata["n_instances"] = len(obj)
+    metadata["n_cases"] = len(obj)
     metadata["is_one_series"] = len(obj) == 1
     metadata["n_panels"] = 1
     metadata["is_one_panel"] = True
@@ -454,7 +454,7 @@ def check_numpy2D_Panel(obj, return_metadata=False, var_name="obj"):
     # np.arrays are considered equally spaced, equal length, by assumption
     metadata["is_equally_spaced"] = True
     metadata["is_equal_length"] = True
-    metadata["n_instances"] = obj.shape[0]
+    metadata["n_cases"] = obj.shape[0]
     metadata["is_one_series"] = obj.shape[0] == 1
     metadata["n_panels"] = 1
     metadata["is_one_panel"] = True

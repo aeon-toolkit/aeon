@@ -181,7 +181,7 @@ def ddtw_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         ddtw pairwise matrix between the instances of X.
 
     Raises
@@ -233,18 +233,18 @@ def ddtw_pairwise_distance(
 def _ddtw_pairwise_distance(
     X: np.ndarray, window: float, itakura_max_slope: float
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
     bounding_matrix = create_bounding_matrix(
         X.shape[2] - 2, X.shape[2] - 2, window, itakura_max_slope
     )
 
-    X_average_of_slope = np.zeros((n_instances, X.shape[1], X.shape[2] - 2))
-    for i in range(n_instances):
+    X_average_of_slope = np.zeros((n_cases, X.shape[1], X.shape[2] - 2))
+    for i in range(n_cases):
         X_average_of_slope[i] = average_of_slope(X[i])
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = _dtw_distance(
                 X_average_of_slope[i], X_average_of_slope[j], bounding_matrix
             )
@@ -257,9 +257,9 @@ def _ddtw_pairwise_distance(
 def _ddtw_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, window: float, itakura_max_slope: float
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
     bounding_matrix = create_bounding_matrix(
         x.shape[2], y.shape[2], window, itakura_max_slope
     )
@@ -273,8 +273,8 @@ def _ddtw_from_multiple_to_multiple_distance(
     for i in range(y.shape[0]):
         derive_y[i] = average_of_slope(y[i])
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = _dtw_distance(derive_x[i], derive_y[j], bounding_matrix)
     return distances
 

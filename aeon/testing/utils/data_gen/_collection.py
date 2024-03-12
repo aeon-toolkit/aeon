@@ -150,8 +150,8 @@ def make_example_2d_numpy(
 
 def make_example_2d_unequal_length(
     n_cases: int = 10,
-    min_series_length: int = 6,
-    max_series_length: int = 8,
+    min_n_timepoints: int = 6,
+    max_n_timepoints: int = 8,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
@@ -166,9 +166,9 @@ def make_example_2d_unequal_length(
     ----------
     n_cases : int
         The number of samples to generate.
-    min_series_length : int
+    min_n_timepoints : int
         The minimum number of features/series length to generate for invidiaul series.
-    max_series_length : int
+    max_n_timepoints : int
         The maximum number of features/series length to generate for invidiaul series.
     n_labels : int
         The number of unique labels to generate.
@@ -191,8 +191,8 @@ def make_example_2d_unequal_length(
     >>> from aeon.testing.utils.data_gen import make_example_2d_unequal_length
     >>> data, labels = make_example_2d_unequal_length(
     ...     n_cases=20,
-    ...     min_series_length=8,
-    ...     max_series_length=12,
+    ...     min_n_timepoints=8,
+    ...     max_n_timepoints=12,
     ...     n_labels=3,
     ... )
     """
@@ -200,8 +200,8 @@ def make_example_2d_unequal_length(
     X = []
     y = np.zeros(n_cases, dtype=np.int32)
     for i in range(n_cases):
-        series_length = rng.randint(min_series_length, max_series_length + 1)
-        x = n_labels * rng.uniform(size=series_length)
+        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
+        x = n_labels * rng.uniform(size=n_timepoints)
         label = x[0].astype(int)
         if i < n_labels and n_cases > i:
             x[0] = i
@@ -223,8 +223,8 @@ def make_example_2d_unequal_length(
 def make_example_unequal_length(
     n_cases: int = 10,
     n_channels: int = 1,
-    min_series_length: int = 6,
-    max_series_length: int = 8,
+    min_n_timepoints: int = 6,
+    max_n_timepoints: int = 8,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
@@ -241,9 +241,9 @@ def make_example_unequal_length(
         The number of samples to generate.
     n_channels : int
         The number of series channels to generate.
-    min_series_length : int
+    min_n_timepoints : int
         The minimum number of features/series length to generate for invidiaul series.
-    max_series_length : int
+    max_n_timepoints : int
         The maximum number of features/series length to generate for invidiaul series.
     n_labels : int
         The number of unique labels to generate.
@@ -267,8 +267,8 @@ def make_example_unequal_length(
     >>> data, labels = make_example_unequal_length(
     ...     n_cases=20,
     ...     n_channels=2,
-    ...     min_series_length=8,
-    ...     max_series_length=12,
+    ...     min_n_timepoints=8,
+    ...     max_n_timepoints=12,
     ...     n_labels=3,
     ... )
     """
@@ -277,8 +277,8 @@ def make_example_unequal_length(
     y = np.zeros(n_cases, dtype=np.int32)
 
     for i in range(n_cases):
-        series_length = rng.randint(min_series_length, max_series_length + 1)
-        x = n_labels * rng.uniform(size=(n_channels, series_length))
+        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
+        x = n_labels * rng.uniform(size=(n_channels, n_timepoints))
         label = x[0, 0].astype(int)
         if i < n_labels and n_cases > i:
             x[0, 0] = i
@@ -333,7 +333,7 @@ def make_example_nested_dataframe(
         Randomly generated labels.
     """
     X = _make_collection_X(
-        n_instances=n_cases,
+        n_cases=n_cases,
         n_channels=n_channels,
         n_timepoints=n_timepoints,
         return_numpy=False,
@@ -395,13 +395,13 @@ def make_example_long_table(
 
 
 def make_example_multi_index_dataframe(
-    n_instances: int = 50, n_channels: int = 3, n_timepoints: int = 20
+    n_cases: int = 50, n_channels: int = 3, n_timepoints: int = 20
 ):
     """Generate example collection as multi-index DataFrame.
 
     Parameters
     ----------
-    n_instances : int, default =50
+    n_cases : int, default =50
         Number of instances.
     n_channels : int, default =3
         Number of columns (series) in multi-indexed DataFrame.
@@ -412,11 +412,11 @@ def make_example_multi_index_dataframe(
     -------
     mi_df : pd.DataFrame
         The multi-indexed DataFrame with
-        shape (n_instances*n_timepoints, n_column).
+        shape (n_cases*n_timepoints, n_column).
     """
     # Make long DataFrame
     long_df = make_example_long_table(
-        n_cases=n_instances, n_timepoints=n_timepoints, n_channels=n_channels
+        n_cases=n_cases, n_timepoints=n_timepoints, n_channels=n_channels
     )
     # Make Multi index DataFrame
     mi_df = long_df.set_index(["case_id", "reading_id"]).pivot(columns="dim_id")
@@ -425,7 +425,7 @@ def make_example_multi_index_dataframe(
 
 
 def _make_collection(
-    n_instances=20,
+    n_cases=20,
     n_channels=1,
     n_timepoints=20,
     y=None,
@@ -437,7 +437,7 @@ def _make_collection(
 
     Parameters
     ----------
-    n_instances : int, optional, default=20
+    n_cases : int, optional, default=20
         number of instances per series in the collection
     n_channels : int, optional, default=1
         number of variables in the time series
@@ -462,11 +462,11 @@ def _make_collection(
     # many instances as in the target variable
     if y is not None:
         y = np.asarray(y)
-        n_instances = len(y)
+        n_cases = len(y)
     rng = check_random_state(random_state)
 
     # Generate data as 3d numpy array
-    X = rng.normal(scale=0.5, size=(n_instances, n_channels, n_timepoints))
+    X = rng.normal(scale=0.5, size=(n_cases, n_channels, n_timepoints))
 
     # Generate association between data and target variable
     if y is not None:
@@ -480,7 +480,7 @@ def _make_collection(
 
 
 def _make_collection_X(
-    n_instances=20,
+    n_cases=20,
     n_channels=1,
     n_timepoints=20,
     y=None,
@@ -494,7 +494,7 @@ def _make_collection_X(
         return_type = "nested_univ"
 
     return _make_collection(
-        n_instances=n_instances,
+        n_cases=n_cases,
         n_channels=n_channels,
         n_timepoints=n_timepoints,
         y=y,
@@ -504,9 +504,9 @@ def _make_collection_X(
     )
 
 
-def _make_regression_y(n_instances=20, return_numpy=True, random_state=None):
+def _make_regression_y(n_cases=20, return_numpy=True, random_state=None):
     rng = check_random_state(random_state)
-    y = rng.normal(size=n_instances)
+    y = rng.normal(size=n_cases)
     y = y.astype(np.float32)
     if return_numpy:
         return y
@@ -515,13 +515,13 @@ def _make_regression_y(n_instances=20, return_numpy=True, random_state=None):
 
 
 def _make_classification_y(
-    n_instances=20, n_classes=2, return_numpy=True, random_state=None
+    n_cases=20, n_classes=2, return_numpy=True, random_state=None
 ):
-    if not n_instances >= n_classes:
+    if not n_cases >= n_classes:
         raise ValueError("n_cases must be bigger than n_classes")
     rng = check_random_state(random_state)
-    n_repeats = int(np.ceil(n_instances / n_classes))
-    y = np.tile(np.arange(n_classes), n_repeats)[:n_instances]
+    n_repeats = int(np.ceil(n_cases / n_classes))
+    y = np.tile(np.arange(n_classes), n_repeats)[:n_cases]
     rng.shuffle(y)
     if return_numpy:
         return y
@@ -529,9 +529,9 @@ def _make_classification_y(
         return pd.Series(y)
 
 
-def _make_nested_from_array(array, n_instances=20, n_columns=1):
+def _make_nested_from_array(array, n_cases=20, n_columns=1):
     return pd.DataFrame(
-        [[pd.Series(array) for _ in range(n_columns)] for _ in range(n_instances)],
+        [[pd.Series(array) for _ in range(n_columns)] for _ in range(n_cases)],
         columns=[f"col{c}" for c in range(n_columns)],
     )
 
@@ -544,7 +544,7 @@ for _ in range(10):
     df_list.append(pd.DataFrame(np.random.random(size=(20, 1))))
 nested, _ = make_example_nested_dataframe(n_cases=10)
 multiindex = make_example_multi_index_dataframe(
-    n_instances=10, n_channels=1, n_timepoints=20
+    n_cases=10, n_channels=1, n_timepoints=20
 )
 
 EQUAL_LENGTH_UNIVARIATE = {
@@ -580,9 +580,7 @@ for _ in range(10):
 df_list_multi = []
 for _ in range(10):
     df_list_multi.append(pd.DataFrame(np.random.random(size=(20, 2))))
-multi = make_example_multi_index_dataframe(
-    n_instances=10, n_channels=2, n_timepoints=20
-)
+multi = make_example_multi_index_dataframe(n_cases=10, n_channels=2, n_timepoints=20)
 
 nested_univ_multi = pd.DataFrame(dtype=float)
 instance_list = []

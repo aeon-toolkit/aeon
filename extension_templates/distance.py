@@ -158,13 +158,13 @@ def foo_pairwise_distance(
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints)
+    X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+            (n_cases, n_timepoints)
         A collection of time series instances.
     # For X 3D np.ndarray as a collection of 2D series and 2D np.ndarray are treated
     as a collection of 1D series.
-    y: np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
+    y: np.ndarray, of shape (m_cases, m_channels, m_timepoints) or
+            (m_cases, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
     # If y is passed, its structure is inferred from X. If X is 3D, y must be either
     3D (a collection of series) or 2D (a single series). If X is 2D, y must
@@ -176,7 +176,7 @@ def foo_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         pairwise matrix of foo_distances between the instances of X.
 
     Raises

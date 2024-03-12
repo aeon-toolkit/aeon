@@ -40,7 +40,7 @@ class ShapeletTransformClassifier(BaseClassifier):
     max_shapelets : int or None, default=None
         Max number of shapelets to keep for the final transform. Each class value will
         have its own max, set to ``n_classes_ / max_shapelets``. If `None`, uses the
-        minimum between ``10 * n_instances_`` and `1000`.
+        minimum between ``10 * n_cases_`` and `1000`.
     max_shapelet_length : int or None, default=None
         Lower bound on candidate shapelet lengths for the transform. If ``None``, no
         max length is used
@@ -85,11 +85,11 @@ class ShapeletTransformClassifier(BaseClassifier):
         The number of unique classes in the training set.
     fit_time_  : int
         The time (in milliseconds) for ``fit`` to run.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case in the training set.
-    series_length_ : int
+    n_timepoints_ : int
         The length of each series in the training set.
 
     See Also
@@ -164,9 +164,9 @@ class ShapeletTransformClassifier(BaseClassifier):
         self.batch_size = batch_size
         self.n_jobs = n_jobs
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
 
         self._transformer = None
         self._estimator = estimator
@@ -190,9 +190,9 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -220,12 +220,12 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         X_t = self._transformer.transform(X)
@@ -237,12 +237,12 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         X_t = self._transformer.transform(X)
@@ -301,7 +301,7 @@ class ShapeletTransformClassifier(BaseClassifier):
             )
 
     def _fit_stc(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         if self.time_limit_in_minutes > 0:
             # contracting 2/3 transform (with 1/5 of that taken away for final

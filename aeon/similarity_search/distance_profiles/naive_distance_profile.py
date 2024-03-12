@@ -34,7 +34,7 @@ def naive_distance_profile(X, q, mask, distance_function, distance_args=None):
         The input samples.
     q : np.ndarray shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_instances, n_channels, n_timepoints - query_length + 1)
+    mask : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
     distance_function : func
@@ -83,16 +83,16 @@ def normalized_naive_distance_profile(
 
     Parameters
     ----------
-    X : array, shape (n_instances, n_channels, n_timepoints)
+    X : array, shape (n_cases, n_channels, n_timepoints)
         The input samples.
     q : array, shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_instances, n_channels, n_timepoints - query_length + 1)
+    mask : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
-    X_means : array, shape (n_instances, n_channels, n_timepoints - query_length + 1)
+    X_means : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
         Means of each subsequences of X of size query_length
-    X_stds : array, shape (n_instances, n_channels, n_timepoints - query_length + 1)
+    X_stds : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
         Stds of each subsequences of X of size query_length
     q_means : array, shape (n_channels)
         Means of the query q
@@ -107,7 +107,7 @@ def normalized_naive_distance_profile(
     Returns
     -------
     distance_profile : np.ndarray
-        shape (n_instances, n_channels, n_timepoints - query_length + 1).
+        shape (n_cases, n_channels, n_timepoints - query_length + 1).
         The distance profile between q and the input time series X independently
         for each channel.
 
@@ -128,15 +128,15 @@ def _naive_distance_profile(
     numba_distance_function,
 ):
     (
-        n_instances,
+        n_cases,
         n_channels,
         n_timepoints,
         query_length,
         profile_size,
     ) = _get_input_sizes(X, q)
-    distance_profile = np.full((n_instances, n_channels, profile_size), np.inf)
+    distance_profile = np.full((n_cases, n_channels, profile_size), np.inf)
 
-    for i_instance in range(n_instances):
+    for i_instance in range(n_cases):
         for i_candidate in range(profile_size):
             if mask[i_instance, i_candidate]:
                 for i_channel in range(n_channels):
@@ -166,17 +166,17 @@ def _normalized_naive_distance_profile(
     numba_distance_function,
 ):
     (
-        n_instances,
+        n_cases,
         n_channels,
         n_timepoints,
         query_length,
         profile_size,
     ) = _get_input_sizes(X, q)
     q = z_normalize_series_2d_with_mean_std(q, q_means, q_stds)
-    distance_profile = np.full((n_instances, n_channels, profile_size), np.inf)
+    distance_profile = np.full((n_cases, n_channels, profile_size), np.inf)
 
     # Compute euclidean distance for all candidate in a "brute force" way
-    for i_instance in range(n_instances):
+    for i_instance in range(n_cases):
         for i_candidate in range(profile_size):
             if mask[i_instance, i_candidate]:
                 for i_channel in range(n_channels):

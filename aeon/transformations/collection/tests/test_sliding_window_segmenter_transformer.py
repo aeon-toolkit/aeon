@@ -67,17 +67,17 @@ def test_output_of_transformer():
 
 
 @pytest.mark.parametrize(
-    "time_series_length,window_length", [(5, 1), (10, 5), (15, 9), (20, 13), (25, 19)]
+    "time_n_timepoints,window_length", [(5, 1), (10, 5), (15, 9), (20, 13), (25, 19)]
 )
-def test_output_dimensions(time_series_length, window_length):
+def test_output_dimensions(time_n_timepoints, window_length):
     """Test output dimensions of SlidingWindowSegmenter."""
-    X = np.ones(shape=(10, 1, time_series_length))
+    X = np.ones(shape=(10, 1, time_n_timepoints))
     st = SlidingWindowSegmenter(window_length=window_length)
     res = st.fit_transform(X)
 
     # get the dimension of the generated dataframe.
-    n_cases, n_channels, series_length = res.shape
+    n_cases, n_channels, n_timepoints = res.shape
 
-    assert series_length == window_length
+    assert n_timepoints == window_length
     assert n_cases == 10
-    assert n_channels == time_series_length
+    assert n_channels == time_n_timepoints
