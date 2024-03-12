@@ -80,7 +80,7 @@ example_dict_metadata[("Hierarchical", 0)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 6,
+    "n_cases": 6,
     "n_panels": 2,
 }
 
@@ -122,6 +122,6 @@ example_dict_metadata[("Hierarchical", 1)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 6,
+    "n_cases": 6,
     "n_panels": 2,
 }

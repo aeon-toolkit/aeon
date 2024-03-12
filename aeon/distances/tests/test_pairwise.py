@@ -4,8 +4,15 @@ from numpy.testing import assert_almost_equal
 
 from aeon.distances import pairwise_distance as compute_pairwise_distance
 from aeon.distances._distance import DISTANCES
-from aeon.distances.tests.test_utils import _make_3d_series
-from aeon.testing.utils.data_gen import make_example_3d_numpy, make_series
+from aeon.distances.tests.test_utils import (
+    SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
+    _make_3d_series,
+)
+from aeon.testing.utils.data_gen import (
+    make_example_2d_numpy,
+    make_example_3d_numpy,
+    make_series,
+)
 
 
 def _validate_pairwise_result(
@@ -34,9 +41,6 @@ def _validate_pairwise_result(
             matrix[i, j] = distance(curr_x, curr_y)
 
     assert np.allclose(matrix, pairwise_result)
-
-
-SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw"]
 
 
 def _validate_multiple_to_multiple_result(
@@ -132,9 +136,10 @@ def _validate_single_to_multiple_result(
 def test_pairwise_distance(dist):
     """Test pairwise distance function."""
 
+    # ================== Test equal length ==================
     # Collection of univariate time series in the shape (n_instances, n_timepoints)
     _validate_pairwise_result(
-        make_series(5, 5, return_numpy=True, random_state=1),
+        make_example_2d_numpy(5, 5, random_state=1, return_y=False),
         dist["name"],
         dist["distance"],
         dist["pairwise_distance"],
@@ -157,6 +162,46 @@ def test_pairwise_distance(dist):
         dist["distance"],
         dist["pairwise_distance"],
     )
+
+    # TODO: Uncomment in PR #1287
+    # # ================== Test unequal length ==================
+    # # Collection of unequal length univariate time series in the shape
+    # # (n_instances, n_timepoints)
+    # _validate_pairwise_result(
+    #     make_example_2d_unequal_length(5, random_state=1, return_y=False),
+    #     dist["name"],
+    #     dist["distance"],
+    #     dist["pairwise_distance"],
+    # )
+    #
+    # # Collection of unequal length univariate time series in the shape
+    # # (n_instances, n_channels, n_timepoints)
+    # _validate_pairwise_result(
+    #     make_example_unequal_length(5, 1, random_state=1, return_y=False),
+    #     dist["name"],
+    #     dist["distance"],
+    #     dist["pairwise_distance"],
+    # )
+    #
+    # # Collection of unequal length multivariate time series in the shape
+    # # (n_instances, n_channels, n_timepoints)
+    # _validate_pairwise_result(
+    #     make_example_unequal_length(5, 5, random_state=1, return_y=False),
+    #     dist["name"],
+    #     dist["distance"],
+    #     dist["pairwise_distance"],
+    # )
+
+    # ============== Test single point series ==============
+    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+        # Test singe point univariate of shape (n_timepoints,)
+        # Test singe point univariate of shape (1, n_timepoints)
+        _validate_pairwise_result(
+            np.array([[10.0]]),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
 
 
 @pytest.mark.parametrize("dist", DISTANCES)

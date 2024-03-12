@@ -12,10 +12,15 @@ from aeon.distances._distance import (
     _resolve_key_from_distance,
 )
 from aeon.distances.tests.test_expected_results import _expected_distance_results
+from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
 from aeon.testing.utils.data_gen import make_series
 
 
-def _validate_distance_result(x, y, name, distance, expected_result=10):
+def _validate_distance_result(
+    x, y, name, distance, expected_result=10, recursive_call=False
+):
+    original_x = x.copy()
+    original_y = y.copy()
     if expected_result is None:
         return
 
@@ -29,19 +34,16 @@ def _validate_distance_result(x, y, name, distance, expected_result=10):
     dist_result_to_self = distance(x, x)
     assert isinstance(dist_result_to_self, float)
 
+    if original_x.shape[-1] != original_y.shape[-1] and not recursive_call:
+        _validate_distance_result(
+            original_y, original_x, name, distance, expected_result, recursive_call=True
+        )
+
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_distances(dist):
-    # Test univariate
-    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
-        _validate_distance_result(
-            np.array([10.0]),
-            np.array([15.0]),
-            dist["name"],
-            dist["distance"],
-            _expected_distance_results[dist["name"]][0],
-        )
-
+    # ================== Test equal length ==================
+    # Test univariate of shape (n_timepoints,)
     _validate_distance_result(
         make_series(10, return_numpy=True, random_state=1),
         make_series(10, return_numpy=True, random_state=2),
@@ -50,7 +52,16 @@ def test_distances(dist):
         _expected_distance_results[dist["name"]][1],
     )
 
-    # Test multivariate
+    # Test univariate of shape (1, n_timepoints)
+    _validate_distance_result(
+        make_series(10, 1, return_numpy=True, random_state=1),
+        make_series(10, 1, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        _expected_distance_results[dist["name"]][1],
+    )
+
+    # Test multivariate unequal length of shape (n_channels, n_timepoints)
     _validate_distance_result(
         make_series(10, 10, return_numpy=True, random_state=1),
         make_series(10, 10, return_numpy=True, random_state=2),
@@ -59,7 +70,8 @@ def test_distances(dist):
         _expected_distance_results[dist["name"]][2],
     )
 
-    # Test unequal length
+    # ================== Test unequal length ==================
+    # Test univariate unequal length of shape (n_timepoints,)
     _validate_distance_result(
         make_series(5, return_numpy=True, random_state=1),
         make_series(10, return_numpy=True, random_state=2),
@@ -68,6 +80,16 @@ def test_distances(dist):
         _expected_distance_results[dist["name"]][3],
     )
 
+    # Test univariate unequal length of shape (1, n_timepoints)
+    _validate_distance_result(
+        make_series(5, 1, return_numpy=True, random_state=1),
+        make_series(10, 1, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        _expected_distance_results[dist["name"]][3],
+    )
+
+    # Test multivariate unequal length of shape (n_channels, n_timepoints)
     _validate_distance_result(
         make_series(5, 10, return_numpy=True, random_state=1),
         make_series(10, 10, return_numpy=True, random_state=2),
@@ -75,6 +97,26 @@ def test_distances(dist):
         dist["distance"],
         _expected_distance_results[dist["name"]][4],
     )
+
+    # ============== Test single point series ==============
+    if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
+        # Test singe point univariate of shape (n_timepoints,)
+        _validate_distance_result(
+            np.array([10.0]),
+            np.array([15.0]),
+            dist["name"],
+            dist["distance"],
+            _expected_distance_results[dist["name"]][0],
+        )
+
+        # Test singe point univariate of shape (1, n_timepoints)
+        _validate_distance_result(
+            np.array([[10.0]]),
+            np.array([[15.0]]),
+            dist["name"],
+            dist["distance"],
+            _expected_distance_results[dist["name"]][0],
+        )
 
 
 def test_get_distance_function_names():

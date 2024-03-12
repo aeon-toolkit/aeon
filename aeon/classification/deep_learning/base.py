@@ -107,13 +107,13 @@ class BaseDeepClassifier(BaseClassifier, ABC):
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_channels, series_length)
+        X : an np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The training input samples. input_checks : boolean
             Whether to check the X parameter
 
         Returns
         -------
-        output : array of shape = [n_instances, n_classes] of probabilities
+        output : array of shape = [n_cases, n_classes] of probabilities
         """
         # Transpose to work correctly with keras
         X = X.transpose((0, 2, 1))

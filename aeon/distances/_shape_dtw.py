@@ -31,12 +31,10 @@ def _pad_ts_edges(x: np.ndarray, reach: int) -> np.ndarray:
     elif x.ndim == 3:
         n_timepoints = x.shape[2]
         n_channels = x.shape[1]
-        n_instances = x.shape[0]
+        n_cases = x.shape[0]
         new_n_timepoints = int(n_timepoints + 2 * reach)
 
-        x_padded = np.zeros(
-            shape=(n_instances, n_channels, new_n_timepoints), dtype=float
-        )
+        x_padded = np.zeros(shape=(n_cases, n_channels, new_n_timepoints), dtype=float)
 
         x_padded[:, :, reach : reach + n_timepoints] = x
         x_padded[:, :, :reach] = np.expand_dims(x[:, :, 0], axis=-1)
@@ -454,11 +452,11 @@ def shape_dtw_pairwise_distance(
     Parameters
     ----------
     X : np.ndarray
-        A set of time series, either univariate, shape ``(n_instances, n_timepoints,)``,
-        or multivariate, shape ``(n_instances, n_channels, n_timepoints)``.
+        A set of time series, either univariate, shape ``(n_cases, n_timepoints,)``,
+        or multivariate, shape ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
     window : float or None, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if ``window = 0.1`` then
@@ -483,8 +481,8 @@ def shape_dtw_pairwise_distance(
     -------
     np.ndarray
         ShapeDTW pairwise matrix between the instances of X of shape
-        ``(n_instances, n_instances)`` or between X and y of shape ``(n_instances,
-        n_instances)``.
+        ``(n_cases, n_cases)`` or between X and y of shape ``(n_cases,
+        n_cases)``.
 
     Raises
     ------
