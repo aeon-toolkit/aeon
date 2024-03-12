@@ -112,7 +112,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             collection of time series to transform.
         y : ignored argument for interface compatibility.
 
@@ -169,13 +169,13 @@ class ROCKETGPU(BaseROCKETGPU):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of time series to transform.
         y : ignored argument for interface compatibility.
 
         Returns
         -------
-        output_rocket : np.ndarray [n_instances, n_filters * 2]
+        output_rocket : np.ndarray [n_cases, n_filters * 2]
             transformed features.
         """
         import numpy as np

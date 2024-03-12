@@ -87,7 +87,7 @@ class SASTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
         y: array-like or list
             The class values for X.
@@ -126,7 +126,7 @@ class SASTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
         Return
@@ -141,12 +141,12 @@ class SASTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
         Return
         ------
-        dists : np.ndarray shape (n_time_series, n_timepoints)
+        dists : np.ndarray shape (n_cases, n_timepoints)
             Predicted class probabilities.
         """
         m = getattr(self._classifier, "predict_proba", None)

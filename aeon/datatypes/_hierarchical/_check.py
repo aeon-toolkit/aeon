@@ -33,7 +33,7 @@ metadata: dict - metadata about obj if valid, otherwise None
         "is_one_series": bool, True iff there is only one series in the hier.panel
         "is_one_panel": bool, True iff there is only one flat panel in the hier.panel
         "has_nans": bool, True iff the panel contains NaN values
-        "n_instances": int, number of instances in the hierarchical panel
+        "n_cases": int, number of instances in the hierarchical panel
         "n_panels": int, number of flat panels in the hierarchical panel
 """
 

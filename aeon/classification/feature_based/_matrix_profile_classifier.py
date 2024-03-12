@@ -102,9 +102,9 @@ class MatrixProfileClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The training labels, shape = (n_instances).
+            The training labels, shape = (n_cases).
 
         Returns
         -------
@@ -141,13 +141,13 @@ class MatrixProfileClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         y : 1D np.ndarray
-            The predicted class labels, shape = (n_instances).
+            The predicted class labels, shape = (n_cases).
         """
         return self._estimator.predict(self._transformer.transform(X))
 
@@ -157,14 +157,14 @@ class MatrixProfileClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         y : 2D np.ndarray
             Predicted probabilities using the ordering in classes_ shape = (
-            n_instances, n_classes_).
+            n_cases, n_classes_).
         """
         m = getattr(self._estimator, "predict_proba", None)
         if callable(m):

@@ -164,8 +164,8 @@ class ShapeDTW(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-        y - training data classes of shape [n_instances].
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        y - training data classes of shape [n_cases].
         """
         self._metric_params = {k.lower(): v for k, v in self._metric_params.items()}
 
@@ -238,14 +238,14 @@ class ShapeDTW(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         1D np.ndarray
             Predicted probabilities using the ordering in classes_, shape = (
-            n_instances, n_classes_).
+            n_cases, n_classes_).
         """
         # Transform the test data in the same way as the training data.
         X = self._preprocess(X)
@@ -259,13 +259,13 @@ class ShapeDTW(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         1D np.ndarray
-            The predicted class labels shape = (n_instances).
+            The predicted class labels shape = (n_cases).
         """
         # Transform the test data in the same way as the training data.
         X = self._preprocess(X)

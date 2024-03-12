@@ -182,7 +182,7 @@ class RegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         Parameters
         ----------
         X : Training data of type self.get_tag("X_inner_type")
-        y : array-like, shape = [n_instances] - the class labels
+        y : array-like, shape = [n_cases] - the class labels
 
         Returns
         -------
@@ -449,7 +449,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
         Parameters
         ----------
         X : Training data of type self.get_tag("X_inner_type")
-        y : array-like, shape = [n_instances] - the class labels
+        y : array-like, shape = [n_cases] - the class labels
 
         Returns
         -------

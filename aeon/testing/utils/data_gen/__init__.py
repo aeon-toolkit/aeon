@@ -24,7 +24,6 @@ __all__ = [
     "_make_collection",
     "_make_nested_from_array",
     "_make_regression_y",
-    "_make_tabular_data",
     "_make_fh",
     "_assert_correct_columns",
     "_assert_correct_pred_time_index",
@@ -32,6 +31,7 @@ __all__ = [
     "_convert_tsf_to_hierarchical",
     "_get_n_columns",
     "get_examples",
+    "make_example_2d_unequal_length",
 ]
 
 
@@ -42,6 +42,7 @@ from aeon.testing.utils.data_gen._collection import (
     _make_nested_from_array,
     _make_regression_y,
     make_example_2d_numpy,
+    make_example_2d_unequal_length,
     make_example_3d_numpy,
     make_example_long_table,
     make_example_multi_index_dataframe,
