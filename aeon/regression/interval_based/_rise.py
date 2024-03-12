@@ -46,7 +46,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         as the number of series_transformers.
     acf_lag : int or callable, default=100
         The maximum number of autocorrelation terms to use. If callable, the function
-        should take a 3D numpy array of shape (n_instances, n_channels, n_timepoints)
+        should take a 3D numpy array of shape (n_cases, n_channels, n_timepoints)
         and return an integer.
     acf_min_values : int, default=0
         Never use fewer than this number of terms to find a correlation unless the
@@ -77,7 +77,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of dimensions per case in the training set.
@@ -90,7 +90,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     intervals_ : list of shape (n_estimators) of TransformerMixin
         Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances_ ,total_intervals * att_subsample_size)
+    (n_cases_ ,total_intervals * att_subsample_size)
         The transformed dataset for all estimators. Only saved when
         save_transformed_data is true.
 

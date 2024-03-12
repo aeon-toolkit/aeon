@@ -263,7 +263,7 @@ def test_dunder_neg():
 
 def test_column_concatenator():
     X, y = load_basic_motions(split="train")
-    n_cases, n_channels, series_length = X.shape
+    n_cases, n_channels, n_timepoints = X.shape
     trans = ColumnConcatenator()
     Xt = trans.fit_transform(X)
 

@@ -62,13 +62,13 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
         super().__init__()
 
     def _transform(self, X, y=None):
-        n_instances = len(X)
+        n_cases = len(X)
         n_channels, _ = X[0].shape
 
         functions = self._get_functions()
 
-        Xt = np.zeros((n_instances, 7 * n_channels))
-        for i in range(n_instances):
+        Xt = np.zeros((n_cases, 7 * n_channels))
+        for i in range(n_cases):
             for n, f in enumerate(functions):
                 idx = n * n_channels
                 if isinstance(f, float):

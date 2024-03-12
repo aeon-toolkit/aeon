@@ -113,7 +113,7 @@ class AEResNetNetwork(BaseDeepNetwork):
 
         Parameters
         ----------
-        input_shape : tuple of shape = (series_length (m), n_dimensions (d))
+        input_shape : tuple of shape = (n_timepoints (m), n_dimensions (d))
             The shape of the data fed into the input layer.
 
         Returns
