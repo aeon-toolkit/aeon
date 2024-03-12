@@ -41,12 +41,12 @@ def _make_3d_series(x: np.ndarray) -> np.ndarray:
     Pairwise assumes it has been passed two sets of series, if passed a single
     series this function reshapes.
 
-    If given a 1d array the time series is reshaped to (m, 1, 1). This is so when
+    If given a 1d array the time series is reshaped to (1, 1, m). This is so when
     looped over x[i] = (1, m).
 
     If given a 2d array then the time series is reshaped to (d, 1, m). The dimensions
     are put to the start so the ts can be looped through correctly. When looped over
-    the time series x[i] = (d, m).
+    the time series x[i] = (1, m).
 
     Parameters
     ----------

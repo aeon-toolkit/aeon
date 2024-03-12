@@ -14,7 +14,7 @@ def _validate_cost_matrix_result(
     name,
     distance,
     cost_matrix,
-    recursive_call=False,
+    check_xy_permuted=False,
 ):
     original_x = x.copy()
     original_y = y.copy()
@@ -48,14 +48,14 @@ def _validate_cost_matrix_result(
         assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
 
     # If unequal length swap where x and y are to ensure it works both ways around
-    if original_x.shape[-1] != original_y.shape[-1] and not recursive_call:
+    if original_x.shape[-1] != original_y.shape[-1] and not check_xy_permuted:
         _validate_cost_matrix_result(
             original_y,
             original_x,
             name,
             distance,
             cost_matrix,
-            recursive_call=True,
+            check_xy_permuted=True,
         )
 
 
