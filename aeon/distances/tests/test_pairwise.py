@@ -84,7 +84,7 @@ def _validate_multiple_to_multiple_result(
 
     assert np.allclose(matrix, multiple_to_multiple_result)
 
-    # For unequal length tests try the same thing but reversed
+    # If unequal length swap where x and y are to ensure it works both ways around
     if x.shape[-1] != y.shape[-1] and not recursive_call:
         _validate_multiple_to_multiple_result(
             original_y,
@@ -137,7 +137,7 @@ def test_pairwise_distance(dist):
     """Test pairwise distance function."""
 
     # ================== Test equal length ==================
-    # Collection of univariate time series in the shape (n_instances, n_timepoints)
+    # Test collection of univariate time series in the shape (n_instances, n_timepoints)
     _validate_pairwise_result(
         make_example_2d_numpy(5, 5, random_state=1, return_y=False),
         dist["name"],
@@ -145,7 +145,7 @@ def test_pairwise_distance(dist):
         dist["pairwise_distance"],
     )
 
-    # Collection of univariate time series in the shape
+    # Test collection of univariate time series in the shape
     # (n_instances, n_channels, n_timepoints)
     _validate_pairwise_result(
         make_example_3d_numpy(5, 1, 5, random_state=1, return_y=False),
@@ -154,7 +154,7 @@ def test_pairwise_distance(dist):
         dist["pairwise_distance"],
     )
 
-    # Collection of multivariate time series in the shape
+    # Test collection of multivariate time series in the shape
     # (n_instances, n_channels, n_timepoints)
     _validate_pairwise_result(
         make_example_3d_numpy(5, 5, 5, random_state=1, return_y=False),
@@ -165,7 +165,7 @@ def test_pairwise_distance(dist):
 
     # TODO: Uncomment in PR #1287
     # # ================== Test unequal length ==================
-    # # Collection of unequal length univariate time series in the shape
+    # # Test collection of unequal length univariate time series in the shape
     # # (n_instances, n_timepoints)
     # _validate_pairwise_result(
     #     make_example_2d_unequal_length(5, random_state=1, return_y=False),
@@ -174,7 +174,7 @@ def test_pairwise_distance(dist):
     #     dist["pairwise_distance"],
     # )
     #
-    # # Collection of unequal length univariate time series in the shape
+    # # Test collection of unequal length univariate time series in the shape
     # # (n_instances, n_channels, n_timepoints)
     # _validate_pairwise_result(
     #     make_example_unequal_length(5, 1, random_state=1, return_y=False),
@@ -183,7 +183,7 @@ def test_pairwise_distance(dist):
     #     dist["pairwise_distance"],
     # )
     #
-    # # Collection of unequal length multivariate time series in the shape
+    # # Test collection of unequal length multivariate time series in the shape
     # # (n_instances, n_channels, n_timepoints)
     # _validate_pairwise_result(
     #     make_example_unequal_length(5, 5, random_state=1, return_y=False),

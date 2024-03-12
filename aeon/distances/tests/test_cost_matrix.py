@@ -47,7 +47,7 @@ def _validate_cost_matrix_result(
     else:
         assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
 
-    # When unequal swap where x and y are to ensure it works both ways around
+    # If unequal length swap where x and y are to ensure it works both ways around
     if original_x.shape[-1] != original_y.shape[-1] and not recursive_call:
         _validate_cost_matrix_result(
             original_y,
@@ -86,7 +86,7 @@ def test_cost_matrix(dist):
         dist["cost_matrix"],
     )
 
-    # Test multivariate unequal length of shape (n_channels, n_timepoints)
+    # Test multivariate of shape (n_channels, n_timepoints)
     _validate_cost_matrix_result(
         make_series(10, 10, return_numpy=True, random_state=1),
         make_series(10, 10, return_numpy=True, random_state=2),
