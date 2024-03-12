@@ -201,7 +201,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
         y: array-like or list
             The class values for X.
@@ -358,7 +358,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X : np.ndarray shape (n_cases, n_channels, n_timepoints)
             The input data to transform.
 
         Returns
