@@ -125,7 +125,7 @@ def test_cost_matrix(dist):
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
-        # Test singe point univariate of shape (n_timepoints,)
+        # Test singe point univariate of shape (1,)
         _validate_cost_matrix_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -134,7 +134,7 @@ def test_cost_matrix(dist):
             dist["cost_matrix"],
         )
 
-        # Test singe point univariate of shape (1, n_timepoints)
+        # Test singe point univariate of shape (1, 1)
         _validate_cost_matrix_result(
             np.array([[10.0]]),
             np.array([[15.0]]),

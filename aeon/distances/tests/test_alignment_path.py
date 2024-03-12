@@ -4,6 +4,7 @@ from numpy.testing import assert_almost_equal
 
 from aeon.distances import alignment_path as compute_alignment_path
 from aeon.distances._distance import DISTANCES
+from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
 from aeon.testing.utils.data_gen import make_series
 
 
@@ -23,9 +24,6 @@ def _validate_cost_matrix_result(
 
     distance_result = distance(x, y)
     assert_almost_equal(alignment_path_result[1], distance_result)
-
-
-COST_MATRIX_SINGLE_NOT_SUPPORTED = ["ddtw", "wddtw", "lcss"]
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
@@ -90,8 +88,11 @@ def test_cost_matrix(dist):
     )
 
     # ============== Test single point series ==============
-    if dist["name"] not in COST_MATRIX_SINGLE_NOT_SUPPORTED:
-        # Test singe point univariate of shape (n_timepoints,)
+    if (
+        dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+        and dist["name"] != "lcss"
+    ):
+        # Test singe point univariate of shape (1,)
         _validate_cost_matrix_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -100,7 +101,7 @@ def test_cost_matrix(dist):
             dist["alignment_path"],
         )
 
-        # Test singe point univariate of shape (1, n_timepoints)
+        # Test singe point univariate of shape (1, 1)
         _validate_cost_matrix_result(
             np.array([[10.0]]),
             np.array([[15.0]]),
