@@ -167,17 +167,17 @@ class Catch22(BaseCollectionTransformer):
         Parameters
         ----------
         X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+                of shape (n_cases, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
+                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
                 n_timepoints_i is length of series i
 
         Returns
         -------
-        Xt : array-like, shape = [n_instances, num_features*n_channels]
+        Xt : array-like, shape = [n_cases, num_features*n_channels]
             The catch22 features for each dimension.
         """
-        n_instances = len(X)
+        n_cases = len(X)
 
         f_idx = _verify_features(self.features, self.catch24)
 
@@ -248,7 +248,7 @@ class Catch22(BaseCollectionTransformer):
                 f_idx,
                 features,
             )
-            for i in range(n_instances)
+            for i in range(n_cases)
         )
 
         if self.replace_nans:
