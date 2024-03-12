@@ -86,7 +86,7 @@ class BaseRIST(metaclass=ABCMeta):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of dimensions per case in the training set.
@@ -118,7 +118,7 @@ class BaseRIST(metaclass=ABCMeta):
         super().__init__()
 
     def _fit(self, X, y) -> object:
-        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         rng = check_random_state(self.random_state)
 
