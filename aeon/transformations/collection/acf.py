@@ -25,7 +25,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
     ----------
     n_lags : int or callable, default=100
         The maximum number of autocorrelation terms to use. If callable, the
-        function should take a 3D numpy array of shape (n_instances, n_channels,
+        function should take a 3D numpy array of shape (n_cases, n_channels,
         n_timepoints) and return an integer.
     min_values : int, default=0
         Never use fewer than this number of terms to find a correlation unless the
@@ -63,7 +63,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
         super().__init__()
 
     def _transform(self, X, y=None):
-        n_instances, n_channels, n_timepoints = X.shape
+        n_cases, n_channels, n_timepoints = X.shape
 
         lags = self.n_lags(X) if callable(self.n_lags) else self.n_lags
         if lags > n_timepoints - self.min_values:
@@ -77,7 +77,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
                 f"({n_timepoints - 1})."
             )
 
-        Xt = np.zeros((n_instances, n_channels, lags))
+        Xt = np.zeros((n_cases, n_channels, lags))
         for n in range(n_channels):
             Xt[:, n, :] = self._acf_2d(X[:, n, :], lags)
 
@@ -86,9 +86,9 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
     @staticmethod
     @njit(cache=True, fastmath=True)
     def _acf_2d(X, max_lag):
-        n_instances, length = X.shape
+        n_cases, length = X.shape
 
-        X_t = np.zeros((n_instances, max_lag))
+        X_t = np.zeros((n_cases, max_lag))
         for i, x in enumerate(X):
             for lag in range(1, max_lag + 1):
                 lag_length = length - lag

@@ -182,11 +182,11 @@ class MUSE(BaseClassifier):
         # add first order differences in each dimension to TS
         if self.use_first_order_differences:
             X = self._add_first_order_differences(X)
-        self.n_dims = X.shape[1]
+        self.n_channels = X.shape[1]
 
-        self.highest_dim_bit = (math.ceil(math.log2(self.n_dims))) + 1
+        self.highest_dim_bit = (math.ceil(math.log2(self.n_channels))) + 1
 
-        if self.n_dims == 1:
+        if self.n_channels == 1:
             warnings.warn(
                 "MUSE Warning: Input series is univariate; MUSE is designed for"
                 + " multivariate series. It is recommended WEASEL is used instead.",
@@ -216,7 +216,7 @@ class MUSE(BaseClassifier):
                 self.feature_selection,
                 self.random_state,
             )
-            for ind in range(self.n_dims)
+            for ind in range(self.n_channels)
         )
 
         self.SFA_transformers = [[] for _ in range(X.shape[1])]
@@ -305,7 +305,7 @@ class MUSE(BaseClassifier):
             delayed(_parallel_transform_words)(
                 X, self.window_sizes, self.SFA_transformers, ind
             )
-            for ind in range(self.n_dims)
+            for ind in range(self.n_channels)
         )
 
         all_words = []

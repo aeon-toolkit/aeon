@@ -95,9 +95,9 @@ class FreshPRINCEClassifier(BaseClassifier):
         self.chunksize = chunksize
         self.random_state = random_state
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
         self.transformed_data_ = []
 
         self._rotf = None
@@ -121,9 +121,9 @@ class FreshPRINCEClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The training labels, shape = (n_instances).
+            The training labels, shape = (n_cases).
 
         Returns
         -------
@@ -151,13 +151,13 @@ class FreshPRINCEClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         y : 1D np.ndarray
-            The predicted class labels, shape = (n_instances).
+            The predicted class labels, shape = (n_cases).
         """
         return self._rotf.predict(self._tsfresh.transform(X))
 
@@ -167,14 +167,14 @@ class FreshPRINCEClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         y : 2D np.ndarray
             Predicted probabilities using the ordering in classes_ shape = (
-            n_instances, n_classes_).
+            n_cases, n_classes_).
         """
         return self._rotf.predict_proba(self._tsfresh.transform(X))
 
@@ -192,7 +192,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         return self._rotf._get_train_probs(Xt, y)
 
     def _fit_fresh_prince(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,

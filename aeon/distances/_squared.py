@@ -86,7 +86,7 @@ def squared_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         squared pairwise matrix between the instances of X.
 
     Raises
@@ -134,11 +134,11 @@ def squared_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray
 
 @njit(cache=True, fastmath=True)
 def _squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = squared_distance(X[i], X[j])
             distances[j, i] = distances[i, j]
 
@@ -149,11 +149,11 @@ def _squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
 def _squared_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = squared_distance(x[i], y[j])
     return distances

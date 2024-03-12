@@ -134,12 +134,12 @@ def minkowski_pairwise_distance(
     ----------
     X : np.ndarray
         A collection of time series instances, of shape
-        (n_instances, n_channels, n_timepoints) or
-        (n_instances, n_timepoints) or (n_timepoints,).
+        (n_cases, n_channels, n_timepoints) or
+        (n_cases, n_timepoints) or (n_timepoints,).
     y : np.ndarray, default=None
         A second collection of time series instances, of
-        shape (m_instances, m_channels, m_timepoints) or
-        (m_instances, m_timepoints) or (m_timepoints,).
+        shape (m_cases, m_channels, m_timepoints) or
+        (m_cases, m_timepoints) or (m_timepoints,).
         If None, the pairwise distances are calculated within X.
     p : float, default=2.0
         The order of the norm of the difference
@@ -207,11 +207,11 @@ def minkowski_pairwise_distance(
 def _minkowski_pairwise_distance(
     X: np.ndarray, p: float, w: np.ndarray = None
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             if w is None:
                 distances[i, j] = minkowski_distance(X[i], X[j], p)
             else:
@@ -228,12 +228,12 @@ def _minkowski_pairwise_distance(
 def _minkowski_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray = None
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             if w is None:
                 distances[i, j] = minkowski_distance(x[i], y[j], p)
             else:
