@@ -91,6 +91,20 @@ Sklearn and pandas adapters
     TabularToSeriesAdaptor
     PandasTransformAdaptor
 
+Series Transformer to Collection Transformer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+These transformers take a series transformer, which only handles single time series,
+and adapt it to handle collections of time series.
+
+.. currentmodule:: aeon.transformations.collection
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BroadcastTransformer
+
 Series-to-tabular transformers
 -------------------------------
 
