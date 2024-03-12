@@ -102,9 +102,9 @@ time series will often be accompanied by an array of target variables.
 ['1' '1' '2' '2' '1']
 ```
 
-We use the terms case or instance when referring to a single time series
+We use the terms case when referring to a single time series
 contained in a collection. The size of a collection of time series is referred to as
-`n_cases` or `n_cases`. Collections of time typically follows the shape `
+`n_cases`. Collections of time typically follows the shape `
 (n_cases, n_channels, n_timepoints)` if the series are equal length, but `n_timepoints`
 may vary between cases.
 
