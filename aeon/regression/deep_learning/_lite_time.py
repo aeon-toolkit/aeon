@@ -38,6 +38,8 @@ class LITETimeRegressor(BaseRegressor):
     activation : str or list of str, default = 'relu'
         The activation function used in each lite layer, if not a list,
         the same is used in all lite layers.
+    output_activation   : str, default = "linear",
+        the output activation for the regressor.
     batch_size : int, default = 64
         the number of samples per gradient update.
     use_mini_batch_size : bool, default = False
@@ -111,6 +113,7 @@ class LITETimeRegressor(BaseRegressor):
         kernel_size=40,
         strides=1,
         activation="relu",
+        output_activation="linear",
         file_path="./",
         save_last_model=False,
         save_best_model=False,
@@ -130,6 +133,7 @@ class LITETimeRegressor(BaseRegressor):
 
         self.strides = strides
         self.activation = activation
+        self.output_activation = output_activation
         self.n_filters = n_filters
 
         self.kernel_size = kernel_size
@@ -175,6 +179,7 @@ class LITETimeRegressor(BaseRegressor):
             rgs = IndividualLITERegressor(
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
+                output_activation=self.output_activation,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
