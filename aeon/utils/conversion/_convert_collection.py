@@ -3,12 +3,12 @@
 This contains all functions to convert supported collection data types.
 
 String identifier meanings (from aeon.utils.conversion import COLLECTIONS_DATA_TYPES) :
-numpy3D : 3D numpy array of time series shape (n_instances,  n_channels, n_timepoints)
+numpy3D : 3D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
 np-list : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
 df-list : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
-numpy2D : 2D numpy array of univariate time series shape (n_instances, n_timepoints)
-pd-wide : pd.DataFrame of univariate time series shape (n_instances, n_timepoints)
-nested_univ : pd.DataFrame shape (n_instances, n_channels) each cell a pd.Series
+numpy2D : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
+pd-wide : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
+nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
 pd-multiindex : pd.DataFrame with multi-index,
 
 For the seven supported, this gives 42 different converters.
@@ -43,7 +43,7 @@ NUMPY2D_OUTPUT_ERROR = "Cannot convert multivariate series to numpy 2D arrays."
 NUMPY2D_INPUT_ERROR = "Input numpy not of type numpy2D."
 NP_LIST_ERROR = "Input should be a list of 2D np.ndarray."
 DF_LIST_ERROR = (
-    "Input should be 2-dimensional np.ndarray with shape (n_instances, n_timepoints)."
+    "Input should be 2-dimensional np.ndarray with shape (n_cases, n_timepoints)."
 )
 
 
@@ -183,9 +183,9 @@ def _from_np_list_to_df_list(X):
     """Convert from a list of 2D numpy to list of dataframes."""
     if not isinstance(X, list) or not isinstance(X[0], np.ndarray) or X[0].ndim != 2:
         raise TypeError(NP_LIST_ERROR)
-    n_instances = len(X)
+    n_cases = len(X)
     df_list = []
-    for i in range(n_instances):
+    for i in range(n_cases):
         df_list.append(pd.DataFrame(np.transpose(X[i])))
     return df_list
 
@@ -194,10 +194,10 @@ def _from_np_list_to_nested_univ(X, store=None):
     """Convert from a list of 2D numpy to nested pd.DataFrame."""
     if not isinstance(X, list) or not isinstance(X[0], np.ndarray) or X[0].ndim != 2:
         raise TypeError(NP_LIST_ERROR)
-    n_instances = len(X)
+    n_cases = len(X)
     n_channels = X[0].shape[0]
-    df = pd.DataFrame(index=range(n_instances), columns=range(n_channels))
-    for i in range(n_instances):
+    df = pd.DataFrame(index=range(n_cases), columns=range(n_channels))
+    for i in range(n_cases):
         for j in range(n_channels):
             data = pd.Series(X[i][j])
             df.iloc[i][j] = data
@@ -224,8 +224,8 @@ def _from_np_list_to_pd_multiindex(X):
 
 
 def _from_df_list_to_np_list(X):
-    n_instances = len(X)
-    list = [np.transpose(np.array(X[i])) for i in range(n_instances)]
+    n_cases = len(X)
+    list = [np.transpose(np.array(X[i])) for i in range(n_cases)]
     return list
 
 
