@@ -58,7 +58,7 @@ dependencies = [
 [project.optional-dependencies]
 all_extras = [
     "cloudpickle",
-    "dask[dataframe]<2024.3.0",
+    "dask<2024.3.0; python_version < '3.12'",
     "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
     "filterpy>=1.4.5",
     "gluonts>=0.12.4",
@@ -83,6 +83,11 @@ all_extras = [
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
+
+    # for some reason, a heirarchical dask test fails on some Python versions with the
+    # later versions of pyarrow
+    "pyarrow<12; python_version < '3.12'",
+    "pyarrow-hotfix; python_version < '3.12'",
 ]
 dl = [
     "keras-self-attention",
