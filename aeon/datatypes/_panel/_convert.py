@@ -1093,7 +1093,7 @@ _extend_conversions("numpy2D", "numpy3D", convert_dict, mtype_universe=TYPE_LIST
 
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import (
+    from aeon.utils.conversion.dask_converters import (
         convert_dask_to_pandas,
         convert_pandas_to_dask,
     )
