@@ -36,10 +36,9 @@ def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     """
     _check_soft_dependencies("gluonts", severity="error")
 
+    # New dependency from Gluon-ts
     import numpy as np
     import pandas as pd
-
-    # New dependency from Gluon-ts
     from gluonts.dataset.common import ListDataset
 
     from aeon.datatypes import convert_to
