@@ -31,10 +31,10 @@ def _get_input_sizes(X, q):
         Size of the search space for similarity search for each sample in X
 
     """
-    n_cases, n_channels, n_timepoints = X.shape
+    n_channels, n_timepoints = X.shape
     query_length = q.shape[-1]
     profile_size = n_timepoints - query_length + 1
-    return (n_cases, n_channels, n_timepoints, query_length, profile_size)
+    return (n_channels, n_timepoints, query_length, profile_size)
 
 
 def fft_sliding_dot_product(X, q):

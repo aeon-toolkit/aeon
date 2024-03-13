@@ -21,23 +21,23 @@ def squared_distance_profile(X, q, mask):
 
     Parameters
     ----------
-    X: array shape (n_cases, n_channels, n_timepoints)
-        The input samples.
+    X: array shape (n_channels, n_timepoints)
+        The input time series.
     q : np.ndarray shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_cases, n_timepoints - query_length + 1)
+    mask : array, shape (n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
 
     Returns
     -------
     distance_profile : np.ndarray
-        shape (n_cases, n_channels, n_timepoints - query_length + 1)
+        shape (n_channels, n_timepoints - query_length + 1)
         The distance profile between q and the input time series X independently
         for each channel.
 
     """
-    QX = np.asarray([fft_sliding_dot_product(X[i], q) for i in range(len(X))])
+    QX = fft_sliding_dot_product(X, q)
     return _squared_distance_profile(QX, X, q, mask)
 
 
@@ -59,16 +59,16 @@ def normalized_squared_distance_profile(
 
     Parameters
     ----------
-    X : array, shape (n_cases, n_channels, n_timepoints)
-        The input samples.
+    X : array, shape (n_channels, n_timepoints)
+        The input time series.
     q : array, shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_cases, n_timepoints - query_length + 1)
+    mask : array, shape (n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
-    X_means : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_means : array, shape (n_channels, n_timepoints - query_length + 1)
         Means of each subsequences of X of size query_length
-    X_stds : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_stds : array, shape (n_channels, n_timepoints - query_length + 1)
         Stds of each subsequences of X of size query_length
     q_means : array, shape (n_channels)
         Means of the query q
@@ -78,25 +78,21 @@ def normalized_squared_distance_profile(
     Returns
     -------
     distance_profile : np.ndarray
-        shape (n_cases, n_channels, n_timepoints - query_length + 1).
+        shape (n_channels, n_timepoints - query_length + 1).
         The distance profile between q and the input time series X independently
         for each channel.
 
     """
-    query_length = X.shape[2] - X_means.shape[2] + 1
-    QX = np.asarray([fft_sliding_dot_product(X[i], q) for i in range(len(X))])
+    QX = fft_sliding_dot_product(X, q)
     return _normalized_squared_distance_profile(
-        QX, mask, X_means, X_stds, q_means, q_stds, query_length
+        QX, mask, X_means, X_stds, q_means, q_stds, q.shape[1]
     )
 
 
 @njit(cache=True, fastmath=True)
 def _squared_distance_profile(QX, X, q, mask):
     distance_profile = np.full(QX.shape, np.inf)
-    for i_instance in range(len(QX)):
-        distance_profile[i_instance] = _squared_dist_profile_one_series(
-            QX[i_instance], X[i_instance], q
-        )
+    distance_profile[:, mask] = _squared_dist_profile_one_series(QX, X, q)[:, mask]
     return distance_profile
 
 
@@ -125,29 +121,15 @@ def _normalized_squared_distance_profile(
     QX, mask, X_means, X_stds, q_means, q_stds, query_length
 ):
     distance_profile = np.full(QX.shape, np.inf)
-
-    for i_instance in range(len(QX)):
-        distance_profile[i_instance][:, mask[i_instance]] = (
-            _normalized_eucldiean_dist_profile_one_series(
-                QX[i_instance],
-                X_means[i_instance],
-                X_stds[i_instance],
-                q_means,
-                q_stds,
-                query_length,
-            )[:, mask[i_instance]]
-        )
+    distance_profile[:, mask] = _normalized_eucldiean_dist_profile_one_series(
+        QX, X_means, X_stds, q_means, q_stds, query_length
+    )[:, mask]
     return distance_profile
 
 
 @njit(cache=True, fastmath=True)
 def _normalized_eucldiean_dist_profile_one_series(
-    QT,
-    T_means,
-    T_stds,
-    Q_means,
-    Q_stds,
-    query_length,
+    QT, T_means, T_stds, Q_means, Q_stds, query_length
 ):
     # Compute znormalized squared euclidean distance
     n_channels, profile_length = QT.shape
