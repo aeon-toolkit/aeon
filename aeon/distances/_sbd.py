@@ -121,11 +121,11 @@ def sbd_pairwise_distance(
     Parameters
     ----------
     x : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the SBD is calculated between pairwise instances of x.
     standardize : bool, default=True
         Apply z-score to both input time series for standardization before
@@ -133,7 +133,7 @@ def sbd_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         SBD matrix between the instances of x (and y).
 
     Raises
@@ -188,11 +188,11 @@ def sbd_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _sbd_pairwise_distance_single(x: np.ndarray, standardize: bool) -> np.ndarray:
-    n_instances = x.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = x.shape[0]
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = sbd_distance(x[i], x[j], standardize)
             distances[j, i] = distances[i, j]
 
@@ -203,12 +203,12 @@ def _sbd_pairwise_distance_single(x: np.ndarray, standardize: bool) -> np.ndarra
 def _sbd_pairwise_distance(
     x: np.ndarray, y: np.ndarray, standardize: bool
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = sbd_distance(x[i], y[j], standardize)
     return distances
 

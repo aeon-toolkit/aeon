@@ -275,13 +275,13 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
 
         Parameters
         ----------
-        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+        X : 3D numpy array of shape (n_cases, n_channels, n_features)
             input time series collection.
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+        X : 3D numpy array of shape (n_cases, n_channels, n_features)
             input time series collection.
             transformed version of X
         """

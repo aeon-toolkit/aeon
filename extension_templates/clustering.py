@@ -126,7 +126,7 @@ class MyClusterer(BaseClusterer):
 
         Returns
         -------
-        np.ndarray (1d array of shape (n_instances,))
+        np.ndarray (1d array of shape (n_cases,))
             Index of the cluster each time series in X belongs to.
         """
         # implement here

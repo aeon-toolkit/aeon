@@ -62,7 +62,6 @@ aeon/transformations/time_since.py @KishManani
 
 aeon/similarity_search/ @baraline
 
-aeon/utils/mlflow_aeon.py @benjaminbluhm
 aeon/utils/numba/ @baraline
 
 docs/get_involved/code_of_conduct.rst @aeon/aeon-code-of-conduct-committee
