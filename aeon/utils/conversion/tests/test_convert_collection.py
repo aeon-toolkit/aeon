@@ -192,7 +192,7 @@ NUMPY2D = [
 def test_numpy2D_error(function):
     """Test numpy flat converters only work with 2D numpy."""
     X = np.random.random(size=(10, 2, 20))
-    with pytest.raises(TypeError, match="Error: Input numpy not of type numpy2D"):
+    with pytest.raises(TypeError, match="Input numpy not of type numpy2D"):
         function(X)
 
 
@@ -230,7 +230,7 @@ def test_from_nested():
     }
     X = pd.DataFrame(data)
     with pytest.raises(
-        TypeError, match="Cannot convert unequal length series to " "numpy2D"
+        TypeError, match="Cannot convert unequal length series to numpy2D"
     ):
         _from_nested_univ_to_numpy2d(X)
     X, _ = make_example_nested_dataframe(n_cases=10, n_channels=1, n_timepoints=20)
@@ -238,6 +238,6 @@ def test_from_nested():
     assert result.shape == (10, 20)
     X, _ = make_example_nested_dataframe(n_cases=10, n_channels=2, n_timepoints=20)
     with pytest.raises(
-        TypeError, match="Cannot convert multivariate nested into " "numpy2D"
+        TypeError, match="Cannot convert multivariate nested into numpy2D"
     ):
         _from_nested_univ_to_numpy2d(X)

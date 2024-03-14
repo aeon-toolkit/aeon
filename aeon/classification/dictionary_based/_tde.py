@@ -110,7 +110,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         The classes labels.
     n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -200,7 +200,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         self.n_jobs = n_jobs
 
         self.n_cases_ = 0
-        self.n_dims_ = 0
+        self.n_channels_ = 0
         self.n_timepoints_ = 0
         self.n_estimators_ = 0
         self.estimators_ = []
@@ -259,7 +259,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 stacklevel=2,
             )
 
-        self.n_cases_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self.estimators_ = []
         self.weights_ = []
@@ -302,7 +302,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         rng = check_random_state(self.random_state)
 
         if self.bigrams is None:
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 use_bigrams = False
             else:
                 use_bigrams = True
@@ -654,7 +654,7 @@ class IndividualTDE(BaseClassifier):
         The classes labels.
     n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -726,7 +726,7 @@ class IndividualTDE(BaseClassifier):
         self.random_state = random_state
 
         self.n_cases_ = 0
-        self.n_dims_ = 0
+        self.n_channels_ = 0
         self.n_timepoints_ = 0
 
         # we will disable typed_dict if numba is disabled
@@ -767,7 +767,7 @@ class IndividualTDE(BaseClassifier):
                     Dict.empty(
                         key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
                     )
-                    if self.levels > 1 or self.n_dims_ > 1
+                    if self.levels > 1 or self.n_channels_ > 1
                     else Dict.empty(key_type=types.int64, value_type=types.uint32)
                 )
                 for key, val in pdict.items():
@@ -795,11 +795,11 @@ class IndividualTDE(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_cases_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._class_vals = y
 
         # select dimensions using accuracy estimate if multivariate
-        if self.n_dims_ > 1:
+        if self.n_channels_ > 1:
             self._dims, self._transformers = self._select_dims(X, y)
 
             words = (
@@ -869,26 +869,26 @@ class IndividualTDE(BaseClassifier):
         1D np.ndarray
             The predicted class labels shape = (n_cases).
         """
-        num_cases = X.shape[0]
+        n_cases = X.shape[0]
 
-        if self.n_dims_ > 1:
+        if self.n_channels_ > 1:
             words = (
                 [
                     Dict.empty(
                         key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
                     )
-                    for _ in range(num_cases)
+                    for _ in range(n_cases)
                 ]
                 if self._typed_dict
-                else [defaultdict(int) for _ in range(num_cases)]
+                else [defaultdict(int) for _ in range(n_cases)]
             )
 
             for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(num_cases, 1, self.n_timepoints_)
+                X_dim = X[:, dim, :].reshape(n_cases, 1, self.n_timepoints_)
                 dim_words = self._transformers[i].transform(X_dim)
                 dim_words = dim_words[0]
 
-                for n in range(num_cases):
+                for n in range(n_cases):
                     if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
@@ -931,12 +931,12 @@ class IndividualTDE(BaseClassifier):
         return nn
 
     def _select_dims(self, X, y):
-        self._highest_dim_bit = (math.ceil(math.log2(self.n_dims_))) + 1
+        self._highest_dim_bit = (math.ceil(math.log2(self.n_channels_))) + 1
         accs = []
         transformers = []
 
         # select dimensions based on reduced bag size accuracy
-        for i in range(self.n_dims_):
+        for i in range(self.n_channels_):
             self._dims.append(i)
             transformers.append(
                 SFA(
@@ -978,7 +978,7 @@ class IndividualTDE(BaseClassifier):
 
         dims = []
         fin_transformers = []
-        for i in range(self.n_dims_):
+        for i in range(self.n_channels_):
             if accs[i] >= max_acc * self.dim_threshold:
                 dims.append(i)
                 fin_transformers.append(transformers[i])

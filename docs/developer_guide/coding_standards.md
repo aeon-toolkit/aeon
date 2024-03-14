@@ -39,8 +39,8 @@ Additional configurations for some hooks can be found in the [pyproject.toml](ht
 
 - Check out our [glossary](glossary.md) for
 preferred terminology
-- Use underscores to separate words in non-class names i.e.`n_instances` rather than
-`ninstances`.
+- Use underscores to separate words in non-class names i.e.`n_cases` rather than
+`n_cases`.
 - Exceptionally, capital letters `X`, `Y`, `Z`, are permissible as variable names or
 part of variable names such as `X_train` if referring to data sets.
 - Use absolute imports for references inside `aeon`.

@@ -29,8 +29,8 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 COLLECTION_TYPES = ["pd-multiindex", "nested_univ", "numpy3D"]
 
 
-def _get_y(input_type, n_instances):
-    y, _ = make_example_3d_numpy(n_cases=n_instances, random_state=42)
+def _get_y(input_type, n_cases):
+    y, _ = make_example_3d_numpy(n_cases=n_cases, random_state=42)
     y = convert_collection(y, input_type)
     return y
 
@@ -42,8 +42,8 @@ def test_broadcasting_series_to_collection(input_type):
     This test passes Panel data to the ARIMA forecaster which internally has an
     implementation for Series only, so the BaseForecaster has to vectorize.
     """
-    n_instances = 10
-    y = _get_y(input_type, n_instances)
+    n_cases = 10
+    y = _get_y(input_type, n_cases)
     f = MockForecaster()
     y_pred = f.fit(y).predict([1, 2, 3])
     pred_type = get_type(y_pred)
@@ -59,10 +59,10 @@ def test_broadcasting_series_to_collection(input_type):
     y_pred_instances = get_n_cases(y)
     msg = (
         f"broadcasting test produces wrong number of instances "
-        f"expected {n_instances}, found {y_pred_instances}"
+        f"expected {n_cases}, found {y_pred_instances}"
     )
 
-    assert y_pred_instances == n_instances, msg
+    assert y_pred_instances == n_cases, msg
 
     y_pred_equal_length = is_equal_length(y_pred)
     msg = (
@@ -119,8 +119,8 @@ PROBA_DF_METHODS = ["predict_interval", "predict_quantiles", "predict_var"]
 @pytest.mark.parametrize("input_type", COLLECTION_TYPES)
 def test_broadcasting_series_to_collection_proba(method, input_type):
     """Test that forecaster broadcasting works for collection data, predict_proba."""
-    n_instances = 10
-    y = _get_y(input_type, n_instances)
+    n_cases = 10
+    y = _get_y(input_type, n_cases)
     f = MockForecaster()
     est = f.fit(y)
     y_pred = getattr(est, method)([1, 2, 3])

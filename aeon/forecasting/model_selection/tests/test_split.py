@@ -525,7 +525,7 @@ def test_split_loc():
 def test_split_series_hier():
     """Tests that split works with hierarchical data."""
     hierarchy_levels = (2, 4)
-    n_instances = np.prod(hierarchy_levels)
+    n_cases = np.prod(hierarchy_levels)
     n = 12
     y = _make_hierarchical(
         hierarchy_levels=hierarchy_levels, max_timepoints=n, min_timepoints=n
@@ -536,18 +536,18 @@ def test_split_series_hier():
         assert isinstance(train, np.ndarray)
         assert train.ndim == 1
         assert train.dtype in [np.int64, np.int32]
-        assert len(train) == 10 * n_instances
+        assert len(train) == 10 * n_cases
         assert isinstance(test, np.ndarray)
         assert test.ndim == 1
         assert test.dtype in [np.int64, np.int32]
-        assert len(test) == 1 * n_instances
+        assert len(test) == 1 * n_cases
 
     for train, test in cv.split_loc(y):
         assert isinstance(train, pd.MultiIndex)
-        assert len(train) == 10 * n_instances
+        assert len(train) == 10 * n_cases
         assert train.isin(y.index).all()
         assert isinstance(test, pd.MultiIndex)
-        assert len(test) == 1 * n_instances
+        assert len(test) == 1 * n_cases
         assert test.isin(y.index).all()
 
     def inst_index(y):
@@ -555,8 +555,8 @@ def test_split_series_hier():
 
     for train, test in cv.split_series(y):
         assert isinstance(train, pd.DataFrame)
-        assert len(train) == 10 * n_instances
+        assert len(train) == 10 * n_cases
         assert isinstance(test, pd.DataFrame)
-        assert len(test) == 1 * n_instances
+        assert len(test) == 1 * n_cases
         assert inst_index(train) == inst_index(y)
         assert inst_index(test) == inst_index(y)

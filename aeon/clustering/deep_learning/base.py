@@ -100,7 +100,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
 
         Parameters
         ----------
-        X : np.ndarray, shape=(n_instances, n_timepoints, n_channels)
+        X : np.ndarray, shape=(n_cases, n_timepoints, n_channels)
             The input time series.
         """
         if self.clustering_params is None:

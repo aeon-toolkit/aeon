@@ -100,7 +100,7 @@ class TimeSeriesKMeans(BaseClusterer):
         Array of shape (n_clusters, n_channels, n_timepoints))
         Time series that represent each of the cluster centers.
     labels_ : 1d np.ndarray
-        1d array of shape (n_instance,)
+        1d array of shape (n_case,)
         Labels that is the index each time series belongs to.
     inertia_ : float
         Sum of distances of samples to their closest cluster center, weighted by
@@ -322,7 +322,7 @@ class TimeSeriesKMeans(BaseClusterer):
         if self.n_clusters > X.shape[0]:
             raise ValueError(
                 f"n_clusters ({self.n_clusters}) cannot be larger than "
-                f"n_instances ({X.shape[0]})"
+                f"n_cases ({X.shape[0]})"
             )
 
     def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:

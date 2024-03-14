@@ -81,7 +81,7 @@ example_dict[("nested_univ", "Panel", 0)] = X
 example_dict_lossy[("nested_univ", "Panel", 0)] = False
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import convert_pandas_to_dask
+    from aeon.utils.conversion.dask_converters import convert_pandas_to_dask
 
     df_dask = convert_pandas_to_dask(
         example_dict[("pd-multiindex", "Panel", 0)], npartitions=1
@@ -99,7 +99,7 @@ example_dict_metadata[("Panel", 0)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 3,
+    "n_cases": 3,
 }
 
 ###
@@ -151,7 +151,7 @@ example_dict[("nested_univ", "Panel", 1)] = X
 example_dict_lossy[("nested_univ", "Panel", 1)] = False
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import convert_pandas_to_dask
+    from aeon.utils.conversion.dask_converters import convert_pandas_to_dask
 
     df_dask = convert_pandas_to_dask(
         example_dict[("pd-multiindex", "Panel", 1)], npartitions=1
@@ -170,7 +170,7 @@ example_dict_metadata[("Panel", 1)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 3,
+    "n_cases": 3,
 }
 
 ###
@@ -216,7 +216,7 @@ example_dict[("nested_univ", "Panel", 2)] = X
 example_dict_lossy[("nested_univ", "Panel", 2)] = False
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import convert_pandas_to_dask
+    from aeon.utils.conversion.dask_converters import convert_pandas_to_dask
 
     df_dask = convert_pandas_to_dask(
         example_dict[("pd-multiindex", "Panel", 2)], npartitions=1
@@ -234,5 +234,5 @@ example_dict_metadata[("Panel", 2)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 1,
+    "n_cases": 1,
 }
