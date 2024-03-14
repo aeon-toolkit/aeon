@@ -110,7 +110,7 @@ def test_sklearn_regressor_pipeline(transformers):
 def test_unequal_tag_inference():
     """Test that RegressorPipeline infers unequal length tag correctly."""
     X, y = make_example_unequal_length(
-        n_cases=10, min_series_length=8, max_series_length=12, regression_target=True
+        n_cases=10, min_n_timepoints=8, max_n_timepoints=12, regression_target=True
     )
 
     t1 = SevenNumberSummaryTransformer()
