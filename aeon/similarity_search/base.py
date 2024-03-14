@@ -3,13 +3,12 @@
 __maintainer__ = []
 
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 from typing import final
 
 import numpy as np
 from numba.core.registry import CPUDispatcher
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseSeriesEstimator
 from aeon.distances import get_distance_function
 from aeon.similarity_search.distance_profiles import (
     naive_distance_profile,
@@ -26,9 +25,9 @@ from aeon.similarity_search.distance_profiles.squared_distance_profile import (
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
-class BaseSimiliaritySearch(BaseEstimator, ABC):
+class BaseSeriesSimilaritySearch(BaseSeriesEstimator, ABC):
     """
-    BaseSimilaritySearch.
+    BaseSeriesSimilaritySearch.
 
     Parameters
     ----------
@@ -44,13 +43,19 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
     store_distance_profile : bool, default=False.
         Whether to store the computed distance profile in the attribute
         "_distance_profile" after calling the predict method.
-    speed_up : str, default=None
+    speed_up : str, default="fastest"
         Which speed up technique to use with for the selected distance
-        function.
+        function. By default, use the fastest option for the selected distance.
+    axis : int, default = 1
+        Axis along which to segment if passed a multivariate series (2D input). If axis
+        is 0, it is assumed each column is a time series and each row is a
+        timepoint. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
+        ``axis == 1`` indicates the time series are in rows, i.e. the shape of the data
+        is ``(n_channels, n_timepoints)``.
 
     Attributes
     ----------
-    _X : array, shape (n_cases, n_channels, n_timepoints)
+    X_ : array, shape (n_cases, n_channels, n_timepoints)
         The input time series stored during the fit method.
     distance_profile_function : function
         The function used to compute the distance profile affected
@@ -75,17 +80,18 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         distance_args=None,
         normalize=False,
         store_distance_profile=False,
-        speed_up=None,
+        speed_up="fastest",
+        axis=1,
     ):
         self.distance = distance
         self.distance_args = distance_args
         self.normalize = normalize
         self.store_distance_profile = store_distance_profile
         self.speed_up = speed_up
-        super().__init__()
+        super().__init__(axis=axis)
 
     @final
-    def fit(self, X, y=None):
+    def fit(self, X, y=None, axis=None):
         """
         Fit method: store the input data and get the distance profile function.
 
@@ -95,38 +101,51 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             Input array to used as database for the similarity search
         y : optional
             Not used.
-
-        Raises
-        ------
-        TypeError
-            If the input X array is not 3D raise an error.
+        axis : int, default = None
+            Axis along which to segment if passed a multivariate X series (2D input).
+            If axis is 0, it is assumed each column is a time series and each row is
+            a time point. i.e. the shape of the data is ``(n_timepoints,
+            n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
 
         Returns
         -------
         self
 
         """
-        if not isinstance(X, np.ndarray) or X.ndim != 3:
-            raise TypeError(
-                "Error, only supports 3D numpy of shape "
-                "(n_cases, n_channels, n_timepoints)."
-            )
+        # reset estimator at the start of fit
+        self.reset()
+        if axis is None:  # If none given, assume it is correct.
+            axis = self.axis
+        X = self._preprocess_series(X, axis=axis)
+        self.n_channels_ = X.shape[0]
+        self.n_timepoints_ = X.shape[1]
+        self.X_ = X
+
+        if y is not None:
+            self._check_y(y)
         # Get distance function
         self.distance_profile_function = self._get_distance_profile_function()
-
-        self._X = X.astype(float)
-        self._fit(X, y)
+        self._is_fitted = True
+        self._fit(X, y=y)
         return self
 
     @final
     def predict(
-        self, q, q_index=None, exclusion_factor=2.0, apply_exclusion_to_result=False
+        self,
+        q,
+        q_index=None,
+        exclusion_factor=2.0,
+        apply_exclusion_to_result=False,
+        axis=None,
     ):
         """
         Predict method: Check the shape of q and call _predict to perform the search.
 
         If the distance profile function is normalized, it stores the mean and stds
-        from q and _X.
+        from q and X_.
 
         Parameters
         ----------
@@ -155,13 +174,14 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             best two matches, there is a high chance that if the best match is located
             at :math:`id_timestamp`, the second best match will be located at
             :math:`id_timestamp` +/- 1, as they both share all their values except one.
-
-        Raises
-        ------
-        TypeError
-            If the input q array is not 2D raise an error.
-        ValueError
-            If the length of the query is greater
+        axis : int, default = None
+            Axis along which to segment if passed a multivariate X series (2D input).
+            If axis is 0, it is assumed each column is a time series and each row is
+            a time point. i.e. the shape of the data is ``(n_timepoints,
+            n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
 
         Returns
         -------
@@ -173,21 +193,27 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             id, the second is the timestamp id.
 
         """
+        self.check_is_fitted()
+
+        if axis is None:
+            axis = self.axis
+        q = self._preprocess_series(q, axis=axis)
+
         query_dim, query_length = self._check_query_format(q)
-        n_cases, _, n_timepoints = self._X.shape
         mask = self._apply_q_index_mask(
             q_index, query_dim, query_length, exclusion_factor=exclusion_factor
         )
 
         if self.normalize:
-            self._q_means = np.mean(q, axis=-1)
-            self._q_stds = np.std(q, axis=-1)
+            self.q_means_ = np.mean(q, axis=self.axis)
+            self.q_stds_ = np.std(q, axis=self.axis)
             self._store_mean_std_from_inputs(query_length)
 
         if apply_exclusion_to_result:
             exclusion_size = query_length // exclusion_factor
         else:
             exclusion_size = None
+
         return self._predict(
             self._call_distance_profile(q, mask),
             exclusion_size=exclusion_size,
@@ -201,13 +227,12 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Parameters
         ----------
-        q_index : Iterable
-            An Interable (tuple, list, array) of length two used to specify the index of
-            the query q if it was extracted from the input data X given during the fit
-            method. Given the tuple (id_sample, id_timestamp), the similarity search
-            will define an exclusion zone around the q_index in order to avoid matching
-            q with itself. If None, it is considered that the query is not extracted
-            from X.
+        q_index : int
+            an integer used to specify the index of the query q if it was extracted
+            from the input data X given during the fit method. Given the tuple
+            id_timestamp, the similarity search will define an exclusion zone around
+            the q_index in order to avoid matching q with itself. If None, it is
+            considered that the query is not extracted from X.
         query_dim : int
             Number of channels of the queries.
         query_length : int
@@ -228,26 +253,19 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Returns
         -------
-        mask : array, shape=(n_cases, n_timepoints - query_length + 1)
+        mask : array, shape=(n_timepoints - query_length + 1)
             Boolean array which indicates the candidates that should be evaluated in the
             similarity search.
 
         """
-        n_cases, _, n_timepoints = self._X.shape
-        mask = np.ones((n_cases, n_timepoints - query_length + 1), dtype=bool)
+        mask = np.ones((self.n_timepoints_ - query_length + 1), dtype=bool)
 
         if q_index is not None:
-            if isinstance(q_index, Iterable):
-                if len(q_index) != 2:
-                    raise ValueError(
-                        "The q_index should contain an interable of size 2 such as "
-                        "(id_sample, id_timestamp), but got an iterable of "
-                        "size {}".format(len(q_index))
-                    )
-            else:
+            if not isinstance(q_index, int):
                 raise TypeError(
-                    "If not None, the q_index parameter should be an iterable, here "
-                    "q_index is of type {}".format(type(q_index))
+                    "If not None, the q_index parameter should be an integer "
+                    "representing the index of the query in X, but q_index is of "
+                    f"type {type(q_index)}"
                 )
 
             if exclusion_factor <= 0:
@@ -256,17 +274,17 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
                     "{}".format(len(exclusion_factor))
                 )
 
-            i_instance, i_timestamp = q_index
-            profile_length = n_timepoints - query_length + 1
-            exclusion_LB = max(0, int(i_timestamp - query_length // exclusion_factor))
+            profile_length = self.n_timepoints_ - query_length + 1
+            exclusion_LB = max(0, int(q_index - query_length // exclusion_factor))
             exclusion_UB = min(
-                profile_length, int(i_timestamp + query_length // exclusion_factor)
+                profile_length, int(q_index + query_length // exclusion_factor)
             )
-            mask[i_instance, exclusion_LB:exclusion_UB] = False
+            mask[exclusion_LB:exclusion_UB] = False
 
         return mask
 
     def _check_query_format(self, q):
+        # Should not be needed with convert
         if not isinstance(q, np.ndarray) or q.ndim != 2:
             raise TypeError(
                 "Error, only supports 2D numpy for now. If the query q is univariate "
@@ -274,19 +292,19 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
             )
 
         query_dim, query_length = q.shape
-        if query_length >= self._X.shape[-1]:
+        if query_length >= self.n_timepoints_:
             raise ValueError(
                 "The length of the query should be inferior or equal to the length of "
                 "data (X) provided during fit, but got {} for q and {} for X".format(
-                    query_length, self._X.shape[-1]
+                    query_length, self.n_timepoints_
                 )
             )
 
-        if query_dim != self._X.shape[1]:
+        if query_dim != self.n_channels_:
             raise ValueError(
                 "The number of feature should be the same for the query q and the data "
                 "(X) provided during fit, but got {} for q and {} for X".format(
-                    query_dim, self._X.shape[1]
+                    query_dim, self.n_channels_
                 )
             )
         return query_dim, query_length
@@ -351,19 +369,10 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         None.
 
         """
-        n_cases, n_channels, n_timepoints = self._X.shape
-        search_space_size = n_timepoints - query_length + 1
-
-        means = np.zeros((n_cases, n_channels, search_space_size))
-        stds = np.zeros((n_cases, n_channels, search_space_size))
-
-        for i in range(n_cases):
-            _mean, _std = sliding_mean_std_one_series(self._X[i], query_length, 1)
-            stds[i] = _std
-            means[i] = _mean
-
-        self._X_means = means
-        self._X_stds = stds
+        # (n_channels, n_timepoints - query_length + 1)
+        means, stds = sliding_mean_std_one_series(self.X_, query_length, 1)
+        self.X_means_ = means
+        self.X_stds_ = stds
 
     def _call_distance_profile(self, q, mask):
         """
@@ -386,13 +395,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         if self.speed_up is None:
             if self.normalize:
                 distance_profile = self.distance_profile_function(
-                    self._X,
+                    self.X_,
                     q,
                     mask,
-                    self._X_means,
-                    self._X_stds,
-                    self._q_means,
-                    self._q_stds,
+                    self.X_means_,
+                    self.X_stds_,
+                    self.q_means_,
+                    self.q_stds_,
                     self.distance_function_,
                     distance_args=self.distance_args,
                 )
@@ -407,22 +416,22 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         else:
             if self.normalize:
                 distance_profile = self.distance_profile_function(
-                    self._X,
+                    self.X_,
                     q,
                     mask,
-                    self._X_means,
-                    self._X_stds,
-                    self._q_means,
-                    self._q_stds,
+                    self.X_means_,
+                    self.X_stds_,
+                    self.q_means_,
+                    self.q_stds_,
                 )
             else:
-                distance_profile = self.distance_profile_function(self._X, q, mask)
+                distance_profile = self.distance_profile_function(self.X_, q, mask)
         # For now, deal with the multidimensional case as "dependent", so we sum.
-        distance_profile = distance_profile.sum(axis=1)
+        distance_profile = distance_profile.sum(axis=0)
         return distance_profile
 
     @abstractmethod
-    def _fit(self, X, y): ...
+    def _fit(self, X, y=None): ...
 
     @abstractmethod
     def _predict(self, distance_profile, exclusion_size=None): ...
@@ -430,12 +439,24 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
 _SIM_SEARCH_SPEED_UP_DICT = {
     "euclidean": {
-        True: {"ConvolveDotProduct": normalized_euclidean_distance_profile},
-        False: {"ConvolveDotProduct": euclidean_distance_profile},
+        True: {
+            "Mueen": normalized_euclidean_distance_profile,
+            "fastest": normalized_euclidean_distance_profile,
+        },
+        False: {
+            "Mueen": euclidean_distance_profile,
+            "fastest": euclidean_distance_profile,
+        },
     },
     "squared": {
-        True: {"ConvolveDotProduct": normalized_squared_distance_profile},
-        False: {"ConvolveDotProduct": squared_distance_profile},
+        True: {
+            "Mueen": normalized_squared_distance_profile,
+            "fastest": euclidean_distance_profile,
+        },
+        False: {
+            "Mueen": squared_distance_profile,
+            "fastest": euclidean_distance_profile,
+        },
     },
 }
 

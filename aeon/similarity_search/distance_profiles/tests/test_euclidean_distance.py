@@ -22,12 +22,10 @@ DATATYPES = ["float64", "int64"]
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_euclidean_distance(dtype):
-    X = np.asarray(
-        [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
-    )
+    X = np.asarray([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype)
     q = np.asarray([[3, 4, 5]], dtype=dtype)
 
-    mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
+    mask = np.ones((X.shape[1] - q.shape[1] + 1), dtype=bool)
     distance = get_distance_function("euclidean")
     expected = naive_distance_profile(X, q, mask, distance)
     dist_profile = euclidean_distance_profile(X, q, mask)
@@ -38,10 +36,10 @@ def test_euclidean_distance(dtype):
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_euclidean_euclidean_constant_case(dtype):
     # Test constant case
-    X = np.ones((2, 1, 10), dtype=dtype)
+    X = np.ones((1, 10), dtype=dtype)
     q = np.zeros((1, 3), dtype=dtype)
 
-    mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
+    mask = np.ones((X.shape[1] - q.shape[1] + 1), dtype=bool)
     distance = get_distance_function("euclidean")
     expected = naive_distance_profile(X, q, mask, distance)
     dist_profile = euclidean_distance_profile(X, q, mask)
@@ -50,12 +48,12 @@ def test_euclidean_euclidean_constant_case(dtype):
 
 
 def test_non_alteration_of_inputs_euclidean():
-    X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
+    X = np.asarray([[1, 2, 3, 4, 5, 6, 7, 8]])
     X_copy = np.copy(X)
     q = np.asarray([[3, 4, 5]])
     q_copy = np.copy(q)
 
-    mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
+    mask = np.ones((X.shape[1] - q.shape[1] + 1), dtype=bool)
     _ = euclidean_distance_profile(X, q, mask)
     assert_array_equal(q, q_copy)
     assert_array_equal(X, X_copy)
@@ -63,24 +61,14 @@ def test_non_alteration_of_inputs_euclidean():
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_normalized_euclidean_distance(dtype):
-    X = np.asarray(
-        [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
-    )
+    X = np.asarray([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype)
     q = np.asarray([[3, 4, 5]], dtype=dtype)
 
-    search_space_size = X.shape[-1] - q.shape[-1] + 1
+    X_means, X_stds = sliding_mean_std_one_series(X, q.shape[1], 1)
 
-    X_means = np.zeros((X.shape[0], X.shape[1], search_space_size))
-    X_stds = np.zeros((X.shape[0], X.shape[1], search_space_size))
-
-    for i in range(X.shape[0]):
-        _mean, _std = sliding_mean_std_one_series(X[i], q.shape[-1], 1)
-        X_stds[i] = _std
-        X_means[i] = _mean
-
-    q_means = q.mean(axis=-1)
-    q_stds = q.std(axis=-1)
-    mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
+    q_means = q.mean(axis=1)
+    q_stds = q.std(axis=1)
+    mask = np.ones((X.shape[1] - q.shape[1] + 1), dtype=bool)
 
     distance = get_distance_function("euclidean")
 
@@ -97,22 +85,15 @@ def test_normalized_euclidean_distance(dtype):
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_normalized_euclidean_constant_case(dtype):
     # Test constant case
-    X = np.ones((2, 2, 10), dtype=dtype)
+    X = np.ones((2, 10), dtype=dtype)
     q = np.zeros((2, 3), dtype=dtype)
 
-    search_space_size = X.shape[-1] - q.shape[-1] + 1
+    q_means = q.mean(axis=1)
+    q_stds = q.std(axis=1)
 
-    q_means = q.mean(axis=-1)
-    q_stds = q.std(axis=-1)
+    X_means, X_stds = sliding_mean_std_one_series(X, q.shape[1], 1)
 
-    X_means = np.zeros((X.shape[0], X.shape[1], search_space_size))
-    X_stds = np.zeros((X.shape[0], X.shape[1], search_space_size))
-    for i in range(X.shape[0]):
-        _mean, _std = sliding_mean_std_one_series(X[i], q.shape[-1], 1)
-        X_stds[i] = _std
-        X_means[i] = _mean
-
-    mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
+    mask = np.ones((X.shape[1] - q.shape[1] + 1), dtype=bool)
     distance = get_distance_function("euclidean")
 
     dist_profile = normalized_euclidean_distance_profile(
@@ -126,25 +107,17 @@ def test_normalized_euclidean_constant_case(dtype):
 
 
 def test_non_alteration_of_inputs_normalized_euclidean():
-    X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
+    X = np.asarray([[1, 2, 3, 4, 5, 6, 7, 8]])
     X_copy = np.copy(X)
     q = np.asarray([[3, 4, 5]])
     q_copy = np.copy(q)
 
-    search_space_size = X.shape[-1] - q.shape[-1] + 1
+    X_means, X_stds = sliding_mean_std_one_series(X, q.shape[1], 1)
 
-    X_means = np.zeros((X.shape[0], X.shape[1], search_space_size))
-    X_stds = np.zeros((X.shape[0], X.shape[1], search_space_size))
+    q_means = q.mean(axis=1)
+    q_stds = q.std(axis=1)
 
-    for i in range(X.shape[0]):
-        _mean, _std = sliding_mean_std_one_series(X[i], q.shape[-1], 1)
-        X_stds[i] = _std
-        X_means[i] = _mean
-
-    q_means = q.mean(axis=-1)
-    q_stds = q.std(axis=-1)
-
-    mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
+    mask = np.ones((X.shape[1] - q.shape[1] + 1), dtype=bool)
     _ = normalized_euclidean_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )

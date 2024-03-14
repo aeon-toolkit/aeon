@@ -4,10 +4,10 @@ __maintainer__ = []
 __all__ = ["DummySimilaritySearch"]
 
 
-from aeon.similarity_search.base import BaseSimiliaritySearch
+from aeon.similarity_search.base import BaseSeriesSimilaritySearch
 
 
-class DummySimilaritySearch(BaseSimiliaritySearch):
+class DummySimilaritySearch(BaseSeriesSimilaritySearch):
     """
     DummySimilaritySearch for testing of the BaseSimiliaritySearch class.
 
@@ -23,24 +23,13 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
     Attributes
     ----------
-    _X : array, shape (n_cases, n_channels, n_timepoints)
+    X_ : array, shape (n_channels, n_timepoints)
         The input time series stored during the fit method.
     distance_profile_function : function
         The function used to compute the distance profile affected
         during the fit method based on the distance and normalize
         parameters.
 
-    Examples
-    --------
-    >>> from aeon.similarity_search._dummy import DummySimilaritySearch
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = DummySimilaritySearch()
-    >>> clf.fit(X_train, y_train)
-    DummySimilaritySearch(...)
-    >>> q = X_test[0, :, 5:15]
-    >>> y_pred = clf.predict(q)
     """
 
     def __init__(
@@ -58,8 +47,8 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        X : array, shape (n_cases, n_channels, n_timepoints)
-            Input array to used as database for the similarity search
+        X : array, shape (n_channels, n_timepoints)
+            Not used.
         y : optional
             Not used.
 
@@ -78,17 +67,15 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
         Parameters
         ----------
-        distance_profile : array, shape (n_samples, n_timepoints - query_length + 1)
+        distance_profile : array, shape (n_timepoints - query_length + 1)
             Precomputed distance profile.
         exclusion_size : int, optional
             This parameter has no effect on this dummy class as we do k=1.
 
         Returns
         -------
-        array
-            An array containing the index of the best match between q and _X.
+        int
+            the index of the best match between q and _X.
 
         """
-        search_size = distance_profile.shape[-1]
-        _id_best = distance_profile.argmin(axis=None)
-        return [(_id_best // search_size, _id_best % search_size)]
+        return distance_profile.argmin()
