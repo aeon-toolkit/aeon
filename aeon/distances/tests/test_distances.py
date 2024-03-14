@@ -17,7 +17,7 @@ from aeon.testing.utils.data_gen import make_series
 
 
 def _validate_distance_result(
-    x, y, name, distance, expected_result=10, check_xy_permuted=False
+    x, y, name, distance, expected_result=10, check_xy_permuted=True
 ):
     original_x = x.copy()
     original_y = y.copy()
@@ -35,14 +35,14 @@ def _validate_distance_result(
     assert isinstance(dist_result_to_self, float)
 
     # If unequal length swap where x and y are to ensure it works both ways around
-    if original_x.shape[-1] != original_y.shape[-1] and not check_xy_permuted:
+    if original_x.shape[-1] != original_y.shape[-1] and check_xy_permuted:
         _validate_distance_result(
             original_y,
             original_x,
             name,
             distance,
             expected_result,
-            check_xy_permuted=True,
+            check_xy_permuted=False,
         )
 
 

@@ -49,7 +49,7 @@ def _validate_multiple_to_multiple_result(
     name,
     distance,
     multiple_to_multiple_distance,
-    check_xy_permuted=False,
+    check_xy_permuted=True,
 ):
     original_x = x.copy()
     original_y = y.copy()
@@ -85,14 +85,14 @@ def _validate_multiple_to_multiple_result(
     assert np.allclose(matrix, multiple_to_multiple_result)
 
     # If unequal length swap where x and y are to ensure it works both ways around
-    if x.shape[-1] != y.shape[-1] and not check_xy_permuted:
+    if x.shape[-1] != y.shape[-1] and check_xy_permuted:
         _validate_multiple_to_multiple_result(
             original_y,
             original_x,
             name,
             distance,
             multiple_to_multiple_distance,
-            check_xy_permuted=True,
+            check_xy_permuted=False,
         )
 
 
