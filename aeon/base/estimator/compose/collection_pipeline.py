@@ -160,7 +160,7 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         Parameters
         ----------
         X : Training data of type self.get_tag("X_inner_type")
-        y : array-like, shape = [n_instances] - the target values
+        y : array-like, shape = [n_cases] - the target values
 
         Returns
         -------

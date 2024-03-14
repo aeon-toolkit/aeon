@@ -292,12 +292,12 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances)
+        Y : np.ndarray of shape = (n_cases)
             The predicted values
 
         """
@@ -590,10 +590,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         ----------
         X : np.ndarray
             The training input samples of,
-            shape (n_instances, n_channels, n_timepoints).
+            shape (n_cases, n_channels, n_timepoints).
             If a 2D array-like is passed, n_channels is assumed to be 1.
         y : np.ndarray
-            The training data target values of shape (n_instances,).
+            The training data target values of shape (n_cases,).
 
         Returns
         -------
@@ -630,7 +630,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -650,10 +650,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".hdf5")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 

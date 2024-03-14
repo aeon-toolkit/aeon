@@ -293,14 +293,6 @@ Filtering and denoising
 
     BKFilter
 
-.. currentmodule:: aeon.transformations.filter
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Filter
-
 .. currentmodule:: aeon.transformations.kalman_filter
 
 .. autosummary::
@@ -418,14 +410,6 @@ Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 These transformers create a series based on a sequence of sliding windows.
-
-.. currentmodule:: aeon.transformations.matrix_profile
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    MatrixProfileTransformer
 
 .. currentmodule:: aeon.transformations.collection.hog1d
 
