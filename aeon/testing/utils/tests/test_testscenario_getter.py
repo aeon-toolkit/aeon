@@ -1,3 +1,5 @@
+"""Test suite for retrieving scenarios."""
+
 __maintainer__ = []
 __all__ = []
 

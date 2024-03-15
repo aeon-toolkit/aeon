@@ -1,3 +1,5 @@
+"""Test configuration."""
+
 __maintainer__ = []
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 

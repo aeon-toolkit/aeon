@@ -129,9 +129,9 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
 
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         """

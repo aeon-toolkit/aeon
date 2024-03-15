@@ -109,7 +109,7 @@ class SAST(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
         y: array-like or list
             The class values for X.
@@ -176,14 +176,14 @@ class SAST(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
         y: array-like or list
             Ignored argument, interface compatibility
 
         Return
         ------
-        X_transformed: np.ndarray shape (n_time_series, n_timepoints),
+        X_transformed: np.ndarray shape (n_cases, n_timepoints),
             The transformed data
         """
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))

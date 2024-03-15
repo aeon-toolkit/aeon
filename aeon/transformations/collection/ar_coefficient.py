@@ -20,7 +20,7 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
     ----------
     order : int or callable, default=100
         The order of the autoregression. If callable, the function should take a 3D
-        numpy array of shape (n_instances, n_channels, n_timepoints) and return an
+        numpy array of shape (n_cases, n_channels, n_timepoints) and return an
         integer.
     min_values : int, default=0
         Always transform at least this many values unless the series length is too
@@ -62,7 +62,7 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
     def _transform(self, X, y=None):
         from statsmodels.regression.linear_model import burg
 
-        n_instances, n_channels, n_timepoints = X.shape
+        n_cases, n_channels, n_timepoints = X.shape
 
         order = self.order(X) if callable(self.order) else self.order
         if order > n_timepoints - self.min_values:
@@ -76,8 +76,8 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
                 f"({n_timepoints - 1})."
             )
 
-        Xt = np.zeros((n_instances, n_channels, order))
-        for i in range(n_instances):
+        Xt = np.zeros((n_cases, n_channels, order))
+        for i in range(n_cases):
             for n in range(n_channels):
                 coefs, _ = burg(X[i, n], order=order)
                 Xt[i, n] = coefs

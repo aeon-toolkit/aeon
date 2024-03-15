@@ -205,12 +205,12 @@ class LITETimeClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances (n)), the predicted labels
+        Y : np.ndarray of shape = (n_cases (n)), the predicted labels
 
         """
         rng = check_random_state(self.random_state)
@@ -226,12 +226,12 @@ class LITETimeClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances (n), n_classes (c)), the predicted probs
+        Y : np.ndarray of shape = (n_cases (n), n_classes (c)), the predicted probs
 
         """
         probs = np.zeros((X.shape[0], self.n_classes_))
@@ -462,10 +462,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         ----------
         X : np.ndarray
             The training input samples of,
-            shape (n_instances, n_channels, n_timepoints).
+            shape (n_cases, n_channels, n_timepoints).
             If a 2D array-like is passed, n_channels is assumed to be 1.
         y : np.ndarray
-            The training data class labels of shape (n_instances,).
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------

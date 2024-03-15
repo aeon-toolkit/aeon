@@ -1,3 +1,5 @@
+"""Tests for ExponentTransformer and SqrtTransformer."""
+
 __maintainer__ = []
 __all__ = []
 
@@ -12,6 +14,7 @@ power_transformers = [ExponentTransformer, SqrtTransformer]
 @pytest.mark.parametrize("power_transformer", power_transformers)
 @pytest.mark.parametrize("_offset", ["a", [1, 2.3]])
 def test_wrong_offset_type_raises_error(power_transformer, _offset):
+    """Test an error is raised for incorrect offset types."""
     y = make_series(n_timepoints=75)
 
     # Test input types
@@ -26,6 +29,7 @@ def test_wrong_offset_type_raises_error(power_transformer, _offset):
 @pytest.mark.parametrize("power_transformer", power_transformers[:1])
 @pytest.mark.parametrize("_power", ["a", [1, 2.3]])
 def test_wrong_power_type_raises_error(power_transformer, _power):
+    """Test an error is raised for incorrect power types."""
     y = make_series(n_timepoints=75)
 
     # Test input types

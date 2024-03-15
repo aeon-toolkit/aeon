@@ -105,10 +105,10 @@ X_test_mv, _ = make_example_3d_numpy(
 )
 
 X_ul, _ = make_example_unequal_length(
-    n_cases=10, max_series_length=15, min_series_length=10, random_state=RAND_SEED
+    n_cases=10, max_n_timepoints=15, min_n_timepoints=10, random_state=RAND_SEED
 )
 X_test_ul, _ = make_example_unequal_length(
-    n_cases=5, max_series_length=15, min_series_length=10, random_state=RAND_SEED
+    n_cases=5, max_n_timepoints=15, min_n_timepoints=10, random_state=RAND_SEED
 )
 
 

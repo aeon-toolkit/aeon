@@ -31,7 +31,7 @@ class RandomSegmenter(BaseSegmenter):
         Parameters
         ----------
         X : 2D np.ndarray
-            Time series of shape `(n_channels, series_length)`
+            Time series of shape `(n_channels, n_timepoints)`
         y : np.ndarray or None, default = None
 
         Returns

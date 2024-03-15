@@ -4,8 +4,6 @@ Compare the distance calculations on the 1D and 2D (d,m) format input against th
 results generated with tsml, in distances.tests.TestDistances.
 """
 
-__maintainer__ = []
-
 from numpy.testing import assert_almost_equal
 
 from aeon.datasets import load_basic_motions, load_unit_test

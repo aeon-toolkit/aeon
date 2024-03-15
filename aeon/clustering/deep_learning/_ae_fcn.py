@@ -221,7 +221,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (d), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases (n), n_channels (d), n_timepoints (m))
             The training input samples.
 
         Returns

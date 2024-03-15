@@ -48,7 +48,7 @@ class ContinuousIntervalTree(BaseEstimator):
         The unique class labels in the training set.
     n_classes_ : int
         The number of unique classes in the training set.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_atts_ : int
         The number of attributes in the training set.
@@ -101,9 +101,9 @@ class ContinuousIntervalTree(BaseEstimator):
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_instances, n_attributes]
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -128,7 +128,7 @@ class ContinuousIntervalTree(BaseEstimator):
             X=X, y=y, ensure_min_samples=2, force_all_finite="allow-nan"
         )
 
-        self.n_instances_, self.n_atts_ = X.shape
+        self.n_cases_, self.n_atts_ = X.shape
         self.classes_ = np.unique(y)
         self.n_classes_ = self.classes_.shape[0]
         self._class_dictionary = {}
@@ -174,12 +174,12 @@ class ContinuousIntervalTree(BaseEstimator):
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_instances, n_attributes]
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         rng = check_random_state(self.random_state)
@@ -195,12 +195,12 @@ class ContinuousIntervalTree(BaseEstimator):
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_instances, n_attributes]
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         if not hasattr(self, "_is_fitted") or not self._is_fitted:
@@ -444,12 +444,12 @@ class _TreeNode:
         entropy_right = _entropy(dist_right, sum_right)
         entropy_missing = _entropy(dist_missing, sum_missing)
 
-        num_cases = X.shape[0]
+        n_cases = X.shape[0]
         info_gain = (
             parent_entropy
-            - sum_left / num_cases * entropy_left
-            - sum_right / num_cases * entropy_right
-            - sum_missing / num_cases * entropy_missing
+            - sum_left / n_cases * entropy_left
+            - sum_right / n_cases * entropy_right
+            - sum_missing / n_cases * entropy_missing
         )
 
         return (
