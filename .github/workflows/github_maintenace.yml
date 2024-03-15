@@ -25,8 +25,8 @@ jobs:
         uses: crs-k/stale-branches@v4.1.0
         with:
           repo-token: ${{ steps.app-token.outputs.token }}
-          days-before-stale: 105
-          days-before-delete: 35
+          days-before-stale: 140
+          days-before-delete: 9999  # todo take down to 175
           comment-updates: true
           tag-committer: true
           stale-branch-label: "stale"
