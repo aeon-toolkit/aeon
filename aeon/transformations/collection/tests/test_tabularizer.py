@@ -1,4 +1,4 @@
-"""Unit test for tabularizer."""
+"""Tests for tabularizer."""
 
 import numpy as np
 

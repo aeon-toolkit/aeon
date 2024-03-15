@@ -23,11 +23,7 @@ DATATYPES = ["int32", "int64", "float32", "float64"]
 
 
 def test_generate_new_default_njit_func():
-    """
-    Test the generation of a new njit function.
-
-    with modified default arguments.
-    """
+    """Test the generation of a new njit function with modified default arguments."""
 
     def _dummy_func(x, arg1=0.0, arg2=1.0):
         return x - arg1 + arg2
@@ -86,11 +82,7 @@ def test_get_subsequence(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_get_subsequence_with_mean_std(dtype):
-    """
-    Test the extraction of subsequences from a 1D array.
-
-    along with mean and standard deviation.
-    """
+    """Test the extraction of subsequences with mean and std from a 1D array."""
     x = np.array([[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]], dtype=dtype)
     # i_start, length, dilation
     sub, mean, std = get_subsequence_with_mean_std(x, 2, 3, 1)

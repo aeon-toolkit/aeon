@@ -9,10 +9,9 @@ from aeon.transformations.collection.dictionary_based import SAX
 @pytest.mark.parametrize("n_segments", [8])
 @pytest.mark.parametrize("alphabet_size", [4])
 def test_equal_length_univariate_sax(n_segments, alphabet_size):
-    """
-    Test if SAX transformation and inverse transformation.
+    """Test if SAX maintains equal length for univariate time series.
 
-    maintain equal length for univariate time series.
+    Uses both transform and the inverse transformation.
     """
     X = np.random.normal(size=(10, 1, 100))
 
@@ -35,10 +34,9 @@ def test_equal_length_univariate_sax(n_segments, alphabet_size):
 @pytest.mark.parametrize("n_segments", [8])
 @pytest.mark.parametrize("alphabet_size", [4])
 def test_equal_length_multivariate_sax(n_segments, alphabet_size):
-    """
-    Test if SAX transformation and inverse transformation.
+    """Test if SAX maintains equal length for multivariate time series.
 
-    maintain equal length for multivariate time series.
+    Uses both transform and the inverse transformation.
     """
     X = np.random.normal(size=(10, 3, 100))
 

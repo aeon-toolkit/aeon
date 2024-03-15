@@ -153,7 +153,7 @@ def test_has_missing(data):
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_is_univariate(data):
-    """Test if the data is univariate."""
+    """Test if univariate series are correctly identified."""
     assert is_univariate(EQUAL_LENGTH_UNIVARIATE[data])
     if data in EQUAL_LENGTH_MULTIVARIATE.keys():
         assert not is_univariate(EQUAL_LENGTH_MULTIVARIATE[data])
@@ -172,7 +172,7 @@ NUMPY3D = [
 
 @pytest.mark.parametrize("function", NUMPY3D)
 def test_numpy3D_error(function):
-    """Test conversion from nested DataFrame to other formats."""
+    """Test input type error for numpy3D."""
     X = np.random.random(size=(10, 20))
     with pytest.raises(TypeError, match="Input should be 3-dimensional NumPy array"):
         function(X)

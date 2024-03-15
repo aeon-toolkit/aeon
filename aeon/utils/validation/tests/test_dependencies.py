@@ -1,4 +1,3 @@
-#!/usr/bin/env python3 -u
 """Test functions in the _dependencies file."""
 
 import pytest
