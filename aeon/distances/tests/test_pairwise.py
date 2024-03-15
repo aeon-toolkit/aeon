@@ -1,3 +1,5 @@
+"""Test for pairwise distances."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -21,6 +23,16 @@ def _validate_pairwise_result(
     distance,
     pairwise_distance,
 ):
+    """
+    Validate pairwise result.
+
+    Parameters
+    ----------
+    x: Input np.ndarray.
+    name: Name of the distance metric.
+    distance: Distance function.
+    pairwise_distance: Pairwise distance function.
+    """
     pairwise_result = pairwise_distance(x)
 
     expected_size = (len(x), len(x))
@@ -51,6 +63,18 @@ def _validate_multiple_to_multiple_result(
     multiple_to_multiple_distance,
     check_xy_permuted=True,
 ):
+    """
+    Validate multiple to multiple result.
+
+    Parameters
+    ----------
+    x: Input array.
+    y: Input array.
+    name: Name of the distance metric.
+    distance: Distance function.
+    multiple_to_multiple_distance: Mul-to-Mul distance function.
+    check_xy_permuted: recursively call with swapped series
+    """
     original_x = x.copy()
     original_y = y.copy()
     multiple_to_multiple_result = multiple_to_multiple_distance(x, y)
@@ -103,6 +127,17 @@ def _validate_single_to_multiple_result(
     distance,
     single_to_multiple_distance,
 ):
+    """
+    Validate single to multiple result.
+
+    Parameters
+    ----------
+    x: Input array.
+    y: Input array.
+    name: Name of the distance metric.
+    distance: Distance function.
+    single_to_multiple_distance: Single to multiple distance function.
+    """
     single_to_multiple_result = single_to_multiple_distance(x, y)
 
     expected_size = len(y)
@@ -135,7 +170,6 @@ def _validate_single_to_multiple_result(
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_pairwise_distance(dist):
     """Test pairwise distance function."""
-
     # ================== Test equal length ==================
     # Test collection of univariate time series in the shape (n_cases, n_timepoints)
     _validate_pairwise_result(
@@ -311,6 +345,7 @@ def test_multiple_to_multiple_distances(dist):
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_single_to_multiple_distances(dist):
+    """Test new single to multiple distances."""
     # ================== Test equal length ==================
     # Test passing a singular univariate time series of shape (n_timepoints,) compared
     # to a collection of univariate time series of shape (n_cases, n_timepoints)

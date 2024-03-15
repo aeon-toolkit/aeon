@@ -8,9 +8,10 @@ from aeon.testing.mock_estimators import MockSegmenter, SupervisedMockSegmenter
 
 
 def test_fit_predict_correct():
-    """Test returns self.
-    Test same on two calls same input type
+    """
+    Test returns self.
 
+    Test same on two calls same input type.
     """
     x_correct = np.array([0, 0, 0, 1, 1])
     seg = MockSegmenter()

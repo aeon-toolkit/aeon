@@ -1,3 +1,5 @@
+"""Test for SFA transformer."""
+
 import sys
 
 import numpy as np
@@ -6,11 +8,11 @@ import pytest
 from aeon.transformations.collection.dictionary_based._sfa import SFA
 
 
-# Check the transformer has changed the data correctly.
 @pytest.mark.parametrize(
     "binning_method", ["equi-depth", "equi-width", "information-gain", "kmeans"]
 )
 def test_transformer(binning_method):
+    """Check the transformer has changed the data correctly."""
     # load training data
     X = np.random.rand(10, 1, 150)
     y = np.random.randint(0, 2, 10)
@@ -34,6 +36,7 @@ def test_transformer(binning_method):
 @pytest.mark.parametrize("use_fallback_dft", [True, False])
 @pytest.mark.parametrize("norm", [True, False])
 def test_dft_mft(use_fallback_dft, norm):
+    """Test the DFT and MFT of the SFA transformer."""
     # load training data
     X = np.random.rand(10, 1, 150)
     y = np.random.randint(0, 2, 10)
@@ -93,6 +96,7 @@ test_dft_mft(True, True)
 
 @pytest.mark.parametrize("binning_method", ["equi-depth", "information-gain"])
 def test_sfa_anova(binning_method):
+    """Test the SFA transformer with ANOVA one-sided test."""
     # load training data
     X = np.random.rand(10, 1, 150)
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
@@ -127,7 +131,7 @@ def test_sfa_anova(binning_method):
     _ = p2.transform(X, y)
 
 
-# test word lengths larger than the window-length
+#
 @pytest.mark.parametrize("word_length", [6, 7])
 @pytest.mark.parametrize("alphabet_size", [4, 5])
 @pytest.mark.parametrize("window_size", [5, 6])
@@ -137,6 +141,16 @@ def test_sfa_anova(binning_method):
 def test_word_lengths(
     word_length, alphabet_size, window_size, bigrams, levels, use_fallback_dft
 ):
+    """Test word lengths larger than the window-length.
+
+    Params:
+    - word_length (int): The length of the words.
+    - alphabet_size (int): The size of the alphabet.
+    - window_size (int): The size of the sliding window.
+    - bigrams (bool): Whether to use bigrams.
+    - levels (int): The number of levels for multi-resolution SFA.
+    - use_fallback_dft (bool): Whether to use the fallback DFT implementation.
+    """
     # training data
     X = np.random.rand(10, 1, 150)
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
@@ -155,6 +169,7 @@ def test_word_lengths(
 
 
 def test_bit_size():
+    """Test the bit size of transformed data by the SFA transformer."""
     # load training data
     X = np.random.rand(10, 1, 150)
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])

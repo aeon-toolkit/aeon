@@ -13,6 +13,7 @@ from aeon.utils.numba.stats import row_mean, row_median
 
 
 def test_interval_prune():
+    """Test pruning of intervals by the RandomIntervals transformer."""
     X, y = make_example_3d_numpy(random_state=0, n_channels=2, n_timepoints=10)
 
     rit = RandomIntervals(
@@ -27,6 +28,7 @@ def test_interval_prune():
 
 
 def test_random_interval_transformer():
+    """Test the RandomIntervals transformer output."""
     X, y = make_example_3d_numpy(random_state=0, n_channels=2, n_timepoints=10)
 
     rit = RandomIntervals(
@@ -41,6 +43,7 @@ def test_random_interval_transformer():
 
 
 def test_supervised_transformers():
+    """Test the SupervisedIntervals transformer output."""
     X, y = make_example_3d_numpy(random_state=0)
 
     sit = SupervisedIntervals(

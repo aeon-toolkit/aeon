@@ -1,3 +1,5 @@
+"""Tests for cost matrix."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -16,6 +18,16 @@ def _validate_cost_matrix_result(
     cost_matrix,
     check_xy_permuted=True,
 ):
+    """Validate the result of the cost matrix function.
+
+    Parameters
+    ----------
+    x (np.ndarray): The first input array.
+    y (np.ndarray): The second input array.
+    name: The name of the distance metric.
+    distance: The distance metric function.
+    cost_matrix: The cost matrix function.
+    """
     original_x = x.copy()
     original_y = y.copy()
     cost_matrix_result = cost_matrix(x, y)
@@ -61,6 +73,7 @@ def _validate_cost_matrix_result(
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_cost_matrix(dist):
+    """Test for cost matrix for various distances."""
     if dist["name"] == "shape_dtw":
         return
 

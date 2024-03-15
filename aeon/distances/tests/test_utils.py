@@ -23,6 +23,7 @@ def test_incorrect_input():
 
 
 def test_reshape_pairwise_to_multiple():
+    """Test function to reshape pairwise distance to multiple distance."""
     x = np.random.rand(5, 2, 10)
     y = np.random.rand(5, 2, 10)
     x2, y2 = reshape_pairwise_to_multiple(x, y)

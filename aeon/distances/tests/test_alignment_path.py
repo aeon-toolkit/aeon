@@ -1,3 +1,5 @@
+"""Tests for alignment paths."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -42,6 +44,7 @@ def _validate_alignment_path_result(
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_alignment_path(dist):
+    """Test function to check the alignment path for various distances."""
     if "alignment_path" not in dist:
         return
 

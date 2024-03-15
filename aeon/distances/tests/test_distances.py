@@ -1,3 +1,5 @@
+"""Tests for computing distances."""
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -11,14 +13,28 @@ from aeon.distances._distance import (
     _custom_func_pairwise,
     _resolve_key_from_distance,
 )
-from aeon.distances.tests.test_expected_results import _expected_distance_results
 from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+from aeon.testing.expected_results.expected_distance_results import (
+    _expected_distance_results,
+)
 from aeon.testing.utils.data_gen import make_series
 
 
 def _validate_distance_result(
     x, y, name, distance, expected_result=10, check_xy_permuted=True
 ):
+    """
+    Validate the distance result by comparing it with the expected result.
+
+    Parameters
+    ----------
+    x (np.ndarray): First array.
+    y (np.ndarray): Second array.
+    name (str): Name of the distance metric.
+    distance (callable): Distance function.
+    expected_result (float): Expected distance result.
+    check_xy_permuted: (bool): recursively call with swapped series
+    """
     original_x = x.copy()
     original_y = y.copy()
     if expected_result is None:
@@ -48,6 +64,7 @@ def _validate_distance_result(
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_distances(dist):
+    """Test distance functions."""
     # ================== Test equal length ==================
     # Test univariate of shape (n_timepoints,)
     _validate_distance_result(
@@ -126,10 +143,12 @@ def test_distances(dist):
 
 
 def test_get_distance_function_names():
+    """Test get_distance_function_names."""
     assert get_distance_function_names() == sorted([dist["name"] for dist in DISTANCES])
 
 
-def test__resolve_key_from_distance():
+def test_resolve_key_from_distance():
+    """Test _resolve_key_from_distance."""
     with pytest.raises(ValueError, match="Unknown metric"):
         _resolve_key_from_distance(metric="FOO", key="cost_matrix")
     with pytest.raises(ValueError):
@@ -142,6 +161,7 @@ def test__resolve_key_from_distance():
 
 
 def test_incorrect_inputs():
+    """Test the handling of incorrect inputs."""
     x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     with pytest.raises(

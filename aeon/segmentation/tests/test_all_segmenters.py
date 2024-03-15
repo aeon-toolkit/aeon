@@ -34,6 +34,7 @@ def test_segmenter_base_functionality(segmenter):
 
 
 def _assert_output(output, dense, length):
+    """Assert the properties of the segmenter output."""
     assert isinstance(output, np.ndarray)
     if dense:  # Change points returned
         assert len(output) < length
@@ -47,6 +48,7 @@ def _assert_output(output, dense, length):
 
 @pytest.mark.parametrize("segmenter", ALL_SEGMENTERS)
 def test_segmenter_instance(segmenter):
+    """Test segmenters."""
     instance = segmenter.create_test_instance()
     multivariate = segmenter.get_class_tag(tag_name="capability:multivariate")
     X = np.random.random(size=(5, 20))
