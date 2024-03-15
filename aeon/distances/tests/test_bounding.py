@@ -1,5 +1,3 @@
-__maintainer__ = []
-
 import numpy as np
 import pytest
 

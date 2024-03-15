@@ -4,7 +4,8 @@ from numpy.testing import assert_almost_equal
 
 from aeon.distances import cost_matrix as compute_cost_matrix
 from aeon.distances._distance import DISTANCES
-from aeon.distances.tests.test_utils import _create_test_distance_numpy
+from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+from aeon.testing.utils.data_gen import make_series
 
 
 def _validate_cost_matrix_result(
@@ -13,7 +14,10 @@ def _validate_cost_matrix_result(
     name,
     distance,
     cost_matrix,
+    check_xy_permuted=True,
 ):
+    original_x = x.copy()
+    original_y = y.copy()
     cost_matrix_result = cost_matrix(x, y)
 
     assert isinstance(cost_matrix_result, np.ndarray)
@@ -30,16 +34,29 @@ def _validate_cost_matrix_result(
 
     if name == "lcss":
         if x.ndim != 3:
-            distance = 1 - (
+            curr_distance = 1 - (
                 float(cost_matrix_result[-1, -1] / min(x.shape[-1], y.shape[-1]))
             )
-            assert_almost_equal(distance, distance_result)
+            assert_almost_equal(curr_distance, distance_result)
     elif name == "edr":
         if x.ndim != 3:
-            distance = float(cost_matrix_result[-1, -1] / max(x.shape[-1], y.shape[-1]))
-            assert_almost_equal(distance, distance_result)
+            curr_distance = float(
+                cost_matrix_result[-1, -1] / max(x.shape[-1], y.shape[-1])
+            )
+            assert_almost_equal(curr_distance, distance_result)
     else:
         assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
+
+    # If unequal length swap where x and y are to ensure it works both ways around
+    if original_x.shape[-1] != original_y.shape[-1] and check_xy_permuted:
+        _validate_cost_matrix_result(
+            original_y,
+            original_x,
+            name,
+            distance,
+            cost_matrix,
+            check_xy_permuted=False,
+        )
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
@@ -50,8 +67,65 @@ def test_cost_matrix(dist):
     if "cost_matrix" not in dist:
         return
 
-    # Test univariate
-    if dist["name"] != "ddtw" and dist["name"] != "wddtw":
+    # ================== Test equal length ==================
+    # Test univariate of shape (n_timepoints,)
+    _validate_cost_matrix_result(
+        make_series(10, return_numpy=True, random_state=1),
+        make_series(10, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["cost_matrix"],
+    )
+
+    # Test univariate of shape (1, n_timepoints)
+    _validate_cost_matrix_result(
+        make_series(10, 1, return_numpy=True, random_state=1),
+        make_series(10, 1, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["cost_matrix"],
+    )
+
+    # Test multivariate of shape (n_channels, n_timepoints)
+    _validate_cost_matrix_result(
+        make_series(10, 10, return_numpy=True, random_state=1),
+        make_series(10, 10, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["cost_matrix"],
+    )
+
+    # ================== Test unequal length ==================
+    # Test univariate unequal length of shape (n_timepoints,)
+    _validate_cost_matrix_result(
+        make_series(5, return_numpy=True, random_state=1),
+        make_series(10, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["cost_matrix"],
+    )
+
+    # Test univariate unequal length of shape (1, n_timepoints)
+    _validate_cost_matrix_result(
+        make_series(5, 1, return_numpy=True, random_state=1),
+        make_series(10, 1, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["cost_matrix"],
+    )
+
+    # Test multivariate unequal length of shape (n_channels, n_timepoints)
+    _validate_cost_matrix_result(
+        make_series(5, 10, return_numpy=True, random_state=1),
+        make_series(10, 10, return_numpy=True, random_state=2),
+        dist["name"],
+        dist["distance"],
+        dist["cost_matrix"],
+    )
+
+    # ============== Test single point series ==============
+    if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
+        # Test singe point univariate of shape (1,)
         _validate_cost_matrix_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -60,36 +134,11 @@ def test_cost_matrix(dist):
             dist["cost_matrix"],
         )
 
-    _validate_cost_matrix_result(
-        _create_test_distance_numpy(10),
-        _create_test_distance_numpy(10, random_state=2),
-        dist["name"],
-        dist["distance"],
-        dist["cost_matrix"],
-    )
-
-    # Test multivariate
-    _validate_cost_matrix_result(
-        _create_test_distance_numpy(10, 10),
-        _create_test_distance_numpy(10, 10, random_state=2),
-        dist["name"],
-        dist["distance"],
-        dist["cost_matrix"],
-    )
-
-    # Test unequal length
-    _validate_cost_matrix_result(
-        _create_test_distance_numpy(5),
-        _create_test_distance_numpy(10, random_state=2),
-        dist["name"],
-        dist["distance"],
-        dist["cost_matrix"],
-    )
-
-    _validate_cost_matrix_result(
-        _create_test_distance_numpy(10, 5),
-        _create_test_distance_numpy(10, 10, random_state=2),
-        dist["name"],
-        dist["distance"],
-        dist["cost_matrix"],
-    )
+        # Test singe point univariate of shape (1, 1)
+        _validate_cost_matrix_result(
+            np.array([[10.0]]),
+            np.array([[15.0]]),
+            dist["name"],
+            dist["distance"],
+            dist["cost_matrix"],
+        )
