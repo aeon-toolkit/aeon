@@ -1,7 +1,5 @@
 """Test for bounding matrix."""
 
-__maintainer__ = []
-
 import numpy as np
 import pytest
 
