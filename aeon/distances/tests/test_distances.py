@@ -14,7 +14,7 @@ from aeon.distances._distance import (
     _resolve_key_from_distance,
 )
 from aeon.distances.tests.test_utils import _create_test_distance_numpy
-from aeon.testing.expected_results.test_expected_results import (
+from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results,
 )
 
