@@ -172,7 +172,7 @@ class MLPRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The training input samples.
         y : np.ndarray of shape n
             The training data target values.

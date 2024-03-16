@@ -154,7 +154,7 @@ build_doc_site/
 envs/
 *.html
 
-# example mlflow runs
+# example run output
 examples/local/
 
 # local files

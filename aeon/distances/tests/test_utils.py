@@ -3,11 +3,9 @@
 import numpy as np
 import pytest
 
-from aeon.distances._utils import (
-    _make_3d_series,
-    _reshape_pairwise_single,
-    reshape_pairwise_to_multiple,
-)
+from aeon.distances._utils import reshape_pairwise_to_multiple
+
+SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
 
 
 def test_incorrect_input():
@@ -20,11 +18,12 @@ def test_incorrect_input():
         _make_3d_series(x)
     with pytest.raises(ValueError, match="x and y must be 1D, 2D, or 3D arrays"):
         reshape_pairwise_to_multiple(x, x)
-    with pytest.raises(ValueError, match="x and y must be 1D, 2D, or 3D arrays"):
+    with pytest.raises(ValueError, match="x and y must be 2D or 3D arrays"):
         reshape_pairwise_to_multiple(x, y)
 
 
 def test_reshape_pairwise_to_multiple():
+    """Test function to reshape pairwise distance to multiple distance."""
     x = np.random.rand(5, 2, 10)
     y = np.random.rand(5, 2, 10)
     x2, y2 = reshape_pairwise_to_multiple(x, y)
@@ -37,22 +36,40 @@ def test_reshape_pairwise_to_multiple():
     assert x2.shape == y2.shape == (5, 1, 10)
 
 
-def test_reshape_pairwise_single():
-    x = np.random.rand(5, 10)
-    y = np.random.rand(5, 10)
-    x2, y2 = _reshape_pairwise_single(x, y)
-    assert x2.shape == y2.shape == (5, 10)
-    x = np.random.rand(10)
-    y = np.random.rand(10)
-    x2, y2 = _reshape_pairwise_single(x, y)
-    assert x2.shape == y2.shape == (1, 10)
-    x = np.random.rand(5, 10)
-    y = np.random.rand(10)
-    x2, y2 = _reshape_pairwise_single(x, y)
-    assert x2.ndim == y2.ndim == 2
-    assert x2.shape == (5, 10)
-    assert y2.shape == (1, 10)
-    y2, x2 = _reshape_pairwise_single(y, x)
-    assert x2.ndim == y2.ndim == 2
-    assert x2.shape == (5, 10)
-    assert y2.shape == (1, 10)
+def _make_3d_series(x: np.ndarray) -> np.ndarray:
+    """Check a series being passed into pairwise is 3d.
+
+    Pairwise assumes it has been passed two sets of series, if passed a single
+    series this function reshapes.
+
+    If given a 1d array the time series is reshaped to (1, 1, m). This is so when
+    looped over x[i] = (1, m).
+
+    If given a 2d array then the time series is reshaped to (d, 1, m). The dimensions
+    are put to the start so the ts can be looped through correctly. When looped over
+    the time series x[i] = (1, m).
+
+    Parameters
+    ----------
+    x: np.ndarray, 2d or 3d
+
+    Returns
+    -------
+    np.ndarray, 3d
+    """
+    n_channels = x.ndim
+    if n_channels == 1:
+        shape = x.shape
+        _x = np.reshape(x, (1, 1, shape[0]))
+    elif n_channels == 2:
+        shape = x.shape
+        _x = np.reshape(x, (shape[0], 1, shape[1]))
+    elif n_channels > 3:
+        raise ValueError(
+            "The matrix provided has more than 3 dimensions. This is not"
+            "supported. Please provide a matrix with less than "
+            "3 dimensions"
+        )
+    else:
+        _x = x
+    return _x

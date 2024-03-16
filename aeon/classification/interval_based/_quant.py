@@ -89,9 +89,9 @@ class QUANTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The training data.
-        y : 1D np.ndarray of shape (n_instances)
+        y : 1D np.ndarray of shape (n_cases)
             The class labels for fitting, indices correspond to instance indices in X
 
         Returns
@@ -125,12 +125,12 @@ class QUANTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.array of shape (n_cases, n_channels, n_timepoints)
             The testing data.
 
         Returns
         -------
-        y : array-like of shape (n_instances)
+        y : array-like of shape (n_cases)
             Predicted class labels.
         """
         return self._estimator.predict(self._transformer.transform(X))
@@ -140,12 +140,12 @@ class QUANTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.array of shape (n_cases, n_channels, n_timepoints)
             The testing data.
 
         Returns
         -------
-        y : array-like of shape (n_instances, n_classes_)
+        y : array-like of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
         m = getattr(self._estimator, "predict_proba", None)

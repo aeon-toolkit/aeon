@@ -7,14 +7,25 @@ import pytest
 
 from aeon.distances import distance
 from aeon.distances._distance import DISTANCES
-from aeon.distances.tests.test_expected_results import _expected_distance_results_params
+from aeon.testing.expected_results.expected_distance_results import (
+    _expected_distance_results_params,
+)
 from aeon.testing.utils.data_gen import make_series
 
 
 def _test_distance_params(
     param_list: List[Dict], distance_func: Callable, distance_str: str
 ):
+    """
+    Test function to check the parameters of distance functions.
 
+    Parameters
+    ----------
+    param_list (List[Dict]): List of dictionaries,
+    containing parameters for the distance function.
+    distance_func (Callable): The distance function to be tested.
+    distance_str (str): The name of the distance function.
+    """
     x_univ = make_series(10, return_numpy=True, random_state=1)
     y_univ = make_series(10, return_numpy=True, random_state=2)
 
@@ -84,6 +95,7 @@ DIST_PARAMS = {
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_distance_params(dist):
+    """Test function to check the parameters of distance functions."""
     if dist["name"] in DIST_PARAMS:
         _test_distance_params(
             DIST_PARAMS[dist["name"]],

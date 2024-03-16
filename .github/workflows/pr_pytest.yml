@@ -83,7 +83,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+        run: python -m pytest -k 'not TestAll' --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   pytest:
     needs: test-nosoftdeps
