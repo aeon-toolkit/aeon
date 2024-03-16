@@ -1,5 +1,7 @@
 """Test for pairwise distances."""
 
+from typing import List
+
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
@@ -12,7 +14,9 @@ from aeon.distances.tests.test_utils import (
 )
 from aeon.testing.utils.data_gen import (
     make_example_2d_numpy,
+    make_example_2d_unequal_length,
     make_example_3d_numpy,
+    make_example_unequal_length,
     make_series,
 )
 
@@ -42,7 +46,8 @@ def _validate_pairwise_result(
     assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=name))
     assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=distance))
 
-    x = _make_3d_series(x)
+    if isinstance(x, np.ndarray):
+        x = _make_3d_series(x)
 
     matrix = np.zeros((len(x), len(x)))
 
@@ -79,7 +84,12 @@ def _validate_multiple_to_multiple_result(
     original_y = y.copy()
     multiple_to_multiple_result = multiple_to_multiple_distance(x, y)
 
-    if x.ndim == 1 and y.ndim == 1:
+    if (
+        isinstance(x, np.ndarray)
+        and x.ndim == 1
+        and isinstance(y, np.ndarray)
+        and y.ndim == 1
+    ):
         expected_size = (1, 1)
     else:
         expected_size = (len(x), len(y))
@@ -95,8 +105,9 @@ def _validate_multiple_to_multiple_result(
         compute_pairwise_distance(x, y, metric=distance),
     )
 
-    x = _make_3d_series(x)
-    y = _make_3d_series(y)
+    if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
+        x = _make_3d_series(x)
+        y = _make_3d_series(y)
 
     matrix = np.zeros((len(x), len(y)))
 
@@ -109,7 +120,9 @@ def _validate_multiple_to_multiple_result(
     assert np.allclose(matrix, multiple_to_multiple_result)
 
     # If unequal length swap where x and y are to ensure it works both ways around
-    if x.shape[-1] != y.shape[-1] and check_xy_permuted:
+    if check_xy_permuted and (
+        isinstance(x, List) or isinstance(y, List) or x.shape[-1] != y.shape[-1]
+    ):
         _validate_multiple_to_multiple_result(
             original_y,
             original_x,
@@ -141,7 +154,7 @@ def _validate_single_to_multiple_result(
     single_to_multiple_result = single_to_multiple_distance(x, y)
 
     expected_size = len(y)
-    if y.ndim == 1:
+    if isinstance(y, np.ndarray) and y.ndim == 1:
         expected_size = 1
 
     assert isinstance(single_to_multiple_result, np.ndarray)
@@ -165,6 +178,11 @@ def _validate_single_to_multiple_result(
 
         dist = distance(curr_x, curr_y)
         assert_almost_equal(dist, curr)
+
+
+def _supports_nonequal_length(dist) -> bool:
+    anns = dist["pairwise_distance"].__annotations__
+    return any(param in anns and str(List) in str(anns[param]) for param in ["x", "X"])
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
@@ -197,34 +215,34 @@ def test_pairwise_distance(dist):
         dist["pairwise_distance"],
     )
 
-    # TODO: Uncomment in PR #1287
-    # # ================== Test unequal length ==================
-    # # Test collection of unequal length univariate time series in the shape
-    # # (n_cases, n_timepoints)
-    # _validate_pairwise_result(
-    #     make_example_2d_unequal_length(5, random_state=1, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-    #
-    # # Test collection of unequal length univariate time series in the shape
-    # # (n_cases, n_channels, n_timepoints)
-    # _validate_pairwise_result(
-    #     make_example_unequal_length(5, 1, random_state=1, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-    #
-    # # Test collection of unequal length multivariate time series in the shape
-    # # (n_cases, n_channels, n_timepoints)
-    # _validate_pairwise_result(
-    #     make_example_unequal_length(5, 5, random_state=1, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
+    # ================== Test unequal length ==================
+    if _supports_nonequal_length(dist):
+        # Test collection of unequal length univariate time series in the shape
+        # (n_cases, n_timepoints)
+        _validate_pairwise_result(
+            make_example_2d_unequal_length(5, random_state=1, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # Test collection of unequal length univariate time series in the shape
+        # (n_cases, n_channels, n_timepoints)
+        _validate_pairwise_result(
+            make_example_unequal_length(5, 1, random_state=1, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # Test collection of unequal length multivariate time series in the shape
+        # (n_cases, n_channels, n_timepoints)
+        _validate_pairwise_result(
+            make_example_unequal_length(5, 5, random_state=1, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
@@ -280,47 +298,48 @@ def test_multiple_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
-    # TODO: Uncomment in PR #1287
-    # # ==================== Unequal length tests ====================
-    # # Test passing two singular unequal length univariate time series of shape
-    # # (n_timepoints,) and (m_timepoints,)
-    # _validate_multiple_to_multiple_result(
-    #     make_series(5, return_numpy=True, random_state=1),
-    #     make_series(3, return_numpy=True, random_state=2),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-    #
-    # # Test passing two collections of unequal length univariate time series of shape
-    # # (n_cases, n_timepoints) and (n_cases, m_timepoints)
-    # _validate_multiple_to_multiple_result(
-    #     make_example_2d_unequal_length(5, random_state=1, return_y=False),
-    #     make_example_2d_unequal_length(10, random_state=2, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-    #
-    # # Test passing two collections of unequal length univariate time series of shape
-    # # (n_cases, 1, n_timepoints) and (n_cases, 1, m_timepoints)
-    # _validate_multiple_to_multiple_result(
-    #     make_example_unequal_length(5, 1, random_state=1, return_y=False),
-    #     make_example_unequal_length(10, 1, random_state=2, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-    #
-    # # Test passing two collections of unequal length  multivariate time series of
-    # shape (n_cases, n_channels, m_timepoints) and (n_cases, n_channels, n_timepoints)
-    # _validate_multiple_to_multiple_result(
-    #     make_example_unequal_length(5, 5, random_state=1, return_y=False),
-    #     make_example_unequal_length(10, 5, random_state=2, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
+    # ==================== Unequal length tests ====================
+    if _supports_nonequal_length(dist):
+        # Test passing two singular unequal length univariate time series of shape
+        # (n_timepoints,) and (m_timepoints,)
+        _validate_multiple_to_multiple_result(
+            make_series(5, return_numpy=True, random_state=1),
+            make_series(3, return_numpy=True, random_state=2),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # Test passing two collections of unequal length univariate time series of shape
+        # (n_cases, n_timepoints) and (n_cases, m_timepoints)
+        _validate_multiple_to_multiple_result(
+            make_example_2d_unequal_length(5, random_state=1, return_y=False),
+            make_example_2d_unequal_length(10, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # Test passing two collections of unequal length univariate time series of shape
+        # (n_cases, 1, n_timepoints) and (n_cases, 1, m_timepoints)
+        _validate_multiple_to_multiple_result(
+            make_example_unequal_length(5, 1, random_state=1, return_y=False),
+            make_example_unequal_length(10, 1, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # Test passing two collections of unequal length  multivariate time series of
+        # shape (n_cases, n_channels, m_timepoints) and (n_cases, n_channels,
+        # n_timepoints)
+        _validate_multiple_to_multiple_result(
+            make_example_unequal_length(5, 5, random_state=1, return_y=False),
+            make_example_unequal_length(10, 5, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
@@ -387,73 +406,74 @@ def test_new_single_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
-    # Test passing a singular multivariate time series of shape
-    # (n_channels, n_timepoints) compared to a collection of multivariate time series of
-    # shape (n_cases, n_channels, n_timepoints)
-    _validate_single_to_multiple_result(
-        make_series(5, 5, return_numpy=True, random_state=1),
-        make_example_3d_numpy(5, 5, 5, random_state=2, return_y=False),
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
-    # TODO: Uncomment in PR #1287
-    # # ==================== Unequal length tests ====================
-    # # Test passing a singular univariate time series of shape (n_timepoints,) compared
-    # # to a collection of unequal length univariate time series of shape
-    # # (n_cases, m_timepoints)
-    # _validate_single_to_multiple_result(
-    #     make_series(5, return_numpy=True, random_state=1),
-    #     make_example_2d_unequal_length(5, random_state=2, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-    #
-    # # Test passing a singular univariate time series of shape (1, n_timepoints)
-    # compare to a collection of unequal length univariate time series of shape
-    # # (n_cases, m_timepoints)
-    # _validate_single_to_multiple_result(
-    #     make_series(5, 1, return_numpy=True, random_state=1),
-    #     make_example_2d_unequal_length(5, random_state=2, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"]
-    # )
-    #
-    # # Test passing a singular univariate time series of shape (n_timepoints,) compared
-    # # to a collection of unequal length univariate time series of shape
-    # # (n_cases, 1, m_timepoints)
-    # _validate_single_to_multiple_result(
-    #     make_series(5, return_numpy=True, random_state=1),
-    #     make_example_unequal_length(5, 1, random_state=2, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-    #
-    # # Test passing a singular univariate time series of shape (1, n_timepoints)
-    # compared to a collection of unequal length univariate time series of shape
-    # # (n_cases, 1, m_timepoints)
-    # _validate_single_to_multiple_result(
-    #     make_series(5, 1, return_numpy=True, random_state=1),
-    #     make_example_unequal_length(5, 1, random_state=2, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-    #
+    # TODO: this is not possible: a 2D-array is interpreted as (n_cases, n_timepoints)
     # # Test passing a singular multivariate time series of shape
-    # # (n_channels, n_timepoints) compared to a collection of unequal length
-    # # multivariate time series of shape (n_cases, n_channels, m_timepoints)
+    # # (n_channels, n_timepoints) compared to a collection of multivariate time series
+    # # of shape (n_cases, n_channels, n_timepoints)
     # _validate_single_to_multiple_result(
     #     make_series(5, 5, return_numpy=True, random_state=1),
-    #     make_example_unequal_length(5, 5, random_state=2, return_y=False),
+    #     make_example_3d_numpy(5, 5, 5, random_state=2, return_y=False),
     #     dist["name"],
     #     dist["distance"],
     #     dist["pairwise_distance"],
     # )
+
+    # ==================== Unequal length tests ====================
+    if _supports_nonequal_length(dist):
+        # Test passing a singular univariate time series of shape (n_timepoints,)
+        # compared to a collection of unequal length univariate time series of shape
+        # (n_cases, m_timepoints)
+        _validate_single_to_multiple_result(
+            make_series(5, return_numpy=True, random_state=1),
+            make_example_2d_unequal_length(5, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # Test passing a singular univariate time series of shape (1, n_timepoints)
+        # compare to a collection of unequal length univariate time series of shape
+        # (n_cases, m_timepoints)
+        _validate_single_to_multiple_result(
+            make_series(5, 1, return_numpy=True, random_state=1),
+            make_example_2d_unequal_length(5, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # Test passing a singular univariate time series of shape (n_timepoints,)
+        # compared to a collection of unequal length univariate time series of shape
+        # (n_cases, 1, m_timepoints)
+        _validate_single_to_multiple_result(
+            make_series(5, return_numpy=True, random_state=1),
+            make_example_unequal_length(5, 1, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # Test passing a singular univariate time series of shape (1, n_timepoints)
+        # compared to a collection of unequal length univariate time series of shape
+        # (n_cases, 1, m_timepoints)
+        _validate_single_to_multiple_result(
+            make_series(5, 1, return_numpy=True, random_state=1),
+            make_example_unequal_length(5, 1, random_state=2, return_y=False),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
+
+        # # Test passing a singular multivariate time series of shape
+        # # (n_channels, n_timepoints) compared to a collection of unequal length
+        # # multivariate time series of shape (n_cases, n_channels, m_timepoints)
+        # _validate_single_to_multiple_result(
+        #     make_series(5, 5, return_numpy=True, random_state=1),
+        #     make_example_unequal_length(5, 5, random_state=2, return_y=False),
+        #     dist["name"],
+        #     dist["distance"],
+        #     dist["pairwise_distance"],
+        # )
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
