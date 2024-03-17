@@ -1,3 +1,5 @@
+"""Test for making forecasting problems."""
+
 __maintainer__ = []
 __all__ = []
 

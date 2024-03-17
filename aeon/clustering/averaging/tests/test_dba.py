@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 
 from aeon.clustering.averaging import elastic_barycenter_average
-from aeon.distances.tests.test_utils import _create_test_distance_numpy
 from aeon.testing.test_config import PR_TESTING
+from aeon.testing.utils.data_gen import make_example_3d_numpy
 
 expected_dba = np.array(
     [
@@ -139,7 +139,7 @@ expected_dba = np.array(
 )
 def test_dba():
     """Test dba functionality."""
-    X_train = _create_test_distance_numpy(10, 10, 10)
+    X_train = make_example_3d_numpy(10, 10, 10, random_state=1)
 
     average_ts = elastic_barycenter_average(X_train)
 
@@ -169,7 +169,7 @@ def test_dba():
 )
 def test_elastic_dba_variations(distance):
     """Test dba functionality with different distance measures."""
-    X_train = _create_test_distance_numpy(4, 2, 10)
+    X_train = make_example_3d_numpy(4, 2, 10, random_state=1)
 
     average_ts = elastic_barycenter_average(
         X_train, distance=distance, window=0.2, independent=False

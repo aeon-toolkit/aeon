@@ -83,6 +83,7 @@ class EncoderRegressor(BaseDeepRegressor):
     -----
     Adapted from source code
     https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/encoder.py
+
     References
     ----------
     ..[1] Serrà et al. Towards a Universal Neural Network Encoder for Time Series
