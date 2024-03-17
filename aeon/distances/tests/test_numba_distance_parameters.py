@@ -7,18 +7,30 @@ import pytest
 
 from aeon.distances import distance
 from aeon.distances._distance import DISTANCES
-from aeon.distances.tests.test_expected_results import _expected_distance_results_params
-from aeon.distances.tests.test_utils import _create_test_distance_numpy
+from aeon.testing.expected_results.expected_distance_results import (
+    _expected_distance_results_params,
+)
+from aeon.testing.utils.data_gen import make_series
 
 
 def _test_distance_params(
     param_list: List[Dict], distance_func: Callable, distance_str: str
 ):
-    x_univ = _create_test_distance_numpy(10, 1).reshape((1, 10))
-    y_univ = _create_test_distance_numpy(10, 1, random_state=2).reshape((1, 10))
+    """
+    Test function to check the parameters of distance functions.
 
-    x_multi = _create_test_distance_numpy(10, 10)
-    y_multi = _create_test_distance_numpy(10, 10, random_state=2)
+    Parameters
+    ----------
+    param_list (List[Dict]): List of dictionaries,
+    containing parameters for the distance function.
+    distance_func (Callable): The distance function to be tested.
+    distance_str (str): The name of the distance function.
+    """
+    x_univ = make_series(10, return_numpy=True, random_state=1)
+    y_univ = make_series(10, return_numpy=True, random_state=2)
+
+    x_multi = make_series(10, 10, return_numpy=True, random_state=1)
+    y_multi = make_series(10, 10, return_numpy=True, random_state=2)
 
     test_ts = [[x_univ, y_univ], [x_multi, y_multi]]
     results_to_fill = []
@@ -33,7 +45,14 @@ def _test_distance_params(
         curr_results = []
         for x, y in test_ts:
             if g_none:
-                param_dict["g_arr"] = np.std([x, y], axis=0).sum(axis=1)
+                _x = x
+                if x.ndim == 1:
+                    _x = x.reshape(1, -1)
+                _y = y
+                if y.ndim == 1:
+                    _y = y.reshape(1, -1)
+
+                param_dict["g_arr"] = np.std([_x, _y], axis=0).sum(axis=1)
                 if "g" in param_dict:
                     del param_dict["g"]
             results = []
@@ -46,6 +65,7 @@ def _test_distance_params(
                         assert result == pytest.approx(
                             _expected_distance_results_params[distance_str][i][j]
                         )
+
             curr_results.append(results[0])
             j += 1
         i += 1
@@ -75,6 +95,7 @@ DIST_PARAMS = {
 
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_new_distance_params(dist):
+    """Test function to check the parameters of distance functions."""
     if dist["name"] in DIST_PARAMS:
         _test_distance_params(
             DIST_PARAMS[dist["name"]],

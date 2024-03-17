@@ -39,6 +39,7 @@ def test_check_fh():
 
 
 def test_check_functions():
+    """Test check functions."""
     X = pd.DataFrame(np.random.randint(0, 10, size=(6, 4)), columns=list("ABCD"))
     y = pd.Series([1, 2, 3, 4, 5, 6])
     y2, X2 = check_y_X(y, X)

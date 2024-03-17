@@ -159,6 +159,7 @@ def test_make_2d_unequal_length_data(n_cases, n_timepoints, n_classes, regressio
 def test_make_example_nested_dataframe(
     n_cases, n_channels, n_timepoints, n_classes, regression
 ):
+    """Test examples nested dataframes creation."""
     X, y = make_example_nested_dataframe(
         n_cases=n_cases,
         n_labels=n_classes,
