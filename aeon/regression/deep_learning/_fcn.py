@@ -119,7 +119,7 @@ class FCNRegressor(BaseDeepRegressor):
         verbose=False,
         output_activation="linear",
         loss="mse",
-        metrics=None,
+        metrics=["accuracy"],
         random_state=None,
         use_bias=True,
         optimizer=None,
