@@ -70,8 +70,11 @@ class EncoderRegressor(BaseDeepRegressor):
         Seed for random number generation.
     loss:
         The loss function to use for training.
-    metrics:
-        The evaluation metrics to use during training.
+    metrics: str or list of str, default=["accuracy"]
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     use_bias:
         Whether to use bias in the dense layers.
     optimizer:
@@ -117,7 +120,7 @@ class EncoderRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         verbose=False,
         loss="mean_squared_error",
-        metrics=None,
+        metrics=["accuracy"],
         use_bias=True,
         optimizer=None,
         random_state=None,
@@ -181,11 +184,7 @@ class EncoderRegressor(BaseDeepRegressor):
         import tensorflow as tf
 
         tf.random.set_seed(self.random_state)
-
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
+        
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
