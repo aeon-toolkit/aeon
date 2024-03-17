@@ -120,7 +120,7 @@ class EncoderRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         verbose=False,
         loss="mean_squared_error",
-        metrics=["accuracy"],
+        metrics="accuracy",
         use_bias=True,
         optimizer=None,
         random_state=None,
