@@ -184,7 +184,6 @@ class EncoderRegressor(BaseDeepRegressor):
         import tensorflow as tf
 
         tf.random.set_seed(self.random_state)
-        
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
