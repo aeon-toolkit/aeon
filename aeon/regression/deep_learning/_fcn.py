@@ -52,6 +52,10 @@ class FCNRegressor(BaseDeepRegressor):
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
     metrics         : list of strings, default=["accuracy"],
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     optimizer       : keras.optimizers object, default = Adam(lr=0.01)
         specify the optimizer and the learning rate to be used.
     file_path       : str, default = "./"
@@ -119,7 +123,7 @@ class FCNRegressor(BaseDeepRegressor):
         verbose=False,
         output_activation="linear",
         loss="mse",
-        metrics=["accuracy"],
+        metrics="accuracy",
         random_state=None,
         use_bias=True,
         optimizer=None,
@@ -182,10 +186,6 @@ class FCNRegressor(BaseDeepRegressor):
 
         tf.random.set_seed(self.random_state)
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(

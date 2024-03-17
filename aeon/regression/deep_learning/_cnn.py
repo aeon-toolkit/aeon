@@ -129,7 +129,7 @@ class CNNRegressor(BaseDeepRegressor):
         verbose=False,
         loss="mse",
         output_activation="linear",
-        metrics=None,
+        metrics="accuracy",
         random_state=None,
         use_bias=True,
         optimizer=None,

@@ -46,6 +46,8 @@ class TapNetRegressor(BaseDeepRegressor):
         activation function for the last output layer
     loss                : str, default = "mean_squared_error"
         loss function for the classifier
+    metrics             : list of str, default = ["mean_squared_error"]
+        evaluation metrics to use during training
     optimizer           : str or None, default = "Adam(lr=0.01)"
         gradient updating function for the classifier
     use_bias            : bool, default = True
@@ -101,7 +103,7 @@ class TapNetRegressor(BaseDeepRegressor):
         padding="same",
         loss="mean_squared_error",
         optimizer=None,
-        metrics=None,
+        metrics="mean_squared_error",
         callbacks=None,
         verbose=False,
     ):
@@ -170,8 +172,6 @@ class TapNetRegressor(BaseDeepRegressor):
         from tensorflow import keras
 
         tf.random.set_seed(self.random_state)
-
-        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
 
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 

@@ -30,7 +30,11 @@ class MLPRegressor(BaseDeepRegressor):
         whether to output extra information
     loss : string, default="mean_squared_error"
         fit parameter for the keras model
-    metrics : list of strings, default=["accuracy"],
+    metrics : list of strings, default=["accuracy"]
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -87,7 +91,7 @@ class MLPRegressor(BaseDeepRegressor):
         callbacks=None,
         verbose=False,
         loss="mse",
-        metrics=None,
+        metrics="accuracy",
         file_path="./",
         save_best_model=False,
         save_last_model=False,
@@ -145,10 +149,6 @@ class MLPRegressor(BaseDeepRegressor):
 
         tf.random.set_seed(self.random_state)
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(

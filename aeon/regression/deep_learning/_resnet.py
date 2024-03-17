@@ -89,6 +89,10 @@ class ResNetRegressor(BaseDeepRegressor):
             fit parameter for the keras model
         optimizer                   : keras.optimizer, default=keras.optimizers.Adam(),
         metrics                     : list of strings, default=["accuracy"],
+            The evaluation metrics to use during training. If
+            a single string metric is provided, it will be
+            used as the only metric. If a list of metrics are
+            provided, all will be used for evaluation.
 
     Notes
     -----
@@ -129,7 +133,7 @@ class ResNetRegressor(BaseDeepRegressor):
         verbose=False,
         loss="mse",
         output_activation="linear",
-        metrics=None,
+        metrics="accuracy",
         batch_size=64,
         use_mini_batch_size=False,
         random_state=None,
@@ -205,11 +209,6 @@ class ResNetRegressor(BaseDeepRegressor):
             if self.optimizer is None
             else self.optimizer
         )
-
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
 
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
