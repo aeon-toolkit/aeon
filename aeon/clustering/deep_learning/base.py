@@ -17,8 +17,13 @@ class BaseDeepClusterer(BaseClusterer, ABC):
     ----------
     n_clusters : int, default=None
         Number of clusters for the deep learning model.
-    clustering_algorithm : str, default="kmeans"
+    clustering_algorithm : str, {'kmeans', 'kshape', 'kmedoids'},
+        default="kmeans"
         The clustering algorithm used in the latent space.
+        Options include:
+        'kmeans' for K-means clustering,
+        'kshape' for KShape clustering,
+        'kmedoids' for KMedoids clustering.
     clustering_params : dict, default=None
         Dictionary containing the parameters of the clustering algorithm chosen.
     batch_size : int, default = 40
