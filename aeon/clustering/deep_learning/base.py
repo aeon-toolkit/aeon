@@ -5,6 +5,8 @@ __maintainer__ = []
 from abc import ABC, abstractmethod
 
 from aeon.clustering._k_means import TimeSeriesKMeans
+from aeon.clustering._k_medoids import TimeSeriesKMedoids
+from aeon.clustering._k_shapes import TimeSeriesKShapes
 from aeon.clustering.base import BaseClusterer
 
 
@@ -51,6 +53,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         self.last_file_name = last_file_name
 
         self.model_ = None
+        self.clusterer = None
 
         super().__init__(n_clusters)
 
@@ -116,6 +119,16 @@ class BaseDeepClusterer(BaseClusterer, ABC):
                 self.clusterer = TimeSeriesKMeans(
                     n_clusters=self.n_clusters, **clustering_params_
                 )
+        elif self.clustering_algorithm == "kshape":
+            self.clusterer = TimeSeriesKShapes(
+                n_clusters=self.n_clusters, **clustering_params_
+            )
+        elif self.clustering_algorithm == "kmedoids":
+            self.clusterer = TimeSeriesKMedoids(
+                n_clusters=self.n_clusters, **clustering_params_
+            )
+        else:
+            raise ValueError(f"Invalid algorithm: {self.clustering_algorithm}")
         latent_space = self.model_.layers[1].predict(X)
         self.clusterer.fit(X=latent_space)
 
