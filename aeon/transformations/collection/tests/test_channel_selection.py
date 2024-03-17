@@ -14,5 +14,5 @@ def test_channel_selection():
     Xt = ecp.transform(X, y)
 
     # test shape of transformed data should be
-    # (n_samples, n_channels_selected, series_length)
+    # (n_samples, n_channels_selected, n_timepoints)
     assert Xt.shape == (X.shape[0], len(ecp.channels_selected_idx), X.shape[2])

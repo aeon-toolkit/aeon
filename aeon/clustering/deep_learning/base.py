@@ -93,14 +93,14 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         -------
         None
         """
-        self.model_.save(file_path + self.last_file_name + ".hdf5")
+        self.model_.save(file_path + self.last_file_name + ".keras")
 
     def _fit_clustering(self, X):
         """Train the clustering algorithm in the latent space.
 
         Parameters
         ----------
-        X : np.ndarray, shape=(n_instances, n_timepoints, n_channels)
+        X : np.ndarray, shape=(n_cases, n_timepoints, n_channels)
             The input time series.
         """
         if self.clustering_params is None:

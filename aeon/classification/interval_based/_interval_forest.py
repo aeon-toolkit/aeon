@@ -49,7 +49,7 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
 
         A list or tuple of ints and/or strs will extract the number of intervals using
         the above rules and sum the results for the final n_intervals. i.e. [4, "sqrt"]
-        will extract sqrt(series_length) + 4 intervals.
+        will extract sqrt(n_timepoints) + 4 intervals.
 
         Different number of intervals for each series_transformers series can be
         specified using a nested list or tuple. Any list or tuple input containing
@@ -135,7 +135,7 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_channels_ : int
         The number of channels per case.
@@ -148,7 +148,7 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
     intervals_ : list of shape (n_estimators) of BaseTransformer
         Stores the interval extraction transformer for all estimators.
     transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances_ ,total_intervals * att_subsample_size)
+    (n_cases_ ,total_intervals * att_subsample_size)
         The transformed dataset for all classifiers. Only saved when
         save_transformed_data is true.
 

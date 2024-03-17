@@ -157,7 +157,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
+        run: python -m pytest -k 'not TestAll'
 
       - name: Save new cache
         uses: actions/cache/save@v4

@@ -10,7 +10,6 @@ class MLPNetwork(BaseDeepNetwork):
 
     Adapted from the implementation used in [1]_
 
-
     Notes
     -----
     Adapted from the implementation from source code
@@ -33,7 +32,7 @@ class MLPNetwork(BaseDeepNetwork):
 
         Parameters
         ----------
-        input_shape : tuple of shape = (series_length (m), n_channels (d))
+        input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer
 
         Returns

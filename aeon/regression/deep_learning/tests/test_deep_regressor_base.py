@@ -55,6 +55,7 @@ class _DummyDeepRegressor(BaseDeepRegressor):
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_regressor():
+    """Test for DummyRegressor."""
     last_file_name = str(time.time_ns())
 
     # create a dummy regressor
@@ -71,7 +72,7 @@ def test_dummy_deep_regressor():
 
     dummy_deep_rg.save_last_model_to_file()
 
-    os.remove("./" + last_file_name + ".hdf5")
+    os.remove("./" + last_file_name + ".keras")
 
     # test summary of model
 

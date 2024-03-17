@@ -72,7 +72,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
             assumed to be sorted, and the first segment is assumed to start at
             position 0. Hence, the first change point must be greater than 0 and the
             last less than the series length. If the last value is
-            ``series_length-1`` then the last point forms a single segment. An empty
+            ``n_timepoints-1`` then the last point forms a single segment. An empty
             list indicates no change points.
         b) A list of integers of length m indicating the segment of each time point:
             output [0,0,0,0,1,1,1,1,2,2] or output [0,0,0,1,1,1,1,0,0,0]

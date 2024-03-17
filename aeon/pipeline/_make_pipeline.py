@@ -1,6 +1,8 @@
 """Pipeline making utility."""
 
 __maintainer__ = []
+from aeon.classification import BaseClassifier
+from aeon.classification.compose import ClassifierPipeline
 
 
 def make_pipeline(*steps):
@@ -47,8 +49,11 @@ def make_pipeline(*steps):
     >>> type(pipe).__name__
     'TransformerPipeline'
     """
-    pipe = steps[0]
-    for i in range(1, len(steps)):
-        pipe = pipe * steps[i]
+    if isinstance(steps[-1], BaseClassifier):
+        pipe = ClassifierPipeline(list(steps[:-1]), steps[-1])
+    else:
+        pipe = steps[0]
+        for i in range(1, len(steps)):
+            pipe = pipe * steps[i]
 
     return pipe

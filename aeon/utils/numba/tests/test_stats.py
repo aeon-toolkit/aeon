@@ -9,6 +9,7 @@ from aeon.utils.numba.stats import is_prime, prime_up_to
 
 
 def test_prime_up_to():
+    """Test the generation of prime numbers up to a specified limit."""
     true_primes_to_100 = [
         2,
         3,
@@ -41,6 +42,7 @@ def test_prime_up_to():
 
 
 def test_is_prime():
+    """Test the determination of prime numbers."""
     true_primes_to_100 = [
         2,
         3,

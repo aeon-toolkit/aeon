@@ -151,7 +151,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     n_cases = 0
     n_channels = 0  # Assumed the same for all
     current_channels = 0
-    series_length = 0
+    n_timepoints = 0
     y_values = []
     target = False
     if meta_data["classlabel"] or meta_data["targetlabel"]:
@@ -171,7 +171,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
         if n_cases == 1:  # Find n_channels and length  from first if not unequal
             n_channels = current_channels
             if meta_data["equallength"]:
-                series_length = len(channels[0].split(","))
+                n_timepoints = len(channels[0].split(","))
         else:
             if current_channels != n_channels:
                 raise OSError(
@@ -185,7 +185,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
                         f"Expecting univariate from meta data"
                     )
         if meta_data["equallength"]:
-            current_length = series_length
+            current_length = n_timepoints
         else:
             current_length = len(channels[0].split(","))
         np_case = np.zeros(shape=(n_channels, current_length))
@@ -238,7 +238,7 @@ def load_from_tsfile(
     Returns
     -------
     data: Union[np.ndarray,list]
-        time series data, np.ndarray (n_cases, n_channels, series_length) if equal
+        time series data, np.ndarray (n_cases, n_channels, n_timepoints) if equal
         length time series, list of [n_cases] np.ndarray (n_channels, n_timepoints)
         if unequal length series.
     y : target variable, np.ndarray of string or int
@@ -563,7 +563,7 @@ def load_from_arff_file(
     Returns
     -------
     data: np.ndarray
-        time series data, np.ndarray (n_cases, n_channels, series_length)
+        time series data, np.ndarray (n_cases, n_channels, n_timepoints)
     y : target variable, np.ndarray of string or int
     """
     instance_list = []
@@ -638,7 +638,7 @@ def load_from_tsv_file(full_file_path_and_name):
     Returns
     -------
     data: np.ndarray
-        time series data, np.ndarray (n_cases, 1, series_length)
+        time series data, np.ndarray (n_cases, 1, n_timepoints)
     y : target variable, np.ndarray of string or int
 
     """
