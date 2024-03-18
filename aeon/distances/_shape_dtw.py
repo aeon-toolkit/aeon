@@ -397,6 +397,12 @@ def _shape_dtw_cost_matrix(
     transformed_x: np.ndarray = None,
     transformed_y: np.ndarray = None,
 ) -> float:
+    # for compilation purposes
+    if transformed_x is None:
+        transformed_x = x.copy()
+    if transformed_y is None:
+        transformed_y = y.copy()
+
     if not transformation_precomputed:
         new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
         new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
