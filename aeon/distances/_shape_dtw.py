@@ -155,6 +155,12 @@ def shape_dtw_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -320,6 +326,12 @@ def shape_dtw_cost_matrix(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -441,6 +453,12 @@ def shape_dtw_alignment_path(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -525,6 +543,12 @@ def shape_dtw_pairwise_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
