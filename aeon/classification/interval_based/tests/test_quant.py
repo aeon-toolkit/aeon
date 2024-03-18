@@ -1,3 +1,5 @@
+"""Tests for the QUANTClassifier class."""
+
 import numpy as np
 import pytest
 from sklearn.linear_model import RidgeClassifierCV
@@ -12,6 +14,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="skip test if required soft dependency tsfresh not available",
 )
 def test_alternative_estimator():
+    """Test QUANTClassifier with an alternative estimator."""
     X, y = make_example_3d_numpy()
     clf = QUANTClassifier(estimator=RidgeClassifierCV())
     clf.fit(X, y)
@@ -26,6 +29,7 @@ def test_alternative_estimator():
     reason="skip test if required soft dependency tsfresh not available",
 )
 def test_invalid_inputs():
+    """Test handling of invalid inputs by QUANTClassifier."""
     X, y = make_example_3d_numpy()
 
     with pytest.raises(ValueError, match="quantile_divisor must be >= 1"):

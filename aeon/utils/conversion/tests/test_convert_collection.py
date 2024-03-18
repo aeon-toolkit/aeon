@@ -81,6 +81,7 @@ def test_convert_df_list(input_data):
 
 
 def test_resolve_equal_length_inner_type():
+    """Test the resolution of inner type for equal length collections."""
     test = ["numpy3D"]
     X = resolve_equal_length_inner_type(test)
     assert X == "numpy3D"
@@ -93,6 +94,7 @@ def test_resolve_equal_length_inner_type():
 
 
 def test_resolve_unequal_length_inner_type():
+    """Test the resolution of inner type for unequal length collections."""
     test = ["np-list"]
     X = resolve_unequal_length_inner_type(test)
     assert X == "np-list"
@@ -142,6 +144,7 @@ def test_is_unequal_length(data):
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_has_missing(data):
+    """Test if missing values are correctly identified."""
     assert not has_missing(EQUAL_LENGTH_UNIVARIATE[data])
     X = np.random.random(size=(10, 2, 20))
     X[5][1][12] = np.NAN
@@ -150,6 +153,7 @@ def test_has_missing(data):
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_is_univariate(data):
+    """Test if univariate series are correctly identified."""
     assert is_univariate(EQUAL_LENGTH_UNIVARIATE[data])
     if data in EQUAL_LENGTH_MULTIVARIATE.keys():
         assert not is_univariate(EQUAL_LENGTH_MULTIVARIATE[data])
@@ -168,6 +172,7 @@ NUMPY3D = [
 
 @pytest.mark.parametrize("function", NUMPY3D)
 def test_numpy3D_error(function):
+    """Test input type error for numpy3D."""
     X = np.random.random(size=(10, 20))
     with pytest.raises(TypeError, match="Input should be 3-dimensional NumPy array"):
         function(X)
@@ -187,7 +192,7 @@ NUMPY2D = [
 def test_numpy2D_error(function):
     """Test numpy flat converters only work with 2D numpy."""
     X = np.random.random(size=(10, 2, 20))
-    with pytest.raises(TypeError, match="Error: Input numpy not of type numpy2D"):
+    with pytest.raises(TypeError, match="Input numpy not of type numpy2D"):
         function(X)
 
 
@@ -225,7 +230,7 @@ def test_from_nested():
     }
     X = pd.DataFrame(data)
     with pytest.raises(
-        TypeError, match="Cannot convert unequal length series to " "numpy2D"
+        TypeError, match="Cannot convert unequal length series to numpy2D"
     ):
         _from_nested_univ_to_numpy2d(X)
     X, _ = make_example_nested_dataframe(n_cases=10, n_channels=1, n_timepoints=20)
@@ -233,6 +238,6 @@ def test_from_nested():
     assert result.shape == (10, 20)
     X, _ = make_example_nested_dataframe(n_cases=10, n_channels=2, n_timepoints=20)
     with pytest.raises(
-        TypeError, match="Cannot convert multivariate nested into " "numpy2D"
+        TypeError, match="Cannot convert multivariate nested into numpy2D"
     ):
         _from_nested_univ_to_numpy2d(X)

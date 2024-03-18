@@ -3,7 +3,7 @@
 This contains all functions to convert supported collection data types.
 
 String identifier meanings (from aeon.utils.conversion import COLLECTIONS_DATA_TYPES) :
-numpy3D : 2D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
+numpy3D : 3D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
 np-list : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
 df-list : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
 numpy2D : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
@@ -12,10 +12,12 @@ nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
 pd-multiindex : pd.DataFrame with multi-index,
 
 For the seven supported, this gives 42 different converters.
-Rather than use them directly, we recommend using the conversion dictionary
-convert_dictionary in the collections file.
-legacy code supported "dask_panel" but it is not actually used anywhere.
+Rather than using them directly, we recommend using the conversion function
+convert_collection.
+Legacy code supported "dask_panel" but it is not actually used anywhere; thus, removed.
 """
+
+from typing import Sequence
 
 import numpy as np
 import pandas as pd
@@ -34,47 +36,49 @@ def convert_identity(X):
 
 
 NUMPY3D_ERROR = (
-    "Error: Input should be 3-dimensional NumPy array with shape ("
-    "n_instances, n_channels, n_timepoints)."
+    "Input should be 3-dimensional NumPy array with shape ("
+    "n_cases, n_channels, n_timepoints)."
 )
-NUMPY2D_OUTPUT_ERROR = "Error: Cannot convert multivariate series to numpy 2D arrays."
-NUMPY2D_INPUT_ERROR = "Error: Input numpy not of type numpy2D."
+NUMPY2D_OUTPUT_ERROR = "Cannot convert multivariate series to numpy 2D arrays."
+NUMPY2D_INPUT_ERROR = "Input numpy not of type numpy2D."
+NP_LIST_ERROR = "Input should be a list of 2D np.ndarray."
+DF_LIST_ERROR = (
+    "Input should be 2-dimensional np.ndarray with shape (n_cases, n_timepoints)."
+)
 
 
 def _from_numpy3d_to_np_list(X):
     """Convert 3D np.ndarray to a list of 2D numpy.
 
-    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
-    a 2D list length [n_instances] each of shape (n_channels, n_timepoints)
+    Converts 3D numpy array (n_cases, n_channels, n_timepoints) to
+    a 2D list length [n_cases] each of shape (n_channels, n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
-        The input array with shape (n_instances, n_channels, n_timepoints)
+        The input array with shape (n_cases, n_channels, n_timepoints)
 
     Returns
     -------
-    list : list [n_instances] np.ndarray
+    list : list [n_cases] np.ndarray
         A list of np.ndarray
     """
     if X.ndim != 3:
         raise TypeError(NUMPY3D_ERROR)
-    np_list = []
-    for arr in X:
-        np_list.append(arr)
+    np_list = [x for x in X]
     return np_list
 
 
 def _from_numpy3d_to_df_list(X):
-    """Convert 3D np.darray to a list of dataframes in wide format.
+    """Convert 3D np.ndarray to a list of dataframes in wide format.
 
-    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
-    a 2D list length [n_instances] of pd.DataFrames shape (n_channels, n_timepoints)
+    Converts 3D numpy array (n_cases, n_channels, n_timepoints) to
+    a 2D list length [n_cases] of pd.DataFrames shape (n_channels, n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
-        The input array with shape (n_instances, n_channels, n_timepoints)
+        The input array with shape (n_cases, n_channels, n_timepoints)
 
     Returns
     -------
@@ -86,26 +90,24 @@ def _from_numpy3d_to_df_list(X):
     """
     if X.ndim != 3:
         raise TypeError(NUMPY3D_ERROR)
-    df_list = []
-    for x in X:
-        df_list.append(pd.DataFrame(np.transpose(x)))
+    df_list = [pd.DataFrame(np.transpose(x)) for x in X]
     return df_list
 
 
 def _from_numpy3d_to_pd_wide(X):
-    """Convert 3D np.darray to a list of dataframes in wide format.
+    """Convert 3D np.ndarray to a list of dataframes in wide format.
 
-    Only valid with univariate time series. Converts 3D numpy array (n_instances, 1,
-    n_timepoints) to a dataframe (n_instances, n_timepoints)
+    Only valid with univariate time series. Converts 3D numpy array (n_cases, 1,
+    n_timepoints) to a dataframe (n_cases, n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
-        The input array with shape (n_instances, n_channels, n_timepoints)
+        The input array with shape (n_cases, n_channels, n_timepoints)
 
     Returns
     -------
-    df : a dataframe (n_instances,n_channels*n_timepoints)
+    df : a dataframe (n_cases,n_channels*n_timepoints)
 
     Raise
     -----
@@ -134,9 +136,9 @@ def _from_numpy3d_to_pd_multiindex(X):
     if X.ndim != 3:
         raise TypeError(NUMPY3D_ERROR)
 
-    n_instances, n_channels, n_timepoints = X.shape
+    n_cases, n_channels, n_timepoints = X.shape
     multi_index = pd.MultiIndex.from_product(
-        [range(n_instances), range(n_channels), range(n_timepoints)],
+        [range(n_cases), range(n_channels), range(n_timepoints)],
         names=["instances", "columns", "timepoints"],
     )
 
@@ -150,7 +152,7 @@ def _from_numpy3d_to_nested_univ(X):
     """Convert numpy3D collection to nested_univ pd.DataFrame."""
     if X.ndim != 3:
         raise TypeError(NUMPY3D_ERROR)
-    n_instances, n_channels, n_timepoints = X.shape
+    n_cases, n_channels, n_timepoints = X.shape
     array_type = X.dtype
     container = pd.Series
     column_names = [f"var_{i}" for i in range(n_channels)]
@@ -167,13 +169,10 @@ def _from_numpy3d_to_nested_univ(X):
     return df
 
 
-np_list_error = "input should be a list of 2D np.ndarray"
-
-
 def _from_np_list_to_numpy3d(X):
     """Convert from a list of 2D numpy to 3d numpy."""
     if not isinstance(X, list):
-        raise TypeError(np_list_error)
+        raise TypeError(NP_LIST_ERROR)
     for i in range(1, len(X)):
         if len(X[i][0]) != len(X[0][0]):
             raise TypeError("Cannot convert unequal length to numpy3D")
@@ -183,7 +182,7 @@ def _from_np_list_to_numpy3d(X):
 def _from_np_list_to_df_list(X):
     """Convert from a list of 2D numpy to list of dataframes."""
     if not isinstance(X, list) or not isinstance(X[0], np.ndarray) or X[0].ndim != 2:
-        raise TypeError(np_list_error)
+        raise TypeError(NP_LIST_ERROR)
     n_cases = len(X)
     df_list = []
     for i in range(n_cases):
@@ -192,9 +191,9 @@ def _from_np_list_to_df_list(X):
 
 
 def _from_np_list_to_nested_univ(X, store=None):
-    """Convert from a a list of 2D numpy to nested pd.DataFrame."""
+    """Convert from a list of 2D numpy to nested pd.DataFrame."""
     if not isinstance(X, list) or not isinstance(X[0], np.ndarray) or X[0].ndim != 2:
-        raise TypeError(np_list_error)
+        raise TypeError(NP_LIST_ERROR)
     n_cases = len(X)
     n_channels = X[0].shape[0]
     df = pd.DataFrame(index=range(n_cases), columns=range(n_channels))
@@ -207,7 +206,7 @@ def _from_np_list_to_nested_univ(X, store=None):
 
 def _from_np_list_to_numpy2d(X):
     if not isinstance(X, list) or not isinstance(X[0], np.ndarray):
-        raise TypeError(np_list_error)
+        raise TypeError(NP_LIST_ERROR)
     X_3d = _from_np_list_to_numpy3d(X)
     if X_3d.shape[1] > 1:
         raise TypeError(NUMPY2D_OUTPUT_ERROR)
@@ -224,17 +223,9 @@ def _from_np_list_to_pd_multiindex(X):
     return _from_df_list_to_pd_multiindex(X_df)
 
 
-df_list_error = (
-    "Input should be 2-dimensional np.ndarray with shape (n_instances, "
-    "n_timepoints).",
-)
-
-
 def _from_df_list_to_np_list(X):
-    list = []
     n_cases = len(X)
-    for i in range(n_cases):
-        list.append(np.transpose(np.array(X[i])))
+    list = [np.transpose(np.array(X[i])) for i in range(n_cases)]
     return list
 
 
@@ -291,9 +282,7 @@ def _from_numpy2d_to_np_list(X):
     if not isinstance(X, np.ndarray) or X.ndim != 2:
         raise TypeError(NUMPY2D_INPUT_ERROR)
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
-    X_list = []
-    for x in X_3d:
-        X_list.append(x)
+    X_list = [x for x in X_3d]
     return X_list
 
 
@@ -301,9 +290,7 @@ def _from_numpy2d_to_df_list(X):
     if not isinstance(X, np.ndarray) or X.ndim != 2:
         raise TypeError(NUMPY2D_INPUT_ERROR)
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
-    X_list = []
-    for x in X_3d:
-        X_list.append(pd.DataFrame(np.transpose(x)))
+    X_list = [pd.DataFrame(np.transpose(x)) for x in X_3d]
     return X_list
 
 
@@ -317,13 +304,11 @@ def _from_numpy2d_to_nested_univ(X):
     if not isinstance(X, np.ndarray) or X.ndim != 2:
         raise TypeError(NUMPY2D_INPUT_ERROR)
     container = pd.Series
-    n_instances, n_timepoints = X.shape
+    n_cases, n_timepoints = X.shape
     time_index = np.arange(n_timepoints)
     kwargs = {"index": time_index}
 
-    Xt = pd.DataFrame(
-        pd.Series([container(X[i, :], **kwargs) for i in range(n_instances)])
-    )
+    Xt = pd.DataFrame(pd.Series([container(X[i, :], **kwargs) for i in range(n_cases)]))
     return Xt
 
 
@@ -543,24 +528,26 @@ convert_dictionary[("pd-multiindex", "nested_univ")] = (
 def convert_collection(X, output_type):
     """Convert from one of collections compatible data structure to another.
 
-    See aeon.utils.conversion.COLLECTIONS_DATA_TYPE for the list.
+    See :obj:`aeon.utils.conversion.COLLECTIONS_DATA_TYPE` for the list.
 
     Parameters
     ----------
-    X : collection.
+    X : collection
+        The input collection to be converted.
     output_type : string
-        one of COLLECTIONS_DATA_TYPES
+        Name of the target collection data type, must be one of COLLECTIONS_DATA_TYPES.
 
     Returns
     -------
-    Data structure conforming to "to_type"
+    X : collection
+        Data structure conforming to `output_type`.
 
     Raises
     ------
     TypeError if
-        X pd.ndarray but wrong dimension
-        X is list but not of np.ndarray or p.DataFrame.
-        X is a pd.DataFrame of non float primitives.
+        X np.ndarray but wrong dimension
+        X is list but not of np.ndarray or pd.DataFrame
+        X is a pd.DataFrame of non float primitives
 
     Example
     -------
@@ -583,51 +570,51 @@ def convert_collection(X, output_type):
     return convert_dictionary[(input_type, output_type)](X)
 
 
-def resolve_equal_length_inner_type(inner_type):
+def resolve_equal_length_inner_type(inner_types: Sequence[str]) -> str:
     """Hierarchy of preference for internal supported types for equal length.
 
     Parameter
     ---------
-    inner_type: str
-        The inner type to be resolved.
+    inner_types: Sequence[str]
+        The inner types to be resolved to a single type.
     """
-    if "numpy3D" in inner_type:
+    if "numpy3D" in inner_types:
         return "numpy3D"
-    if "np-list" in inner_type:
+    if "np-list" in inner_types:
         return "np-list"
-    if "numpy2D" in inner_type:
+    if "numpy2D" in inner_types:
         return "numpy2D"
-    if "pd-multiindex" in inner_type:
+    if "pd-multiindex" in inner_types:
         return "pd-multiindex"
-    if "df-list" in inner_type:
+    if "df-list" in inner_types:
         return "df-list"
-    if "pd-wide" in inner_type:
+    if "pd-wide" in inner_types:
         return "pd-wide"
-    if "nested_univ" in inner_type:
+    if "nested_univ" in inner_types:
         return "nested_univ"
     raise ValueError(
-        f"Error, no valid inner types in {inner_type} must be one of "
+        f"Error, no valid inner types in {inner_types} must be one of "
         f"{COLLECTIONS_DATA_TYPES}"
     )
 
 
-def resolve_unequal_length_inner_type(inner_type):
+def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
     """Hierarchy of preference for internal supported types for unequal length.
 
     Parameter
     ---------
-    inner_type: str
-        The inner type to be resolved.
+    inner_types: Sequence[str]
+        The inner types to be resolved to a single type.
     """
-    if "np-list" in inner_type:
+    if "np-list" in inner_types:
         return "np-list"
-    if "df-list" in inner_type:
+    if "df-list" in inner_types:
         return "df-list"
-    if "pd-multiindex" in inner_type:
+    if "pd-multiindex" in inner_types:
         return "pd-multiindex"
-    if "nested_univ" in inner_type:
+    if "nested_univ" in inner_types:
         return "nested_univ"
     raise ValueError(
-        f"Error, no valid inner types for unequal series in {inner_type} "
+        f"Error, no valid inner types for unequal series in {inner_types} "
         f"must be one of np-list, df-list, pd-multiindex or nested_univ"
     )

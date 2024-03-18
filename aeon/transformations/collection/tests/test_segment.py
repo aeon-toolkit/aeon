@@ -16,18 +16,19 @@ N_ITER = 10
 
 @pytest.mark.parametrize("n_intervals", [1, 2, 5, 6, 50])
 def test_interval_segmenters(n_intervals):
+    """Test IntervalSegmenter with specified number of intervals."""
     X = np.ones((10, 1, 100))
     trans = IntervalSegmenter(intervals=n_intervals)
     Xt = trans.fit_transform(X)
     assert Xt.shape[1] == n_intervals
 
 
-@pytest.mark.parametrize("n_instances", [1, 3])
+@pytest.mark.parametrize("n_cases", [1, 3])
 @pytest.mark.parametrize("n_timepoints", [10, 20])
 @pytest.mark.parametrize("n_intervals", [0.1, 1.0, 1, 3, 10, "sqrt", "random", "log"])
-def test_output_format_dim(n_timepoints, n_instances, n_intervals):
+def test_output_format_dim(n_timepoints, n_cases, n_intervals):
     """Test output format and dimensions."""
-    X = np.random.random((n_instances, 1, n_timepoints))
+    X = np.random.random((n_cases, 1, n_timepoints))
     trans = RandomIntervalSegmenter(n_intervals=n_intervals)
     Xt = trans.fit_transform(X)
 

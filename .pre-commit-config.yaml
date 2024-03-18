@@ -28,6 +28,12 @@ repos:
       - id: detect-missing-init
         args: [ "--create", "--python-folders", "aeon" ]
 
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.3
+    hooks:
+      - id: ruff
+        args: [ "--fix"]
+
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.15.1
     hooks:
@@ -49,13 +55,13 @@ repos:
         args: [ "--max-line-length=88", "--extend-ignore=E203" ]
 
   - repo: https://github.com/psf/black
-    rev: 24.2.0
+    rev: 24.3.0
     hooks:
       - id: black
         language_version: python3
 
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.8.3
+    rev: 1.8.4
     hooks:
       - id: nbqa-isort
         additional_dependencies: [ isort==5.13.2 ]
@@ -66,13 +72,6 @@ repos:
       - id: nbqa-flake8
         additional_dependencies: [ flake8==7.0.0 ]
         args: [ "--nbqa-dont-skip-bad-cells", "--extend-ignore=E402,E203", "--max-line-length=88" ]
-
-  - repo: https://github.com/pycqa/pydocstyle
-    rev: 6.3.0
-    hooks:
-      - id: pydocstyle
-        args: [ "--convention=numpy" ]
-        additional_dependencies: [ toml, tomli ]
 
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.49"
