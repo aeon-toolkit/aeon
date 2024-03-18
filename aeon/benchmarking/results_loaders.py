@@ -58,11 +58,6 @@ NAME_ALIASES = {
         "InceptionTimeClassifier",
         "InceptionTimeRegressor",
     },
-    "LearningShapelet": {
-        "LerningShapeletClassifier",
-        "LearningShapelet",
-        "ls",
-    },
     "LiteTime": {
         "LiteTimeClassifier",
         "litetime",
