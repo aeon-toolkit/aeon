@@ -163,7 +163,7 @@ class MLPRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self.metrics,
         )
         return model
 
