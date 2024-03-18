@@ -38,6 +38,8 @@ class TapNetRegressor(BaseDeepRegressor):
         number of epochs to train the model
     batch_size          : int, default = 16
         number of samples per update
+    callbacks           : list of str, default = None
+        list of callbacks to apply during training
     dropout             : float, default = 0.5
         dropout rate, in the range [0, 1)
     dilation            : int, default = 1
@@ -50,6 +52,8 @@ class TapNetRegressor(BaseDeepRegressor):
         evaluation metrics to use during training
     optimizer           : str or None, default = "Adam(lr=0.01)"
         gradient updating function for the classifier
+    padding             : str, default = "same"
+        padding argument for the convolutional layers
     use_bias            : bool, default = True
         whether to use bias in the output dense layer
     use_rp              : bool, default = True
@@ -64,6 +68,8 @@ class TapNetRegressor(BaseDeepRegressor):
         whether to output extra information
     random_state    : int or None, default = None
         seed for random
+    rp_params       : tuple, default = (-1, 3)
+        parameters for random projection
 
     References
     ----------
