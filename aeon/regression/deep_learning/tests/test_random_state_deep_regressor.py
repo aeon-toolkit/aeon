@@ -17,6 +17,7 @@ __maintainer__ = ["hadifawaz1999"]
     reason="skip test if required soft dependency not available",
 )
 def test_random_state_deep_learning_rgs():
+    """Test Deep Regressor seeding."""
     random_state = 42
 
     X, y = make_example_3d_numpy(random_state=random_state)

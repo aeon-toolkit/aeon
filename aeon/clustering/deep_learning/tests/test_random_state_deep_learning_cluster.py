@@ -17,6 +17,7 @@ __maintainer__ = ["hadifawaz1999"]
     reason="skip test if required soft dependency not available",
 )
 def test_random_state_deep_learning_clr():
+    """Test Deep Clusterer seeding."""
     random_state = 42
 
     X, _ = make_example_3d_numpy(random_state=random_state)
