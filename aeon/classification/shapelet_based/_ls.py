@@ -80,7 +80,7 @@ class LearningShapeletClassifier(BaseClassifier):
         "algorithm_type": "shapelet",
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
-        "python_version": "<3.11",
+        "python_version": "<3.10",
     }
 
     def __init__(
