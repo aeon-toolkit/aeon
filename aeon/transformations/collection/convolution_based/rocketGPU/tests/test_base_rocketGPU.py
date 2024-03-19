@@ -1,6 +1,6 @@
 """Unit tests for rocket GPU base functionality."""
 
-__maintainer__ = ["hadifawaz1999", "AnonymousCodes911"]
+__maintainer__ = ["hadifawaz1999"]
 
 __all__ = [
     "test_base_rocketGPU_univariate",
@@ -132,19 +132,17 @@ def test_base_rocketGPU_multivariate():
     not _check_soft_dependencies("tensorflow", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("random_seed, n_channels", [(42, 1), (42, 3)])
-def test_rocket_cpu_gpu(random_seed, n_channels):
+@pytest.mark.parametrize("n_channels", [1, 3])
+def test_rocket_cpu_gpu(n_channels):
     """Test consistency between CPU and GPU versions of ROCKET."""
-    n_instances = 100
-    if n_channels == 1:
-        X, _ = make_example_2d_numpy()
-    else:
-        X, _ = make_example_3d_numpy()
-    X = X[:n_instances]
+    random_seed = 42
+    X, _ = make_example_3d_numpy(n_channels=n_channels)
 
-    num_kernels = 100
+    n_filters = 100
 
-    rocket_cpu = Rocket(num_kernels=num_kernels, random_state=random_seed)
+    rocket_cpu = Rocket(
+        num_kernels=n_filters, random_state=random_seed, normalise=False
+    )
     rocket_cpu.fit(X)
 
     rocket_gpu = ROCKETGPU(random_state=random_seed)

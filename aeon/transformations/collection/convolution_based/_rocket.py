@@ -74,12 +74,10 @@ class Rocket(BaseCollectionTransformer):
         normalise=True,
         n_jobs=1,
         random_state=None,
-        normalize=False,
     ):
         self.num_kernels = num_kernels
         self.normalise = normalise
         self.n_jobs = n_jobs
-        self.normalize = normalize
         self.random_state = random_state
         super().__init__()
 
