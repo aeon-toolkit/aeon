@@ -75,7 +75,7 @@ Data Validation Tools
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: aeon.test.estimator_checks
+.. currentmodule:: aeon.testing.estimator_checks
 
 .. autosummary::
     :toctree: auto_generated/
