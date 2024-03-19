@@ -127,7 +127,7 @@ class TapNetRegressor(BaseDeepRegressor):
         self.n_epochs = n_epochs
         self.loss = loss
         self.optimizer = optimizer
-        self.metrics = metrics
+        self.metrics = [metrics] if isinstance(metrics, str) else metrics
         self.callbacks = callbacks
         self.verbose = verbose
 
