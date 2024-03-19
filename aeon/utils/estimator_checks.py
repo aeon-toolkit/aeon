@@ -4,6 +4,7 @@ __maintainer__ = []
 __all__ = ["check_estimator"]
 
 from inspect import isclass
+
 from deprecated.sphinx import deprecated
 
 
