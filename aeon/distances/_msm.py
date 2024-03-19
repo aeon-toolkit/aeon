@@ -2,7 +2,7 @@
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -20,10 +20,10 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def msm_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     independent: bool = True,
     c: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the MSM distance between two time series.
 
@@ -133,10 +133,10 @@ def msm_distance(
 def msm_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     independent: bool = True,
     c: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the MSM cost matrix between two time series.
 
@@ -347,11 +347,11 @@ def _cost_independent(x: float, y: float, z: float, c: float) -> float:
 @njit(cache=True, fastmath=True)
 def msm_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     independent: bool = True,
     c: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the msm pairwise distance between a set of time series.
 
@@ -451,10 +451,10 @@ def msm_pairwise_distance(
 @njit(cache=True, fastmath=True)
 def _msm_pairwise_distance(
     X: np.ndarray,
-    window: float,
+    window: Optional[float],
     independent: bool,
     c: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = X.shape[0]
     distances = np.zeros((n_cases, n_cases))
@@ -474,10 +474,10 @@ def _msm_pairwise_distance(
 def _msm_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float,
+    window: Optional[float],
     independent: bool,
     c: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = x.shape[0]
     m_cases = y.shape[0]
@@ -496,10 +496,10 @@ def _msm_from_multiple_to_multiple_distance(
 def msm_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     independent: bool = True,
     c: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the msm alignment path between two time series.
 

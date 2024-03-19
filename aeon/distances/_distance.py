@@ -1,6 +1,6 @@
 __maintainer__ = []
 
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union, Unpack
 
 import numpy as np
 
@@ -78,6 +78,26 @@ from aeon.distances._wdtw import (
 )
 from aeon.distances.mpdist import mpdist
 
+
+class DistanceKwargs(TypedDict, total=False):
+    window: float
+    itakura_max_slope: None
+    p: float
+    w: np.ndarray
+    g: float
+    descriptor: str
+    reach: int
+    epsilon: float
+    g_arr: np.ndarray
+    nu: float
+    lmbda: float
+    independent: bool
+    c: float
+    warp_penalty: float
+    standardize: bool
+    m: int
+
+
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
 AlignmentPathFunction = Callable[
     [np.ndarray, np.ndarray, Any], Tuple[List[Tuple[int, int]], float]
@@ -90,7 +110,7 @@ def distance(
     x: np.ndarray,
     y: np.ndarray,
     metric: Union[str, DistanceFunction],
-    **kwargs: Any,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> float:
     """Compute the distance between two time series.
 
@@ -214,28 +234,28 @@ def distance(
             kwargs.get("itakura_max_slope"),
         )
     elif metric == "mpdist":
-        return mpdist(x, y, **kwargs)
+        return mpdist(x, y, kwargs.get("m", 0))
     elif metric == "adtw":
         return adtw_distance(
             x,
             y,
-            kwargs.get("window"),
-            kwargs.get("itakura_max_slope"),
-            kwargs.get("warp_penalty", 1.0),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            window=kwargs.get("window"),
+            warp_penalty=kwargs.get("warp_penaltiiy", 1.0),
         )
     elif metric == "sbd":
         return sbd_distance(x, y, kwargs.get("standardize", True))
     else:
         if isinstance(metric, Callable):
-            return metric(x, y, **kwargs)
+            return metric(x, y, kwargs)
         raise ValueError("Metric must be one of the supported strings or a callable")
 
 
 def pairwise_distance(
     x: np.ndarray,
-    y: np.ndarray = None,
-    metric: Union[str, DistanceFunction] = None,
-    **kwargs: Any,
+    y: Optional[np.ndarray] = None,
+    metric: Union[str, DistanceFunction, None] = None,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
 
@@ -400,10 +420,12 @@ def pairwise_distance(
 
 def _custom_func_pairwise(
     X: np.ndarray,
-    y: np.ndarray = None,
-    dist_func: DistanceFunction = None,
-    **kwargs: Any,
+    y: Optional[np.ndarray] = None,
+    dist_func: Union[DistanceFunction, None] = None,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
+    if dist_func is None:
+        raise ValueError("dist_func must be a callable")
     if y is None:
         # To self
         if X.ndim == 3:
@@ -417,21 +439,24 @@ def _custom_func_pairwise(
 
 
 def _custom_pairwise_distance(
-    X: np.ndarray, dist_func: DistanceFunction, **kwargs
+    X: np.ndarray, dist_func: DistanceFunction, **kwargs: Unpack[DistanceKwargs]
 ) -> np.ndarray:
     n_cases = X.shape[0]
     distances = np.zeros((n_cases, n_cases))
 
     for i in range(n_cases):
         for j in range(i + 1, n_cases):
-            distances[i, j] = dist_func(X[i], X[j], **kwargs)
+            distances[i, j] = dist_func(X[i], X[j], kwargs)
             distances[j, i] = distances[i, j]
 
     return distances
 
 
 def _custom_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, dist_func: DistanceFunction, **kwargs
+    x: np.ndarray,
+    y: np.ndarray,
+    dist_func: DistanceFunction,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     n_cases = x.shape[0]
     m_cases = y.shape[0]
@@ -439,7 +464,7 @@ def _custom_from_multiple_to_multiple_distance(
 
     for i in range(n_cases):
         for j in range(m_cases):
-            distances[i, j] = dist_func(x[i], y[j], **kwargs)
+            distances[i, j] = dist_func(x[i], y[j], kwargs)
     return distances
 
 
@@ -447,7 +472,7 @@ def alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     metric: str,
-    **kwargs: Any,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the alignment path and distance between two time series.
 
@@ -582,7 +607,7 @@ def cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
     metric: str,
-    **kwargs: Any,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     """Compute the alignment path and distance between two time series.
 

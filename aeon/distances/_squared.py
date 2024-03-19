@@ -1,5 +1,7 @@
 __maintainer__ = []
 
+from typing import Optional
+
 import numpy as np
 from numba import njit
 
@@ -70,7 +72,9 @@ def _univariate_squared_distance(x: np.ndarray, y: np.ndarray) -> float:
 
 
 @njit(cache=True, fastmath=True)
-def squared_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray:
+def squared_pairwise_distance(
+    X: np.ndarray, y: Optional[np.ndarray] = None
+) -> np.ndarray:
     """Compute the squared pairwise distance between a set of time series.
 
     Parameters

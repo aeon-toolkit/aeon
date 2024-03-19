@@ -1,5 +1,7 @@
 __maintainer__ = []
 
+from typing import Optional
+
 import numpy as np
 from numba import njit
 
@@ -63,7 +65,9 @@ def _univariate_euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
 
 
 @njit(cache=True, fastmath=True)
-def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray:
+def euclidean_pairwise_distance(
+    X: np.ndarray, y: Optional[np.ndarray] = None
+) -> np.ndarray:
     """Compute the Euclidean pairwise distance between a set of time series.
 
     Parameters

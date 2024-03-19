@@ -2,7 +2,7 @@ r"""Shape Dynamic time warping (ShapeDTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -39,6 +39,8 @@ def _pad_ts_edges(x: np.ndarray, reach: int) -> np.ndarray:
         x_padded[:, :, reach : reach + n_timepoints] = x
         x_padded[:, :, :reach] = np.expand_dims(x[:, :, 0], axis=-1)
         x_padded[:, :, reach + n_timepoints :] = np.expand_dims(x[:, :, -1], axis=-1)
+    else:
+        raise ValueError("x must be either 2D or 3D array.")
 
     return x_padded
 
@@ -86,6 +88,8 @@ def _transform_subsequences(
     """
     if descriptor == "identity":
         descriptor_function = _identity_descriptor
+    else:
+        raise ValueError("Descriptor invalid. Descriptor must be 'identity'.")
 
     sliding_window = reach * 2 + 1
     sliding_window = int(sliding_window)
@@ -115,10 +119,10 @@ def _transform_subsequences(
 def shape_dtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     """Compute the ShapeDTW distance function between two series x and y.
 
@@ -260,11 +264,11 @@ def _get_shape_dtw_distance_from_cost_mat(
 def shape_dtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,
-    itakura_max_slope: float = None,
-) -> float:
+    itakura_max_slope: Optional[float] = None,
+) -> np.ndarray:
     """Compute the ShapeDTW cost matrix between two series x and y.
 
     Parameters
@@ -349,7 +353,7 @@ def _shape_dtw_cost_matrix(
     bounding_matrix: np.ndarray,
     descriptor: str = "identity",
     reach: int = 30,
-) -> float:
+) -> np.ndarray:
     new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
     new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
 
@@ -364,10 +368,10 @@ def _shape_dtw_cost_matrix(
 def shape_dtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ShapeDTW alignment path between two series x and y.
 
@@ -426,10 +430,11 @@ def shape_dtw_alignment_path(
 
         x_pad = _pad_ts_edges(x=_x, reach=reach)
         y_pad = _pad_ts_edges(x=_y, reach=reach)
-
-    if x.ndim == 2 and y.ndim == 2:
+    elif x.ndim == 2 and y.ndim == 2:
         x_pad = _pad_ts_edges(x=x, reach=reach)
         y_pad = _pad_ts_edges(x=y, reach=reach)
+    else:
+        raise ValueError("x and y must be 1D or 2D")
 
     shapedtw_dist = _get_shape_dtw_distance_from_cost_mat(
         x=x_pad, y=y_pad, reach=reach, shape_dtw_cost_mat=cost_matrix
@@ -441,11 +446,11 @@ def shape_dtw_alignment_path(
 @njit(cache=True, fastmath=True)
 def shape_dtw_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the ShapeDTW pairwise distance among a set of series.
 
@@ -528,11 +533,11 @@ def shape_dtw_pairwise_distance(
 @njit(cache=True, fastmath=True)
 def _shape_dtw_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     if y is None:
         y = np.copy(X)

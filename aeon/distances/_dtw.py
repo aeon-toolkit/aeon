@@ -2,7 +2,7 @@ r"""Dynamic time warping (DTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -15,7 +15,10 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def dtw_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, itakura_max_slope: float = None
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the DTW distance between two time series.
 
@@ -125,7 +128,10 @@ def dtw_distance(
 
 @njit(cache=True, fastmath=True)
 def dtw_cost_matrix(
-    x: np.ndarray, y: np.ndarray, window: float = None, itakura_max_slope: float = None
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     r"""Compute the DTW cost matrix between two time series.
 
@@ -223,9 +229,9 @@ def _dtw_cost_matrix(
 @njit(cache=True, fastmath=True)
 def dtw_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
-    itakura_max_slope: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     r"""Compute the DTW pairwise distance between a set of time series.
 
@@ -314,7 +320,7 @@ def dtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _dtw_pairwise_distance(
-    X: np.ndarray, window: float, itakura_max_slope: float
+    X: np.ndarray, window: Optional[float], itakura_max_slope: Optional[float]
 ) -> np.ndarray:
     n_cases = X.shape[0]
     distances = np.zeros((n_cases, n_cases))
@@ -332,7 +338,10 @@ def _dtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _dtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, itakura_max_slope: float
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Optional[float],
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = x.shape[0]
     m_cases = y.shape[0]
@@ -349,7 +358,10 @@ def _dtw_from_multiple_to_multiple_distance(
 
 @njit(cache=True, fastmath=True)
 def dtw_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None, itakura_max_slope: float = None
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the DTW alignment path between two time series.
 

@@ -2,7 +2,7 @@ r"""Longest common subsequence (LCSS) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -17,9 +17,9 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def lcss_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     epsilon: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Return the LCSS distance between x and y.
 
@@ -120,9 +120,9 @@ def lcss_distance(
 def lcss_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     epsilon: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     r"""Return the LCSS cost matrix between x and y.
 
@@ -220,10 +220,10 @@ def _lcss_cost_matrix(
 @njit(cache=True, fastmath=True)
 def lcss_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     epsilon: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the LCSS pairwise distance between a set of time series.
 
@@ -300,7 +300,10 @@ def lcss_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _lcss_pairwise_distance(
-    X: np.ndarray, window: float, epsilon: float, itakura_max_slope: float
+    X: np.ndarray,
+    window: Optional[float],
+    epsilon: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = X.shape[0]
     distances = np.zeros((n_cases, n_cases))
@@ -320,9 +323,9 @@ def _lcss_pairwise_distance(
 def _lcss_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float,
+    window: Optional[float],
     epsilon: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = x.shape[0]
     m_cases = y.shape[0]
@@ -341,9 +344,9 @@ def _lcss_from_multiple_to_multiple_distance(
 def lcss_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     epsilon: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the LCSS alignment path between two time series.
 

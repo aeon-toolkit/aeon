@@ -2,7 +2,7 @@
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -20,10 +20,10 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def twe_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the TWE distance between two time series.
 
@@ -114,10 +114,10 @@ def twe_distance(
 def twe_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the TWE cost matrix between two time series.
 
@@ -248,11 +248,11 @@ def _pad_arrs(x: np.ndarray) -> np.ndarray:
 @njit(cache=True, fastmath=True)
 def twe_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the TWE pairwise distance between a set of time series.
 
@@ -332,10 +332,10 @@ def twe_pairwise_distance(
 @njit(cache=True, fastmath=True)
 def _twe_pairwise_distance(
     X: np.ndarray,
-    window: float,
+    window: Optional[float],
     nu: float,
     lmbda: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = X.shape[0]
     distances = np.zeros((n_cases, n_cases))
@@ -362,10 +362,10 @@ def _twe_pairwise_distance(
 def _twe_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float,
+    window: Optional[float],
     nu: float,
     lmbda: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = x.shape[0]
     m_cases = y.shape[0]
@@ -395,10 +395,10 @@ def _twe_from_multiple_to_multiple_distance(
 def twe_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the TWE alignment path between two time series.
 
