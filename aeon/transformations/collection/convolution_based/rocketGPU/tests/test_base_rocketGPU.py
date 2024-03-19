@@ -145,7 +145,7 @@ def test_rocket_cpu_gpu(n_channels):
     )
     rocket_cpu.fit(X)
 
-    rocket_gpu = ROCKETGPU(random_state=random_seed)
+    rocket_gpu = ROCKETGPU(n_filters=n_filters, random_state=random_seed)
     rocket_gpu.fit(X)
 
     X_transform_cpu = rocket_cpu.transform(X)
