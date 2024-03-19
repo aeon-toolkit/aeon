@@ -10,7 +10,7 @@ from deprecated.sphinx import deprecated
 @deprecated(
     version="0.7.1",
     reason="Use of aeon.utils.estimator_checks.check_estimator is \
-    depricated and will be removed in the next release, use \
+    deprecated and will be removed in the next release, use \
     aeon.testing.estimator_checks.check_estimator instead.",
     category=FutureWarning,
 )
