@@ -1,8 +1,9 @@
 __maintainer__ = []
 
-from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union, Unpack
+from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union
 
 import numpy as np
+from typing_extensions import Unpack
 
 from aeon.distances._adtw import (
     adtw_alignment_path,
