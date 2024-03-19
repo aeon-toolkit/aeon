@@ -1,11 +1,20 @@
 """Unit tests for rocket GPU base functionality."""
 
-__maintainer__ = ["hadifawaz1999"]
-__all__ = ["test_base_rocketGPU_univariate", "test_base_rocketGPU_multivariate"]
+__maintainer__ = ["hadifawaz1999", "AnonymousCodes911"]
 
+__all__ = [
+    "test_base_rocketGPU_univariate",
+    "test_base_rocketGPU_multivariate",
+    "test_rocket_cpu_gpu",
+]
 import pytest
+from numpy.testing import assert_array_almost_equal
 
 from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
+from aeon.transformations.collection.convolution_based._rocket import Rocket
+from aeon.transformations.collection.convolution_based.rocketGPU._rocket_gpu import (
+    ROCKETGPU,
+)
 from aeon.transformations.collection.convolution_based.rocketGPU.base import (
     BaseROCKETGPU,
 )
@@ -117,3 +126,30 @@ def test_base_rocketGPU_multivariate():
 
     # check all ppv values are >= 0
     assert (X_transform[:, 0] >= 0).sum() == len(X)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+@pytest.mark.parametrize("random_seed, n_channels", [(42, 1), (42, 3)])
+def test_rocket_cpu_gpu(random_seed, n_channels):
+    """Test consistency between CPU and GPU versions of ROCKET."""
+    n_instances = 100
+    if n_channels == 1:
+        X, _ = make_example_2d_numpy()
+    else:
+        X, _ = make_example_3d_numpy()
+    X = X[:n_instances]
+
+    num_kernels = 100
+
+    rocket_cpu = Rocket(num_kernels=num_kernels, random_state=random_seed)
+    rocket_cpu.fit(X)
+
+    rocket_gpu = ROCKETGPU(random_state=random_seed)
+    rocket_gpu.fit(X)
+
+    X_transform_cpu = rocket_cpu.transform(X)
+    X_transform_gpu = rocket_gpu.transform(X)
+    assert_array_almost_equal(X_transform_cpu, X_transform_gpu, decimal=8)
