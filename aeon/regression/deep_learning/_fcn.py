@@ -142,7 +142,7 @@ class FCNRegressor(BaseDeepRegressor):
         self.use_mini_batch_size = use_mini_batch_size
         self.verbose = verbose
         self.loss = loss
-        self.metrics = [metrics] if isinstance(metrics, str) else metrics
+        self.metrics = metrics
         self.random_state = random_state
         self.optimizer = optimizer
         self.file_path = file_path
