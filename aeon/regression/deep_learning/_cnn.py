@@ -239,7 +239,6 @@ class CNNRegressor(BaseDeepRegressor):
 
         if isinstance(self.metrics, str):
             self.metrics = [self.metrics]
-        
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 
