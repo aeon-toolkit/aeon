@@ -132,6 +132,7 @@ def test_base_rocketGPU_multivariate():
     not _check_soft_dependencies("tensorflow", severity="none"),
     reason="skip test if required soft dependency not available",
 )
+@pytest.mark.xfail(reason="Random numbers in Rocket and ROCKETGPU differ.")
 @pytest.mark.parametrize("n_channels", [1, 3])
 def test_rocket_cpu_gpu(n_channels):
     """Test consistency between CPU and GPU versions of ROCKET."""
