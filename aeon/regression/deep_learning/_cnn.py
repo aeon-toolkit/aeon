@@ -150,7 +150,7 @@ class CNNRegressor(BaseDeepRegressor):
         self.verbose = verbose
         self.loss = loss
         self.output_activation = output_activation
-        self.metrics = [metrics] if isinstance(metrics, str) else metrics
+        self.metrics = metrics
         self.random_state = random_state
         self.activation = activation
         self.use_bias = use_bias
@@ -237,6 +237,9 @@ class CNNRegressor(BaseDeepRegressor):
 
         check_random_state(self.random_state)
 
+        if isinstance(self.metrics, str):
+            self.metrics = [self.metrics]
+        
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 
