@@ -212,7 +212,7 @@ class CNNRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=self.metrics,
+            metrics=self._metrics,
         )
         return model
 
@@ -238,7 +238,9 @@ class CNNRegressor(BaseDeepRegressor):
         check_random_state(self.random_state)
 
         if isinstance(self.metrics, str):
-            self.metrics = [self.metrics]
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 

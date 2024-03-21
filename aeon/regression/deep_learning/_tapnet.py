@@ -195,7 +195,7 @@ class TapNetRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=self.metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -222,7 +222,9 @@ class TapNetRegressor(BaseDeepRegressor):
         self.input_shape = X.shape[1:]
 
         if isinstance(self.metrics, str):
-            self.metrics = [self.metrics]
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         self.model_ = self.build_model(self.input_shape)
         if self.verbose:
