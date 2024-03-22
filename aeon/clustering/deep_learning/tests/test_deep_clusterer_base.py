@@ -21,10 +21,10 @@ def test_base_deep_clusterer(algorithm):
     """Test base deep clusterer with different algorithms."""
     with tempfile.TemporaryDirectory() as tmp:
         last_file_name = "temp"
-        # create a dummy deep classifier with the specified algorithm
-        dummy_deep_clr = MockDeepClusterer(
-            last_file_name=last_file_name, clustering_algorithm=algorithm
-        )
+        # create a dummy deep classifier
+        dummy_deep_clr = MockDeepClusterer(last_file_name=last_file_name)
+        # set the clustering algorithm
+        dummy_deep_clr.clustering_algorithm = algorithm
         # generate random data
         X, y = make_example_2d_numpy()
         # test fit function on random data
