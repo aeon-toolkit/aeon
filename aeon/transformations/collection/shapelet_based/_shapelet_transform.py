@@ -147,6 +147,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         "y_inner_type": "numpy1D",
         "requires_y": True,
         "algorithm_type": "shapelet",
+        "fit_is_empty": False,
     }
 
     def __init__(

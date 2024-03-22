@@ -60,6 +60,7 @@ class MiniRocket(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "algorithm_type": "convolution",
+        "fit_is_empty": False,
     }
 
     def __init__(

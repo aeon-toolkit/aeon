@@ -62,6 +62,7 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "algorithm_type": "convolution",
+        "fit_is_empty": False,
     }
 
     def __init__(

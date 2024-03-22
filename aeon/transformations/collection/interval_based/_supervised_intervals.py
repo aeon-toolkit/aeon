@@ -138,6 +138,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
         "capability:multivariate": True,
         "requires_y": True,
         "algorithm_type": "interval",
+        "fit_is_empty": False,
     }
 
     def __init__(

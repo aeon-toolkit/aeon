@@ -105,7 +105,7 @@ class BaseTransformer(BaseEstimator):
         "y_inner_type": "None",
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
-        "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
+        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "transform-returns-same-time-index": False,
         # does transform return have the same time index as input X

@@ -44,7 +44,7 @@ class IndexSubset(BaseTransformer):
         "X_inner_type": ["pd.DataFrame", "pd.Series"],
         "y_inner_type": ["pd.DataFrame", "pd.Series"],
         "transform-returns-same-time-index": False,
-        "fit_is_empty": False,
+        "fit_is_empty": True,
         "univariate-only": False,
         "capability:inverse_transform": False,
         "remember_data": True,  # remember all data seen as _X

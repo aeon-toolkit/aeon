@@ -134,6 +134,7 @@ class SFAFast(BaseCollectionTransformer):
     _tags = {
         "requires_y": True,
         "algorithm_type": "dictionary",
+        "fit_is_empty": False,
     }
 
     def __init__(

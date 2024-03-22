@@ -141,6 +141,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         # we let all X inputs through to be handled by first transformer
         "X_inner_type": ALL_TIME_SERIES_TYPES,
         "univariate-only": False,
+        "fit_is_empty": False,
     }
 
     # no further default tag values - these are set dynamically below
