@@ -242,13 +242,13 @@ def distance(
             y,
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             window=kwargs.get("window"),
-            warp_penalty=kwargs.get("warp_penaltiiy", 1.0),
+            warp_penalty=kwargs.get("warp_penalty", 1.0),
         )
     elif metric == "sbd":
         return sbd_distance(x, y, kwargs.get("standardize", True))
     else:
         if isinstance(metric, Callable):
-            return metric(x, y, kwargs)
+            return metric(x, y, **kwargs)
         raise ValueError("Metric must be one of the supported strings or a callable")
 
 
@@ -447,7 +447,7 @@ def _custom_pairwise_distance(
 
     for i in range(n_cases):
         for j in range(i + 1, n_cases):
-            distances[i, j] = dist_func(X[i], X[j], kwargs)
+            distances[i, j] = dist_func(X[i], X[j], **kwargs)
             distances[j, i] = distances[i, j]
 
     return distances
@@ -465,7 +465,7 @@ def _custom_from_multiple_to_multiple_distance(
 
     for i in range(n_cases):
         for j in range(m_cases):
-            distances[i, j] = dist_func(x[i], y[j], kwargs)
+            distances[i, j] = dist_func(x[i], y[j], **kwargs)
     return distances
 
 
