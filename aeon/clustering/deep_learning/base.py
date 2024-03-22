@@ -21,7 +21,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         default="kmeans"
         The clustering algorithm used in the latent space.
         Options include:
-        'kmeans' for K-means clustering,
+        'kmeans' for Kmeans clustering,
         'kshape' for KShape clustering,
         'kmedoids' for KMedoids clustering.
     clustering_params : dict, default=None
@@ -116,14 +116,10 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         else:
             clustering_params_ = self.clustering_params
             # clustering_params_["n_clusters"] = self.n_clusters
-
         if self.clustering_algorithm == "kmeans":
-            if len(clustering_params_.keys()) == 0:
-                self.clusterer = TimeSeriesKMeans(n_clusters=self.n_clusters)
-            else:
-                self.clusterer = TimeSeriesKMeans(
-                    n_clusters=self.n_clusters, **clustering_params_
-                )
+            self.clusterer = TimeSeriesKMeans(
+                n_clusters=self.n_clusters, **clustering_params_
+            )
         elif self.clustering_algorithm == "kshape":
             self.clusterer = TimeSeriesKShapes(
                 n_clusters=self.n_clusters, **clustering_params_
@@ -133,7 +129,9 @@ class BaseDeepClusterer(BaseClusterer, ABC):
                 n_clusters=self.n_clusters, **clustering_params_
             )
         else:
-            raise ValueError(f"Invalid algorithm: {self.clustering_algorithm}")
+            raise ValueError(
+                f"Invalid input for 'clustering_algorithm': {self.clustering_algorithm}"
+            )
         latent_space = self.model_.layers[1].predict(X)
         self.clusterer.fit(X=latent_space)
 

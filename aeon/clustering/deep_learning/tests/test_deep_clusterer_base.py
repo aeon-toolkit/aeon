@@ -16,12 +16,15 @@ __maintainer__ = []
     not _check_soft_dependencies("tensorflow", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_base_deep_clusterer():
-    """Test base deep clusterer."""
+@pytest.mark.parametrize("algorithm", ["kmeans", "kshape", "kmedoids"])
+def test_base_deep_clusterer(algorithm):
+    """Test base deep clusterer with different algorithms."""
     with tempfile.TemporaryDirectory() as tmp:
         last_file_name = "temp"
-        # create a dummy deep classifier
-        dummy_deep_clr = MockDeepClusterer(last_file_name=last_file_name)
+        # create a dummy deep classifier with the specified algorithm
+        dummy_deep_clr = MockDeepClusterer(
+            last_file_name=last_file_name, clustering_algorithm=algorithm
+        )
         # generate random data
         X, y = make_example_2d_numpy()
         # test fit function on random data
