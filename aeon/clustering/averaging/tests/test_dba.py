@@ -3,144 +3,173 @@
 import numpy as np
 import pytest
 
-from aeon.clustering.averaging import elastic_barycenter_average
+from aeon.clustering.averaging import (
+    elastic_barycenter_average,
+    petitjean_barycenter_average,
+    subgradient_barycenter_average,
+)
 from aeon.testing.utils.data_gen import make_example_3d_numpy
 
-expected_dba = np.array(
+expected_petitjean_dba_univariate = np.array(
     [
         [
-            2.14365783,
-            1.79294991,
-            1.40583643,
-            1.41551047,
-            1.35200733,
-            1.89139937,
-            1.86542327,
-            1.32466944,
-            1.67397517,
-            1.8709378,
+            1.4108696053220873,
+            2.394226235189873,
+            1.1060488942437015,
+            2.623297561062815,
+            0.527766384447058,
+            1.43188098329184,
+            1.6236753043608105,
+            1.2058072160220672,
+            1.1967764056706969,
+            2.0004477079532927,
+        ]
+    ]
+)
+
+expected_petitjean_dba_multivariate = np.array(
+    [
+        [
+            0.7267915954182468,
+            1.3623320157069627,
+            1.4495279596147028,
+            0.5926686136095334,
+            0.9971756690146295,
+            1.3283383084721943,
+            0.7659577046471742,
+            1.9660527002664323,
+            1.063255339395868,
+            1.58993866039882,
         ],
         [
-            1.39792187,
-            1.48779949,
-            1.26747876,
-            1.77152767,
-            1.89443306,
-            1.33528121,
-            1.8849385,
-            1.61457405,
-            1.6470203,
-            1.58740109,
+            1.2617459283113774,
+            1.205815463685702,
+            1.2234939638872127,
+            1.7840697833529937,
+            0.6722624075103683,
+            1.835414289773766,
+            0.9514286846149641,
+            1.2908899681880017,
+            1.416361929410518,
+            1.5241706749949016,
         ],
         [
-            1.20289266,
-            0.99392693,
-            0.91151178,
-            1.36251883,
-            1.63591345,
-            1.76292241,
-            1.2924362,
-            1.82067719,
-            1.36224209,
-            2.09249394,
+            1.3034322787744397,
+            1.5436844012461954,
+            1.632959525575443,
+            1.0384357523605505,
+            1.250310558432616,
+            0.7533753079264169,
+            0.7766566039307113,
+            1.2180892807545585,
+            1.6222668068442372,
+            1.3287035370261573,
+        ],
+    ]
+)
+
+expected_subgradient_dba_univariate = np.array(
+    [
+        [
+            1.51074199,
+            2.15864417,
+            1.00234603,
+            2.35561396,
+            0.63780835,
+            1.40458666,
+            1.51369944,
+            1.2566171,
+            1.18067802,
+            1.8077327,
+        ]
+    ]
+)
+
+expected_subgradient_dba_multivariate = np.array(
+    [
+        [
+            0.74762929,
+            1.27990802,
+            1.39635383,
+            0.77782365,
+            0.96456039,
+            1.33559105,
+            0.71501953,
+            1.68703826,
+            1.03765683,
+            1.59958969,
         ],
         [
-            1.50362661,
-            1.33955338,
-            2.21909116,
-            1.84855474,
-            1.31602877,
-            1.53317511,
-            1.84644465,
-            1.42878873,
-            1.78336225,
-            1.59598453,
+            1.28770927,
+            1.23770584,
+            1.20206139,
+            1.78964445,
+            0.89355146,
+            1.6961715,
+            1.00333335,
+            1.23876289,
+            1.38498497,
+            1.55936623,
         ],
         [
-            1.76544264,
-            1.41121261,
-            1.63573482,
-            1.02127341,
-            1.41004018,
-            1.70329872,
-            1.58462695,
-            1.59081868,
-            1.44386256,
-            1.07904533,
-        ],
-        [
-            1.30443531,
-            1.58311813,
-            1.70761705,
-            2.20491277,
-            1.26669821,
-            1.70208611,
-            1.91908395,
-            1.60117971,
-            1.90385381,
-            1.64541667,
-        ],
-        [
-            1.20010098,
-            2.06998292,
-            1.75802436,
-            1.55995949,
-            1.8326049,
-            1.05988814,
-            2.31728009,
-            1.47100396,
-            2.19823014,
-            1.19986879,
-        ],
-        [
-            1.55797104,
-            1.40613571,
-            1.85809765,
-            1.41017291,
-            1.9308945,
-            1.37990633,
-            1.77000225,
-            1.35118687,
-            1.25940145,
-            1.85597143,
-        ],
-        [
-            1.85856132,
-            2.09754471,
-            1.47383472,
-            1.51400218,
-            1.43779312,
-            1.69484847,
-            1.95836839,
-            1.62152772,
-            1.26513914,
-            2.08603391,
-        ],
-        [
-            1.2279546,
-            1.53877513,
-            1.32957377,
-            1.71607611,
-            1.46982699,
-            1.95766663,
-            1.4674824,
-            1.85898204,
-            1.81942838,
-            1.6760823,
+            1.34461418,
+            1.50480679,
+            1.55114792,
+            1.18503368,
+            1.04103323,
+            0.90804179,
+            1.04520108,
+            1.07537586,
+            1.57586214,
+            1.34801647,
         ],
     ]
 )
 
 
-def test_dba():
-    """Test dba functionality."""
-    X_train = make_example_3d_numpy(10, 10, 10, random_state=1, return_y=False)
+def test_petitjean_dba():
+    """Test petitjean dba functionality."""
+    X_train_uni = make_example_3d_numpy(10, 1, 10, random_state=1, return_y=False)
 
-    average_ts = elastic_barycenter_average(X_train)
+    average_ts_uni = elastic_barycenter_average(X_train_uni, method="petitjean")
+    call_directly_average_ts_uni = petitjean_barycenter_average(X_train_uni)
+    assert isinstance(average_ts_uni, np.ndarray)
+    assert average_ts_uni.shape == X_train_uni[0].shape
+    assert np.allclose(average_ts_uni, expected_petitjean_dba_univariate)
+    assert np.allclose(average_ts_uni, call_directly_average_ts_uni)
 
-    assert isinstance(average_ts, np.ndarray)
-    assert average_ts.shape == X_train[0].shape
-    assert np.allclose(average_ts, expected_dba)
+    X_train_multi = make_example_3d_numpy(10, 3, 10, random_state=1, return_y=False)
+
+    average_ts_multi = elastic_barycenter_average(X_train_multi, method="petitjean")
+    call_directly_average_ts_multi = petitjean_barycenter_average(X_train_multi)
+
+    assert isinstance(average_ts_multi, np.ndarray)
+    assert average_ts_multi.shape == X_train_multi[0].shape
+    assert np.allclose(average_ts_multi, expected_petitjean_dba_multivariate)
+    assert np.allclose(average_ts_multi, call_directly_average_ts_multi)
+
+
+def test_subgradient_dba():
+    """Test stochastic subgradient dba functionality."""
+    X_train_uni = make_example_3d_numpy(10, 1, 10, random_state=1, return_y=False)
+
+    average_ts_uni = elastic_barycenter_average(X_train_uni, method="subgradient")
+    call_directly_average_ts_uni = subgradient_barycenter_average(X_train_uni)
+
+    assert isinstance(average_ts_uni, np.ndarray)
+    assert average_ts_uni.shape == X_train_uni[0].shape
+    assert np.allclose(average_ts_uni, expected_subgradient_dba_univariate)
+    assert np.allclose(average_ts_uni, call_directly_average_ts_uni)
+
+    X_train_multi = make_example_3d_numpy(10, 3, 10, random_state=1, return_y=False)
+
+    average_ts_multi = elastic_barycenter_average(X_train_multi, method="subgradient")
+    call_directly_average_ts_multi = subgradient_barycenter_average(X_train_multi)
+
+    assert isinstance(average_ts_multi, np.ndarray)
+    assert average_ts_multi.shape == X_train_multi[0].shape
+    assert np.allclose(average_ts_multi, expected_subgradient_dba_multivariate)
+    assert np.allclose(average_ts_multi, call_directly_average_ts_multi)
 
 
 @pytest.mark.parametrize(
@@ -166,5 +195,11 @@ def test_elastic_dba_variations(distance):
         X_train, distance=distance, window=0.2, independent=False
     )
 
+    subgradient_ts = elastic_barycenter_average(
+        X_train, distance=distance, window=0.2, independent=False, method="subgradient"
+    )
+
     assert isinstance(average_ts, np.ndarray)
+    assert isinstance(subgradient_ts, np.ndarray)
     assert average_ts.shape == X_train[0].shape
+    assert subgradient_ts.shape == X_train[0].shape
