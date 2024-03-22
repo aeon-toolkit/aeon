@@ -52,13 +52,13 @@ Estimator Search and Retrieval, Estimator Tags
 Estimator Validity Checking
 ---------------------------
 
-:mod:`aeon.utils.estimator_checks`
+:mod:`aeon.testing.estimator_checks`
 
-.. automodule:: aeon.utils.estimator_checks
+.. automodule:: aeon.testing.estimator_checks
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: aeon.utils.estimator_checks
+.. currentmodule:: aeon.testing.estimator_checks
 
 .. autosummary::
     :toctree: auto_generated/
@@ -75,7 +75,7 @@ Data Validation Tools
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: aeon.utils.estimator_checks
+.. currentmodule:: aeon.testing.estimator_checks
 
 .. autosummary::
     :toctree: auto_generated/
