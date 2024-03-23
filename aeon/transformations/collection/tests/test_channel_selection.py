@@ -1,7 +1,9 @@
 """Channel selection test code."""
 
 from aeon.testing.utils.data_gen import make_example_3d_numpy
-from aeon.transformations.collection.channel_selection import ElbowClassPairwise
+from aeon.transformations.collection.channel_selection._elbow_class import (
+    ElbowClassPairwise,
+)
 
 
 def test_channel_selection():

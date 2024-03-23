@@ -13,6 +13,7 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from scipy.stats import median_abs_deviation
 from sklearn.preprocessing import LabelEncoder
 
@@ -225,6 +226,13 @@ class ClassPrototype:
         return (prototypes, le.classes_)
 
 
+# TODO: remove in v0.9.0
+@deprecated(
+    version="0.8.0",
+    reason="ElbowClassSum will be moved to the new channel_selection package in "
+    "transformations.collection in v0.9.0.",
+    category=FutureWarning,
+)
 class ElbowClassSum(BaseCollectionTransformer):
     """Elbow Class Sum (ECS) transformer to select a subset of channels/variables.
 
@@ -359,6 +367,13 @@ class ElbowClassSum(BaseCollectionTransformer):
         return X[:, self.channels_selected_idx]
 
 
+# TODO: remove in v0.9.0
+@deprecated(
+    version="0.8.0",
+    reason="ElbowClassPairwise will be moved to the new channel_selection package in "
+    "transformations.collection in v0.9.0.",
+    category=FutureWarning,
+)
 class ElbowClassPairwise(BaseCollectionTransformer):
     """Elbow Class Pairwise (ECP) transformer to select a subset of channels.
 
