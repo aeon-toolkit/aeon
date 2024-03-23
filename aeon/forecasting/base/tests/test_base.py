@@ -272,6 +272,7 @@ def test_predict_residuals():
 
 
 def test_format_moving_cutoff_predictions():
+    """Test the format_moving_cutoff_predictions function."""
     with pytest.raises(ValueError, match="`y_preds` must be a list"):
         _format_moving_cutoff_predictions("foo", "bar")
     with pytest.raises(

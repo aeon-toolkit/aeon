@@ -5,16 +5,7 @@ __all__ = ["check_estimator"]
 
 from inspect import isclass
 
-from deprecated.sphinx import deprecated
 
-
-@deprecated(
-    version="0.7.1",
-    reason="Use of aeon.utils.estimator_checks.check_estimator is \
-    deprecated and will be removed in the next release, use \
-    aeon.testing.estimator_checks.check_estimator instead.",
-    category=FutureWarning,
-)
 def check_estimator(
     estimator,
     raise_exceptions=False,
@@ -70,7 +61,7 @@ def check_estimator(
     Examples
     --------
     >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> from aeon.utils.estimator_checks import check_estimator
+    >>> from aeon.testing.estimator_checks import check_estimator
 
     Running all tests for ExponentTransformer class,
     this uses all instances from get_test_params and compatible scenarios
