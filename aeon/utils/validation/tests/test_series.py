@@ -165,6 +165,7 @@ def test_df_checks():
 
 
 def test_is_pred_interval_proba():
+    """Test is_pred_interval_proba."""
     # Create a correct MultiIndex DataFrame
     idx = pd.MultiIndex.from_tuples(
         [(1, 0.9, "upper"), (1, 0.9, "lower")], names=["level_0", "coverage", "bound"]
