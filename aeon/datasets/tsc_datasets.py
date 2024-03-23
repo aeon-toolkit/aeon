@@ -465,7 +465,7 @@ multivariate_unequal_length = {
     "JapaneseVowels",
     "SpokenArabicDigits",
 }
-
+# TODO: Add the following datasets:
 # 30 new univariate classification problems used in the bake off [5]. Some are new,
 # some are discrete versions of regression problems, some are equal length versions
 # of the current UCR problems and some are no missing versions of the current 128 UCR.

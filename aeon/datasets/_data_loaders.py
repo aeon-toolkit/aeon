@@ -409,8 +409,8 @@ def download_dataset(name, save_path=None):
             _download_and_extract(url, extract_path=save_path)
         except zipfile.BadZipFile as e:
             raise ValueError(
-                f"Invalid dataset name ={name} is  available on extract path ="
-                f"{save_path}or https://timeseriesclassification.com/ but it is not "
+                f"Invalid dataset name ={name} is available on extract path ="
+                f" {save_path} or https://timeseriesclassification.com/ but it is not "
                 f"correctly formatted.",
             ) from e
 
