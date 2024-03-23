@@ -14,6 +14,9 @@ from aeon.transformations.series import (
 
 
 def test_SeriesToCollectionWrapper_tag_inheritance():
+    """
+    Test the ability to inherit tags from the BaseSeriesTransformer.
+    """
     broadcaster = SeriesToCollectionWrapper(DummySeriesTransformerNoFit())
     broadcaster_tags = broadcaster.get_tags()
     dummy_tags = DummySeriesTransformerNoFit().get_tags()
@@ -28,6 +31,9 @@ def test_SeriesToCollectionWrapper_tag_inheritance():
     ],
 )
 def test_SeriesToCollectionWrapper(data_gen):
+    """
+    Test the wrapper fit, transform and inverse transform method.
+    """
     X, y = data_gen()
     constant = 1
     broadcaster = SeriesToCollectionWrapper(DummySeriesTransformer(constant=constant))
@@ -55,6 +61,9 @@ def test_SeriesToCollectionWrapper(data_gen):
     [make_example_3d_numpy],
 )
 def test_SeriesToCollectionWrapper_no_fit(data_gen):
+    """
+    Test the wrapper for transformers with fit_empty.
+    """
     X, y = data_gen()
     constant = 1
     broadcaster = SeriesToCollectionWrapper(
