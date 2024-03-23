@@ -6,11 +6,11 @@ import tempfile
 import urllib
 import zipfile
 from datetime import datetime
-from urllib.request import urlretrieve
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen, urlretrieve
 
 import numpy as np
 import pandas as pd
-import requests
 
 import aeon
 from aeon.datasets.dataset_collections import (
@@ -1124,8 +1124,15 @@ def load_regression(
             try_monash = False
             url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
             # Test if file exists
-            response = requests.head(url)
-            if response.status_code != 200:
+            req = Request(url, method="HEAD")
+            try:
+                # Perform the request
+                response = urlopen(req)
+                # Check the status code of the response
+                if response.status != 200:
+                    try_monash = True
+            except (HTTPError, URLError):
+                # If there is an HTTP URLError, it might mean the file does not exist
                 try_monash = True
             else:
                 try:
@@ -1280,13 +1287,20 @@ def load_classification(
             # Check if on timeseriesclassification.com
             url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
             # Test if file exists to generate more informative error
-            response = requests.head(url)
-            if response.status_code != 200:
-                raise ValueError(
-                    f"Invalid dataset name ={name} is not available on extract path ="
-                    f"{extract_path}. "
-                    f"Nor is it available on https://timeseriesclassification.com/."
-                )
+            req = Request(url, method="HEAD")
+            msg = (
+                f"Invalid dataset name ={name} is not available on extract path "
+                f"={extract_path}. Nor is it available on "
+                f"https://timeseriesclassification.com/."
+            )
+            try:
+                # Perform the request
+                response = urlopen(req)
+                # Check the status code of the response
+                if response.status != 200:
+                    raise ValueError(msg)
+            except HTTPError:
+                raise ValueError(msg)
             try:
                 _download_and_extract(
                     url,
