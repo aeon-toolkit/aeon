@@ -128,7 +128,6 @@ class BOSSEnsemble(BaseClassifier):
         max_ensemble_size=500,
         max_win_len_prop=1,
         min_window=10,
-        save_train_predictions="deprecated",
         feature_selection="none",
         use_boss_distance=True,
         alphabet_size=4,
