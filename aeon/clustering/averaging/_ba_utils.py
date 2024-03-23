@@ -65,6 +65,12 @@ def _get_init_barycenter(
             rng = check_random_state(random_state)
             return X[rng.choice(X.shape[0])]
     else:
+        if init_barycenter.shape != (X.shape[1], X.shape[2]):
+            raise ValueError(
+                f"init_barycenter shape is invalid. Expected {(X.shape[1], X.shape[2])}"
+                f" but got {init_barycenter.shape}"
+            )
+
         return init_barycenter
 
 

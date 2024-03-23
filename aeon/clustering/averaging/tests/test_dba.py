@@ -203,3 +203,8 @@ def test_elastic_dba_variations(distance):
     assert isinstance(subgradient_ts, np.ndarray)
     assert average_ts.shape == X_train[0].shape
     assert subgradient_ts.shape == X_train[0].shape
+
+
+# TODO: Add tests for passing custom initial barycenter (both correctly and incorrectly
+#  i.e. wrong shape)
+# TODO: Add support for unequal length
