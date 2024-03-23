@@ -126,12 +126,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
-        ``transformed_data_`` will also be removed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -188,7 +182,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
         replace_nan=None,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -205,21 +198,9 @@ class BaseIntervalForest(metaclass=ABCMeta):
         self.replace_nan = replace_nan
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
-        self.save_transformed_data = save_transformed_data
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
-        self.transformed_data_ = []
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be "
-                "removed in v0.8.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
-
         super().__init__()
 
     # if subsampling attributes, an interval_features transformer must contain a
@@ -237,12 +218,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
     transformer_feature_skip = ["transform_features_", "_transform_features"]
 
     def _fit(self, X, y):
-        b = (
-            False
-            if isinstance(self.save_transformed_data, str)
-            else self.save_transformed_data
-        )
-        self.transformed_data_ = self._fit_forest(X, y, save_transformed_data=b)
+        self._fit_forest(X, y)
         return self
 
     def _predict(self, X):
@@ -293,7 +269,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         rng = check_random_state(self.random_state)
 
         if is_regressor(self):
-            Xt = self._fit_forest(X, y, save_transformed_data=True)
+            Xt = self._fit_forest(X, y)
 
             p = Parallel(
                 n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
@@ -335,7 +311,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
                 "Train probability estimates are only available for classification"
             )
 
-        Xt = self._fit_forest(X, y, save_transformed_data=True)
+        Xt = self._fit_forest(X, y)
 
         rng = check_random_state(self.random_state)
 
@@ -368,7 +344,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         return results
 
-    def _fit_forest(self, X, y, save_transformed_data=False):
+    def _fit_forest(self, X, y):
         rng = check_random_state(self.random_state)
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
@@ -841,7 +817,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
                         Xt,
                         y,
                         rng.randint(np.iinfo(np.int32).max),
-                        save_transformed_data=save_transformed_data,
                     )
                     for _ in range(self._n_jobs)
                 )
@@ -870,7 +845,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
                     Xt,
                     y,
                     rng.randint(np.iinfo(np.int32).max),
-                    save_transformed_data=save_transformed_data,
                 )
                 for _ in range(self._n_estimators)
             )
@@ -883,7 +857,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         return transformed_intervals
 
-    def _fit_estimator(self, Xt, y, seed, save_transformed_data=False):
+    def _fit_estimator(self, Xt, y, seed):
         # random state for this estimator
         rng = check_random_state(seed)
 
@@ -1074,7 +1048,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         return [
             tree,
             intervals,
-            interval_features if save_transformed_data else None,
+            None,  # Need to remove this
         ]
 
     def _predict_setup(self, X):
