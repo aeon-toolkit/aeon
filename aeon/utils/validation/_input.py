@@ -84,6 +84,12 @@ def is_valid_input(X):
 def validate_input(X):
     """Validate input.
 
+    This function checks if the input is a valid time series data structure for a
+    single series, collection of series or hierarchical series. If the input is valid
+    for one of these abstract types, it finds the metadata relating to the type,
+    whether series are univariate and whether it has nans or not, and returns this
+    information in a dictionary.
+
     Parameters
     ----------
     X : array-like
