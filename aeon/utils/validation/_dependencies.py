@@ -1,6 +1,6 @@
 """Utility to check soft dependency imports, and raise warnings or errors."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 
 import io
 import sys
