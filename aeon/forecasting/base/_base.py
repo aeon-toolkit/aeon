@@ -1410,6 +1410,7 @@ class BaseForecaster(BaseEstimator):
 
         if not requires_vectorization:
             # converts y, skips conversion if already of right type
+
             y_inner = convert_to(
                 y,
                 to_type=y_inner_type,
