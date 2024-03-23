@@ -39,7 +39,7 @@ class TimeSeriesKShapes(BaseClusterer):
 
     Attributes
     ----------
-    labels_: np.ndarray (1d array of shape (n_instances,))
+    labels_: np.ndarray (1d array of shape (n_cases,))
         Labels that is the index each time series belongs to.
     inertia_: float
         Sum of squared distances of samples to their closest cluster centre, weighted by
@@ -97,8 +97,8 @@ class TimeSeriesKShapes(BaseClusterer):
 
         Parameters
         ----------
-        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints)
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
@@ -133,14 +133,14 @@ class TimeSeriesKShapes(BaseClusterer):
 
         Parameters
         ----------
-        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints)
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns
         -------
-        np.ndarray (1d array of shape (n_instances,))
+        np.ndarray (1d array of shape (n_cases,))
             Index of the cluster each time series in X belongs to.
         """
         _X = X.swapaxes(1, 2)

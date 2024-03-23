@@ -138,7 +138,7 @@ def distance(
     elif metric == "manhattan":
         return manhattan_distance(x, y)
     elif metric == "minkowski":
-        return minkowski_distance(x, y)
+        return minkowski_distance(x, y, kwargs.get("p", 2.0), kwargs.get("w", None))
     elif metric == "dtw":
         return dtw_distance(x, y, kwargs.get("window"), kwargs.get("itakura_max_slope"))
     elif metric == "ddtw":
@@ -242,11 +242,11 @@ def pairwise_distance(
     Parameters
     ----------
     X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-         or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+         or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
        A single series or a collection of time series of shape ``(m_timepoints,)`` or
-       ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``
+       ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``
     metric : str or Callable
         The distance metric to use.
         A list of valid distance metrics can be found in the documentation for
@@ -258,7 +258,7 @@ def pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         pairwise matrix between the instances of X.
 
     Raises
@@ -301,7 +301,9 @@ def pairwise_distance(
     elif metric == "manhattan":
         return manhattan_pairwise_distance(x, y)
     elif metric == "minkowski":
-        return minkowski_pairwise_distance(x, y)
+        return minkowski_pairwise_distance(
+            x, y, kwargs.get("p", 2.0), kwargs.get("w", None)
+        )
     elif metric == "dtw":
         return dtw_pairwise_distance(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
@@ -417,11 +419,11 @@ def _custom_func_pairwise(
 def _custom_pairwise_distance(
     X: np.ndarray, dist_func: DistanceFunction, **kwargs
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = dist_func(X[i], X[j], **kwargs)
             distances[j, i] = distances[i, j]
 
@@ -431,12 +433,12 @@ def _custom_pairwise_distance(
 def _custom_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray, dist_func: DistanceFunction, **kwargs
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = dist_func(x[i], y[j], **kwargs)
     return distances
 

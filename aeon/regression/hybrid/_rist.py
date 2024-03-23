@@ -61,7 +61,7 @@ class RISTRegressor(BaseRIST, BaseRegressor):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of dimensions per case in the training set.

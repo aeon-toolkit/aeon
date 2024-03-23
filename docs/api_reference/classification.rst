@@ -82,7 +82,6 @@ Feature-based
 
     Catch22Classifier
     FreshPRINCEClassifier
-    MatrixProfileClassifier
     SignatureClassifier
     SummaryClassifier
     TSFreshClassifier
@@ -186,7 +185,6 @@ Composition
 
     ClassifierPipeline
     ChannelEnsembleClassifier
-    SklearnClassifierPipeline
     WeightedEnsembleClassifier
 
 

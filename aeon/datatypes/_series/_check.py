@@ -327,7 +327,7 @@ if _check_soft_dependencies("xarray", severity="none"):
 
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import check_dask_frame
+    from aeon.utils.conversion.dask_converters import check_dask_frame
 
     def check_dask_series(obj, return_metadata=False, var_name="obj"):
         return check_dask_frame(

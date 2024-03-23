@@ -109,9 +109,9 @@ class DummyClassifier(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            training data shape ``(n_instances, n_channels, series_length)``
+            training data shape ``(n_cases, n_channels, n_timepoints)``
         y : np.ndarray
-            class labels, shape ``(n_instances)`` - the class labels
+            class labels, shape ``(n_cases)`` - the class labels
 
         Returns
         -------
@@ -138,7 +138,7 @@ class DummyClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
 
         Returns
         -------
