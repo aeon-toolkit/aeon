@@ -70,7 +70,7 @@ class EncoderRegressor(BaseDeepRegressor):
         Seed for random number generation.
     loss:
         The loss function to use for training.
-    metrics: str or list of str, default=["accuracy"]
+    metrics: str or list of str, default="accuracy"
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
@@ -200,7 +200,7 @@ class EncoderRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=self.metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -224,7 +224,10 @@ class EncoderRegressor(BaseDeepRegressor):
         # Transpose X to conform to Keras input style
         X = X.transpose(0, 2, 1)
         check_random_state(self.random_state)
-
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 
