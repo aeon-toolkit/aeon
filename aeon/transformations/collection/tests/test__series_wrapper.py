@@ -1,4 +1,4 @@
-"""Tests for broadcaster transformer."""
+"""Tests for SeriesToCollectionWrapper transformer."""
 
 __maintainer__ = ["baraline"]
 
@@ -15,11 +15,11 @@ from aeon.transformations.series import (
 
 def test_SeriesToCollectionWrapper_tag_inheritance():
     """Test the ability to inherit tags from the BaseSeriesTransformer."""
-    broadcaster = SeriesToCollectionWrapper(DummySeriesTransformerNoFit())
-    broadcaster_tags = broadcaster.get_tags()
+    wrapper = SeriesToCollectionWrapper(DummySeriesTransformerNoFit())
+    wrapper_tags = wrapper.get_tags()
     dummy_tags = DummySeriesTransformerNoFit().get_tags()
-    for key in broadcaster._tags_to_inherit:
-        assert broadcaster_tags[key] == dummy_tags[key]
+    for key in wrapper._tags_to_inherit:
+        assert wrapper_tags[key] == dummy_tags[key]
 
 
 @pytest.mark.parametrize(
@@ -32,21 +32,19 @@ def test_SeriesToCollectionWrapper(data_gen):
     """Test the wrapper fit, transform and inverse transform method."""
     X, y = data_gen()
     constant = 1
-    broadcaster = SeriesToCollectionWrapper(DummySeriesTransformer(constant=constant))
-    broadcaster.fit(X, y)
-    Xt = broadcaster.transform(X)
-    Xit = broadcaster.inverse_transform(Xt)
-    assert hasattr(broadcaster, "series_transformers") and len(
-        broadcaster.series_transformers
+    wrapper = SeriesToCollectionWrapper(DummySeriesTransformer(constant=constant))
+    wrapper.fit(X, y)
+    Xt = wrapper.transform(X)
+    Xit = wrapper.inverse_transform(Xt)
+    assert hasattr(wrapper, "series_transformers") and len(
+        wrapper.series_transformers
     ) == len(X)
 
     for i in range(len(X)):
-        for j in range(broadcaster.series_transformers[i].n_features_):
+        for j in range(wrapper.series_transformers[i].n_features_):
             assert_array_almost_equal(
                 Xt[i, j],
-                X[i, j]
-                + constant
-                + broadcaster.series_transformers[i].random_values_[j],
+                X[i, j] + constant + wrapper.series_transformers[i].random_values_[j],
             )
 
     assert_array_almost_equal(Xit, X)
@@ -60,12 +58,10 @@ def test_SeriesToCollectionWrapper_no_fit(data_gen):
     """Test the wrapper for transformers with fit_empty."""
     X, y = data_gen()
     constant = 1
-    broadcaster = SeriesToCollectionWrapper(
-        DummySeriesTransformerNoFit(constant=constant)
-    )
-    broadcaster.fit(X, y)
-    Xt = broadcaster.transform(X)
-    Xit = broadcaster.inverse_transform(Xt)
-    assert not hasattr(broadcaster, "series_transformers")
+    wrapper = SeriesToCollectionWrapper(DummySeriesTransformerNoFit(constant=constant))
+    wrapper.fit(X, y)
+    Xt = wrapper.transform(X)
+    Xit = wrapper.inverse_transform(Xt)
+    assert not hasattr(wrapper, "series_transformers")
     assert_array_almost_equal(Xt, X + constant)
     assert_array_almost_equal(Xit, X)

@@ -1,4 +1,4 @@
-"""Class to broadcast a single series transformer over a collection."""
+"""Class to wrap a single series transformer over a collection."""
 
 __maintainer__ = ["baraline"]
 __all__ = ["SeriesToCollectionWrapper"]
@@ -26,7 +26,7 @@ def _joblib_container_inverse_transform(transformer: BaseSeriesTransformer, X, y
 
 
 class SeriesToCollectionWrapper(BaseCollectionTransformer):
-    """Broadcasts a single series transformer over a collection.
+    """Wrap a single series transformer over a collection.
 
     Uses the single series transformer passed in the constructor over a
     collection of series.
@@ -34,7 +34,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
     Parameters
     ----------
     transformer : BaseSeriesTransformer
-        The single series transformer to broadcast accross the collection.
+        The single series transformer to warp accross the collection.
     n_jobs : int, optional
         Number of jobs to used. This will be used call the methods of the
         SeriesTransformer in parallel. The default is 1.
@@ -43,11 +43,11 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import SeriesToCollectionBroadcaster
+    >>> from aeon.transformations.collection import SeriesToCollectionWrapper
     >>> from aeon.transformations.series import DummySeriesTransformer
     >>> from aeon.datasets import load_unit_test
     >>> X, y = load_unit_test()
-    >>> transformer = BroadcastTransformer(DummySeriesTransformer())
+    >>> transformer = SeriesToCollectionWrapper(DummySeriesTransformer())
     >>> X_t = transformer.fit_transform(X)
     """
 
@@ -80,38 +80,38 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
         if _tags["fit_is_empty"]:
             transformer._is_fitted = True
 
-    def _check_n_jobs_broadcast(self, n_cases: int) -> (int, int):
+    def _check_n_jobs_wrapper(self, n_cases: int) -> (int, int):
         """
-        Check the n_jobs parameters of the broadcaster and the transform.
+        Check the n_jobs parameters of the wrapper and the transform.
 
         It will compute a balanced number of jobs by dividing the n_jobs parameter
-        defined in the transformer by the n_jobs parameter defined in the broadcaster.
+        defined in the transformer by the n_jobs parameter defined in the wrapper.
         If the transformer does not have a n_jobs parameter, it will only use the
-        n_jobs of the broadcaster.
+        n_jobs of the wrapper.
 
 
         Parameters
         ----------
         n_cases : int
             Number of samples to transform. Used to limit the number of jobs of the
-            broadcaster, which don't need to be higher than the number of instances,
+            wrapper, which don't need to be higher than the number of instances,
             as it will loop on them.
 
         Raises
         ------
         ValueError
             Raise a ValueError when the number of parallel jobs affected to
-            the broadcaster is not stricly superior to zero. This number is
+            the wrapper is not stricly superior to zero. This number is
             computed based on the n_jobs parameter given in the initialization
-            of both the broadcaster and the transformer. The error
+            of both the wrapper and the transformer. The error
             will be raised when transformer_n_jobs > CPU count or when
-            broadcaster // transformer_n_jobs <= 0.
+            wrapper_n_jobs // transformer_n_jobs <= 0.
 
 
         Returns
         -------
         int
-            Number of jobs for the broadcaster.
+            Number of jobs for the wrapper.
         int
             Number of jobs for the transformer.
 
@@ -128,7 +128,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
                 return min(n_cases, joblib_n_jobs), transformer_n_jobs
             else:
                 raise ValueError(
-                    f"Got {joblib_n_jobs} jobs for parallel broadcasting of "
+                    f"Got {joblib_n_jobs} jobs for parallel wrapper of "
                     f"{self.transformer.__class__.__name__}, this value should "
                     "be strictly superior to zero."
                 )
@@ -183,7 +183,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
         if y is None:
             y = [None] * n_samples
 
-        n_jobs_joblib, n_jobs_transformer = self._check_n_jobs_broadcast(n_samples)
+        n_jobs_joblib, n_jobs_transformer = self._check_n_jobs_wrapper(n_samples)
         self._set_n_jobs_transformer(n_jobs_transformer)
 
         self.series_transformers = Parallel(
@@ -213,7 +213,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
             indicates that the input may different of the one given during
             fit. As a BaseSeriesTransformer is only fitted to a single series,
             it only makes sense to use transform with the same series in a
-            broadcasting context.
+            wrapping context.
 
         Returns
         -------
@@ -225,7 +225,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
         if y is None:
             y = [None] * n_samples
 
-        n_jobs_joblib, n_jobs_transformer = self._check_n_jobs_broadcast(n_samples)
+        n_jobs_joblib, n_jobs_transformer = self._check_n_jobs_wrapper(n_samples)
         self._set_n_jobs_transformer(n_jobs_transformer)
 
         if self.get_tag("fit_is_empty"):
@@ -242,7 +242,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
                 raise ValueError(
                     f"The number of sample ({len(X)}) is different from the "
                     f"number of fitted transformers "
-                    f"({len(self.series_transformers)}). If the broadcasted "
+                    f"({len(self.series_transformers)}). If the wrapped "
                     "transformer needs to be fitted, you cannot call "
                     "transform with a different collection of time"
                     "series without re-fitting it first."
@@ -277,7 +277,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
             indicates that the input may different of the one given during
             fit. As a BaseSeriesTransformer is only fitted to a single series,
             it only makes sense to use transform with the same series in a
-            broadcasting context.
+            wrapping context.
 
         Returns
         -------
@@ -289,7 +289,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
         if y is None:
             y = [None] * n_samples
 
-        n_jobs_joblib, n_jobs_transformer = self._check_n_jobs_broadcast(n_samples)
+        n_jobs_joblib, n_jobs_transformer = self._check_n_jobs_wrapper(n_samples)
         self._set_n_jobs_transformer(n_jobs_transformer)
 
         if self.get_tag("fit_is_empty"):
@@ -308,7 +308,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
                 raise ValueError(
                     f"The number of sample ({len(X)}) is different from the "
                     f"number of fitted transformers "
-                    f"({len(self.series_transformers)}). If the broadcasted "
+                    f"({len(self.series_transformers)}). If the wrapped "
                     "transformer needs to be fitted, you cannot call "
                     "inverse_transform with a different collection of time"
                     "series without re-fitting it first."
