@@ -29,22 +29,3 @@ def test_matrix_profile():
     )
     np.testing.assert_allclose(res1, expected, rtol=1e-04, atol=1e-04)
     np.testing.assert_allclose(res1, res2, rtol=1e-04, atol=1e-04)
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("stumpy", severity="none"),
-    reason="skip test if required soft dependency stumpy is not available",
-)
-def test_matrix_profile_multivariate_2D():
-    """Test that an exception is raised when 2D series is given."""
-    series = np.array(
-        [
-            [584.0, -11.0, 23.0, 79.0, 1001.0, 0.0, -19.0],
-            [584.0, -11.0, 23.0, 79.0, 1001.0, 0.0, -19.0],
-        ]
-    )
-    mp = MatrixProfileSeriesTransformer(window_length=3)
-    try:
-        mp.fit_transform(series)
-    except ValueError:
-        assert True

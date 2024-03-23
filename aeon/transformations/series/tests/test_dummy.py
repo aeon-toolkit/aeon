@@ -1,11 +1,13 @@
 """Tests for dummy series transformer."""
 
+__maintainer__ = ["baraline"]
+
 import numpy as np
 import pytest
 
 from aeon.transformations.series import (
     DummySeriesTransformer,
-    DummySeriesTransformer_no_fit,
+    DummySeriesTransformerNoFit,
 )
 
 INPUT_SHAPES = [(2, 5), (1, 5)]
@@ -17,9 +19,9 @@ def test_DummySeriesTransformer(input_shape):
     X = np.zeros(input_shape)
     transformer = DummySeriesTransformer(constant=constant).fit(X)
     Xt = transformer.transform(X)
-    assert (
-        np.all(Xt == constant + transformer.random_value_) and Xt.shape == input_shape
-    )
+    assert Xt.shape == input_shape
+    for i in range(X.shape[0]):
+        assert np.all(Xt[i] == constant + transformer.random_values_[i])
     Xit = transformer.inverse_transform(Xt)
     assert np.all(Xit == X) and Xit.shape == input_shape
 
@@ -29,16 +31,16 @@ def test_DummySeriesTransformer_1D_convertion():
     X = np.zeros(5)
     transformer = DummySeriesTransformer(constant=constant).fit(X)
     Xt = transformer.transform(X)
-    assert np.all(Xt == constant + transformer.random_value_) and Xt.shape == (1, 5)
+    assert np.all(Xt == constant + transformer.random_values_) and Xt.shape == (1, 5)
     Xit = transformer.inverse_transform(Xt)
     assert np.all(Xit == X) and Xit.shape == (1, 5)
 
 
 @pytest.mark.parametrize("input_shape", INPUT_SHAPES)
-def test_DummySeriesTransformer_no_fit(input_shape):
+def test_DummySeriesTransformerNoFit(input_shape):
     constant = 1
     X = np.zeros(input_shape)
-    transformer = DummySeriesTransformer_no_fit(constant=constant).fit(X)
+    transformer = DummySeriesTransformerNoFit(constant=constant).fit(X)
     Xt = transformer.transform(X)
     assert np.all(Xt == constant) and Xt.shape == input_shape
     Xit = transformer.inverse_transform(Xt)

@@ -1,7 +1,7 @@
 """Class to broadcast a single series transformer over a collection."""
 
 __maintainer__ = ["baraline"]
-__all__ = ["BroadcastTransformer"]
+__all__ = ["SeriesToCollectionWrapper"]
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -25,19 +25,11 @@ def _joblib_container_inverse_transform(transformer: BaseSeriesTransformer, X, y
     return transformer.inverse_transform(X, y=y)
 
 
-class BroadcastTransformer(BaseCollectionTransformer):
+class SeriesToCollectionWrapper(BaseCollectionTransformer):
     """Broadcasts a single series transformer over a collection.
 
-    Uses the single series transformer passed in the constructor over a collection of
-    series. Design points to note:
-
-    1. This class takes its capabilities from the series transformer. So, for example,
-    it will only work with a collection of multivariate series if the single series
-    transformer has the ``capability:multivariate`` tag set to True.
-    2. If the tag `fit_is_empty` is True, it will use the same instance of the series
-    transformer for each series in the collection. If `fit_is_empty` is False,
-    it will clone the single series transformer for each instance and save the fitted
-    version for each series.
+    Uses the single series transformer passed in the constructor over a
+    collection of series.
 
     Parameters
     ----------
@@ -51,7 +43,7 @@ class BroadcastTransformer(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import BroadcastTransformer
+    >>> from aeon.transformations.collection import SeriesToCollectionBroadcaster
     >>> from aeon.transformations.series import DummySeriesTransformer
     >>> from aeon.datasets import load_unit_test
     >>> X, y = load_unit_test()
@@ -75,8 +67,8 @@ class BroadcastTransformer(BaseCollectionTransformer):
     def __init__(
         self,
         transformer: BaseSeriesTransformer,
-        n_jobs: int = 1,
-        joblib_backend: str = "loky",
+        n_jobs: int = None,
+        joblib_backend: str = "threading",
     ) -> None:
         self.transformer = transformer
         self.n_jobs = n_jobs
@@ -84,9 +76,9 @@ class BroadcastTransformer(BaseCollectionTransformer):
         super().__init__()
         # Setting tags before __init__() cause them to be overwriten.
         _tags = {key: transformer.get_tags()[key] for key in self._tags_to_inherit}
+        self.set_tags(**_tags)
         if _tags["fit_is_empty"]:
             transformer._is_fitted = True
-        self.set_tags(**_tags)
 
     def _check_n_jobs_broadcast(self, n_cases: int) -> (int, int):
         """
@@ -108,7 +100,13 @@ class BroadcastTransformer(BaseCollectionTransformer):
         Raises
         ------
         ValueError
-            DESCRIPTION.
+            Raise a ValueError when the number of parallel jobs affected to
+            the broadcaster is not stricly superior to zero. This number is
+            computed based on the n_jobs parameter given in the initialization
+            of both the broadcaster and the transformer. The error
+            will be raised when transformer_n_jobs > CPU count or when
+            broadcaster // transformer_n_jobs <= 0.
+
 
         Returns
         -------
@@ -137,6 +135,31 @@ class BroadcastTransformer(BaseCollectionTransformer):
         else:
             return 1, 1
 
+    def _set_n_jobs_transformer(self, n_jobs: int):
+        """
+        Set the number of jobs for the transformer objects.
+
+        We don't use set_params to avoid calling reset(). If fit is not empty,
+        series_transformer are cloned from the transformer object, so setting
+        n_jobs for series_transformer is only needed after fit has been called.
+
+        Parameters
+        ----------
+        n_jobs : int
+            Number of jobs to affect to transformer objects
+
+        Returns
+        -------
+        None.
+
+        """
+        if hasattr(self.transformer, "n_jobs"):
+            self.transformer.n_jobs = n_jobs
+
+            if self.is_fitted and not self.get_tag("fit_is_empty"):
+                for i in range(len(self.series_transformers)):
+                    self.series_transformers[i].n_jobs = n_jobs
+
     def _fit(self, X, y=None):
         """
         Clone and fit instances of the transformer independently for each sample.
@@ -160,7 +183,9 @@ class BroadcastTransformer(BaseCollectionTransformer):
         if y is None:
             y = [None] * n_samples
 
-        n_jobs_joblib, _ = self._check_n_jobs_broadcast(n_samples)
+        n_jobs_joblib, n_jobs_transformer = self._check_n_jobs_broadcast(n_samples)
+        self._set_n_jobs_transformer(n_jobs_transformer)
+
         self.series_transformers = Parallel(
             n_jobs=n_jobs_joblib, backend=self.joblib_backend
         )(
@@ -170,7 +195,7 @@ class BroadcastTransformer(BaseCollectionTransformer):
 
     def _transform(self, X, y=None):
         """
-        Call the transform function of each transformer independently for each sample.
+        Use transform function of each transformer independently for each sample.
 
         Parameters
         ----------
@@ -179,6 +204,16 @@ class BroadcastTransformer(BaseCollectionTransformer):
         y : 1D np.ndarray of shape = (n_cases), optional
             Class of the samples. The default is None, which means this parameter
             is ignored.
+
+        Raises
+        ------
+        ValueError
+            When fit_is_empty is False, a ValueError can be raised if the
+            size of X is different of the size of series_transformers. This
+            indicates that the input may different of the one given during
+            fit. As a BaseSeriesTransformer is only fitted to a single series,
+            it only makes sense to use transform with the same series in a
+            broadcasting context.
 
         Returns
         -------
@@ -190,19 +225,36 @@ class BroadcastTransformer(BaseCollectionTransformer):
         if y is None:
             y = [None] * n_samples
 
-        n_jobs_joblib, _ = self._check_n_jobs_broadcast(n_samples)
+        n_jobs_joblib, n_jobs_transformer = self._check_n_jobs_broadcast(n_samples)
+        self._set_n_jobs_transformer(n_jobs_transformer)
+
         if self.get_tag("fit_is_empty"):
+            # Not Cloning transformer for joblib parallel with threading
+            # might cause some non-efficient parallelism as we call from
+            # the same object. But cloning remove deep params such as
+            # _is_fitted. Processes/Loky would copy it by default.
             Xt = Parallel(n_jobs=n_jobs_joblib, backend=self.joblib_backend)(
                 delayed(_joblib_container_transform)(self.transformer, X[i], y[i])
                 for i in range(len(X))
             )
         else:
+            if len(X) != len(self.series_transformers):
+                raise ValueError(
+                    f"The number of sample ({len(X)}) is different from the "
+                    f"number of fitted transformers "
+                    f"({len(self.series_transformers)}). If the broadcasted "
+                    "transformer needs to be fitted, you cannot call "
+                    "transform with a different collection of time"
+                    "series without re-fitting it first."
+                )
+
             Xt = Parallel(n_jobs=n_jobs_joblib, backend=self.joblib_backend)(
                 delayed(_joblib_container_transform)(
                     self.series_transformers[i], X[i], y[i]
                 )
                 for i in range(len(X))
             )
+
         return np.asarray(Xt)
 
     def _inverse_transform(self, X, y=None):
@@ -217,6 +269,16 @@ class BroadcastTransformer(BaseCollectionTransformer):
             Class of the samples. The default is None, which means this parameter
             is ignored.
 
+        Raises
+        ------
+        ValueError
+            When fit_is_empty is False, a ValueError can be raised if the
+            size of X is different of the size of series_transformers. This
+            indicates that the input may different of the one given during
+            fit. As a BaseSeriesTransformer is only fitted to a single series,
+            it only makes sense to use transform with the same series in a
+            broadcasting context.
+
         Returns
         -------
         Xt : np.ndarray
@@ -227,8 +289,14 @@ class BroadcastTransformer(BaseCollectionTransformer):
         if y is None:
             y = [None] * n_samples
 
-        n_jobs_joblib, _ = self._check_n_jobs_broadcast(n_samples)
+        n_jobs_joblib, n_jobs_transformer = self._check_n_jobs_broadcast(n_samples)
+        self._set_n_jobs_transformer(n_jobs_transformer)
+
         if self.get_tag("fit_is_empty"):
+            # Not Cloning transformer for joblib parallel with threading
+            # might cause some non-efficient parallelism as we call from
+            # the same object. But cloning remove deep params such as
+            # _is_fitted. Processes/Loky would copy it by default.
             Xt = Parallel(n_jobs=n_jobs_joblib, backend=self.joblib_backend)(
                 delayed(_joblib_container_inverse_transform)(
                     self.transformer, X[i], y[i]
@@ -236,12 +304,23 @@ class BroadcastTransformer(BaseCollectionTransformer):
                 for i in range(len(X))
             )
         else:
+            if len(X) != len(self.series_transformers):
+                raise ValueError(
+                    f"The number of sample ({len(X)}) is different from the "
+                    f"number of fitted transformers "
+                    f"({len(self.series_transformers)}). If the broadcasted "
+                    "transformer needs to be fitted, you cannot call "
+                    "inverse_transform with a different collection of time"
+                    "series without re-fitting it first."
+                )
+
             Xt = Parallel(n_jobs=n_jobs_joblib, backend=self.joblib_backend)(
                 delayed(_joblib_container_inverse_transform)(
                     self.series_transformers[i], X[i], y[i]
                 )
                 for i in range(len(X))
             )
+
         return np.asarray(Xt)
 
     @classmethod

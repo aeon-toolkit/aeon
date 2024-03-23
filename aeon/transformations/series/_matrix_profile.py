@@ -42,10 +42,10 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
         "python_dependencies": "stumpy",
     }
 
-    def __init__(self, window_length=3, axis=1):
+    def __init__(self, window_length=3):
         self.window_length = window_length
         self.matrix_profile_ = None
-        super().__init__(axis=axis)
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

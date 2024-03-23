@@ -3,9 +3,84 @@
 __maintainer__ = []
 __all__ = ["make_series", "make_forecasting_problem"]
 
+from typing import Union
+
 import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
+
+
+def make_2d_numpy_series(
+    n_channels: int = 2,
+    n_timepoints: int = 8,
+    random_state: Union[int, None] = None,
+    axis: int = 1,
+) -> np.ndarray:
+    """Randomly generate 2D series for testing.
+
+    Parameters
+    ----------
+    n_channels : int
+        The number of channels to generate.
+    n_timepoints : int
+        The length of the series to generate.
+    random_state : int or None
+        Seed for random number generation.
+    axis : int, default = 1
+        Axis along which to segment if passed a multivariate series (2D input).
+        If axis is 0, it is assumed each column is a time series and each row
+        is a timepoint. i.e. the shape of the data is
+        ``(n_timepoints,n_channels)``. ``axis == 1`` indicates the time series
+        are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
+
+    Returns
+    -------
+    X : np.ndarray
+        Randomly generated 2D series.
+
+    Examples
+    --------
+    >>> data = make_2d_numpy_series(n_channels=2, n_timepoints=6,
+    ... random_state=0)
+    >>> print(data)
+    [[0.5488135  0.60276338 0.4236548  0.43758721 0.96366276 0.79172504]
+     [0.71518937 0.54488318 0.64589411 0.891773   0.38344152 0.52889492]]
+    """
+    rng = np.random.RandomState(random_state)
+    X = rng.uniform(size=(n_timepoints, n_channels))
+    if axis == 1:
+        X = X.T
+    return X
+
+
+def make_1d_numpy_series(
+    n_timepoints: int = 8,
+    random_state: Union[int, None] = None,
+) -> np.ndarray:
+    """Randomly generate 1D series for testing.
+
+    Parameters
+    ----------
+    n_timepoints : int
+        The length of the series to generate.
+    random_state : int or None
+        Seed for random number generation.
+
+    Returns
+    -------
+    X : np.ndarray
+        Randomly generated 1D series.
+
+    Examples
+    --------
+    >>> data = make_1d_numpy_series(n_timepoints=6, random_state=0)
+    >>> print(data)
+    [0.5488135  0.71518937 0.60276338 0.54488318 0.4236548  0.64589411]
+    """
+    rng = np.random.RandomState(random_state)
+    X = rng.uniform(size=n_timepoints)
+    return X
 
 
 def make_series(

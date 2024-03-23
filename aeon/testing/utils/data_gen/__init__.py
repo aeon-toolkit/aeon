@@ -8,6 +8,8 @@ __all__ = [
     "make_example_long_table",
     "make_example_multi_index_dataframe",
     "make_series",
+    "make_1d_numpy_series",
+    "make_2d_numpy_series",
     "make_forecasting_problem",
     "_make_index",
     "piecewise_normal_multivariate",
@@ -51,6 +53,8 @@ from aeon.testing.utils.data_gen._collection import (
 from aeon.testing.utils.data_gen._data_generators import _convert_tsf_to_hierarchical
 from aeon.testing.utils.data_gen._series import (
     _make_index,
+    make_1d_numpy_series,
+    make_2d_numpy_series,
     make_forecasting_problem,
     make_series,
 )

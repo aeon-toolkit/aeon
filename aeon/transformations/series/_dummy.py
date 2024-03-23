@@ -1,7 +1,6 @@
 """Dummy series transformer."""
 
 __maintainer__ = ["baraline"]
-__all__ = ["DummySeriesTransformer", "DummySeriesTransformer_no_fit"]
 
 import numpy as np
 
@@ -25,59 +24,66 @@ class DummySeriesTransformer(BaseSeriesTransformer):
         "capability:inverse_transform": True,
     }
 
-    def __init__(self, constant: int = 0, axis: int = 1, random_state=None) -> None:
+    def __init__(self, constant: int = 0, random_state=None) -> None:
         self.constant = constant
         self.random_state = random_state
-        super().__init__(axis=axis)
+        super().__init__(axis=1)
 
-    def _fit(self, X, y=None):
+    def _fit(self, X: np.ndarray, y=None):
         """Simulate a fit on X by generating a random value to be added to inputs.
 
         Parameters
         ----------
-        X : ignored argument for interface compatibility
-
+        X : np.ndarray, shape = (n_channels, n_timepoints)
+            2D time series to be transformed
         y : ignored argument for interface compatibility
 
         Returns
         -------
         self
         """
+        self.n_features_ = X.shape[0]
         rng = np.random.RandomState(seed=self.random_state)
-        self.random_value_ = rng.random()
+        self.random_values_ = rng.random(self.n_features_)
         return self
 
-    def _transform(self, X, y=None):
+    def _transform(self, X: np.ndarray, y=None) -> np.ndarray:
         """Transform X by adding the constant and random value set during fit.
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray, shape = (n_channels, n_timepoints)
             2D time series to be transformed
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        np.ndarray
+        np.ndarray, shape = (n_channels, n_timepoints)
             2D transformed version of X
         """
-        return X + (self.constant + self.random_value_)
+        X_new = np.zeros_like(X)
+        for i in range(self.n_features_):
+            X_new[i] = X[i] + (self.constant + self.random_values_[i])
+        return X_new
 
-    def _inverse_transform(self, X, y=None):
+    def _inverse_transform(self, X: np.ndarray, y=None) -> np.ndarray:
         """Inverse transform X by substracting the constant and random value.
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray, shape = (n_channels, n_timepoints)
             2D time series to be transformed
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        np.ndarray
+        np.ndarray, shape = (n_channels, n_timepoints)
             2D inverse transformed version of X
         """
-        return X - (self.constant + self.random_value_)
+        X_new = np.zeros_like(X)
+        for i in range(self.n_features_):
+            X_new[i] = X[i] - (self.constant + self.random_values_[i])
+        return X_new
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -96,9 +102,9 @@ class DummySeriesTransformer(BaseSeriesTransformer):
         return {}
 
 
-class DummySeriesTransformer_no_fit(BaseSeriesTransformer):
+class DummySeriesTransformerNoFit(BaseSeriesTransformer):
     """
-    DummySeriesTransformer adds a value to all elements the input series.
+    DummySeriesTransformerNoFit adds a value to all elements the input series.
 
     Parameters
     ----------
@@ -112,41 +118,45 @@ class DummySeriesTransformer_no_fit(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, constant: int = 0, axis: int = 1) -> None:
+    def __init__(self, constant: int = 0) -> None:
         self.constant = constant
-        super().__init__(axis=axis)
+        super().__init__(axis=1)
 
-    def _transform(self, X, y=None):
+    def _transform(self, X: np.ndarray, y=None) -> np.ndarray:
         """Transform X by adding the constant value given in init.
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray, shape = (n_channels, n_timepoints)
             2D time series to be transformed
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        np.ndarray
+        np.ndarray, shape = (n_channels, n_timepoints)
             2D transformed version of X
         """
-        return X + self.constant
+        X_new = np.zeros_like(X)
+        X_new = X + self.constant
+        return X_new
 
-    def _inverse_transform(self, X, y=None):
+    def _inverse_transform(self, X: np.ndarray, y=None) -> np.ndarray:
         """Inverse transform X by substracting the constant.
 
         Parameters
         ----------
-        X : np.ndarray
+        X : np.ndarray, shape = (n_channels, n_timepoints)
             2D time series to be transformed
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        np.ndarray
+        np.ndarray, shape = (n_channels, n_timepoints)
             2D inverse transformed version of X
         """
-        return X - self.constant
+        X_new = np.zeros_like(X)
+        X_new = X - self.constant
+        return X_new
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
