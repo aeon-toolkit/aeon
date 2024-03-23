@@ -1,14 +1,15 @@
 """Utilities for validating panel data."""
 
-__maintainer__ = []
 __all__ = [
     "check_X",
     "check_y",
     "check_X_y",
 ]
 
+__maintainer__ = ["TonyBagnall"]
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.utils.validation import check_consistent_length
 
 from aeon.utils.conversion import convert_collection
@@ -18,6 +19,13 @@ VALID_X_TYPES = (pd.DataFrame, np.ndarray)  # nested pd.DataFrame, 2d or 3D np.n
 VALID_Y_TYPES = (pd.Series, np.ndarray)  # 1-d vector
 
 
+# TODO: remove in v0.9.0
+@deprecated(
+    version="0.8.0",
+    reason="check_X in utils.validation will be removed in v0.9.0, it has been "
+    "replaced by functionality that splits validation and conversion.",
+    category=FutureWarning,
+)
 def check_X(
     X,
     enforce_univariate=False,
@@ -111,6 +119,13 @@ def check_X(
     return X
 
 
+# TODO: remove in v0.9.0
+@deprecated(
+    version="0.8.0",
+    reason="check_y in utils.validation will be removed in v0.9.0, it has been "
+    "replaced by functionality that splits validation and conversion.",
+    category=FutureWarning,
+)
 def check_y(y, enforce_min_cases=1, coerce_to_numpy=False):
     """Validate input data.
 
@@ -146,6 +161,12 @@ def check_y(y, enforce_min_cases=1, coerce_to_numpy=False):
     return y
 
 
+@deprecated(
+    version="0.8.0",
+    reason="check_X_y in utils.validation will be removed in v0.9.0, it has been "
+    "replaced by functionality that splits validation and conversion.",
+    category=FutureWarning,
+)
 def check_X_y(
     X,
     y,
