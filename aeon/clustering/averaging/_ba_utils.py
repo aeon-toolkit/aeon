@@ -45,27 +45,46 @@ def _get_init_barycenter(
     X: np.ndarray,
     init_barycenter: Union[np.ndarray, str],
     distance: str,
-    precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
+    precomputed_medoids_pw: Optional[np.ndarray] = None,
     random_state: int = 1,
     **kwargs,
 ) -> np.ndarray:
     if isinstance(init_barycenter, str):
         if init_barycenter not in ["mean", "medoids", "random"]:
             raise ValueError(
-                "init_barycenter string is invalid. Please use one of the" "following",
-                ["mean", "medoids"],
+                "init_barycenter string is invalid. Please use one of the "
+                "following: 'mean', 'medoids', 'random'"
             )
         if init_barycenter == "mean":
             return X.mean(axis=0)
         elif init_barycenter == "medoids":
             return _medoids(
-                X, precomputed_medoids_pairwise_distance, distance=distance, **kwargs
+                X,
+                precomputed_pairwise_distance=precomputed_medoids_pw,
+                distance=distance,
+                **kwargs,
             )
         else:
             rng = check_random_state(random_state)
             return X[rng.choice(X.shape[0])]
     else:
+        if not isinstance(init_barycenter, np.ndarray):
+            raise ValueError(
+                "init_barycenter parameter is invalid. It must either be "
+                "a str or a np.ndarray"
+            )
         if init_barycenter.shape != (X.shape[1], X.shape[2]):
+            if init_barycenter.ndim == 1:
+                return _get_init_barycenter(
+                    X=X,
+                    init_barycenter=init_barycenter.reshape(
+                        1, init_barycenter.shape[0]
+                    ),
+                    distance=distance,
+                    precomputed_medoids_pw=precomputed_medoids_pw,
+                    random_state=random_state,
+                    **kwargs,
+                )
             raise ValueError(
                 f"init_barycenter shape is invalid. Expected {(X.shape[1], X.shape[2])}"
                 f" but got {init_barycenter.shape}"
@@ -128,4 +147,4 @@ def _get_alignment_path(
     else:
         # When numba version > 0.57 add more informative error with what metric
         # was passed.
-        raise ValueError("Metric parameter invalid")
+        raise ValueError("Distance parameter invalid")

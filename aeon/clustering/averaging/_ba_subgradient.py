@@ -85,8 +85,15 @@ def subgradient_barycenter_average(
     if len(X) <= 1:
         return X
 
+    if X.ndim == 3:
+        _X = X
+    elif X.ndim == 2:
+        _X = X.reshape((X.shape[0], 1, X.shape[1]))
+    else:
+        raise ValueError("X must be a 2D or 3D array")
+
     barycenter = _get_init_barycenter(
-        X,
+        _X,
         init_barycenter,
         distance,
         precomputed_medoids_pairwise_distance,
@@ -102,12 +109,12 @@ def subgradient_barycenter_average(
             kwargs["g"] = 0.05
 
     eta = initial_step_size
-    X_size = X.shape[0]
+    X_size = _X.shape[0]
     for i in range(max_iters):
         shuffled_indices = random_state.permutation(X_size)
         barycenter, cost, eta = _ba_one_iter_subgradient(
             barycenter,
-            X,
+            _X,
             shuffled_indices,
             distance,
             initial_step_size,
@@ -176,6 +183,7 @@ def _ba_one_iter_subgradient(
 
         barycenter -= (2.0 * eta) * new_ba
 
+        # Only update eta on the first iteration
         if iteration == 0:
             eta -= (initial_step_size - final_step_size) / X_size
         cost = curr_cost

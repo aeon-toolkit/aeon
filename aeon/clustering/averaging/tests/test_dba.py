@@ -1,5 +1,7 @@
 """Tests for DBA."""
 
+import re
+
 import numpy as np
 import pytest
 
@@ -8,7 +10,7 @@ from aeon.clustering.averaging import (
     petitjean_barycenter_average,
     subgradient_barycenter_average,
 )
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.utils.data_gen import make_example_3d_numpy, make_series
 
 expected_petitjean_dba_univariate = np.array(
     [
@@ -205,6 +207,93 @@ def test_elastic_dba_variations(distance):
     assert subgradient_ts.shape == X_train[0].shape
 
 
-# TODO: Add tests for passing custom initial barycenter (both correctly and incorrectly
-#  i.e. wrong shape)
-# TODO: Add support for unequal length
+@pytest.mark.parametrize(
+    "init_barycenter",
+    [
+        "mean",
+        "medoids",
+        "random",
+        (
+            make_series(10, 1, return_numpy=True, random_state=1),
+            make_series(
+                n_timepoints=4, n_columns=10, return_numpy=True, random_state=1
+            ),
+        ),
+    ],
+)
+def test_dba_init(init_barycenter):
+    """Test dba init functionality."""
+    if isinstance(init_barycenter, str):
+        univariate_init = init_barycenter
+        multivariate_init = init_barycenter
+    else:
+        univariate_init = init_barycenter[0]
+        multivariate_init = init_barycenter[1]
+
+    X_train_uni = make_example_3d_numpy(4, 1, 10, random_state=1, return_y=False)
+    average_ts_univ = elastic_barycenter_average(
+        X_train_uni, window=0.2, init_barycenter=univariate_init
+    )
+    subgradient_ts_univ = elastic_barycenter_average(
+        X_train_uni, window=0.2, method="subgradient", init_barycenter=univariate_init
+    )
+
+    assert isinstance(average_ts_univ, np.ndarray)
+    assert isinstance(subgradient_ts_univ, np.ndarray)
+
+    X_train_multi = make_example_3d_numpy(4, 4, 10, random_state=1, return_y=False)
+    average_ts_multi = elastic_barycenter_average(
+        X_train_multi, window=0.2, init_barycenter=multivariate_init
+    )
+    subgradient_ts_multi = elastic_barycenter_average(
+        X_train_multi,
+        window=0.2,
+        method="subgradient",
+        init_barycenter=multivariate_init,
+    )
+
+    assert isinstance(average_ts_multi, np.ndarray)
+    assert isinstance(subgradient_ts_multi, np.ndarray)
+
+
+def test_incorrect_input():
+    """Test dba incorrect input."""
+    # Test invalid distance
+    X = make_example_3d_numpy(10, 1, 10, return_y=False)
+    with pytest.raises(ValueError, match="Distance parameter invalid"):
+        elastic_barycenter_average(X, distance="Distance parameter invalid")
+
+    # Test invalid init barycenter string
+    with pytest.raises(
+        ValueError,
+        match="init_barycenter string is invalid. Please use one of the "
+        "following: 'mean', 'medoids', 'random'",
+    ):
+        elastic_barycenter_average(X, init_barycenter="init parameter invalid")
+
+    # Test invalid init barycenter type
+    with pytest.raises(
+        ValueError,
+        match="init_barycenter parameter is invalid. It must either be a "
+        "str or a np.ndarray",
+    ):
+        elastic_barycenter_average(X, init_barycenter=[[1, 2, 3]])
+
+    # Test invalid init barycenter with wrong shape
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "init_barycenter shape is invalid. Expected (1, 10) but " "got (1, 9)"
+        ),
+    ):
+        elastic_barycenter_average(X, init_barycenter=make_series(9, return_numpy=True))
+
+    # Test invalid berycenter method
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Invalid method: Not a real method. Please use one of the "
+            "following: ['petitjean', 'subgradient']"
+        ),
+    ):
+        elastic_barycenter_average(X, method="Not a real method")

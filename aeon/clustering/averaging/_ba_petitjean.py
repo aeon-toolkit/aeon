@@ -67,8 +67,15 @@ def petitjean_barycenter_average(
     if len(X) <= 1:
         return X
 
+    if X.ndim == 3:
+        _X = X
+    elif X.ndim == 2:
+        _X = X.reshape((X.shape[0], 1, X.shape[1]))
+    else:
+        raise ValueError("X must be a 2D or 3D array")
+
     barycenter = _get_init_barycenter(
-        X,
+        _X,
         init_barycenter,
         distance,
         precomputed_medoids_pairwise_distance,
@@ -81,7 +88,7 @@ def petitjean_barycenter_average(
         if "g" not in kwargs:
             kwargs["g"] = 0.05
     for i in range(max_iters):
-        barycenter, cost = _ba_one_iter_petitjean(barycenter, X, distance, **kwargs)
+        barycenter, cost = _ba_one_iter_petitjean(barycenter, _X, distance, **kwargs)
         if abs(cost_prev - cost) < tol:
             break
         elif cost_prev < cost:
