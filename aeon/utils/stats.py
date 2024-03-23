@@ -1,12 +1,13 @@
 """Statistical functionality used throughout aeon."""
 
+import warnings
+
 import numpy as np
 from deprecated.sphinx import deprecated
 from sklearn.utils.stats import _weighted_percentile
 from sklearn.utils.validation import check_consistent_length
 
 __maintainer__ = []
-
 __all__ = [
     "_weighted_geometric_mean",
     "_weighted_median",
@@ -27,6 +28,10 @@ __all__ = [
 def _weighted_geometric_mean(y, weights=None, axis=None):
     """Calculate weighted version of geometric mean.
 
+    .. deprecated:: v0.9.0.
+    Use `_weighted_geometric_mean`
+    from `weighted_metrics` instead.
+
     Parameters
     ----------
     y : np.ndarray
@@ -42,6 +47,11 @@ def _weighted_geometric_mean(y, weights=None, axis=None):
     geometric_mean : float
         Weighted geometric mean
     """
+    warnings.warn(
+        "_weighted_geometric_mean is deprecated in v0.9.0.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     if weights.ndim == 1:
         if axis == 0:
             check_consistent_length(y, weights)
@@ -62,6 +72,10 @@ def _weighted_geometric_mean(y, weights=None, axis=None):
 def _weighted_median(y, axis=1, weights=None):
     """Calculate weighted median.
 
+    .. deprecated:: v0.9.0.
+    Use `_weighted_median` from
+    from weighted_metrics instead.
+
     Parameters
     ----------
     y : np.ndarray, pd.Series or pd.DataFrame
@@ -77,6 +91,9 @@ def _weighted_median(y, axis=1, weights=None):
     w_median : float
         Weighted median
     """
+    warnings.warn(
+        "_weighted_nedian is deprecated in v0.9.0.", DeprecationWarning, stacklevel=2
+    )
     w_median = np.apply_along_axis(
         func1d=_weighted_percentile,
         axis=axis,
@@ -89,6 +106,10 @@ def _weighted_median(y, axis=1, weights=None):
 
 def _weighted_min(y, axis=1, weights=None):
     """Calculate weighted minimum.
+
+    .. deprecated:: v0.9.0.
+    Use `_weighted_min` from
+    from weighted_metrics instead.
 
     Parameters
     ----------
@@ -105,6 +126,9 @@ def _weighted_min(y, axis=1, weights=None):
     w_min : float
         Weighted minimum
     """
+    warnings.warn(
+        "_weighted_min is deprecated in v0.9.0.", DeprecationWarning, stacklevel=2
+    )
     w_min = np.apply_along_axis(
         func1d=_weighted_percentile,
         axis=axis,
@@ -117,6 +141,10 @@ def _weighted_min(y, axis=1, weights=None):
 
 def _weighted_max(y, axis=1, weights=None):
     """Calculate weighted maximum.
+
+    .. deprecated:: v0.9.0.
+    Use `_weighted_max` from.
+    from weighted_metrics instead.
 
     Parameters
     ----------
@@ -133,6 +161,9 @@ def _weighted_max(y, axis=1, weights=None):
     w_max : float
         Weighted maximum
     """
+    warnings.warn(
+        "_weighted_max is deprecated in v0.9.0.", DeprecationWarning, stacklevel=2
+    )
     w_max = np.apply_along_axis(
         func1d=_weighted_percentile,
         axis=axis,
