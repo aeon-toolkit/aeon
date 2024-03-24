@@ -45,5 +45,5 @@ jobs:
           command: python -m pip install .[all_extras,binder,dev]
 
       - name: Run example notebooks
-        run: build_tools/run_examples.sh
+        run: build_tools/run_examples.sh ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full examples run') }}
         shell: bash
