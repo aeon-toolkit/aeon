@@ -23,7 +23,6 @@ from aeon.classification.early_classification import (
 from aeon.classification.feature_based import (
     Catch22Classifier,
     FreshPRINCEClassifier,
-    MatrixProfileClassifier,
     SignatureClassifier,
     SummaryClassifier,
 )
@@ -125,10 +124,6 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         )
     elif classifier_name == "FreshPRINCEClassifier":
         classifier = FreshPRINCEClassifier.create_test_instance(
-            parameter_set="results_comparison"
-        )
-    elif classifier_name == "MatrixProfileClassifier":
-        classifier = MatrixProfileClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "RandomIntervalClassifier":

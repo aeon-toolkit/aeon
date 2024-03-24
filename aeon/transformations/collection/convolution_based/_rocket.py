@@ -68,7 +68,13 @@ class Rocket(BaseCollectionTransformer):
         "algorithm_type": "convolution",
     }
 
-    def __init__(self, num_kernels=10_000, normalise=True, n_jobs=1, random_state=None):
+    def __init__(
+        self,
+        num_kernels=10_000,
+        normalise=True,
+        n_jobs=1,
+        random_state=None,
+    ):
         self.num_kernels = num_kernels
         self.normalise = normalise
         self.n_jobs = n_jobs

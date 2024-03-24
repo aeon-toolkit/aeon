@@ -1,7 +1,7 @@
 # Contributors
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-229-orange.svg)](#contributors)
+[![All Contributors](https://img.shields.io/badge/all_contributors-230-orange.svg)](#contributors)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
@@ -294,6 +294,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/tensorflow-as-tf"><img src="https://avatars.githubusercontent.com/u/51345718?v=4?s=80" width="80px;" alt="tensorflow-as-tf"/><br /><sub><b>tensorflow-as-tf</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=tensorflow-as-tf" title="Code">💻</a></td>
     </tr>
     <tr>
+      <td align="center" valign="top" width="12.5%"><a href="https://github.com/vNtzYy"><img src="https://avatars.githubusercontent.com/u/111287448?v=4?s=80" width="80px;" alt="vNtzYy"/><br /><sub><b>vNtzYy</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/issues?q=author%3AvNtzYy" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/vedazeren"><img src="https://avatars3.githubusercontent.com/u/63582874?v=4?s=80" width="80px;" alt="vedazeren"/><br /><sub><b>vedazeren</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=vedazeren" title="Code">💻</a> <a href="https://github.com/aeon-toolkit/aeon/commits?author=vedazeren" title="Tests">⚠️</a></td>
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/vincent-nich12"><img src="https://avatars3.githubusercontent.com/u/36476633?v=4?s=80" width="80px;" alt="vincent-nich12"/><br /><sub><b>vincent-nich12</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=vincent-nich12" title="Code">💻</a></td>
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/vollmersj"><img src="https://avatars2.githubusercontent.com/u/12613127?v=4?s=80" width="80px;" alt="vollmersj"/><br /><sub><b>vollmersj</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=vollmersj" title="Documentation">📖</a></td>
