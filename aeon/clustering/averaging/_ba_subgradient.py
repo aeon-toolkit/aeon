@@ -156,8 +156,14 @@ def _ba_one_iter_subgradient(
     reach: int = 30,
     warp_penalty: float = 1.0,
 ):
+
     X_size, X_dims, X_timepoints = X.shape
     cost = 0.0
+    # Only update eta on the first iteration
+    eta_decrement = 0.0
+    if iteration == 0:
+        eta_decrement = (initial_step_size - final_step_size) / X_size
+
     for i in shuffled_indices:
         curr_ts = X[i]
         curr_alignment, curr_cost = _get_alignment_path(
@@ -178,13 +184,10 @@ def _ba_one_iter_subgradient(
 
         new_ba = np.zeros((X_dims, X_timepoints))
         for j, k in curr_alignment:
-            new_ba[:, k] += barycenter[:, k]
-            new_ba[:, k] -= curr_ts[:, j]
+            new_ba[:, k] += barycenter[:, k] - curr_ts[:, j]
 
         barycenter -= (2.0 * eta) * new_ba
 
-        # Only update eta on the first iteration
-        if iteration == 0:
-            eta -= (initial_step_size - final_step_size) / X_size
+        eta -= eta_decrement
         cost = curr_cost
     return barycenter, cost, eta
