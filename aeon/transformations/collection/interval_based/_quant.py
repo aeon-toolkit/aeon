@@ -66,7 +66,6 @@ class QUANTTransformer(BaseCollectionTransformer):
         "capability:multivariate": True,
         "algorithm_type": "interval",
         "python_dependencies": "torch",
-        "fit_is_empty": False,
     }
 
     def __init__(self, interval_depth=6, quantile_divisor=4):

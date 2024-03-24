@@ -84,7 +84,6 @@ class SAST(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": False,
         "algorithm_type": "subsequence",
-        "fit_is_empty": False,
     }
 
     def __init__(
