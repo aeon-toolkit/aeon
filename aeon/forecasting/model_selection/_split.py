@@ -28,11 +28,8 @@ from aeon.utils.validation import (
     array_is_datetime64,
     array_is_int,
     check_window_length,
-    is_collection,
     is_datetime,
-    is_hierarchical,
     is_int,
-    is_single_series,
     is_timedelta,
     is_timedelta_or_date_offset,
     validate_input,
@@ -511,10 +508,8 @@ class BaseSplitter(BaseObject):
         ------
         TypeError if y is not one of the permissible mtypes
         """
-        series = is_single_series(y)
-        hier = is_hierarchical(y)
-        collection = is_collection(y)
-        if not (series or hier or collection):
+        valid, y_metadata = validate_input(y)
+        if not valid:
             raise TypeError(
                 "y must be in an aeon compatible format, "
                 "of scitype Series, Panel or Hierarchical, "
@@ -525,17 +520,16 @@ class BaseSplitter(BaseObject):
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
             )
-        _, y_metadata = validate_input(y)
         y_inner = y
         if isinstance(y, np.ndarray):
-            if series:
+            if y_metadata["scitype"] == "Series":
                 if y_metadata["is_univariate"]:
                     y_inner = convert_series(y, output_type="pd.Series")
                 else:
                     y_inner = convert_series(y, output_type="pd.DataFrame")
-            elif collection:
+            elif y_metadata["scitype"] == "Panel":
                 y_inner = convert_collection(y, output_type="pd-multiindex")
-
+            # If hierarchical, it is already in the correct format
         mtype = y_metadata["mtype"]
 
         return y_inner, mtype

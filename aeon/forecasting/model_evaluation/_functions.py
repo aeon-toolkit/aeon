@@ -336,23 +336,20 @@ def evaluate(
     else:
         scoring = check_scoring(scoring)
 
-    series = is_single_series(y)
-    hier = is_hierarchical(y)
-    collection = is_collection(y)
-    if not (series or hier or collection):
+    valid, y_metadata = validate_input(y)
+    if not valid:
         raise TypeError(
             f"Expected a series, collection or hierarchy. Got {type(y)} instead."
         )
-    _, y_metadata = validate_input(y)
     if isinstance(y, np.ndarray):
-        if series:
+        if y_metadata["scitype"] == "Series":
             if y_metadata["is_univariate"]:
                 y = convert_series(y, output_type="pd.Series")
             else:
                 y = convert_series(y, output_type="pd.DataFrame")
-        elif collection:
+        elif y_metadata["scitype"] == "Panel":
             y = convert_collection(y, output_type="pd-multiindex")
-
+        # If hierarchical, we don't need to convert
     freq = None
     try:
         if y.index.nlevels == 1:
