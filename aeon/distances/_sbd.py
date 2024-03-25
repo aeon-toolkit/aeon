@@ -51,7 +51,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
         \}
 
     For multivariate time series, SBD is computed independently for each channel and
-    then averaged.
+    then averaged. Both time series must have the same number of channels!
 
     Parameters
     ----------
@@ -122,6 +122,11 @@ def sbd_pairwise_distance(
     """
     Compute the shape-based distance (SBD) between all pairs of time series.
 
+    For multivariate time series, SBD is computed independently for each channel and
+    then averaged. Both time series must have the same number of channels! This is not
+    checked in code for performance reasons. If the number of channels is different,
+    the minimum number of channels is used.
+
     Parameters
     ----------
     x : np.ndarray or List of np.ndarray
@@ -180,9 +185,9 @@ def sbd_pairwise_distance(
     >>> # Distance between each TS in a collection of unequal-length time series
     >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
     >>> sbd_pairwise_distance(X)
-    array([[0., 0., 0.],
-           [0., 0., 0.],
-           [0., 0., 0.]])
+    array([[0.        , 0.36754447, 0.5527864 ],
+           [0.36754447, 0.        , 0.29289322],
+           [0.5527864 , 0.29289322, 0.        ]])
     """
     _x = _convert_to_list(x, "x")
 
