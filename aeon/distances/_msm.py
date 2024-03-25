@@ -410,10 +410,16 @@ def msm_pairwise_distance(
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
     >>> msm_pairwise_distance(X, y_univariate)
-    array([[16.],
-           [13.],
-           [10.]])
+     array([[16., 19., 22.],
+            [13., 16., 19.],
+            [10., 13., 16.]])
 
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> msm_pairwise_distance(X)
+    array([[ 0., 10., 17.],
+           [10.,  0., 14.],
+           [17., 14.,  0.]])
     """
     _X = _convert_to_list(X, "X")
 
