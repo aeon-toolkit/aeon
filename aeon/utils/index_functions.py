@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import convert_to
+from aeon.datatypes import VectorizedDF, convert_to
 from aeon.utils.validation import (
     is_collection,
     is_hierarchical,
@@ -96,20 +96,6 @@ def get_index_for_series(obj, cutoff=0):
     return pd.RangeIndex(cutoff, cutoff + obj.shape[0])
 
 
-GET_CUTOFF_SUPPORTED_TYPES = [
-    "pd.DataFrame",
-    "pd.Series",
-    "np.ndarray",
-    "pd-multiindex",
-    "numpy3D",
-    "nested_univ",
-    "df-list",
-    "pd_multiindex_hier",
-    "np.ndarray",
-    "numpy3D",
-]
-
-
 def _get_cutoff_from_index(idx, return_index=False, reverse_order=False):
     """Get cutoff = latest time point of pandas index.
 
@@ -180,8 +166,6 @@ def get_cutoff(
     cutoff=0,
     return_index=False,
     reverse_order=False,
-    check_input=False,
-    convert_input=True,
 ):
     """Get cutoff = latest time point of time series or time series panel.
 
@@ -191,9 +175,7 @@ def get_cutoff(
     Parameters
     ----------
     obj : aeon compatible time series data container or pandas.Index
-        if aeon time series, must be of Series, Panel, or Hierarchical scitype
-        all mtypes are supported via conversion to internally supported types
-        to avoid conversions, pass data in one of GET_CUTOFF_SUPPORTED_TYPES
+        if aeon time series, must be of Series, Panel, or Hierarchical abstract type.
         if pandas.Index, it is assumed that last level is time-like or integer,
         e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier mtypes
     cutoff : int, optional, default=0
@@ -205,11 +187,6 @@ def get_cutoff(
             return_index=False will typically preserve freq attribute
     reverse_order : bool, optional, default=False
         if False, returns largest time index. If True, returns smallest time index
-    check_input : bool, optional, default=False
-        whether to check input for validity, i.e., is it one of the scitypes
-    convert_input : bool, optional, default=True
-        whether to convert the input (True), or skip conversion (False)
-        if skipped, function assumes that inputs are one of GET_CUTOFF_SUPPORTED_TYPES
 
     Returns
     -------
@@ -228,13 +205,10 @@ def get_cutoff(
         return _get_cutoff_from_index(
             idx=obj, return_index=return_index, reverse_order=reverse_order
         )
-
-    if check_input:
-        if not (is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)):
-            raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
-
-    # if convert_input:
-    #     obj = convert_to(obj, GET_CUTOFF_SUPPORTED_TYPES)
+    if not (is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)):
+        raise ValueError(
+            "obj must be of Series, Panel, or Hierarchical " "abstract type"
+        )
 
     if cutoff is None:
         cutoff = 0
@@ -343,9 +317,6 @@ def update_data(X, X_new=None):
         numpy based containers will always be interpreted as having new row index
         if one of X, X_new is None, returns the other; if both are None, returns None
     """
-    from aeon.datatypes._convert import convert_to
-    from aeon.datatypes._vectorize import VectorizedDF
-
     # if X or X_new is vectorized, unwrap it first
     if isinstance(X, VectorizedDF):
         X = X.X
