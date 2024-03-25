@@ -233,8 +233,8 @@ def get_cutoff(
         if not (is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)):
             raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
 
-    if convert_input:
-        obj = convert_to(obj, GET_CUTOFF_SUPPORTED_TYPES)
+    # if convert_input:
+    #     obj = convert_to(obj, GET_CUTOFF_SUPPORTED_TYPES)
 
     if cutoff is None:
         cutoff = 0
