@@ -130,8 +130,8 @@ def sbd_pairwise_distance(
     Parameters
     ----------
     x : np.ndarray or List of np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
@@ -142,7 +142,7 @@ def sbd_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         SBD matrix between the instances of x (and y).
 
     Raises
@@ -203,11 +203,11 @@ def sbd_pairwise_distance(
 def _sbd_pairwise_distance_single(
     x: NumbaList[np.ndarray], standardize: bool
 ) -> np.ndarray:
-    n_instances = len(x)
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = len(x)
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = sbd_distance(x[i], x[j], standardize)
             distances[j, i] = distances[i, j]
 
@@ -218,11 +218,11 @@ def _sbd_pairwise_distance_single(
 def _sbd_pairwise_distance(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], standardize: bool
 ) -> np.ndarray:
-    n_instances = len(x)
+    n_cases = len(x)
     m_instances = len(y)
-    distances = np.zeros((n_instances, m_instances))
+    distances = np.zeros((n_cases, m_instances))
 
-    for i in range(n_instances):
+    for i in range(n_cases):
         for j in range(m_instances):
             distances[i, j] = sbd_distance(x[i], y[j], standardize)
     return distances

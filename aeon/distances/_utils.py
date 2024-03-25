@@ -14,9 +14,9 @@ def reshape_pairwise_to_multiple(
     Parameters
     ----------
     x : np.ndarray
-        One or more time series of shape (n_instances, n_channels,
+        One or more time series of shape (n_cases, n_channels,
         n_timepoints) or
-            (n_instances, n_timepoints) or (n_timepoints,).
+            (n_cases, n_timepoints) or (n_timepoints,).
     y : np.ndarray
         One or more time series of shape (m_instances, m_channels, m_timepoints) or
             (m_instances, m_timepoints) or (m_timepoints,)
@@ -86,8 +86,8 @@ def _convert_to_list(
     Parameters
     ----------
     x : Union[np.ndarray, List[np.ndarray]]
-        One or more time series of shape (n_instances, n_channels, n_timepoints) or
-        (n_instances, n_timepoints) or (n_timepoints,).
+        One or more time series of shape (n_cases, n_channels, n_timepoints) or
+        (n_cases, n_timepoints) or (n_timepoints,).
     name : str, optional
         Name of the variable to be converted for error handling, by default "X".
 
@@ -95,7 +95,7 @@ def _convert_to_list(
     -------
     NumbaList[np.ndarray]
         Numba typedList of 2D arrays with shape (n_channels, n_timepoints) of length
-        n_instances.
+        n_cases.
 
     Raises
     ------

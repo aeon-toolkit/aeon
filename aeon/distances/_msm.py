@@ -145,16 +145,16 @@ def msm_cost_matrix(
     matrix
     :math:`D` where :math:`D_{i,j}` is the MSM distance between the :math:`i^{th}`
     and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
-    it is assumed to be a collection of univariate series with shape ``(n_instances,
-    n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_instances,
+    it is assumed to be a collection of univariate series with shape ``(n_cases,
+    n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_cases,
     n_channels, n_timepoints)``.
 
     This function has an optional argument, :math:`y`, to allow calculation of the
     distance matrix between :math:`X` and one or more series stored in :math:`y`. If
     :math:`y` is 1 dimensional, we assume it is a single univariate series and the
-    distance matrix returned is shape ``(n_instances,1)``. If it is 2D, we assume it
+    distance matrix returned is shape ``(n_cases,1)``. If it is 2D, we assume it
     is a collection of univariate series with shape ``(m_instances, m_timepoints)``
-    and the distance ``(n_instances,m_instances)``. If it is 3 dimensional,
+    and the distance ``(n_cases,m_instances)``. If it is 3 dimensional,
     it is assumed to be shape ``(m_instances, m_channels, m_timepoints)``.
 
 
@@ -358,8 +358,8 @@ def msm_pairwise_distance(
     Parameters
     ----------
     X : np.ndarray or List of np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
@@ -379,7 +379,7 @@ def msm_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         msm pairwise matrix between the instances of X.
 
     Raises
@@ -441,16 +441,16 @@ def _msm_pairwise_distance(
     c: float,
     itakura_max_slope: float,
 ) -> np.ndarray:
-    n_instances = len(X)
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = len(X)
+    distances = np.zeros((n_cases, n_cases))
 
     if window == 1:
         max_shape = max([x.shape[-1] for x in X])
         bounding_matrix: np.ndarray = create_bounding_matrix(
             max_shape, max_shape, window, itakura_max_slope
         )
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             x1, x2 = X[i], X[j]
             if window != 1:
                 bounding_matrix = create_bounding_matrix(
@@ -471,16 +471,16 @@ def _msm_from_multiple_to_multiple_distance(
     c: float,
     itakura_max_slope: float,
 ) -> np.ndarray:
-    n_instances = len(x)
+    n_cases = len(x)
     m_instances = len(y)
-    distances = np.zeros((n_instances, m_instances))
+    distances = np.zeros((n_cases, m_instances))
 
     if window == 1:
         max_shape = max([_x.shape[-1] for _x in x])
         bounding_matrix: np.ndarray = create_bounding_matrix(
             max_shape, max_shape, window, itakura_max_slope
         )
-    for i in range(n_instances):
+    for i in range(n_cases):
         for j in range(m_instances):
             x1, y1 = x[i], y[j]
             if window != 1:
