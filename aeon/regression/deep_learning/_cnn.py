@@ -63,7 +63,7 @@ class CNNRegressor(BaseDeepRegressor):
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
     optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
-    metrics         : list of strings, default="accuracy",
+    metrics         : list of strings, default="mean_squared_error",
     callbacks       : keras.callbacks, default=model_checkpoint to save best
                       model on training loss
     file_path       : file_path for the best model (if checkpoint is used as callback)
@@ -129,7 +129,7 @@ class CNNRegressor(BaseDeepRegressor):
         verbose=False,
         loss="mse",
         output_activation="linear",
-        metrics="accuracy",
+        metrics="mean_squared_error",
         random_state=None,
         use_bias=True,
         optimizer=None,

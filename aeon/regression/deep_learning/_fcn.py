@@ -51,7 +51,7 @@ class FCNRegressor(BaseDeepRegressor):
         the output activation of the regressor
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
-    metrics         : list of strings, default="accuracy",
+    metrics         : list of strings, default="mean_squared_error",
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
@@ -123,7 +123,7 @@ class FCNRegressor(BaseDeepRegressor):
         verbose=False,
         output_activation="linear",
         loss="mse",
-        metrics="accuracy",
+        metrics="mean_squared_error",
         random_state=None,
         use_bias=True,
         optimizer=None,

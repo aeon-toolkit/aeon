@@ -30,7 +30,7 @@ class MLPRegressor(BaseDeepRegressor):
         whether to output extra information
     loss : string, default="mean_squared_error"
         fit parameter for the keras model
-    metrics : list of strings, default="accuracy"
+    metrics : list of strings, default="mean_squared_error"
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
@@ -91,7 +91,7 @@ class MLPRegressor(BaseDeepRegressor):
         callbacks=None,
         verbose=False,
         loss="mse",
-        metrics="accuracy",
+        metrics="mean_squared_error",
         file_path="./",
         save_best_model=False,
         save_last_model=False,

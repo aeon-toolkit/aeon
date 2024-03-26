@@ -70,7 +70,7 @@ class EncoderRegressor(BaseDeepRegressor):
         Seed for random number generation.
     loss:
         The loss function to use for training.
-    metrics: str or list of str, default="accuracy"
+    metrics: str or list of str, default="mean_squared_error"
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
@@ -120,7 +120,7 @@ class EncoderRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         verbose=False,
         loss="mean_squared_error",
-        metrics="accuracy",
+        metrics="mean_squared_error",
         use_bias=True,
         optimizer=None,
         random_state=None,

@@ -88,7 +88,7 @@ class ResNetRegressor(BaseDeepRegressor):
         loss                        : string, default="mean_squared_error"
             fit parameter for the keras model
         optimizer                   : keras.optimizer, default=keras.optimizers.Adam(),
-        metrics                     : list of strings, default="accuracy",
+        metrics                     : list of strings, default="mean_squared_error",
             The evaluation metrics to use during training. If
             a single string metric is provided, it will be
             used as the only metric. If a list of metrics are
@@ -133,7 +133,7 @@ class ResNetRegressor(BaseDeepRegressor):
         verbose=False,
         loss="mse",
         output_activation="linear",
-        metrics="accuracy",
+        metrics="mean_squared_error",
         batch_size=64,
         use_mini_batch_size=False,
         random_state=None,
