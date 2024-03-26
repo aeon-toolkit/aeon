@@ -182,7 +182,10 @@ def _validate_single_to_multiple_result(
 
 def _supports_nonequal_length(dist) -> bool:
     anns = dist["pairwise_distance"].__annotations__
-    return any(param in anns and str(List) in str(anns[param]) for param in ["x", "X"])
+    return any(
+        param in anns and str(List) in str(anns[param])
+        for param in ["x", "X", "y", "Y"]
+    )
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
@@ -406,18 +409,6 @@ def test_new_single_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
-    # TODO: this is not possible: a 2D-array is interpreted as (n_cases, n_timepoints)
-    # # Test passing a singular multivariate time series of shape
-    # # (n_channels, n_timepoints) compared to a collection of multivariate time series
-    # # of shape (n_cases, n_channels, n_timepoints)
-    # _validate_single_to_multiple_result(
-    #     make_series(5, 5, return_numpy=True, random_state=1),
-    #     make_example_3d_numpy(5, 5, 5, random_state=2, return_y=False),
-    #     dist["name"],
-    #     dist["distance"],
-    #     dist["pairwise_distance"],
-    # )
-
     # ==================== Unequal length tests ====================
     if _supports_nonequal_length(dist):
         # Test passing a singular univariate time series of shape (n_timepoints,)
@@ -463,17 +454,6 @@ def test_new_single_to_multiple_distances(dist):
             dist["distance"],
             dist["pairwise_distance"],
         )
-
-        # # Test passing a singular multivariate time series of shape
-        # # (n_channels, n_timepoints) compared to a collection of unequal length
-        # # multivariate time series of shape (n_cases, n_channels, m_timepoints)
-        # _validate_single_to_multiple_result(
-        #     make_series(5, 5, return_numpy=True, random_state=1),
-        #     make_example_unequal_length(5, 5, random_state=2, return_y=False),
-        #     dist["name"],
-        #     dist["distance"],
-        #     dist["pairwise_distance"],
-        # )
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:

@@ -102,9 +102,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
             _y = y.ravel()
             return _univariate_sbd_distance(_x, _y, standardize)
         else:
-
-            # if x.shape[0] == y.shape[0]:
-            #     raise ValueError("Time series must have the same number of channels!")
+            # independent (time series should have the same number of channels!)
             nchannels = min(x.shape[0], y.shape[0])
             distance = 0.0
             for i in range(nchannels):
