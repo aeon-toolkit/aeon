@@ -101,8 +101,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
     use_pyfftw : bool, default=False
         Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
         package to be installed.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_preds.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -131,10 +129,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         The collections of estimators trained in fit.
     intervals_ : list of shape (n_estimators) of TransformerMixin
         Stores the interval extraction transformer for all estimators.
-    transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_cases_ ,total_intervals * att_subsample_size)
-        The transformed dataset for all regressors. Only saved when
-        save_transformed_data is true.
 
     See Also
     --------
@@ -182,7 +176,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         contract_max_n_estimators=500,
         use_pycatch22=False,
         use_pyfftw=False,
-        save_transformed_data=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -228,7 +221,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
             replace_nan=0,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
-            save_transformed_data=save_transformed_data,
             random_state=random_state,
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
