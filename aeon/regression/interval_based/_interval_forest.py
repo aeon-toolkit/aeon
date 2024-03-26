@@ -178,7 +178,6 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         replace_nan=None,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        save_transformed_data=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,

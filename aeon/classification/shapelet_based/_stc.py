@@ -188,6 +188,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         ending in "_".
         """
         self._fit_stc(X, y)
+
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -242,7 +243,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        Xt = self._fit_stc(X, y)
+        Xt = self._fit_stc(X, y, save_rotf_data=True)
 
         if (isinstance(self.estimator, RotationForestClassifier)) or (
             self.estimator is None
@@ -275,7 +276,7 @@ class ShapeletTransformClassifier(BaseClassifier):
                 n_jobs=self._n_jobs,
             )
 
-    def _fit_stc(self, X, y):
+    def _fit_stc(self, X, y, save_rotf_data=False):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         if self.time_limit_in_minutes > 0:
@@ -299,12 +300,13 @@ class ShapeletTransformClassifier(BaseClassifier):
         )
 
         self._estimator = _clone_estimator(
-            RotationForestClassifier() if self.estimator is None else self.estimator,
+            (
+                RotationForestClassifier(save_transformed_data=save_rotf_data)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
-
-        if isinstance(self._estimator, RotationForestClassifier):
-            self._estimator.save_transformed_data = self.save_transformed_data
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:

@@ -118,6 +118,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self._fit_fresh_prince(X, y)
+
         return self
 
     def _predict(self, X) -> np.ndarray:
