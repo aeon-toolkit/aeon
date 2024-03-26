@@ -81,8 +81,8 @@ from aeon.distances.mpdist import mpdist
 
 
 class DistanceKwargs(TypedDict, total=False):
-    window: float
-    itakura_max_slope: None
+    window: Optional[float]
+    itakura_max_slope: Optional[float]
     p: float
     w: np.ndarray
     g: float
