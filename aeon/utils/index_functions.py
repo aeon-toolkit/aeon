@@ -206,9 +206,7 @@ def get_cutoff(
             idx=obj, return_index=return_index, reverse_order=reverse_order
         )
     if not (is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)):
-        raise ValueError(
-            "obj must be of Series, Panel, or Hierarchical " "abstract type"
-        )
+        raise ValueError("obj must be of Series, Panel, or Hierarchical abstract type")
 
     if cutoff is None:
         cutoff = 0
@@ -449,7 +447,7 @@ def get_window(obj, window_length=None, lag=None):
         return convert_to(obj_subset, obj_in_mtype)
 
     raise ValueError(
-        "bug in get_window, unreachable condition, ifs should be exhaustive"
+        "passed get_window an object that is not of type np.ndarray or pd.DataFrame"
     )
 
 
