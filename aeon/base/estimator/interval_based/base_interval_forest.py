@@ -155,7 +155,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
     intervals_ : list of shape (n_estimators) of BaseTransformer
         Stores the interval extraction transformer for all estimators.
 
-
     References
     ----------
     .. [1] H.Deng, G.Runger, E.Tuv and M.Vladimir, "A time series forest for
@@ -201,6 +200,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
+
         super().__init__()
 
     # if subsampling attributes, an interval_features transformer must contain a
@@ -218,10 +218,10 @@ class BaseIntervalForest(metaclass=ABCMeta):
     transformer_feature_skip = ["transform_features_", "_transform_features"]
 
     def _fit(self, X, y):
-        if getattr(self, "_test_flag", False):
+        if getattr(self, "_unit_test_flag", False):
             self._transformed_data = self._fit_forest(X, y, save_transformed_data=True)
         else:
-            self._fit_forest(X, y, save_transformed_data=True)
+            self._fit_forest(X, y)
 
         return self
 
