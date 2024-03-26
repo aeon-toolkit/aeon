@@ -186,9 +186,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
                 "contracting" - used in classifiers that set the
                     "capability:contractable" tag to True to test contacting
                     functionality
-                "train_estimate" - used in some classifiers that set the
-                    "capability:train_estimate" tag to True to allow for more efficient
-                    testing when relevant parameters are available
 
         Returns
         -------
@@ -204,11 +201,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
             return {
                 "time_limit_in_minutes": 5,
                 "contract_max_n_estimators": 2,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "save_transformed_data": True,
             }
         else:
             return {"n_estimators": 2}

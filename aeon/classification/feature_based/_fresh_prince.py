@@ -164,15 +164,15 @@ class FreshPRINCEClassifier(BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        Xt = self._fit_fresh_prince(X, y)
+        Xt = self._fit_fresh_prince(X, y, save_rotf_data=True)
         return self._rotf._get_train_probs(Xt, y)
 
-    def _fit_fresh_prince(self, X, y):
+    def _fit_fresh_prince(self, X, y, save_rotf_data=False):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,
-            save_transformed_data=self.save_transformed_data,
+            save_transformed_data=save_rotf_data,
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
