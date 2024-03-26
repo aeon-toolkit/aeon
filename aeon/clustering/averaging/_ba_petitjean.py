@@ -42,7 +42,7 @@ def petitjean_barycenter_average(
     init_barycenter: np.ndarray or, default=None
         The initial barycenter to use for the minimisation. If a np.ndarray is provided
         it must be of shape ``(n_channels, n_timepoints)``. If a str is provided it must
-        be one of the following: ['mean', 'medoids'].
+        be one of the following: ['mean', 'medoids', 'random'].
     precomputed_medoids_pairwise_distance: np.ndarray (of shape (len(X), len(X)),
                 default=None
         Precomputed medoids pairwise.
