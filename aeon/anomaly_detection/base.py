@@ -27,19 +27,49 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
     def __init__(self, axis=1):
         self.axis = axis
+
         self._is_fitted = False
 
         super().__init__(axis=axis)
 
     @final
     def fit(self, X, y=None, axis=None):
-        pass
+        if self.get_class_tag("fit_is_empty"):
+            self._is_fitted = True
+            return self
+
+        if self.get_class_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
+
+        # reset estimator at the start of fit
+        self.reset()
+
+        if axis is None:  # If none given, assume it is correct.
+            axis = self.axis
+
+        X = self._preprocess_series(X, axis)
+        if y is not None:
+            y = self._check_y(y)
+
+        self._fit(X=X, y=y)
+
+        # this should happen last
+        self._is_fitted = True
+        return self
 
     @final
     def predict(self, X, axis=None) -> np.ndarray:
-        pass
+        self.check_is_fitted()
 
-    def _fit(self, X, y):
+        if axis is None:
+            axis = self.axis
+
+        X = self._preprocess_series(X, axis)
+
+        return self._predict(X)
+
+    def _fit(self, X, y=None):
         return self
 
     @abstractmethod
