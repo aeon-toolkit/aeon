@@ -1,6 +1,6 @@
 """Test forecasting module."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 
 from datetime import timedelta
 

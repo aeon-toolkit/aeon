@@ -1,8 +1,8 @@
 """Implements compositors for performing forecasting by group."""
 
-from aeon.datatypes import mtype_to_scitype
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.utils._data_types import ALL_TIME_SERIES_TYPES
+from aeon.utils.validation._input import _abstract_type
 
 __maintainer__ = []
 __all__ = ["ForecastByLevel"]
@@ -91,7 +91,7 @@ class ForecastByLevel(_DelegatedForecaster):
             )
 
         internal_types = [
-            x for x in ALL_TIME_SERIES_TYPES if mtype_to_scitype(x) in scitypes
+            x for x in ALL_TIME_SERIES_TYPES if _abstract_type(x) in scitypes
         ]
 
         # this ensures that we convert in the inner estimator
