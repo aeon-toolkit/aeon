@@ -521,6 +521,18 @@ Loading data from the web
 
 :::
 
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/datasets/data_unequal.ipynb
+:link-type: ref
+:text-align: center
+
+Unequal length series
+
+:::
+
+
 ::::
 
 ## Benchmarking
