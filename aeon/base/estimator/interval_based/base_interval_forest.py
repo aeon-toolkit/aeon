@@ -269,7 +269,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         rng = check_random_state(self.random_state)
 
         if is_regressor(self):
-            Xt = self._fit_forest(X, y)
+            Xt = self._fit_forest(X, y, save_transformed_data=True)
 
             p = Parallel(
                 n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
@@ -311,7 +311,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
                 "Train probability estimates are only available for classification"
             )
 
-        Xt = self._fit_forest(X, y)
+        Xt = self._fit_forest(X, y, save_transformed_data=True)
 
         rng = check_random_state(self.random_state)
 
@@ -344,7 +344,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         return results
 
-    def _fit_forest(self, X, y):
+    def _fit_forest(self, X, y, save_transformed_data=False):
         rng = check_random_state(self.random_state)
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
@@ -817,6 +817,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
                         Xt,
                         y,
                         rng.randint(np.iinfo(np.int32).max),
+                        save_transformed_data=save_transformed_data,
                     )
                     for _ in range(self._n_jobs)
                 )
@@ -845,6 +846,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
                     Xt,
                     y,
                     rng.randint(np.iinfo(np.int32).max),
+                    save_transformed_data=save_transformed_data,
                 )
                 for _ in range(self._n_estimators)
             )
@@ -857,7 +859,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
         return transformed_intervals
 
-    def _fit_estimator(self, Xt, y, seed):
+    def _fit_estimator(self, Xt, y, seed, save_transformed_data=False):
         # random state for this estimator
         rng = check_random_state(seed)
 
@@ -1048,7 +1050,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         return [
             tree,
             intervals,
-            None,  # Need to remove this
+            interval_features if save_transformed_data else None,
         ]
 
     def _predict_setup(self, X):
