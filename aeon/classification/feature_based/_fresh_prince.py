@@ -7,7 +7,6 @@ RotationForestClassifier.
 __maintainer__ = []
 __all__ = ["FreshPRINCEClassifier"]
 
-import warnings
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -32,12 +31,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestClassifier ensemble.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
-        ``transformed_data_`` will also be removed.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     n_jobs : int, default=1
@@ -81,7 +74,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         self,
         default_fc_parameters="comprehensive",
         n_estimators=200,
-        save_transformed_data="deprecated",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -102,16 +94,6 @@ class FreshPRINCEClassifier(BaseClassifier):
 
         self._rotf = None
         self._tsfresh = None
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
-        self.transformed_data_ = []
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.8.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -135,14 +117,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        b = (
-            False
-            if isinstance(self.save_transformed_data, str)
-            else self.save_transformed_data
-        )
-        self.transformed_data_ = self._fit_fresh_prince(X, y)
-        if not b:
-            self.transformed_data_ = []
+        self._fit_fresh_prince(X, y)
         return self
 
     def _predict(self, X) -> np.ndarray:

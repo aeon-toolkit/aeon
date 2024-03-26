@@ -7,7 +7,6 @@ __maintainer__ = []
 __all__ = ["Arsenal"]
 
 import time
-import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -54,12 +53,6 @@ class Arsenal(BaseClassifier):
         Default of 0 means n_estimators is used.
     contract_max_n_estimators : int, default=100
         Max number of estimators when time_limit_in_minutes is set.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
-        ``transformed_data_`` will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -131,7 +124,6 @@ class Arsenal(BaseClassifier):
         n_features_per_kernel=4,
         time_limit_in_minutes=0.0,
         contract_max_n_estimators=100,
-        save_transformed_data="deprecated",
         n_jobs=1,
         random_state=None,
     ):
@@ -153,16 +145,6 @@ class Arsenal(BaseClassifier):
         self.weights_ = []
 
         self._weight_sum = 0
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
-        self.transformed_data_ = []
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.8.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -186,12 +168,7 @@ class Arsenal(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        b = (
-            False
-            if isinstance(self.save_transformed_data, str)
-            else self.save_transformed_data
-        )
-        self.transformed_data_ = self._fit_arsenal(X, y, keep_transformed_data=b)
+        self._fit_arsenal(X, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
