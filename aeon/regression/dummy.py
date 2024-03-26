@@ -15,7 +15,7 @@ class DummyRegressor(BaseRegressor):
 
     This regressor is a wrapper for the scikit-learn DummyClassifier that serves as a
     simple baseline to compare against other more complex regressors.
-    The specific behavior of the baseline is selected with the `strategy` parameter.
+    The specific behaviour of the baseline is selected with the `strategy` parameter.
 
     All strategies make predictions that ignore the input feature values passed
     as the `X` argument to `fit` and `predict`. The predictions, however,
