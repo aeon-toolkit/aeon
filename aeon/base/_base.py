@@ -118,7 +118,7 @@ class BaseObject(_BaseEstimator):
         self_attrs = set(attrs).difference(cls_attrs)
 
         # keep a test flag if it exists
-        self_attrs.discard("_test_flag")
+        self_attrs.discard("_unit_test_flag")
 
         for attr in self_attrs:
             delattr(self, attr)
