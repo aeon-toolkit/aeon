@@ -9,6 +9,7 @@ from numpy import array_equal
 
 from aeon.testing.utils.data_gen import (
     _make_classification_y,
+    _make_collection,
     _make_nested_from_array,
     _make_regression_y,
     make_example_2d_numpy,
@@ -127,6 +128,16 @@ def test_make_unequal_length_data(
         assert y.dtype == np.float32
     else:
         assert len(np.unique(y)) == n_classes
+    X = make_example_unequal_length(
+        n_cases=n_cases,
+        n_channels=n_channels,
+        n_labels=n_classes,
+        min_n_timepoints=n_timepoints - 1,
+        max_n_timepoints=n_timepoints + 1,
+        regression_target=regression,
+        return_y=False,
+    )
+    assert isinstance(X, list)
 
 
 @pytest.mark.parametrize("n_cases", N_CASES)
@@ -149,6 +160,15 @@ def test_make_2d_unequal_length_data(n_cases, n_timepoints, n_classes, regressio
         assert y.dtype == np.float32
     else:
         assert len(np.unique(y)) == n_classes
+    X = make_example_2d_unequal_length(
+        n_cases=n_cases,
+        min_n_timepoints=n_timepoints - 1,
+        max_n_timepoints=n_timepoints + 1,
+        n_labels=n_classes,
+        regression_target=regression,
+        return_y=False,
+    )
+    assert isinstance(X, list)
 
 
 @pytest.mark.parametrize("n_cases", N_CASES)
@@ -174,6 +194,15 @@ def test_make_example_nested_dataframe(
         assert y.dtype == np.float32
     else:
         assert len(np.unique(y)) == n_classes
+    X = make_example_nested_dataframe(
+        n_cases=n_cases,
+        n_labels=n_classes,
+        n_channels=n_channels,
+        n_timepoints=n_timepoints,
+        regression_target=regression,
+        return_y=False,
+    )
+    assert isinstance(X, pd.DataFrame)
 
 
 def test_uncovered():
@@ -188,3 +217,12 @@ def test_uncovered():
         y = _make_classification_y(n_cases=4, n_classes=5)
     x = _make_nested_from_array(make_example_3d_numpy(n_channels=2), 2)
     assert isinstance(x, pd.DataFrame)
+
+
+def test__make_collection():
+    """Test make collection."""
+    X = _make_collection(n_cases=4, n_channels=2, n_timepoints=20)
+    assert X.shape == (4, 2, 20)
+    y = np.array[0, 1, 0, 1, 0, 1, 0, 1]
+    X = _make_collection(n_cases=4, n_channels=2, n_timepoints=20, y=y)
+    assert X.shape == (8, 2, 20)
