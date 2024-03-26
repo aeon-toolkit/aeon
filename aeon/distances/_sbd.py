@@ -134,7 +134,7 @@ def sbd_pairwise_distance(
         or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the SBD is calculated between pairwise instances of x.
     standardize : bool, default=True
         Apply z-score to both input time series for standardization before
@@ -219,11 +219,11 @@ def _sbd_pairwise_distance(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], standardize: bool
 ) -> np.ndarray:
     n_cases = len(x)
-    m_instances = len(y)
-    distances = np.zeros((n_cases, m_instances))
+    m_cases = len(y)
+    distances = np.zeros((n_cases, m_cases))
 
     for i in range(n_cases):
-        for j in range(m_instances):
+        for j in range(m_cases):
             distances[i, j] = sbd_distance(x[i], y[j], standardize)
     return distances
 

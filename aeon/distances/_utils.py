@@ -18,8 +18,8 @@ def reshape_pairwise_to_multiple(
         n_timepoints) or
             (n_cases, n_timepoints) or (n_timepoints,).
     y : np.ndarray
-        One or more time series of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,)
+        One or more time series of shape (m_cases, m_channels, m_timepoints) or
+            (m_cases, m_timepoints) or (m_timepoints,)
 
     Returns
     -------
@@ -79,7 +79,7 @@ def _convert_to_list(
     Takes a single or multiple time series and converts them to a list of 2D arrays. If
     the input is a single time series, it is reshaped to a 2D array as the sole element
     of a list. If the input is a 2D array of shape (n_cases, n_timepoints), it is
-    reshaped to a list of n_ases 1D arrays with n_timepoint points. A 3D array is
+    reshaped to a list of n_cases 1D arrays with n_timepoints points. A 3D array is
     converted to a list with n_cases 2D arrays of shape (n_channels, n_timepoints).
     Lists of 1D arrays are converted to lists of 2D arrays.
 

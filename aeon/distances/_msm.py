@@ -41,10 +41,10 @@ def msm_distance(
     matrix $D$ as follows.
 
     .. math::
-        move  &=  D_{i-1,j-1}+ d({x_{i},y_{j}}) \\
-        split &= D_{i-1,j}+cost(y_j,y_{j-1},x_i,c)\\
-        merge &= D_{i,j-1}+cost(x_i,x_{i-1},y_j,c)\\
-        D_{i,j} &= min(move,split, merge)
+        move  &= D_{i-1,j-1}+d({x_{i},y_{j}}) \\
+        split &= D_{i-1,j}+cost(y_j,y_{j-1},x_i,c) \\
+        merge &= D_{i,j-1}+cost(x_i,x_{i-1},y_j,c) \\
+        D_{i,j} &= min(move, split, merge)
 
     Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to a constant value,
     and $c$ is a parameter that represents the cost of moving off the diagonal.
@@ -58,8 +58,8 @@ def msm_distance(
 
     .. math::
         cost(x,y,z,c) &= c & if\;\; & y \leq x \leq z \\
-                      &= c &  if\;\; & y \geq x \geq z \\
-                      &= c+min(|x-y|,|x-z|) & & otherwise\\
+                      &= c & if\;\; & y \geq x \geq z \\
+                      &= c+min(|x-y|,|x-z|) & & otherwise \\
 
     If :math:`\mathbf{x}` and :math:`\mathbf{y$}` are multivariate, then there are two
     ways of calculating the MSM distance. The independent approach is to find the
@@ -104,7 +104,7 @@ def msm_distance(
     .. [1] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
     series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013.
 
-    ..[2] A. Shifaz, C. Pelletier, F. Petitjean, G. Webb: Elastic similarity and
+    .. [2] A. Shifaz, C. Pelletier, F. Petitjean, G. Webb: Elastic similarity and
     distance measures for multivariate time series. Knowl. Inf. Syst. 65(6), 2023.
 
     Examples
@@ -144,18 +144,18 @@ def msm_cost_matrix(
     By default, this takes a collection of :math:`n` time series :math:`X` and returns a
     matrix
     :math:`D` where :math:`D_{i,j}` is the MSM distance between the :math:`i^{th}`
-    and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
+    and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2-dimensional,
     it is assumed to be a collection of univariate series with shape ``(n_cases,
-    n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_cases,
+    n_timepoints)``. If it is 3-dimensional, it is assumed to be shape ``(n_cases,
     n_channels, n_timepoints)``.
 
     This function has an optional argument, :math:`y`, to allow calculation of the
     distance matrix between :math:`X` and one or more series stored in :math:`y`. If
-    :math:`y` is 1 dimensional, we assume it is a single univariate series and the
+    :math:`y` is 1-dimensional, we assume it is a single univariate series and the
     distance matrix returned is shape ``(n_cases,1)``. If it is 2D, we assume it
-    is a collection of univariate series with shape ``(m_instances, m_timepoints)``
-    and the distance ``(n_cases,m_instances)``. If it is 3 dimensional,
-    it is assumed to be shape ``(m_instances, m_channels, m_timepoints)``.
+    is a collection of univariate series with shape ``(m_cases, m_timepoints)``
+    and the distance ``(n_cases,m_cases)``. If it is 3-dimensional,
+    it is assumed to be shape ``(m_cases, m_channels, m_timepoints)``.
 
 
     Parameters
@@ -362,7 +362,7 @@ def msm_pairwise_distance(
         or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the msm pairwise distance between the instances of X is
         calculated.
     window : float, default=None
@@ -472,8 +472,8 @@ def _msm_from_multiple_to_multiple_distance(
     itakura_max_slope: float,
 ) -> np.ndarray:
     n_cases = len(x)
-    m_instances = len(y)
-    distances = np.zeros((n_cases, m_instances))
+    m_cases = len(y)
+    distances = np.zeros((n_cases, m_cases))
 
     if window == 1:
         max_shape = max([_x.shape[-1] for _x in x])
@@ -481,7 +481,7 @@ def _msm_from_multiple_to_multiple_distance(
             max_shape, max_shape, window, itakura_max_slope
         )
     for i in range(n_cases):
-        for j in range(m_instances):
+        for j in range(m_cases):
             x1, y1 = x[i], y[j]
             if window != 1:
                 bounding_matrix = create_bounding_matrix(
