@@ -11,7 +11,7 @@ __maintainer__ = []
 import numpy as np
 import pandas as pd
 
-from aeon.datasets.tsc_data_lists import univariate as UCR
+from aeon.datasets.tsc_datasets import univariate as UCR
 
 VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 
@@ -278,7 +278,7 @@ def get_estimator_results(
         list of estimators to search for.
     datasets : list of str, default = UCR
         list of problem names to search for. Default is to look for the 112 UCR
-        datasets listed in aeon.datasets.tsc_data_lists.
+        datasets listed in aeon.datasets.tsc_datasets.
     default_only : boolean, default = True
         Whether to recover just the default test results, or 30 resamples.
     task : str, default="classification"
@@ -350,7 +350,7 @@ def get_estimator_results_as_array(
         List of estimators to search for.
     datasets : list of str, default = UCR.
         List of problem names to search for. Default is to look for the 112 UCR
-        datasets listed in aeon.datasets.tsc_data_lists.
+        datasets listed in aeon.datasets.tsc_datasets.
     default_only : boolean, default = True
         Whether to recover just the default test results, or 30 resamples. If false,
         values are averaged to get a 2D array.
