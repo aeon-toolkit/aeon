@@ -70,7 +70,7 @@ def check_estimator(
     Examples
     --------
     >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> from aeon.testing.estimator_checks.check_estimator import check_estimator
+    >>> from aeon.testing.estimator_checks import check_estimator
 
     Running all tests for ExponentTransformer class,
     this uses all instances from get_test_params and compatible scenarios
