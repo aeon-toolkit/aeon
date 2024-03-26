@@ -17,6 +17,6 @@ def test_make_series():
     y = make_series(n_timepoints=10, n_columns=1, return_numpy=True)
     assert isinstance(y, np.ndarray)
     y = make_series(n_timepoints=10, n_columns=2, add_nan=True, return_numpy=True)
-    assert np.isnan(y).any() is True
+    assert np.isnan(y).any()
     y = make_series(n_timepoints=10, n_columns=2, all_positive=False)
     assert isinstance(y, pd.DataFrame)
