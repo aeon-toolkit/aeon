@@ -12,6 +12,7 @@ from pytest import raises
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.model_selection._split import BaseSplitter
 from aeon.utils.validation.forecasting import (
+    _check_valid_prediction_intervals,
     check_cv,
     check_fh,
     check_sp,
@@ -80,3 +81,55 @@ def test_check_functions():
         check_sp("FOO")
     with raises(ValueError, match="`sp` must be an int"):
         check_sp("BAR", enforce_list=True)
+
+
+def test_check_valid_prediction_intervals():
+    """Test _check_valid_prediction_intervals."""
+    # DataFrame that meets all criteria
+    idx = pd.date_range("20200101", periods=3)
+    cols = pd.MultiIndex.from_tuples(
+        [(1, 0.9, "upper"), (1, 0.9, "lower"), (2, 0.8, "upper"), (2, 0.8, "lower")],
+        names=["model", "coverage", "interval"],
+    )
+    valid_df = pd.DataFrame(np.random.rand(3, 4), index=idx, columns=cols)
+
+    # Not a DataFrame
+    not_a_df = [1, 2, 3]
+
+    # DataFrame with non-unique columns
+    non_unique_cols = valid_df.copy()
+    non_unique_cols.columns = ["A", "A", "B", "B"]
+
+    # DataFrame with non-numeric columns
+    non_numeric_cols = valid_df.copy()
+    non_numeric_cols["text"] = ["one", "two", "three"]
+
+    # DataFrame with non-monotonic index
+    non_monotonic_index = valid_df.iloc[::-1]
+
+    # DataFrame with incorrect MultiIndex levels
+    incorrect_levels = valid_df.copy()
+    incorrect_levels.columns = pd.MultiIndex.from_tuples(
+        [(1, "0.9"), (1, "0.9"), (2, "0.8"), (2, "0.8")]
+    )
+
+    # DataFrame with incorrect coverage values
+    incorrect_coverage = valid_df.copy()
+    incorrect_coverage.columns = pd.MultiIndex.from_tuples(
+        [(1, 1.1, "upper"), (1, -0.1, "lower"), (2, 0.8, "upper"), (2, 0.8, "lower")]
+    )
+
+    # DataFrame with incorrect interval values
+    incorrect_interval = valid_df.copy()
+    incorrect_interval.columns = pd.MultiIndex.from_tuples(
+        [(1, 0.9, "up"), (1, 0.9, "down"), (2, 0.8, "upper"), (2, 0.8, "lower")]
+    )
+
+    assert _check_valid_prediction_intervals(valid_df)
+    assert not _check_valid_prediction_intervals(not_a_df)
+    assert not _check_valid_prediction_intervals(non_unique_cols)
+    assert not _check_valid_prediction_intervals(non_numeric_cols)
+    assert not _check_valid_prediction_intervals(non_monotonic_index)
+    assert not _check_valid_prediction_intervals(incorrect_levels)
+    assert not _check_valid_prediction_intervals(incorrect_coverage)
+    assert not _check_valid_prediction_intervals(incorrect_interval)

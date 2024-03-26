@@ -1,1 +1,1 @@
-"""Tests for classification compose."""
+"""Tests for classification composable estimators."""

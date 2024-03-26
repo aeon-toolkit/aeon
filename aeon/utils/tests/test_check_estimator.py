@@ -4,9 +4,9 @@ __maintainer__ = []
 
 import pytest
 
+from aeon.testing.estimator_checks import check_estimator
 from aeon.testing.mock_estimators import MockClassifier, MockSegmenter
 from aeon.transformations.exponent import ExponentTransformer
-from aeon.utils.estimator_checks import check_estimator
 
 EXAMPLE_CLASSES = [MockClassifier, MockSegmenter]
 
