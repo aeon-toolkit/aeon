@@ -101,6 +101,27 @@ y_pred = clf.predict(X_test)  # make class predictions on new data
 >>> ['low' 'high' 'high']
 ```
 
+### Clustering
+
+```python
+import numpy as np
+from aeon.clustering import TimeSeriesKMeans
+
+X = np.array([[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
+     [[1, 2, 3, 4, 4, 2]],  # Three samples, one channel, six series length,
+     [[8, 7, 6, 5, 4, 4]]])
+
+clu = TimeSeriesKMeans(distance="dtw", n_clusters=2)
+clu.fit(X)  # fit the clusterer on train data
+>>> TimeSeriesKMeans(distance='dtw', n_clusters=2)
+
+X_test = np.array(
+    [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
+)
+clu.predict(X_test)  # Assign clusters to new data
+>>> array([1, 0, 0])
+```
+
 ## 💬 Where to ask questions
 
 | Type                                | Platforms                        |
