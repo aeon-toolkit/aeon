@@ -2,7 +2,7 @@ r"""Shape Dynamic time warping (ShapeDTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -120,8 +120,8 @@ def shape_dtw_distance(
     reach: int = 30,
     itakura_max_slope: float = None,
     transformation_precomputed: bool = False,
-    transformed_x: np.ndarray = None,
-    transformed_y: np.ndarray = None,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> float:
     """Compute the ShapeDTW distance function between two series x and y.
 
@@ -233,14 +233,14 @@ def _shape_dtw_distance(
     descriptor: str = "identity",
     reach: int = 30,
     transformation_precomputed: bool = False,
-    transformed_x: np.ndarray = None,
-    transformed_y: np.ndarray = None,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> float:
     # for compilation purposes
     if transformed_x is None:
-        transformed_x = x.copy()
+        transformed_x = x
     if transformed_y is None:
-        transformed_y = y.copy()
+        transformed_y = y
 
     if not transformation_precomputed:
         new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
@@ -294,8 +294,8 @@ def shape_dtw_cost_matrix(
     reach: int = 30,
     itakura_max_slope: float = None,
     transformation_precomputed: bool = False,
-    transformed_x: np.ndarray = None,
-    transformed_y: np.ndarray = None,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> float:
     """Compute the ShapeDTW cost matrix between two series x and y.
 
@@ -394,14 +394,14 @@ def _shape_dtw_cost_matrix(
     descriptor: str = "identity",
     reach: int = 30,
     transformation_precomputed: bool = False,
-    transformed_x: np.ndarray = None,
-    transformed_y: np.ndarray = None,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> float:
     # for compilation purposes
     if transformed_x is None:
-        transformed_x = x.copy()
+        transformed_x = x
     if transformed_y is None:
-        transformed_y = y.copy()
+        transformed_y = y
 
     if not transformation_precomputed:
         new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
@@ -427,8 +427,8 @@ def shape_dtw_alignment_path(
     reach: int = 30,
     itakura_max_slope: float = None,
     transformation_precomputed: bool = False,
-    transformed_x: np.ndarray = None,
-    transformed_y: np.ndarray = None,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ShapeDTW alignment path between two series x and y.
 
@@ -517,8 +517,8 @@ def shape_dtw_pairwise_distance(
     reach: int = 30,
     itakura_max_slope: float = None,
     transformation_precomputed: bool = False,
-    transformed_x: np.ndarray = None,
-    transformed_y: np.ndarray = None,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     """Compute the ShapeDTW pairwise distance among a set of series.
 
