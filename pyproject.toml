@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeon"
-version = "0.7.1"
+version = "0.8.0"
 description = "A toolkit for conducting machine learning tasks with time series data"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
