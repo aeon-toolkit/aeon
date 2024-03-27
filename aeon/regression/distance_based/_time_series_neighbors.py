@@ -172,6 +172,8 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         if self.weights == "distance":
             ws = distances[closest_idx]
+            ws = ws**2
+
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)
         elif self.weights == "uniform":
