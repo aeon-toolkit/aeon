@@ -147,7 +147,7 @@ def mahalanobis_pairwise_distance(
             return _mahalanobis_pairwise_distance(X, m)
         elif X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _mahalanobis_pairwise_distance(_X)
+            return _mahalanobis_pairwise_distance(_X, m)
         raise ValueError("X must be 2D or 3D array")
     _x, _y = reshape_pairwise_to_multiple(X, y)
     return _mahalanobis_from_multiple_to_multiple_distance(_x, _y, m)
