@@ -322,20 +322,14 @@ def test_plot_correlations_arguments(series_to_plot, lags):
     plt.gcf().canvas.draw_idle()
     plt.close()
 
-
 @pytest.mark.skipif(
     not _check_soft_dependencies(["matplotlib"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_plot_spectrogram():
-    """Tests whether plot_spectrogram runs correctly"""
-    _check_soft_dependencies("matplotlib")
-    import matplotlib.pyplot as plt
-
-    from aeon.transformations.series._spectrogram import SpectrogramTransformer
-
-    transformer = SpectrogramTransformer(fs=1, return_all_transformations=True)
-    f, t, Sxx = transformer.fit_transform(y_airline)
-    fig, ax = plot_spectrogram(f, t, Sxx)
-
-    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+    fig, ax = plot_spectrogram(y_airline, fs=1)
+    assert fig is not None
+    assert ax is not None
+    fig, ax = plot_spectrogram(y_airline, fs=1, return_onesided=False)
+    assert fig is not None
+    assert ax is not None

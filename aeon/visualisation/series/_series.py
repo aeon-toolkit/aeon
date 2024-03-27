@@ -1,7 +1,6 @@
 """Common timeseries plotting functionality."""
 
 __all__ = ["plot_series", "plot_lags", "plot_correlations", "plot_spectrogram"]
-__author__ = ["mloning", "RNKuhns", "Drishti Bhasin", "chillerobscuro", "aadya940"]
 __maintainer__ = []
 
 import math
@@ -10,6 +9,7 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 from scipy.fft import fftshift
+from scipy.signal import spectrogram
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_interval_df, check_y
@@ -359,72 +359,45 @@ def plot_correlations(
 
     return fig, np.array(fig.get_axes())
 
-
-def plot_spectrogram(
-    sample_freq: np.ndarray,
-    segment_time: np.ndarray,
-    spectrogram: np.ndarray,
-    return_both=False,
-):
+def plot_spectrogram(series, fs=1, return_onesided=True):
     """
-    Plot the spectrogram with a given sample frequency, segment time and spectrogram.
+    Plot the spectrogram of a given time series.
 
     Parameters
     ----------
-    sample_frequencies : ndarray
-                         Array of sample frequencies.
-    segment_time :       ndarray
-                         Array of segment times.
-    spectrogram :        ndarray
-                         Spectrogram of x. By default, the last axis of
-                         spectrogram corresponds to the segment times.
-    return_both :        boolean, default = False
-                         Condition to allow negative frequency spectrum.
-
+    series : array_like
+        Input time series.
+    fs : float, Default is 1.
+        Sampling frequency of the input series (in Hz).
+    return_onesided : bool, Default is True.
+        Whether to return one-sided spectrum.
 
     Returns
     -------
     fig : matplotlib.figure.Figure
-        The figure object.
-    ax : matplotlib.axes.Axes
-        The axes object.
+        The created matplotlib figure.
+    ax : matplotlib.axes._axes.Axes
+        The axes of the plot.
 
     Examples
     --------
-    >>> from aeon.transformations.series import SpectrogramTransformer
     >>> from aeon.visualisation import plot_spectrogram
-    >>> import numpy as np
-    >>> rng = np.random.default_rng()
-    >>> fs = 10e3
-    >>> N = 1e5
-    >>> amp = 2 * np.sqrt(2)
-    >>> noise_power = 0.01 * fs / 2
-    >>> time = np.arange(N) / float(fs)
-    >>> mod = 500*np.cos(2*np.pi*0.25*time)
-    >>> carrier = amp * np.sin(2*np.pi*3e3*time + mod)
-    >>> noise = rng.normal(scale=np.sqrt(noise_power), size=time.shape)
-    >>> noise *= np.exp(-time/5)
-    >>> x = carrier + noise
-    >>> transformer=SpectrogramTransformer(fs=fs)  # doctest: +SKIP
-    >>> f1, t1, Sxx1 = transformer.fit_transform(x)  # doctest: +SKIP
-    >>> fig, ax = plot_spectrogram(f1, t1, Sxx1, return_both=False)  # doctest: +SKIP
-    >>> transformer = SpectrogramTransformer(
-    ...     return_onesided=False,
-    ...     return_all_transformations=True
-    ... )  # doctest: +SKIP
-    >>> f2, t2, Sxx2 = transformer.fit_transform(x)  # doctest: +SKIP
-    >>> fig, ax = plot_spectrogram(f2, t2, Sxx2, return_both=True)  # doctest: +SKIP
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> fig, ax = plot_spectrogram(y)  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    if return_both:
-        sample_freq = fftshift(sample_freq)
-        spectrogram = fftshift(spectrogram, axes=0)
+    series = check_y(series)
     fig, ax = plt.subplots()
-    pcm = ax.pcolormesh(segment_time, sample_freq, spectrogram, shading="gouraud")
-    ax.set_ylabel("Frequency [Hz]")
-    ax.set_xlabel("Time [sec]")
-    plt.colorbar(pcm, ax=ax)
-    plt.show()
+
+    f, t, _spectrogram = spectrogram(series, fs=fs, return_onesided=return_onesided)
+    if not return_onesided:
+        ax.pcolormesh(t, fftshift(f), fftshift(_spectrogram, axes=0), shading="gouraud")
+        ax.set_ylabel("Frequency [Hz]")
+        ax.set_xlabel("Time [sec]")
+        return fig, ax
+
+    ax.pcolormesh(t, f, _spectrogram, shading="gouraud")
     return fig, ax
