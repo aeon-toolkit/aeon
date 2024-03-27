@@ -54,8 +54,6 @@ class ElasticEnsemble(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-        Seeded random number generation can only be guaranteed on CPU processing,
-        GPU processing will be non-deterministic.
     verbose : int, default=0
       If ``>0``, then prints out debug information.
     majority_vote: boolean, default = False

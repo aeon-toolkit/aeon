@@ -55,8 +55,6 @@ class DummyClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-        Seeded random number generation can only be guaranteed on CPU processing,
-        GPU processing will be non-deterministic.
     constant : int or str or array-like of shape (n_outputs,), default=None
         The explicit constant as predicted by the "constant" strategy. This
         parameter is useful only for the "constant" strategy.

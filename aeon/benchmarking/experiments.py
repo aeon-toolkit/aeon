@@ -51,8 +51,6 @@ def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-        Seeded random number generation can only be guaranteed on CPU processing,
-        GPU processing will be non-deterministic.
 
     Returns
     -------

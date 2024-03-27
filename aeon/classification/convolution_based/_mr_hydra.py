@@ -34,8 +34,6 @@ class MultiRocketHydraClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-        Seeded random number generation can only be guaranteed on CPU processing,
-        GPU processing will be non-deterministic.
 
     Attributes
     ----------
