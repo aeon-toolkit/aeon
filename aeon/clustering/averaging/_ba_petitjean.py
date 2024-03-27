@@ -144,4 +144,4 @@ def _ba_one_iter_petitjean(
             sum[k] += 1
         cost += curr_cost
 
-    return alignment / sum, cost / X_timepoints
+    return alignment / sum, cost
