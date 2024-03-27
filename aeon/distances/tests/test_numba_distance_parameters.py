@@ -33,6 +33,7 @@ def _test_distance_params(
     x_multi = make_series(10, 10, return_numpy=True, random_state=1)
     y_multi = make_series(10, 10, return_numpy=True, random_state=2)
 
+    # Shape dtw needs parameters to be generated with the x and y so function used
     if distance_str == "shape_dtw":
         param_list.append(_generate_shape_dtw_params)
 
