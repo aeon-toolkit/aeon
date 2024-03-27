@@ -8,6 +8,8 @@ import os
 import time
 from copy import deepcopy
 
+from sklearn.utils import check_random_state
+
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import FCNNetwork
 
@@ -41,10 +43,13 @@ class FCNClassifier(BaseDeepClassifier):
         The number of samples per gradient update.
     use_mini_batch_size : bool, default = False
         Whether or not to use the mini batch size formula.
-    random_state : int or None, default = None
-        Seed for random number generation. On CPU its guaranteed to end up with
-            same outcome, but on GPU no given the nature of numerical executions
-            being non deterministic on GPU.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose : boolean, default = False
         Whether to output extra information.
     loss : string, default = "mean_squared_error"
@@ -180,6 +185,7 @@ class FCNClassifier(BaseDeepClassifier):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
         if self.metrics is None:
@@ -187,8 +193,9 @@ class FCNClassifier(BaseDeepClassifier):
         else:
             metrics = self.metrics
 
-        if self.random_state is not None:
-            tf.keras.utils.set_random_seed(self.random_state)
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(

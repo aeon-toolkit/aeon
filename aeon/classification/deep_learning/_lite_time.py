@@ -68,10 +68,13 @@ class LITETimeClassifier(BaseClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state : int, default = None
-        seed to any needed random actions. On CPU its guaranteed to end up with
-            same outcome, but on GPU no given the nature of numerical executions
-            being non deterministic on GPU.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
     optimizer : keras optimizer, default = Adam
@@ -323,10 +326,13 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state : int, default = None
-        seed to any needed random actions. On CPU its guaranteed to end up with
-            same outcome, but on GPU no given the nature of numerical executions
-            being non deterministic on GPU.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
     optimizer : keras optimizer, default = Adam
@@ -425,10 +431,12 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
-        if self.random_state is not None:
-            tf.keras.utils.set_random_seed(self.random_state)
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(n_classes, activation="softmax")(
