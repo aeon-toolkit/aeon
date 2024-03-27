@@ -30,7 +30,14 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Use numba cache to set env variables but not restore cache
+      - name: Set optimal environment variables for pip cache and restore
+        uses: ./.github/actions/pip_cache
+        with:
+          runner_os: "Linux"
+          python_version: "3.10"
+          restore_cache: "true"
+
+      - name: Use numba cache to set env variables and restore cachee
         uses: ./.github/actions/numba_cache
         with:
           cache_name: "run-notebook-examples"

@@ -1,0 +1,59 @@
+name: Sets up optimal pip environment and restores cache
+description: "Sets up optimal pip environment and restores cache"
+
+inputs:
+  runner_os:
+    description: "The runner os"
+    required: true
+  python_version:
+    description: "The python version"
+    required: true
+  restore_cache:
+    description: "Whether to restore the cache"
+    required: false
+
+
+runs:
+  using: "composite"
+  steps:
+      # GNU tar on windows runs much faster than the default BSD tar
+    - name: Use GNU tar instead BSD tar if Windows
+      if: ${{ inputs.runner_os == 'Windows' }}
+      shell: cmd
+      run: echo C:\Program Files\Git\usr\bin>> $GITHUB_PATH
+
+      # For some reason on windows I/O on the C drive is really slow. To get around this
+      # we set the python, and the cache directories to the D drive which doesn't
+      # have slow I/O.
+      # See: https://github.com/actions/runner-images/issues/8755 for more details
+    - name: Set Python environment for Windows in powershell
+      if: ${{ inputs.runner_os == 'Windows' }}
+      shell: pwsh
+      # See https://docs.python.org/3/using/cmdline.html for env variable details
+      run: |
+        $Env:PYTHONUSERBASE = "D:\python\userbase"
+        $Env:PIP_CACHE_DIR = "D:\pip\cache"
+        $Env:PYTHONPYCACHEPREFIX = "D:\pycache"
+    - name: Set Python environment for windows
+      if: ${{ inputs.runner_os == 'Windows' }}
+      shell: bash
+      run: |
+        echo "PYTHONUSERBASE=D:\python\userbase" >> $GITHUB_ENV
+        echo "PIP_CACHE_DIR=D:\pip\cache" >> $GITHUB_ENV
+        echo "PYTHONPYCACHEPREFIX=D:\pycache" >> $GITHUB_ENV
+    - name: Set Python environment for linux
+      if: ${{ inputs.runner_os == 'Linux' }}
+      run: echo "PIP_CACHE_DIR=~/.cache/pip" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Set Python environment for macos
+      if: ${{ inputs.runner_os == 'macOS' }}
+      run: echo "PIP_CACHE_DIR=~/Library/Caches/pip" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Restore cache
+      uses: actions/cache/restore@v3
+      if: ${{ inputs.restore_cache == 'true' }}
+      with:
+        path: ${{ env.PIP_CACHE_DIR }}
+        key: ${{ inputs.runner_os }}-${{ inputs.python_version }}-pip-${{ hashfiles('**/pyproject.toml') }}
