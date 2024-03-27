@@ -100,7 +100,7 @@ DIST_PARAMS = {
     "adtw": BASIC_BOUNDING_PARAMS + [{"warp_penalty": 5.0}],
     "minkowski": [{"p": 1.0}, {"p": 2.0}],
     "sbd": [{"standardize": False}],
-    "shape_dtw": [{"reach": 4}],
+    "shape_dtw": BASIC_BOUNDING_PARAMS + [{"reach": 4}],
 }
 
 
