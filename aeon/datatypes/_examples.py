@@ -20,7 +20,6 @@ __all__ = [
     "get_examples",
 ]
 
-from deprecated.sphinx import deprecated
 
 from aeon.datatypes._hierarchical import (
     example_dict_Hierarchical,
@@ -71,12 +70,6 @@ example_dict_metadata.update(example_dict_metadata_Table)
 example_dict_metadata.update(example_dict_metadata_Proba)
 
 
-# TODO: remove in v0.8.0
-@deprecated(
-    version="0.7.0",
-    reason="get_examples has moved to the testing module, please use that version.",
-    category=FutureWarning,
-)
 def get_examples(
     mtype: str,
     as_scitype: str = None,
