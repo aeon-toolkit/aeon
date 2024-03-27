@@ -38,8 +38,11 @@ class FreshPRINCERegressor(BaseRegressor):
     chunksize : int or None, default=None
         Number of series processed in each parallel TSFresh job, should be optimised
         for efficient parallelisation.
-    random_state : int or None, default=None
-        Seed for random, integer.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     See Also
     --------
