@@ -115,6 +115,9 @@ clu = TimeSeriesKMeans(distance="dtw", n_clusters=2)
 clu.fit(X)  # fit the clusterer on train data
 >>> TimeSeriesKMeans(distance='dtw', n_clusters=2)
 
+clu.labels_ # get training cluster labels
+>>> array([0, 0, 1])
+
 X_test = np.array(
     [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
 )
