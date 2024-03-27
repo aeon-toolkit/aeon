@@ -313,7 +313,7 @@ def dtw_pairwise_distance(
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _dtw_pairwise_distance(_X, window, itakura_max_slope)
-        raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
     return _dtw_from_multiple_to_multiple_distance(_x, _y, window, itakura_max_slope)
 

@@ -23,6 +23,8 @@ __all__ = [
     "is_collection",
     "is_tabular",
     "is_hierarchical",
+    "is_valid_input",
+    "validate_input",
 ]
 
 import os
@@ -32,6 +34,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
+from aeon.utils.validation._input import is_valid_input, validate_input
 from aeon.utils.validation.collection import (
     get_n_cases,
     get_type,

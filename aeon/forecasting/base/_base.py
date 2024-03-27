@@ -45,17 +45,11 @@ import pandas as pd
 from scipy.stats import norm
 
 from aeon.base import BaseEstimator
-from aeon.datatypes import (
-    VectorizedDF,
-    check_is_scitype,
-    convert_to,
-    mtype_to_scitype,
-    scitype_to_mtype,
-)
+from aeon.datatypes import VectorizedDF, convert_to, mtype_to_scitype
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_cutoff, update_data
-from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
+from aeon.utils.validation import validate_input
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index
@@ -1323,22 +1317,10 @@ class BaseForecaster(BaseEstimator):
         y_inner_abstract_type = mtype_to_scitype(y_inner_type, return_unique=True)
         X_inner_abstract_type = mtype_to_scitype(X_inner_type, return_unique=True)
 
-        ALLOWED_ABSTRACT_TYPES = ["Series", "Panel", "Hierarchical"]
-        FORBIDDEN_TYPES = ["numpy2D", "pd-wide"]
-
-        for abs in ALLOWED_ABSTRACT_TYPES:
-            types = set(scitype_to_mtype(abs))
-            types = list(types.difference(FORBIDDEN_TYPES))
-
         # checking y
         if y is not None:
-            if is_hierarchical(y):
-                y_type = "Hierarchical"
-            elif is_collection(y):
-                y_type = "Panel"
-            elif is_single_series(y):
-                y_type = "Series"
-            else:
+            valid, y_metadata = validate_input(y)
+            if not valid:
                 raise TypeError(
                     "y must be in an aeon compatible format, "
                     "of abstract type Series, Panel or Hierarchical, for instance a "
@@ -1350,11 +1332,6 @@ class BaseForecaster(BaseEstimator):
                     "where mtype is the string of the type specification you want for "
                     "y. Possible mtype specification strings are as follows. "
                 )
-            # TODO: Still need to extract the correct "scitype and "mtype" of y,
-            #  is_univariate and _check_missing without check_is_scitype
-            _, _, y_metadata = check_is_scitype(
-                y, scitype=ALLOWED_ABSTRACT_TYPES, return_metadata=True, var_name="y"
-            )
 
             y_type = y_metadata["scitype"]
             self._y_mtype_last_seen = y_metadata["mtype"]
@@ -1383,31 +1360,20 @@ class BaseForecaster(BaseEstimator):
 
         # checking X
         if X is not None:
-            # checking y
-            if X is not None:
-                if is_hierarchical(X):
-                    X_type = "Hierarchical"
-                elif is_collection(X):
-                    X_type = "Panel"
-                elif is_single_series(X):
-                    X_type = "Series"
-                else:
-                    raise TypeError(
-                        "y must be in an aeon compatible format, "
-                        "of abstract type Series, Panel or Hierarchical, for instance a"
-                        "pandas.DataFrame with aeon compatible time indices, or with "
-                        "MultiIndex and last(-1) level an aeon compatible time index."
-                        "For further details see  examples/forecasting, or "
-                        "examples/datasets. If you think y is already in an aeon "
-                        "supported input format, run aeon.datatypes.check_raise(y, "
-                        "mtype) to diagnose the error, where mtype is the string of "
-                        "the type specification you want for y. "
-                        "Possible mtype specification strings are as follows. "
-                    )
-            # TODO: Still need to extract the "scitype" of y without check_is_scitype
-            _, _, X_metadata = check_is_scitype(
-                X, scitype=ALLOWED_ABSTRACT_TYPES, return_metadata=True, var_name="X"
-            )
+            valid, X_metadata = validate_input(X)
+            if not valid:
+                raise TypeError(
+                    "y must be in an aeon compatible format, "
+                    "of abstract type Series, Panel or Hierarchical, for instance a"
+                    "pandas.DataFrame with aeon compatible time indices, or with "
+                    "MultiIndex and last(-1) level an aeon compatible time index."
+                    "For further details see  examples/forecasting, or "
+                    "examples/datasets. If you think y is already in an aeon "
+                    "supported input format, run aeon.datatypes.check_raise(y, "
+                    "mtype) to diagnose the error, where mtype is the string of "
+                    "the type specification you want for y. "
+                    "Possible mtype specification strings are as follows. "
+                )
             X_type = X_metadata["scitype"]
             X_requires_vectorization = X_type not in X_inner_abstract_type
             requires_vectorization = requires_vectorization or X_requires_vectorization

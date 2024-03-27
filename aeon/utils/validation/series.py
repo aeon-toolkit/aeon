@@ -1,6 +1,5 @@
 """Functions for checking input data."""
 
-__maintainer__ = []
 __all__ = [
     "check_series",
     "check_time_index",
@@ -9,6 +8,7 @@ __all__ = [
     "is_hierarchical",
     "is_single_series",
 ]
+__maintainer__ = ["TonyBagnall"]
 
 from typing import Union
 
@@ -44,6 +44,8 @@ def is_single_series(y):
         return True
     if isinstance(y, pd.DataFrame):
         if "object" in y.dtypes.values:
+            return False
+        if y.index.nlevels > 1:
             return False
         return True
     if isinstance(y, np.ndarray):
@@ -512,7 +514,7 @@ def is_pdmultiindex_hierarchical(y):
         True if y is pd multindex hierarchical.
 
     """
-    if not isinstance(y, pd.DataFrame) and not isinstance(y.index, pd.MultiIndex):
+    if not isinstance(y, pd.DataFrame) or not isinstance(y.index, pd.MultiIndex):
         return False
     if not y.columns.is_unique:
         return False

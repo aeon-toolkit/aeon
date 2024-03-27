@@ -4,6 +4,7 @@ Each test covers a "decision path" in the base class boilerplate,
     with a focus on frequently breaking paths in base class refactor and bugfixing.
 The path taken depends on tags of a given transformer, and input data type.
 Concrete transformer classes from aeon are imported to cover
+Concrete transformer classes from aeon are imported to cover
     different combinations of transformer tags.
 Transformer scenarios cover different combinations of input data types.
 """
@@ -388,7 +389,7 @@ class _DummyFour(BaseTransformer):
     }
 
     def _transform(self, X, y=None):
-        return np.array([0])
+        return np.array([0.0])
 
 
 def test_series_in_primitives_out_supported_fit_in_transform():
@@ -411,9 +412,9 @@ def test_series_in_primitives_out_supported_fit_in_transform():
     assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    assert is_tabular(Xt), "fit.transform does not return a Table when given a Series"
     # length of Xt should be one, for a single series passed
     assert len(Xt) == 1
+    assert is_tabular(Xt), "fit.transform does not return a Table when given a Series"
 
 
 def test_panel_in_primitives_out_not_supported_fit_in_transform():
@@ -479,7 +480,7 @@ class _DummyFive(BaseTransformer):
     }
 
     def _transform(self, X, y=None):
-        return np.array([0])
+        return np.array([0.0])
 
 
 def test_series_in_primitives_out_not_supported_fit_in_transform():
@@ -613,8 +614,8 @@ def test_numpy_format_outputs():
     bc = BoxCoxTransformer()
 
     u1d = bc.fit_transform(X[0][0])
-    # 2d numpy arrays are (length, channels) while 3d numpy arrays are
-    # (cases, channels, length)
+    # 2d numpy arrays are (n_timepoints, n_channels) while 3d numpy arrays are
+    # (n_cases, n_channels, n_timepoints)
     u2d = bc.fit_transform(X[0].transpose()).transpose()
     u3d = bc.fit_transform(X)
 
