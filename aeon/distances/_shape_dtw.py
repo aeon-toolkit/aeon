@@ -622,8 +622,8 @@ def _shape_dtw_pairwise_distance(
     reach: int = 30,
     itakura_max_slope: float = None,
     transformation_precomputed: bool = False,
-    transformed_x: np.ndarray = None,
-    transformed_y: np.ndarray = None,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     if y is None:
         y = np.copy(X)
