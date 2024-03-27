@@ -41,7 +41,12 @@ def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
     y_test : np.array
         test data class labels as np array.
     random_state : int
-        seed to enable reproduceable resamples
+        Seed or random number generator for,
+        initializing cluster centroids or shuffling data.
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Returns
     -------

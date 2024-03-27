@@ -61,8 +61,11 @@ class Imputer(BaseTransformer):
         the forecaster is applied separete to each column like a
         ColumnEnsembleForecaster. Forecaster is only applied if the param
         method="forecaster" is set, otherwise forecaster is ignored.
-    random_state : int/float/str, optional
-        Value to set random.seed() if method="random", default None
+    random_state : int/float/str,RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Examples
     --------
