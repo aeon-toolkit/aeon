@@ -1,16 +1,16 @@
-"""Unit tests for classification pipeline."""
+"""Unit tests for regression pipeline."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
 import pytest
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 
-from aeon.classification import DummyClassifier
-from aeon.classification.compose import ClassifierPipeline
-from aeon.classification.convolution_based import RocketClassifier
-from aeon.classification.dictionary_based import ContractableBOSS
+from aeon.regression import DummyRegressor
+from aeon.regression.compose import RegressorPipeline
+from aeon.regression.convolution_based import RocketRegressor
+from aeon.regression.tests.test_base import _TestRegressor
 from aeon.testing.utils.data_gen import (
     make_example_3d_numpy,
     make_example_unequal_length,
@@ -44,15 +44,15 @@ from aeon.transformations.impute import Imputer
         ],
     ],
 )
-def test_classifier_pipeline(transformers):
-    """Test the classifier pipeline."""
+def test_regressor_pipeline(transformers):
+    """Test the regressor pipeline."""
     X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
     X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
-    c = DummyClassifier()
-    pipeline = ClassifierPipeline(transformers=transformers, classifier=c)
+    r = DummyRegressor()
+    pipeline = RegressorPipeline(transformers=transformers, regressor=r)
     pipeline.fit(X_train, y_train)
-    c.fit(X_train, y_train)
+    r.fit(X_train, y_train)
 
     y_pred = pipeline.predict(X_test)
     assert isinstance(y_pred, np.ndarray)
@@ -64,8 +64,8 @@ def test_classifier_pipeline(transformers):
         X_train = t.fit_transform(X_train)
         X_test = t.transform(X_test)
 
-    c.fit(X_train, y_train)
-    _assert_array_almost_equal(y_pred, c.predict(X_test))
+    r.fit(X_train, y_train)
+    _assert_array_almost_equal(y_pred, r.predict(X_test))
 
 
 @pytest.mark.parametrize(
@@ -84,13 +84,13 @@ def test_classifier_pipeline(transformers):
         ],
     ],
 )
-def test_sklearn_classifier_pipeline(transformers):
-    """Test classifier pipeline with sklearn estimator."""
+def test_sklearn_regressor_pipeline(transformers):
+    """Test regressor pipeline with sklearn estimator."""
     X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
     X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
-    c = RandomForestClassifier(n_estimators=2, random_state=0)
-    pipeline = ClassifierPipeline(transformers=transformers, classifier=c)
+    r = RandomForestRegressor(n_estimators=2, random_state=0)
+    pipeline = RegressorPipeline(transformers=transformers, regressor=r)
     pipeline.fit(X_train, y_train)
 
     y_pred = pipeline.predict(X_test)
@@ -103,14 +103,14 @@ def test_sklearn_classifier_pipeline(transformers):
         X_train = t.fit_transform(X_train)
         X_test = t.transform(X_test)
 
-    c.fit(X_train, y_train)
-    _assert_array_almost_equal(y_pred, c.predict(X_test))
+    r.fit(X_train, y_train)
+    _assert_array_almost_equal(y_pred, r.predict(X_test))
 
 
 def test_unequal_tag_inference():
-    """Test that ClassifierPipeline infers unequal length tag correctly."""
+    """Test that RegressorPipeline infers unequal length tag correctly."""
     X, y = make_example_unequal_length(
-        n_cases=10, min_n_timepoints=8, max_n_timepoints=12
+        n_cases=10, min_n_timepoints=8, max_n_timepoints=12, regression_target=True
     )
 
     t1 = SevenNumberSummaryTransformer()
@@ -130,55 +130,55 @@ def test_unequal_tag_inference():
     assert not t3.get_tag("output_data_type") == "Tabular"
     assert not t4.get_tag("capability:unequal_length")
 
-    c1 = DummyClassifier()
-    c2 = RocketClassifier(num_kernels=5)
-    c3 = RandomForestClassifier(n_estimators=2)
+    c1 = DummyRegressor()
+    c2 = RocketRegressor(num_kernels=5)
+    c3 = RandomForestRegressor(n_estimators=2)
 
     assert c1.get_tag("capability:unequal_length")
     assert not c2.get_tag("capability:unequal_length")
 
     # all handle unequal length
-    p1 = ClassifierPipeline(transformers=t3, classifier=c1)
+    p1 = RegressorPipeline(transformers=t3, regressor=c1)
     assert p1.get_tag("capability:unequal_length")
     p1.fit(X, y)
 
-    # classifier does not handle unequal length but transformer chain removes
-    p2 = ClassifierPipeline(transformers=[t3, t2], classifier=c2)
+    # regressor does not handle unequal length but transformer chain removes
+    p2 = RegressorPipeline(transformers=[t3, t2], regressor=c2)
     assert p2.get_tag("capability:unequal_length")
     p2.fit(X, y)
 
-    # classifier does not handle unequal length but transformer chain removes (sklearn)
-    p3 = ClassifierPipeline(transformers=[t3, t2, t6, t5], classifier=c3)
+    # regressor does not handle unequal length but transformer chain removes (sklearn)
+    p3 = RegressorPipeline(transformers=[t3, t2, t6, t5], regressor=c3)
     assert p3.get_tag("capability:unequal_length")
     p3.fit(X, y)
 
     # transformers handle unequal length and output is tabular
-    p4 = ClassifierPipeline(transformers=[t3, t1], classifier=c3)
+    p4 = RegressorPipeline(transformers=[t3, t1], regressor=c3)
     assert p4.get_tag("capability:unequal_length")
     p4.fit(X, y)
 
     # test they fit even if they cannot handle unequal length
-    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12, regression_target=True)
 
-    # transformers handle unequal length but classifier does not
-    p5 = ClassifierPipeline(transformers=t3, classifier=c2)
+    # transformers handle unequal length but regressor does not
+    p5 = RegressorPipeline(transformers=t3, regressor=c2)
     assert not p5.get_tag("capability:unequal_length")
     p5.fit(X, y)
 
-    # classifier handles unequal length but transformer does not
-    p6 = ClassifierPipeline(transformers=t4, classifier=c1)
+    # regressor handles unequal length but transformer does not
+    p6 = RegressorPipeline(transformers=t4, regressor=c1)
     assert not p6.get_tag("capability:unequal_length")
     p6.fit(X, y)
 
     # transformer removes unequal length but prior cannot handle
-    p7 = ClassifierPipeline(transformers=[t4, t2], classifier=c1)
+    p7 = RegressorPipeline(transformers=[t4, t2], regressor=c1)
     assert not p7.get_tag("capability:unequal_length")
     p7.fit(X, y)
 
 
 def test_missing_tag_inference():
-    """Test that ClassifierPipeline infers missing data tag correctly."""
-    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    """Test that RegressorPipeline infers missing data tag correctly."""
+    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12, regression_target=True)
 
     t1 = Imputer()
     t2 = TimeSeriesScaler()
@@ -189,45 +189,47 @@ def test_missing_tag_inference():
     assert t1.get_tag("capability:missing_values:removes")
     assert not t2.get_tag("capability:missing_values")
 
-    c1 = DummyClassifier()
-    c2 = RocketClassifier(num_kernels=5)
-    c3 = RandomForestClassifier(n_estimators=2)
+    c1 = DummyRegressor()
+    c2 = RocketRegressor(num_kernels=5)
+    c3 = RandomForestRegressor(n_estimators=2)
 
     assert c1.get_tag("capability:missing_values")
     assert not c2.get_tag("capability:missing_values")
 
-    # classifier does not handle missing values but transformer chain removes
-    p1 = ClassifierPipeline(transformers=t1, classifier=c2)
+    # regressor does not handle missing values but transformer chain removes
+    p1 = RegressorPipeline(transformers=t1, regressor=c2)
     assert p1.get_tag("capability:missing_values")
     p1.fit(X, y)
 
-    # classifier does not handle missing values but transformer chain removes (sklearn)
-    p2 = ClassifierPipeline(transformers=[t1, t4, t3], classifier=c3)
+    # regressor does not handle missing values but transformer chain removes (sklearn)
+    p2 = RegressorPipeline(transformers=[t1, t4, t3], regressor=c3)
     assert p2.get_tag("capability:missing_values")
     p2.fit(X, y)
 
     # test they fit even if they cannot handle missing data
-    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12, regression_target=True)
 
-    # transformers cannot handle missing data but classifier does
-    p3 = ClassifierPipeline(transformers=t2, classifier=c1)
+    # transformers cannot handle missing data but regressor does
+    p3 = RegressorPipeline(transformers=t2, regressor=c1)
     assert not p3.get_tag("capability:missing_values")
     p3.fit(X, y)
 
-    # transformers and classifier cannot handle missing data
-    p4 = ClassifierPipeline(transformers=t2, classifier=c2)
+    # transformers and regressor cannot handle missing data
+    p4 = RegressorPipeline(transformers=t2, regressor=c2)
     assert not p4.get_tag("capability:missing_values")
     p4.fit(X, y)
 
     # transformer removes missing values but prior cannot handle
-    p5 = ClassifierPipeline(transformers=[t2, t1], classifier=c1)
+    p5 = RegressorPipeline(transformers=[t2, t1], regressor=c1)
     assert not p5.get_tag("capability:missing_values")
     p5.fit(X, y)
 
 
 def test_multivariate_tag_inference():
-    """Test that ClassifierPipeline infers multivariate tag correctly."""
-    X, y = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=12)
+    """Test that RegressorPipeline infers multivariate tag correctly."""
+    X, y = make_example_3d_numpy(
+        n_cases=10, n_channels=2, n_timepoints=12, regression_target=True
+    )
 
     t1 = SevenNumberSummaryTransformer()
     t2 = TimeSeriesScaler()
@@ -240,37 +242,37 @@ def test_multivariate_tag_inference():
     assert not t2.get_tag("output_data_type") == "Tabular"
     assert not t3.get_tag("capability:multivariate")
 
-    c1 = DummyClassifier()
-    c2 = ContractableBOSS(n_parameter_samples=5, max_ensemble_size=3)
-    c3 = RandomForestClassifier(n_estimators=2)
+    c1 = DummyRegressor()
+    c2 = _TestRegressor()
+    c3 = RandomForestRegressor(n_estimators=2)
 
     assert c1.get_tag("capability:multivariate")
     assert not c2.get_tag("capability:multivariate")
 
     # all handle multivariate
-    p1 = ClassifierPipeline(transformers=t2, classifier=c1)
+    p1 = RegressorPipeline(transformers=t2, regressor=c1)
     assert p1.get_tag("capability:multivariate")
     p1.fit(X, y)
 
     # transformers handle multivariate and output is tabular
-    p2 = ClassifierPipeline(transformers=[t1, t4], classifier=c3)
+    p2 = RegressorPipeline(transformers=[t1, t4], regressor=c3)
     assert p2.get_tag("capability:multivariate")
     p2.fit(X, y)
 
     # test they fit even if they cannot handle multivariate
-    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12, regression_target=True)
 
-    # transformers handle multivariate but classifier does not
-    p3 = ClassifierPipeline(transformers=t2, classifier=c2)
+    # transformers handle multivariate but regressor does not
+    p3 = RegressorPipeline(transformers=t2, regressor=c2)
     assert not p3.get_tag("capability:multivariate")
     p3.fit(X, y)
 
-    # classifier handles multivariate but transformer does not
-    p4 = ClassifierPipeline(transformers=t3, classifier=c1)
+    # regressor handles multivariate but transformer does not
+    p4 = RegressorPipeline(transformers=t3, regressor=c1)
     assert not p4.get_tag("capability:multivariate")
     p4.fit(X, y)
 
     # transformer converts multivariate to tabular but prior cannot handle
-    p5 = ClassifierPipeline(transformers=[t3, t1], classifier=c3)
+    p5 = RegressorPipeline(transformers=[t3, t1], regressor=c3)
     assert not p5.get_tag("capability:multivariate")
     p5.fit(X, y)

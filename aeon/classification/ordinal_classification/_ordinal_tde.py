@@ -80,11 +80,6 @@ class OrdinalTDE(BaseClassifier):
         be faster for larger datasets. As the Dict cannot be pickled currently, there
         will be some overhead converting it to a python dict with multiple threads and
         pickling.
-    save_train_predictions : bool, default="deprecated"
-        Save the ensemble member train predictions in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
     train_estimate_method : str, default="loocv"
         Method used to generate train estimates in `fit_predict` and
         `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
@@ -167,7 +162,6 @@ class OrdinalTDE(BaseClassifier):
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
         typed_dict=True,
-        save_train_predictions="deprecated",
         train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
@@ -205,16 +199,6 @@ class OrdinalTDE(BaseClassifier):
         self._weight_sum = 0
         self._prev_parameters_x = []
         self._prev_parameters_y = []
-
-        # TODO remove 'save_train_predictions' in v0.8.0
-        self.save_train_predictions = save_train_predictions
-        if save_train_predictions != "deprecated":
-            warnings.warn(
-                "the save_train_predictions parameter is deprecated and will be "
-                "removed in v0.8.0.",
-                stacklevel=2,
-            )
-
         super().__init__()
 
     def _fit(self, X, y, keep_train_preds=False):
