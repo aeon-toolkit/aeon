@@ -94,8 +94,13 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
 
     Attributes
     ----------
@@ -627,8 +632,13 @@ class IndividualTDE(BaseClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random, integer.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
 
     Attributes
     ----------
