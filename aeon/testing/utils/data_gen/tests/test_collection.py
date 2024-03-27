@@ -223,6 +223,6 @@ def test__make_collection():
     """Test make collection."""
     X = _make_collection(n_cases=4, n_channels=2, n_timepoints=20)
     assert X.shape == (4, 2, 20)
-    y = np.array[0, 1, 0, 1, 0, 1, 0, 1]
+    y = np.array([0, 1, 0, 1, 0, 1, 0, 1])
     X = _make_collection(n_cases=4, n_channels=2, n_timepoints=20, y=y)
     assert X.shape == (8, 2, 20)
