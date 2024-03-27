@@ -49,8 +49,8 @@ can be found [here](https://www.aeon-toolkit.org/en/stable/developer_guide/dev_i
 
 The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/stable/getting_started.html).
 
-Below we provide a quick example of how to use `aeon` for forecasting and
-classification.
+Below we provide a quick example of how to use `aeon` for forecasting,
+classification and clustering.
 
 ### Forecasting
 
