@@ -55,9 +55,10 @@ def _test_distance_params(
                 param_dict["g_arr"] = np.std([_x, _y], axis=0).sum(axis=1)
                 if "g" in param_dict:
                     del param_dict["g"]
-            results = []
-            results.append(distance_func(x, y, **param_dict))
-            results.append(distance(x, y, metric=distance_str, **param_dict))
+            results = [
+                distance_func(x, y, **param_dict),
+                distance(x, y, metric=distance_str, **param_dict),
+            ]
 
             if distance_str in _expected_distance_results_params:
                 if _expected_distance_results_params[distance_str][i][j] is not None:
