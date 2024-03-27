@@ -34,6 +34,7 @@ runs:
         $Env:PYTHONUSERBASE = "D:\python\userbase"
         $Env:PIP_CACHE_DIR = "D:\pip\cache"
         $Env:PYTHONPYCACHEPREFIX = "D:\pycache"
+
     - name: Set Python environment for windows
       if: ${{ inputs.runner_os == 'Windows' }}
       shell: bash
@@ -41,6 +42,7 @@ runs:
         echo "PYTHONUSERBASE=D:\python\userbase" >> $GITHUB_ENV
         echo "PIP_CACHE_DIR=D:\pip\cache" >> $GITHUB_ENV
         echo "PYTHONPYCACHEPREFIX=D:\pycache" >> $GITHUB_ENV
+
     - name: Set Python environment for linux
       if: ${{ inputs.runner_os == 'Linux' }}
       run: echo "PIP_CACHE_DIR=~/.cache/pip" >> $GITHUB_ENV
