@@ -312,12 +312,15 @@ def test_custom_distance_params():
 
     # Test passing distance param
     default_dist = _get_model_centres(
-        data, distance="msm", average_params={"init_barycenter": "medoids"}
+        data,
+        distance="msm",
+        distance_params={"window": 0.2},
+        average_params={"init_barycenter": "medoids"},
     )
     custom_params_dist = _get_model_centres(
         data,
         distance="msm",
         distance_params={"window": 0.2},
-        average_params={"init_barycenter": "medoids"},
+        average_params={"init_barycenter": "mean"},
     )
     assert not np.array_equal(default_dist, custom_params_dist)
