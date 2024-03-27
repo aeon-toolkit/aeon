@@ -2,10 +2,11 @@
 
 __maintainer__ = []
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
 
 from aeon.distances._alignment_paths import (
     _add_inf_to_out_of_bounds_cost_matrix,
@@ -13,7 +14,7 @@ from aeon.distances._alignment_paths import (
 )
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import _univariate_squared_distance
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list
 
 
 @njit(cache=True, fastmath=True)
@@ -40,10 +41,10 @@ def msm_distance(
     matrix $D$ as follows.
 
     .. math::
-        move  &=  D_{i-1,j-1}+ d({x_{i},y_{j}}) \\
-        split &= D_{i-1,j}+cost(y_j,y_{j-1},x_i,c)\\
-        merge &= D_{i,j-1}+cost(x_i,x_{i-1},y_j,c)\\
-        D_{i,j} &= min(move,split, merge)
+        move  &= D_{i-1,j-1}+d({x_{i},y_{j}}) \\
+        split &= D_{i-1,j}+cost(y_j,y_{j-1},x_i,c) \\
+        merge &= D_{i,j-1}+cost(x_i,x_{i-1},y_j,c) \\
+        D_{i,j} &= min(move, split, merge)
 
     Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to a constant value,
     and $c$ is a parameter that represents the cost of moving off the diagonal.
@@ -57,8 +58,8 @@ def msm_distance(
 
     .. math::
         cost(x,y,z,c) &= c & if\;\; & y \leq x \leq z \\
-                      &= c &  if\;\; & y \geq x \geq z \\
-                      &= c+min(|x-y|,|x-z|) & & otherwise\\
+                      &= c & if\;\; & y \geq x \geq z \\
+                      &= c+min(|x-y|,|x-z|) & & otherwise \\
 
     If :math:`\mathbf{x}` and :math:`\mathbf{y$}` are multivariate, then there are two
     ways of calculating the MSM distance. The independent approach is to find the
@@ -103,7 +104,7 @@ def msm_distance(
     .. [1] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
     series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013.
 
-    ..[2] A. Shifaz, C. Pelletier, F. Petitjean, G. Webb: Elastic similarity and
+    .. [2] A. Shifaz, C. Pelletier, F. Petitjean, G. Webb: Elastic similarity and
     distance measures for multivariate time series. Knowl. Inf. Syst. 65(6), 2023.
 
     Examples
@@ -143,17 +144,17 @@ def msm_cost_matrix(
     By default, this takes a collection of :math:`n` time series :math:`X` and returns a
     matrix
     :math:`D` where :math:`D_{i,j}` is the MSM distance between the :math:`i^{th}`
-    and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
+    and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2-dimensional,
     it is assumed to be a collection of univariate series with shape ``(n_cases,
-    n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_cases,
+    n_timepoints)``. If it is 3-dimensional, it is assumed to be shape ``(n_cases,
     n_channels, n_timepoints)``.
 
     This function has an optional argument, :math:`y`, to allow calculation of the
     distance matrix between :math:`X` and one or more series stored in :math:`y`. If
-    :math:`y` is 1 dimensional, we assume it is a single univariate series and the
+    :math:`y` is 1-dimensional, we assume it is a single univariate series and the
     distance matrix returned is shape ``(n_cases,1)``. If it is 2D, we assume it
     is a collection of univariate series with shape ``(m_cases, m_timepoints)``
-    and the distance ``(n_cases,m_cases)``. If it is 3 dimensional,
+    and the distance ``(n_cases,m_cases)``. If it is 3-dimensional,
     it is assumed to be shape ``(m_cases, m_channels, m_timepoints)``.
 
 
@@ -344,10 +345,9 @@ def _cost_independent(x: float, y: float, z: float, c: float) -> float:
     return c + min(abs(x - y), abs(x - z))
 
 
-@njit(cache=True, fastmath=True)
 def msm_pairwise_distance(
-    X: np.ndarray,
-    y: Optional[np.ndarray] = None,
+    X: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
     window: Optional[float] = None,
     independent: bool = True,
     c: float = 1.0,
@@ -357,10 +357,10 @@ def msm_pairwise_distance(
 
     Parameters
     ----------
-    X : np.ndarray
+    X : np.ndarray or List of np.ndarray
         A collection of time series instances  of shape ``(n_cases, n_timepoints)``
         or ``(n_cases, n_channels, n_timepoints)``.
-    y : np.ndarray or None, default=None
+    y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the msm pairwise distance between the instances of X is
@@ -410,61 +410,53 @@ def msm_pairwise_distance(
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
     >>> msm_pairwise_distance(X, y_univariate)
-    array([[16.],
-           [13.],
-           [10.]])
+    array([[16., 19., 22.],
+           [13., 16., 19.],
+           [10., 13., 16.]])
 
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> msm_pairwise_distance(X)
+    array([[ 0., 10., 17.],
+           [10.,  0., 14.],
+           [17., 14.,  0.]])
     """
+    _X = _convert_to_list(X, "X")
+
     if y is None:
         # To self
-        if X.ndim == 3:
-            return _msm_pairwise_distance(X, window, independent, c, itakura_max_slope)
-        if X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _msm_pairwise_distance(_X, window, independent, c, itakura_max_slope)
-        raise ValueError("x and y must be 2D or 3D arrays")
-    elif y.ndim == X.ndim:
-        # Multiple to multiple
-        if y.ndim == 3 and X.ndim == 3:
-            return _msm_from_multiple_to_multiple_distance(
-                X, y, window, independent, c, itakura_max_slope
-            )
-        if y.ndim == 2 and X.ndim == 2:
-            _x = X.reshape((X.shape[0], 1, X.shape[1]))
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _msm_from_multiple_to_multiple_distance(
-                _x, _y, window, independent, c, itakura_max_slope
-            )
-        if y.ndim == 1 and X.ndim == 1:
-            _x = X.reshape((1, 1, X.shape[0]))
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _msm_from_multiple_to_multiple_distance(
-                _x, _y, window, independent, c, itakura_max_slope
-            )
-        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-    _x, _y = reshape_pairwise_to_multiple(X, y)
+        return _msm_pairwise_distance(_X, window, independent, c, itakura_max_slope)
+
+    _y = _convert_to_list(y, "y")
     return _msm_from_multiple_to_multiple_distance(
-        _x, _y, window, independent, c, itakura_max_slope
+        _X, _y, window, independent, c, itakura_max_slope
     )
 
 
 @njit(cache=True, fastmath=True)
 def _msm_pairwise_distance(
-    X: np.ndarray,
+    X: NumbaList[np.ndarray],
     window: Optional[float],
     independent: bool,
     c: float,
     itakura_max_slope: Optional[float],
 ) -> np.ndarray:
-    n_cases = X.shape[0]
+    n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
-    bounding_matrix = create_bounding_matrix(
-        X.shape[2], X.shape[2], window, itakura_max_slope
-    )
 
+    if window == 1:
+        max_shape = max([x.shape[-1] for x in X])
+        bounding_matrix: np.ndarray = create_bounding_matrix(
+            max_shape, max_shape, window, itakura_max_slope
+        )
     for i in range(n_cases):
         for j in range(i + 1, n_cases):
-            distances[i, j] = _msm_distance(X[i], X[j], bounding_matrix, independent, c)
+            x1, x2 = X[i], X[j]
+            if window != 1:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[-1], x2.shape[-1], window, itakura_max_slope
+                )
+            distances[i, j] = _msm_distance(x1, x2, bounding_matrix, independent, c)
             distances[j, i] = distances[i, j]
 
     return distances
@@ -472,23 +464,30 @@ def _msm_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _msm_from_multiple_to_multiple_distance(
-    x: np.ndarray,
-    y: np.ndarray,
+    x: NumbaList[np.ndarray],
+    y: NumbaList[np.ndarray],
     window: Optional[float],
     independent: bool,
     c: float,
     itakura_max_slope: Optional[float],
 ) -> np.ndarray:
-    n_cases = x.shape[0]
-    m_cases = y.shape[0]
+    n_cases = len(x)
+    m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
-    bounding_matrix = create_bounding_matrix(
-        x.shape[2], y.shape[2], window, itakura_max_slope
-    )
 
+    if window == 1:
+        max_shape = max([_x.shape[-1] for _x in x])
+        bounding_matrix: np.ndarray = create_bounding_matrix(
+            max_shape, max_shape, window, itakura_max_slope
+        )
     for i in range(n_cases):
         for j in range(m_cases):
-            distances[i, j] = _msm_distance(x[i], y[j], bounding_matrix, independent, c)
+            x1, y1 = x[i], y[j]
+            if window != 1:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[-1], y1.shape[-1], window, itakura_max_slope
+                )
+            distances[i, j] = _msm_distance(x1, y1, bounding_matrix, independent, c)
     return distances
 
 
