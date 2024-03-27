@@ -322,6 +322,7 @@ def test_plot_correlations_arguments(series_to_plot, lags):
     plt.gcf().canvas.draw_idle()
     plt.close()
 
+
 @pytest.mark.skipif(
     not _check_soft_dependencies(["matplotlib"], severity="none"),
     reason="skip test if required soft dependency not available",

@@ -359,6 +359,7 @@ def plot_correlations(
 
     return fig, np.array(fig.get_axes())
 
+
 def plot_spectrogram(series, fs=1, return_onesided=True):
     """
     Plot the spectrogram of a given time series.
