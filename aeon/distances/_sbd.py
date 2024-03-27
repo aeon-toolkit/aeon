@@ -2,13 +2,14 @@
 
 __maintainer__ = ["codelionx"]
 
-from typing import Optional
+from typing import List, Optional, Union
 
 import numpy as np
 from numba import njit, objmode
+from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list
 
 
 @njit(cache=True, fastmath=True)
@@ -50,7 +51,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
         \}
 
     For multivariate time series, SBD is computed independently for each channel and
-    then averaged.
+    then averaged. Both time series must have the same number of channels!
 
     Parameters
     ----------
@@ -96,12 +97,12 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     if x.ndim == 1 and y.ndim == 1:
         return _univariate_sbd_distance(x, y, standardize)
     if x.ndim == 2 and y.ndim == 2:
-        if x.shape[0] == y.shape[0] == 1:
+        if x.shape[0] == 1 and y.shape[0] == 1:
             _x = x.ravel()
             _y = y.ravel()
             return _univariate_sbd_distance(_x, _y, standardize)
         else:
-            # independent
+            # independent (time series should have the same number of channels!)
             nchannels = min(x.shape[0], y.shape[0])
             distance = 0.0
             for i in range(nchannels):
@@ -111,19 +112,25 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     raise ValueError("x and y must be 1D or 2D")
 
 
-@njit(cache=True, fastmath=True)
 def sbd_pairwise_distance(
-    x: np.ndarray, y: Optional[np.ndarray] = None, standardize: bool = True
+    x: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    standardize: bool = True,
 ) -> np.ndarray:
     """
     Compute the shape-based distance (SBD) between all pairs of time series.
 
+    For multivariate time series, SBD is computed independently for each channel and
+    then averaged. Both time series must have the same number of channels! This is not
+    checked in code for performance reasons. If the number of channels is different,
+    the minimum number of channels is used.
+
     Parameters
     ----------
-    x : np.ndarray
+    x : np.ndarray or List of np.ndarray
         A collection of time series instances  of shape ``(n_cases, n_timepoints)``
         or ``(n_cases, n_channels, n_timepoints)``.
-    y : np.ndarray or None, default=None
+    y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the SBD is calculated between pairwise instances of x.
@@ -167,28 +174,34 @@ def sbd_pairwise_distance(
            [0., 0., 0.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> sbd_pairwise_distance(X, y_univariate)
     array([[0.],
            [0.],
            [0.]])
+
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> sbd_pairwise_distance(X)
+    array([[0.        , 0.36754447, 0.5527864 ],
+           [0.36754447, 0.        , 0.29289322],
+           [0.5527864 , 0.29289322, 0.        ]])
     """
+    _x = _convert_to_list(x, "x")
+
     if y is None:
         # To self
-        if x.ndim == 3:
-            return _sbd_pairwise_distance_single(x, standardize)
-        elif x.ndim == 2:
-            _X = x.reshape((x.shape[0], 1, x.shape[1]))
-            return _sbd_pairwise_distance_single(_X, standardize)
-        raise ValueError("X must be 2D or 3D")
+        return _sbd_pairwise_distance_single(_x, standardize)
 
-    _x, _y = reshape_pairwise_to_multiple(x, y)
+    _y = _convert_to_list(y, "y")
     return _sbd_pairwise_distance(_x, _y, standardize)
 
 
 @njit(cache=True, fastmath=True)
-def _sbd_pairwise_distance_single(x: np.ndarray, standardize: bool) -> np.ndarray:
-    n_cases = x.shape[0]
+def _sbd_pairwise_distance_single(
+    x: NumbaList[np.ndarray], standardize: bool
+) -> np.ndarray:
+    n_cases = len(x)
     distances = np.zeros((n_cases, n_cases))
 
     for i in range(n_cases):
@@ -201,10 +214,10 @@ def _sbd_pairwise_distance_single(x: np.ndarray, standardize: bool) -> np.ndarra
 
 @njit(cache=True, fastmath=True)
 def _sbd_pairwise_distance(
-    x: np.ndarray, y: np.ndarray, standardize: bool
+    x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], standardize: bool
 ) -> np.ndarray:
-    n_cases = x.shape[0]
-    m_cases = y.shape[0]
+    n_cases = len(x)
+    m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
     for i in range(n_cases):
