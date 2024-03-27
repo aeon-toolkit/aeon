@@ -45,6 +45,7 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
     _tags = {
         "capability:multivariate": True,
         "python_dependencies": "statsmodels",
+        "fit_is_empty": True,
     }
 
     def __init__(

@@ -14,8 +14,8 @@ from sklearn.metrics._regression import _check_reg_targets
 from sklearn.utils.stats import _weighted_percentile
 from sklearn.utils.validation import check_consistent_length
 
-from aeon.utils.stats import _weighted_geometric_mean
 from aeon.utils.validation.series import check_series
+from aeon.utils.weighted_metrics import _weighted_geometric_mean
 
 __maintainer__ = []
 __all__ = [

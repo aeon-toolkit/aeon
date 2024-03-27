@@ -72,6 +72,7 @@ class TimeSeriesScaler(BaseCollectionTransformer):
         "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "fit_is_empty": True,
     }
 
     def __init__(self, copy=True, with_mean=True, with_std=True):
