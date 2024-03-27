@@ -7,29 +7,11 @@ import pytest
 
 from aeon.distances import distance
 from aeon.distances._distance import DISTANCES
-from aeon.distances._shape_dtw import _pad_ts_edges, _transform_subsequences
+from aeon.distances.tests.test_utils import _generate_shape_dtw_params
 from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results_params,
 )
 from aeon.testing.utils.data_gen import make_series
-
-
-def _generate_shape_dtw_params(x: np.ndarray, y: np.ndarray):
-    if x.ndim == 1:
-        x = x.reshape(1, -1)
-    if y.ndim == 1:
-        y = y.reshape(1, -1)
-    padded_x = _pad_ts_edges(x=x, reach=4)
-    padded_y = _pad_ts_edges(x=y, reach=4)
-
-    transformed_x = _transform_subsequences(x=padded_x, reach=4)
-    transformed_y = _transform_subsequences(x=padded_y, reach=4)
-    return {
-        "transformation_precomputed": True,
-        "transformed_x": transformed_x,
-        "transformed_y": transformed_y,
-        "reach": 10,
-    }
 
 
 def _test_distance_params(
