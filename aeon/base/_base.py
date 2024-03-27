@@ -116,6 +116,10 @@ class BaseObject(_BaseEstimator):
         attrs = [attr for attr in dir(self) if "__" not in attr]
         cls_attrs = [attr for attr in dir(type(self))]
         self_attrs = set(attrs).difference(cls_attrs)
+
+        # keep a test flag if it exists
+        self_attrs.discard("_unit_test_flag")
+
         for attr in self_attrs:
             delattr(self, attr)
 
