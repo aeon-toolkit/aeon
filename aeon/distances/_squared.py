@@ -79,7 +79,7 @@ def squared_pairwise_distance(
 
     Parameters
     ----------
-    x : np.ndarray
+    X : np.ndarray
         First time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
     y : np.ndarray
@@ -117,7 +117,7 @@ def squared_pairwise_distance(
            [ 48., 147., 300.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> squared_pairwise_distance(X, y_univariate)
     array([[300.],
            [147.],

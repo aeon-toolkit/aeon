@@ -309,11 +309,11 @@ def twe_pairwise_distance(
            [12.004, 15.004, 18.004]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> twe_pairwise_distance(X, y_univariate)
-    array([[19.46810162],
-           [16.46810162],
-           [13.46810162]])
+    array([[18.004],
+           [15.004],
+           [12.004]])
     """
     if y is None:
         # To self

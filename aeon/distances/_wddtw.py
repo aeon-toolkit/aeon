@@ -226,7 +226,7 @@ def wddtw_pairwise_distance(
            [2.33574763e+02, 6.64390438e+03, 2.66663693e+07]])
 
     >>> X = np.array([[[10, 22, 399]],[[41, 500, 1316]], [[117, 18, 9]]])
-    >>> y_univariate = np.array([[100, 11, 199],[10, 15, 26], [170, 108, 1119]])
+    >>> y_univariate = np.array([100, 11, 199])
     >>> wddtw_pairwise_distance(X, y_univariate)
     array([[  7469.9486745 ],
            [159295.70501427],
