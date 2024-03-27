@@ -328,6 +328,7 @@ def test_plot_correlations_arguments(series_to_plot, lags):
     reason="skip test if required soft dependency not available",
 )
 def test_plot_spectrogram():
+    """Tests whether plot_spectrogram run with the given inputs or not."""
     fig, ax = plot_spectrogram(y_airline, fs=1)
     assert fig is not None
     assert ax is not None
