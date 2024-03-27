@@ -1302,7 +1302,7 @@ def load_classification(
                 # Check the status code of the response
                 if response.status != 200:
                     raise ValueError(msg)
-            except HTTPError:
+            except (HTTPError, URLError, TimeoutError):
                 raise ValueError(msg)
             try:
                 _download_and_extract(
