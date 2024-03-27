@@ -1,5 +1,7 @@
 __maintainer__ = []
 
+from typing import Optional
+
 import numpy as np
 from numba import njit
 
@@ -71,7 +73,9 @@ def _univariate_manhattan_distance(x: np.ndarray, y: np.ndarray) -> float:
 
 
 @njit(cache=True, fastmath=True)
-def manhattan_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray:
+def manhattan_pairwise_distance(
+    X: np.ndarray, y: Optional[np.ndarray] = None
+) -> np.ndarray:
     """Compute the manhattan pairwise distance between a set of time series.
 
     Parameters
@@ -115,7 +119,7 @@ def manhattan_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
            [12., 21., 30.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> manhattan_pairwise_distance(X, y_univariate)
     array([[30.],
            [21.],

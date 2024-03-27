@@ -103,7 +103,7 @@ def test_load_all_classifier_results():
                 measure=measure,
                 default_only=False,
             )
-            from aeon.datasets.tsc_data_lists import univariate as UCR
+            from aeon.datasets.tsc_datasets import univariate as UCR
 
             assert res.shape[0] == len(UCR)
             assert res.shape[1] == 1

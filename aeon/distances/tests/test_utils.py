@@ -18,7 +18,7 @@ def test_incorrect_input():
         _make_3d_series(x)
     with pytest.raises(ValueError, match="x and y must be 1D, 2D, or 3D arrays"):
         reshape_pairwise_to_multiple(x, x)
-    with pytest.raises(ValueError, match="x and y must be 2D or 3D arrays"):
+    with pytest.raises(ValueError, match="x and y must be 1D, 2D, or 3D arrays"):
         reshape_pairwise_to_multiple(x, y)
 
 
