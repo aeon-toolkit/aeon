@@ -50,7 +50,9 @@ def write_to_tsfile(
         problem_name = problem_name + ".ts"
 
     if isinstance(X, np.ndarray) or isinstance(X, list):
-        _write_data_to_tsfile(X, path, problem_name, y=y, regression=regression)
+        _write_data_to_tsfile(
+            X, path, problem_name, y=y, comment=header, regression=regression
+        )
     else:
         _write_dataframe_to_tsfile(
             X,

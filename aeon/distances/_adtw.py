@@ -2,7 +2,7 @@ r"""Amercing dynamic time warping (ADTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -17,8 +17,8 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def adtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
-    itakura_max_slope: float = None,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
     warp_penalty: float = 1.0,
 ) -> float:
     r"""Compute the ADTW distance between two time series.
@@ -94,8 +94,8 @@ def adtw_distance(
 def adtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
-    itakura_max_slope: float = None,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
     warp_penalty: float = 1.0,
 ) -> np.ndarray:
     r"""Compute the ADTW cost matrix between two time series.
@@ -198,9 +198,9 @@ def _adtw_cost_matrix(
 @njit(cache=True, fastmath=True)
 def adtw_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
-    itakura_max_slope: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
     warp_penalty: float = 1.0,
 ) -> np.ndarray:
     r"""Compute the ADTW pairwise distance between a set of time series.
@@ -260,7 +260,7 @@ def adtw_pairwise_distance(
            [ 48., 147., 300.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> adtw_pairwise_distance(X, y_univariate)
     array([[300.],
            [147.],
@@ -273,7 +273,7 @@ def adtw_pairwise_distance(
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _adtw_pairwise_distance(_X, window, itakura_max_slope, warp_penalty)
-        raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
     return _adtw_from_multiple_to_multiple_distance(
         _x, _y, window, itakura_max_slope, warp_penalty
@@ -282,7 +282,10 @@ def adtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _adtw_pairwise_distance(
-    X: np.ndarray, window: float, itakura_max_slope: float, warp_penalty: float
+    X: np.ndarray,
+    window: Optional[float],
+    itakura_max_slope: Optional[float],
+    warp_penalty: float,
 ) -> np.ndarray:
     n_cases = X.shape[0]
     distances = np.zeros((n_cases, n_cases))
@@ -302,8 +305,8 @@ def _adtw_pairwise_distance(
 def _adtw_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float,
-    itakura_max_slope: float,
+    window: Optional[float],
+    itakura_max_slope: Optional[float],
     warp_penalty: float,
 ) -> np.ndarray:
     n_cases = x.shape[0]
@@ -323,8 +326,8 @@ def _adtw_from_multiple_to_multiple_distance(
 def adtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
-    itakura_max_slope: float = None,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
     warp_penalty: float = 1.0,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ADTW alignment path between two time series.

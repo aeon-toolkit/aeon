@@ -620,7 +620,7 @@ def _online_shapelet_distance(series, shapelet, sorted_indicies, position, lengt
             std = math.sqrt((sums2[n] - mean * mean * length) / length)
 
             dist = 0
-            use_std = std != 0
+            use_std = std > AEON_NUMBA_STD_THRESHOLD
             for j in range(length):
                 val = (series[pos + sorted_indicies[j]] - mean) / std if use_std else 0
                 temp = shapelet[sorted_indicies[j]] - val
