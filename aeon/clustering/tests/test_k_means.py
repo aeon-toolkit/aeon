@@ -247,6 +247,23 @@ def test_different_ba():
     # Check not equal to default
     assert not np.array_equal(default_mba, mba_custom_params_window_and_indep)
 
+    # Test subgradient ba
+    subgradient_dba_specified = _get_model_centres(
+        data,
+        distance="dtw",
+        average_params={"distance": "dtw", "method": "subgradient"},
+    )
+    assert not np.array_equal(dba_specified, subgradient_dba_specified)
+
+    # Test another distance and check passing custom distance param
+    subgradient_mba_specified = _get_model_centres(
+        data,
+        distance="msm",
+        average_params={"distance": "msm", "method": "subgradient"},
+    )
+    assert not np.array_equal(mba_specified, subgradient_mba_specified)
+    assert not np.array_equal(subgradient_dba_specified, subgradient_mba_specified)
+
 
 def check_value_in_every_cluster(num_clusters, initial_centres):
     """Check that every cluster has at least one value."""
@@ -311,8 +328,16 @@ def test_custom_distance_params():
     data = X_train[0:num_test_values]
 
     # Test passing distance param
-    default_dist = _get_model_centres(data, distance="msm")
+    default_dist = _get_model_centres(
+        data,
+        distance="msm",
+        distance_params={"window": 0.2},
+        average_params={"init_barycenter": "medoids"},
+    )
     custom_params_dist = _get_model_centres(
-        data, distance="msm", distance_params={"window": 0.2}
+        data,
+        distance="msm",
+        distance_params={"window": 0.2},
+        average_params={"init_barycenter": "mean"},
     )
     assert not np.array_equal(default_dist, custom_params_dist)
