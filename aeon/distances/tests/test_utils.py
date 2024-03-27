@@ -3,7 +3,6 @@
 import numpy as np
 import pytest
 
-from aeon.distances._shape_dtw import _pad_ts_edges, _transform_subsequences
 from aeon.distances._utils import reshape_pairwise_to_multiple
 
 SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
@@ -74,21 +73,3 @@ def _make_3d_series(x: np.ndarray) -> np.ndarray:
     else:
         _x = x
     return _x
-
-
-def _generate_shape_dtw_params(x: np.ndarray, y: np.ndarray):
-    if x.ndim == 1:
-        x = x.reshape(1, -1)
-    if y.ndim == 1:
-        y = y.reshape(1, -1)
-    padded_x = _pad_ts_edges(x=x, reach=4)
-    padded_y = _pad_ts_edges(x=y, reach=4)
-
-    transformed_x = _transform_subsequences(x=padded_x, reach=4)
-    transformed_y = _transform_subsequences(x=padded_y, reach=4)
-    return {
-        "transformation_precomputed": True,
-        "transformed_x": transformed_x,
-        "transformed_y": transformed_y,
-        "reach": 10,
-    }
