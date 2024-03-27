@@ -7,13 +7,13 @@ import numpy as np
 import numpy.typing as npt
 from sklearn.neighbors import NearestNeighbors
 
-from aeon.transformations.base import BaseTransformer
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 
 __maintainer__ = []
 __all__ = ["STRAY"]
 
 
-class STRAY(BaseTransformer):
+class STRAY(BaseAnomalyDetector):
     """STRAY: robust anomaly detection in data streams with concept drift.
 
     This is based on STRAY (Search TRace AnomalY) [1]_, which is a modification
