@@ -408,11 +408,11 @@ def msm_pairwise_distance(
            [10., 13., 16.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> msm_pairwise_distance(X, y_univariate)
-    array([[16., 19., 22.],
-           [13., 16., 19.],
-           [10., 13., 16.]])
+    array([[16.],
+           [13.],
+           [10.]])
 
     >>> # Distance between each TS in a collection of unequal-length time series
     >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]

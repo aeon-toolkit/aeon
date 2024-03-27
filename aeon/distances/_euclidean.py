@@ -110,7 +110,7 @@ def euclidean_pairwise_distance(
            [ 6.92820323, 12.12435565, 17.32050808]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> euclidean_pairwise_distance(X, y_univariate)
     array([[17.32050808],
            [12.12435565],

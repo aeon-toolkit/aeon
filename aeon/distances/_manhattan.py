@@ -119,7 +119,7 @@ def manhattan_pairwise_distance(
            [12., 21., 30.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> manhattan_pairwise_distance(X, y_univariate)
     array([[30.],
            [21.],

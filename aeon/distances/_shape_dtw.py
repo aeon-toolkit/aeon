@@ -493,6 +493,32 @@ def shape_dtw_pairwise_distance(
     ------
     ValueError
         If x and y are not 1D or 2D arrays.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import shape_dtw_pairwise_distance
+    >>> # Distance between each time series in a collection of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> shape_dtw_pairwise_distance(X)
+    array([[  0.,  27., 108.],
+           [ 27.,   0.,  27.],
+           [108.,  27.,   0.]])
+
+    >>> # Distance between two collections of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
+    >>> shape_dtw_pairwise_distance(X, y)
+    array([[300., 507., 768.],
+           [147., 300., 507.],
+           [ 48., 147., 300.]])
+
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y_univariate = np.array([11, 12, 13])
+    >>> shape_dtw_pairwise_distance(X, y_univariate)
+    array([[300.],
+           [147.],
+           [ 48.]])
     """
     if y is None:
         if X.ndim == 3:
