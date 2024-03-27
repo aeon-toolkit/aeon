@@ -32,7 +32,6 @@ import pandas as pd
 
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.index_functions import update_data
 
 
 class BaseCollectionTransformer(
@@ -221,11 +220,10 @@ class BaseCollectionTransformer(
 
         Accesses in self:
         _is_fitted : must be True
-        _X : accessed by _update and by update_data, if remember_data tag is True
         fitted model attributes (ending in "_") : must be set, accessed by _update
 
         Writes to self:
-        _X : updated by values in X, via update_data, if remember_data tag is True
+        _X : set to be X, if remember_data tag is True, potentially used in _update
         fitted model attributes (ending in "_") : only if update_params=True
             type and nature of update are dependent on estimator
 
@@ -253,13 +251,12 @@ class BaseCollectionTransformer(
         X_inner = self._preprocess_collection(X)
         y_inner = y
 
-        # update memory of X, if remember_data tag is set to True
-        if self.get_tag("remember_data", False):
-            self._X = update_data(None, X_new=X_inner)
+        # update memory of X, if remember_data exists and is set to True
+        if self.get_tag("remember_data", tag_value_default=False):
+            self._X = X_inner
 
-        # skip everything if update_params is False
-        # skip everything if fit_is_empty is True
-        if not update_params or self.get_tag("fit_is_empty", False):
+        # skip everything if update_params is False or fit_is_empty is present and True
+        if not update_params or self.get_tag("fit_is_empty", tag_value_default=False):
             return self
 
         self._update(X=X_inner, y=y_inner)
