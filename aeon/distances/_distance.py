@@ -182,6 +182,9 @@ def distance(
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             descriptor=kwargs.get("descriptor", "identity"),
             reach=kwargs.get("reach", 30),
+            transformation_precomputed=kwargs.get("transformation_precomputed", False),
+            transformed_x=kwargs.get("transformed_x", None),
+            transformed_y=kwargs.get("transformed_y", None),
         )
     elif metric == "wddtw":
         return wddtw_distance(
@@ -337,6 +340,9 @@ def pairwise_distance(
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             descriptor=kwargs.get("descriptor", "identity"),
             reach=kwargs.get("reach", 30),
+            transformation_precomputed=kwargs.get("transformation_precomputed", False),
+            transformed_x=kwargs.get("transformed_x", None),
+            transformed_y=kwargs.get("transformed_y", None),
         )
     elif metric == "ddtw":
         return ddtw_pairwise_distance(
@@ -539,6 +545,9 @@ def alignment_path(
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             descriptor=kwargs.get("descriptor", "identity"),
             reach=kwargs.get("reach", 30),
+            transformation_precomputed=kwargs.get("transformation_precomputed", False),
+            transformed_x=kwargs.get("transformed_x", None),
+            transformed_y=kwargs.get("transformed_y", None),
         )
     elif metric == "ddtw":
         return ddtw_alignment_path(
@@ -679,6 +688,9 @@ def cost_matrix(
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             descriptor=kwargs.get("descriptor", "identity"),
             reach=kwargs.get("reach", 30),
+            transformation_precomputed=kwargs.get("transformation_precomputed", False),
+            transformed_x=kwargs.get("transformed_x", None),
+            transformed_y=kwargs.get("transformed_y", None),
         )
     elif metric == "ddtw":
         return ddtw_cost_matrix(

@@ -123,6 +123,9 @@ def shape_dtw_distance(
     descriptor: str = "identity",
     reach: int = 30,
     itakura_max_slope: Optional[float] = None,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> float:
     """Compute the ShapeDTW distance function between two series x and y.
 
@@ -156,6 +159,12 @@ def shape_dtw_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -194,6 +203,9 @@ def shape_dtw_distance(
             descriptor=descriptor,
             reach=reach,
             bounding_matrix=bounding_matrix,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
         )
     if x.ndim == 2 and y.ndim == 2:
         x_pad = _pad_ts_edges(x=x, reach=reach)
@@ -209,6 +221,9 @@ def shape_dtw_distance(
             descriptor=descriptor,
             reach=reach,
             bounding_matrix=bounding_matrix,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
         )
 
     raise ValueError("x and y must be 1D or 2D")
@@ -221,13 +236,27 @@ def _shape_dtw_distance(
     bounding_matrix: np.ndarray,
     descriptor: str = "identity",
     reach: int = 30,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> float:
-    new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
-    new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
+    # for compilation purposes
+    if transformed_x is None:
+        transformed_x = x
+    if transformed_y is None:
+        transformed_y = y
 
-    shape_dtw_cost_mat = _dtw_cost_matrix(
-        x=new_x, y=new_y, bounding_matrix=bounding_matrix
-    )
+    if not transformation_precomputed:
+        new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
+        new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
+
+        shape_dtw_cost_mat = _dtw_cost_matrix(
+            x=new_x, y=new_y, bounding_matrix=bounding_matrix
+        )
+    else:
+        shape_dtw_cost_mat = _dtw_cost_matrix(
+            x=transformed_x, y=transformed_y, bounding_matrix=bounding_matrix
+        )
 
     return _get_shape_dtw_distance_from_cost_mat(
         x=x, y=y, reach=reach, shape_dtw_cost_mat=shape_dtw_cost_mat
@@ -268,6 +297,9 @@ def shape_dtw_cost_matrix(
     descriptor: str = "identity",
     reach: int = 30,
     itakura_max_slope: Optional[float] = None,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     """Compute the ShapeDTW cost matrix between two series x and y.
 
@@ -298,6 +330,12 @@ def shape_dtw_cost_matrix(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -326,6 +364,9 @@ def shape_dtw_cost_matrix(
             descriptor=descriptor,
             reach=reach,
             bounding_matrix=bounding_matrix,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
         )
     if x.ndim == 2 and y.ndim == 2:
         x_pad = _pad_ts_edges(x=x, reach=reach)
@@ -341,6 +382,9 @@ def shape_dtw_cost_matrix(
             descriptor=descriptor,
             reach=reach,
             bounding_matrix=bounding_matrix,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
         )
 
     raise ValueError("x and y must be 1D or 2D")
@@ -353,13 +397,27 @@ def _shape_dtw_cost_matrix(
     bounding_matrix: np.ndarray,
     descriptor: str = "identity",
     reach: int = 30,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> np.ndarray:
-    new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
-    new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
+    # for compilation purposes
+    if transformed_x is None:
+        transformed_x = x
+    if transformed_y is None:
+        transformed_y = y
 
-    shapedtw_cost_mat = _dtw_cost_matrix(
-        x=new_x, y=new_y, bounding_matrix=bounding_matrix
-    )
+    if not transformation_precomputed:
+        new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
+        new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
+
+        shapedtw_cost_mat = _dtw_cost_matrix(
+            x=new_x, y=new_y, bounding_matrix=bounding_matrix
+        )
+    else:
+        shapedtw_cost_mat = _dtw_cost_matrix(
+            x=transformed_x, y=transformed_y, bounding_matrix=bounding_matrix
+        )
 
     return shapedtw_cost_mat
 
@@ -372,6 +430,9 @@ def shape_dtw_alignment_path(
     descriptor: str = "identity",
     reach: int = 30,
     itakura_max_slope: Optional[float] = None,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ShapeDTW alignment path between two series x and y.
 
@@ -402,6 +463,12 @@ def shape_dtw_alignment_path(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -422,6 +489,9 @@ def shape_dtw_alignment_path(
         descriptor=descriptor,
         reach=reach,
         itakura_max_slope=itakura_max_slope,
+        transformation_precomputed=transformation_precomputed,
+        transformed_x=transformed_x,
+        transformed_y=transformed_y,
     )
 
     if x.ndim == 1 and y.ndim == 1:
@@ -451,6 +521,9 @@ def shape_dtw_pairwise_distance(
     descriptor: str = "identity",
     reach: int = 30,
     itakura_max_slope: Optional[float] = None,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     """Compute the ShapeDTW pairwise distance among a set of series.
 
@@ -481,6 +554,12 @@ def shape_dtw_pairwise_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -529,6 +608,9 @@ def shape_dtw_pairwise_distance(
                 descriptor=descriptor,
                 reach=reach,
                 itakura_max_slope=itakura_max_slope,
+                transformation_precomputed=transformation_precomputed,
+                transformed_x=transformed_x,
+                transformed_y=transformed_y,
             )
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
@@ -539,6 +621,9 @@ def shape_dtw_pairwise_distance(
                 descriptor=descriptor,
                 reach=reach,
                 itakura_max_slope=itakura_max_slope,
+                transformation_precomputed=transformation_precomputed,
+                transformed_x=transformed_x,
+                transformed_y=transformed_y,
             )
         raise ValueError("X must be 2D or 3D arrays")
     else:
@@ -553,6 +638,9 @@ def shape_dtw_pairwise_distance(
             descriptor=descriptor,
             reach=reach,
             itakura_max_slope=itakura_max_slope,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
         )
 
 
@@ -564,6 +652,9 @@ def _shape_dtw_pairwise_distance(
     descriptor: str = "identity",
     reach: int = 30,
     itakura_max_slope: Optional[float] = None,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     if y is None:
         y = np.copy(X)
@@ -581,6 +672,9 @@ def _shape_dtw_pairwise_distance(
                 descriptor=descriptor,
                 reach=reach,
                 bounding_matrix=bounding_matrix,
+                transformation_precomputed=transformation_precomputed,
+                transformed_x=transformed_x,
+                transformed_y=transformed_y,
             )
 
     return distances
