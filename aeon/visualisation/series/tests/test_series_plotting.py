@@ -329,9 +329,18 @@ def test_plot_correlations_arguments(series_to_plot, lags):
 )
 def test_plot_spectrogram():
     """Tests whether plot_spectrogram run with the given inputs or not."""
+    import matplotlib
+    import matplotlib.pyplot as plt
+    matplotlib.use("Agg")
     fig, ax = plot_spectrogram(y_airline, fs=1)
+    plt.gcf().canvas.draw_idle()
+    plt.close()
+
     assert fig is not None
     assert ax is not None
+    
     fig, ax = plot_spectrogram(y_airline, fs=1, return_onesided=False)
+    plt.gcf().canvas.draw_idle()
+    plt.close()
     assert fig is not None
     assert ax is not None

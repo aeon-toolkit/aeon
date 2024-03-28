@@ -393,12 +393,11 @@ def plot_spectrogram(series, fs=1, return_onesided=True):
     series = check_y(series)
     fig, ax = plt.subplots()
 
-    f, t, _spectrogram = spectrogram(series, fs=fs, return_onesided=return_onesided)
+    _, _, _spectrogram = spectrogram(series, fs=fs, return_onesided=return_onesided)
     if not return_onesided:
-        ax.pcolormesh(t, fftshift(f), fftshift(_spectrogram, axes=0), shading="gouraud")
-        ax.set_ylabel("Frequency [Hz]")
-        ax.set_xlabel("Time [sec]")
-        return fig, ax
-
-    ax.pcolormesh(t, f, _spectrogram, shading="gouraud")
+        ax.pcolormesh(fftshift(_spectrogram, axes=0))
+    else:
+        ax.pcolormesh(_spectrogram)
+    
+    ax.set_ylabel("Frequency [Hz]")
     return fig, ax
