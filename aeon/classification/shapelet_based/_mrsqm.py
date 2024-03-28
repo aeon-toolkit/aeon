@@ -41,7 +41,11 @@ class MrSQMClassifier(BaseClassifier):
     custom_config : dict, default=None
         Customized parameters for the symbolic transformation.
     random_state : int or None, default=None
-        Random seed for classifier.
+        Controls the randomness of the algorithm.
+        If `int`, random_state is the seed used by the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Note: This function does not accept `RandomState` instances as `random_state`.
     sfa_norm : bool, default=True
         Time series normalisation (standardisation).
 

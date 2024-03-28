@@ -44,8 +44,12 @@ def _make_hierarchical(
         type of index, by default None
         Supported types are "period", "datetime", "range" or "int".
         If it's not provided, "datetime" is selected.
-    random_state : int, np.random.RandomState or None
-        Controls the randomness of the estimator, by default None
+    random_state : int, RandomState instance or None, default=None
+        Controls the randomness of the estimator
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     add_nan : bool, optional
         If it's true the series will contain NaNs, by default False
 

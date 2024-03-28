@@ -70,8 +70,11 @@ class ContractableBOSS(BaseClassifier):
         faster (preferred). Random also reduces the number significantly. None
         applies not feature selectiona and yields large bag of words, e.g. much
         memory may be needed.
-    random_state : int or None, default=None
-        Seed for random integer.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------

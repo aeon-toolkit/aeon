@@ -39,8 +39,11 @@ class FeatureSelection(BaseTransformer):
         regressor must have an attribute "feature_importances_". If None,
         then a GradientBoostingRegressor(max_depth=5) is used.
     random_state : int, RandomState instance or None, default=None
-        Used to set random_state of the default regressor and to
-        set random.seed() if method="random".
+        Used to set random_state of the default regressor
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     columns : list of str
         A list of columns to select. If columns is given.
 

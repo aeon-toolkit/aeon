@@ -59,8 +59,12 @@ class SignatureClassifier(BaseClassifier):
         ['signature', 'logsignature']).
     depth : int, default=4
         Signature truncation depth.
-    random_state : int, default=None
-        Random state initialisation.
+    random_state : int or None, default=None
+        Controls the randomness of the algorithm.
+        If `int`, random_state is the seed used by the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Note: This function does not accept `RandomState` instances as `random_state`.
 
     Attributes
     ----------

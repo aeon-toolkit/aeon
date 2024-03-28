@@ -100,8 +100,11 @@ def _make_3d_test_data(
         The number of unique labels to generate.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
-    random_state : int or None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Returns
     -------
@@ -159,8 +162,11 @@ def _make_2d_test_data(
         The number of unique labels to generate.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
-    random_state : int or None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Returns
     -------

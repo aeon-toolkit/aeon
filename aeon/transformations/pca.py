@@ -78,6 +78,11 @@ class PCATransformer(BaseTransformer):
     random_state : int, RandomState instance or None, default=None
         Used when the 'arpack' or 'randomized' solvers are used. Pass an int
         for reproducible results across multiple function calls.
+        If `int`, `random_state` is the seed used by the random number generator;
+        If `RandomState` instance, `random_state` is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+
 
     Attributes
     ----------

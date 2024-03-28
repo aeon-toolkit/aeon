@@ -35,8 +35,11 @@ def make_example_3d_numpy(
         The number of unique labels to generate.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
-    random_state : int or None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     return_y : bool, default = True
         Return the y target variable.
 
@@ -108,8 +111,11 @@ def make_example_2d_numpy(
         The number of unique labels to generate.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
-    random_state : int or None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     return_y : bool, default = True
         If True, return the labels as well as the data.
 
@@ -174,8 +180,11 @@ def make_example_2d_unequal_length(
         The number of unique labels to generate.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
-    random_state : int or None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     return_y : bool, default = True
         Return the y target variable.
 
@@ -249,8 +258,11 @@ def make_example_unequal_length(
         The number of unique labels to generate.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
-    random_state : int or None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     return_y : bool, default = True
         Return the y target variable.
 
@@ -320,8 +332,11 @@ def make_example_nested_dataframe(
         The number of unique labels to generate.
     regression_target : bool, default = False
         If True, the target will be a float, otherwise a discrete.
-    random_state : int or None, default = None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     return_y : bool, default = True
         Return the y target variable.
 

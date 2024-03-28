@@ -57,7 +57,11 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         if "point", most probable class is passed as y_pred
         if "proba", probability of most probable class is passed as y_pred
     random_state : int or None, default=None
-        Seed for random number generation.
+        Controls the randomness of the algorithm.
+        If `int`, random_state is the seed used by the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Note: This function does not accept `RandomState` instances as `random_state`.
 
     Attributes
     ----------

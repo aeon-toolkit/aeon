@@ -118,6 +118,10 @@ class STLBootstrapTransformer(BaseTransformer):
         This param goes into STL.fit() from statsmodels.
     random_state : int, np.random.RandomState or None, by default None
         Controls the randomness of the estimator
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     See Also
     --------
@@ -429,6 +433,10 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
         The actual time series will be labelled as "actual"
     random_state : int, np.random.RandomState or None, by default None
         Controls the randomness of the estimator
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     See Also
     --------
@@ -626,6 +634,10 @@ def _moving_block_bootstrap(
         Whether the sample is with or without replacement, by default True.
     random_state : int, np.random.RandomState or None, by default None
         Controls the randomness of the estimator
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Returns
     -------

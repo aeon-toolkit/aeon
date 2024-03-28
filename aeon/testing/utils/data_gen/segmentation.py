@@ -36,8 +36,11 @@ def piecewise_normal_multivariate(
         (n_segments, n_series, n_series)
         If None, this will be constructed from variances by assuming independence
         of random vairables, i.e. variance as diagonal elements of covariance matrix
-    random_state : int or np.random.RandomState
-        Either a random seed or ``RandomState`` instance
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Returns
     -------
@@ -152,8 +155,11 @@ def piecewise_normal(
         Lengths of the segments to be generated
     std_dev : float or array_like
         Standard deviations of the segments to be generated
-    random_state : int or np.random.RandomState
-        Either a random seed or RandomState instance
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Returns
     -------
@@ -217,8 +223,11 @@ def piecewise_multinomial(
     p_vals : array_like
         Set of probabilities for each outcome for each distribution
         Each set of probabilities must be equal length
-    random_state : int or np.random.RandomState
-        Either a random seed or RandomState instance
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Returns
     -------
@@ -290,8 +299,11 @@ def piecewise_poisson(
         Expected number and variance of events within a specified time interval
     lengths : array_like
         Lengths of the segments to be generated
-    random_state : int or np.random.RandomState
-        Either a random seed or RandomState instance
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Returns
     -------
