@@ -157,7 +157,6 @@ class MLPRegressor(BaseDeepRegressor):
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
 
-
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(

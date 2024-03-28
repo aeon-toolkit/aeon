@@ -217,7 +217,6 @@ class CNNRegressor(BaseDeepRegressor):
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
