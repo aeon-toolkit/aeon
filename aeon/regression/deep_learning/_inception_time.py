@@ -292,12 +292,12 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances)
+        Y : np.ndarray of shape = (n_cases)
             The predicted values
 
         """
@@ -590,10 +590,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         ----------
         X : np.ndarray
             The training input samples of,
-            shape (n_instances, n_channels, n_timepoints).
+            shape (n_cases, n_channels, n_timepoints).
             If a 2D array-like is passed, n_channels is assumed to be 1.
         y : np.ndarray
-            The training data target values of shape (n_instances,).
+            The training data target values of shape (n_cases,).
 
         Returns
         -------

@@ -48,22 +48,22 @@ class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, 1, series_length]
+        X : 3D np.ndarray of shape = [n_cases, 1, n_timepoints]
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        X : 3D np.ndarray of shape = [n_instances, 1, feature_length]
+        X : 3D np.ndarray of shape = [n_cases, 1, feature_length]
             collection of time series to transform
 
         """
         # Get information about the dataframe
-        n_cases, n_channels, series_length = X.shape
+        n_cases, n_channels, n_timepoints = X.shape
         if n_channels > 1:
             raise ValueError("HOG1D does not support multivariate time series.")
         # Check the parameters are appropriate
-        self._check_parameters(series_length)
+        self._check_parameters(n_timepoints)
         transX = []
         for i in range(n_cases):
             # Get the HOG1Ds of each time series
@@ -79,7 +79,7 @@ class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
 
         Parameters
         ----------
-        X : a numpy array of shape = [time_series_length]
+        X : a numpy array of shape = [time_n_timepoints]
 
         Returns
         -------
@@ -134,7 +134,7 @@ class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
 
         return histogram
 
-    def _check_parameters(self, series_length):
+    def _check_parameters(self, n_timepoints):
         """Check the values of parameters inserted into HOG1D.
 
         Throws
@@ -144,7 +144,7 @@ class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
         if isinstance(self.n_intervals, int):
             if self.n_intervals <= 0:
                 raise ValueError("num_intervals must have the value of at least 1")
-            if self.n_intervals > series_length:
+            if self.n_intervals > n_timepoints:
                 raise ValueError("num_intervals cannot be higher than serie_length")
         else:
             raise TypeError(

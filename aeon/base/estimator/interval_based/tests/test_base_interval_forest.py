@@ -98,14 +98,13 @@ def test_interval_forest_n_intervals(n_intervals, n_intervals_len):
         n_estimators=2,
         n_intervals=n_intervals,
         series_transformers=[None, FunctionTransformer(np.log1p)],
-        save_transformed_data=True,
         random_state=0,
     )
+    est._unit_test_flag = True
     est.fit(X, y)
     est.predict_proba(X)
 
-    data = est.transformed_data_
-    assert data[0].shape[1] == n_intervals_len
+    assert est._transformed_data[0].shape[1] == n_intervals_len
 
 
 att_subsample_c22 = Catch22(
@@ -143,14 +142,13 @@ def test_interval_forest_attribute_subsample(features, output_len):
         att_subsample_size=0.5,
         interval_features=features,
         replace_nan=0,
-        save_transformed_data=True,
         random_state=0,
     )
+    est._unit_test_flag = True
     est.fit(X, y)
     est.predict_proba(X)
 
-    data = est.transformed_data_
-    assert data[0].shape[1] == int(output_len * 0.5) * 2
+    assert est._transformed_data[0].shape[1] == int(output_len * 0.5) * 2
 
 
 def test_interval_forest_invalid_attribute_subsample():
@@ -184,17 +182,16 @@ def test_interval_forest_series_transformer(series_transformer):
         n_estimators=2,
         n_intervals=2,
         series_transformers=series_transformer,
-        save_transformed_data=True,
         random_state=0,
     )
+    est._unit_test_flag = True
     est.fit(X, y)
     est.predict_proba(X)
 
-    data = est.transformed_data_
     expected = (
         len(series_transformer) * 6 if isinstance(series_transformer, list) else 6
     )
-    assert data[0].shape[1] == expected
+    assert est._transformed_data[0].shape[1] == expected
 
 
 def test_min_interval_length():

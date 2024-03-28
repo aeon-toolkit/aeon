@@ -2319,7 +2319,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
       "profile": "https://github.com/AnonymousCodes911",
       "contributions": [
-        "code"
+        "code",
+        "doc"
       ]
     },
     {
@@ -2345,13 +2346,30 @@
       ]
     },
     {
-      "login": "AnonymousCodes911",
-      "name": "Utkarsh Kumar",
-      "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
-      "profile": "https://github.com/AnonymousCodes911",
+      "login": "harshithasudhakar",
+      "name": "Harshitha Sudhakar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/111514477?v=4",
+      "profile": "https://github.com/harshithasudhakar",
       "contributions": [
-        "code",
         "doc"
+      ]
+    },
+    {
+      "login": "tvilight4",
+      "name": "Tvisha Vedant",
+      "avatar_url": "https://avatars.githubusercontent.com/u/122543856?v=4",
+      "profile": "https://github.com/tvilight4",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "vNtzYy",
+      "name": "vNtzYy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/111287448?v=4",
+      "profile": "https://github.com/vNtzYy",
+      "contributions": [
+        "bug"
       ]
     }
   ],

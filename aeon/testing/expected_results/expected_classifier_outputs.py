@@ -135,20 +135,6 @@ unit_test_proba["FreshPRINCEClassifier"] = np.array(
         [1.0, 0.0],
     ]
 )
-unit_test_proba["MatrixProfileClassifier"] = np.array(
-    [
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [0.0, 1.0],
-        [0.0, 1.0],
-        [0.0, 1.0],
-        [0.0, 1.0],
-    ]
-)
 unit_test_proba["RandomIntervalClassifier"] = np.array(
     [
         [0.0, 1.0],

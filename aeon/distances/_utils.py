@@ -1,25 +1,25 @@
-from typing import Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 from numba import njit
-from sklearn.utils import check_random_state
+from numba.typed import List as NumbaList
 
 
 @njit(cache=True, fastmath=True)
 def reshape_pairwise_to_multiple(
     x: np.ndarray, y: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Reshape two collection of time series for pairwise distance computation.
+    """Reshape two collections of time series for pairwise distance computation.
 
     Parameters
     ----------
     x : np.ndarray
-        One or more time series of shape (n_instances, n_channels,
+        One or more time series of shape (n_cases, n_channels,
         n_timepoints) or
-            (n_instances, n_timepoints) or (n_timepoints,).
+            (n_cases, n_timepoints) or (n_timepoints,).
     y : np.ndarray
-        One or more time series of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,)
+        One or more time series of shape (m_cases, m_channels, m_timepoints) or
+            (m_cases, m_timepoints) or (m_timepoints,)
 
     Returns
     -------
@@ -47,11 +47,19 @@ def reshape_pairwise_to_multiple(
         raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     else:
         if x.ndim == 3 and y.ndim == 2:
-            _y = y.reshape((1, y.shape[0], y.shape[1]))
+            _y = y.reshape((y.shape[0], 1, y.shape[1]))
             return x, _y
         if y.ndim == 3 and x.ndim == 2:
-            _x = x.reshape((1, x.shape[0], x.shape[1]))
+            _x = x.reshape((x.shape[0], 1, x.shape[1]))
             return _x, y
+        if x.ndim == 3 and y.ndim == 1:
+            _x = x
+            _y = y.reshape((1, 1, y.shape[0]))
+            return _x, _y
+        if x.ndim == 1 and y.ndim == 3:
+            _x = x.reshape((1, 1, x.shape[0]))
+            _y = y
+            return _x, _y
         if x.ndim == 2 and y.ndim == 1:
             _x = x.reshape((x.shape[0], 1, x.shape[1]))
             _y = y.reshape((1, 1, y.shape[0]))
@@ -60,77 +68,58 @@ def reshape_pairwise_to_multiple(
             _x = x.reshape((1, 1, x.shape[0]))
             _y = y.reshape((y.shape[0], 1, y.shape[1]))
             return _x, _y
-        raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
-def _create_test_distance_numpy(
-    n_instance: int,
-    n_channels: int = None,
-    n_timepoints: int = None,
-    random_state: int = 1,
-):
-    """Create a test numpy distance.
+def _convert_to_list(
+    x: Union[np.ndarray, List[np.ndarray]], name: str = "X"
+) -> NumbaList[np.ndarray]:
+    """Convert input collections to a list of arrays for pairwise distance calculation.
 
-    Parameters
-    ----------
-    n_instance: int
-        Number of instances to create.
-    n_channels: int
-        Number of channels to create.
-    n_timepoints: int, default=None
-        Number of timepoints to create in each channel.
-    random_state: int, default=1
-        Random state to initialise with.
-
-    Returns
-    -------
-    np.ndarray 2D or 3D numpy
-        Numpy array of shape specific. If 1 instance then 2D array returned,
-        if > 1 instance then 3D array returned.
-    """
-    rng = check_random_state(random_state)
-    # Generate data as 3d numpy array
-    if n_timepoints is None and n_channels is None:
-        return rng.normal(scale=0.5, size=(1, n_instance))
-    if n_timepoints is None:
-        return rng.normal(scale=0.5, size=(n_instance, n_channels))
-    return rng.normal(scale=0.5, size=(n_instance, n_channels, n_timepoints))
-
-
-def _make_3d_series(x: np.ndarray) -> np.ndarray:
-    """Check a series being passed into pairwise is 3d.
-
-    Pairwise assumes it has been passed two sets of series, if passed a single
-    series this function reshapes.
-
-    If given a 1d array the time series is reshaped to (m, 1, 1). This is so when
-    looped over x[i] = (1, m).
-
-    If given a 2d array then the time series is reshaped to (d, 1, m). The dimensions
-    are put to the start so the ts can be looped through correctly. When looped over
-    the time series x[i] = (d, m).
+    Takes a single or multiple time series and converts them to a list of 2D arrays. If
+    the input is a single time series, it is reshaped to a 2D array as the sole element
+    of a list. If the input is a 2D array of shape (n_cases, n_timepoints), it is
+    reshaped to a list of n_cases 1D arrays with n_timepoints points. A 3D array is
+    converted to a list with n_cases 2D arrays of shape (n_channels, n_timepoints).
+    Lists of 1D arrays are converted to lists of 2D arrays.
 
     Parameters
     ----------
-    x: np.ndarray, 2d or 3d
+    x : Union[np.ndarray, List[np.ndarray]]
+        One or more time series of shape (n_cases, n_channels, n_timepoints) or
+        (n_cases, n_timepoints) or (n_timepoints,).
+    name : str, optional
+        Name of the variable to be converted for error handling, by default "X".
 
     Returns
     -------
-    np.ndarray, 3d
+    NumbaList[np.ndarray]
+        Numba typedList of 2D arrays with shape (n_channels, n_timepoints) of length
+        n_cases.
+
+    Raises
+    ------
+    ValueError
+        If x is not a 1D, 2D or 3D array or a list of 1D or 2D arrays.
     """
-    num_dims = x.ndim
-    if num_dims == 1:
-        shape = x.shape
-        _x = np.reshape(x, (1, 1, shape[0]))
-    elif num_dims == 2:
-        shape = x.shape
-        _x = np.reshape(x, (shape[0], 1, shape[1]))
-    elif num_dims > 3:
-        raise ValueError(
-            "The matrix provided has more than 3 dimensions. This is not"
-            "supported. Please provide a matrix with less than "
-            "3 dimensions"
-        )
+    if isinstance(x, np.ndarray):
+        if x.ndim == 3:
+            return NumbaList(x)
+        elif x.ndim == 2:
+            return NumbaList(x.reshape(x.shape[0], 1, x.shape[1]))
+        elif x.ndim == 1:
+            return NumbaList(x.reshape(1, 1, x.shape[0]))
+        else:
+            raise ValueError(f"{name} must be 1D, 2D or 3D")
+    elif isinstance(x, (List, NumbaList)):
+        x_new = NumbaList()
+        for i in range(len(x)):
+            if x[i].ndim == 2:
+                x_new.append(x[i])
+            elif x[i].ndim == 1:
+                x_new.append(x[i].reshape((1, x[i].shape[0])))
+            else:
+                raise ValueError(f"{name} must include only 1D or 2D arrays")
+        return x_new
     else:
-        _x = x
-    return _x
+        raise ValueError(f"{name} must be either np.ndarray or List[np.ndarray]")

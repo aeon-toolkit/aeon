@@ -2,7 +2,7 @@ r"""Weighted dynamic time warping (WDTW) distance between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -17,9 +17,9 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def wdtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the WDTW distance between two time series.
 
@@ -49,11 +49,11 @@ def wdtw_distance(
     Parameters
     ----------
     X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the wdtw pairwise distance between the instances of X is
         calculated.
     window : float, default=None
@@ -111,9 +111,9 @@ def wdtw_distance(
 def wdtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the WDTW cost matrix between two time series.
 
@@ -236,20 +236,20 @@ def _wdtw_cost_matrix(
 @njit(cache=True, fastmath=True)
 def wdtw_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the WDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
-    X : np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-            (n_instances, n_timepoints)
+    X : np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+            (n_cases, n_timepoints)
         A collection of time series instances.
-    y : np.ndarray, of shape (m_instances, m_channels, m_timepoints) or
-            (m_instances, m_timepoints) or (m_timepoints,), default=None
+    y : np.ndarray, of shape (m_cases, m_channels, m_timepoints) or
+            (m_cases, m_timepoints) or (m_timepoints,), default=None
         A collection of time series instances.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -263,7 +263,7 @@ def wdtw_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         WDTW pairwise matrix between the instances of X.
 
     Raises
@@ -292,7 +292,7 @@ def wdtw_pairwise_distance(
            [ 23.10042164,  70.74504127, 144.37763524]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> wdtw_pairwise_distance(X, y_univariate)
     array([[144.37763524],
            [ 70.74504127],
@@ -305,7 +305,7 @@ def wdtw_pairwise_distance(
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _wdtw_pairwise_distance(_X, window, g, itakura_max_slope)
-        raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
     return _wdtw_from_multiple_to_multiple_distance(
         _x, _y, window, g, itakura_max_slope
@@ -314,16 +314,16 @@ def wdtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _wdtw_pairwise_distance(
-    X: np.ndarray, window: float, g: float, itakura_max_slope: float
+    X: np.ndarray, window: Optional[float], g: float, itakura_max_slope: Optional[float]
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
     bounding_matrix = create_bounding_matrix(
         X.shape[2], X.shape[2], window, itakura_max_slope
     )
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = _wdtw_distance(X[i], X[j], bounding_matrix, g)
             distances[j, i] = distances[i, j]
 
@@ -334,19 +334,19 @@ def _wdtw_pairwise_distance(
 def _wdtw_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float,
+    window: Optional[float],
     g: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
     bounding_matrix = create_bounding_matrix(
         x.shape[2], y.shape[2], window, itakura_max_slope
     )
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = _wdtw_distance(x[i], y[j], bounding_matrix, g)
     return distances
 
@@ -355,9 +355,9 @@ def _wdtw_from_multiple_to_multiple_distance(
 def wdtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the WDTW alignment path between two time series.
 

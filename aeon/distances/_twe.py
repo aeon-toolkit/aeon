@@ -2,7 +2,7 @@
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -20,10 +20,10 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def twe_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the TWE distance between two time series.
 
@@ -114,10 +114,10 @@ def twe_distance(
 def twe_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the TWE cost matrix between two time series.
 
@@ -248,22 +248,22 @@ def _pad_arrs(x: np.ndarray) -> np.ndarray:
 @njit(cache=True, fastmath=True)
 def twe_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the TWE pairwise distance between a set of time series.
 
     Parameters
     ----------
     X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the twe pairwise distance between the instances of X is
         calculated.
     window : float, default=None
@@ -280,7 +280,7 @@ def twe_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         twe pairwise matrix between the instances of X.
 
     Raises
@@ -309,11 +309,11 @@ def twe_pairwise_distance(
            [12.004, 15.004, 18.004]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> twe_pairwise_distance(X, y_univariate)
-    array([[19.46810162],
-           [16.46810162],
-           [13.46810162]])
+    array([[18.004],
+           [15.004],
+           [12.004]])
     """
     if y is None:
         # To self
@@ -322,7 +322,7 @@ def twe_pairwise_distance(
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _twe_pairwise_distance(_X, window, nu, lmbda, itakura_max_slope)
-        raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
     return _twe_from_multiple_to_multiple_distance(
         _x, _y, window, nu, lmbda, itakura_max_slope
@@ -332,13 +332,13 @@ def twe_pairwise_distance(
 @njit(cache=True, fastmath=True)
 def _twe_pairwise_distance(
     X: np.ndarray,
-    window: float,
+    window: Optional[float],
     nu: float,
     lmbda: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
     bounding_matrix = create_bounding_matrix(
         X.shape[2], X.shape[2], window, itakura_max_slope
     )
@@ -348,8 +348,8 @@ def _twe_pairwise_distance(
     for i in range(X.shape[0]):
         padded_X[i] = _pad_arrs(X[i])
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = _twe_distance(
                 padded_X[i], padded_X[j], bounding_matrix, nu, lmbda
             )
@@ -362,14 +362,14 @@ def _twe_pairwise_distance(
 def _twe_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float,
+    window: Optional[float],
     nu: float,
     lmbda: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
     bounding_matrix = create_bounding_matrix(
         x.shape[2], y.shape[2], window, itakura_max_slope
     )
@@ -383,8 +383,8 @@ def _twe_from_multiple_to_multiple_distance(
     for i in range(y.shape[0]):
         padded_y[i] = _pad_arrs(y[i])
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = _twe_distance(
                 padded_x[i], padded_y[j], bounding_matrix, nu, lmbda
             )
@@ -395,10 +395,10 @@ def _twe_from_multiple_to_multiple_distance(
 def twe_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the TWE alignment path between two time series.
 

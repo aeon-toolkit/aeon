@@ -37,7 +37,7 @@ class RDSTClassifier(BaseClassifier):
     shapelet_lengths : array, default=None
         The set of possible length for shapelets. Each shapelet length is uniformly
         drawn from this set. If None, the shapelets length will be equal to
-        min(max(2,series_length//2),11).
+        min(max(2,n_timepoints//2),11).
     proba_normalization : float, default=0.8
         This probability (between 0 and 1) indicate the chance of each shapelet to be
         initialized such as it will use a z-normalized distance, inducing either scale
@@ -158,7 +158,7 @@ class RDSTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
         y: array-like or list
             The class labels for samples in X.
@@ -210,12 +210,12 @@ class RDSTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The data to make prediction for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         X_t = self._transformer.transform(X)
@@ -227,12 +227,12 @@ class RDSTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_instances, n_channels, series_length)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         X_t = self._transformer.transform(X)

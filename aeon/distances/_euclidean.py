@@ -1,5 +1,7 @@
 __maintainer__ = []
 
+from typing import Optional
+
 import numpy as np
 from numba import njit
 
@@ -63,23 +65,25 @@ def _univariate_euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
 
 
 @njit(cache=True, fastmath=True)
-def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray:
+def euclidean_pairwise_distance(
+    X: np.ndarray, y: Optional[np.ndarray] = None
+) -> np.ndarray:
     """Compute the Euclidean pairwise distance between a set of time series.
 
     Parameters
     ----------
     X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the Euclidean pairwise distance between the instances of X is
         calculated.
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         euclidean pairwise matrix between the instances of X.
 
     Raises
@@ -106,7 +110,7 @@ def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
            [ 6.92820323, 12.12435565, 17.32050808]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> euclidean_pairwise_distance(X, y_univariate)
     array([[17.32050808],
            [12.12435565],
@@ -126,11 +130,11 @@ def euclidean_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarr
 
 @njit(cache=True, fastmath=True)
 def _euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = euclidean_distance(X[i], X[j])
             distances[j, i] = distances[i, j]
 
@@ -141,11 +145,11 @@ def _euclidean_pairwise_distance(X: np.ndarray) -> np.ndarray:
 def _euclidean_from_multiple_to_multiple_distance(
     x: np.ndarray, y: np.ndarray
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = euclidean_distance(x[i], y[j])
     return distances

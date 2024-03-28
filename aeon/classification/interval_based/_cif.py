@@ -96,12 +96,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
-        ``transformed_data_`` will also be removed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -118,7 +112,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of dimensions per case in the training set.
@@ -134,10 +128,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         The collections of estimators trained in fit.
     intervals_ : list of shape (n_estimators) of TransformerMixin
         Stores the interval extraction transformer for all estimators.
-    transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances_ ,total_intervals * att_subsample_size)
-        The transformed dataset for all classifiers. Only saved when
-        save_transformed_data is true.
 
     See Also
     --------
@@ -188,7 +178,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
         use_pycatch22=False,
-        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -222,7 +211,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             replace_nan=replace_nan,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
-            save_transformed_data=save_transformed_data,
             random_state=random_state,
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,

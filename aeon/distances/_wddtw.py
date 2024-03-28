@@ -2,7 +2,7 @@
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -18,9 +18,9 @@ from aeon.distances._wdtw import _wdtw_cost_matrix, _wdtw_distance
 def wddtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the WDDTW distance between two time series.
 
@@ -103,9 +103,9 @@ def wddtw_distance(
 def wddtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the WDDTW cost matrix between two time series.
 
@@ -172,21 +172,21 @@ def wddtw_cost_matrix(
 @njit(cache=True, fastmath=True)
 def wddtw_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the WDDTW pairwise distance between a set of time series.
 
     Parameters
     ----------
     X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the wddtw pairwise distance between the instances of X is
         calculated.
     window : float, default=None
@@ -226,7 +226,7 @@ def wddtw_pairwise_distance(
            [2.33574763e+02, 6.64390438e+03, 2.66663693e+07]])
 
     >>> X = np.array([[[10, 22, 399]],[[41, 500, 1316]], [[117, 18, 9]]])
-    >>> y_univariate = np.array([[100, 11, 199],[10, 15, 26], [170, 108, 1119]])
+    >>> y_univariate = np.array([100, 11, 199])
     >>> wddtw_pairwise_distance(X, y_univariate)
     array([[  7469.9486745 ],
            [159295.70501427],
@@ -239,7 +239,7 @@ def wddtw_pairwise_distance(
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _wddtw_pairwise_distance(_X, window, g, itakura_max_slope)
-        raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
     return _wddtw_from_multiple_to_multiple_distance(
         _x, _y, window, g, itakura_max_slope
@@ -248,20 +248,20 @@ def wddtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _wddtw_pairwise_distance(
-    X: np.ndarray, window: float, g: float, itakura_max_slope: float
+    X: np.ndarray, window: Optional[float], g: float, itakura_max_slope: Optional[float]
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+    n_cases = X.shape[0]
+    distances = np.zeros((n_cases, n_cases))
     bounding_matrix = create_bounding_matrix(
         X.shape[2] - 2, X.shape[2] - 2, window, itakura_max_slope
     )
 
-    X_average_of_slope = np.zeros((n_instances, X.shape[1], X.shape[2] - 2))
-    for i in range(n_instances):
+    X_average_of_slope = np.zeros((n_cases, X.shape[1], X.shape[2] - 2))
+    for i in range(n_cases):
         X_average_of_slope[i] = average_of_slope(X[i])
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = _wdtw_distance(
                 X_average_of_slope[i], X_average_of_slope[j], bounding_matrix, g
             )
@@ -274,13 +274,13 @@ def _wddtw_pairwise_distance(
 def _wddtw_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float,
+    window: Optional[float],
     g: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
+    distances = np.zeros((n_cases, m_cases))
     bounding_matrix = create_bounding_matrix(
         x.shape[2], y.shape[2], window, itakura_max_slope
     )
@@ -294,8 +294,8 @@ def _wddtw_from_multiple_to_multiple_distance(
     for i in range(y.shape[0]):
         derive_y[i] = average_of_slope(y[i])
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = _wdtw_distance(
                 derive_x[i], derive_y[j], bounding_matrix, g
             )
@@ -306,9 +306,9 @@ def _wddtw_from_multiple_to_multiple_distance(
 def wddtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the WDDTW alignment path between two time series.
 
