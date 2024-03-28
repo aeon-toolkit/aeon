@@ -96,6 +96,9 @@ def _convert_to_list(
     NumbaList[np.ndarray]
         Numba typedList of 2D arrays with shape (n_channels, n_timepoints) of length
         n_cases.
+    bool
+        Boolean indicating if the time series is of unequal length. True if the time
+        series are of unequal length, False otherwise.
 
     Raises
     ------
@@ -104,22 +107,27 @@ def _convert_to_list(
     """
     if isinstance(x, np.ndarray):
         if x.ndim == 3:
-            return NumbaList(x)
+            return NumbaList(x), False
         elif x.ndim == 2:
-            return NumbaList(x.reshape(x.shape[0], 1, x.shape[1]))
+            return NumbaList(x.reshape(x.shape[0], 1, x.shape[1])), False
         elif x.ndim == 1:
-            return NumbaList(x.reshape(1, 1, x.shape[0]))
+            return NumbaList(x.reshape(1, 1, x.shape[0])), False
         else:
             raise ValueError(f"{name} must be 1D, 2D or 3D")
     elif isinstance(x, (List, NumbaList)):
         x_new = NumbaList()
+        expected_n_timepoints = x[0].shape[-1]
+        unequal_timepoints = False
         for i in range(len(x)):
+            curr_x = x[i]
+            if curr_x.shape[-1] != expected_n_timepoints:
+                unequal_timepoints = True
             if x[i].ndim == 2:
-                x_new.append(x[i])
+                x_new.append(curr_x)
             elif x[i].ndim == 1:
-                x_new.append(x[i].reshape((1, x[i].shape[0])))
+                x_new.append(curr_x.reshape((1, curr_x.shape[0])))
             else:
                 raise ValueError(f"{name} must include only 1D or 2D arrays")
-        return x_new
+        return x_new, unequal_timepoints
     else:
         raise ValueError(f"{name} must be either np.ndarray or List[np.ndarray]")
