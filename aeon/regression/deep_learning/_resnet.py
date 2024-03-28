@@ -216,7 +216,6 @@ class ResNetRegressor(BaseDeepRegressor):
             else self.optimizer
         )
 
-        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)

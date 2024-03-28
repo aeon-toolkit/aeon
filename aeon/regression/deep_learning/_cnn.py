@@ -217,7 +217,6 @@ class CNNRegressor(BaseDeepRegressor):
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
 
         model.compile(
             loss=self.loss,

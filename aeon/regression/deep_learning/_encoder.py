@@ -189,11 +189,6 @@ class EncoderRegressor(BaseDeepRegressor):
         import numpy as np
         import tensorflow as tf
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
