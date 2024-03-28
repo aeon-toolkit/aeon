@@ -6,12 +6,8 @@ build-backend = "setuptools.build_meta"
 name = "aeon"
 version = "0.8.0"
 description = "A toolkit for conducting machine learning tasks with time series data"
-authors = [
-    {name = "aeon developers", email = "contact@aeon-toolkit.org"},
-]
-maintainers = [
-    {name = "aeon developers", email = "contact@aeon-toolkit.org"},
-]
+authors = [{ name = "aeon developers", email = "contact@aeon-toolkit.org" }]
+maintainers = [{ name = "aeon developers", email = "contact@aeon-toolkit.org" }]
 readme = "README.md"
 keywords = [
     "data-science",
@@ -96,8 +92,8 @@ dl = [
     "tensorflow-addons; python_version < '3.12'",
 ]
 unstable_extras = [
-    "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
-    "pycatch22<=0.4.3",  # known to fail installation on some setups
+    "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'", # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
+    "pycatch22<=0.4.3",                                  # known to fail installation on some setups
 ]
 dev = [
     "backoff",
@@ -111,10 +107,7 @@ dev = [
     "pytest-rerunfailures",
     "wheel",
 ]
-binder = [
-    "notebook",
-    "jupyterlab",
-]
+binder = ["notebook", "jupyterlab"]
 docs = [
     "sphinx<8.0.0",
     "sphinx-design",
@@ -146,15 +139,7 @@ file = "LICENSE"
 zip-safe = true
 
 [tool.setuptools.package-data]
-aeon = [
-    "*.csv",
-    "*.csv.gz",
-    "*.arff",
-    "*.arff.gz",
-    "*.txt",
-    "*.ts",
-    "*.tsv",
-]
+aeon = ["*.csv", "*.csv.gz", "*.arff", "*.arff.gz", "*.txt", "*.ts", "*.tsv"]
 
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]
@@ -179,14 +164,14 @@ convention = "numpy"
 testpaths = "aeon"
 addopts = '''
     --doctest-modules
-    --durations 20
-    --timeout 600
-    --showlocals
-    --numprocesses auto
-    --dist worksteal
-    --reruns 2
-    --only-rerun "crashed while running"
 '''
+# --durations 20
+# --timeout 600
+# --showlocals
+# --numprocesses auto
+# --dist worksteal
+# --reruns 2
+# --only-rerun "crashed while running"
 filterwarnings = '''
     ignore::UserWarning
     ignore:numpy.dtype size changed

@@ -68,7 +68,6 @@ def msm_distance(
     described in [2]_ for computing the pointwise MSM distance over channels.
     MSM satisfies triangular inequality and is a metric.
 
-
     Parameters
     ----------
     x : np.ndarray
@@ -444,7 +443,7 @@ def _msm_pairwise_distance(
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    if window == 1:
+    if window == 1.0:
         max_shape = max([x.shape[-1] for x in X])
         bounding_matrix: np.ndarray = create_bounding_matrix(
             max_shape, max_shape, window, itakura_max_slope
@@ -452,7 +451,7 @@ def _msm_pairwise_distance(
     for i in range(n_cases):
         for j in range(i + 1, n_cases):
             x1, x2 = X[i], X[j]
-            if window != 1:
+            if window != 1.0:
                 bounding_matrix = create_bounding_matrix(
                     x1.shape[-1], x2.shape[-1], window, itakura_max_slope
                 )
@@ -475,7 +474,7 @@ def _msm_from_multiple_to_multiple_distance(
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    if window == 1:
+    if window == 1.0:
         max_shape = max([_x.shape[-1] for _x in x])
         bounding_matrix: np.ndarray = create_bounding_matrix(
             max_shape, max_shape, window, itakura_max_slope
@@ -483,7 +482,7 @@ def _msm_from_multiple_to_multiple_distance(
     for i in range(n_cases):
         for j in range(m_cases):
             x1, y1 = x[i], y[j]
-            if window != 1:
+            if window != 1.0:
                 bounding_matrix = create_bounding_matrix(
                     x1.shape[-1], y1.shape[-1], window, itakura_max_slope
                 )
@@ -491,7 +490,7 @@ def _msm_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def msm_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
