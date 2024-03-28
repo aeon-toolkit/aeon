@@ -2,7 +2,7 @@ r"""Weighted dynamic time warping (WDTW) distance between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -17,9 +17,9 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def wdtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the WDTW distance between two time series.
 
@@ -111,9 +111,9 @@ def wdtw_distance(
 def wdtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the WDTW cost matrix between two time series.
 
@@ -236,10 +236,10 @@ def _wdtw_cost_matrix(
 @njit(cache=True, fastmath=True)
 def wdtw_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the WDTW pairwise distance between a set of time series.
 
@@ -292,7 +292,7 @@ def wdtw_pairwise_distance(
            [ 23.10042164,  70.74504127, 144.37763524]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> wdtw_pairwise_distance(X, y_univariate)
     array([[144.37763524],
            [ 70.74504127],
@@ -305,7 +305,7 @@ def wdtw_pairwise_distance(
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _wdtw_pairwise_distance(_X, window, g, itakura_max_slope)
-        raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
     return _wdtw_from_multiple_to_multiple_distance(
         _x, _y, window, g, itakura_max_slope
@@ -314,7 +314,7 @@ def wdtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _wdtw_pairwise_distance(
-    X: np.ndarray, window: float, g: float, itakura_max_slope: float
+    X: np.ndarray, window: Optional[float], g: float, itakura_max_slope: Optional[float]
 ) -> np.ndarray:
     n_cases = X.shape[0]
     distances = np.zeros((n_cases, n_cases))
@@ -334,9 +334,9 @@ def _wdtw_pairwise_distance(
 def _wdtw_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float,
+    window: Optional[float],
     g: float,
-    itakura_max_slope: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = x.shape[0]
     m_cases = y.shape[0]
@@ -355,9 +355,9 @@ def _wdtw_from_multiple_to_multiple_distance(
 def wdtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.05,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the WDTW alignment path between two time series.
 
