@@ -21,12 +21,6 @@ runs:
       run: echo "CURRENT_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
       shell: bash
 
-      # GNU tar on windows runs much faster than the default BSD tar
-    - name: Use GNU tar instead BSD tar if Windows
-      if: ${{ inputs.runner_os == 'Windows' }}
-      shell: cmd
-      run: echo C:\Program Files\Git\usr\bin>> $GITHUB_PATH
-
       # For some reason on windows I/O on the C drive is really slow. To get around this
       # we set the python, and the cache directories to the D drive which doesn't
       # have slow I/O.
