@@ -52,8 +52,13 @@ class CNNRegressor(BaseDeepRegressor):
     use_bias        : bool or list of bool, default = True,
         condition on whether or not to use bias values for convolution layers,
         if not a list, the same condition is used for all layers
-    random_state    : int, default = 0
-        seed to any needed random actions
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     n_epochs       : int, default = 2000
         the number of epochs to train the model
     batch_size      : int, default = 16
@@ -192,11 +197,13 @@ class CNNRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
 
-        tf.random.set_seed(self.random_state)
-
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(units=1, activation=self.output_activation)(
@@ -209,10 +216,12 @@ class CNNRegressor(BaseDeepRegressor):
 
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
+        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
+
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=self.metrics,
+            metrics=metrics,
         )
         return model
 
@@ -234,8 +243,6 @@ class CNNRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
