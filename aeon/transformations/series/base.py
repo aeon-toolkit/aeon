@@ -8,7 +8,7 @@ transform - transform(self, X, y=None)
 fit & transform - fit_transform(self, X, y=None)
 """
 
-__maintainer__ = ["baraline"]
+__maintainer__ = ["baraline", "TonyBagnall"]
 
 from abc import ABCMeta, abstractmethod
 from typing import final
