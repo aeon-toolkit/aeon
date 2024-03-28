@@ -95,7 +95,11 @@ class ResNetRegressor(BaseDeepRegressor):
         loss                        : string, default="mean_squared_error"
             fit parameter for the keras model
         optimizer                   : keras.optimizer, default=keras.optimizers.Adam(),
-        metrics                     : list of strings, default=["accuracy"],
+        metrics                     : list of strings, default="mean_squared_error",
+            The evaluation metrics to use during training. If
+            a single string metric is provided, it will be
+            used as the only metric. If a list of metrics are
+            provided, all will be used for evaluation.
 
     Notes
     -----
@@ -136,7 +140,7 @@ class ResNetRegressor(BaseDeepRegressor):
         verbose=False,
         loss="mse",
         output_activation="linear",
-        metrics=None,
+        metrics="mean_squared_error",
         batch_size=64,
         use_mini_batch_size=False,
         random_state=None,
@@ -228,7 +232,7 @@ class ResNetRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -251,6 +255,13 @@ class ResNetRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        check_random_state(self.random_state)
+
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
