@@ -1,6 +1,6 @@
 """Implements matrix profile transformation."""
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 __all__ = ["MatrixProfileSeriesTransformer"]
 
 from aeon.transformations.series.base import BaseSeriesTransformer
@@ -31,13 +31,14 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
     --------
     >>> from aeon.transformations.series import MatrixProfileSeriesTransformer
     >>> import numpy as np
-    >>> series = np.array([1,2,3,4,5,6,7,8,9,10,9,8,7,6,5,4,3,2,1])  # doctest: +SKIP
-    >>> transformer = MatrixProfileSeriesTransformer(window_length=4)  # doctest: +SKIP
+    >>> series = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6])  # doctest: +SKIP
+    >>> transformer = MatrixProfileSeriesTransformer(window_length=3)  # doctest: +SKIP
     >>> mp = transformer.fit_transform(series)  # doctest: +SKIP
     """
 
     _tags = {
         "fit_is_empty": True,
+        "capability:multivariate": False,
         "python_dependencies": "stumpy",
     }
 

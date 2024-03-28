@@ -14,7 +14,8 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 )
 def test_matrix_profile():
     """Test on example in stumpy documentation."""
-    series = np.array([584.0, -11.0, 23.0, 79.0, 1001.0, 0.0, -19.0])
+    # Init as 2D array to test 1D convertion
+    series = np.array([[584.0, -11.0, 23.0, 79.0, 1001.0, 0.0, -19.0]])
     series2 = pd.Series([584.0, -11.0, 23.0, 79.0, 1001.0, 0.0, -19.0])
     mp = MatrixProfileSeriesTransformer(window_length=3)
     res1 = mp.fit_transform(series)
