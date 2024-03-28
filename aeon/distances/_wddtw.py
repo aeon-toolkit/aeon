@@ -2,15 +2,16 @@
 
 __maintainer__ = []
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
 
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._ddtw import average_of_slope
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list
 from aeon.distances._wdtw import _wdtw_cost_matrix, _wdtw_distance
 
 
@@ -169,10 +170,9 @@ def wddtw_cost_matrix(
     raise ValueError("x and y must be 1D or 2D")
 
 
-@njit(cache=True, fastmath=True)
 def wddtw_pairwise_distance(
-    X: np.ndarray,
-    y: Optional[np.ndarray] = None,
+    X: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
     window: Optional[float] = None,
     g: float = 0.05,
     itakura_max_slope: Optional[float] = None,
@@ -181,13 +181,13 @@ def wddtw_pairwise_distance(
 
     Parameters
     ----------
-    X : np.ndarray
+    X : np.ndarray or List of np.ndarray
         A collection of time series instances  of shape ``(n_cases, n_timepoints)``
         or ``(n_cases, n_channels, n_timepoints)``.
-    y : np.ndarray or None, default=None
+    y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
-        If None, then the wddtw pairwise distance between the instances of X is
+        If None, then the msm pairwise distance between the instances of X is
         calculated.
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
@@ -231,40 +231,52 @@ def wddtw_pairwise_distance(
     array([[  7469.9486745 ],
            [159295.70501427],
            [  1590.15378267]])
+
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> wddtw_pairwise_distance(X)
+    array([[ 0., 10., 17.],
+            [10.,  0., 14.],
+            [17., 14.,  0.]]
     """
+    _X = _convert_to_list(X, "X")
+
     if y is None:
-        # To self
-        if X.ndim == 3:
-            return _wddtw_pairwise_distance(X, window, g, itakura_max_slope)
-        if X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _wddtw_pairwise_distance(_X, window, g, itakura_max_slope)
-        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-    _x, _y = reshape_pairwise_to_multiple(X, y)
+        return _wddtw_pairwise_distance(_X, window, g, itakura_max_slope)
+
+    _y = _convert_to_list(y, "y")
     return _wddtw_from_multiple_to_multiple_distance(
-        _x, _y, window, g, itakura_max_slope
+        _X, _y, window, g, itakura_max_slope
     )
 
 
 @njit(cache=True, fastmath=True)
 def _wddtw_pairwise_distance(
-    X: np.ndarray, window: Optional[float], g: float, itakura_max_slope: Optional[float]
+    X: NumbaList[np.ndarray],
+    window: Optional[float],
+    g: float,
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
-    n_cases = X.shape[0]
+    n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
-    bounding_matrix = create_bounding_matrix(
-        X.shape[2] - 2, X.shape[2] - 2, window, itakura_max_slope
-    )
 
-    X_average_of_slope = np.zeros((n_cases, X.shape[1], X.shape[2] - 2))
+    if window == 1.0:
+        max_shape = max([x.shape[-1] for x in X])
+        bounding_matrix: np.ndarray = create_bounding_matrix(
+            max_shape, max_shape, window, itakura_max_slope
+        )
+    X_average_of_slope = NumbaList()
     for i in range(n_cases):
-        X_average_of_slope[i] = average_of_slope(X[i])
+        X_average_of_slope.append(average_of_slope(X[i]))
 
     for i in range(n_cases):
         for j in range(i + 1, n_cases):
-            distances[i, j] = _wdtw_distance(
-                X_average_of_slope[i], X_average_of_slope[j], bounding_matrix, g
-            )
+            x1, x2 = X_average_of_slope[i], X_average_of_slope[j]
+            if window != 1.0:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[-1], x2.shape[-1], window, itakura_max_slope
+                )
+            distances[i, j] = _wdtw_distance(x1, x2, bounding_matrix, g)
             distances[j, i] = distances[i, j]
 
     return distances
@@ -272,33 +284,39 @@ def _wddtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _wddtw_from_multiple_to_multiple_distance(
-    x: np.ndarray,
-    y: np.ndarray,
+    x: NumbaList[np.ndarray],
+    y: NumbaList[np.ndarray],
     window: Optional[float],
     g: float,
     itakura_max_slope: Optional[float],
 ) -> np.ndarray:
-    n_cases = x.shape[0]
-    m_cases = y.shape[0]
+    n_cases = len(x)
+    m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
-    bounding_matrix = create_bounding_matrix(
-        x.shape[2], y.shape[2], window, itakura_max_slope
-    )
 
-    # Derive the arrays before so that we don't have to redo every iteration
-    derive_x = np.zeros((x.shape[0], x.shape[1], x.shape[2] - 2))
-    for i in range(x.shape[0]):
-        derive_x[i] = average_of_slope(x[i])
+    if window == 1.0:
+        max_shape = max([_x.shape[-1] for _x in x])
+        bounding_matrix: np.ndarray = create_bounding_matrix(
+            max_shape, max_shape, window, itakura_max_slope
+        )
 
-    derive_y = np.zeros((y.shape[0], y.shape[1], y.shape[2] - 2))
-    for i in range(y.shape[0]):
-        derive_y[i] = average_of_slope(y[i])
+    # Derive the arrays before so that we dont have to redo every iteration
+    x_average_of_slope = NumbaList()
+    for i in range(n_cases):
+        x_average_of_slope.append(average_of_slope(x[i]))
+
+    y_average_of_slope = NumbaList()
+    for i in range(m_cases):
+        y_average_of_slope.append(average_of_slope(y[i]))
 
     for i in range(n_cases):
         for j in range(m_cases):
-            distances[i, j] = _wdtw_distance(
-                derive_x[i], derive_y[j], bounding_matrix, g
-            )
+            x1, y1 = x_average_of_slope[i], y_average_of_slope[j]
+            if window != 1.0:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[-1], y1.shape[-1], window, itakura_max_slope
+                )
+            distances[i, j] = _wdtw_distance(x1, y1, bounding_matrix, g)
     return distances
 
 
