@@ -5,8 +5,10 @@ __all__ = [
     "ShapeletTransformClassifier",
     "RDSTClassifier",
     "SASTClassifier",
+    "LearningShapeletClassifier",
 ]
 
+from aeon.classification.shapelet_based._ls import LearningShapeletClassifier
 from aeon.classification.shapelet_based._mrsqm import MrSQMClassifier
 from aeon.classification.shapelet_based._rdst import RDSTClassifier
 from aeon.classification.shapelet_based._sast_classifier import SASTClassifier
