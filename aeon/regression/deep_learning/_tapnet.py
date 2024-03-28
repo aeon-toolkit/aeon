@@ -66,10 +66,15 @@ class TapNetRegressor(BaseDeepRegressor):
         whether to use a CNN layer
     verbose         : bool, default = False
         whether to output extra information
-    random_state    : int or None, default = None
-        seed for random
     rp_params       : tuple, default = (-1, 3)
         parameters for random projection
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
 
     References
     ----------

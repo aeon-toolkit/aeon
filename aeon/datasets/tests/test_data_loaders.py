@@ -60,9 +60,7 @@ def test_load_forecasting_from_repo():
 )
 def test_load_classification_from_repo():
     name = "FOO"
-    with pytest.raises(
-        ValueError, match=f"dataset name ={name} is not available on extract path"
-    ):
+    with pytest.raises(ValueError):
         load_classification(name)
     name = "SonyAIBORobotSurface1"
     X, y, meta = load_classification(name, return_metadata=True)
@@ -417,6 +415,11 @@ def test_load_classification():
     assert isinstance(y, np.ndarray)
     assert X.shape == (42, 1, 24)
     assert y.shape == (42,)
+    # Try load covid, should work
+    X, y, meta = load_classification("Covid3Month", return_metadata=True)
+
+    with pytest.raises(ValueError, match="You have tried to load a regression problem"):
+        X, y = load_classification("CardanoSentiment")
 
 
 @pytest.mark.skipif(

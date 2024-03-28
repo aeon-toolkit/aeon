@@ -1,8 +1,9 @@
 __maintainer__ = []
 
-from typing import Any, Callable, List, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union
 
 import numpy as np
+from typing_extensions import Unpack
 
 from aeon.distances._adtw import (
     adtw_alignment_path,
@@ -63,7 +64,7 @@ from aeon.distances._twe import (
     twe_distance,
     twe_pairwise_distance,
 )
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list, reshape_pairwise_to_multiple
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_cost_matrix,
@@ -78,6 +79,26 @@ from aeon.distances._wdtw import (
 )
 from aeon.distances.mpdist import mpdist
 
+
+class DistanceKwargs(TypedDict, total=False):
+    window: Optional[float]
+    itakura_max_slope: Optional[float]
+    p: float
+    w: np.ndarray
+    g: float
+    descriptor: str
+    reach: int
+    epsilon: float
+    g_arr: np.ndarray
+    nu: float
+    lmbda: float
+    independent: bool
+    c: float
+    warp_penalty: float
+    standardize: bool
+    m: int
+
+
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
 AlignmentPathFunction = Callable[
     [np.ndarray, np.ndarray, Any], Tuple[List[Tuple[int, int]], float]
@@ -90,7 +111,7 @@ def distance(
     x: np.ndarray,
     y: np.ndarray,
     metric: Union[str, DistanceFunction],
-    **kwargs: Any,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> float:
     """Compute the distance between two time series.
 
@@ -161,6 +182,9 @@ def distance(
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             descriptor=kwargs.get("descriptor", "identity"),
             reach=kwargs.get("reach", 30),
+            transformation_precomputed=kwargs.get("transformation_precomputed", False),
+            transformed_x=kwargs.get("transformed_x", None),
+            transformed_y=kwargs.get("transformed_y", None),
         )
     elif metric == "wddtw":
         return wddtw_distance(
@@ -214,14 +238,14 @@ def distance(
             kwargs.get("itakura_max_slope"),
         )
     elif metric == "mpdist":
-        return mpdist(x, y, **kwargs)
+        return mpdist(x, y, kwargs.get("m", 0))
     elif metric == "adtw":
         return adtw_distance(
             x,
             y,
-            kwargs.get("window"),
-            kwargs.get("itakura_max_slope"),
-            kwargs.get("warp_penalty", 1.0),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            window=kwargs.get("window"),
+            warp_penalty=kwargs.get("warp_penalty", 1.0),
         )
     elif metric == "sbd":
         return sbd_distance(x, y, kwargs.get("standardize", True))
@@ -233,9 +257,9 @@ def distance(
 
 def pairwise_distance(
     x: np.ndarray,
-    y: np.ndarray = None,
-    metric: Union[str, DistanceFunction] = None,
-    **kwargs: Any,
+    y: Optional[np.ndarray] = None,
+    metric: Union[str, DistanceFunction, None] = None,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
 
@@ -288,7 +312,7 @@ def pairwise_distance(
            [ 48., 147., 300.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> pairwise_distance(X, y_univariate, metric='dtw')
     array([[300.],
            [147.],
@@ -316,6 +340,9 @@ def pairwise_distance(
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             descriptor=kwargs.get("descriptor", "identity"),
             reach=kwargs.get("reach", 30),
+            transformation_precomputed=kwargs.get("transformation_precomputed", False),
+            transformed_x=kwargs.get("transformed_x", None),
+            transformed_y=kwargs.get("transformed_y", None),
         )
     elif metric == "ddtw":
         return ddtw_pairwise_distance(
@@ -399,27 +426,40 @@ def pairwise_distance(
 
 
 def _custom_func_pairwise(
-    X: np.ndarray,
-    y: np.ndarray = None,
-    dist_func: DistanceFunction = None,
-    **kwargs: Any,
+    X: Optional[Union[np.ndarray, List[np.ndarray]]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    dist_func: Union[DistanceFunction, None] = None,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
+    if dist_func is None:
+        raise ValueError("dist_func must be a callable")
     if y is None:
         # To self
-        if X.ndim == 3:
-            return _custom_pairwise_distance(X, dist_func, **kwargs)
-        if X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
+        if isinstance(X, np.ndarray):
+            if X.ndim == 3:
+                return _custom_pairwise_distance(X, dist_func, **kwargs)
+            if X.ndim == 2:
+                _X = X.reshape((X.shape[0], 1, X.shape[1]))
+                return _custom_pairwise_distance(_X, dist_func, **kwargs)
+            raise ValueError("x and y must be 1D, 2D, or 3D arrays")
+        else:
+            _X = _convert_to_list(X)
             return _custom_pairwise_distance(_X, dist_func, **kwargs)
-        raise ValueError("x and y must be 2D or 3D arrays")
-    _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _custom_from_multiple_to_multiple_distance(_x, _y, dist_func, **kwargs)
+    if isinstance(X, np.ndarray) and isinstance(y, np.ndarray):
+        _x, _y = reshape_pairwise_to_multiple(X, y)
+        return _custom_from_multiple_to_multiple_distance(_x, _y, dist_func, **kwargs)
+    else:
+        _x = _convert_to_list(X)
+        _y = _convert_to_list(y)
+        return _custom_from_multiple_to_multiple_distance(_x, _y, dist_func, **kwargs)
 
 
 def _custom_pairwise_distance(
-    X: np.ndarray, dist_func: DistanceFunction, **kwargs
+    X: Union[np.ndarray, List[np.ndarray]],
+    dist_func: DistanceFunction,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
-    n_cases = X.shape[0]
+    n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
     for i in range(n_cases):
@@ -431,10 +471,13 @@ def _custom_pairwise_distance(
 
 
 def _custom_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, dist_func: DistanceFunction, **kwargs
+    x: Union[np.ndarray, List[np.ndarray]],
+    y: Union[np.ndarray, List[np.ndarray]],
+    dist_func: DistanceFunction,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
-    n_cases = x.shape[0]
-    m_cases = y.shape[0]
+    n_cases = len(x)
+    m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
     for i in range(n_cases):
@@ -447,7 +490,7 @@ def alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     metric: str,
-    **kwargs: Any,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the alignment path and distance between two time series.
 
@@ -502,6 +545,9 @@ def alignment_path(
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             descriptor=kwargs.get("descriptor", "identity"),
             reach=kwargs.get("reach", 30),
+            transformation_precomputed=kwargs.get("transformation_precomputed", False),
+            transformed_x=kwargs.get("transformed_x", None),
+            transformed_y=kwargs.get("transformed_y", None),
         )
     elif metric == "ddtw":
         return ddtw_alignment_path(
@@ -582,7 +628,7 @@ def cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
     metric: str,
-    **kwargs: Any,
+    **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     """Compute the alignment path and distance between two time series.
 
@@ -642,6 +688,9 @@ def cost_matrix(
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             descriptor=kwargs.get("descriptor", "identity"),
             reach=kwargs.get("reach", 30),
+            transformation_precomputed=kwargs.get("transformation_precomputed", False),
+            transformed_x=kwargs.get("transformed_x", None),
+            transformed_y=kwargs.get("transformed_y", None),
         )
     elif metric == "ddtw":
         return ddtw_cost_matrix(
