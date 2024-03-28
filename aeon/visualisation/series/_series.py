@@ -398,6 +398,6 @@ def plot_spectrogram(series, fs=1, return_onesided=True):
         ax.pcolormesh(fftshift(_spectrogram, axes=0))
     else:
         ax.pcolormesh(_spectrogram)
-    
+
     ax.set_ylabel("Frequency [Hz]")
     return fig, ax
