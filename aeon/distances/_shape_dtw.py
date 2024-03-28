@@ -604,11 +604,11 @@ def shape_dtw_pairwise_distance(
     >>> # Distance between each TS in a collection of unequal-length time series
     >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
     >>> shape_dtw_pairwise_distance(X)
-    array([[ 0., 10., 17.],
-            [10.,  0., 14.],
-            [17., 14.,  0.]]
+    array([[  0.,  43., 292.],
+           [ 43.,   0.,  89.],
+           [292.,  89.,   0.]])
     """
-    _X = _convert_to_list(X)
+    _X, unequal_length = _convert_to_list(X)
     X_pad = _pad_ts_collection_edges(x=_X, reach=reach)
     if y is None:
         # To self
@@ -621,8 +621,9 @@ def shape_dtw_pairwise_distance(
             transformation_precomputed=transformation_precomputed,
             transformed_x=transformed_x,
             transformed_y=transformed_y,
+            unequal_length=unequal_length,
         )
-    _y = _convert_to_list(y)
+    _y, unequal_length = _convert_to_list(y)
     y_pad = _pad_ts_collection_edges(x=_y, reach=reach)
 
     return _shape_dtw_from_multiple_to_multiple_distance(
@@ -635,34 +636,36 @@ def shape_dtw_pairwise_distance(
         transformation_precomputed=transformation_precomputed,
         transformed_x=transformed_x,
         transformed_y=transformed_y,
+        unequal_length=unequal_length,
     )
 
 
 @njit(cache=True, fastmath=True)
 def _shape_dtw_pairwise_distance(
     X: NumbaList[np.ndarray],
-    window: Optional[float] = None,
-    descriptor: str = "identity",
-    reach: int = 30,
-    itakura_max_slope: Optional[float] = None,
-    transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    window: Optional[float],
+    descriptor: str,
+    reach: int,
+    itakura_max_slope: Optional[float],
+    transformation_precomputed: bool,
+    transformed_x: Optional[np.ndarray],
+    transformed_y: Optional[np.ndarray],
+    unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    if window == 1.0:
-        max_shape = max([x.shape[-1] for x in X])
-        bounding_matrix: np.ndarray = create_bounding_matrix(
-            max_shape, max_shape, window, itakura_max_slope
+    if not unequal_length:
+        n_timepoints = X[0].shape[1]
+        bounding_matrix = create_bounding_matrix(
+            n_timepoints, n_timepoints, window, itakura_max_slope
         )
     for i in range(len(X)):
         for j in range(i + 1, n_cases):
             x1, x2 = X[i], X[j]
-            if window != 1.0:
+            if unequal_length:
                 bounding_matrix = create_bounding_matrix(
-                    x1.shape[-1], x2.shape[-1], window, itakura_max_slope
+                    x1.shape[1], x2.shape[1], window, itakura_max_slope
                 )
             distances[i, j] = _shape_dtw_distance(
                 x=x1,
@@ -683,29 +686,29 @@ def _shape_dtw_pairwise_distance(
 def _shape_dtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    window: Optional[float] = None,
-    descriptor: str = "identity",
-    reach: int = 30,
-    itakura_max_slope: Optional[float] = None,
-    transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    window: Optional[float],
+    descriptor: str,
+    reach: int,
+    itakura_max_slope: Optional[float],
+    transformation_precomputed: bool,
+    transformed_x: Optional[np.ndarray],
+    transformed_y: Optional[np.ndarray],
+    unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    if window == 1.0:
-        max_shape = max([_x.shape[-1] for _x in x])
-        bounding_matrix: np.ndarray = create_bounding_matrix(
-            max_shape, max_shape, window, itakura_max_slope
+    if not unequal_length:
+        bounding_matrix = create_bounding_matrix(
+            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
         )
     for i in range(n_cases):
         for j in range(m_cases):
             x1, y1 = x[i], y[j]
-            if window != 1.0:
+            if unequal_length:
                 bounding_matrix = create_bounding_matrix(
-                    x1.shape[-1], y1.shape[-1], window, itakura_max_slope
+                    x1.shape[1], y1.shape[1], window, itakura_max_slope
                 )
             distances[i, j] = _shape_dtw_distance(
                 x=x1,

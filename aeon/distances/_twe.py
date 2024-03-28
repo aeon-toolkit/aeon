@@ -318,17 +318,19 @@ def twe_pairwise_distance(
     >>> # Distance between each TS in a collection of unequal-length time series
     >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
     >>> twe_pairwise_distance(X)
-    array([[ 0., 10., 17.],
-            [10.,  0., 14.],
-            [17., 14.,  0.]]
+    array([[ 0.   , 13.005, 19.006],
+           [13.005,  0.   , 18.007],
+           [19.006, 18.007,  0.   ]])
     """
-    _X = _convert_to_list(X, "X")
+    _X, unequal_length = _convert_to_list(X, "X")
     if y is None:
         # To self
-        return _twe_pairwise_distance(_X, window, nu, lmbda, itakura_max_slope)
-    _y = _convert_to_list(y, "y")
+        return _twe_pairwise_distance(
+            _X, window, nu, lmbda, itakura_max_slope, unequal_length
+        )
+    _y, unequal_length = _convert_to_list(y, "y")
     return _twe_from_multiple_to_multiple_distance(
-        _X, _y, window, nu, lmbda, itakura_max_slope
+        _X, _y, window, nu, lmbda, itakura_max_slope, unequal_length
     )
 
 
@@ -339,14 +341,15 @@ def _twe_pairwise_distance(
     nu: float,
     lmbda: float,
     itakura_max_slope: Optional[float],
+    unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    if window == 1.0:
-        max_shape = max([x.shape[-1] for x in X])
-        bounding_matrix: np.ndarray = create_bounding_matrix(
-            max_shape, max_shape, window, itakura_max_slope
+    if not unequal_length:
+        n_timepoints = X[0].shape[1]
+        bounding_matrix = create_bounding_matrix(
+            n_timepoints, n_timepoints, window, itakura_max_slope
         )
 
     # Pad the arrays before so that we don't have to redo every iteration
@@ -357,9 +360,9 @@ def _twe_pairwise_distance(
     for i in range(n_cases):
         for j in range(i + 1, n_cases):
             x1, x2 = padded_X[i], padded_X[j]
-            if window != 1.0:
+            if unequal_length:
                 bounding_matrix = create_bounding_matrix(
-                    x1.shape[-1], x2.shape[-1], window, itakura_max_slope
+                    x1.shape[1], x2.shape[1], window, itakura_max_slope
                 )
             distances[i, j] = _twe_distance(x1, x2, bounding_matrix, nu, lmbda)
             distances[j, i] = distances[i, j]
@@ -375,14 +378,14 @@ def _twe_from_multiple_to_multiple_distance(
     nu: float,
     lmbda: float,
     itakura_max_slope: Optional[float],
+    unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
-    if window == 1.0:
-        max_shape = max([_x.shape[-1] for _x in x])
-        bounding_matrix: np.ndarray = create_bounding_matrix(
-            max_shape, max_shape, window, itakura_max_slope
+    if not unequal_length:
+        bounding_matrix = create_bounding_matrix(
+            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
         )
 
     # Pad the arrays before so that we dont have to redo every iteration
@@ -397,9 +400,9 @@ def _twe_from_multiple_to_multiple_distance(
     for i in range(n_cases):
         for j in range(m_cases):
             x1, y1 = padded_x[i], padded_y[j]
-            if window != 1.0:
+            if unequal_length:
                 bounding_matrix = create_bounding_matrix(
-                    x1.shape[-1], y1.shape[-1], window, itakura_max_slope
+                    x1.shape[1], y1.shape[1], window, itakura_max_slope
                 )
             distances[i, j] = _twe_distance(x1, y1, bounding_matrix, nu, lmbda)
     return distances
