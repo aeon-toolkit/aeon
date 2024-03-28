@@ -199,7 +199,7 @@ def minkowski_pairwise_distance(
     >>> minkowski_pairwise_distance(X)
     array([[ 0.        ,  5.19615242, 12.12435565],
            [ 5.19615242,  0.        ,  8.        ],
-           [12.12435565,  8.        ,  0.        ]])]
+           [12.12435565,  8.        ,  0.        ]])
     """
     _X, _ = _convert_to_list(X, "X")
     if y is None:
