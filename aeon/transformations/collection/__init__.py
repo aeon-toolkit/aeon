@@ -25,10 +25,10 @@ __all__ = [
     "TruncationTransformer",
 ]
 
+from aeon.transformations.collection._broadcaster import SeriesToCollectionWrapper
 from aeon.transformations.collection._collection_wrapper import (
     CollectionToSeriesWrapper,
 )
-from aeon.transformations.collection._series_wrapper import SeriesToCollectionWrapper
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer

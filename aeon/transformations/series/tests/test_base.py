@@ -36,7 +36,7 @@ def test_series_transformer_valid_input(data_gen):
 
 @pytest.mark.parametrize("data_gen", [make_example_3d_numpy])
 def test_series_transformer_invalid_input(data_gen):
-    """Test that BaseCollectionTransformer fails with series input."""
+    """Test that BaseCollectionTransformer fails with collection input."""
     X, y = data_gen()
     t = DummySeriesTransformer()
     with pytest.raises(ValueError):

@@ -78,13 +78,18 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         -------
         transformed version of X
         """
+        if X.shape[1] - self.n_lags < 3:
+            raise ValueError(
+                f"The number of lags is too large for the length of the "
+                f"series, autocorrelation will be calculated "
+                f"{X.shape[1]-self.n_lags} points."
+            )
         return self._acf(X, max_lag=self.n_lags)
 
     @staticmethod
     @njit(cache=True, fastmath=True)
     def _acf(X, max_lag):
         n_channels, length = X.shape
-
         X_t = np.zeros((n_channels, max_lag))
         for i, x in enumerate(X):
             for lag in range(1, max_lag + 1):
