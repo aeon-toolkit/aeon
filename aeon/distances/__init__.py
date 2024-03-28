@@ -65,6 +65,8 @@ __all__ = [
     "shape_dtw_pairwise_distance",
     "sbd_distance",
     "sbd_pairwise_distance",
+    "mahalanobis_distance",
+    "mahalanobis_pairwise_distance",
 ]
 
 
@@ -116,6 +118,10 @@ from aeon.distances._lcss import (
     lcss_cost_matrix,
     lcss_distance,
     lcss_pairwise_distance,
+)
+from aeon.distances._mahalanobis import (
+    mahalanobis_distance,
+    mahalanobis_pairwise_distance,
 )
 from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
 from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
