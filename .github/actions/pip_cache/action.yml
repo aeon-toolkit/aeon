@@ -16,6 +16,11 @@ inputs:
 runs:
   using: "composite"
   steps:
+      # Get current date for cache restore
+    - name: Get Current Date
+      run: echo "CURRENT_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
+      shell: bash
+
       # GNU tar on windows runs much faster than the default BSD tar
     - name: Use GNU tar instead BSD tar if Windows
       if: ${{ inputs.runner_os == 'Windows' }}
@@ -35,21 +40,19 @@ runs:
         $Env:PIP_CACHE_DIR = "D:\pip\cache"
         $Env:PYTHONPYCACHEPREFIX = "D:\pycache"
 
-    - name: Set Python environment for windows
-      if: ${{ inputs.runner_os == 'Windows' }}
+    - if: ${{ inputs.runner_os == 'Windows' }}
+      name: Set Python environment for windows
       shell: bash
       run: |
         echo "PYTHONUSERBASE=D:\python\userbase" >> $GITHUB_ENV
         echo "PIP_CACHE_DIR=D:\pip\cache" >> $GITHUB_ENV
         echo "PYTHONPYCACHEPREFIX=D:\pycache" >> $GITHUB_ENV
-
-    - name: Set Python environment for linux
-      if: ${{ inputs.runner_os == 'Linux' }}
+    - if: ${{ inputs.runner_os == 'Linux' }}
+      name: Set Python environment for linux
       run: echo "PIP_CACHE_DIR=~/.cache/pip" >> $GITHUB_ENV
       shell: bash
-
-    - name: Set Python environment for macos
-      if: ${{ inputs.runner_os == 'macOS' }}
+    - if: ${{ inputs.runner_os == 'macOS' }}
+      name: Set Python environment for macos
       run: echo "PIP_CACHE_DIR=~/Library/Caches/pip" >> $GITHUB_ENV
       shell: bash
 
@@ -58,4 +61,4 @@ runs:
       if: ${{ inputs.restore_cache == 'true' }}
       with:
         path: ${{ env.PIP_CACHE_DIR }}
-        key: ${{ inputs.runner_os }}-${{ inputs.python_version }}-pip-${{ hashfiles('**/pyproject.toml') }}
+        key: ${{ inputs.runner_os }}-${{ inputs.python_version }}-pip-${{ env.CURRENT_DATE }}

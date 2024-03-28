@@ -44,6 +44,12 @@ runs:
       run: echo "CURRENT_DATE=$(date +'%d/%m/%Y')" >> $GITHUB_ENV
       shell: bash
 
+      # GNU tar on windows runs much faster than the default BSD tar
+    - name: Use GNU tar instead BSD tar if Windows
+      if: ${{ inputs.runner_os == 'Windows' }}
+      shell: cmd
+      run: echo C:\Program Files\Git\usr\bin>> $GITHUB_PATH
+
     # Restore cache if restore_cache is true
     - name: Restore cache
       uses: actions/cache/restore@v3

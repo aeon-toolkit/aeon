@@ -1,8 +1,9 @@
-name: Update pip cache on merge to main
+name: Update pip cache every night
+
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    # every day at 1:30 AM UTC
+    - cron:  "30 1 * * *"
 
 concurrency:
   group: ${{ github.workflow }}
@@ -34,14 +35,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      # The caches will only be updated if the pyproject.toml file has changed
-      - name: See if cache exists Restore cache
-        id: cache
-        uses: actions/cache/restore@v3
-        with:
-          path: ${{ env.PIP_CACHE_DIR }}
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashfiles('**/pyproject.toml') }}
-
       - name: Install CPU version of pytorch on linux
         uses: nick-fields/retry@v3
         if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
@@ -50,22 +43,23 @@ jobs:
           max_attempts: 3
           command: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 
+      # Install extras and dev on everything except Linux 3.10
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: runner.os != 'Linux' || matrix.python-version != '3.10'
         with:
           timeout_minutes: 30
           max_attempts: 3
           command: python -m pip install .[all_extras,dev]
 
-      # Install notebook if on linux 3.10 in addition
+      # Install extras, dev and binder on Linux 3.10 (Examples run on this)
       - name: Install notebook if on linux 3.10
         uses: nick-fields/retry@v3
-        if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux' && matrix.python-version == '3.10'
+        if: runner.os == 'Linux' && matrix.python-version == '3.10'
         with:
           timeout_minutes: 30
           max_attempts: 3
-          command: python -m pip install .[binder]
+          command: python -m pip install .[all_extras,dev,binder]
 
       - name: Show dependencies
         if: steps.cache.outputs.cache-hit != 'true'
@@ -76,4 +70,4 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           path: ${{ env.PIP_CACHE_DIR }}
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashfiles('**/pyproject.toml') }}
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ env.CURRENT_DATE }}
