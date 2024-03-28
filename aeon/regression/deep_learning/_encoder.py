@@ -189,7 +189,6 @@ class EncoderRegressor(BaseDeepRegressor):
         import numpy as np
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
         if self.metrics is None:
             metrics = ["accuracy"]
         else:
@@ -237,7 +236,7 @@ class EncoderRegressor(BaseDeepRegressor):
 
         # Transpose X to conform to Keras input style
         X = X.transpose(0, 2, 1)
-        check_random_state(self.random_state)
+
         if isinstance(self.metrics, str):
             self._metrics = [self.metrics]
         else:

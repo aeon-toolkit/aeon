@@ -179,11 +179,15 @@ class TapNetRegressor(BaseDeepRegressor):
         -------
         output: a compiled Keras model
         """
+        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
 
-        tf.random.set_seed(self.random_state)
+        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
@@ -223,14 +227,12 @@ class TapNetRegressor(BaseDeepRegressor):
         # Transpose to conform to expectation format from keras
         X = X.transpose(0, 2, 1)
 
-        check_random_state(self.random_state)
         self.input_shape = X.shape[1:]
 
         if isinstance(self.metrics, str):
             self._metrics = [self.metrics]
         else:
             self._metrics = self.metrics
-
         self.model_ = self.build_model(self.input_shape)
         if self.verbose:
             self.model_.summary()

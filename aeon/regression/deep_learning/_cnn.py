@@ -69,6 +69,7 @@ class CNNRegressor(BaseDeepRegressor):
         fit parameter for the keras model
     optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
     metrics         : list of strings, default="mean_squared_error",
+        The evaluation metrics to use during training.
     callbacks       : keras.callbacks, default=model_checkpoint to save best
                       model on training loss
     file_path       : file_path for the best model (if checkpoint is used as callback)
@@ -243,8 +244,6 @@ class CNNRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        check_random_state(self.random_state)
 
         if isinstance(self.metrics, str):
             self._metrics = [self.metrics]
