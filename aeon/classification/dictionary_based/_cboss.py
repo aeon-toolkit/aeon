@@ -10,7 +10,6 @@ __all__ = ["ContractableBOSS", "pairwise_distances"]
 
 import math
 import time
-import warnings
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -62,11 +61,6 @@ class ContractableBOSS(BaseClassifier):
     contract_max_n_parameter_samples : int, default=np.inf
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
-    save_train_predictions : bool, default="deprecated"
-        Save the ensemble member train predictions in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
     n_jobs : int, default = 1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -146,7 +140,6 @@ class ContractableBOSS(BaseClassifier):
         min_window=10,
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
-        save_train_predictions="deprecated",
         feature_selection="none",
         n_jobs=1,
         random_state=None,
@@ -172,15 +165,6 @@ class ContractableBOSS(BaseClassifier):
         self._word_lengths = [16, 14, 12, 10, 8]
         self._norm_options = [True, False]
         self._alphabet_size = 4
-
-        # TODO remove 'save_train_predictions' in v0.8.0
-        self.save_train_predictions = save_train_predictions
-        if save_train_predictions != "deprecated":
-            warnings.warn(
-                "the save_train_predictions parameter is deprecated and will be "
-                "removed in v0.8.0.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
