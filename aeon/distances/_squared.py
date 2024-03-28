@@ -127,17 +127,17 @@ def squared_pairwise_distance(
     >>> # Distance between each TS in a collection of unequal-length time series
     >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
     >>> squared_pairwise_distance(X)
-    array([[ 0., 10., 17.],
-            [10.,  0., 14.],
-            [17., 14.,  0.]]
+    array([[  0.,  27., 147.],
+           [ 27.,   0.,  64.],
+           [147.,  64.,   0.]])
     """
-    _X = _convert_to_list(X, "X")
+    _X, _ = _convert_to_list(X, "X")
 
     if y is None:
         # To self
         return _squared_pairwise_distance(_X)
 
-    _y = _convert_to_list(y, "y")
+    _y, _ = _convert_to_list(y, "y")
     return _squared_from_multiple_to_multiple_distance(_X, _y)
 
 
