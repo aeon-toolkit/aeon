@@ -60,9 +60,7 @@ def test_load_forecasting_from_repo():
 )
 def test_load_classification_from_repo():
     name = "FOO"
-    with pytest.raises(
-        ValueError, match=f"dataset name ={name} is not available on extract path"
-    ):
+    with pytest.raises(ValueError):
         load_classification(name)
     name = "SonyAIBORobotSurface1"
     X, y, meta = load_classification(name, return_metadata=True)

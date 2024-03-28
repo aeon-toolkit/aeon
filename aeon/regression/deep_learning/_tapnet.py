@@ -60,8 +60,13 @@ class TapNetRegressor(BaseDeepRegressor):
         whether to use a CNN layer
     verbose         : bool, default = False
         whether to output extra information
-    random_state    : int or None, default = None
-        seed for random
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
 
     References
     ----------
@@ -166,13 +171,15 @@ class TapNetRegressor(BaseDeepRegressor):
         -------
         output: a compiled Keras model
         """
+        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
 
-        tf.random.set_seed(self.random_state)
-
         metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
@@ -212,7 +219,6 @@ class TapNetRegressor(BaseDeepRegressor):
         # Transpose to conform to expectation format from keras
         X = X.transpose(0, 2, 1)
 
-        check_random_state(self.random_state)
         self.input_shape = X.shape[1:]
 
         self.model_ = self.build_model(self.input_shape)

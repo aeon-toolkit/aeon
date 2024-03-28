@@ -1272,18 +1272,21 @@ def load_classification(
     else:
         local_module = MODULE
         local_dirname = "data"
-    if not os.path.exists(os.path.join(local_module, local_dirname)):
-        os.makedirs(os.path.join(local_module, local_dirname))
-    path = os.path.join(local_module, local_dirname)
+    if local_dirname is None:
+        path = local_module
+    else:
+        path = os.path.join(local_module, local_dirname)
+    if not os.path.exists(path):
+        os.makedirs(path)
     if name not in get_downloaded_tsc_tsr_datasets(path):
         if extract_path is None:
             local_dirname = "local_data"
             path = os.path.join(local_module, local_dirname)
-        if not os.path.exists(os.path.join(local_module, local_dirname)):
-            os.makedirs(os.path.join(local_module, local_dirname))
-        if name not in get_downloaded_tsc_tsr_datasets(
-            os.path.join(local_module, local_dirname)
-        ):
+        else:
+            path = extract_path
+        if not os.path.exists(path):
+            os.makedirs(path)
+        if name not in get_downloaded_tsc_tsr_datasets(path):
             # Check if on timeseriesclassification.com
             url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
             # Test if file exists to generate more informative error
@@ -1299,7 +1302,7 @@ def load_classification(
                 # Check the status code of the response
                 if response.status != 200:
                     raise ValueError(msg)
-            except HTTPError:
+            except (HTTPError, URLError, TimeoutError):
                 raise ValueError(msg)
             try:
                 _download_and_extract(
