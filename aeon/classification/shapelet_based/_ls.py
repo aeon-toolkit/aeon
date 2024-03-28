@@ -20,7 +20,14 @@ def _X_transformed_tslearn(X):
 
 class LearningShapeletClassifier(BaseClassifier):
     """
-    Learning Shapelet.
+    Learning Shapelet classifier.
+
+    This is a wrapper for the `LearningShapelet` class of `tslearn`.
+    Learning Shapelet classifier, presented in [1]_, operates by
+    identifying discriminative subsequences, called shapelets, within
+    the input time series data. These shapelets are representative patterns
+    that capture essential characteristics of different classes or categories
+    within the data.
 
     Parameters
     ----------
@@ -29,7 +36,7 @@ class LearningShapeletClassifier(BaseClassifier):
         the number of such shapelets to be trained (value).
         If None, `grabocka_params_to_shapelet_size_dict` is used and the
         size used to compute is that of the shortest time series passed at fit
-        time.a
+        time.
 
     max_iter: int (default: 10,000)
         Number of training epochs.
@@ -72,6 +79,10 @@ class LearningShapeletClassifier(BaseClassifier):
         the data.  If int, random_state is the seed used by the random number
         generator; If None, the random number generator is the RandomState
         instance used by `np.random`.
+
+    References
+    ----------
+    .. [1] J. Grabocka et al. Learning Time-Series Shapelets. SIGKDD 2014.
 
     """
 
