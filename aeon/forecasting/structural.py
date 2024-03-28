@@ -163,11 +163,12 @@ class UnobservedComponents(_StatsModelsAdapter):
         not be available (including smoothed results and in-sample
         prediction), although out-of-sample forecasting is possible.
         Default is False.
-    random_state : int, RandomState instance or None, default=None
+    random_state : int or None, default=None
+        Controls the randomness of the algorithm.
         If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+        Note: This function does not accept `RandomState` instances as `random_state`.
 
     See Also
     --------
