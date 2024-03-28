@@ -443,14 +443,14 @@ def _custom_func_pairwise(
                 return _custom_pairwise_distance(_X, dist_func, **kwargs)
             raise ValueError("x and y must be 1D, 2D, or 3D arrays")
         else:
-            _X = _convert_to_list(X)
+            _X, unequal_length = _convert_to_list(X)
             return _custom_pairwise_distance(_X, dist_func, **kwargs)
     if isinstance(X, np.ndarray) and isinstance(y, np.ndarray):
         _x, _y = reshape_pairwise_to_multiple(X, y)
         return _custom_from_multiple_to_multiple_distance(_x, _y, dist_func, **kwargs)
     else:
-        _x = _convert_to_list(X)
-        _y = _convert_to_list(y)
+        _x, unequal_length = _convert_to_list(X)
+        _y, unequal_length = _convert_to_list(y)
         return _custom_from_multiple_to_multiple_distance(_x, _y, dist_func, **kwargs)
 
 

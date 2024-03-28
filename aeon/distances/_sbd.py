@@ -187,13 +187,13 @@ def sbd_pairwise_distance(
            [0.36754447, 0.        , 0.29289322],
            [0.5527864 , 0.29289322, 0.        ]])
     """
-    _x = _convert_to_list(x, "x")
+    _x, _ = _convert_to_list(x, "x")
 
     if y is None:
         # To self
         return _sbd_pairwise_distance_single(_x, standardize)
 
-    _y = _convert_to_list(y, "y")
+    _y, _ = _convert_to_list(y, "y")
     return _sbd_pairwise_distance(_x, _y, standardize)
 
 
