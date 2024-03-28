@@ -1,6 +1,7 @@
 """Result loading tests."""
 
 import os
+from urllib.error import URLError
 
 import pandas as pd
 import pytest
@@ -24,6 +25,11 @@ test_path = os.path.dirname(__file__)
 data_path = os.path.join(test_path, "../example_results/")
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=[URLError, TimeoutError])
 def test_get_estimator_results():
     """Test loading results returned in a dict.
 
@@ -41,6 +47,11 @@ def test_get_estimator_results():
         get_estimator_results(estimators=cls, measure="madness")
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=[URLError, TimeoutError])
 def test_get_estimator_results_as_array():
     """Test loading results returned in an array.
 
@@ -82,9 +93,11 @@ def test_alias():
 # Tests for the results loaders that should not be part of the general CI.
 
 
-@pytest.mark.skip(
-    reason="Only run locally, this depends on " "timeseriesclassification.com"
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
 )
+@pytest.mark.xfail(raises=[URLError, TimeoutError])
 def test_load_all_classifier_results():
     """Run through all classifiers in NAME_ALIASES."""
     for measure in ["accuracy", "auroc", "balancedaccuracy", "nll"]:
@@ -113,6 +126,7 @@ def test_load_all_classifier_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
+@pytest.mark.xfail(raises=[URLError, TimeoutError])
 def test_get_available_estimators():
     """Test the get_available_estimators function for tsc.com results."""
     with pytest.raises(ValueError, match="not available on tsc.com"):
@@ -129,6 +143,7 @@ def test_get_available_estimators():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
+@pytest.mark.xfail(raises=[URLError, TimeoutError])
 def test_get_bake_off_2017_results():
     """Test original bake off results."""
     default_results = get_bake_off_2017_results()
@@ -145,6 +160,7 @@ def test_get_bake_off_2017_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
+@pytest.mark.xfail(raises=[URLError, TimeoutError])
 def test_get_bake_off_2020_results():
     """Test multivariate bake off results."""
     default_results = get_bake_off_2021_results()
@@ -161,6 +177,7 @@ def test_get_bake_off_2020_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
+@pytest.mark.xfail(raises=[URLError, TimeoutError])
 def test_get_bake_off_2023_results():
     """Test bake off redux results."""
     default_results = get_bake_off_2023_results()
