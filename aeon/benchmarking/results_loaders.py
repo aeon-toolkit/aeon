@@ -229,7 +229,7 @@ def get_available_estimators(task="classification", return_dataframe=True):
         return data.iloc[:, 0].tolist()
 
 
-# temporary function due to legacy format
+# function to allow legacy results file format
 def _load_results(
     estimators, datasets, default_only, path, suffix, probs_names, task, measure
 ):
@@ -238,12 +238,7 @@ def _load_results(
     for cls in estimators:
         alias_cls = estimator_alias(cls)
         url = path + alias_cls + suffix
-        try:
-            data = pd.read_csv(url)
-        except Exception:
-            raise ValueError(
-                f"Cannot connect to {url} website down or results not present"
-            )
+        data = pd.read_csv(url)
         cls_results = {}
         problems = data[probs_names].str.replace(r"_.*", "", regex=True)
         results = data.iloc[:, 1:].to_numpy()
