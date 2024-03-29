@@ -223,10 +223,7 @@ def get_available_estimators(task="classification", return_dataframe=True):
         f"https://timeseriesclassification.com/results/ReferenceResults/"
         f"{t}/estimators.txt"
     )
-    try:
-        data = pd.read_csv(path)
-    except Exception:
-        raise ValueError(f"{path} is unavailable right now, try later")
+    data = pd.read_csv(path)
     if return_dataframe:
         return data
     else:
