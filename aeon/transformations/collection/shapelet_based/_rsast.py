@@ -1,47 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Spyder Editor
-
-This is a temporary script file.
-"""
-
 import numpy as np
+from numba import get_num_threads, njit, prange, set_num_threads
 
-from sklearn.base import BaseEstimator, ClassifierMixin, clone
-from sklearn.utils.validation import check_array, check_X_y, check_is_fitted
-
-from sklearn.ensemble import RandomForestClassifier, VotingClassifier
-
-from sklearn.linear_model import RidgeClassifierCV, LogisticRegressionCV, LogisticRegression, RidgeClassifier
-
-
-from sklearn.linear_model._base import LinearClassifierMixin
-from sklearn.pipeline import Pipeline
-
-#from sktime.utils.data_processing import from_2d_array_to_nested
-#from sktime.transformations.panel.rocket import Rocket
-
-from numba import njit, prange
-
-#from mass_ts import *
-
-import pandas as pd
-
-from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
-from statsmodels.tsa.stattools import acf, pacf
-
-import time
-
-import os
-from operator import itemgetter
-
-
-
-from utils_sast import from_2d_array_to_nested, znormalize_array, load_dataset, format_dataset, plot_most_important_features, plot_most_important_feature_on_ts, plot_most_important_feature_sast_on_ts
-from aeon.classification.shapelet_based import RDSTClassifier
-#from sktime.datasets import load_UCR_UEA_dataset
-
-
+from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.numba.general import z_normalise_series
+from aeon.utils.validation import check_n_jobs
 
 
 
@@ -56,7 +18,7 @@ def apply_kernel(ts, arr):
 
     l = kernel.shape[0]
     for i in range(m - l + 1):
-        d = np.sum((znormalize_array(ts[i:i+l]) - kernel)**2)
+        d = np.sum((z_normalise_series(ts[i:i+l]) - kernel)**2)
         if d < d_best:
             d_best = d
 
@@ -75,163 +37,73 @@ def apply_kernels(X, kernels):
     return out
 
 
-class SAST(BaseEstimator, ClassifierMixin):
+class RSAST(BaseCollectionTransformer):
+    """Random Scalable and Accurate Subsequence Transform (SAST).
 
-    def __init__(self, cand_length_list, shp_step=1, nb_inst_per_class=1, random_state=None, classifier=None):
-        super(SAST, self).__init__()
-        self.cand_length_list = cand_length_list
-        self.shp_step = shp_step
+    RSAST [1] is based on SAST, it uses a stratified sampling strategy for subsequences selection but additionally takes into account certain 
+    statistical criteria such as ANOVA, ACF, and PACF to further reduce the search space of shapelets.
+    
+    RSAST starts with the pre-computation of a list of weights, using ANOVA, which helps in the selection of initial points for
+    subsequences. Then randomly select k time series per class, which are used with an ACF and PACF, obtaining a set of highly correlated 
+    lagged values. These values are used as potential lengths for the shapelets. Lastly, with a pre-defined number of admissible starting 
+    points to sample, the shapelets are extracted and used to transform the original dataset, replacing each time series by the vector of 
+    its distance to each subsequence.
+
+    Parameters
+    ----------
+    n_random_points: int default = 10 the number of initial random points to extract
+    len_method:  string default="both" the type of statistical tool used to get the length of shapelets. "both"=ACF&PACF, "ACF"=ACF, "PACF"=PACF, "None"=Extract randomly any length from the TS
+    nb_inst_per_class : int default = 10
+        the number of reference time series to select per class
+    seed : int, default = None
+        the seed of the random generator
+    classifier : sklearn compatible classifier, default = None
+        if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
+    n_jobs : int, default -1
+        Number of threads to use for the transform.
+
+    Reference
+    ---------
+    .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023). RSAST: Sampling Shapelets for Time Series Classification.
+    https://hal.science/hal-04311309/
+
+
+    Examples
+    --------
+    >>> from aeon.transformations.collection.shapelet_based import RSAST
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> rsast = RSAST()
+    >>> rsast.fit(X_train, y_train)
+    RSAST()
+    >>> X_train = rsast.transform(X_train)
+    >>> X_test = rsast.transform(X_test)
+
+    """
+    
+    _tags = {
+        "output_data_type": "Tabular",
+        "capability:multivariate": False,
+        "algorithm_type": "subsequence",
+    }
+
+    def __init__(
+        self,
+        n_random_points=10,
+        len_method="both",
+        nb_inst_per_class=10,
+        seed=None,
+        n_jobs=-1,
+    ):
+        super().__init__()
+        self.n_random_points = n_random_points,
+        self.len_method = len_method,
         self.nb_inst_per_class = nb_inst_per_class
-        self.kernels_ = None
-        self.kernel_orig_ = None  # not z-normalized kernels
-        self.kernels_generators_ = {}
-        self.random_state = np.random.RandomState(random_state) if not isinstance(
-            random_state, np.random.RandomState) else random_state
-
-        self.classifier = classifier
-
-    def get_params(self, deep=True):
-        return {
-            'cand_length_list': self.cand_length_list,
-            'shp_step': self.shp_step,
-            'nb_inst_per_class': self.nb_inst_per_class,
-            'classifier': self.classifier
-        }
-
-    def init_sast(self, X, y):
-
-        self.cand_length_list = np.array(sorted(self.cand_length_list))
-
-        assert self.cand_length_list.ndim == 1, 'Invalid shapelet length list: required list or tuple, or a 1d numpy array'
-
-        if self.classifier is None:
-            self.classifier = RandomForestClassifier(
-                min_impurity_decrease=0.05, max_features=None)
-
-        classes = np.unique(y)
-        self.num_classes = classes.shape[0]
-
-        candidates_ts = []
-        for c in classes:
-            X_c = X[y == c]
-
-            # convert to int because if self.nb_inst_per_class is float, the result of np.min() will be float
-            cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
-            choosen = self.random_state.permutation(X_c.shape[0])[:cnt]
-            candidates_ts.append(X_c[choosen])
-            self.kernels_generators_[c] = X_c[choosen]
-
-        candidates_ts = np.concatenate(candidates_ts, axis=0)
-
-        self.cand_length_list = self.cand_length_list[self.cand_length_list <= X.shape[1]]
-
-        max_shp_length = max(self.cand_length_list)
-
-        n, m = candidates_ts.shape
-
-        n_kernels = n * np.sum([m - l + 1 for l in self.cand_length_list])
-
-        self.kernels_ = np.full(
-            (n_kernels, max_shp_length), dtype=np.float32, fill_value=np.nan)
-        self.kernel_orig_ = []
-
-        k = 0
-
-        for shp_length in self.cand_length_list:
-            for i in range(candidates_ts.shape[0]):
-                for j in range(0, candidates_ts.shape[1] - shp_length + 1, self.shp_step):
-                    end = j + shp_length
-                    can = np.squeeze(candidates_ts[i][j: end])
-                    self.kernel_orig_.append(can)
-                    self.kernels_[k, :shp_length] = znormalize_array(can)
-
-                    k += 1
-        
-    def fit(self, X, y):
-
-        X, y = check_X_y(X, y)  # check the shape of the data
-
-        # randomly choose reference time series and generate kernels
-        self.init_sast(X, y)
-
-        # subsequence transform of X
-        X_transformed = apply_kernels(X, self.kernels_)
-
-        self.classifier.fit(X_transformed, y)  # fit the classifier
-
-        return self
-
-    def predict(self, X):
-
-        check_is_fitted(self)  # make sure the classifier is fitted
-
-        X = check_array(X)  # validate the shape of X
-
-        # subsequence transform of X
-        X_transformed = apply_kernels(X, self.kernels_)
-
-        return self.classifier.predict(X_transformed)
-
-    def predict_proba(self, X):
-        check_is_fitted(self)  # make sure the classifier is fitted
-
-        X = check_array(X)  # validate the shape of X
-
-        # subsequence transform of X
-        X_transformed = apply_kernels(X, self.kernels_)
-
-        if isinstance(self.classifier, LinearClassifierMixin):
-            return self.classifier._predict_proba_lr(X_transformed)
-        return self.classifier.predict_proba(X_transformed)
-
-
-class SASTEnsemble(BaseEstimator, ClassifierMixin):
-
-    def __init__(self, cand_length_list, shp_step=1, nb_inst_per_class=1, random_state=None, classifier=None, weights=None, n_jobs=None):
-        super(SASTEnsemble, self).__init__()
-        self.cand_length_list = cand_length_list
-        self.shp_step = shp_step
-        self.nb_inst_per_class = nb_inst_per_class
-        self.classifier = classifier
-        self.random_state = random_state
         self.n_jobs = n_jobs
+        self.seed = seed
 
-        self.saste = None
-
-        self.weights = weights
-
-        assert isinstance(self.classifier, BaseEstimator)
-
-        self.init_ensemble()
-
-    def init_ensemble(self):
-        estimators = []
-        for i, candidate_lengths in enumerate(self.cand_length_list):
-            clf = clone(self.classifier)
-            sast = SAST(cand_length_list=candidate_lengths,
-                        nb_inst_per_class=self.nb_inst_per_class,
-                        random_state=self.random_state,
-                        shp_step=self.shp_step,
-                        classifier=clf)
-            estimators.append((f'sast{i}', sast))
-
-        self.saste = VotingClassifier(
-            estimators=estimators, voting='soft', n_jobs=self.n_jobs, weights=self.weights)
-
-    def fit(self, X, y):
-        self.saste.fit(X, y)
-        return self
-
-    def predict(self, X):
-        return self.saste.predict(X)
-
-    def predict_proba(self, X):
-        return self.saste.predict_proba(X)
-
-
-
-class RSAST(BaseEstimator, ClassifierMixin):
-
+    
     def __init__(self,n_random_points=10, nb_inst_per_class=10, len_method="both", random_state=None, classifier=None, sel_inst_wrepl=False,sel_randp_wrepl=False, half_instance=False, half_len=False,n_shapelet_samples=None ):
         super(RSAST, self).__init__()
         self.n_random_points = n_random_points
@@ -517,169 +389,3 @@ class RSAST(BaseEstimator, ClassifierMixin):
             return self.classifier._predict_proba_lr(X_transformed)
         return self.classifier.predict_proba(X_transformed)
 
-
-if __name__ == "__main__":
-
-    ds='Chinatown' # Chosing a dataset from # Number of classes to consider
-
-    rtype="numpy2D"
-    
-    #X_train, y_train = load_UCR_UEA_dataset(name=ds, split="train",extract_path="data", return_type=rtype)
-    
-    
-    #X_train=np.nan_to_num(X_train)
-    #y_train=np.nan_to_num(y_train)
-    
-    #X_test, y_test = load_UCR_UEA_dataset(name=ds, split="test", extract_path="data", return_type=rtype)
-    
-    #X_test=np.nan_to_num(X_test)
-    #y_test=np.nan_to_num(y_test)
-    #print('Format: load_UCR_UEA_dataset')
-    #print(X_train.shape)
-    #print(X_test.shape)
-    #print(y_train.shape)
-    #print(y_test.shape)
-
-
-    #y_train = list(map(int, y_train))
-    #y_test =list(map(int, y_test))    
-    #print(X_train[0])  
-     
-    """
-    print("ds:"+ds)
-    X_train_mod=[]
-    for i , element in enumerate(X_train):
-        element=np.array(element[0])
-        print("TS N:"+str(i)+" len:"+str(element.shape))
-        #print(element)
-        X_train_mod.append(element)
-       
-    X_train_mod= np.array(X_train_mod)
-    print(X_train_mod.shape) 
-    
-    X_train_mod=np.nan_to_num(X_train_mod)
-    """
-    
-    path=r"C:\Users\Surface pro\random_sast\sast\data"
-    ds_train_lds , ds_test_lds = load_dataset(ds_folder=path,ds_name=ds,shuffle=False)
-    X_test_lds, y_test_lds = format_dataset(ds_test_lds)
-    X_train_lds, y_train_lds = format_dataset(ds_train_lds)
-    
-    X_train_lds=np.nan_to_num(X_train_lds)
-    y_train_lds=np.nan_to_num(y_train_lds)
-    X_test_lds=np.nan_to_num(X_test_lds)
-    y_test_lds=np.nan_to_num(y_test_lds)
-    
-    print('Format: load_dataset')
-    print(X_train_lds.shape)
-    print(X_train_lds[0].shape)
-    print(X_train_lds[1].shape)
-    print(X_test_lds.shape)
-    
-
-    print(y_train_lds.shape)
-    print(y_test_lds.shape)
-    
-
-   
-   
-    start = time.time()
-    random_state = None
-    rsast_ridge = RSAST(n_random_points=10, nb_inst_per_class=10, len_method="both")
-    rsast_ridge.fit(X_train_lds, y_train_lds)
-    end = time.time()
-    print('rsast score :', rsast_ridge.score(X_test_lds, y_test_lds))
-    print('duration:', end-start)
-    print('params:', rsast_ridge.get_params()) 
-
-    #print('classifier:',rsast_ridge.classifier.coef_[0])
-    
-    #fname = f'images/chinatown-rf-class{c}-top5-features-on-ref-ts.jpg'
-    #print(f"ts.shape{pd.array(rsast_ridge.kernels_generators_).shape}")
-    #print(f"kernel_d.shape{pd.array(rsast_ridge.kernel_orig_).shape}")
-
-    plot_most_important_feature_on_ts(set_ts=rsast_ridge.kernels_generators_, labels=rsast_ridge.class_generators_, features=rsast_ridge.kernel_orig_, scores=rsast_ridge.classifier.coef_[0], limit=3, offset=0,znormalized=False)   
-    
-    plot_most_important_features(rsast_ridge.kernel_orig_, rsast_ridge.classifier.coef_[0], limit=3,scale_color=False)
-
-    X_train = X_train_lds[:, np.newaxis, :]
-    X_test = X_test_lds[:, np.newaxis, :]
-    y_train=np.asarray([int(x_s) for x_s in y_train_lds])
-    y_test=np.asarray([int(x_s) for x_s in y_test_lds])
-    start = time.time()
-
-    rdst = RDSTClassifier(
-        max_shapelets=4,
-        shapelet_lengths=[7],
-        proba_normalization=0,
-        save_transformed_data=True
-    )
-    rdst = RDSTClassifier(proba_normalization=0)
-    rdst.fit(X_train, y_train)
-    end = time.time()
-    
-
-    
-    print('rdst score :', rdst.score(X_test, y_test))
-    print('duration:', end-start)
-    print('params:', rdst.get_params())
-    """
-    for i, shp in enumerate(rdst._transformer.shapelets_[0].squeeze()):
-        print('rdst shapelet values:',str(i+1)," shape:", shp.shape," shapelet:", shp )
-    
-    for i, dilation in enumerate(rdst._transformer.shapelets_[2].squeeze()):
-        print('rdst dilation parameter:',str(i+1)," shape:", shp.shape," dilation:", dilation )
-    
-    for i, treshold in enumerate(rdst._transformer.shapelets_[3].squeeze()):
-        print('rdst treshold parameter:',str(i+1)," shape:", shp.shape," treshold:", treshold )
-   
-    for i, normalization in enumerate(rdst._transformer.shapelets_[4].squeeze()):
-        print('rdst normalization parameter:',str(i+1)," shape:", shp.shape," normalization:", normalization )
-    
-    for i, coef in enumerate(rdst._estimator["ridgeclassifiercv"].coef_):
-        print('rdst coef:',str(i+1)," shape:", coef.shape," coef:", coef )
-    """
-    
-    features_cl=rdst._transformer.shapelets_[0].squeeze()
-    dilations_cl=rdst._transformer.shapelets_[2].squeeze()
-    
-    coef_cl=rdst._estimator["ridgeclassifiercv"].coef_[0]
-    features_cl=[a for a in features_cl for i in range(3)]
-    dilations_cl=[a for a in dilations_cl for i in range(3)]
-    type_features_cl=["min","argmin","SO"]*len(features_cl)
-
-    for l in pd.unique(rsast_ridge.class_generators_):
-        
-        all=zip(rsast_ridge.kernels_generators_,rsast_ridge.class_generators_)
-        
-        ts_cl=list(filter(lambda x: x[1]==l,all))[0][0]
-        ts_cl=[ts_cl for i in range(len(features_cl))]
-        labels=[l for i in range(len(features_cl))]
-        plot_most_important_feature_on_ts(set_ts=ts_cl, labels=labels, features=features_cl, scores=coef_cl,dilations=dilations_cl,type_features=type_features_cl, limit=3, offset=0,znormalized=False)   
-    plot_most_important_features(features_cl, coef_cl, dilations=dilations_cl, limit=3, scale_color=False)
-    """
-    min_shp_length = 3
-    max_shp_length = X_train_lds.shape[1]
-    candidate_lengths = np.arange(min_shp_length, max_shp_length+1)
-    # candidate_lengths = (3, 7, 9, 11)
-    nb_inst_per_class = 1
-    ridge = RidgeClassifierCV(alphas = np.logspace(-3, 3, 10))
-    
-    start = time.time()
-    random_state = None 
-    sast_ridge = SAST(cand_length_list=candidate_lengths,
-                          nb_inst_per_class=nb_inst_per_class, 
-                          random_state=random_state, classifier=ridge)
-    sast_ridge.fit(X_train_lds, y_train_lds)
-    end = time.time()
-    print('sast score :', sast_ridge.score(X_test_lds, y_test_lds))
-    print('duration:', end-start)
-    print('params:', sast_ridge.get_params()) 
-    #print('classifier:',rsast_ridge.classifier.coef_[0])
-    
-    #fname = f'images/chinatown-rf-class{c}-top5-features-on-ref-ts.jpg'
-    #print(f"ts.shape{pd.array(rsast_ridge.kernels_generators_).shape}")
-    #print(f"kernel_d.shape{pd.array(rsast_ridge.kernel_orig_).shape}")
-    for c, ts in sast_ridge.kernels_generators_.items():
-        plot_most_important_feature_sast_on_ts(ts.squeeze(), c, sast_ridge.kernel_orig_, sast_ridge.classifier.coef_[0], limit=3, offset=0) # plot only the first model one-vs-all model's features
-    """

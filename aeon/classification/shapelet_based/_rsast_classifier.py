@@ -37,19 +37,18 @@ class RSASTClassifier(BaseClassifier):
 
     Reference
     ---------
-    .. [1] ...
-    "..."
-	...
-
+    .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023). RSAST: Sampling Shapelets for Time Series Classification.
+    https://hal.science/hal-04311309/
+    
     Examples
     --------
-    >>> from aeon.classification.shapelet_based import SASTClassifier
+    >>> from aeon.classification.shapelet_based import RSASTClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = SASTClassifier()
+    >>> clf = RSASTClassifier()
     >>> clf.fit(X_train, y_train)
-    SASTClassifier(...)
+    RSASTClassifier(...)
     >>> y_pred = clf.predict(X_test)
     """
 
@@ -69,12 +68,11 @@ class RSASTClassifier(BaseClassifier):
         n_jobs=-1,
     ):
         super().__init__()
-        self.n_random_points=n_random_points,
-        self.len_method=len_method,
+        self.n_random_points = n_random_points,
+        self.len_method = len_method,
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
         self.seed = seed
-
         self.classifier = classifier
 
     def _fit(self, X, y):
@@ -94,8 +92,8 @@ class RSASTClassifier(BaseClassifier):
 
         """
         self._transformer = RSAST(
-            self.n_random_points=n_random_points,
-	    self.len_method=len_method,
+            self.n_random_points,
+	        self.len_method,
             self.nb_inst_per_class,
             self.seed,
             self.n_jobs,
