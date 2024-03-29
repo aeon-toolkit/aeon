@@ -90,7 +90,7 @@ def test_alias():
 
 
 # Tests for the results loaders that should not be part of the general CI.
-
+# Add to this list if new results are added
 CLASSIFIER_NAMES = {
     "Arsenal",
     "BOSS",
