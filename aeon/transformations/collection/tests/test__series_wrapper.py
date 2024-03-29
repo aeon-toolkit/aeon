@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from aeon.testing.utils.data_gen import make_example_3d_numpy
-from aeon.transformations.collection._series_wrapper import SeriesToCollectionWrapper
+from aeon.transformations.collection._broadcaster import SeriesToCollectionWrapper
 from aeon.transformations.series import (
     DummySeriesTransformer,
     DummySeriesTransformerNoFit,
