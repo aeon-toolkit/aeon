@@ -37,7 +37,7 @@ from aeon.testing.test_config import PR_TESTING
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_load_forecasting_from_repo():
     name = "FOO"
     with pytest.raises(
@@ -60,7 +60,7 @@ def test_load_forecasting_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_load_classification_from_repo():
     name = "FOO"
     with pytest.raises(ValueError):
@@ -86,7 +86,7 @@ def test_load_classification_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_load_regression_from_repo():
     name = "FOO"
     with pytest.raises(
@@ -135,7 +135,7 @@ def test_load_regression_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_load_fails():
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
@@ -164,7 +164,7 @@ def test__alias_datatype_check():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test__load_header_info():
     path = os.path.join(
         os.path.dirname(aeon.__file__),
@@ -211,7 +211,7 @@ def test__load_header_info():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test__load_data():
     """Test loading after header."""
     path = os.path.join(
@@ -486,7 +486,7 @@ def test__get_channel_strings():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_get_meta_data():
     """Test the get_dataset_meta_data function."""
     df = get_dataset_meta_data()

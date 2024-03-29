@@ -65,7 +65,6 @@ NAME_ALIASES = {
         "LITETimeClassifier",
         "LITETime",
     },
-    "MR": {"multirocket", "MultiROCKET", "MultiRocket", "MRClassifier"},
     "MiniROCKET": {"MiniRocket", "MiniROCKETClassifier"},
     "MrSQM": {"mrsqm", "MrSQMClassifier"},
     "MR-Hydra": {
@@ -76,7 +75,12 @@ NAME_ALIASES = {
         "MultiRocketHydraClassifier",
         "MultiRocketHydra",
     },
-    "MultiROCKET": {"MultiRocket", "MultiROCKETClassifier", "MultiROCKETRegressor"},
+    "MR": {
+        "MultiRocket",
+        "MultiROCKETClassifier",
+        "MultiROCKETRegressor",
+        "MultiROCKET",
+    },
     "PF": {"ProximityForest", "ProximityForestV1", "PFV1"},
     "QUANT": {"quant", "QuantileForestClassifier", "QUANTClassifier"},
     "RDST": {"rdst", "RandomDilationShapeletTransform", "RDSTClassifier"},
@@ -113,7 +117,7 @@ NAME_ALIASES = {
         "KNeighborsTimeSeriesClassifier",
         "KNeighborsTimeSeries",
     },
-    "5NN-DTW": {"5NNDTW", "5nn-dtw"},
+    "5NN-DTW": {"5NNDTW", "5nn-dtw"},  # We do not have these results for classification
     "1NN-ED": {
         "1NNED",
         "1nn-ed",

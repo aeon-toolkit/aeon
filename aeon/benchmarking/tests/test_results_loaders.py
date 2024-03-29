@@ -8,7 +8,6 @@ import pytest
 from pytest import raises
 
 from aeon.benchmarking.results_loaders import (
-    NAME_ALIASES,
     estimator_alias,
     get_available_estimators,
     get_bake_off_2017_results,
@@ -92,16 +91,60 @@ def test_alias():
 
 # Tests for the results loaders that should not be part of the general CI.
 
+CLASSIFIER_NAMES = {
+    "Arsenal",
+    "BOSS",
+    "cBOSS",
+    "CIF",
+    "CNN",
+    "Catch22",
+    "DrCIF",
+    "EE",
+    "FreshPRINCE",
+    "FP",
+    "GRAIL",
+    "HC1",
+    "HC2",
+    "Hydra",
+    "H-InceptionTime",
+    "InceptionTime",
+    "LiteTime",
+    "MR",
+    "MiniROCKET",
+    "MrSQM",
+    "MR-Hydra",
+    "PF",
+    "QUANT",
+    "RDST",
+    "RISE",
+    "RIST",
+    "ROCKET",
+    "RSF",
+    "R-STSF",
+    "ResNet",
+    "STC",
+    "STSF",
+    "ShapeDTW",
+    "Signatures",
+    "TDE",
+    "TS-CHIEF",
+    "TSF",
+    "TSFresh",
+    "WEASEL-1.0",
+    "WEASEL-2.0",
+    "1NN-DTW",
+}
+
 
 @pytest.mark.skipif(
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_load_all_classifier_results():
-    """Run through all classifiers in NAME_ALIASES."""
-    for measure in ["accuracy", "auroc", "balancedaccuracy", "nll"]:
-        for name_key in NAME_ALIASES.keys():
+    """Run through all classifiers in CLASSIFIER_NAMES."""
+    for measure in ["accuracy", "auroc", "balacc", "logloss"]:
+        for name_key in CLASSIFIER_NAMES:
             res, names = get_estimator_results_as_array(
                 estimators=[name_key],
                 include_missing=False,
@@ -126,7 +169,7 @@ def test_load_all_classifier_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_get_available_estimators():
     """Test the get_available_estimators function for tsc.com results."""
     with pytest.raises(ValueError, match="not available on tsc.com"):
@@ -143,7 +186,7 @@ def test_get_available_estimators():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_get_bake_off_2017_results():
     """Test original bake off results."""
     default_results = get_bake_off_2017_results()
@@ -160,7 +203,7 @@ def test_get_bake_off_2017_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_get_bake_off_2020_results():
     """Test multivariate bake off results."""
     default_results = get_bake_off_2021_results()
@@ -177,7 +220,7 @@ def test_get_bake_off_2020_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
-@pytest.mark.xfail(raises=[URLError, TimeoutError])
+@pytest.mark.xfail(raises=(URLError, TimeoutError))
 def test_get_bake_off_2023_results():
     """Test bake off redux results."""
     default_results = get_bake_off_2023_results()
