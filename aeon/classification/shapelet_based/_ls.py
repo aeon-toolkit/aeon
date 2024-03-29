@@ -203,4 +203,4 @@ class LearningShapeletClassifier(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {"n_shapelets_per_size": None, "shapelet_length": 0.15}
+        return {"n_shapelets_per_size": None, "shapelet_length": 0.15, "max_iter": 50}
