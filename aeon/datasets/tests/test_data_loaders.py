@@ -486,7 +486,7 @@ def test__get_channel_strings():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
 def test_get_meta_data():
     """Test the get_dataset_meta_data function."""
     df = get_dataset_meta_data()

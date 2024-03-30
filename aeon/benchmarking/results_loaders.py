@@ -239,12 +239,7 @@ def _load_results(
     for cls in estimators:
         alias_cls = estimator_alias(cls)
         url = path + alias_cls + suffix
-        try:
-            data = pd.read_csv(url)
-        except Exception:
-            raise ValueError(
-                f"Cannot connect to {url} website down or results not present"
-            )
+        data = pd.read_csv(url)
         cls_results = {}
         problems = data[probs_names].str.replace(r"_.*", "", regex=True)
         results = data.iloc[:, 1:].to_numpy()

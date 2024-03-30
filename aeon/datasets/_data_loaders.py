@@ -7,6 +7,7 @@ import urllib
 import zipfile
 from datetime import datetime
 from urllib.error import HTTPError
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen, urlretrieve
 
 import numpy as np
@@ -1489,13 +1490,24 @@ def get_dataset_meta_data(
     ------
     URLError or HTTPError if the website is not accessible.
     """
+    # Check string is either a valid local path or responding web page
+    if not os.path.isfile(url):
+        try:
+            urlparse(url)
+        except Exception:
+            raise ValueError(f"Invalid URL or file path {url}")
+
     if isinstance(features, str):
         features = [features]
-    if features is None:
-        df = pd.read_csv(url)
-    else:
-        features.append("Dataset")
-        df = pd.read_csv(url, usecols=features)
-    if data_names is not None:
-        df = df[df["Dataset"].isin(data_names)]
+
+    try:
+        if features is None:
+            df = pd.read_csv(url)
+        else:
+            features.append("Dataset")
+            df = pd.read_csv(url, usecols=features)
+        if data_names is not None:
+            df = df[df["Dataset"].isin(data_names)]
+    except Exception as e:
+        raise e
     return df
