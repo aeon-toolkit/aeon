@@ -1332,11 +1332,11 @@ def load_classification(
             try:
                 # Perform the request
                 response = urlopen(req)
-                # Check the status code of the response
+                # Check the status code of the response, if 200 incorrect input args
                 if response.status != 200:
                     raise ValueError(msg)
-            except HTTPError:
-                raise ValueError(msg)
+            except Exception as e:
+                raise e
             try:
                 _download_and_extract(
                     url,
@@ -1492,9 +1492,8 @@ def get_dataset_meta_data(
     """
     # Check string is either a valid local path or responding web page
     if not os.path.isfile(url):
-        try:
-            urlparse(url)
-        except Exception:
+        parsed_url = urlparse(url)
+        if not (bool(parsed_url.scheme) and bool(parsed_url.netloc)):
             raise ValueError(f"Invalid URL or file path {url}")
 
     if isinstance(features, str):
