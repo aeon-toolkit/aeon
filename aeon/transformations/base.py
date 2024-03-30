@@ -94,7 +94,7 @@ class BaseTransformer(BaseEstimator):
         "output_data_type": "Series",
         "transform_labels": "None",
         "instancewise": True,
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "X_inner_type": "pd.DataFrame",
         # this can be a Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "None",
@@ -764,8 +764,8 @@ class BaseTransformer(BaseEstimator):
         ------
         TypeError if X is None
         TypeError if X or y is not one of the permissible Series mtypes
-        TypeError if X is not compatible with self.get_tag("univariate_only")
-            if tag value is "True", X must be univariate
+        TypeError if X is not compatible with self.get_tag("capability:multivariate")
+            if tag value is "False", X must be univariate
         ValueError if self.get_tag("requires_y")=True but y is None
         """
         if X is None:
@@ -832,7 +832,7 @@ class BaseTransformer(BaseEstimator):
         metadata["_convert_case"] = case
 
         # checking X vs tags
-        inner_univariate = self.get_tag("univariate-only")
+        inner_univariate = self.get_tag("capability:multivariate")
         # we remember whether we need to vectorize over columns, and at all
         req_vec_because_cols = inner_univariate and not X_metadata["is_univariate"]
         requires_vectorization = req_vec_because_rows or req_vec_because_cols

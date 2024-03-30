@@ -172,7 +172,7 @@ class STLBootstrapTransformer(BaseTransformer):
         "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "capability:missing_values": False,
         "X-y-must-have-same-index": False,
         "enforce_index_type": None,
