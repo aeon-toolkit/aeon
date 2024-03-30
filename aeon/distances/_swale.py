@@ -62,28 +62,6 @@ def _swale_distance(
     rewardm: float = 1.0,
     epsilon: float = 1.0,
 ) -> float:
-    """
-    Calculate the Swale distance between two arrays.
-
-    Parameters
-    ----------
-    x : numpy.ndarray
-        First array.
-    y : numpy.ndarray
-        Second array.
-    gapc : float
-        Gap cost.
-    rewardm : float
-        Reward for match.
-    epsilon : float
-        Epsilon value.
-
-    Returns
-    -------
-    float
-        The Swale distance between the arrays.
-
-    """
     n_series1 = x.shape[0]
     n_series2 = y.shape[0]
 
@@ -113,27 +91,6 @@ def _univariate_swale_distance(
     rewardm: float = 1.0,
     epsilon: float = 1.0,
 ) -> float:
-    """
-    Calculate the univariate Swale distance between two time series.
-
-    Parameters
-    ----------
-    x : numpy.ndarray
-        First time series.
-    y : numpy.ndarray
-        Second time series.
-    gapc : float
-        Gap cost.
-    rewardm : float
-        Reward for match.
-    epsilon : float
-        Epsilon value.
-
-    Returns
-    -------
-    float
-        The univariate Swale distance between the time series.
-    """
     m = float(len(x))
     n = float(len(y))
 
@@ -159,25 +116,6 @@ def _univariate_swale_distance(
 def _swale_pairwise_distance(
     x: np.ndarray, gapc: float = 1.0, rewardm: float = 1.0, epsilon: float = 1.0
 ) -> np.ndarray:
-    """
-    Calculate pairwise Swale distances for a set of time series.
-
-    Parameters
-    ----------
-    x : numpy.ndarray
-        Set of time series.
-    gapc : float
-        Gap cost.
-    rewardm : float
-        Reward for match.
-    epsilon : float
-        Epsilon value.
-
-    Returns
-    -------
-    numpy.ndarray
-        Pairwise Swale distances.
-    """
     n_cases = x.shape[0]
     distances = np.zeros((n_cases, n_cases))
 
@@ -253,27 +191,6 @@ def _swale_from_multiple_to_multiple_distance(
     rewardm: float = 1.0,
     epsilon: float = 1.0,
 ) -> np.ndarray:
-    """
-    Calculate Swale distances between two sets of time series.
-
-    Parameters
-    ----------
-    x : numpy.ndarray
-        First set of time series.
-    y : numpy.ndarray
-        Second set of time series.
-    gapc : float
-        Gap cost.
-    rewardm : float
-        Reward for match.
-    epsilon : float
-        Epsilon value.
-
-    Returns
-    -------
-    numpy.ndarray
-        Swale distances between the two sets of time series.
-    """
     n_cases = x.shape[0]
     m_cases = y.shape[0]
     distances = np.zeros((n_cases, m_cases))
