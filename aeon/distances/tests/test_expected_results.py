@@ -104,6 +104,13 @@ _expected_distance_results = {
         0.59674837,
         0.51688041,
     ],
+    "swale": [
+        2.0,
+        15.0,
+        129.0,
+        12.0,
+        114.0,
+    ],
 }
 
 _expected_distance_results_params = {

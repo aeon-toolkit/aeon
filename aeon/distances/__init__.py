@@ -65,6 +65,8 @@ __all__ = [
     "shape_dtw_pairwise_distance",
     "sbd_distance",
     "sbd_pairwise_distance",
+    "swale_distance",
+    "swale_pairwise_distance",
 ]
 
 
@@ -133,6 +135,7 @@ from aeon.distances._shape_dtw import (
     shape_dtw_pairwise_distance,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
+from aeon.distances._swale import swale_distance, swale_pairwise_distance
 from aeon.distances._twe import (
     twe_alignment_path,
     twe_cost_matrix,
