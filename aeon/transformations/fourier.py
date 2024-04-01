@@ -76,7 +76,7 @@ class FourierFeatures(BaseTransformer):
         # what is the abstract type of y: None (not needed), Primitives, Series, Panel
         "instancewise": True,
         "capability:inverse_transform": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
         "requires_y": False,  # does y need to be passed in fit?
