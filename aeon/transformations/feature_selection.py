@@ -79,7 +79,7 @@ class FeatureSelection(BaseTransformer):
         "fit_is_empty": False,
         "transform-returns-same-time-index": True,
         "skip-inverse-transform": True,
-        "capability:multivariate": True,
+        "univariate-only": False,
     }
 
     def __init__(
