@@ -68,8 +68,11 @@ class CNNRegressor(BaseDeepRegressor):
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
     optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
-    metrics         : list of strings, default="mean_squared_error",
-        The evaluation metrics to use during training.
+    metrics         : str or list of str, default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     callbacks       : keras.callbacks, default=model_checkpoint to save best
                       model on training loss
     file_path       : file_path for the best model (if checkpoint is used as callback)
