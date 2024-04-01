@@ -7,7 +7,7 @@ import pytest
 
 import aeon
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
-from aeon.datasets.tsc_data_lists import univariate_equal_length
+from aeon.datasets.tsc_datasets import univariate_equal_length
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation.results._significance import _build_cliques, plot_significance
 

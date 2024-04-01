@@ -126,12 +126,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
-        ``transformed_data_`` will also be removed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -161,7 +155,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
     intervals_ : list of shape (n_estimators) of BaseTransformer
         Stores the interval extraction transformer for all estimators.
 
-
     References
     ----------
     .. [1] H.Deng, G.Runger, E.Tuv and M.Vladimir, "A time series forest for
@@ -188,7 +181,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
         replace_nan=None,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -205,20 +197,9 @@ class BaseIntervalForest(metaclass=ABCMeta):
         self.replace_nan = replace_nan
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
-        self.save_transformed_data = save_transformed_data
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
-        self.transformed_data_ = []
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be "
-                "removed in v0.8.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -237,12 +218,11 @@ class BaseIntervalForest(metaclass=ABCMeta):
     transformer_feature_skip = ["transform_features_", "_transform_features"]
 
     def _fit(self, X, y):
-        b = (
-            False
-            if isinstance(self.save_transformed_data, str)
-            else self.save_transformed_data
-        )
-        self.transformed_data_ = self._fit_forest(X, y, save_transformed_data=b)
+        if getattr(self, "_unit_test_flag", False):
+            self._transformed_data = self._fit_forest(X, y, save_transformed_data=True)
+        else:
+            self._fit_forest(X, y)
+
         return self
 
     def _predict(self, X):
