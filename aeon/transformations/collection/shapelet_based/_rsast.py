@@ -1,3 +1,6 @@
+import sys
+sys.path.append(r'C:\Users\nicol\aeon')
+
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
@@ -96,9 +99,8 @@ class RSAST(BaseCollectionTransformer):
         seed = None,
         n_jobs = -1,
     ):
-        super().__init__()
-        self.n_random_points = n_random_points,
-        self.len_method = len_method,
+        self.n_random_points = n_random_points
+        self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
         self.seed = seed
@@ -106,6 +108,9 @@ class RSAST(BaseCollectionTransformer):
         self._kernel_orig = None  # non z-normalized subsequences
         self._kernels_generators = {}  # Reference time series
         self._cand_length_list = None
+        super().__init__()
+        
+
 
     def _fit(self, X, y):
         """Select reference time series and generate subsequences from them.
@@ -123,9 +128,21 @@ class RSAST(BaseCollectionTransformer):
             This transformer
 
         """
-       #0- initialize variables and convert values in "y" to string
        
-        y=np.asarray([str(x_s) for x_s in y])
+       #0- initialize variables and convert values in "y" to string
+        X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
+
+        self._random_state = (
+            np.random.RandomState(self.seed)
+            if not isinstance(self.seed, np.random.RandomState)
+            else self.seed
+        )
+
+        classes = np.unique(y)
+        self._num_classes = classes.shape[0]
+
+        candidates_ts = []
+        y = np.asarray([str(x_s) for x_s in y])
         
         self.cand_length_list = {}
         self.kernel_orig_ = []
@@ -142,12 +159,12 @@ class RSAST(BaseCollectionTransformer):
         m_kernel = 0
 
         #1--calculate ANOVA per each time t throught the lenght of the TS
-        for i in range (X.shape[1]):
+        for i in range (X_.shape[1]):
             statistic_per_class= {}
             for c in classes:
-                assert len(X[np.where(y==c)[0]][:,i])> 0, 'Time t without values in TS'
+                assert len(X_[np.where(y==c)[0]][:,i])> 0, 'Time t without values in TS'
 
-                statistic_per_class[c]=X[np.where(y==c)[0]][:,i]
+                statistic_per_class[c]=X_[np.where(y==c)[0]][:,i]
                 #print("statistic_per_class- i:"+str(i)+', c:'+str(c))
                 #print(statistic_per_class[c].shape)
 
@@ -162,7 +179,9 @@ class RSAST(BaseCollectionTransformer):
             try:
                 t_statistic, p_value = f_oneway(*statistic_per_class)
             except DegenerateDataWarning or ConstantInputWarning:
-                p_value=np.nan
+                p_value = np.nan
+            
+            #print('statistic_per_class', str(statistic_per_class))
             # Interpretation of the results
             # if p_value < 0.05: " The means of the populations are significantly different."
             #print('pvalue', str(p_value))
@@ -177,12 +196,12 @@ class RSAST(BaseCollectionTransformer):
         #2--calculate PACF and ACF for each TS chossen in each class
         
         for i, c in enumerate(classes):
-            X_c = X[y == c]
+            X_c = X_[y == c]
 
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
             #set if the selection of instances is with replacement (if false it is not posible to select the same intance more than one)
 
-            choosen = self.random_state.permutation(X_c.shape[0])[:cnt]
+            choosen = self._random_state.permutation(X_c.shape[0])[:cnt]
             
             for rep, idx in enumerate(choosen):
                 self.cand_length_list[c+","+str(idx)+","+str(rep)] = []
@@ -226,7 +245,7 @@ class RSAST(BaseCollectionTransformer):
                 
                 if len(self.cand_length_list[c+","+str(idx)+","+str(rep)])==0:
                     #chose a random lenght using the lenght of the time series (added 1 since the range start in 0)
-                    rand_value= self.random_state.choice(len(X_c[idx]), 1)[0]+1
+                    rand_value= self._random_state.choice(len(X_c[idx]), 1)[0]+1
                     self.cand_length_list[c+","+str(idx)+","+str(rep)].extend([max(3,rand_value)])
                 #elif len(non_zero_acf)==0:
                     #print("There is no AC in TS", idx, " of class ",c)
@@ -255,14 +274,14 @@ class RSAST(BaseCollectionTransformer):
                         weights = weights[:len(X_c[idx])-max_shp_length +1]/np.sum(weights[:len(X_c[idx])-max_shp_length+1])
                         
                     
-                    
+
                     if self.n_random_points > len(X_c[idx])-max_shp_length+1 :
                         #set a upper limit for the posible of number of random points when selecting without replacement
                         limit_rpoint=len(X_c[idx])-max_shp_length+1
-                        rand_point_ts = self.random_state.choice(len(X_c[idx])-max_shp_length+1, limit_rpoint, p=weights, replace=False)
+                        rand_point_ts = self._random_state.choice(len(X_c[idx])-max_shp_length+1, limit_rpoint, p=weights, replace=False)
                         #print("limit_rpoint:"+str(limit_rpoint))
                     else:
-                        rand_point_ts = self.random_state.choice(len(X_c[idx])-max_shp_length+1, self.n_random_points, p=weights, replace=False)
+                        rand_point_ts = self._random_state.choice(len(X_c[idx])-max_shp_length+1, self.n_random_points, p=weights, replace=False)
                         
                     
                     
@@ -271,7 +290,7 @@ class RSAST(BaseCollectionTransformer):
                         #2.6-- Extract the subsequence with that point
                         kernel = X_c[idx][i:i+max_shp_length].reshape(1,-1)
                         #print("kernel:"+str(kernel))
-                        if m_kernel<max_shp_length:
+                        if m_kernel < max_shp_length:
                             m_kernel = max_shp_length            
                         list_kernels.append(kernel)
                         self.kernel_orig_.append(np.squeeze(kernel))
@@ -288,11 +307,11 @@ class RSAST(BaseCollectionTransformer):
         n_kernels = len (self.kernel_orig_)
         
         
-        self.kernels_ = np.full(
+        self._kernels = np.full(
             (n_kernels, m_kernel), dtype=np.float32, fill_value=np.nan)
         
         for k, kernel in enumerate(self.kernel_orig_):
-            self.kernels_[k, :len(kernel)] = z_normalise_series(kernel)
+            self._kernels[k, :len(kernel)] = z_normalise_series(kernel)
         
         return self
     
@@ -318,7 +337,35 @@ class RSAST(BaseCollectionTransformer):
         n_jobs = check_n_jobs(self.n_jobs)
 
         set_num_threads(n_jobs)
+        
+
         X_transformed = _apply_kernels(X_, self._kernels)  # subsequence transform of X
         set_num_threads(prev_threads)
 
         return X_transformed
+
+if __name__ == "__main__":
+
+    from sklearn.ensemble import RandomForestClassifier
+
+    from aeon.datasets import load_basic_motions,load_classification
+
+    from aeon.transformations.collection.shapelet_based import RSAST
+
+    from sklearn.metrics import accuracy_score
+
+    #X, y = load_basic_motions(split="train")
+    X, y = load_classification(name="Chinatown",split="train")
+    rsast = RSAST( )
+    
+    rsast.fit(X, y)
+    st = rsast.transform(X, y)
+    print(" Shape of transformed data = ", st.shape)
+    print(" Distance of second series to third shapelet = ", st[1][2])
+    #testX, testy = load_basic_motions(split="test")
+    testX, testy = load_classification(name="Chinatown",split="train")
+    tr_test = rsast.transform(testX)
+    rf = RandomForestClassifier(random_state=10)
+    rf.fit(st, y)
+    preds = rf.predict(tr_test)
+    print(" Shapelets + random forest acc = ", accuracy_score(preds, testy))
