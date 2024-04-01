@@ -48,8 +48,11 @@ class TapNetRegressor(BaseDeepRegressor):
         activation function for the last output layer
     loss                : str, default = "mean_squared_error"
         loss function for the classifier
-    metrics             : list of str, default = "mean_squared_error"
-        evaluation metrics to use during training
+    metrics: str or list of str, default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     optimizer           : str or None, default = "Adam(lr=0.01)"
         gradient updating function for the classifier
     padding             : str, default = "same"
