@@ -5,20 +5,20 @@ from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series
 from aeon.utils.validation import check_n_jobs
 
+from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
+from statsmodels.tsa.stattools import acf, pacf
+import pandas as pd
 
 
 @njit(fastmath=False)
-def apply_kernel(ts, arr):
+def _apply_kernel(ts, arr):
     d_best = np.inf  # sdist
     m = ts.shape[0]
     kernel = arr[~np.isnan(arr)]  # ignore nan
 
-    # profile = mass2(ts, kernel)
-    # d_best = np.min(profile)
-
-    l = kernel.shape[0]
-    for i in range(m - l + 1):
-        d = np.sum((z_normalise_series(ts[i:i+l]) - kernel)**2)
+    kernel_len = kernel.shape[0]
+    for i in range(m - kernel_len + 1):
+        d = np.sum((z_normalise_series(ts[i : i + kernel_len]) - kernel) ** 2)
         if d < d_best:
             d_best = d
 
@@ -26,14 +26,14 @@ def apply_kernel(ts, arr):
 
 
 @njit(parallel=True, fastmath=True)
-def apply_kernels(X, kernels):
+def _apply_kernels(X, kernels):
     nbk = len(kernels)
     out = np.zeros((X.shape[0], nbk), dtype=np.float32)
     for i in prange(nbk):
         k = kernels[i]
         for t in range(X.shape[0]):
             ts = X[t]
-            out[t][i] = apply_kernel(ts, k)
+            out[t][i] = _apply_kernel(ts, k)
     return out
 
 
@@ -90,11 +90,11 @@ class RSAST(BaseCollectionTransformer):
 
     def __init__(
         self,
-        n_random_points=10,
-        len_method="both",
-        nb_inst_per_class=10,
-        seed=None,
-        n_jobs=-1,
+        n_random_points = 10,
+        len_method = "both",
+        nb_inst_per_class = 10,
+        seed = None,
+        n_jobs = -1,
     ):
         super().__init__()
         self.n_random_points = n_random_points,
@@ -102,48 +102,29 @@ class RSAST(BaseCollectionTransformer):
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
         self.seed = seed
+        self._kernels = None  # z-normalized subsequences
+        self._kernel_orig = None  # non z-normalized subsequences
+        self._kernels_generators = {}  # Reference time series
+        self._cand_length_list = None
 
-    
-    def __init__(self,n_random_points=10, nb_inst_per_class=10, len_method="both", random_state=None, classifier=None, sel_inst_wrepl=False,sel_randp_wrepl=False, half_instance=False, half_len=False,n_shapelet_samples=None ):
-        super(RSAST, self).__init__()
-        self.n_random_points = n_random_points
-        self.nb_inst_per_class = nb_inst_per_class
-        self.len_method = len_method
-        self.random_state = np.random.RandomState(random_state) if not isinstance(
-            random_state, np.random.RandomState) else random_state
-        self.classifier = classifier
-        self.cand_length_list = None
-        self.kernels_ = None
-        self.kernel_orig_ = None  # not z-normalized kernels
-        self.kernel_permutated_ = None
-        self.kernels_generators_ = None
-        self.class_generators_ = None
-        self.sel_inst_wrepl=sel_inst_wrepl
-        self.sel_randp_wrepl=sel_randp_wrepl
-        self.half_instance=half_instance
-        self.half_len=half_len
-        self.time_calculating_weights = None
-        self.time_creating_subsequences = None
-        self.time_transform_dataset = None
-        self.time_classifier = None
-        self.n_shapelet_samples =n_shapelet_samples
+    def _fit(self, X, y):
+        """Select reference time series and generate subsequences from them.
 
-    def get_params(self, deep=True):
-        return {
-            'len_method': self.len_method,
-            'n_random_points': self.n_random_points,
-            'nb_inst_per_class': self.nb_inst_per_class,
-            'sel_inst_wrepl':self.sel_inst_wrepl,
-            'sel_randp_wrepl':self.sel_randp_wrepl,
-            'half_instance':self.half_instance,
-            'half_len':self.half_len,        
-            'classifier': self.classifier,
-            'cand_length_list': self.cand_length_list
-        }
+        Parameters
+        ----------
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
+            The training input samples.
+        y: array-like or list
+            The class values for X.
 
-    def init_sast(self, X, y):
-        #0- initialize variables and convert values in "y" to string
-        start = time.time()
+        Return
+        ------
+        self : RSAST
+            This transformer
+
+        """
+       #0- initialize variables and convert values in "y" to string
+       
         y=np.asarray([str(x_s) for x_s in y])
         
         self.cand_length_list = {}
@@ -189,27 +170,19 @@ class RSAST(BaseCollectionTransformer):
                 n.append(0)
             else:
                 n.append(1-p_value)
-        end = time.time()
-        self.time_calculating_weights = end-start
+        
+        
 
 
         #2--calculate PACF and ACF for each TS chossen in each class
-        start = time.time()
+        
         for i, c in enumerate(classes):
             X_c = X[y == c]
-            if self.half_instance==True:
-                cnt = np.max([X_c.shape[0]//2, 1]).astype(int)
-                self.nb_inst_per_class=cnt
-            else:
-                cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
+
+            cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
             #set if the selection of instances is with replacement (if false it is not posible to select the same intance more than one)
-            if self.sel_inst_wrepl ==False:
-                choosen = self.random_state.permutation(X_c.shape[0])[:cnt]
-            else:
-                choosen = self.random_state.choice(X_c.shape[0], cnt)
-            
-            
-            
+
+            choosen = self.random_state.permutation(X_c.shape[0])[:cnt]
             
             for rep, idx in enumerate(choosen):
                 self.cand_length_list[c+","+str(idx)+","+str(rep)] = []
@@ -281,20 +254,18 @@ class RSAST(BaseCollectionTransformer):
                         weights = n / np.sum(n)
                         weights = weights[:len(X_c[idx])-max_shp_length +1]/np.sum(weights[:len(X_c[idx])-max_shp_length+1])
                         
-                    if self.half_len==True:
-                        self.n_random_points=np.max([len(X_c[idx])//2, 1]).astype(int)
                     
                     
-                    if self.n_random_points > len(X_c[idx])-max_shp_length+1 and self.sel_randp_wrepl==False:
+                    if self.n_random_points > len(X_c[idx])-max_shp_length+1 :
                         #set a upper limit for the posible of number of random points when selecting without replacement
                         limit_rpoint=len(X_c[idx])-max_shp_length+1
-                        rand_point_ts = self.random_state.choice(len(X_c[idx])-max_shp_length+1, limit_rpoint, p=weights, replace=self.sel_randp_wrepl)
+                        rand_point_ts = self.random_state.choice(len(X_c[idx])-max_shp_length+1, limit_rpoint, p=weights, replace=False)
                         #print("limit_rpoint:"+str(limit_rpoint))
                     else:
-                        rand_point_ts = self.random_state.choice(len(X_c[idx])-max_shp_length+1, self.n_random_points, p=weights, replace=self.sel_randp_wrepl)
-                        #print("n_random_points:"+str(self.n_random_points))
+                        rand_point_ts = self.random_state.choice(len(X_c[idx])-max_shp_length+1, self.n_random_points, p=weights, replace=False)
+                        
                     
-                    #print("rpoints:"+str(rand_point_ts))
+                    
                     
                     for i in rand_point_ts:        
                         #2.6-- Extract the subsequence with that point
@@ -309,83 +280,45 @@ class RSAST(BaseCollectionTransformer):
         
         print("total kernels:"+str(len(self.kernel_orig_)))
         
-        if self.n_shapelet_samples!=None:
-            print("Truncated to:"+str(self.n_shapelet_samples))
-            
-            self.kernel_permutated_ = self.random_state.permutation(self.kernel_orig_)[:self.n_shapelet_samples]
-        else:
-            self.kernel_permutated_ = self.kernel_orig_
+        
         
         #3--save the calculated subsequences
         
         
-        n_kernels = len (self.kernel_permutated_)
+        n_kernels = len (self.kernel_orig_)
         
         
         self.kernels_ = np.full(
             (n_kernels, m_kernel), dtype=np.float32, fill_value=np.nan)
         
-        for k, kernel in enumerate(self.kernel_permutated_):
-            self.kernels_[k, :len(kernel)] = znormalize_array(kernel)
-        
-        end = time.time()
-        self.time_creating_subsequences = end-start
-
-    def fit(self, X, y):
-
-        X, y = check_X_y(X, y)  # check the shape of the data
-
-        # randomly choose reference time series and generate kernels
-        self.init_sast(X, y)
-
-        start = time.time()
-        # subsequence transform of X
-        X_transformed = apply_kernels(X, self.kernels_)
-        end = time.time()
-        self.transform_dataset = end-start
-        
-        if self.classifier is None:
-            
-            if X_transformed.shape[0]<=X_transformed.shape[1]: #n_features (kernels) > n_samples (intances)
-                self.classifier=RidgeClassifierCV()
-                print("RidgeClassifierCV:"+str("size training")+str(X_transformed.shape[0])+"<="+" kernels"+str(X_transformed.shape[1]))
-            else: 
-                print("LogisticRegression:"+str("size training")+str(X_transformed.shape[0])+">"+" kernels"+str(X_transformed.shape[1]))
-                self.classifier=LogisticRegression()
-                #self.classifier = RandomForestClassifier(min_impurity_decrease=0.05, max_features=None)
-
-        start = time.time()
-        #print('X_transformed shape')
-        #print(X_transformed.shape)
-        #print('X_transformed')
-        #print(X_transformed)
-
-        self.classifier.fit(X_transformed, y)  # fit the classifier
-        end = time.time()
-        self.time_classifier = end-start
+        for k, kernel in enumerate(self.kernel_orig_):
+            self.kernels_[k, :len(kernel)] = z_normalise_series(kernel)
         
         return self
+    
+    def _transform(self, X, y=None):
+        """Transform the input X using the generated subsequences.
 
-    def predict(self, X):
+        Parameters
+        ----------
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
+            The training input samples.
+        y: array-like or list
+            Ignored argument, interface compatibility
 
-        check_is_fitted(self)  # make sure the classifier is fitted
+        Return
+        ------
+        X_transformed: np.ndarray shape (n_cases, n_timepoints),
+            The transformed data
+        """
+        X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
 
-        X = check_array(X)  # validate the shape of X
+        prev_threads = get_num_threads()
 
-        # subsequence transform of X
-        X_transformed = apply_kernels(X, self.kernels_)
+        n_jobs = check_n_jobs(self.n_jobs)
 
-        return self.classifier.predict(X_transformed)
+        set_num_threads(n_jobs)
+        X_transformed = _apply_kernels(X_, self._kernels)  # subsequence transform of X
+        set_num_threads(prev_threads)
 
-    def predict_proba(self, X):
-        check_is_fitted(self)  # make sure the classifier is fitted
-
-        X = check_array(X)  # validate the shape of X
-
-        # subsequence transform of X
-        X_transformed = apply_kernels(X, self.kernels_)
-
-        if isinstance(self.classifier, LinearClassifierMixin):
-            return self.classifier._predict_proba_lr(X_transformed)
-        return self.classifier.predict_proba(X_transformed)
-
+        return X_transformed
