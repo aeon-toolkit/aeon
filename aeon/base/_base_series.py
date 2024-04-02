@@ -140,48 +140,6 @@ class BaseSeriesEstimator(BaseEstimator):
             raise ValueError("Univariate data not supported")
         return metadata
 
-    def _check_y(self, y: VALID_INPUT_TYPES):
-        """Check y specific to segmentation.
-
-        y must be a univariate series
-        """
-        if type(y) not in VALID_INPUT_TYPES:
-            raise ValueError(
-                f"Error in input type for y: it should be one of "
-                f"{VALID_INPUT_TYPES}, saw {type(y)}"
-            )
-        if isinstance(y, np.ndarray):
-            # Check valid shape
-            if y.ndim > 1:
-                raise ValueError(
-                    "Error in input type for y: y input as np.ndarray " "should be 1D"
-                )
-            if not (
-                issubclass(y.dtype.type, np.integer)
-                or issubclass(y.dtype.type, np.floating)
-            ):
-                raise ValueError(
-                    "Error in input type for y: y input must contain " "floats or ints"
-                )
-        elif isinstance(y, pd.Series):
-            if not pd.api.types.is_numeric_dtype(y):
-                raise ValueError(
-                    "Error in input type for y: y input as pd.Series must be numeric"
-                )
-        else:  # pd.DataFrame
-            if y.shape[1] > 2:
-                raise ValueError(
-                    "Error in input type for y: y input as pd.DataFrame "
-                    "should have a single "
-                    "column series"
-                )
-
-            if not all(pd.api.types.is_numeric_dtype(y[col]) for col in y.columns):
-                raise ValueError(
-                    "Error in input type for y: y input as pd.DataFrame "
-                    "must be numeric"
-                )
-
     def _convert_X(self, X, axis):
         inner = self.get_tag("X_inner_type").split(".")[-1]
         input = type(X).__name__
