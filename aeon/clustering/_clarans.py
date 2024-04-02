@@ -57,12 +57,8 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         consecutive runs in terms of inertia.
     verbose : bool, default=False
         Verbosity mode.
-    random_state : int or None, default=None
+    random_state : int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-        If `int`, random_state is the seed used by the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
-        Note: This function does not accept `RandomState` instances as `random_state`.
     distance_params : dict, default=None
         Dictionary containing kwargs for the distance metric being used.
 

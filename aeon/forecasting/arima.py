@@ -179,12 +179,11 @@ class AutoARIMA(_PmdArimaAdapter):
         True, rather than perform an exhaustive search or stepwise search,
         only n_fits ARIMA models will be fit (stepwise must be False for this
         option to do anything).
-    random_state : int or None, default=None
-        Controls the randomness of the algorithm.
-        If int, random_state is the seed used by the random number generator.
+    random_state : int, RandomState instance or None, default=None
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
         If None, the random number generator is the RandomState instance used
-        by np.random.
-        Note: This function does not accept RandomState instances as random_state
+        by np.random. This parameter is used to control the random number generator
         for when random=True. It ensures replicable testing and results.
     n_fits : int, optional (default=10)
         If random is True and a "random search" is going to be performed,

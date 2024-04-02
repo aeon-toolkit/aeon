@@ -81,12 +81,11 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    random_state : int or None, default=None
-        Controls the randomness of the algorithm.
+    random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-        Note: This function does not accept `RandomState` instances as `random_state`.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.

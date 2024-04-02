@@ -81,12 +81,11 @@ class SARIMAX(_StatsModelsAdapter):
         Whether or not to use exact diffuse initialization for non-stationary
         states. Default is False (in which case approximate diffuse
         initialization is used).
-    random_state : int or None, default=None
-        Controls the randomness of the algorithm.
+    random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-        Note: This function does not accept `RandomState` instances as `random_state`.
 
     See Also
     --------

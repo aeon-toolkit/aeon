@@ -65,12 +65,12 @@ class AutoEnsembleForecaster(_HeterogenousEnsembleForecaster):
         will be the endog data of the regressor and it is the most recent data.
         The exog data of the regressor are the predictions from the temporarily
         trained ensemble models. If None, it will be set to 0.25.
-    random_state : int or None, default=None
-        Controls the randomness of the algorithm.
+    random_state : int, RandomState instance or None, default=None
+        Used to set random_state of the default regressor.
         If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-        Note: This function does not accept `RandomState` instances as `random_state`.
     n_jobs : int or None, optional, default=None
         The number of jobs to run in parallel for fit. None means 1 unless
         in a joblib.parallel_backend context.
