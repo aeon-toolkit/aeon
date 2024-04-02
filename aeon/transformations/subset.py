@@ -45,7 +45,7 @@ class IndexSubset(BaseTransformer):
         "y_inner_type": ["pd.DataFrame", "pd.Series"],
         "transform-returns-same-time-index": False,
         "fit_is_empty": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": False,
         "remember_data": True,  # remember all data seen as _X
     }
@@ -158,7 +158,7 @@ class ColumnSelect(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": False,
     }
 
