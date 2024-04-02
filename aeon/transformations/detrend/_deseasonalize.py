@@ -124,7 +124,7 @@ class Deseasonalizer(BaseTransformer):
         "fit_is_empty": False,
         "capability:inverse_transform": True,
         "transform-returns-same-time-index": True,
-        "capability:multivariate": False,
+        "univariate-only": True,
         "python_dependencies": "statsmodels",
     }
 
@@ -509,7 +509,7 @@ class STLTransformer(BaseTransformer):
         "X_inner_type": "pd.Series",
         "y_inner_type": "pd.Series",
         "transform-returns-same-time-index": True,
-        "capability:multivariate": False,
+        "univariate-only": True,
         "fit_is_empty": False,
         "python_dependencies": "statsmodels",
     }
