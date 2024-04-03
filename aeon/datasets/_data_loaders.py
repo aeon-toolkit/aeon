@@ -391,10 +391,9 @@ def download_dataset(name, save_path=None):
 
     Raises
     ------
-    URLError or HTTPError
-        If the website is not accessible.
-    ValueError
-        If a dataset name that does not exist on the repo is given.
+    Raise URLError or HTTPError if the website is not accessible,
+    ValueError if a dataset name that does not exist on the repo
+    is given.
     """
     if save_path is None:
         save_path = os.path.join(MODULE, "local_data")

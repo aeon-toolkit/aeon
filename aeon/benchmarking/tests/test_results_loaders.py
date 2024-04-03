@@ -1,7 +1,7 @@
 """Result loading tests."""
 
 import os
-from http.client import RemoteDisconnected
+from http.client import IncompleteRead, RemoteDisconnected
 from urllib.error import URLError
 
 import pandas as pd
@@ -187,7 +187,7 @@ def test_get_available_estimators():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
-@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError, IncompleteRead))
 def test_get_bake_off_2017_results():
     """Test original bake off results."""
     default_results = get_bake_off_2017_results()
@@ -204,7 +204,7 @@ def test_get_bake_off_2017_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
-@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError, IncompleteRead))
 def test_get_bake_off_2020_results():
     """Test multivariate bake off results."""
     default_results = get_bake_off_2021_results()
@@ -221,7 +221,7 @@ def test_get_bake_off_2020_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
-@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError, IncompleteRead))
 def test_get_bake_off_2023_results():
     """Test bake off redux results."""
     default_results = get_bake_off_2023_results()
