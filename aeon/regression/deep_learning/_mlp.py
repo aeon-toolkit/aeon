@@ -30,7 +30,11 @@ class MLPRegressor(BaseDeepRegressor):
         whether to output extra information
     loss : string, default="mean_squared_error"
         fit parameter for the keras model
-    metrics : list of strings, default=["accuracy"],
+    metrics : list of strings, default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -92,7 +96,7 @@ class MLPRegressor(BaseDeepRegressor):
         callbacks=None,
         verbose=False,
         loss="mse",
-        metrics=None,
+        metrics="mean_squared_error",
         file_path="./",
         save_best_model=False,
         save_last_model=False,
@@ -153,8 +157,6 @@ class MLPRegressor(BaseDeepRegressor):
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
 
-        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
-
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
@@ -169,7 +171,7 @@ class MLPRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
         return model
 
@@ -192,6 +194,10 @@ class MLPRegressor(BaseDeepRegressor):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
         self.input_shape = X.shape[1:]
 
         self.training_model_ = self.build_model(self.input_shape)
