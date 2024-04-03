@@ -1,3 +1,17 @@
+"""Dataset loading functions."""
+
+__all__ = [  # Load functions
+    "load_from_tsfile",
+    "load_from_tsf_file",
+    "load_from_arff_file",
+    "load_from_tsv_file",
+    "load_classification",
+    "load_forecasting",
+    "load_regression",
+    "download_all_regression",
+    "get_dataset_meta_data",
+]
+
 import glob
 import os
 import re
@@ -6,7 +20,8 @@ import tempfile
 import urllib
 import zipfile
 from datetime import datetime
-from urllib.error import HTTPError
+from http.client import IncompleteRead, RemoteDisconnected
+from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen, urlretrieve
 
@@ -24,17 +39,13 @@ from aeon.utils.conversion import convert_collection
 DIRNAME = "data"
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
-
-__all__ = [  # Load functions
-    "load_from_tsfile",
-    "load_from_tsf_file",
-    "load_from_arff_file",
-    "load_from_tsv_file",
-    "load_classification",
-    "load_forecasting",
-    "load_regression",
-    "download_all_regression",
-    "get_dataset_meta_data",
+CONNECTION_ERRORS = [
+    HTTPError,
+    URLError,
+    RemoteDisconnected,
+    IncompleteRead,
+    ConnectionResetError,
+    TimeoutError,
 ]
 
 
@@ -1097,12 +1108,6 @@ def load_regression(
         returns the following meta data
         'problemname',timestamps, missing,univariate,equallength.
         targetlabel should be true, and classlabel false
-
-    Raises
-    ------
-    URLError or HTTPError if the website is not accessible.
-    ValueError if a dataset name that does not exist on the repo is given or if a
-    webpage is requested that does not exist.
 
     Example
     -------
