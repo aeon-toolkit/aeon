@@ -10,7 +10,12 @@ from aeon.datasets import load_airline
 from aeon.testing.utils.data_gen import make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.series import VALID_DATA_TYPES
-from aeon.visualisation import plot_correlations, plot_lags, plot_series
+from aeon.visualisation import (
+    plot_correlations,
+    plot_lags,
+    plot_series,
+    plot_spectrogram,
+)
 
 y_airline = load_airline()
 y_airline_true = y_airline.iloc[y_airline.index < "1960-01"]
@@ -316,3 +321,27 @@ def test_plot_correlations_arguments(series_to_plot, lags):
     )
     plt.gcf().canvas.draw_idle()
     plt.close()
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+def test_plot_spectrogram():
+    """Tests whether plot_spectrogram run with the given inputs or not."""
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
+    fig, ax = plot_spectrogram(y_airline, fs=1)
+    plt.gcf().canvas.draw_idle()
+    plt.close()
+
+    assert fig is not None
+    assert ax is not None
+
+    fig, ax = plot_spectrogram(y_airline, fs=1, return_onesided=False)
+    plt.gcf().canvas.draw_idle()
+    plt.close()
+    assert fig is not None
+    assert ax is not None

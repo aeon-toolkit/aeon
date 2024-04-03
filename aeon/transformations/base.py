@@ -628,8 +628,8 @@ class BaseTransformer(BaseEstimator):
         # check and convert X/y
         X_inner, y_inner = self._check_X_y(X=X, y=y)
 
-        # update memory of X, if remember_data tag is set to True
-        if self.get_tag("remember_data", False):
+        # update memory of X, if remember_data exists and is set to True
+        if self.get_tag("remember_data", tag_value_default=False):
             self._X = update_data(None, X_new=X_inner)
 
         # skip everything if update_params is False

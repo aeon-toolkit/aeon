@@ -1,6 +1,7 @@
 __maintainer__ = []
 
 import math
+from typing import Optional
 
 import numpy as np
 from numba import njit
@@ -8,7 +9,10 @@ from numba import njit
 
 @njit(cache=True)
 def create_bounding_matrix(
-    x_size: int, y_size: int, window: float = None, itakura_max_slope: float = None
+    x_size: int,
+    y_size: int,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ):
     """Create a bounding matrix for an elastic distance.
 
