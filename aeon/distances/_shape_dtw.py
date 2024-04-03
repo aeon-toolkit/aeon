@@ -666,12 +666,12 @@ def _shape_dtw_pairwise_distance(
                     x1.shape[1], x2.shape[1], window, itakura_max_slope
                 )
 
-            if transformation_precomputed and transformed_x is not None:
-                _transformed_x1 = transformed_x[i]
-                _transformed_x2 = transformed_x[j]
+            if transformation_precomputed and transformed_x:
+                transformed_x1 = transformed_x[i]
+                transformed_x2 = transformed_x[j]
             else:
-                _transformed_x1 = x1
-                _transformed_x2 = x2
+                transformed_x1 = x1
+                transformed_x2 = x2
 
             distances[i, j] = _shape_dtw_distance(
                 x=x1,
@@ -680,8 +680,8 @@ def _shape_dtw_pairwise_distance(
                 reach=reach,
                 bounding_matrix=bounding_matrix,
                 transformation_precomputed=transformation_precomputed,
-                transformed_x=_transformed_x1,
-                transformed_y=_transformed_x2,
+                transformed_x=transformed_x1,
+                transformed_y=transformed_x2,
             )
             distances[j, i] = distances[i, j]
 
@@ -717,7 +717,7 @@ def _shape_dtw_from_multiple_to_multiple_distance(
                     x1.shape[1], y1.shape[1], window, itakura_max_slope
                 )
 
-            if transformation_precomputed:
+            if transformation_precomputed and transformed_y and transformed_x:
                 transformed_x1 = transformed_x[i]
                 transformed_x2 = transformed_y[j]
             else:
