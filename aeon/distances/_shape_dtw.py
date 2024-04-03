@@ -648,7 +648,6 @@ def _shape_dtw_pairwise_distance(
     itakura_max_slope: Optional[float],
     transformation_precomputed: bool,
     transformed_x: Optional[np.ndarray],
-    transformed_y: Optional[np.ndarray],
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
