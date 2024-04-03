@@ -1,6 +1,6 @@
 """Test functions for data input and output."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 
 import os
 import shutil
@@ -145,11 +145,11 @@ def test_load_fails():
         "datasets/data/UnitTest/",
     )
     with pytest.raises(ValueError):
-        X, y = load_regression("FOOBAR", extract_path=data_path)
+        load_regression("FOOBAR", extract_path=data_path)
     with pytest.raises(ValueError):
-        X, y = load_classification("FOOBAR", extract_path=data_path)
+        load_classification("FOOBAR", extract_path=data_path)
     with pytest.raises(ValueError):
-        X, y = load_forecasting("FOOBAR", extract_path=data_path)
+        load_forecasting("FOOBAR", extract_path=data_path)
 
 
 def test__alias_datatype_check():

@@ -1148,7 +1148,7 @@ def load_regression(
             req = Request(url, method="HEAD")
             try:
                 # Perform the request
-                response = urlopen(req)
+                response = urlopen(req, timeout=300)
                 # Check the status code of the response
                 if response.status != 200:
                     try_monash = True
@@ -1327,7 +1327,7 @@ def load_classification(
             )
             try:
                 # Perform the request
-                response = urlopen(req)
+                response = urlopen(req, timeout=300)
                 # Check the status code of the response, if 200 incorrect input args
                 if response.status != 200:
                     raise ValueError(msg)
