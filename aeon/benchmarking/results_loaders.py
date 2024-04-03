@@ -9,6 +9,9 @@ __all__ = [
 __maintainer__ = []
 
 
+from http.client import IncompleteRead, RemoteDisconnected
+from urllib.error import HTTPError, URLError
+
 import numpy as np
 import pandas as pd
 
@@ -162,6 +165,15 @@ NAME_ALIASES = {
     "XGBoost": {"xgboost", "XGBoostRegressor"},
     "5NN-DTW": {"5NNDTW", "5nn-dtw"},
 }
+
+CONNECTION_ERRORS = [
+    HTTPError,
+    URLError,
+    RemoteDisconnected,
+    IncompleteRead,
+    ConnectionResetError,
+    TimeoutError,
+]
 
 
 def estimator_alias(name: str) -> str:

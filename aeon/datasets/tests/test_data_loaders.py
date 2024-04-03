@@ -5,7 +5,6 @@ __maintainer__ = []
 import os
 import shutil
 import tempfile
-from http.client import RemoteDisconnected
 from urllib.error import URLError
 
 import numpy as np
@@ -23,6 +22,7 @@ from aeon.datasets import (
     load_regression,
 )
 from aeon.datasets._data_loaders import (
+    CONNECTION_ERRORS,
     _alias_datatype_check,
     _get_channel_strings,
     _load_data,
@@ -36,7 +36,7 @@ from aeon.testing.test_config import PR_TESTING
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_forecasting_from_repo():
     """Test load forecasting from repo."""
     name = "FOO"
@@ -60,7 +60,7 @@ def test_load_forecasting_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_classification_from_repo():
     """Test load classification from repo."""
     name = "FOO"
@@ -87,7 +87,7 @@ def test_load_classification_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_regression_from_repo():
     """Test load regression from repo."""
     name = "FOO"
@@ -137,7 +137,7 @@ def test_load_regression_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_fails():
     """Test load fails."""
     data_path = os.path.join(
@@ -167,7 +167,7 @@ def test__alias_datatype_check():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test__load_header_info():
     """Test load header info."""
     path = os.path.join(
@@ -215,7 +215,7 @@ def test__load_header_info():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test__load_data():
     """Test loading after header."""
     path = os.path.join(
