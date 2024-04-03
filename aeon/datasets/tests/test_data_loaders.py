@@ -2,11 +2,10 @@
 
 __maintainer__ = []
 
-__all__ = []
-
 import os
 import shutil
 import tempfile
+from http.client import RemoteDisconnected
 from urllib.error import URLError
 
 import numpy as np
@@ -37,7 +36,7 @@ from aeon.testing.test_config import PR_TESTING
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test_load_forecasting_from_repo():
     name = "FOO"
     with pytest.raises(
@@ -60,7 +59,7 @@ def test_load_forecasting_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test_load_classification_from_repo():
     name = "FOO"
     with pytest.raises(ValueError):
@@ -86,7 +85,7 @@ def test_load_classification_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test_load_regression_from_repo():
     name = "FOO"
     with pytest.raises(
@@ -135,7 +134,7 @@ def test_load_regression_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test_load_fails():
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
@@ -164,7 +163,7 @@ def test__alias_datatype_check():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test__load_header_info():
     path = os.path.join(
         os.path.dirname(aeon.__file__),
@@ -211,7 +210,7 @@ def test__load_header_info():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-@pytest.mark.xfail(raises=(URLError, TimeoutError))
+@pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test__load_data():
     """Test loading after header."""
     path = os.path.join(

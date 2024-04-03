@@ -1,9 +1,10 @@
 """Functions to load and collate results from timeseriesclassification.com."""
 
 __all__ = [
+    "estimator_alias",
+    "get_available_estimators",
     "get_estimator_results",
     "get_estimator_results_as_array",
-    "get_available_estimators",
 ]
 __maintainer__ = []
 
@@ -117,7 +118,6 @@ NAME_ALIASES = {
         "KNeighborsTimeSeriesClassifier",
         "KNeighborsTimeSeries",
     },
-    "5NN-DTW": {"5NNDTW", "5nn-dtw"},  # We do not have these results for classification
     "1NN-ED": {
         "1NNED",
         "1nn-ed",
@@ -160,19 +160,22 @@ NAME_ALIASES = {
     "Ridge": {"ridge", "RidgeRegressor"},
     "SingleInceptionTime": {"SIT", "SingleInceptionT", "SingleInceptionTimeRegressor"},
     "XGBoost": {"xgboost", "XGBoostRegressor"},
+    "5NN-DTW": {"5NNDTW", "5nn-dtw"},
 }
 
 
 def estimator_alias(name: str) -> str:
-    """Return the standard name for possible aliased classifier.
+    """Return the standard name for possible aliased estimator.
 
     Parameters
     ----------
-        name: str. Name of an estimator
+    name: str
+        Name of an estimator.
 
     Returns
     -------
-        str: standardised name as defined by NAME_ALIASES
+    name: str
+        Standardized name as defined by NAME_ALIASES.
 
     Example
     -------
@@ -186,10 +189,9 @@ def estimator_alias(name: str) -> str:
         if name in NAME_ALIASES[name_key]:
             return name_key
     raise ValueError(
-        f"Unknown estimator name {name}. For a list of valid names and "
-        f"allowed aliases, see NAME_ALIASES in "
-        f"aeon/benchmarking/results_loaders.py. Note that estimator names are case "
-        f"sensitive."
+        f"Unknown estimator name {name}. For a list of valid names and allowed "
+        "aliases, see NAME_ALIASES in aeon/benchmarking/results_loaders.py. Note "
+        "that estimator names are case sensitive."
     )
 
 

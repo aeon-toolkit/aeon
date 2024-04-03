@@ -77,7 +77,7 @@ def plot_pairwise_scatter(
     >>> from aeon.visualisation import plot_pairwise_scatter
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["InceptionTimeClassifier", "WEASEL-Dilation"]
-    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> results = get_estimator_results_as_array(estimators=methods)  # doctest: +SKIP
     >>> plot = plot_pairwise_scatter(  # doctest: +SKIP
     ...     results[0], methods[0], methods[1])  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
