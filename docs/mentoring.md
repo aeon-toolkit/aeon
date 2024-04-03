@@ -57,10 +57,10 @@ We list projects by time series task
 [Visualisation](#visualisation)
 1. Explainable AI with the shapelet transform (Southampton intern project).
 
-Regression
+[Regression](#regression)
 1. Adapt forecasting regressors to time series extrinsic regression.
 
-Documentation
+[Documentation](#documentation)
 1. Improve automated API documentation
 
 ### Classification
