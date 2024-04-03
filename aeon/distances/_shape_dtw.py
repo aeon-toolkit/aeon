@@ -522,7 +522,7 @@ def shape_dtw_pairwise_distance(
     reach: int = 30,
     itakura_max_slope: Optional[float] = None,
     transformation_precomputed: bool = False,
-    transformed_X: Optional[np.ndarray] = None,
+    transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     """Compute the ShapeDTW pairwise distance among a set of series.
@@ -558,7 +558,7 @@ def shape_dtw_pairwise_distance(
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
     transformation_precomputed : bool, default = False
         To choose if the transformation of the sub-sequences is pre-computed or not.
-    transformed_X : np.ndarray, default = None
+    transformed_x : np.ndarray, default = None
         The transformation of X, ignored if transformation_precomputed is False.
     transformed_y : np.ndarray, default = None
         The transformation of y, ignored if transformation_precomputed is False.
@@ -619,7 +619,7 @@ def shape_dtw_pairwise_distance(
             reach=reach,
             itakura_max_slope=itakura_max_slope,
             transformation_precomputed=transformation_precomputed,
-            transformed_X=transformed_X,
+            transformed_x=transformed_x,
             unequal_length=unequal_length,
         )
     _y, unequal_length = _convert_to_list(y)
@@ -633,7 +633,7 @@ def shape_dtw_pairwise_distance(
         reach=reach,
         itakura_max_slope=itakura_max_slope,
         transformation_precomputed=transformation_precomputed,
-        transformed_X=transformed_X,
+        transformed_x=transformed_x,
         transformed_y=transformed_y,
         unequal_length=unequal_length,
     )
@@ -647,7 +647,7 @@ def _shape_dtw_pairwise_distance(
     reach: int,
     itakura_max_slope: Optional[float],
     transformation_precomputed: bool,
-    transformed_X: Optional[np.ndarray],
+    transformed_x: Optional[np.ndarray],
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
@@ -667,8 +667,8 @@ def _shape_dtw_pairwise_distance(
                 )
 
             if transformation_precomputed:
-                transformed_x1 = transformed_X[i]
-                transformed_x2 = transformed_X[j]
+                transformed_x1 = transformed_x[i]
+                transformed_x2 = transformed_x[j]
             else:
                 transformed_x1 = x1
                 transformed_x2 = x2
@@ -697,7 +697,7 @@ def _shape_dtw_from_multiple_to_multiple_distance(
     reach: int,
     itakura_max_slope: Optional[float],
     transformation_precomputed: bool,
-    transformed_X: Optional[np.ndarray],
+    transformed_x: Optional[np.ndarray],
     transformed_y: Optional[np.ndarray],
     unequal_length: bool,
 ) -> np.ndarray:
@@ -718,7 +718,7 @@ def _shape_dtw_from_multiple_to_multiple_distance(
                 )
 
             if transformation_precomputed:
-                transformed_x1 = transformed_X[i]
+                transformed_x1 = transformed_x[i]
                 transformed_x2 = transformed_y[j]
             else:
                 transformed_x1 = x1
