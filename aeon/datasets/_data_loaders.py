@@ -314,10 +314,6 @@ def _load_saved_dataset(
     dir_name: str, default = None
         Directory in local_dirname containing the problem file. If None, dir_name = name
 
-    Raises
-    ------
-    Raise ValueError if the requested return type is not supported
-
     Returns
     -------
     X: Data stored in specified `return_type`
@@ -326,6 +322,10 @@ def _load_saved_dataset(
         The class labels for each time series instance in X
         If return_X_y is False, y is appended to X instead.
     meta: meta data dictionary, only returned if return_meta is True
+
+    Raises
+    ------
+    Raise ValueError if the requested return type is not supported
     """
     if isinstance(split, str):
         split = split.upper()
@@ -491,10 +491,6 @@ def _load_tsc_dataset(
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
 
-    Raises
-    ------
-    Raise ValueException if the requested return type is not supported
-
     Returns
     -------
     X: Data stored in specified `return_type`
@@ -502,6 +498,10 @@ def _load_tsc_dataset(
     y: 1D numpy array of length n, only returned if return_X_y if True
         The class labels for each time series instance in X
         If return_X_y is False, y is appended to X instead.
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
     """
     # Allow user to have non standard extract path
     if extract_path is not None:
@@ -744,14 +744,6 @@ def load_from_tsf_file(
             implementation in: https://github.com/rakshitha123/TSForecasting/
             blob/master/utils/data_loader.py.
 
-    Raises
-    ------
-    URLError or HTTPError
-        If the website is not accessible.
-    ValueError
-        If a dataset name that does not exist on the repo is given or if a
-        webpage is requested that does not exist.
-
     Returns
     -------
     loaded_data : pd.DataFrame
@@ -760,6 +752,14 @@ def load_from_tsf_file(
         The metadata for the forecasting problem. The dictionary keys are:
         "frequency", "forecast_horizon", "contain_missing_values",
         "contain_equal_length"
+
+    Raises
+    ------
+    URLError or HTTPError
+        If the website is not accessible.
+    ValueError
+        If a dataset name that does not exist on the repo is given or if a
+        webpage is requested that does not exist.
     """
     col_names = []
     col_types = []
@@ -942,6 +942,13 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     return_metadata : boolean, default = True
         If True, returns a tuple (data, metadata)
 
+    Returns
+    -------
+    X: Data stored in a dataframe, each column a series
+    metadata: optional
+        returns the following meta data
+        frequency,forecast_horizon,contain_missing_values,contain_equal_length
+
     Raises
     ------
     URLError or HTTPError
@@ -949,13 +956,6 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     ValueError
         If a dataset name that does not exist on the repo is given or if a
         webpage is requested that does not exist.
-
-    Returns
-    -------
-    X: Data stored in a dataframe, each column a series
-    metadata: optional
-        returns the following meta data
-        frequency,forecast_horizon,contain_missing_values,contain_equal_length
 
     Example
     -------
@@ -1087,14 +1087,6 @@ def load_regression(
         flag is set to True, the function first attempts to load files called
         <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
         version.
-
-    Raises
-    ------
-    URLError or HTTPError
-        If the website is not accessible.
-    ValueError
-        If a dataset name that does not exist on the repo is given or if a
-        webpage is requested that does not exist.
 
     Returns
     -------
