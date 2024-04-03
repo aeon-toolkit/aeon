@@ -147,6 +147,9 @@ def _ba_update(
     descriptor: str = "identity",
     reach: int = 30,
     warp_penalty: float = 1.0,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> Tuple[np.ndarray, float]:
     X_size, X_dims, X_timepoints = X.shape
     sum = np.zeros(X_timepoints)
@@ -174,7 +177,14 @@ def _ba_update(
             )
         elif distance == "shape_dtw":
             curr_alignment, _ = shape_dtw_alignment_path(
-                curr_ts, center, window=window, descriptor=descriptor, reach=reach
+                curr_ts,
+                center,
+                window=window,
+                descriptor=descriptor,
+                reach=reach,
+                transformed_x=transformed_x,
+                transformed_y=transformed_y,
+                transformation_precomputed=transformation_precomputed,
             )
         elif distance == "adtw":
             curr_alignment, _ = adtw_alignment_path(
