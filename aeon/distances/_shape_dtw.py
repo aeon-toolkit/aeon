@@ -669,6 +669,9 @@ def _shape_dtw_pairwise_distance(
             if transformation_precomputed:
                 transformed_x1 = transformed_X[i]
                 transformed_x2 = transformed_X[j]
+            else:
+                transformed_x1 = x1
+                transformed_x2 = x2
 
             distances[i, j] = _shape_dtw_distance(
                 x=x1,
@@ -717,6 +720,9 @@ def _shape_dtw_from_multiple_to_multiple_distance(
             if transformation_precomputed:
                 transformed_x1 = transformed_X[i]
                 transformed_x2 = transformed_y[j]
+            else:
+                transformed_x1 = x1
+                transformed_x2 = y1
 
             distances[i, j] = _shape_dtw_distance(
                 x=x1,
