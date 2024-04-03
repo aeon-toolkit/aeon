@@ -140,7 +140,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
     _tags = {
         # we let all X inputs through to be handled by first transformer
         "X_inner_type": ALL_TIME_SERIES_TYPES,
-        "univariate-only": False,
+        "capability:multivariate": True,
     }
 
     # no further default tag values - these are set dynamically below
@@ -441,7 +441,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         "output_data_type": "Series",
         "transform_labels": "None",
         "instancewise": False,  # depends on components
-        "univariate-only": False,  # depends on components
+        "capability:multivariate": True,  # depends on components
         "capability:missing_values": False,  # depends on components
         "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_type": "None",
@@ -497,7 +497,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         self._anytagis_then_set("skip-inverse-transform", True, False, ests)
         # self._anytagis_then_set("capability:inverse_transform", False, True, ests)
         self._anytagis_then_set("capability:missing_values", False, True, ests)
-        self._anytagis_then_set("univariate-only", True, False, ests)
+        self._anytagis_then_set("capability:multivariate", False, True, ests)
 
     @property
     def _transformer_list(self):
@@ -857,7 +857,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
     # tags will largely be copied from selected_transformer
     _tags = {
         "fit_is_empty": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "X_inner_type": [
             "dask_panel",
             "pd-multiindex",
@@ -1067,7 +1067,7 @@ class InvertTransform(_DelegatedTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": ["pd.DataFrame", "pd.Series"],
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
         "capability:inverse_transform": True,
     }
@@ -1192,7 +1192,7 @@ class Id(BaseTransformer):
 
     _tags = {
         "capability:inverse_transform": True,  # can the transformer inverse transform?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "X_inner_type": ALL_TIME_SERIES_TYPES,
         "y_inner_type": "None",
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
@@ -1321,7 +1321,7 @@ class OptionalPassthrough(_DelegatedTransformer):
         "instancewise": True,
         "X_inner_type": ALL_TIME_SERIES_TYPES,
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
         "capability:inverse_transform": True,
     }
@@ -1426,7 +1426,7 @@ class ColumnwiseTransformer(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
     }
 
@@ -1685,7 +1685,7 @@ class YtoX(BaseTransformer):
     _tags = {
         "transform-returns-same-time-index": True,
         "skip-inverse-transform": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_input_type": "both",
