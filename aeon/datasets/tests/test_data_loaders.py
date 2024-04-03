@@ -38,6 +38,7 @@ from aeon.testing.test_config import PR_TESTING
 )
 @pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test_load_forecasting_from_repo():
+    """Test load forecasting from repo."""
     name = "FOO"
     with pytest.raises(
         ValueError, match=f"File name {name} is not in the list of " f"valid files"
@@ -61,6 +62,7 @@ def test_load_forecasting_from_repo():
 )
 @pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test_load_classification_from_repo():
+    """Test load classification from repo."""
     name = "FOO"
     with pytest.raises(ValueError):
         load_classification(name)
@@ -87,6 +89,7 @@ def test_load_classification_from_repo():
 )
 @pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test_load_regression_from_repo():
+    """Test load regression from repo."""
     name = "FOO"
     with pytest.raises(
         ValueError, match=f"File name {name} is not in the list of " f"valid files"
@@ -136,6 +139,7 @@ def test_load_regression_from_repo():
 )
 @pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test_load_fails():
+    """Test load fails."""
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/",
@@ -165,6 +169,7 @@ def test__alias_datatype_check():
 )
 @pytest.mark.xfail(raises=(URLError, RemoteDisconnected, TimeoutError))
 def test__load_header_info():
+    """Test load header info."""
     path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/UnitTest_TRAIN.ts",
@@ -475,6 +480,7 @@ def test_load_from_arff():
 
 
 def test__get_channel_strings():
+    """Test get channel string."""
     line = "(2007-01-01 00:00:00,241.97),(2007-01-01 00:01:00,241.75):1"
     channel_strings = _get_channel_strings(line)
     assert len(channel_strings) == 2
