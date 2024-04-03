@@ -41,9 +41,8 @@ We list projects by time series task
 3. Implement ETS forecasters in aeon
 
 [Clustering](#clustering)
-1. Feature based clustering algorithms
+1. Density peaks clustering algorithm
 2. Deep learning based clustering algorithms
-3. Density Peaks for time series clustering
 
 [Anomaly Detection](#anomaly-detection)
 1. Anomaly detection with the Matrix Profile and MERLIN
@@ -335,49 +334,67 @@ like our own bespoke, optimised implementation based on the R implementation.
 
 ### Clustering
 
-#### 1. Feature based clustering algorithms
+#### 1. Density peaks clustering algorithm
 
 Mentors: Tony Bagnall ({user}`TonyBagnall`) and Chris  Holder (`@chrisholder`).
 
 ##### Description
 
-The clustering module in `aeon`, up until now, primarily consists of distance-based
-algorithms like K-Means, K-Medoids, and Clara, among others. Recently, we introduced an
-initial deep clustering module featuring an FCN auto-encoder, incorporating
-distance-based algorithms in the latent space. However, there is currently a shortage
-of feature-based clustering algorithms.
-
-The objective of this project is to enhance `aeon` by incorporating more deep learning
-approaches for time series clustering. This involves adapting the FCN auto-encoder to
-leverage the ResNet model. Additionally, the project aims to integrate feature-based
-algorithms for time series clustering into the system.
+The clustering module in `aeon`, up until now, clusters using time series
+specific distance functions with partitional clustering algorithms such as k-means and
+k-medoids. An alternative clustering algorithm is density peaks (DP) [1]. This
+clustering
+algorithm has the benefit of not having to label all cases as cluster members, which
+means it can easily be adapted to anomaly detection [2]. It is
+a general purpose clustering algorithm that is not available in scikit learn. This
+project will implement the algorithm based on Java and matlab implementations then
+compare performance against partitional clustering for time series clustering.
 
 ##### Project Stages
 
-TBC
+1. Research and understand how DP works.
+2. Implement DP as an aeon estimator.
+3. Test the implementation against other implementations for correctness.
+4. Compare against alternative TSCL algorithms
 
 ##### Expected Outcomes
 
-TBC
+1. A well documented, tested and efficient implementation of DP
+2. Possible extensions to reflect recent research [2] with specific time series
+   components [3].
+2. Contributions to a comparative study and paper.
 
 ##### References
+1. Rodriguez, A., & Laio, A. Clustering by Fast Search and Find of
+Density Peaks. [Science](https://www.science.org/doi/10.1126/science.1242072), 344
+   (6191), 1492-1496, 2014.
+2. Chen, L., Gao, S. & Liu, B. An improved density peaks clustering algorithm
+based on grid screening and mutual neighborhood degree for network anomaly detection.
+Sci Rep 12, 1409 (2022) [DOI](https://doi.org/10.1038/s41598-021-02038-z)
+3. Begum et al. A General Framework for Density Based  Time Series Clustering
+   Exploiting a Novel Admissible Pruning Strategy, [arXiv](https://arxiv.org/ftp/arxiv/papers/1612/1612.00637.pdf)
 
-1. Lafabregue, B., Weber, J., Gançarski, P. and Forestier, G., 2022. End-to-end deep
-representation learning for time series clustering: a comparative study. Data Mining
-and Knowledge Discovery, 36(1), pp.29-81.
 
-#### 2. Deep learning based algorithms
+#### 2. Deep learning for clustering
+
+Mentors: Tony Bagnall ({user}`TonyBagnall`)  and Ali Ismail-Fawaz ({user}
+`hadifawaz1999`)
 
 The clustering module in `aeon`, up until now, primarily consists of distance-based
-algorithms like K-Means, K-Medoids, and Clara, among others. Recently, we introduced an
-initial deep clustering module, incorporating
-distance-based algorithms in the latent space.
+partitional clustering algorithms. Recently, we introduced a deep clustering module,
+incorporating distance-based algorithms in the latent space.
 
 The objective of this project is to enhance `aeon` by incorporating more deep learning
-approaches for time series clustering. This involves adapting the FCN auto-encoder to
-leverage the ResNet model.
+approaches for time series clustering. The specific goal is to implement and assess
+InceptionTime [1] and its recent variants as a clustering algorithm, and contribute to
+an ongoing collaborative effort into a bake off for clustering.
 
-#### 3. Density Peaks for time series clustering
+##### Project Stages
+
+1. Research and understand clustering time series and deep learning based approaches.
+2. Implement inception time as an aeon clusterer.
+3.
+
 
 ### Anomaly detection
 
