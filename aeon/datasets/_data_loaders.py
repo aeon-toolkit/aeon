@@ -39,14 +39,14 @@ from aeon.utils.conversion import convert_collection
 DIRNAME = "data"
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
-CONNECTION_ERRORS = [
+CONNECTION_ERRORS = (
     HTTPError,
     URLError,
     RemoteDisconnected,
     IncompleteRead,
     ConnectionResetError,
     TimeoutError,
-]
+)
 
 
 # Return appropriate return_type in case an alias was used
