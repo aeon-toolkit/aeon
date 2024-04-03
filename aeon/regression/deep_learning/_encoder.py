@@ -75,8 +75,11 @@ class EncoderRegressor(BaseDeepRegressor):
         GPU processing will be non-deterministic.
     loss:
         The loss function to use for training.
-    metrics:
-        The evaluation metrics to use during training.
+    metrics: str or list of str, default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     use_bias:
         Whether to use bias in the dense layers.
     optimizer:
@@ -122,7 +125,7 @@ class EncoderRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         verbose=False,
         loss="mean_squared_error",
-        metrics=None,
+        metrics="mean_squared_error",
         use_bias=True,
         optimizer=None,
         random_state=None,
@@ -186,11 +189,6 @@ class EncoderRegressor(BaseDeepRegressor):
         import numpy as np
         import tensorflow as tf
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -210,7 +208,7 @@ class EncoderRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -234,6 +232,10 @@ class EncoderRegressor(BaseDeepRegressor):
         # Transpose X to conform to Keras input style
         X = X.transpose(0, 2, 1)
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 
