@@ -29,32 +29,32 @@ We will more widely advertise funding opportunities as and when they become avai
 
 We list projects by time series task
 
-Classification
+[Classification](#classification)
 1. Optimizing the Shapelet Transform for classification and similarity search
 2. EEG classification with aeon-neuro (Listed for GSoC 2024)
 3. Improved Proximity Forest for classification (listed for GSoC 2024)
 4. Improved HIVE-COTE implementation.
 
-Forecasting
+[Forecasting](#forecasting)
 1. Machine Learning for Time Series Forecasting (listed in GSoC 2024)
 2. Deep Learning for Time Series Forecasting
 3. Implement ETS forecasters in aeon
 
-Clustering
+[Clustering](#clustering)
 1. Feature based clustering algorithms
 2. Deep learning based clustering algorithms
 3. Density Peaks for time series clustering
 
-Anomaly Detection
+[Anomaly Detection](#anomaly-detection)
 1. Anomaly detection with the Matrix Profile and MERLIN
 
-Segmentation
+[Segmentation](#segmentation)
 1. Time series segmentation
 
-Transformation
+[Transformation](#transformation)
 1. Improve ROCKET family of transformers
 
-Visualisation
+[Visualisation](#visualisation)
 1. Explainable AI with the shapelet transform (Southampton intern project).
 
 Regression
