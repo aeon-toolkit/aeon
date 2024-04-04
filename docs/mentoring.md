@@ -27,7 +27,9 @@ via Slack if you are interested in any of these projects or have any questions.
 
 We will more widely advertise funding opportunities as and when they become available.
 
-We list projects by time series task
+Most projects can be extended, possibly into a research project that may lead to
+publication. These projects are for anyone, from core devs to those completely new
+to open source. We list projects by time series task
 
 [Classification](#classification)
 1. Optimizing the Shapelet Transform for classification and similarity search
@@ -351,7 +353,7 @@ will collate results from the M Competitions [2]
 2. [M Competitions](https://forecasters.org/resources/time-series-data/)
 
 
-#### 3. Implement ETS forecasters in aeon
+#### 3. Implement ETS forecasters
 
 Mentors: Tony Bagnall ({user}`TonyBagnall`)  and Leo Tsaprounis ({user}`ltsaprounis`)
 Exponential smoothing (ETS) is a popular family of algorithms for forecasting, and
@@ -429,14 +431,18 @@ incorporating distance-based algorithms in the latent space.
 The objective of this project is to enhance `aeon` by incorporating more deep learning
 approaches for time series clustering. The specific goal is to implement and assess
 InceptionTime [1] and its recent variants as a clustering algorithm, and contribute to
-an ongoing collaborative effort into a bake off for clustering.
+an ongoing collaborative effort into a bake off for clustering. More widely, there
+are a broad range of deep learning clustering approaches we could consider [2].
 
 ##### Project Stages
 
 1. Research and understand clustering time series and deep learning based approaches.
 2. Implement inception time as an aeon clusterer.
-3.
+3. Compare performance of deep learning clusterers to distance based algorithms.
 
+[1] Fawaz et al. InceptionTime: Finding AlexNet for time series classification
+Published: 07 September 2020 Volume 34, pages 1936–1962, (2020)
+[2] Deep learning forecasting [tutorial](https://lovvge.github.io/Forecasting-Tutorial-ECML-2023/)
 
 ### Anomaly detection
 
@@ -608,7 +614,10 @@ Discovery, pp.1-27.
 
 ### Visualisation
 
-1. Explainable AI with the shapelet transform (Southampton intern project).
+#### 1. Explainable AI with the shapelet transform (Southampton intern project).
+
+Mentors: TonyBagnall ({user}`TonyBagnall`) and David Guijo-Rubio
+({user}`dguijo`)
 
 This project will focus on explainable AI for time series classification (TSC) [1],
 specifically the family of algorithms based on shapelets [2]. Shapelets are small sub
@@ -637,9 +646,28 @@ Weeks 7-8: Debug, document and make PRs to merge contributions into the aeon too
 
 ### Regression
 
-1. Adapt forecasting regressors to time series extrinsic regression.
+#### 1. Adapt forecasting regressors to time series extrinsic regression.
 
-2. Adapt HIVE-COTE for regression
+Mentors: TonyBagnall ({user}`TonyBagnall`) and David Guijo-Rubio
+({user}`dguijo`)
+
+Forecasting is often reduced to regression through the application of a sliding
+window. This is a large research field that is distinct to time series extrinsic
+regression, where each series is assumed to be independent. This is more of a
+research project to investigate what techniques are used in forecasting for
+regression based forecasting and to compare them to the time series specific
+algorithms in aeon. This project would require further working up with the mentors.
+
+
+#### 2. Adapt HIVE-COTE for regression
+
+Mentors: TonyBagnall ({user}`TonyBagnall`) and David Guijo-Rubio
+({user}`dguijo`)
+
+HIVE-COTE [1] is a state of the art classifier. Adapting it for regression is an
+ongoing research project for which we would welcome collaborators. Ongoing, this
+needs working up.
+
 
 ### Documentation
 
