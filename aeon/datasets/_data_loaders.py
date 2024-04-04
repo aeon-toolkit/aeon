@@ -455,8 +455,12 @@ def _download_and_extract(url, extract_path=None):
     file_name = os.path.basename(url)
     dl_dir = tempfile.mkdtemp()
     zip_file_name = os.path.join(dl_dir, file_name)
-    urlretrieve(url, zip_file_name)
+    #    urlretrieve(url, zip_file_name)
 
+    # Using urlopen instead of urlretrieve
+    with urlopen(url, timeout=60) as response:
+        with open(zip_file_name, "wb") as out_file:
+            out_file.write(response.read())
     if extract_path is None:
         extract_path = os.path.join(MODULE, "local_data/%s/" % file_name.split(".")[0])
     else:
@@ -1176,8 +1180,8 @@ def load_regression(
                     train_save = f"{full_path}/{name}_TRAIN.ts"
                     test_save = f"{full_path}/{name}_TEST.ts"
                     try:
-                        urllib.request.urlretrieve(url_train, train_save)
-                        urllib.request.urlretrieve(url_test, test_save)
+                        urlretrieve(url_train, train_save)
+                        urlretrieve(url_test, test_save)
                     except Exception:
                         raise ValueError(error_str)
                 else:
