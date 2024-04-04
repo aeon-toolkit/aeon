@@ -58,7 +58,7 @@ def abstract_types(input_types: list) -> list:
     Returns
     -------
     list of str
-        Abstract type of the input, one of Series, Panel, Hiersarchical or Unknown.
+        Abstract type of the input, one of Series, Panel, Hierarchical or Unknown.
     """
     return [_abstract_type(x) for x in input_types]
 
