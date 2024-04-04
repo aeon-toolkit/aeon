@@ -1327,7 +1327,7 @@ def load_classification(
             )
             try:
                 # Perform the request
-                response = urlopen(req, timeout=100)
+                response = urlopen(req, timeout=60)
                 # Check the status code of the response, if 200 incorrect input args
                 if response.status != 200:
                     raise ValueError(msg)
