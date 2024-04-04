@@ -151,37 +151,37 @@ class LearningShapeletClassifier(BaseClassifier):
         _X_transformed = _X_transformed_tslearn(X)
         return self.clf_.predict_proba(_X_transformed)
 
-    def transform(self, X):
-        """Generate shapelet transform for a set of time series.
-
-        Parameters
-        ----------
-        X : array-like of shape=(n_ts, sz, d)
-            Time series dataset.
-
-        Returns
-        -------
-        array of shape=(n_ts, n_shapelets)
-            Shapelet-Transform of the provided time series.
-        """
-        _X_transformed = _X_transformed_tslearn(X)
-        return self.clf_.transform(_X_transformed)
-
-    def locate(self, X):
-        """Compute shapelet match location for a set of time series.
-
-        Parameters
-        ----------
-        X : array-like of shape=(n_ts, sz, d)
-            Time series dataset.
-
-        Returns
-        -------
-        array of shape=(n_ts, n_shapelets)
-            Location of the shapelet matches for the provided time series.
-        """
-        _X_transformed = _X_transformed_tslearn(X)
-        return self.clf_.locate(_X_transformed)
+    # def transform(self, X):
+    #     """Generate shapelet transform for a set of time series.
+    #
+    #     Parameters
+    #     ----------
+    #     X : array-like of shape=(n_ts, sz, d)
+    #         Time series dataset.
+    #
+    #     Returns
+    #     -------
+    #     array of shape=(n_ts, n_shapelets)
+    #         Shapelet-Transform of the provided time series.
+    #     """
+    #     _X_transformed = _X_transformed_tslearn(X)
+    #     return self.clf_.transform(_X_transformed)
+    #
+    # def locate(self, X):
+    #     """Compute shapelet match location for a set of time series.
+    #
+    #     Parameters
+    #     ----------
+    #     X : array-like of shape=(n_ts, sz, d)
+    #         Time series dataset.
+    #
+    #     Returns
+    #     -------
+    #     array of shape=(n_ts, n_shapelets)
+    #         Location of the shapelet matches for the provided time series.
+    #     """
+    #     _X_transformed = _X_transformed_tslearn(X)
+    #     return self.clf_.locate(_X_transformed)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
