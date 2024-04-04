@@ -58,6 +58,7 @@ We list projects by time series task
 
 [Regression](#regression)
 1. Adapt forecasting regressors to time series extrinsic regression.
+2. Adapt HIVE-COTE for regression.
 
 [Documentation](#documentation)
 1. Improve automated API documentation
@@ -606,6 +607,7 @@ kernels for fast and accurate time series classification. Data Mining and Knowle
 Discovery, pp.1-27.
 
 ### Visualisation
+
 1. Explainable AI with the shapelet transform (Southampton intern project).
 
 This project will focus on explainable AI for time series classification (TSC) [1],
@@ -632,6 +634,12 @@ Weeks 7-8: Debug, document and make PRs to merge contributions into the aeon too
 [1] Bagnall, A., Lines, J., Bostrom, A., Large, J. and Keogh, E. The great time series classification bake off: a review and experimental evaluation of recent algorithmic advances. Data Mining and Knowledge Discovery, Volume 31, pages 606–660, (2017)
 [2] Ye, L., Keogh, E. Time series shapelets: a novel technique that allows accurate, interpretable and fast classification. Data Min Knowl Disc 22, 149–182 (2011). https://doi.org/10.1007/s10618-010-0179-5
 [3] Lines, L., Davis, L., Hills, J. and Bagnall, A. A shapelet transform for time series classification, KDD '12: Proceedings of the 18th ACM SIGKDD international conference on Knowledge discovery and data mining (2012) https://doi.org/10.1145/2339530.2339579
+
+### Regression
+
+1. Adapt forecasting regressors to time series extrinsic regression.
+
+2. Adapt HIVE-COTE for regression
 
 ### Documentation
 
