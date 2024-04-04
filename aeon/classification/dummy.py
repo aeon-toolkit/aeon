@@ -1,6 +1,6 @@
 """Dummy time series classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["DummyClassifier"]
 
 import numpy as np
@@ -13,8 +13,8 @@ class DummyClassifier(BaseClassifier):
     """
     DummyClassifier makes predictions that ignore the input features.
 
-    This classifier is a wrapper for SklearnDummyClassifier that serves as a simple
-    baseline to compare against other more complex classifiers.
+    This classifier is a wrapper for the scikit-learn DummyClassifier that serves as a
+    simple baseline to compare against other more complex classifiers.
     The specific behavior of the baseline is selected with the `strategy` parameter.
 
     All strategies make predictions that ignore the input feature values passed
@@ -58,24 +58,49 @@ class DummyClassifier(BaseClassifier):
     constant : int or str or array-like of shape (n_outputs,), default=None
         The explicit constant as predicted by the "constant" strategy. This
         parameter is useful only for the "constant" strategy.
+
+    Examples
+    --------
+    >>> from aeon.classification.dummy import DummyClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+
+    >>> clf = DummyClassifier(strategy="prior")
+    >>> clf.fit(X_train, y_train)
+    DummyClassifier()
+    >>> clf.predict(X_test)[:5]
+    array(['1', '1', '1', '1', '1'], dtype='<U1')
+
+    >>> clf = DummyClassifier(strategy="uniform", random_state=0)
+    >>> clf.fit(X_train, y_train)
+    DummyClassifier(random_state=0, strategy='uniform')
+    >>> clf.predict(X_test)[:5]
+    array(['1', '2', '2', '1', '2'], dtype='<U1')
+
+    >>> clf = DummyClassifier(strategy="constant", constant="2")
+    >>> clf.fit(X_train, y_train)
+    DummyClassifier(constant='2', strategy='constant')
+    >>> clf.predict(X_test)[:5]
+    array(['2', '2', '2', '2', '2'], dtype='<U1')
     """
 
     _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:missing_values": True,
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "X_inner_type": ["np-list", "numpy3D"],
     }
-
-    VALID_STRATEGIES = ["most_frequent", "prior", "stratified", "uniform", "constant"]
 
     def __init__(self, strategy="prior", random_state=None, constant=None):
         self.strategy = strategy
         self.random_state = random_state
         self.constant = constant
+
         self.sklearn_dummy_classifier = SklearnDummyClassifier(
             strategy=strategy, random_state=random_state, constant=constant
         )
+
         super().__init__()
 
     def _fit(self, X, y):
@@ -92,7 +117,7 @@ class DummyClassifier(BaseClassifier):
         -------
         self : reference to self.
         """
-        self.sklearn_dummy_classifier.fit(None, y)
+        self.sklearn_dummy_classifier.fit(X, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -120,28 +145,3 @@ class DummyClassifier(BaseClassifier):
         y : predictions of probabilities for class values of X, np.ndarray
         """
         return self.sklearn_dummy_classifier.predict_proba(X)
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-        Returns
-        -------
-        params : dict or list of dict, default={}
-            Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
-        """
-        params = [{"strategy": x} for x in cls.VALID_STRATEGIES]
-        for p in params:
-            if p["strategy"] == "constant":
-                p["constant"] = 0
-
-        return params
