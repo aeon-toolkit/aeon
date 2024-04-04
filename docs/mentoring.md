@@ -7,7 +7,7 @@
 and the code
 base. These projects are designed for internships, usage as part of
 undergraduate/postgraduate projects at academic institutions, and as options for
-programs such as [Google Summer of Code (GSoC)](https://github.com/aeon-toolkit/aeon-admin/blob/main/gsoc/gsoc-2024-projects.md).
+programs such as [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com/).
 
 For those interested in undertaking a project outside these scenarios, we recommend
 joining the [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
@@ -234,6 +234,47 @@ arXiv:2304.13029.
 3. Herrmann, M., Tan, C.W., Salehi, M. and Webb, G.I., 2023. Proximity Forest 2.0: A
 new effective and scalable similarity-based classifier for time series. arXiv
 preprint arXiv:2304.05800.
+
+#### 4. Improved HIVE-COTE implementation
+
+Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`) and Tony Bagnall
+({user}`TonyBagnall`)
+
+##### Description
+
+The Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) [1,2,3]
+is a time series classifier that has claims to be state-of-the-art,
+particularly in terms of probabilistic estimates [4]. There have been several iterations
+that use different base classifiers but they all share the same design basic:
+classifiers using different representations are combined in a weighted meta-ensemble
+[4]. There are two HIVE-COTE implementations currently in `aeon`: HIVE-COTEV1 [2]
+and HIVECOTEV2 [3]. This project will involve combining these into a single
+estimator, modularising the ensemble stage and possibly experimenting with
+alternative structures. This can easily develop into a research project.
+
+##### Project stages
+
+1. Learn about `aeon` best practices, coding standards and testing policies.
+2. Study the HIVE-COTE algorithm and previous `aeon` implementation.
+3. Combine the HIVE-COTEV1 and HIVE-COTEV2 classifiers into a single classifier
+   configurable into different versions through the constructor.
+4. Restructure the ensemble stage to allow easy experimentation with variants.
+
+##### References
+
+1. A Bagnall, J Lines, J Hills, A Bostrom, Time-series classification with COTE: the
+   collective of transformation-based ensembles, IEEE Transactions on Knowledge and
+   Data Engineering 27 (9), 2522-2535
+2. M Middlehurst, J Large, M Flynn, J Lines, A Bostrom, A Bagnall, HIVE-COTE 2.0: a
+   new meta ensemble for time series classification, Machine Learning 110 (11),
+   3211-3243
+3. J Lines, S Taylor, A Bagnall, Time series classification with HIVE-COTE: The
+   hierarchical vote collective of transformation-based ensembles, ACM Transactions
+   on Knowledge Discovery from Data (TKDD) 12 (5), 1-35
+4. Middlehurst, M., Schäfer, P. and Bagnall, A., 2023. Bake off redux: a review and
+experimental evaluation of recent time series classification algorithms. arXiv preprint
+arXiv:2304.13029.
+
 
 ### Forecasting
 
