@@ -109,7 +109,6 @@ class LearningShapeletClassifier(BaseClassifier):
         scale=False,
         random_state=None,
     ):
-        super().__init__()
         self.n_shapelets_per_size = n_shapelets_per_size
         self.max_iter = max_iter
         self.batch_size = batch_size
@@ -121,6 +120,8 @@ class LearningShapeletClassifier(BaseClassifier):
         self.max_size = max_size
         self.scale = scale
         self.random_state = random_state
+
+        super().__init__()
 
     def _fit(self, X, y):
         from tslearn.shapelets import LearningShapelets
