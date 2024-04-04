@@ -50,8 +50,9 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseEstimator
-from aeon.datatypes import VectorizedDF, convert_to, mtype_to_scitype
+from aeon.datatypes import convert_to, mtype_to_scitype
 from aeon.datatypes._series_as_panel import convert_to_scitype
+from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.utils.index_functions import update_data
 from aeon.utils.sklearn import (
     is_sklearn_classifier,
@@ -371,7 +372,7 @@ class BaseTransformer(BaseEstimator):
 
         # checks and conversions complete, pass to inner fit
         #####################################################
-        vectorization_needed = isinstance(X_inner, VectorizedDF)
+        vectorization_needed = isinstance(X_inner, _VectorizedDF)
         self._is_vectorized = vectorization_needed
         # we call the ordinary _fit if no looping/vectorization needed
         if not vectorization_needed:
@@ -442,7 +443,7 @@ class BaseTransformer(BaseEstimator):
         # input check and conversion for X/y
         X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
 
-        if not isinstance(X_inner, VectorizedDF):
+        if not isinstance(X_inner, _VectorizedDF):
             Xt = self._transform(X=X_inner, y=y_inner)
         else:
             # otherwise we call the vectorized version of predict
@@ -512,7 +513,7 @@ class BaseTransformer(BaseEstimator):
 
         # checks and conversions complete, pass to inner fit_transform
         ####################################################
-        vectorization_needed = isinstance(X_inner, VectorizedDF)
+        vectorization_needed = isinstance(X_inner, _VectorizedDF)
         self._is_vectorized = vectorization_needed
         # we call the ordinary _fit_transform if no looping/vectorization needed
         if not vectorization_needed:
@@ -573,7 +574,7 @@ class BaseTransformer(BaseEstimator):
         # input check and conversion for X/y
         X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
 
-        if not isinstance(X_inner, VectorizedDF):
+        if not isinstance(X_inner, _VectorizedDF):
             Xt = self._inverse_transform(X=X_inner, y=y_inner)
         else:
             # otherwise we call the vectorized version of predict
@@ -639,7 +640,7 @@ class BaseTransformer(BaseEstimator):
 
         # checks and conversions complete, pass to inner fit
         #####################################################
-        vectorization_needed = isinstance(X_inner, VectorizedDF)
+        vectorization_needed = isinstance(X_inner, _VectorizedDF)
         # we call the ordinary _fit if no looping/vectorization needed
         if not vectorization_needed:
             self._update(X=X_inner, y=y_inner)
@@ -898,7 +899,7 @@ class BaseTransformer(BaseEstimator):
         # elif case == "case 3: requires vectorization":
         else:  # if requires_vectorization
             iterate_X = _most_complex_scitype(X_inner_scitype, X_scitype)
-            X_inner = VectorizedDF(
+            X_inner = _VectorizedDF(
                 X=X,
                 iterate_as=iterate_X,
                 is_scitype=X_scitype,
@@ -915,7 +916,7 @@ class BaseTransformer(BaseEstimator):
                 #     "input types natively: Panel X and non-None y."
                 # )
                 iterate_y = _most_complex_scitype(y_inner_scitype, y_scitype)
-                y_inner = VectorizedDF(X=y, iterate_as=iterate_y, is_scitype=y_scitype)
+                y_inner = _VectorizedDF(X=y, iterate_as=iterate_y, is_scitype=y_scitype)
             else:
                 y_inner = None
 

@@ -44,6 +44,5 @@ __all__ = [
     "scitype_to_mtype",
     "SCITYPE_LIST",
     "DATATYPE_REGISTER",
-    "update_data",
     "VectorizedDF",
 ]
