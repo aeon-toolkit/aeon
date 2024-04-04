@@ -16,6 +16,7 @@ import glob
 import os
 import re
 import shutil
+import socket
 import tempfile
 import urllib
 import zipfile
@@ -46,6 +47,7 @@ CONNECTION_ERRORS = (
     IncompleteRead,
     ConnectionResetError,
     TimeoutError,
+    socket.timeout,
 )
 
 
