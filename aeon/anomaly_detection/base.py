@@ -84,7 +84,6 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
             if requires_y
             else ""
         )
-
         new_y = y
 
         # must be a valid input type, see VALID_INPUT_TYPES in BaseSeriesEstimator
@@ -110,6 +109,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
                     "containing 0 and 1 or a boolean array." + req_msg
                 )
         elif isinstance(y, pd.Series):
+            # check series is of boolean dtype
             if not pd.api.types.is_bool_dtype(y):
                 raise ValueError(
                     "Error in input type for y: y input as pd.Series must have a "
@@ -118,21 +118,26 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
             new_y = y.values
         elif isinstance(y, pd.DataFrame):
+            # only accept size 1 dataframe
             if y.shape[1] > 1:
                 raise ValueError(
                     "Error in input type for y: y input as pd.DataFrame should have a "
                     "single column series."
                 )
 
+            # check column is of boolean dtype
             if not all(pd.api.types.is_numeric_dtype(y[col]) for col in y.columns):
                 raise ValueError(
-                    "Error in input type for y: y input as pd.DataFrame "
-                    "must be numeric"
+                    "Error in input type for y: y input as pd.DataFrame must have a "
+                    "boolean dtype." + req_msg
                 )
+
+            new_y = y.squeeze().values
         else:
             raise ValueError(
                 f"Error in input type for y: it should be one of {VALID_INPUT_TYPES}, "
                 f"saw {type(y)}"
             )
 
+        new_y = new_y.astype(bool)
         return new_y
