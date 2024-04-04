@@ -1148,7 +1148,7 @@ def load_regression(
             req = Request(url, method="HEAD")
             try:
                 # Perform the request
-                response = urlopen(req, timeout=100)
+                response = urlopen(req, timeout=60)
                 # Check the status code of the response
                 if response.status != 200:
                     try_monash = True
