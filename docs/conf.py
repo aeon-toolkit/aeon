@@ -187,7 +187,6 @@ html_theme = "furo"
 # documentation.
 
 html_theme_options = {
-    "announcement": "<em>Announcement</em>: aeon is taking part in the Google Summer of Code (GSoC) 2024! See the home page for more information.",  # noqa: E501
     "sidebar_hide_name": True,
     "top_of_page_button": "edit",
     "source_repository": "https://github.com/aeon-toolkit/aeon/",
