@@ -92,7 +92,7 @@ class LearningShapeletClassifier(BaseClassifier):
         "capability:multivariate": True,
         "algorithm_type": "shapelet",
         "cant-pickle": True,
-        "python_dependencies": "tslearn",
+        "python_dependencies": ["tslearn", "tensorflow"],
     }
 
     def __init__(
