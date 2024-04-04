@@ -666,7 +666,7 @@ def _shape_dtw_pairwise_distance(
                     x1.shape[1], x2.shape[1], window, itakura_max_slope
                 )
 
-            if transformation_precomputed and transformed_x:
+            if transformation_precomputed and transformed_x is not None:
                 transformed_x1 = transformed_x[i]
                 transformed_x2 = transformed_x[j]
             else:
@@ -717,7 +717,11 @@ def _shape_dtw_from_multiple_to_multiple_distance(
                     x1.shape[1], y1.shape[1], window, itakura_max_slope
                 )
 
-            if transformation_precomputed and transformed_y and transformed_x:
+            if (
+                transformation_precomputed
+                and transformed_y is not None
+                and transformed_x is not None
+            ):
                 transformed_x1 = transformed_x[i]
                 transformed_x2 = transformed_y[j]
             else:
