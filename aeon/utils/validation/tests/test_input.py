@@ -4,15 +4,39 @@ import pytest
 
 from aeon.testing.utils.data_gen import get_examples
 from aeon.testing.utils.data_gen._collection import EQUAL_LENGTH_UNIVARIATE
-from aeon.utils.validation._input import is_hierarchical, is_valid_input, validate_input
+from aeon.utils.validation._input import (
+    COLLECTIONS,
+    HIERARCHICAL,
+    SERIES,
+    _abstract_type,
+    abstract_types,
+    is_hierarchical,
+    is_valid_input,
+    validate_input,
+)
 from aeon.utils.validation.collection import is_collection
 from aeon.utils.validation.series import is_single_series
 
-# Tests limited to these input, some  collection types are ambiguous
-COLLECTIONS = ["numpy3D", "nested_univ", "pd-multiindex"]
-SERIES = ["pd.Series", "pd.DataFrame", "np.ndarray"]
-HIERARCHICAL = ["pd_multiindex_hier"]
 PANDAS_TYPES = ["pd.Series", "pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
+
+
+def test_abstract_types():
+    """Test abstract_types."""
+    for s in SERIES:
+        assert _abstract_type(s) == "Series"
+    for c in COLLECTIONS:
+        assert _abstract_type(c) == "Panel"
+    for h in HIERARCHICAL:
+        assert _abstract_type(h) == "Hierarchical"
+    assert _abstract_type("Arsenal") == "Unknown"
+    comb = ["pd.Series", "pd.DataFrame", "pd-multiindex", "pd_multiindex_hier", "Foo"]
+    assert abstract_types(comb) == [
+        "Series",
+        "Series",
+        "Panel",
+        "Hierarchical",
+        "Unknown",
+    ]
 
 
 @pytest.mark.parametrize("data", COLLECTIONS)
