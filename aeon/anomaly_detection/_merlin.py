@@ -1,6 +1,10 @@
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["MERLIN"]
+
 import warnings
 
 import numpy as np
+from numba import njit
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.distances import euclidean_distance
@@ -55,6 +59,7 @@ class MERLIN(BaseAnomalyDetector):
                 r = r - s
 
     @staticmethod
+    @njit(fastmath=True, cache=True)
     def _drag(X, length, discord_range):
         C = []
         data = np.zeros((X.shape[1] - length + 1, length))

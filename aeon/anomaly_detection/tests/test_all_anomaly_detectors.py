@@ -1,8 +1,11 @@
+__maintainer__ = ["MatthewMiddlehurst"]
+
 import numpy as np
 import pytest
 
 from aeon.base._base_series import VALID_INNER_TYPES
 from aeon.registry import all_estimators
+from aeon.testing.utils.data_gen import make_series
 
 ALL_ANOMALY_DETECTORS = all_estimators(
     estimator_types="anomaly-detector",
@@ -11,14 +14,46 @@ ALL_ANOMALY_DETECTORS = all_estimators(
 
 
 @pytest.mark.parametrize("anomaly_detector", ALL_ANOMALY_DETECTORS)
-def test_anomaly_detector_base_functionality(anomaly_detector):
-    """Test compliance with the base class contract."""
-    # Test they dont override final methods, because python does not enforce this
+def test_anomaly_detector_univariate(anomaly_detector):
+    ad = anomaly_detector.create_test_instance()
+    series = make_series(n_timepoints=10, return_numpy=True)
+    y = np.random.randint(0, 2, 10)
+
+    if anomaly_detector.get_class_tag(tag_name="capability:univariate"):
+        pred = ad.fit_predict(series, y)
+        assert isinstance(pred, np.ndarray)
+        assert pred.shape == (10,)
+        assert issubclass(pred.dtype.type, (np.integer, np.floating, np.bool_))
+    else:
+        with pytest.raises(ValueError, match="Univariate data not supported"):
+            ad.fit_predict(series, y)
+
+
+@pytest.mark.parametrize("anomaly_detector", ALL_ANOMALY_DETECTORS)
+def test_anomaly_detector_multivariate(anomaly_detector):
+    ad = anomaly_detector.create_test_instance()
+    series = make_series(n_timepoints=10, n_columns=2, return_numpy=True).T
+    y = np.random.randint(0, 2, 10)
+
+    if anomaly_detector.get_class_tag(tag_name="capability:multivariate"):
+        pred = ad.fit_predict(series, y)
+        assert isinstance(pred, np.ndarray)
+        assert pred.shape == (10,)
+        assert issubclass(pred.dtype.type, (np.integer, np.floating, np.bool_))
+    else:
+        with pytest.raises(ValueError, match="Multivariate data not supported"):
+            ad.fit_predict(series, y)
+
+
+@pytest.mark.parametrize("anomaly_detector", ALL_ANOMALY_DETECTORS)
+def test_anomaly_detector_overrides_and_tags(anomaly_detector):
+    """Test compliance with the anomaly detector base class contract."""
+    # Test they don't override final methods, because Python does not enforce this
     assert "fit" not in anomaly_detector.__dict__
     assert "predict" not in anomaly_detector.__dict__
     assert "fit_predict" not in anomaly_detector.__dict__
 
-    # Test that all segmenters implement abstract predict.
+    # Test that all anomaly detectors implement abstract predict.
     assert "_predict" in anomaly_detector.__dict__
 
     # Test that fit_is_empty is correctly set
@@ -33,46 +68,3 @@ def test_anomaly_detector_base_functionality(anomaly_detector):
     multi = anomaly_detector.get_class_tag(tag_name="capability:multivariate")
     uni = anomaly_detector.get_class_tag(tag_name="capability:univariate")
     assert multi or uni
-
-
-def _assert_output(output, dense, length):
-    """Assert the properties of the anomaly detector output."""
-    assert isinstance(output, np.ndarray)
-    if dense:  # Change points returned
-        assert len(output) < length
-        assert max(output) < length
-        assert min(output) >= 0
-        # Test in ascending order
-        assert all(output[i] <= output[i + 1] for i in range(len(output) - 1))
-    else:  # Segment labels returned, must be same length sas series
-        assert len(output) == length
-
-
-@pytest.mark.parametrize("anomaly_detector", ALL_ANOMALY_DETECTORS)
-def test_segmenter_instance(anomaly_detector):
-    """Test anomaly detectors."""
-    instance = anomaly_detector.create_test_instance()
-
-    multivariate = anomaly_detector.get_class_tag(tag_name="capability:multivariate")
-    X = np.random.random(size=(5, 20))
-    # Also tests does not fail if y is passed
-    y = np.array([0, 0, 0, 1, 1])
-
-    # Test that capability:multivariate is correctly set
-    dense = anomaly_detector.get_class_tag(tag_name="returns_dense")
-    if multivariate:
-        output = instance.fit_predict(X, y, axis=1)
-        _assert_output(output, dense, X.shape[1])
-    else:
-        with pytest.raises(ValueError, match="Multivariate data not supported"):
-            instance.fit_predict(X, y, axis=1)
-
-    # Test that output is correct type
-    X = np.random.random(size=(20))
-    uni = anomaly_detector.get_class_tag(tag_name="capability:univariate")
-    if uni:
-        output = instance.fit_predict(X, y=X)
-        _assert_output(output, dense, len(X))
-    else:
-        with pytest.raises(ValueError, match="Univariate data not supported"):
-            instance.fit_predict(X)

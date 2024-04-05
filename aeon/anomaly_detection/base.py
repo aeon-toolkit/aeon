@@ -1,6 +1,10 @@
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["BaseAnomalyDetector"]
+
 from abc import ABC, abstractmethod
 from typing import final
 
+import numpy
 import numpy as np
 import pandas as pd
 
@@ -28,8 +32,6 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
     }
 
     def __init__(self, axis=1):
-        self.axis = axis
-
         self._is_fitted = False
 
         super().__init__(axis=axis)
@@ -47,12 +49,13 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         # reset estimator at the start of fit
         self.reset()
 
-        if axis is None:  # If none given, assume it is correct.
+        # If None given, assume it is correct.
+        if axis is None:
             axis = self.axis
 
         X = self._preprocess_series(X, axis)
         if y is not None:
-            y = self._check_y(y, self.get_class_tag("requires_y"))
+            y = self._check_y(y)
 
         self._fit(X=X, y=y)
 
@@ -62,8 +65,10 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
     @final
     def predict(self, X, axis=None) -> np.ndarray:
-        self.check_is_fitted()
+        if not self.get_class_tag("fit_is_empty"):
+            self.check_is_fitted()
 
+        # If None given, assume it is correct.
         if axis is None:
             axis = self.axis
 
@@ -71,17 +76,50 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         return self._predict(X)
 
-    def _fit(self, X, y=None):
+    @final
+    def fit_predict(self, X, y=None, axis=None) -> np.ndarray:
+        if self.get_class_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
+
+        # reset estimator at the start of fit
+        self.reset()
+
+        # If None given, assume it is correct.
+        if axis is None:
+            axis = self.axis
+
+        X = self._preprocess_series(X, axis)
+
+        if self.get_class_tag("fit_is_empty"):
+            self._is_fitted = True
+            return self._predict(X)
+
+        if y is not None:
+            y = self._check_y(y)
+
+        pred = self._fit_predict(X, y)
+
+        # this should happen last
+        self._is_fitted = True
+        return pred
+
+    def _fit(self, X, y):
         return self
 
     @abstractmethod
-    def _predict(self, X) -> np.ndarray: ...
+    def _predict(self, X) -> np.ndarray:
+        ...
 
-    def _check_y(self, y: VALID_INPUT_TYPES, requires_y: bool):
+    def _fit_predict(self, X, y):
+        self._fit(X, y)
+        return self._predict(X)
+
+    def _check_y(self, y: VALID_INPUT_TYPES) -> np.ndarray:
         # Remind user if y is not required for this estimator on failure
         req_msg = (
             f"{self.__class__.__name__} does not require a y input."
-            if requires_y
+            if self.get_class_tag("requires_y")
             else ""
         )
         new_y = y
@@ -100,7 +138,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
             if issubclass(y.dtype.type, np.integer):
                 new_y = y.astype(bool)
                 fail = not np.array_equal(y, new_y)
-            elif not issubclass(y.dtype.type, bool):
+            elif not issubclass(y.dtype.type, numpy.bool_):
                 fail = True
 
             if fail:
@@ -126,7 +164,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
                 )
 
             # check column is of boolean dtype
-            if not all(pd.api.types.is_numeric_dtype(y[col]) for col in y.columns):
+            if not all(pd.api.types.is_bool_dtype(y[col]) for col in y.columns):
                 raise ValueError(
                     "Error in input type for y: y input as pd.DataFrame must have a "
                     "boolean dtype." + req_msg
