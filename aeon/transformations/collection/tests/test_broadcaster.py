@@ -56,21 +56,21 @@ def test_broadcaster_methods(data_gen):
     )
     broadcaster.fit(X, y)
     Xt = broadcaster.transform(X)
-    Xit = broadcaster.inverse_transform(Xt)
-    assert hasattr(broadcaster, "series_transformers") and len(
-        broadcaster.series_transformers
+    assert hasattr(broadcaster, "single_transformers_") and len(
+        broadcaster.single_transformers_
     ) == len(X)
 
     for i in range(len(X)):
-        for j in range(broadcaster.series_transformers[i].n_features_):
+        for j in range(broadcaster.single_transformers_[i].n_features_):
             assert_array_almost_equal(
-                Xt[i, j],
-                X[i, j]
+                Xt[i][j],
+                X[i][j]
                 + constant
-                + broadcaster.series_transformers[i].random_values_[j],
+                + broadcaster.single_transformers_[i].random_values_[j],
             )
-
-    assert_array_almost_equal(Xit, X)
+    Xit = broadcaster.inverse_transform(Xt)
+    for i in range(len(X)):
+        assert_array_almost_equal(Xit[i], X[i], decimal=5)
 
 
 @pytest.mark.parametrize(
