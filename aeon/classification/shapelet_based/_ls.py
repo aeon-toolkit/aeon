@@ -3,7 +3,9 @@
 Learning shapelet classifier that simply wraps the LearningShapelet class from tslearn.
 """
 
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["LearningShapeletClassifier"]
+
 
 import numpy as np
 
@@ -31,50 +33,39 @@ class LearningShapeletClassifier(BaseClassifier):
 
     Parameters
     ----------
-    n_shapelets_per_size: dict (default: None)
+    n_shapelets_per_size: dict, default=None
         Dictionary giving, for each shapelet size (key),
         the number of such shapelets to be trained (value).
         If None, `grabocka_params_to_shapelet_size_dict` is used and the
         size used to compute is that of the shortest time series passed at fit
         time.
-
-    max_iter: int (default: 10,000)
+    max_iter: int, default=10000
         Number of training epochs.
-
-    batch_size: int (default: 256)
+    batch_size: int, default=256
         Batch size to be used.
-
-    verbose: {0, 1, 2} (default: 0)
+    verbose: {0, 1, 2}, default=0
         `keras` verbose level.
-
-    optimizer: str or keras.optimizers.Optimizer (default: "sgd")
+    optimizer: str or keras.optimizers.Optimizer, default="sgd"
         `keras` optimizer to use for training.
-
-    weight_regularizer: float or None (default: 0.)
+    weight_regularizer: float or None, default=0.0
         Strength of the L2 regularizer to use for training the classification
         (softmax) layer. If 0, no regularization is performed.
-
-    shapelet_length: float (default: 0.15)
+    shapelet_length: float, default=0.15
         The length of the shapelets, expressed as a fraction of the time
         series length.
         Used only if `n_shapelets_per_size` is None.
-
-    total_lengths: int (default: 3)
+    total_lengths: int, default=3
         The number of different shapelet lengths. Will extract shapelets of
         length i * shapelet_length for i in [1, total_lengths]
         Used only if `n_shapelets_per_size` is None.
-
-    max_size: int or None (default: None)
+    max_size: int or None, default=None
         Maximum size for time series to be fed to the model. If None, it is
         set to the size (number of timestamps) of the training time series.
-
-    scale: bool (default: False)
+    scale: bool, default=False
         Whether input data should be scaled for each feature of each time
-        series to lie in the [0-1] interval.
-        Default for this parameter is set to `False` in version 0.4 to ensure
-        backward compatibility, but is likely to change in a future version.
-
-    random_state : int or None, optional (default: None)
+        series to lie in the [0-1] interval. Default for this parameter is set to
+        `False`.
+    random_state : int or None, default=None
         The seed of the pseudo random number generator to use when shuffling
         the data.  If int, random_state is the seed used by the random number
         generator; If None, the random number generator is the RandomState
@@ -82,16 +73,26 @@ class LearningShapeletClassifier(BaseClassifier):
 
     References
     ----------
-    .. [1] J. Grabocka et al. Learning Time-Series Shapelets. SIGKDD 2014.
+    .. Grabocka, J., Schilling, N., Wistuba, M. and Schmidt-Thieme, L., 2014, August.
+       Learning time-series shapelets. In Proceedings of the 20th ACM SIGKDD
+       international conference on Knowledge discovery and data mining (pp. 392-401).
 
+    Examples
+    --------
+    >>> from aeon.classification.shapelet_based import LearningShapeletClassifier
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(random_state=0)
+    >>> clf = LearningShapeletClassifier(max_iter=50, random_state=0) # doctest: +SKIP
+    >>> clf.fit(X, y) # doctest: +SKIP
+    MrSQMClassifier(...)
+    >>> clf.predict(X) # doctest: +SKIP
     """
 
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "shapelet",
         "cant-pickle": True,
-        "python_dependencies": "tensorflow",
-        "python_version": "<3.10",
+        "python_dependencies": ["tslearn", "tensorflow"],
     }
 
     def __init__(
@@ -108,7 +109,6 @@ class LearningShapeletClassifier(BaseClassifier):
         scale=False,
         random_state=None,
     ):
-        super().__init__()
         self.n_shapelets_per_size = n_shapelets_per_size
         self.max_iter = max_iter
         self.batch_size = batch_size
@@ -120,6 +120,8 @@ class LearningShapeletClassifier(BaseClassifier):
         self.max_size = max_size
         self.scale = scale
         self.random_state = random_state
+
+        super().__init__()
 
     def _fit(self, X, y):
         from tslearn.shapelets import LearningShapelets
@@ -149,37 +151,37 @@ class LearningShapeletClassifier(BaseClassifier):
         _X_transformed = _X_transformed_tslearn(X)
         return self.clf_.predict_proba(_X_transformed)
 
-    def transform(self, X):
-        """Generate shapelet transform for a set of time series.
-
-        Parameters
-        ----------
-        X : array-like of shape=(n_ts, sz, d)
-            Time series dataset.
-
-        Returns
-        -------
-        array of shape=(n_ts, n_shapelets)
-            Shapelet-Transform of the provided time series.
-        """
-        _X_transformed = _X_transformed_tslearn(X)
-        return self.clf_.transform(_X_transformed)
-
-    def locate(self, X):
-        """Compute shapelet match location for a set of time series.
-
-        Parameters
-        ----------
-        X : array-like of shape=(n_ts, sz, d)
-            Time series dataset.
-
-        Returns
-        -------
-        array of shape=(n_ts, n_shapelets)
-            Location of the shapelet matches for the provided time series.
-        """
-        _X_transformed = _X_transformed_tslearn(X)
-        return self.clf_.locate(_X_transformed)
+    # def transform(self, X):
+    #     """Generate shapelet transform for a set of time series.
+    #
+    #     Parameters
+    #     ----------
+    #     X : array-like of shape=(n_ts, sz, d)
+    #         Time series dataset.
+    #
+    #     Returns
+    #     -------
+    #     array of shape=(n_ts, n_shapelets)
+    #         Shapelet-Transform of the provided time series.
+    #     """
+    #     _X_transformed = _X_transformed_tslearn(X)
+    #     return self.clf_.transform(_X_transformed)
+    #
+    # def locate(self, X):
+    #     """Compute shapelet match location for a set of time series.
+    #
+    #     Parameters
+    #     ----------
+    #     X : array-like of shape=(n_ts, sz, d)
+    #         Time series dataset.
+    #
+    #     Returns
+    #     -------
+    #     array of shape=(n_ts, n_shapelets)
+    #         Location of the shapelet matches for the provided time series.
+    #     """
+    #     _X_transformed = _X_transformed_tslearn(X)
+    #     return self.clf_.locate(_X_transformed)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -203,4 +205,4 @@ class LearningShapeletClassifier(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {"n_shapelets_per_size": None, "shapelet_length": 0.15, "max_iter": 50}
+        return {"max_iter": 50, "batch_size": 10}
