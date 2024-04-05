@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from numba import njit
 
-from aeon.transformations.series import BaseSeriesTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
 class AutoCorrelationTransformer(BaseSeriesTransformer):

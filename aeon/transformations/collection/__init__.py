@@ -4,7 +4,7 @@ __all__ = [
     # base class and series wrapper
     "BaseCollectionTransformer",
     "CollectionToSeriesWrapper",
-    "SeriesToCollectionWrapper",
+    "SeriesToCollectionBroadcaster",
     # transformers
     "AutocorrelationFunctionTransformer",
     "ARCoefficientTransformer",
@@ -25,7 +25,7 @@ __all__ = [
     "TruncationTransformer",
 ]
 
-from aeon.transformations.collection._broadcaster import SeriesToCollectionWrapper
+from aeon.transformations.collection._broadcaster import SeriesToCollectionBroadcaster
 from aeon.transformations.collection._collection_wrapper import (
     CollectionToSeriesWrapper,
 )

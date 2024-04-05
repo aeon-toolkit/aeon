@@ -1,14 +1,14 @@
 """Class to wrap a single series transformer over a collection."""
 
 __maintainer__ = ["baraline"]
-__all__ = ["SeriesToCollectionWrapper"]
+__all__ = ["SeriesToCollectionBroadcaster"]
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import get_n_cases
 
 
-class SeriesToCollectionWrapper(BaseCollectionTransformer):
+class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
     """Wrap a single series transformer over a collection.
 
     Uses the single series transformer passed in the constructor over a
@@ -21,10 +21,10 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
 
     Examples
     --------
-    >>>    from aeon.transformations.series import DummySeriesTransformer
+    >>>    from aeon.testing.mock_estimators import MockSeriesTransformer
     >>> import numpy as np
     >>> X = np.np.random.rand(4, 1, 10)
-    >>> transformer = DummySeriesTransformer()
+    >>> transformer = MockSeriesTransformer()
     >>> X_t = transformer.fit_transform(X)
     """
 
@@ -41,9 +41,9 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
         transformer: BaseSeriesTransformer,
     ) -> None:
         self.transformer = transformer
-        series_tags = transformer.get_tags()
-        tags_to_add = self._tags
-        for key in series_tags:
+        tags_to_keep = SeriesToCollectionBroadcaster._tags
+        tags_to_add = transformer.get_tags()
+        for key in tags_to_keep:
             tags_to_add.pop(key, None)
         super().__init__()
         # Setting tags before __init__() cause them to be overwriten.
@@ -57,7 +57,8 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints), or list of
+        2D np.ndarray
             The collection of time series to transform.
         y : None,
             Present for interface compatibility.
@@ -70,7 +71,7 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
         n_cases = get_n_cases(X)
         self.single_transformers_ = [self.transformer.clone() for _ in range(n_cases)]
         for i in range(n_cases):
-            self.single_transformers_[i]._fit(X[i])
+            self.single_transformers_[i].fit(X[i])
 
     def _transform(self, X, y=None):
         """
@@ -82,16 +83,6 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
             The collection of time series to transform.
         y : None,
             Present for interface compatibility.
-
-        Raises
-        ------
-        ValueError
-            When fit_is_empty is False, a ValueError can be raised if the
-            size of X is different of the size of series_transformers. This
-            indicates that the input may different of the one given during
-            fit. As a BaseSeriesTransformer is only fitted to a single series,
-            it only makes sense to use transform with the same series in a
-            wrapping context.
 
         Returns
         -------
@@ -159,6 +150,8 @@ class SeriesToCollectionWrapper(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.transformations.series import DummySeriesTransformer
+        from aeon.testing.mock_estimators._mock_series_transformers import (
+            MockSeriesTransformer,
+        )
 
-        return {"transformer": DummySeriesTransformer()}
+        return {"transformer": MockSeriesTransformer()}

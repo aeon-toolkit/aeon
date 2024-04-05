@@ -12,6 +12,8 @@ __all__ = [
     "SupervisedMockSegmenter",
     "MockHandlesAllInput",
     "MockRegressor",
+    "MockSeriesTransformer",
+    "MockSeriesTransformerNoFit",
 ]
 
 from aeon.testing.mock_estimators._mock_classifiers import (
@@ -32,4 +34,8 @@ from aeon.testing.mock_estimators._mock_regressors import (
 from aeon.testing.mock_estimators._mock_segmenters import (
     MockSegmenter,
     SupervisedMockSegmenter,
+)
+from aeon.testing.mock_estimators._mock_series_transformers import (
+    MockSeriesTransformer,
+    MockSeriesTransformerNoFit,
 )

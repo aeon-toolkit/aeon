@@ -6,13 +6,13 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
+from aeon.testing.mock_estimators._mock_series_transformers import MockSeriesTransformer
 from aeon.testing.utils.data_gen import (
     make_1d_numpy_series,
     make_2d_numpy_series,
     make_example_3d_numpy,
     make_series,
 )
-from aeon.transformations.series import DummySeriesTransformer
 
 
 @pytest.mark.parametrize(
@@ -27,7 +27,7 @@ def test_series_transformer_valid_input(data_gen):
     """Test that BaseCollectionTransformer works with collection input."""
     X = data_gen()
 
-    t = DummySeriesTransformer()
+    t = MockSeriesTransformer()
     t.fit(X)
     Xt = t.transform(X)
     assert isinstance(Xt, np.ndarray)
@@ -38,14 +38,14 @@ def test_series_transformer_valid_input(data_gen):
 def test_series_transformer_invalid_input(data_gen):
     """Test that BaseCollectionTransformer fails with collection input."""
     X, y = data_gen()
-    t = DummySeriesTransformer()
+    t = MockSeriesTransformer()
     with pytest.raises(ValueError):
         t.fit_transform(X, y)
 
 
 def test_inverse_transform():
     """Test inverse transform."""
-    d = DummySeriesTransformer()
+    d = MockSeriesTransformer()
     x = make_2d_numpy_series(axis=1)
     d.fit(x)
     d.set_tags(**{"skip-inverse-transform": True})
@@ -60,7 +60,7 @@ def test_inverse_transform():
 def test_axis_convertion():
     """Test axis convertion."""
     # Expect shape=(n_channels, n_timepoints) (axis=1)
-    d = DummySeriesTransformer()
+    d = MockSeriesTransformer()
     x = make_2d_numpy_series(axis=0)
     d.fit(x, axis=0)
     xt = d.transform(x, axis=0)

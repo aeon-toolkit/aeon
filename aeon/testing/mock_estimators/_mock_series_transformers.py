@@ -1,15 +1,11 @@
-"""Dummy series transformer."""
-
-__maintainer__ = ["baraline"]
-
 import numpy as np
 
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series import BaseSeriesTransformer
 
 
-class DummySeriesTransformer(BaseSeriesTransformer):
+class MockSeriesTransformer(BaseSeriesTransformer):
     """
-    DummySeriesTransformer adds a random value and a constant to the input series.
+    MockSeriesTransformer adds a random value and a constant to the input series.
 
     Parameters
     ----------
@@ -102,9 +98,9 @@ class DummySeriesTransformer(BaseSeriesTransformer):
         return {}
 
 
-class DummySeriesTransformerNoFit(BaseSeriesTransformer):
+class MockSeriesTransformerNoFit(BaseSeriesTransformer):
     """
-    DummySeriesTransformerNoFit adds a value to all elements the input series.
+    MockSeriesTransformerNoFit adds a value to all elements the input series.
 
     Parameters
     ----------
