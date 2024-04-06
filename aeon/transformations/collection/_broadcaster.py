@@ -21,11 +21,12 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
 
     Examples
     --------
-    >>>    from aeon.testing.mock_estimators import MockSeriesTransformer
+    >>> from aeon.testing.mock_estimators import MockSeriesTransformer
     >>> import numpy as np
-    >>> X = np.np.random.rand(4, 1, 10)
+    >>> X = np.random.rand(4, 1, 10)
     >>> transformer = MockSeriesTransformer()
-    >>> X_t = transformer.fit_transform(X)
+    >>> broadcaster = SeriesToCollectionBroadcaster(transformer)
+    >>> X_t = broadcaster.fit_transform(X)
     """
 
     # These tags are not set from the series transformer.
