@@ -161,3 +161,28 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         None
         """
         self.model_.save(file_path + self.last_file_name + ".keras")
+
+    def load_model(self, model_path):
+        """Load a pre-trained keras model instead of fitting.
+
+        When calling this function, all functionalities can be used
+        such as predict, predict_proba etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : str (path including model name and extension)
+            The directory where the model will be saved including the model
+            name with a ".keras" extension.
+            Example: model_path="path/to/file/best_model.keras"
+
+        Returns
+        -------
+        None
+        """
+        import tensorflow as tf
+
+        self.model_ = tf.keras.models.load_model(model_path)
+        self._is_fitted = True
+
+        self.n_classes_ = len(self.model_.layers[-1].get_weights()[0][0])
+        self.classes_ = np.arange(self.n_classes_)

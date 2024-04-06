@@ -16,7 +16,7 @@ __maintainer__ = []
 class _DummyDeepClassifier(BaseDeepClassifier):
     """Dummy Deep Classifier for testing empty base deep class save utilities."""
 
-    def __init__(self, last_file_name):
+    def __init__(self, last_file_name="last_model"):
         self.last_file_name = last_file_name
         super().__init__(last_file_name=last_file_name)
 
@@ -72,6 +72,17 @@ def test_dummy_deep_classifier():
 
     # test save last model to file than delete it
     dummy_deep_clf.save_last_model_to_file()
+
+    # create a new dummy deep classifier
+    dummy_deep_clf2 = _DummyDeepClassifier()
+
+    # load without fitting
+    dummy_deep_clf2.load_model(model_path="./" + last_file_name + ".keras")
+
+    # predict
+    ypred = dummy_deep_clf2.predict(X=X)
+
+    assert len(ypred) == len(y)
 
     os.remove("./" + last_file_name + ".keras")
 
