@@ -4,6 +4,7 @@ on:
   schedule:
     # every Monday at 01:00 AM UTC
     - cron:  "0 1 * * 1"
+  workflow_dispatch:
 
 permissions:
   issues: write
