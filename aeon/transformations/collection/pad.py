@@ -117,7 +117,7 @@ class PaddingTransformer(BaseCollectionTransformer):
                 )
         else:
             self.fill_value = self.fill_value * np.ones(len(X))
-            
+
         return self
 
     def _transform(self, X, y=None):
