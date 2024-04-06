@@ -96,8 +96,7 @@ def test_padding_fill_too_short_pad_value():
     ["mean", "median", "max", "min", np.random.random(size=10)],
 )
 def test_fill_value_with_string_params(fill_value):
-    """Test if the fill_value argument of the PaddingTransformer
-    returns  the correct results"""
+    """Test if the fill_value argument returns  the correct results."""
 
     X = np.random.rand(10, 2, 20)
     padding_transformer = PaddingTransformer(pad_length=120, fill_value=fill_value)
