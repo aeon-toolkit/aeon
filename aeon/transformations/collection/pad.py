@@ -115,6 +115,8 @@ class PaddingTransformer(BaseCollectionTransformer):
                     "The length of fill_value must match the \
                                 length of X if a numpy array is passed as fill_value."
                 )
+        else:
+            self.fill_value = np.zeros(X.shape[0])
 
         return self
 
