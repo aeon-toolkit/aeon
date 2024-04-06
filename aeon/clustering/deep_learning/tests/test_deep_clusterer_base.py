@@ -18,6 +18,8 @@ __maintainer__ = []
 )
 def test_base_deep_clusterer():
     """Test base deep clusterer."""
+    import os
+
     with tempfile.TemporaryDirectory() as tmp:
         last_file_name = "temp"
         # create a dummy deep classifier
@@ -27,7 +29,15 @@ def test_base_deep_clusterer():
         # test fit function on random data
         dummy_deep_clr.fit(X=X)
         # test save last model to file than delete it
-        dummy_deep_clr.save_last_model_to_file(file_path=tmp)
+        dummy_deep_clr.save_last_model_to_file(file_path=tmp + "/")
+
+        dummy_deep_clr2 = MockDeepClusterer()
+        dummy_deep_clr2.load_model(
+            model_path=os.path.join(tmp, last_file_name + ".keras")
+        )
+        dummy_deep_clr2._fit_clustering(X=X)
+        ypred = dummy_deep_clr2.predict(X=X)
+        assert len(ypred) == len(y)
 
         # test summary of model
         assert dummy_deep_clr.summary() is not None
@@ -48,6 +58,8 @@ def test_base_deep_clusterer():
 @pytest.mark.parametrize("algorithm", ["kmeans", "kshape", "kmedoids"])
 def test_base_deep_clusterer_with_algorithm(algorithm):
     """Test base deep clusterer with different algorithms."""
+    import os
+
     with tempfile.TemporaryDirectory() as tmp:
         last_file_name = "temp"
         # create a dummy deep classifier
@@ -59,7 +71,15 @@ def test_base_deep_clusterer_with_algorithm(algorithm):
         # test fit function on random data
         dummy_deep_clr.fit(X=X)
         # test save last model to file than delete it
-        dummy_deep_clr.save_last_model_to_file(file_path=tmp)
+        dummy_deep_clr.save_last_model_to_file(file_path=tmp + "/")
+
+        dummy_deep_clr2 = MockDeepClusterer()
+        dummy_deep_clr2.load_model(
+            model_path=os.path.join(tmp, last_file_name + ".keras")
+        )
+        dummy_deep_clr2._fit_clustering(X=X)
+        ypred = dummy_deep_clr2.predict(X=X)
+        assert len(ypred) == len(y)
 
         # test summary of model
         assert dummy_deep_clr.summary() is not None
