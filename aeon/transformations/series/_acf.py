@@ -5,10 +5,9 @@ transformers.
 """
 
 __maintainer__ = ["TonyBagnall"]
-__all__ = ["AutoCorrelationTransformer", "PartialAutoCorrelationTransformer"]
+__all__ = ["AutoCorrelationTransformer"]
 
 import numpy as np
-import pandas as pd
 from numba import njit
 
 from aeon.transformations.series.base import BaseSeriesTransformer
@@ -78,13 +77,19 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         -------
         transformed version of X
         """
-        if X.shape[1] - self.n_lags < 3:
+        # statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1)
+        if self.n_lags is None:
+            self._n_lags = min(int(10 * np.log10(X.shape[1])), X.shape[1] - 1)
+        else:
+            self._n_lags = self.n_lags
+
+        if X.shape[1] - self._n_lags < 3:
             raise ValueError(
                 f"The number of lags is too large for the length of the "
                 f"series, autocorrelation will be calculated "
-                f"{X.shape[1]-self.n_lags} points."
+                f"{X.shape[1]-self._n_lags} points."
             )
-        return self._acf(X, max_lag=self.n_lags)
+        return self._acf(X, max_lag=self._n_lags)
 
     @staticmethod
     @njit(cache=True, fastmath=True)
@@ -114,123 +119,6 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
                     X_t[i][lag - 1] = np.sum((x1 - m1) * (x2 - m2)) / np.sqrt(v1 * v2)
 
         return X_t
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
-        """
-        return [{}, {"n_lags": 1}]
-
-
-class PartialAutoCorrelationTransformer(BaseSeriesTransformer):
-    """Partial auto-correlation transformer.
-
-    The partial autocorrelation function measures the conditional correlation
-    between a timeseries and its self at different lags. In particular,
-    the correlation between a time period and a lag, is calculated conditional
-    on all the points between the time period and the lag.
-
-    The PartialAutoCorrelationTransformer returns
-    these values as a series for each lag up to the `n_lags` specified.
-
-    Parameters
-    ----------
-    n_lags : int, default=None
-        Number of lags to return partial autocorrelation for. If None,
-        statsmodels acf function uses min(10 * np.log10(nobs), nobs // 2 - 1).
-
-    method : str, default="ywadjusted"
-        Specifies which method for the calculations to use.
-
-        - "yw" or "ywadjusted" : Yule-Walker with sample-size adjustment in
-          denominator for acovf. Default.
-        - "ywm" or "ywmle" : Yule-Walker without adjustment.
-        - "ols" : regression of time series on lags of it and on constant.
-        - "ols-inefficient" : regression of time series on lags using a single
-          common sample to estimate all pacf coefficients.
-        - "ols-adjusted" : regression of time series on lags with a bias
-          adjustment.
-        - "ld" or "ldadjusted" : Levinson-Durbin recursion with bias
-          correction.
-        - "ldb" or "ldbiased" : Levinson-Durbin recursion without bias
-          correction.
-
-    See Also
-    --------
-    AutoCorrelationTransformer
-
-    Notes
-    -----
-    Provides wrapper around statsmodels
-    `pacf <https://www.statsmodels.org/devel/generated/
-    statsmodels.tsa.stattools.pacf.html>`_ function.
-
-
-    Examples
-    --------
-    >>> from aeon.transformations.acf import PartialAutoCorrelationTransformer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()  # doctest: +SKIP
-    >>> transformer = PartialAutoCorrelationTransformer(n_lags=12)  # doctest: +SKIP
-    >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
-    """
-
-    _tags = {
-        "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
-        "output_data_type": "Series",
-        "X_inner_type": "pd.Series",
-        "univariate-only": True,
-        "fit_is_empty": True,
-        "python_dependencies": "statsmodels",
-    }
-
-    def __init__(
-        self,
-        n_lags=None,
-        method="ywadjusted",
-    ):
-        self.n_lags = n_lags
-        self.method = method
-        super().__init__()
-
-    def _transform(self, X, y=None):
-        """Transform X and return a transformed version.
-
-        private _transform containing the core logic, called from transform
-
-        Parameters
-        ----------
-        X : pd.Series
-            Data to be transformed
-        y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
-
-        Returns
-        -------
-        transformed version of X
-        """
-        from statsmodels.tsa.stattools import pacf
-
-        # Passing an alpha values other than None would return confidence intervals
-        # and break the signature of the series-to-series transformer
-        zt = pacf(X, nlags=self.n_lags, method=self.method, alpha=None)
-        return pd.Series(zt)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
