@@ -195,7 +195,7 @@ class BaseSeriesEstimator(BaseEstimator):
                 X = pd.DataFrame(X)
             else:
                 tag = self.get_tag("X_inner_type")
-                raise ValueError(f"Unknown inner type {inner} derived from {tag}")
+                raise ValueError(f"Unsupported inner type {inner} derived from {tag}")
         if axis > 1 or axis < 0:
             raise ValueError("Axis should be 0 or 1")
         if not self.get_tag("capability:multivariate"):

@@ -99,6 +99,14 @@ def test_univariate_convert_X():
             assert type(X2).__name__ == st.split(".")[1]
             X2 = dummy1._convert_X(X, axis=1)
             assert len(X) == len(X2)
+    with pytest.raises(ValueError, match="Axis should be 0 or 1"):
+        dummy1._convert_X(X, axis=2)
+    d = BaseSeriesEstimator.get_test_params()
+    assert d["axis"] == 0
+    all_tags = {"X_inner_type": "numpy3D"}
+    dummy1.set_tags(**all_tags)
+    with pytest.raises(ValueError, match="Unsupported inner"):
+        dummy1._convert_X(X, axis=0)
 
 
 def test_multivariate_convert_X():
@@ -166,3 +174,39 @@ def test_check_y_wrong(y_wrong):
     """Test the _check_y method with incorrect input."""
     with pytest.raises(ValueError, match="Error in input type for y"):
         BaseSeriesEstimator._check_y(None, y_wrong)
+
+
+@pytest.mark.parametrize("multi", [True, False])
+def test_postprocess_univariate_series(multi):
+    """Test data reformatted correctly."""
+    dummy1 = BaseSeriesEstimator()
+    dummy1.metadata_ = {}
+    dummy1.metadata_["multivariate"] = multi
+    x = np.random.random(size=(10))
+    y = dummy1._postprocess_series(x)
+    assert y.shape == x.shape
+    x = np.random.random(size=(1, 10))
+    y1 = dummy1._postprocess_series(x)
+    y2 = dummy1._postprocess_series(x, axis=0)
+    y3 = dummy1._postprocess_series(x, axis=1)
+    if multi:
+        assert y1.shape == x.shape and y2.shape == x.shape
+        assert y3.shape[1] == x.shape[0] and y3.shape[0] == x.shape[1]
+    else:
+        assert len(y1) == 10 and y1.ndim == 1
+        assert len(y2) == 10 and y2.ndim == 1
+        assert len(y3) == 10 and y3.ndim == 1
+
+
+def test_postprocess_multivariate_series():
+    """Test data reformatted correctly."""
+    dummy1 = BaseSeriesEstimator()
+    dummy1.metadata_ = {}
+    dummy1.metadata_["multivariate"] = True
+    x = np.random.random(size=(3, 10))
+    y = dummy1._postprocess_series(x)
+    assert y.shape == x.shape
+    y1 = dummy1._postprocess_series(x, axis=0)
+    assert y1.shape == x.shape
+    y2 = dummy1._postprocess_series(x, axis=1)
+    assert y2.shape[1] == x.shape[0] and y2.shape[0] == x.shape[1]
