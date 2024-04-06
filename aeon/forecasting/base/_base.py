@@ -45,12 +45,12 @@ import pandas as pd
 from scipy.stats import norm
 
 from aeon.base import BaseEstimator
-from aeon.datatypes import convert_to, mtype_to_scitype
+from aeon.datatypes import convert_to
 from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_cutoff, update_data
-from aeon.utils.validation import validate_input
+from aeon.utils.validation import abstract_types, validate_input
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index
@@ -1315,8 +1315,8 @@ class BaseForecaster(BaseEstimator):
         # retrieve supported mtypes
         y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
         X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
-        y_inner_abstract_type = mtype_to_scitype(y_inner_type, return_unique=True)
-        X_inner_abstract_type = mtype_to_scitype(X_inner_type, return_unique=True)
+        y_inner_abstract_type = abstract_types(y_inner_type)
+        X_inner_abstract_type = abstract_types(X_inner_type)
 
         # checking y
         if y is not None:
@@ -1568,7 +1568,7 @@ class BaseForecaster(BaseEstimator):
         y : aeon compatible time series data container
             must be of one of the following mtypes:
                 pd.Series, pd.DataFrame, np.ndarray, of Series abstract type
-                pd.multiindex, numpy3D, nested_univ, df-list, of Panel abstract type
+                pd.multiindex, numpy3D, nested_univ, of Panel abstract type
                 pd_multiindex_hier, of Hierarchical abstract type
 
         Notes
