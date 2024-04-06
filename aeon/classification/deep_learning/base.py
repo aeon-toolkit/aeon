@@ -162,7 +162,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         """
         self.model_.save(file_path + self.last_file_name + ".keras")
 
-    def load_model(self, model_path):
+    def load_model(self, model_path, classes):
         """Load a pre-trained keras model instead of fitting.
 
         When calling this function, all functionalities can be used
@@ -174,6 +174,9 @@ class BaseDeepClassifier(BaseClassifier, ABC):
             The directory where the model will be saved including the model
             name with a ".keras" extension.
             Example: model_path="path/to/file/best_model.keras"
+        classes : np.ndarray
+            The set of unique classes the pre-trained loaded model is trained
+            to predict during the classification task.
 
         Returns
         -------
@@ -184,5 +187,5 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         self.model_ = tf.keras.models.load_model(model_path)
         self._is_fitted = True
 
-        self.n_classes_ = len(self.model_.layers[-1].get_weights()[0][0])
-        self.classes_ = np.arange(self.n_classes_)
+        self.classes_ = classes
+        self.n_classes_ = len(self.classes_)

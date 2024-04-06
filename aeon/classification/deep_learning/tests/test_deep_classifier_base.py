@@ -59,6 +59,8 @@ class _DummyDeepClassifier(BaseDeepClassifier):
 )
 def test_dummy_deep_classifier():
     """Test dummy deep classifier."""
+    import numpy as np
+
     last_file_name = str(time.time_ns())
 
     # create a dummy deep classifier
@@ -77,7 +79,9 @@ def test_dummy_deep_classifier():
     dummy_deep_clf2 = _DummyDeepClassifier()
 
     # load without fitting
-    dummy_deep_clf2.load_model(model_path="./" + last_file_name + ".keras")
+    dummy_deep_clf2.load_model(
+        model_path="./" + last_file_name + ".keras", classes=np.unique(y)
+    )
 
     # predict
     ypred = dummy_deep_clf2.predict(X=X)
