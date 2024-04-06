@@ -235,6 +235,16 @@ class BaseSeriesEstimator(BaseEstimator):
             self.metadata_ = meta
         return self._convert_X(X, axis)
 
+    def _postprocess_series(self, X, axis=None):
+        """Postprocess data X to revert to original shape."""
+        # If passed a univariate series, return a univariate series
+        if not self.metadata_["multivariate"]:
+            return X.squeeze()
+        # If passed an axis, return with that axis
+        if axis is None or axis == self.axis:
+            return X
+        return X.T
+
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """

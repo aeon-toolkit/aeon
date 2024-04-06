@@ -111,9 +111,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             axis = self.axis
         X = self._preprocess_series(X, axis=axis)
         Xt = self._transform(X)
-        if axis != self.axis:
-            Xt = Xt.T
-        return Xt
+        return self._postprocess_series(Xt, axis=axis)
 
     @final
     def fit_transform(self, X, y=None, axis=None):
@@ -150,9 +148,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         X = self._preprocess_series(X, axis=axis)
         Xt = self._fit_transform(X=X, y=y)
         self._is_fitted = True
-        if axis is None or axis == self.axis:
-            return Xt
-        return Xt.T
+        return self._postprocess_series(Xt, axis=axis)
 
     @final
     def inverse_transform(self, X, y=None, axis=None):
@@ -185,9 +181,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         self.check_is_fitted()
         X = self._preprocess_series(X, axis=axis)
         Xt = self._inverse_transform(X=X, y=y)
-        if axis is None or axis == self.axis:
-            return Xt
-        return Xt.T
+        return self._postprocess_series(Xt, axis=axis)
 
     @final
     def update(self, X, y=None, update_params=True, axis=None):

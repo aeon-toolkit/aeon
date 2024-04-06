@@ -25,6 +25,11 @@ def test__check_X():
         dummy1._check_X(multi_np)
     with pytest.raises(ValueError, match=r"Multivariate data not supported"):
         dummy1._check_X(multi_pd)
+    missing = np.random.rand(4, 10)
+    missing[3][8] = np.NAN
+    with pytest.raises(ValueError, match=r"Missing values not supported"):
+        dummy1._check_X(missing)
+
     dummy2 = BaseSeriesEstimator()
     all_tags = {
         "capability:multivariate": True,
@@ -58,6 +63,9 @@ def test__check_X():
         dummy2._check_X(uni_np)
     with pytest.raises(ValueError, match=r"Univariate data not supported"):
         dummy2._check_X(uni_pd)
+    wrong_size = np.random.rand(10, 2, 20)
+    with pytest.raises(ValueError, match=r"Should be 1D or 2D"):
+        dummy2._check_X(wrong_size)
 
 
 UNIVARIATE = {
