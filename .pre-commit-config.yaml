@@ -61,7 +61,7 @@ repos:
         language_version: python3
 
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.8.4
+    rev: 1.8.5
     hooks:
       - id: nbqa-isort
         additional_dependencies: [ isort==5.13.2 ]

@@ -13,7 +13,7 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest `aeon` release is `v0.7.1`. You can view the full changelog
+The latest `aeon` release is `v0.8.0`. You can view the full changelog
 [here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
@@ -49,8 +49,8 @@ can be found [here](https://www.aeon-toolkit.org/en/stable/developer_guide/dev_i
 
 The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/stable/getting_started.html).
 
-Below we provide a quick example of how to use `aeon` for forecasting and
-classification.
+Below we provide a quick example of how to use `aeon` for forecasting,
+classification and clustering.
 
 ### Forecasting
 
@@ -99,6 +99,30 @@ X_test = np.array(
 )
 y_pred = clf.predict(X_test)  # make class predictions on new data
 >>> ['low' 'high' 'high']
+```
+
+### Clustering
+
+```python
+import numpy as np
+from aeon.clustering import TimeSeriesKMeans
+
+X = np.array([[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
+     [[1, 2, 3, 4, 4, 2]],  # Three samples, one channel, six series length,
+     [[8, 7, 6, 5, 4, 4]]])
+
+clu = TimeSeriesKMeans(distance="dtw", n_clusters=2)
+clu.fit(X)  # fit the clusterer on train data
+>>> TimeSeriesKMeans(distance='dtw', n_clusters=2)
+
+clu.labels_ # get training cluster labels
+>>> array([0, 0, 1])
+
+X_test = np.array(
+    [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
+)
+clu.predict(X_test)  # Assign clusters to new data
+>>> array([1, 0, 0])
 ```
 
 ## 💬 Where to ask questions

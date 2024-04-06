@@ -1,12 +1,29 @@
+"""Dataset loading functions."""
+
+__all__ = [  # Load functions
+    "load_from_tsfile",
+    "load_from_tsf_file",
+    "load_from_arff_file",
+    "load_from_tsv_file",
+    "load_classification",
+    "load_forecasting",
+    "load_regression",
+    "download_all_regression",
+    "get_dataset_meta_data",
+]
+
 import glob
 import os
 import re
 import shutil
+import socket
 import tempfile
 import urllib
 import zipfile
 from datetime import datetime
+from http.client import IncompleteRead, RemoteDisconnected
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen, urlretrieve
 
 import numpy as np
@@ -23,18 +40,15 @@ from aeon.utils.conversion import convert_collection
 DIRNAME = "data"
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
-
-__all__ = [  # Load functions
-    "load_from_tsfile",
-    "load_from_tsf_file",
-    "load_from_arff_file",
-    "load_from_tsv_file",
-    "load_classification",
-    "load_forecasting",
-    "load_regression",
-    "download_all_regression",
-    "get_dataset_meta_data",
-]
+CONNECTION_ERRORS = (
+    HTTPError,
+    URLError,
+    RemoteDisconnected,
+    IncompleteRead,
+    ConnectionResetError,
+    TimeoutError,
+    socket.timeout,
+)
 
 
 # Return appropriate return_type in case an alias was used
@@ -313,10 +327,6 @@ def _load_saved_dataset(
     dir_name: str, default = None
         Directory in local_dirname containing the problem file. If None, dir_name = name
 
-    Raises
-    ------
-    Raise ValueError if the requested return type is not supported
-
     Returns
     -------
     X: Data stored in specified `return_type`
@@ -325,6 +335,10 @@ def _load_saved_dataset(
         The class labels for each time series instance in X
         If return_X_y is False, y is appended to X instead.
     meta: meta data dictionary, only returned if return_meta is True
+
+    Raises
+    ------
+    Raise ValueError if the requested return type is not supported
     """
     if isinstance(split, str):
         split = split.upper()
@@ -390,8 +404,9 @@ def download_dataset(name, save_path=None):
 
     Raises
     ------
-    ValueError if the dataset is not available on the website
-    or the extract path is invalid
+    Raise URLError or HTTPError if the website is not accessible,
+    ValueError if a dataset name that does not exist on the repo
+    is given.
     """
     if save_path is None:
         save_path = os.path.join(MODULE, "local_data")
@@ -442,8 +457,12 @@ def _download_and_extract(url, extract_path=None):
     file_name = os.path.basename(url)
     dl_dir = tempfile.mkdtemp()
     zip_file_name = os.path.join(dl_dir, file_name)
-    urlretrieve(url, zip_file_name)
+    #    urlretrieve(url, zip_file_name)
 
+    # Using urlopen instead of urlretrieve
+    with urlopen(url, timeout=60) as response:
+        with open(zip_file_name, "wb") as out_file:
+            out_file.write(response.read())
     if extract_path is None:
         extract_path = os.path.join(MODULE, "local_data/%s/" % file_name.split(".")[0])
     else:
@@ -489,10 +508,6 @@ def _load_tsc_dataset(
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
 
-    Raises
-    ------
-    Raise ValueException if the requested return type is not supported
-
     Returns
     -------
     X: Data stored in specified `return_type`
@@ -500,6 +515,10 @@ def _load_tsc_dataset(
     y: 1D numpy array of length n, only returned if return_X_y if True
         The class labels for each time series instance in X
         If return_X_y is False, y is appended to X instead.
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
     """
     # Allow user to have non standard extract path
     if extract_path is not None:
@@ -750,6 +769,14 @@ def load_from_tsf_file(
         The metadata for the forecasting problem. The dictionary keys are:
         "frequency", "forecast_horizon", "contain_missing_values",
         "contain_equal_length"
+
+    Raises
+    ------
+    URLError or HTTPError
+        If the website is not accessible.
+    ValueError
+        If a dataset name that does not exist on the repo is given or if a
+        webpage is requested that does not exist.
     """
     col_names = []
     col_types = []
@@ -932,16 +959,20 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     return_metadata : boolean, default = True
         If True, returns a tuple (data, metadata)
 
-    Raises
-    ------
-    Raise ValueException if the requested return type is not supported
-
     Returns
     -------
     X: Data stored in a dataframe, each column a series
     metadata: optional
         returns the following meta data
         frequency,forecast_horizon,contain_missing_values,contain_equal_length
+
+    Raises
+    ------
+    URLError or HTTPError
+        If the website is not accessible.
+    ValueError
+        If a dataset name that does not exist on the repo is given or if a
+        webpage is requested that does not exist.
 
     Example
     -------
@@ -1074,10 +1105,6 @@ def load_regression(
         <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
         version.
 
-    Raises
-    ------
-    Raise ValueException if the requested return type is not supported.
-
     Returns
     -------
     X: np.ndarray or list of np.ndarray
@@ -1127,12 +1154,12 @@ def load_regression(
             req = Request(url, method="HEAD")
             try:
                 # Perform the request
-                response = urlopen(req)
+                response = urlopen(req, timeout=60)
                 # Check the status code of the response
                 if response.status != 200:
                     try_monash = True
-            except (HTTPError, URLError):
-                # If there is an HTTP URLError, it might mean the file does not exist
+            except HTTPError:
+                # If there is an HTTP it might mean the file does not exist
                 try_monash = True
             else:
                 try:
@@ -1155,8 +1182,8 @@ def load_regression(
                     train_save = f"{full_path}/{name}_TRAIN.ts"
                     test_save = f"{full_path}/{name}_TEST.ts"
                     try:
-                        urllib.request.urlretrieve(url_train, train_save)
-                        urllib.request.urlretrieve(url_test, test_save)
+                        urlretrieve(url_train, train_save)
+                        urlretrieve(url_test, test_save)
                     except Exception:
                         raise ValueError(error_str)
                 else:
@@ -1261,6 +1288,14 @@ def load_classification(
         'problemname',timestamps, missing,univariate,equallength, class_values
         targetlabel should be false, and classlabel true
 
+    Raises
+    ------
+    URLError or HTTPError
+        If the website is not accessible.
+    ValueError
+        If a dataset name that does not exist on the repo is given or if a
+        webpage is requested that does not exist.
+
     Examples
     --------
     >>> from aeon.datasets import load_classification
@@ -1292,18 +1327,18 @@ def load_classification(
             # Test if file exists to generate more informative error
             req = Request(url, method="HEAD")
             msg = (
-                f"Invalid dataset name ={name} is not available on extract path "
+                f"Invalid dataset name ={name} that is not available on extract path "
                 f"={extract_path}. Nor is it available on "
                 f"https://timeseriesclassification.com/."
             )
             try:
                 # Perform the request
-                response = urlopen(req)
-                # Check the status code of the response
+                response = urlopen(req, timeout=60)
+                # Check the status code of the response, if 200 incorrect input args
                 if response.status != 200:
                     raise ValueError(msg)
-            except (HTTPError, URLError, TimeoutError):
-                raise ValueError(msg)
+            except Exception as e:
+                raise e
             try:
                 _download_and_extract(
                     url,
@@ -1364,6 +1399,10 @@ def download_all_regression(extract_path=None):
     ----------
     extract_path: str or None, default = None
         where to download the fip file. If none, it goes in
+
+    Raises
+    ------
+    URLError or HTTPError if the website is not accessible.
     """
     if extract_path is not None:
         local_module = extract_path
@@ -1448,9 +1487,20 @@ def get_dataset_meta_data(
     Returns
     -------
      Pandas dataframe containing meta data for each dataset.
+
+    Raises
+    ------
+    URLError or HTTPError if the website is not accessible.
     """
+    # Check string is either a valid local path or responding web page
+    if not os.path.isfile(url):
+        parsed_url = urlparse(url)
+        if not (bool(parsed_url.scheme) and bool(parsed_url.netloc)):
+            raise ValueError(f"Invalid URL or file path {url}")
+
     if isinstance(features, str):
         features = [features]
+
     try:
         if features is None:
             df = pd.read_csv(url)
@@ -1459,8 +1509,6 @@ def get_dataset_meta_data(
             df = pd.read_csv(url, usecols=features)
         if data_names is not None:
             df = df[df["Dataset"].isin(data_names)]
-        return df
     except Exception as e:
-        raise ValueError(
-            f"Unable to access website {url} to retrieve meta data",
-        ) from e
+        raise e
+    return df
