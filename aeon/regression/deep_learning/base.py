@@ -114,7 +114,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         """Load a pre-trained keras model instead of fitting.
 
         When calling this function, all functionalities can be used
-        such as predict, predict_proba etc. with the loaded model.
+        such as predict etc. with the loaded model.
 
         Parameters
         ----------
