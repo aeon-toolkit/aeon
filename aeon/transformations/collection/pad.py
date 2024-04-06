@@ -31,8 +31,10 @@ class PaddingTransformer(BaseCollectionTransformer):
         instead. If the pad_length passed is less than the max length, it is reset to
         max length.
 
-    fill_value : int, default = 0
-        value to pad with.
+    fill_value : Union[int, str, np.ndarray], default = 0
+        Value to pad with. Can be a float or a statistic string or an numpy array for
+        each time series. Supported statistic strings are "mean", "median", "max",
+        "min".
 
     Example
     -------
@@ -84,6 +86,36 @@ class PaddingTransformer(BaseCollectionTransformer):
                 self.pad_length_ = max_length
             else:
                 self.pad_length_ = self.pad_length
+
+        if isinstance(self.fill_value, str):
+            if self.fill_value == "mean":
+                self.fill_value = np.zeros(X.shape[0])
+                for i, series in enumerate(X):
+                    self.fill_value[i] = series.mean()
+            elif self.fill_value == "median":
+                self.fill_value = np.zeros(X.shape[0])
+                for i, series in enumerate(X):
+                    self.fill_value[i] = np.median(series)
+            elif self.fill_value == "min":
+                self.fill_value = np.zeros(X.shape[0])
+                for i, series in enumerate(X):
+                    self.fill_value[i] = series.min()
+            elif self.fill_value == "max":
+                self.fill_value = np.zeros(X.shape[0])
+                for i, series in enumerate(X):
+                    self.fill_value[i] = series.max()
+            else:
+                raise ValueError(
+                    "Supported modes are mean, median, min, max. \
+                                    Please check arguments passed."
+                )
+        elif isinstance(self.fill_value, np.ndarray):
+            if not (len(self.fill_value) == len(X)):
+                raise ValueError(
+                    "The length of fill_value must match the \
+                                length of X if a numpy array is passed as fill_value."
+                )
+
         return self
 
     def _transform(self, X, y=None):
@@ -110,13 +142,18 @@ class PaddingTransformer(BaseCollectionTransformer):
                     is greater than the one found when fit or set."
             )
         # Calculate padding amounts
+
         Xt = []
-        for series in X:
+        for iterator, series in enumerate(X):
             pad_width = ((0, 0), (0, self.pad_length_ - series.shape[1]))
             # Pad the input array
             padded_array = np.pad(
-                series, pad_width, mode="constant", constant_values=self.fill_value
+                series,
+                pad_width,
+                mode="constant",
+                constant_values=self.fill_value[iterator],
             )
             Xt.append(padded_array)
         Xt = np.array(Xt)
+
         return Xt
