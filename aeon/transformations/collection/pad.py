@@ -116,8 +116,8 @@ class PaddingTransformer(BaseCollectionTransformer):
                                 length of X if a numpy array is passed as fill_value."
                 )
         else:
-            self.fill_value = np.zeros(len(X))
-
+            self.fill_value = self.fill_value * np.ones(len(X))
+            
         return self
 
     def _transform(self, X, y=None):
