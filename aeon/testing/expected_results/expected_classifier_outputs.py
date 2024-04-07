@@ -317,7 +317,6 @@ unit_test_proba["HydraClassifier"] = np.array(
         [1.0, 0.0],
     ]
 )
-
 unit_test_proba["ShapeletTransformClassifier"] = np.array(
     [
         [0.4, 0.6],
