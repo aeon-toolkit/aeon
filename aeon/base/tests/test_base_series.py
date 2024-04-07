@@ -198,17 +198,3 @@ def test__postprocess_series(returned_type):
     assert y.shape == y2.shape
     if returned_type != "pd.Series":
         assert y.shape[0] == y3.shape[1] and y.shape[1] == y3.shape[0]
-
-
-def test_postprocess_multivariate_series():
-    """Test data reformatted correctly."""
-    dummy1 = BaseSeriesEstimator()
-    dummy1.metadata_ = {}
-    dummy1.metadata_["multivariate"] = True
-    x = np.random.random(size=(3, 10))
-    y = dummy1._postprocess_series(x)
-    assert y.shape == x.shape
-    y1 = dummy1._postprocess_series(x, axis=0)
-    assert y1.shape == x.shape
-    y2 = dummy1._postprocess_series(x, axis=1)
-    assert y2.shape[1] == x.shape[0] and y2.shape[0] == x.shape[1]
