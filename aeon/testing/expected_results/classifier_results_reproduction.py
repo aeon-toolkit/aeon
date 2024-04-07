@@ -7,8 +7,8 @@ from sklearn.utils._testing import set_random_state
 from aeon.classification import BaseClassifier
 from aeon.classification.compose import (
     ChannelEnsembleClassifier,
-    WeightedEnsembleClassifier,
     ClassifierPipeline,
+    WeightedEnsembleClassifier,
 )
 from aeon.classification.convolution_based import (
     Arsenal,
