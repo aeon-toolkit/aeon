@@ -5,7 +5,7 @@ __all__ = [
     "ShapeletTransformClassifier",
     "RDSTClassifier",
     "SASTClassifier",
-    "RSASTClassifier",
+    "RSASTClassifier"
 ]
 
 from aeon.classification.shapelet_based._mrsqm import MrSQMClassifier
