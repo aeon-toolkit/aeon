@@ -56,11 +56,11 @@ from aeon.classification.interval_based import (
 )
 from aeon.classification.ordinal_classification import OrdinalTDE
 from aeon.classification.shapelet_based import (
-    ShapeletTransformClassifier,
     LearningShapeletClassifier,
     MrSQMClassifier,
     RDSTClassifier,
     SASTClassifier,
+    ShapeletTransformClassifier,
 )
 from aeon.classification.sklearn import ContinuousIntervalTree, RotationForestClassifier
 from aeon.datasets import load_basic_motions, load_unit_test
@@ -250,9 +250,13 @@ def _print_results_for_classifier(classifier_name, dataset_name):
             parameter_set="results_comparison"
         )
     elif classifier_name == "RDSTClassifier":
-        classifier = RDSTClassifier.create_test_instance(parameter_set="results_comparison")
+        classifier = RDSTClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "SASTClassifier":
-        classifier = SASTClassifier.create_test_instance(parameter_set="results_comparison")
+        classifier = SASTClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "ContinuousIntervalTree":
         classifier = ContinuousIntervalTree.create_test_instance(
             parameter_set="results_comparison"
