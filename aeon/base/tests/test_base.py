@@ -15,7 +15,7 @@ tests in this module:
     test_components         - tests retrieval of list of components via _components
     test_get_fitted_params  - tests get_fitted_params logic, nested and non-nested
 
-    test_eq_dunder       - tests __eq__ dunder to compare parameter definition
+    test_overloaded_equals       - tests overloaded __eq__
 """
 
 __maintainer__ = []
@@ -30,7 +30,7 @@ __all__ = [
     "test_reset_composite",
     "test_components",
     "test_get_fitted_params",
-    "test_eq_dunder",
+    "test_overloaded_equals",
 ]
 
 from copy import deepcopy
@@ -325,8 +325,8 @@ def test_get_fitted_params():
     assert comp_f_params_shallow["foo"] is not composite.foo
 
 
-def test_eq_dunder():
-    """Tests equality dunder for BaseObject descendants.
+def test_overloaded_equals():
+    """Tests overloaded equality operator for BaseObject descendants.
 
     Equality should be determined only by get_params results.
 
