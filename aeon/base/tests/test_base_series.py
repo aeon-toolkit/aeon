@@ -176,26 +176,28 @@ def test_check_y_wrong(y_wrong):
         BaseSeriesEstimator._check_y(None, y_wrong)
 
 
-@pytest.mark.parametrize("multi", [True, False])
-def test_postprocess_univariate_series(multi):
+@pytest.mark.parametrize("returned_type", VALID_TYPES)
+def test__postprocess_series(returned_type):
     """Test data reformatted correctly."""
+    x = UNIVARIATE[returned_type]
     dummy1 = BaseSeriesEstimator()
-    dummy1.metadata_ = {}
-    dummy1.metadata_["multivariate"] = multi
-    x = np.random.random(size=(10))
+    tags = {"capability:multivariate": False}
+    dummy1.set_tags(**tags)
     y = dummy1._postprocess_series(x)
-    assert y.shape == x.shape
-    x = np.random.random(size=(1, 10))
-    y1 = dummy1._postprocess_series(x)
     y2 = dummy1._postprocess_series(x, axis=0)
     y3 = dummy1._postprocess_series(x, axis=1)
-    if multi:
-        assert y1.shape == x.shape and y2.shape == x.shape
-        assert y3.shape[1] == x.shape[0] and y3.shape[0] == x.shape[1]
-    else:
-        assert len(y1) == 10 and y1.ndim == 1
-        assert len(y2) == 10 and y2.ndim == 1
-        assert len(y3) == 10 and y3.ndim == 1
+    assert y.ndim == 1
+    assert y2.shape == y3.shape
+    tags = {"capability:multivariate": True}
+    dummy1.set_tags(**tags)
+    x = MULTIVARIATE[returned_type]
+    y = dummy1._postprocess_series(x)
+    y2 = dummy1._postprocess_series(x, axis=0)
+    y3 = dummy1._postprocess_series(x, axis=1)
+    assert x.shape == y.shape
+    assert y.shape == y2.shape
+    if returned_type != "pd.Series":
+        assert y.shape[0] == y3.shape[1] and y.shape[1] == y3.shape[0]
 
 
 def test_postprocess_multivariate_series():
