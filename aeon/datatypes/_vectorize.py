@@ -14,8 +14,8 @@ from aeon.utils.multiindex import flatten_multiindex
 
 
 @deprecated(
-    version="0.8.0",
-    reason="VectorizedDF will be made private in v0.9.0.",
+    version="0.9.0",
+    reason="VectorizedDF will be made private in v0.10.0.",
     category=FutureWarning,
 )
 class VectorizedDF:
