@@ -79,6 +79,20 @@ unit_test_proba["WEASEL_V2"] = np.array(
         [1.0, 0.0],
     ]
 )
+unit_test_proba["REDCOMETS"] = np.array(
+    [
+        [0.1429, 0.8571],
+        [0.6429, 0.3571],
+        [0.6429, 0.3571],
+        [1.0, 0.0],
+        [0.1429, 0.8571],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.1429, 0.8571],
+        [1.0, 0.0],
+        [1.0, 0.0],
+    ]
+)
 unit_test_proba["ElasticEnsemble"] = np.array(
     [
         [0.0, 1.0],
@@ -94,6 +108,20 @@ unit_test_proba["ElasticEnsemble"] = np.array(
     ]
 )
 unit_test_proba["ShapeDTW"] = np.array(
+    [
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+    ]
+)
+unit_test_proba["KNeighborsTimeSeriesClassifier"] = np.array(
     [
         [0.0, 1.0],
         [1.0, 0.0],
@@ -149,6 +177,20 @@ unit_test_proba["RandomIntervalClassifier"] = np.array(
         [0.8, 0.2],
     ]
 )
+unit_test_proba["QUANTClassifier"] = np.array(
+    [
+        [0.095, 0.905],
+        [0.905, 0.095],
+        [0.01, 0.99],
+        [0.955, 0.045],
+        [0.92, 0.08],
+        [0.98, 0.02],
+        [0.83, 0.17],
+        [0.26, 0.74],
+        [0.82, 0.18],
+        [0.945, 0.055],
+    ]
+)
 unit_test_proba["SignatureClassifier"] = np.array(
     [
         [0.1, 0.9],
@@ -173,6 +215,20 @@ unit_test_proba["SummaryClassifier"] = np.array(
         [1.0, 0.0],
         [1.0, 0.0],
         [0.7, 0.3],
+        [0.8, 0.2],
+        [1.0, 0.0],
+    ]
+)
+unit_test_proba["TSFreshClassifier"] = np.array(
+    [
+        [0.2, 0.8],
+        [0.8, 0.2],
+        [0.2, 0.8],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.9, 0.1],
         [0.8, 0.2],
         [1.0, 0.0],
     ]
@@ -205,6 +261,20 @@ unit_test_proba["HIVECOTEV2"] = np.array(
         [0.9374, 0.0626],
     ]
 )
+unit_test_proba["RISTClassifier"] = np.array(
+    [
+        [1.0, 0.0],
+        [0.5, 0.5],
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.5, 0.5],
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+    ]
+)
 unit_test_proba["CanonicalIntervalForestClassifier"] = np.array(
     [
         [0.3, 0.7],
@@ -233,6 +303,20 @@ unit_test_proba["DrCIFClassifier"] = np.array(
         [1.0, 0.0],
     ]
 )
+unit_test_proba["IntervalForestClassifier"] = np.array(
+    [
+        [0.2, 0.8],
+        [0.8, 0.2],
+        [0.1, 0.9],
+        [1.0, 0.0],
+        [0.8, 0.2],
+        [1.0, 0.0],
+        [0.6, 0.4],
+        [0.4, 0.6],
+        [0.7, 0.3],
+        [1.0, 0.0],
+    ]
+)
 unit_test_proba["RandomIntervalSpectralEnsembleClassifier"] = np.array(
     [
         [0.3, 0.7],
@@ -245,6 +329,20 @@ unit_test_proba["RandomIntervalSpectralEnsembleClassifier"] = np.array(
         [0.2, 0.8],
         [0.6, 0.4],
         [0.8, 0.2],
+    ]
+)
+unit_test_proba["RSTSF"] = np.array(
+    [
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.5, 0.5],
+        [1.0, 0.0],
+        [1.0, 0.0],
     ]
 )
 unit_test_proba["SupervisedTimeSeriesForest"] = np.array(
@@ -388,6 +486,20 @@ basic_motions_proba["TemporalDictionaryEnsemble"] = np.array(
         [0.0, 0.7478, 0.2522, 0.0],
     ]
 )
+basic_motions_proba["KNeighborsTimeSeriesClassifier"] = np.array(
+    [
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [0.0, 0.0, 1.0, 0.0],
+    ]
+)
 basic_motions_proba["Catch22Classifier"] = np.array(
     [
         [0.1, 0.0, 0.1, 0.8],
@@ -414,6 +526,20 @@ basic_motions_proba["RandomIntervalClassifier"] = np.array(
         [0.0, 0.0, 0.7, 0.3],
         [0.0, 0.5, 0.3, 0.2],
         [0.0, 0.6, 0.1, 0.3],
+    ]
+)
+basic_motions_proba["QUANTClassifier"] = np.array(
+    [
+        [0.01, 0.005, 0.16, 0.825],
+        [0.625, 0.22, 0.01, 0.145],
+        [0.0, 0.0, 0.78, 0.22],
+        [0.17, 0.74, 0.005, 0.085],
+        [0.035, 0.015, 0.125, 0.825],
+        [0.005, 0.0, 0.215, 0.78],
+        [0.69, 0.165, 0.005, 0.14],
+        [0.0, 0.0, 0.805, 0.195],
+        [0.21, 0.69, 0.005, 0.095],
+        [0.205, 0.7, 0.005, 0.09],
     ]
 )
 basic_motions_proba["SignatureClassifier"] = np.array(
@@ -444,6 +570,20 @@ basic_motions_proba["SummaryClassifier"] = np.array(
         [0.1, 0.9, 0.0, 0.0],
     ]
 )
+basic_motions_proba["TSFreshClassifier"] = np.array(
+    [
+        [0.0, 0.0, 0.2, 0.8],
+        [0.4, 0.3, 0.0, 0.3],
+        [0.0, 0.0, 0.8, 0.2],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.2, 0.2, 0.6],
+        [0.0, 0.0, 0.3, 0.7],
+        [0.5, 0.3, 0.0, 0.2],
+        [0.0, 0.0, 0.9, 0.1],
+        [0.1, 0.9, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+    ]
+)
 basic_motions_proba["HIVECOTEV2"] = np.array(
     [
         [0.0, 0.0, 0.0, 1.0],
@@ -456,6 +596,20 @@ basic_motions_proba["HIVECOTEV2"] = np.array(
         [0.0, 0.0, 0.8618, 0.1382],
         [0.0068, 0.8645, 0.1088, 0.0199],
         [0.0, 0.8645, 0.1088, 0.0267],
+    ]
+)
+basic_motions_proba["RISTClassifier"] = np.array(
+    [
+        [0.0, 0.0, 0.0, 1.0],
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.5, 0.5],
+        [0.5, 0.5, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.5, 0.5],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.5, 0.5, 0.0, 0.0],
     ]
 )
 basic_motions_proba["CanonicalIntervalForestClassifier"] = np.array(
@@ -484,6 +638,48 @@ basic_motions_proba["DrCIFClassifier"] = np.array(
         [0.0, 0.0, 0.8, 0.2],
         [0.4, 0.6, 0.0, 0.0],
         [0.3, 0.6, 0.0, 0.1],
+    ]
+)
+basic_motions_proba["IntervalForestClassifier"] = np.array(
+    [
+        [0.0, 0.0, 0.3, 0.7],
+        [0.6, 0.4, 0.0, 0.0],
+        [0.0, 0.0, 0.9, 0.1],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 0.2, 0.8],
+        [0.0, 0.0, 0.3, 0.7],
+        [0.8, 0.2, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.1, 0.9, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+    ]
+)
+basic_motions_proba["RSTSF"] = np.array(
+    [
+        [0.0, 0.0, 0.0, 1.0],
+        [0.5, 0.0, 0.0, 0.5],
+        [0.0, 0.0, 0.5, 0.5],
+        [0.0, 0.5, 0.0, 0.5],
+        [0.0, 0.0, 0.5, 0.5],
+        [0.0, 0.0, 0.0, 1.0],
+        [0.5, 0.0, 0.0, 0.5],
+        [0.0, 0.0, 0.5, 0.5],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+    ]
+)
+basic_motions_proba["SupervisedTimeSeriesForest"] = np.array(
+    [
+        [0.0, 0.0, 0.0, 1.0],
+        [0.6, 0.2, 0.1, 0.1],
+        [0.0, 0.0, 0.6, 0.4],
+        [0.2, 0.8, 0.0, 0.0],
+        [0.0, 0.0, 0.2, 0.8],
+        [0.0, 0.1, 0.4, 0.5],
+        [0.4, 0.6, 0.0, 0.0],
+        [0.0, 0.0, 0.9, 0.1],
+        [0.1, 0.9, 0.0, 0.0],
+        [0.1, 0.9, 0.0, 0.0],
     ]
 )
 basic_motions_proba["Arsenal"] = np.array(
