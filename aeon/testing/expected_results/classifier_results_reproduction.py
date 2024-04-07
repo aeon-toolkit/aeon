@@ -5,7 +5,11 @@ from sklearn.ensemble import IsolationForest
 from sklearn.utils._testing import set_random_state
 
 from aeon.classification import BaseClassifier
-from aeon.classification.compose import ChannelEnsembleClassifier
+from aeon.classification.compose import (
+    ChannelEnsembleClassifier,
+    WeightedEnsembleClassifier,
+    ClassifierPipeline,
+)
 from aeon.classification.convolution_based import (
     Arsenal,
     HydraClassifier,
@@ -50,7 +54,15 @@ from aeon.classification.interval_based import (
     SupervisedTimeSeriesForest,
     TimeSeriesForestClassifier,
 )
-from aeon.classification.shapelet_based import ShapeletTransformClassifier
+from aeon.classification.ordinal_classification import OrdinalTDE
+from aeon.classification.shapelet_based import (
+    ShapeletTransformClassifier,
+    LearningShapeletClassifier,
+    MrSQMClassifier,
+    RDSTClassifier,
+    SASTClassifier,
+)
+from aeon.classification.sklearn import ContinuousIntervalTree, RotationForestClassifier
 from aeon.datasets import load_basic_motions, load_unit_test
 
 
@@ -107,6 +119,14 @@ def _print_array(test_name, array):
 def _print_results_for_classifier(classifier_name, dataset_name):
     if classifier_name == "ChannelEnsembleClassifier":
         classifier = ChannelEnsembleClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "WeightedEnsembleClassifier":
+        classifier = WeightedEnsembleClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "ClassifierPipeline":
+        classifier = ClassifierPipeline.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "BOSSEnsemble":
@@ -215,8 +235,30 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = MultiRocketHydraClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "OrdinalTDE":
+        classifier = OrdinalTDE.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "ShapeletTransformClassifier":
         classifier = ShapeletTransformClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "LearningShapeletClassifier":
+        classifier = LearningShapeletClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "MrSQMClassifier":
+        classifier = MrSQMClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "RDSTClassifier":
+        classifier = RDSTClassifier.create_test_instance(parameter_set="results_comparison")
+    elif classifier_name == "SASTClassifier":
+        classifier = SASTClassifier.create_test_instance(parameter_set="results_comparison")
+    elif classifier_name == "ContinuousIntervalTree":
+        classifier = ContinuousIntervalTree.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "RotationForestClassifier":
+        classifier = RotationForestClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ProbabilityThresholdEarlyClassifier":
