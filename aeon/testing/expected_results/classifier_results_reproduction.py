@@ -1,5 +1,8 @@
 """Functions for generating stored unit test results for classifiers."""
 
+import sys
+
+sys.path.insert(0, "C:/Users/deepa/aeon")
 import numpy as np
 from sklearn.ensemble import IsolationForest
 from sklearn.utils._testing import set_random_state
