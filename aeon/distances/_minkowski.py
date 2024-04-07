@@ -1,5 +1,7 @@
 __maintainer__ = []
 
+from typing import Optional
+
 import numpy as np
 from numba import njit
 
@@ -8,7 +10,7 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 
 @njit(cache=True, fastmath=True)
 def minkowski_distance(
-    x: np.ndarray, y: np.ndarray, p: float = 2.0, w: np.ndarray = None
+    x: np.ndarray, y: np.ndarray, p: float = 2.0, w: Optional[np.ndarray] = None
 ) -> float:
     r"""Compute the Minkowski distance between two time series.
 
@@ -77,15 +79,13 @@ def minkowski_distance(
             raise ValueError("Weights w must have the same shape as x")
         if np.any(_w < 0):
             raise ValueError("Input weights should be all non-negative")
+    else:
+        _w = np.ones_like(x)
 
     if x.ndim == 1 and y.ndim == 1:
-        return _univariate_minkowski_distance(
-            x, y, p, np.ones_like(x) if w is None else _w
-        )
+        return _univariate_minkowski_distance(x, y, p, _w)
     if x.ndim == 2 and y.ndim == 2:
-        return _multivariate_minkowski_distance(
-            x, y, p, np.ones_like(x) if w is None else _w
-        )
+        return _multivariate_minkowski_distance(x, y, p, _w)
 
     raise ValueError("Inconsistent dimensions.")
 
@@ -102,7 +102,7 @@ def _univariate_minkowski_distance(
 
     dist = np.sum(w * (np.abs(x - y) ** p))
 
-    return dist ** (1.0 / p)
+    return float(dist ** (1.0 / p))
 
 
 @njit(cache=True, fastmath=True)
@@ -126,7 +126,10 @@ def _multivariate_minkowski_distance(
 
 @njit(cache=True, fastmath=True)
 def minkowski_pairwise_distance(
-    X: np.ndarray, y: np.ndarray = None, p: float = 2.0, w: np.ndarray = None
+    X: np.ndarray,
+    y: Optional[np.ndarray] = None,
+    p: float = 2.0,
+    w: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     """Compute the Minkowski pairwise distance between a set of time series.
 
@@ -186,8 +189,8 @@ def minkowski_pairwise_distance(
            [ 60.62177826,  86.60254038]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
-    >>> minkowski_pairwise_distance(X, y, p=1)
+    >>> y_univariate = np.array([11, 12, 13])
+    >>> minkowski_pairwise_distance(X, y_univariate, p=1)
     array([[30.],
            [21.],
            [12.]])
@@ -205,7 +208,7 @@ def minkowski_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _minkowski_pairwise_distance(
-    X: np.ndarray, p: float, w: np.ndarray = None
+    X: np.ndarray, p: float, w: Optional[np.ndarray] = None
 ) -> np.ndarray:
     n_cases = X.shape[0]
     distances = np.zeros((n_cases, n_cases))
@@ -226,7 +229,7 @@ def _minkowski_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _minkowski_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray = None
+    x: np.ndarray, y: np.ndarray, p: float, w: Optional[np.ndarray] = None
 ) -> np.ndarray:
     n_cases = x.shape[0]
     m_cases = y.shape[0]

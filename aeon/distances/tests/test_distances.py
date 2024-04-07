@@ -178,5 +178,5 @@ def test_incorrect_inputs():
         cost_matrix(x, y, metric="FOO")
 
     x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    with pytest.raises(ValueError, match="x and y must be 2D or 3D arrays"):
-        _custom_func_pairwise(x)
+    with pytest.raises(ValueError, match="x and y must be 1D, 2D, or 3D arrays"):
+        _custom_func_pairwise(x, dist_func=lambda x, y: 0)

@@ -8,6 +8,7 @@ __all__ = [
     "RSASTClassifier",
     "LearningShapeletClassifier",
 ]
+
 from aeon.classification.shapelet_based._ls import LearningShapeletClassifier
 from aeon.classification.shapelet_based._mrsqm import MrSQMClassifier
 from aeon.classification.shapelet_based._rdst import RDSTClassifier

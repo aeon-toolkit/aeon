@@ -1,6 +1,6 @@
 __maintainer__ = []
 
-from typing import Tuple
+from typing import Optional, Tuple, Union
 
 import numpy as np
 from numba import njit
@@ -23,7 +23,7 @@ from aeon.distances import (
 
 def _medoids(
     X: np.ndarray,
-    precomputed_pairwise_distance: np.ndarray = None,
+    precomputed_pairwise_distance: Union[np.ndarray, None] = None,
     distance: str = "dtw",
     **kwargs,
 ):
@@ -46,7 +46,7 @@ def elastic_barycenter_average(
     distance: str = "dtw",
     max_iters: int = 30,
     tol=1e-5,
-    precomputed_medoids_pairwise_distance: np.ndarray = None,
+    precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
     verbose: bool = False,
     **kwargs,
 ) -> np.ndarray:
@@ -137,9 +137,9 @@ def _ba_update(
     center: np.ndarray,
     X: np.ndarray,
     distance: str = "dtw",
-    window: float = None,
+    window: Union[float, None] = None,
     g: float = 0.0,
-    epsilon: float = None,
+    epsilon: Union[float, None] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
     independent: bool = True,

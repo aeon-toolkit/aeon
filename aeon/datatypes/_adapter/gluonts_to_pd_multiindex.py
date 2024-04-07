@@ -6,7 +6,7 @@ from aeon.datatypes import convert_to
 
 # TODO: move in v0.9.0
 @deprecated(
-    version="0.6.0",
+    version="0.8.0",
     reason="convert_gluonts_result_to_multiindex will be moved from datatypes in "
     "to utils.conversion in v0.9.0",
     category=FutureWarning,
