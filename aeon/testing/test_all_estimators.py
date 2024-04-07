@@ -1268,7 +1268,7 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         vanilla_result = scenario.run(estimator, method_sequence=[method_nsc])
 
         # Serialize and deserialize
-        serialized_estimator = estimator.save()
+        serialized_estimator = pickle.dumps(estimator)
         deserialized_estimator = pickle.loads(serialized_estimator)
         deserialized_result = scenario.run(
             deserialized_estimator, method_sequence=[method_nsc]
