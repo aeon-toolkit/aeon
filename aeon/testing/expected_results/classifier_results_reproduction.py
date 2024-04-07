@@ -19,24 +19,38 @@ from aeon.classification.dictionary_based import (
     BOSSEnsemble,
     ContractableBOSS,
     TemporalDictionaryEnsemble,
+    REDCOMETS,
 )
-from aeon.classification.distance_based import ElasticEnsemble, ShapeDTW
+from aeon.classification.distance_based import (
+    ElasticEnsemble,
+    ShapeDTW,
+    KNeighborsTimeSeriesClassifier,
+)
 from aeon.classification.early_classification import (
     TEASER,
     ProbabilityThresholdEarlyClassifier,
+    BaseEarlyClassifier,
 )
 from aeon.classification.feature_based import (
     Catch22Classifier,
     FreshPRINCEClassifier,
     SignatureClassifier,
     SummaryClassifier,
+    TSFreshClassifier,
 )
-from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2
+from aeon.classification.hybrid import (
+    HIVECOTEV1,
+    HIVECOTEV2,
+    RISTClassifier,
+)
 from aeon.classification.interval_based import (
     CanonicalIntervalForestClassifier,
     DrCIFClassifier,
+    IntervalForestClassifier,
     RandomIntervalClassifier,
+    QUANTClassifier,
     RandomIntervalSpectralEnsembleClassifier,
+    RSTSF,
     SupervisedTimeSeriesForest,
     TimeSeriesForestClassifier,
 )
@@ -117,12 +131,18 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = WEASEL.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "WEASEL_V2":
         classifier = WEASEL_V2.create_test_instance(parameter_set="results_comparison")
+    elif classifier_name == "REDCOMETS":
+        classifier = REDCOMETS.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "ElasticEnsemble":
         classifier = ElasticEnsemble.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ShapeDTW":
         classifier = ShapeDTW.create_test_instance(parameter_set="results_comparison")
+    elif classifier_name == "KNeighborsTimeSeriesClassifier":
+        classifier = KNeighborsTimeSeriesClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "Catch22Classifier":
         classifier = Catch22Classifier.create_test_instance(
             parameter_set="results_comparison"
@@ -135,6 +155,10 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = RandomIntervalClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "QUANTClassifier":
+        classifier = QUANTClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "SignatureClassifier":
         classifier = SignatureClassifier.create_test_instance(
             parameter_set="results_comparison"
@@ -143,10 +167,18 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = SummaryClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "TSFreshClassifier":
+        classifier = TSFreshClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "HIVECOTEV1":
         classifier = HIVECOTEV1.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "HIVECOTEV2":
         classifier = HIVECOTEV2.create_test_instance(parameter_set="results_comparison")
+    elif classifier_name == "RISTClassifier":
+        classifier = RISTClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "CanonicalIntervalForestClassifier":
         classifier = CanonicalIntervalForestClassifier.create_test_instance(
             parameter_set="results_comparison"
@@ -155,10 +187,16 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = DrCIFClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "IntervalForestClassifier":
+        classifier = IntervalForestClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "RandomIntervalSpectralEnsembleClassifier":
         classifier = RandomIntervalSpectralEnsembleClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "RSTSF":
+        classifier = RSTSF.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "SupervisedTimeSeriesForest":
         classifier = SupervisedTimeSeriesForest.create_test_instance(
             parameter_set="results_comparison"
@@ -187,6 +225,10 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         )
     elif classifier_name == "ProbabilityThresholdEarlyClassifier":
         classifier = ProbabilityThresholdEarlyClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "BaseEarlyClassifier":
+        classifier = BaseEarlyClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "TEASER":
