@@ -8,9 +8,9 @@ from aeon.classification import BaseClassifier
 from aeon.classification.compose import ChannelEnsembleClassifier
 from aeon.classification.convolution_based import (
     Arsenal,
-    RocketClassifier,
     HydraClassifier,
     MultiRocketHydraClassifier,
+    RocketClassifier,
 )
 from aeon.classification.dictionary_based import (
     MUSE,
@@ -175,11 +175,11 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         )
     elif classifier_name == "HydraClassifier":
         classifier = HydraClassifier.create_test_instance(
-            parameter_set = "results_comparison"
+            parameter_set="results_comparison"
         )
     elif classifier_name == "MultiRocketHydraClassifier":
-        classifier = HydraClassifier.create_test_instance(
-            parameter_set = "results_comparison"
+        classifier = MultiRocketHydraClassifier.create_test_instance(
+            parameter_set="results_comparison"
         )
     elif classifier_name == "ShapeletTransformClassifier":
         classifier = ShapeletTransformClassifier.create_test_instance(
