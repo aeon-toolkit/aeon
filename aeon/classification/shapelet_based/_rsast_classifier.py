@@ -6,6 +6,7 @@ Pipeline classifier using the RSAST transformer and an sklearn classifier.
 __maintainer__ = []
 __all__ = ["RSASTClassifier"]
 
+
 from operator import itemgetter
 
 import numpy as np
@@ -16,6 +17,7 @@ from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.shapelet_based import RSAST
 from aeon.utils.numba.general import z_normalise_series
+import matplotlib.pyplot as plt
 
 
 class RSASTClassifier(BaseClassifier):
@@ -68,8 +70,8 @@ class RSASTClassifier(BaseClassifier):
         n_jobs=-1,
     ):
         super().__init__()
-        self.n_random_points = n_random_points,
-        self.len_method = len_method,
+        self.n_random_points = n_random_points
+        self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
         self.seed = seed
@@ -152,7 +154,8 @@ class RSASTClassifier(BaseClassifier):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
         return dists
 
-    def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
+    def plot_most_important_feature_on_ts(self, ts,feature_importance, limit=5):
+        
         """Plot the most important features on ts.
 
         Parameters
@@ -169,8 +172,6 @@ class RSASTClassifier(BaseClassifier):
         fig : plt.figure
             The figure
         """
-        import matplotlib.pyplot as plt
-
         features = zip(self._transformer._kernel_orig, feature_importance)
         sorted_features = sorted(features, key=itemgetter(1), reverse=True)
 
@@ -195,4 +196,5 @@ class RSASTClassifier(BaseClassifier):
             axes[f].plot(range(ts.size), ts, linewidth=2)
             axes[f].set_title(f"feature: {f+1}")
 
-        return fig
+        #return fig
+

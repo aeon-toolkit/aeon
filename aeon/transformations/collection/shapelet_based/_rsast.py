@@ -1,6 +1,3 @@
-import sys
-sys.path.append(r'C:\Users\nicol\aeon')
-
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
@@ -105,9 +102,10 @@ class RSAST(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.seed = seed
         self._kernels = None  # z-normalized subsequences
-        self._kernel_orig = None  # non z-normalized subsequences
+        self._cand_length_list = {}
+        self._kernel_orig = []
         self._kernels_generators = {}  # Reference time series
-        self._cand_length_list = None
+        
         super().__init__()
         
 
@@ -141,15 +139,8 @@ class RSAST(BaseCollectionTransformer):
         classes = np.unique(y)
         self._num_classes = classes.shape[0]
 
-        candidates_ts = []
-        y = np.asarray([str(x_s) for x_s in y])
         
-        self.cand_length_list = {}
-        self.kernel_orig_ = []
-        self.kernels_generators_ = []
-        self.class_generators_ = []
-
-        list_kernels =[]
+        y = np.asarray([str(x_s) for x_s in y])
         
         
         
@@ -203,8 +194,10 @@ class RSAST(BaseCollectionTransformer):
 
             choosen = self._random_state.permutation(X_c.shape[0])[:cnt]
             
+            self._kernels_generators[c] = []
+
             for rep, idx in enumerate(choosen):
-                self.cand_length_list[c+","+str(idx)+","+str(rep)] = []
+                self._cand_length_list[c+","+str(idx)+","+str(rep)] = []
                 non_zero_acf=[]
                 if (self.len_method == "both" or self.len_method == "ACF" or self.len_method == "Max ACF") :
                 #2.1-- Compute Autorrelation per object
@@ -216,9 +209,9 @@ class RSAST(BaseCollectionTransformer):
                             #Consider just the maximum ACF value
                             if prev_acf!=0 and self.len_method == "Max ACF":
                                 non_zero_acf.remove(prev_acf)
-                                self.cand_length_list[c+","+str(idx)+","+str(rep)].remove(prev_acf)
+                                self._cand_length_list[c+","+str(idx)+","+str(rep)].remove(prev_acf)
                             non_zero_acf.append(j)
-                            self.cand_length_list[c+","+str(idx)+","+str(rep)].append(j)
+                            self._cand_length_list[c+","+str(idx)+","+str(rep)].append(j)
                             prev_acf=j        
                 
                 non_zero_pacf=[]
@@ -232,21 +225,21 @@ class RSAST(BaseCollectionTransformer):
                             #Consider just the maximum PACF value
                             if prev_pacf!=0 and self.len_method == "Max PACF":
                                 non_zero_pacf.remove(prev_pacf)
-                                self.cand_length_list[c+","+str(idx)+","+str(rep)].remove(prev_pacf)
+                                self._cand_length_list[c+","+str(idx)+","+str(rep)].remove(prev_pacf)
                             
                             non_zero_pacf.append(j)
-                            self.cand_length_list[c+","+str(idx)+","+str(rep)].append(j)
+                            self._cand_length_list[c+","+str(idx)+","+str(rep)].append(j)
                             prev_pacf=j 
                             
                 if (self.len_method == "all"):
-                    self.cand_length_list[c+","+str(idx)+","+str(rep)].extend(np.arange(3,1+ len(X_c[idx])))
+                    self._cand_length_list[c+","+str(idx)+","+str(rep)].extend(np.arange(3,1+ len(X_c[idx])))
                 
                 #2.3-- Save the maximum autocorralated lag value as shapelet lenght 
                 
-                if len(self.cand_length_list[c+","+str(idx)+","+str(rep)])==0:
+                if len(self._cand_length_list[c+","+str(idx)+","+str(rep)])==0:
                     #chose a random lenght using the lenght of the time series (added 1 since the range start in 0)
                     rand_value= self._random_state.choice(len(X_c[idx]), 1)[0]+1
-                    self.cand_length_list[c+","+str(idx)+","+str(rep)].extend([max(3,rand_value)])
+                    self._cand_length_list[c+","+str(idx)+","+str(rep)].extend([max(3,rand_value)])
                 #elif len(non_zero_acf)==0:
                     #print("There is no AC in TS", idx, " of class ",c)
                 #elif len(non_zero_pacf)==0:
@@ -257,9 +250,9 @@ class RSAST(BaseCollectionTransformer):
                 #print("Kernel lenght list:",self.cand_length_list[c+","+str(idx)],"")
                  
                 #remove duplicates for the list of lenghts
-                self.cand_length_list[c+","+str(idx)+","+str(rep)]=list(set(self.cand_length_list[c+","+str(idx)+","+str(rep)]))
+                self._cand_length_list[c+","+str(idx)+","+str(rep)]=list(set(self._cand_length_list[c+","+str(idx)+","+str(rep)]))
                 #print("Len list:"+str(self.cand_length_list[c+","+str(idx)+","+str(rep)]))
-                for max_shp_length in self.cand_length_list[c+","+str(idx)+","+str(rep)]:
+                for max_shp_length in self._cand_length_list[c+","+str(idx)+","+str(rep)]:
                     
                     #2.4-- Choose randomly n_random_points point for a TS                
                     #2.5-- calculate the weights of probabilities for a random point in a TS
@@ -288,29 +281,29 @@ class RSAST(BaseCollectionTransformer):
                     
                     for i in rand_point_ts:        
                         #2.6-- Extract the subsequence with that point
-                        kernel = X_c[idx][i:i+max_shp_length].reshape(1,-1)
+                        kernel = X_c[idx][i:i+max_shp_length].reshape(1,-1).copy()
                         #print("kernel:"+str(kernel))
                         if m_kernel < max_shp_length:
                             m_kernel = max_shp_length            
-                        list_kernels.append(kernel)
-                        self.kernel_orig_.append(np.squeeze(kernel))
-                        self.kernels_generators_.append(np.squeeze(X_c[idx].reshape(1,-1)))
-                        self.class_generators_.append(c)
+                        
+                        self._kernel_orig.append(np.squeeze(kernel))
+                        self._kernels_generators[c].extend(X_c[idx].reshape(1,-1))
+                        
         
-        print("total kernels:"+str(len(self.kernel_orig_)))
+        
         
         
         
         #3--save the calculated subsequences
         
         
-        n_kernels = len (self.kernel_orig_)
+        n_kernels = len (self._kernel_orig)
         
         
         self._kernels = np.full(
             (n_kernels, m_kernel), dtype=np.float32, fill_value=np.nan)
         
-        for k, kernel in enumerate(self.kernel_orig_):
+        for k, kernel in enumerate(self._kernel_orig):
             self._kernels[k, :len(kernel)] = z_normalise_series(kernel)
         
         return self
@@ -344,28 +337,3 @@ class RSAST(BaseCollectionTransformer):
 
         return X_transformed
 
-if __name__ == "__main__":
-
-    from sklearn.ensemble import RandomForestClassifier
-
-    from aeon.datasets import load_basic_motions,load_classification
-
-    from aeon.transformations.collection.shapelet_based import RSAST
-
-    from sklearn.metrics import accuracy_score
-
-    #X, y = load_basic_motions(split="train")
-    X, y = load_classification(name="Chinatown",split="train")
-    rsast = RSAST( )
-    
-    rsast.fit(X, y)
-    st = rsast.transform(X, y)
-    print(" Shape of transformed data = ", st.shape)
-    print(" Distance of second series to third shapelet = ", st[1][2])
-    #testX, testy = load_basic_motions(split="test")
-    testX, testy = load_classification(name="Chinatown",split="train")
-    tr_test = rsast.transform(testX)
-    rf = RandomForestClassifier(random_state=10)
-    rf.fit(st, y)
-    preds = rf.predict(tr_test)
-    print(" Shapelets + random forest acc = ", accuracy_score(preds, testy))
