@@ -14,22 +14,22 @@ from aeon.classification.convolution_based import (
 )
 from aeon.classification.dictionary_based import (
     MUSE,
+    REDCOMETS,
     WEASEL,
     WEASEL_V2,
     BOSSEnsemble,
     ContractableBOSS,
     TemporalDictionaryEnsemble,
-    REDCOMETS,
 )
 from aeon.classification.distance_based import (
     ElasticEnsemble,
-    ShapeDTW,
     KNeighborsTimeSeriesClassifier,
+    ShapeDTW,
 )
 from aeon.classification.early_classification import (
     TEASER,
-    ProbabilityThresholdEarlyClassifier,
     BaseEarlyClassifier,
+    ProbabilityThresholdEarlyClassifier,
 )
 from aeon.classification.feature_based import (
     Catch22Classifier,
@@ -38,19 +38,15 @@ from aeon.classification.feature_based import (
     SummaryClassifier,
     TSFreshClassifier,
 )
-from aeon.classification.hybrid import (
-    HIVECOTEV1,
-    HIVECOTEV2,
-    RISTClassifier,
-)
+from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2, RISTClassifier
 from aeon.classification.interval_based import (
+    RSTSF,
     CanonicalIntervalForestClassifier,
     DrCIFClassifier,
     IntervalForestClassifier,
-    RandomIntervalClassifier,
     QUANTClassifier,
+    RandomIntervalClassifier,
     RandomIntervalSpectralEnsembleClassifier,
-    RSTSF,
     SupervisedTimeSeriesForest,
     TimeSeriesForestClassifier,
 )
