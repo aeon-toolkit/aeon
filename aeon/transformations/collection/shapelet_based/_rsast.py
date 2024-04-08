@@ -185,29 +185,27 @@ class RSAST(BaseCollectionTransformer):
 
             for rep, idx in enumerate(choosen):
                 self._cand_length_list[c + "," + str(idx) + "," + str(rep)] = []
+                
                 non_zero_acf = []
-
                 if (
                     self.len_method == "both" or 
                     self.len_method == "ACF"):
-                    # 2.1 -- Compute Autorrelation per object
-                    acf_val, acf_confint = acf(X_c[idx], 
-                                               nlags=len(X_c[idx])-1, alpha=.05)
-  
-                    for j in range(len(acf_confint)):
-                        if (
-                            3 <= j and 
-                            (0 < acf_confint[j][0] <= acf_confint[j][1] or 
-                             acf_confint[j][0] <= acf_confint[j][1] < 0)):
+                        # 2.1 -- Compute Autorrelation per object
+                        acf_val, acf_confint = acf(X_c[idx], 
+                                                nlags=len(X_c[idx])-1, alpha=.05)
+    
+                        for j in range(len(acf_confint)):
+                            if (
+                                3 <= j and 
+                                (0 < acf_confint[j][0] <= acf_confint[j][1] or 
+                                acf_confint[j][0] <= acf_confint[j][1] < 0)):
 
-                            non_zero_acf.append(j)
-                            self._cand_length_list[
-                                c + "," + str(idx) + "," + str(rep)
-                                ].append(j)
-
+                                non_zero_acf.append(j)
+                                self._cand_length_list[
+                                    c + "," + str(idx) + "," + str(rep)
+                                    ].append(j)
 
                 non_zero_pacf = []
-
                 if (self.len_method == "both" or 
                     self.len_method == "PACF"):
                         # 2.2 Compute Partial Autorrelation per object
@@ -220,7 +218,7 @@ class RSAST(BaseCollectionTransformer):
                                 3 <= j and 
                                 (0 < pacf_confint[j][0] <= pacf_confint[j][1] or 
                                 pacf_confint[j][0] <= pacf_confint[j][1] < 0)):
-                                  
+                                    
                                     non_zero_pacf.append(j)
                                     self._cand_length_list[
                                         c + "," + str(idx) + "," + str(rep)
