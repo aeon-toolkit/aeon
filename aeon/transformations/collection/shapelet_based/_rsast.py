@@ -187,14 +187,17 @@ class RSAST(BaseCollectionTransformer):
                 self._cand_length_list[c + "," + str(idx) + "," + str(rep)] = []
                 non_zero_acf = []
 
-                if (self.len_method == "both" or 
-                    self.len_method == "ACF" or self.len_method == "Max ACF"):
+                if (
+                    self.len_method == "both" or 
+                    self.len_method == "ACF" or 
+                    self.len_method == "Max ACF"
+                ):
                     # 2.1 -- Compute Autorrelation per object
                     acf_val, acf_confint = acf(X_c[idx], 
                                                nlags=len(X_c[idx])-1, alpha=.05)
                     prev_acf = 0    
                     for j in range(len(acf_confint)):
-                        if(3 <= j and (0 < acf_confint[j][0] <= acf_confint[j][1] or 
+                        if (3 <= j and (0 < acf_confint[j][0] <= acf_confint[j][1] or 
                                      acf_confint[j][0] <= acf_confint[j][1] < 0)):
                             # Consider just the maximum ACF value
                             if prev_acf != 0 and self.len_method == "Max ACF":
@@ -211,14 +214,16 @@ class RSAST(BaseCollectionTransformer):
                 non_zero_pacf = []
 
                 if (self.len_method == "both" or 
-                    self.len_method == "PACF" or self.len_method == "Max PACF"):
+                    self.len_method == "PACF" or 
+                    self.len_method == "Max PACF"
+                ):
                     # 2.2 Compute Partial Autorrelation per object
                     pacf_val, pacf_confint = pacf(X_c[idx], method="ols", 
                                                   nlags=(len(X_c[idx]) // 2) - 1,  
                                                   alpha=.05)                
                     prev_pacf = 0
                     for j in range(len(pacf_confint)):
-                        if(3<=j and (0 < pacf_confint[j][0] <= pacf_confint[j][1] or 
+                        if (3 <= j and (0 < pacf_confint[j][0] <= pacf_confint[j][1] or 
                                      pacf_confint[j][0] <= pacf_confint[j][1] < 0)):
                             # Consider just the maximum PACF value
                             if prev_pacf != 0 and self.len_method == "Max PACF":
@@ -239,7 +244,8 @@ class RSAST(BaseCollectionTransformer):
                         ].extend(np.arange(3, 1 + len(X_c[idx])))
                 
                 # 2.3-- Save the maximum autocorralated lag value as shapelet lenght
-                if len(self._cand_length_list[c + "," + str(idx) + "," + str(rep)]) == 0:
+                if len(self._cand_length_list[
+                    c + "," + str(idx) + "," + str(rep)]) == 0:
                     # chose a random lenght using the lenght of the time series 
                     # (added 1 since the range start in 0)
                     rand_value = self._random_state.choice(len(X_c[idx]), 1)[0] + 1
@@ -249,7 +255,8 @@ class RSAST(BaseCollectionTransformer):
 
                 self._cand_length_list[
                     c + "," + str(idx) + "," + str(rep)
-                    ] = list(set(self._cand_length_list[c + "," + str(idx) + "," + str(rep)]))
+                    ] = list(set(self._cand_length_list[
+                        c + "," + str(idx) + "," + str(rep)]))
 
                 for max_shp_length in self._cand_length_list[
                     c + ","+str(idx) + "," + str(rep)
