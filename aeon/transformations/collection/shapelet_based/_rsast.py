@@ -189,8 +189,9 @@ class RSAST(BaseCollectionTransformer):
                 non_zero_acf = []
                 if (self.len_method == "both" or self.len_method == "ACF"):
                     # 2.1 -- Compute Autorrelation per object
-                    acf_val, acf_confint = acf(X_c[idx], 
-                                            nlags=len(X_c[idx])-1, alpha=.05)
+                    acf_val, acf_confint = acf(
+                        X_c[idx], nlags=len(X_c[idx]) - 1, 
+                        alpha=.05)
 
                     for j in range(len(acf_confint)):
                         if (3 <= j and 
@@ -204,9 +205,9 @@ class RSAST(BaseCollectionTransformer):
                 non_zero_pacf = []
                 if (self.len_method == "both" or self.len_method == "PACF"):
                     # 2.2 Compute Partial Autorrelation per object
-                    pacf_val, pacf_confint = pacf(X_c[idx], method="ols", 
-                                                nlags=(len(X_c[idx]) // 2) - 1,  
-                                                alpha=.05)                
+                    pacf_val, pacf_confint = pacf(
+                        X_c[idx], method="ols", nlags=(len(X_c[idx]) // 2) - 1, 
+                        alpha=.05)       
 
                     for j in range(len(pacf_confint)):
                         if (3 <= j and 
@@ -237,8 +238,7 @@ class RSAST(BaseCollectionTransformer):
                         c + "," + str(idx) + "," + str(rep)]))
 
                 for max_shp_length in self._cand_length_list[
-                    c + ","+str(idx) + "," + str(rep)
-                    ]:
+                    c + ","+str(idx) + "," + str(rep)]:
                     # 2.4-- Choose randomly n_random_points point for a TS                
                     # 2.5-- calculate the weights of probabilities for a random point 
                     # in a TS
