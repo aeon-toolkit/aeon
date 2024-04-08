@@ -186,8 +186,8 @@ class RSAST(BaseCollectionTransformer):
             self._kernels_generators[c] = []
 
             for rep, idx in enumerate(choosen):
-                
-                idx_len_list = c + ","+str(idx) + "," + str(rep) # defining indices for length list
+                # defining indices for length list
+                idx_len_list = c + ","+str(idx) + "," + str(rep)
 
                 self._cand_length_list[idx_len_list] = []
                 
