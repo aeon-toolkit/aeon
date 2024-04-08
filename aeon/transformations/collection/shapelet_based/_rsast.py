@@ -91,7 +91,6 @@ class RSAST(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": False,
         "algorithm_type": "subsequence",
-        "python_dependencies": ["statsmodels"],
     }
 
     def __init__(
