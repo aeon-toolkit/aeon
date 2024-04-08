@@ -189,57 +189,43 @@ class RSAST(BaseCollectionTransformer):
 
                 if (
                     self.len_method == "both" or 
-                    self.len_method == "ACF" or 
-                    self.len_method == "Max ACF"
-                ):
+                    self.len_method == "ACF"):
                     # 2.1 -- Compute Autorrelation per object
                     acf_val, acf_confint = acf(X_c[idx], 
                                                nlags=len(X_c[idx])-1, alpha=.05)
-                    prev_acf = 0    
+  
                     for j in range(len(acf_confint)):
                         if (
                             3 <= j and 
                             (0 < acf_confint[j][0] <= acf_confint[j][1] or 
                              acf_confint[j][0] <= acf_confint[j][1] < 0)):
-                            # Consider just the maximum ACF value
-                            if prev_acf != 0 and self.len_method == "Max ACF":
-                                non_zero_acf.remove(prev_acf)
-                                self._cand_length_list[
-                                    c + "," + str(idx) + "," + str(rep)
-                                    ].remove(prev_acf)
+
                             non_zero_acf.append(j)
                             self._cand_length_list[
                                 c + "," + str(idx) + "," + str(rep)
                                 ].append(j)
-                            prev_acf = j
+
 
                 non_zero_pacf = []
 
                 if (self.len_method == "both" or 
-                    self.len_method == "PACF" or 
-                    self.len_method == "Max PACF"):
-                    # 2.2 Compute Partial Autorrelation per object
-                    pacf_val, pacf_confint = pacf(X_c[idx], method="ols", 
-                                                  nlags=(len(X_c[idx]) // 2) - 1,  
-                                                  alpha=.05)                
-                    prev_pacf = 0
-                    for j in range(len(pacf_confint)):
-                        if (
-                            3 <= j and 
-                            (0 < pacf_confint[j][0] <= pacf_confint[j][1] or 
-                             pacf_confint[j][0] <= pacf_confint[j][1] < 0)):
-                            # Consider just the maximum PACF value
-                            if prev_pacf != 0 and self.len_method == "Max PACF":
-                                non_zero_pacf.remove(prev_pacf)
-                                self._cand_length_list[
-                                    c + "," + str(idx)+"," + str(rep)
-                                    ].remove(prev_pacf)
-                            
-                            non_zero_pacf.append(j)
-                            self._cand_length_list[
-                                c + "," + str(idx) + "," + str(rep)
-                                ].append(j)
-                            prev_pacf = j 
+                    self.len_method == "PACF"):
+                        # 2.2 Compute Partial Autorrelation per object
+                        pacf_val, pacf_confint = pacf(X_c[idx], method="ols", 
+                                                    nlags=(len(X_c[idx]) // 2) - 1,  
+                                                    alpha=.05)                
+
+                        for j in range(len(pacf_confint)):
+                            if (
+                                3 <= j and 
+                                (0 < pacf_confint[j][0] <= pacf_confint[j][1] or 
+                                pacf_confint[j][0] <= pacf_confint[j][1] < 0)):
+                                  
+                                    non_zero_pacf.append(j)
+                                    self._cand_length_list[
+                                        c + "," + str(idx) + "," + str(rep)
+                                        ].append(j)
+                                    
                             
                 if (self.len_method == "all"):
                     self._cand_length_list[
