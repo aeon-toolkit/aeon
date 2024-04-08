@@ -61,6 +61,7 @@ class RSASTClassifier(BaseClassifier):
         "capability:multithreading": True,
         "capability:multivariate": False,
         "algorithm_type": "subsequence",
+        "python_dependencies": ["statsmodels"],
     }
 
     def __init__(
