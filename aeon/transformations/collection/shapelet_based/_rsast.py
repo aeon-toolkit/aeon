@@ -1,14 +1,11 @@
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
-
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series
 from aeon.utils.validation import check_n_jobs
-
 from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
 from statsmodels.tsa.stattools import acf, pacf
 import pandas as pd
-
 
 @njit(fastmath=False)
 def _apply_kernel(ts, arr):
@@ -19,11 +16,9 @@ def _apply_kernel(ts, arr):
     kernel_len = kernel.shape[0]
     for i in range(m - kernel_len + 1):
         d = np.sum((z_normalise_series(ts[i : i + kernel_len]) - kernel) ** 2)
-        if d < d_best:
+        if d < d_best: 
             d_best = d
-
     return d_best
-
 
 @njit(parallel=True, fastmath=True)
 def _apply_kernels(X, kernels):
@@ -103,7 +98,8 @@ class RSAST(BaseCollectionTransformer):
         len_method="both",
         nb_inst_per_class=10,
         seed=None,
-        n_jobs=-1,):
+        n_jobs=-1,
+    ):
         self.n_random_points = n_random_points
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
@@ -113,7 +109,6 @@ class RSAST(BaseCollectionTransformer):
         self._cand_length_list = {}
         self._kernel_orig = []
         self._kernels_generators = {}  # Reference time series
-        
         super().__init__()
         
     def _fit(self, X, y):
@@ -191,10 +186,11 @@ class RSAST(BaseCollectionTransformer):
                 self._cand_length_list[c+","+str(idx)+","+str(rep)] = []
                 non_zero_acf = []
 
-                if (self.len_method == "both" or self.len_method == "ACF" or 
-                    self.len_method == "Max ACF"):
-
-                # 2.1 -- Compute Autorrelation per object
+                if (
+                    self.len_method == "both" or 
+                    self.len_method == "ACF" or self.len_method == "Max ACF"
+                    ):
+                    # 2.1 -- Compute Autorrelation per object
                     acf_val, acf_confint = acf(X_c[idx], 
                                                nlags=len(X_c[idx])-1, alpha=.05)
                     prev_acf = 0    
@@ -218,12 +214,11 @@ class RSAST(BaseCollectionTransformer):
                 if (self.len_method == "both" or 
                     self.len_method == "PACF" or self.len_method == "Max PACF"):
                     # 2.2 Compute Partial Autorrelation per object
-                    pacf_val, pacf_confint = pacf(X_c[idx], method = "ols", 
+                    pacf_val, pacf_confint = pacf(X_c[idx], method="ols", 
                                                   nlags=(len(X_c[idx])//2) - 1,  
-                                                  alpha = .05)                
+                                                  alpha=.05)                
                     prev_pacf = 0
                     for j in range(len(pacf_confint)):
-
                         if(3<=j and (0 < pacf_confint[j][0] <= pacf_confint[j][1] or 
                                      pacf_confint[j][0] <= pacf_confint[j][1] < 0)):
                             # Consider just the maximum PACF value
@@ -263,7 +258,7 @@ class RSAST(BaseCollectionTransformer):
                     # 2.4-- Choose randomly n_random_points point for a TS                
                     # 2.5-- calculate the weights of probabilities for a random point 
                     # in a TS
-                    if sum(n) == 0 :
+                    if sum(n) == 0:
                         # Determine equal weights of a random point point in TS is 
                         # there are no significant points
                         weights = [1/len(n) for i in range(len(n))]
@@ -276,7 +271,7 @@ class RSAST(BaseCollectionTransformer):
                         weights = weights[:len(X_c[idx])-max_shp_length +1]/np.sum(
                             weights[:len(X_c[idx])-max_shp_length+1])
 
-                    if self.n_random_points > len(X_c[idx])-max_shp_length+1 :
+                    if self.n_random_points > len(X_c[idx])-max_shp_length+1:
                         # set a upper limit for the posible of number of random 
                         # points when selecting without replacement
                         limit_rpoint = len(X_c[idx])-max_shp_length+1
