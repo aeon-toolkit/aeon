@@ -20,6 +20,7 @@ def _apply_kernel(ts, arr):
             d_best = d
     return d_best
 
+
 @njit(parallel=True, fastmath=True)
 def _apply_kernels(X, kernels):
     nbk = len(kernels)
@@ -183,39 +184,37 @@ class RSAST(BaseCollectionTransformer):
             self._kernels_generators[c] = []
 
             for rep, idx in enumerate(choosen):
-                self._cand_length_list[c+","+str(idx)+","+str(rep)] = []
+                self._cand_length_list[c + "," + str(idx) + "," + str(rep)] = []
                 non_zero_acf = []
 
-                if (
-                    self.len_method == "both" or 
-                    self.len_method == "ACF" or self.len_method == "Max ACF"
-                    ):
+                if (self.len_method == "both" or 
+                    self.len_method == "ACF" or self.len_method == "Max ACF"):
                     # 2.1 -- Compute Autorrelation per object
                     acf_val, acf_confint = acf(X_c[idx], 
                                                nlags=len(X_c[idx])-1, alpha=.05)
                     prev_acf = 0    
                     for j in range(len(acf_confint)):
-
                         if(3 <= j and (0 < acf_confint[j][0] <= acf_confint[j][1] or 
                                      acf_confint[j][0] <= acf_confint[j][1] < 0)):
                             # Consider just the maximum ACF value
                             if prev_acf != 0 and self.len_method == "Max ACF":
                                 non_zero_acf.remove(prev_acf)
                                 self._cand_length_list[
-                                    c+","+str(idx)+","+str(rep)
+                                    c + "," + str(idx) + "," + str(rep)
                                     ].remove(prev_acf)
                             non_zero_acf.append(j)
                             self._cand_length_list[
-                                c+","+str(idx)+","+str(rep)
+                                c + "," + str(idx) + "," + str(rep)
                                 ].append(j)
                             prev_acf = j
 
                 non_zero_pacf = []
+
                 if (self.len_method == "both" or 
                     self.len_method == "PACF" or self.len_method == "Max PACF"):
                     # 2.2 Compute Partial Autorrelation per object
                     pacf_val, pacf_confint = pacf(X_c[idx], method="ols", 
-                                                  nlags=(len(X_c[idx])//2) - 1,  
+                                                  nlags=(len(X_c[idx]) // 2) - 1,  
                                                   alpha=.05)                
                     prev_pacf = 0
                     for j in range(len(pacf_confint)):
@@ -225,35 +224,35 @@ class RSAST(BaseCollectionTransformer):
                             if prev_pacf != 0 and self.len_method == "Max PACF":
                                 non_zero_pacf.remove(prev_pacf)
                                 self._cand_length_list[
-                                    c+","+str(idx)+","+str(rep)
+                                    c + "," + str(idx)+"," + str(rep)
                                     ].remove(prev_pacf)
                             
                             non_zero_pacf.append(j)
                             self._cand_length_list[
-                                c+","+str(idx)+","+str(rep)
+                                c + "," + str(idx) + "," + str(rep)
                                 ].append(j)
-                            prev_pacf=j 
+                            prev_pacf = j 
                             
                 if (self.len_method == "all"):
                     self._cand_length_list[
-                        c+","+str(idx)+","+str(rep)
-                        ].extend(np.arange(3, 1+ len(X_c[idx])))
+                        c + ","+str(idx) + "," + str(rep)
+                        ].extend(np.arange(3, 1 + len(X_c[idx])))
                 
                 # 2.3-- Save the maximum autocorralated lag value as shapelet lenght
-                if len(self._cand_length_list[c+","+str(idx)+","+str(rep)]) == 0:
+                if len(self._cand_length_list[c + "," + str(idx) + "," + str(rep)]) == 0:
                     # chose a random lenght using the lenght of the time series 
                     # (added 1 since the range start in 0)
-                    rand_value = self._random_state.choice(len(X_c[idx]), 1)[0]+1
+                    rand_value = self._random_state.choice(len(X_c[idx]), 1)[0] + 1
                     self._cand_length_list[
-                        c+","+str(idx)+","+str(rep)
+                        c + "," + str(idx) + "," + str(rep)
                         ].extend([max(3, rand_value)])
 
                 self._cand_length_list[
-                    c+","+str(idx)+","+str(rep)
-                    ] = list(set(self._cand_length_list[c+","+str(idx)+","+str(rep)]))
+                    c + "," + str(idx) + "," + str(rep)
+                    ] = list(set(self._cand_length_list[c + "," + str(idx) + "," + str(rep)]))
 
                 for max_shp_length in self._cand_length_list[
-                    c+","+str(idx)+","+str(rep)
+                    c + ","+str(idx) + "," + str(rep)
                     ]:
                     # 2.4-- Choose randomly n_random_points point for a TS                
                     # 2.5-- calculate the weights of probabilities for a random point 
@@ -262,31 +261,30 @@ class RSAST(BaseCollectionTransformer):
                         # Determine equal weights of a random point point in TS is 
                         # there are no significant points
                         weights = [1/len(n) for i in range(len(n))]
-                        weights = weights[:len(X_c[idx])-max_shp_length +1]/np.sum(
-                            weights[:len(X_c[idx])-max_shp_length+1])
+                        weights = weights[:len(X_c[idx]) - max_shp_length + 1]/np.sum(
+                            weights[:len(X_c[idx]) - max_shp_length + 1])
                     else: 
                         # Determine the weights of a random point point in TS 
                         # (excluding points after n-l+1)
                         weights = n / np.sum(n)
-                        weights = weights[:len(X_c[idx])-max_shp_length +1]/np.sum(
-                            weights[:len(X_c[idx])-max_shp_length+1])
+                        weights = weights[:len(X_c[idx]) - max_shp_length + 1]/np.sum(
+                            weights[:len(X_c[idx]) - max_shp_length + 1])
 
                     if self.n_random_points > len(X_c[idx])-max_shp_length+1:
                         # set a upper limit for the posible of number of random 
                         # points when selecting without replacement
-                        limit_rpoint = len(X_c[idx])-max_shp_length+1
+                        limit_rpoint = len(X_c[idx]) - max_shp_length + 1
                         rand_point_ts = self._random_state.choice(
-                            len(X_c[idx])-max_shp_length+1, limit_rpoint, 
+                            len(X_c[idx]) - max_shp_length + 1, limit_rpoint, 
                             p=weights, replace=False)
-
                     else:
                         rand_point_ts = self._random_state.choice(
-                            len(X_c[idx])-max_shp_length+1, self.n_random_points, 
+                            len(X_c[idx]) - max_shp_length + 1, self.n_random_points, 
                             p=weights, replace=False)
          
                     for i in rand_point_ts:        
                         # 2.6-- Extract the subsequence with that point
-                        kernel = X_c[idx][i:i+max_shp_length].reshape(1, -1).copy()
+                        kernel = X_c[idx][i : i + max_shp_length].reshape(1, -1).copy()
                         
                         if m_kernel < max_shp_length:
                             m_kernel = max_shp_length            
