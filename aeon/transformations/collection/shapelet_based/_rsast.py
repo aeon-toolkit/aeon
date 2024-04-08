@@ -175,6 +175,8 @@ class RSAST(BaseCollectionTransformer):
         # 2--calculate PACF and ACF for each TS chossen in each class
         
         for i, c in enumerate(classes):
+            
+            idx_len_list = c + ","+str(idx) + "," + str(rep)
             X_c = X_[y == c]
 
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
@@ -184,7 +186,7 @@ class RSAST(BaseCollectionTransformer):
             self._kernels_generators[c] = []
 
             for rep, idx in enumerate(choosen):
-                self._cand_length_list[c + "," + str(idx) + "," + str(rep)] = []
+                self._cand_length_list[idx_len_list] = []
                 
                 non_zero_acf = []
                 if (self.len_method == "both" or self.len_method == "ACF"):
@@ -198,9 +200,7 @@ class RSAST(BaseCollectionTransformer):
                             (0 < acf_confint[j][0] <= acf_confint[j][1] or 
                              acf_confint[j][0] <= acf_confint[j][1] < 0)):
                             non_zero_acf.append(j)
-                            self._cand_length_list[
-                                c + "," + str(idx) + "," + str(rep)
-                                ].append(j)
+                            self._cand_length_list[idx_len_list].append(j)
 
                 non_zero_pacf = []
                 if (self.len_method == "both" or self.len_method == "PACF"):
@@ -214,31 +214,23 @@ class RSAST(BaseCollectionTransformer):
                             (0 < pacf_confint[j][0] <= pacf_confint[j][1] or 
                              pacf_confint[j][0] <= pacf_confint[j][1] < 0)):
                             non_zero_pacf.append(j)
-                            self._cand_length_list[
-                                c + "," + str(idx) + "," + str(rep)
-                                ].append(j)
+                            self._cand_length_list[idx_len_list].append(j)
                                     
                 if (self.len_method == "all"):
-                    self._cand_length_list[
-                        c + ","+str(idx) + "," + str(rep)
-                        ].extend(np.arange(3, 1 + len(X_c[idx])))
+                    self._cand_length_list[idx_len_list].extend(
+                        np.arange(3, 1 + len(X_c[idx])))
                 
                 # 2.3-- Save the maximum autocorralated lag value as shapelet lenght
-                if len(self._cand_length_list[c + "," + str(idx) + "," + str(rep)]) == 0:
+                if len(self._cand_length_list[idx_len_list]) == 0:
                     # chose a random lenght using the lenght of the time series 
                     # (added 1 since the range start in 0)
                     rand_value = self._random_state.choice(len(X_c[idx]), 1)[0] + 1
-                    self._cand_length_list[
-                        c + "," + str(idx) + "," + str(rep)
-                        ].extend([max(3, rand_value)])
+                    self._cand_length_list[idx_len_list].extend([max(3, rand_value)])
 
-                self._cand_length_list[
-                    c + "," + str(idx) + "," + str(rep)
-                    ] = list(set(self._cand_length_list[
-                        c + "," + str(idx) + "," + str(rep)]))
+                self._cand_length_list[idx_len_list] = list(set(
+                    self._cand_length_list[idx_len_list]))
 
-                for max_shp_length in self._cand_length_list[
-                    c + ","+str(idx) + "," + str(rep)]:
+                for max_shp_length in self._cand_length_list[idx_len_list]:
                     # 2.4-- Choose randomly n_random_points point for a TS                
                     # 2.5-- calculate the weights of probabilities for a random point 
                     # in a TS
