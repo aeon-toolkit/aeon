@@ -41,7 +41,8 @@ class RSASTClassifier(BaseClassifier):
 
     Reference
     ---------
-    .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023). RSAST: Sampling Shapelets for Time Series Classification.
+    .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023). RSAST: Sampling 
+    Shapelets for Time Series Classification.
     https://hal.science/hal-04311309/
     
     Examples
@@ -64,12 +65,12 @@ class RSASTClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_random_points=10,
-        len_method="both",
-        nb_inst_per_class=10,
-        seed=None,
-        classifier=None,
-        n_jobs=-1,
+        n_random_points = 10,
+        len_method = "both",
+        nb_inst_per_class = 10,
+        seed = None,
+        classifier = None,
+        n_jobs = -1,
     ):
         super().__init__()
         self.n_random_points = n_random_points
@@ -97,7 +98,7 @@ class RSASTClassifier(BaseClassifier):
         """
         self._transformer = RSAST(
             self.n_random_points,
-	        self.len_method,
+            self.len_method,
             self.nb_inst_per_class,
             self.seed,
             self.n_jobs,
@@ -197,6 +198,3 @@ class RSASTClassifier(BaseClassifier):
             axes[f].plot(range(start_pos, start_pos + kernel.size), kernel, linewidth=5)
             axes[f].plot(range(ts.size), ts, linewidth=2)
             axes[f].set_title(f"feature: {f+1}")
-
-        
-
