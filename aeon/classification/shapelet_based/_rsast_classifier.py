@@ -26,7 +26,9 @@ class RSASTClassifier(BaseClassifier):
     Parameters
     ----------
     n_random_points: int default = 10 the number of initial random points to extract
-    len_method:  string default="both" the type of statistical tool used to get the length of shapelets. "both"=ACF&PACF, "ACF"=ACF, "PACF"=PACF, "None"=Extract randomly any length from the TS
+    len_method:  string default="both" the type of statistical tool used to get the 
+    length of shapelets. "both"=ACF&PACF, "ACF"=ACF, "PACF"=PACF, 
+    "None"=Extract randomly any length from the TS
     nb_inst_per_class : int default = 10
         the number of reference time series to select per class
     seed : int, default = None
@@ -154,7 +156,7 @@ class RSASTClassifier(BaseClassifier):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
         return dists
 
-    def plot_most_important_feature_on_ts(self, ts,feature_importance, limit=5):
+    def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
         
         """Plot the most important features on ts.
 
@@ -196,5 +198,5 @@ class RSASTClassifier(BaseClassifier):
             axes[f].plot(range(ts.size), ts, linewidth=2)
             axes[f].set_title(f"feature: {f+1}")
 
-        #return fig
+        
 

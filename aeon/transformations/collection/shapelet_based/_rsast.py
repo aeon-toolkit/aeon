@@ -127,7 +127,7 @@ class RSAST(BaseCollectionTransformer):
 
         """
        
-       #0- initialize variables and convert values in "y" to string
+       # 0- initialize variables and convert values in "y" to string
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
 
         self._random_state = (
@@ -139,58 +139,41 @@ class RSAST(BaseCollectionTransformer):
         classes = np.unique(y)
         self._num_classes = classes.shape[0]
 
-        
         y = np.asarray([str(x_s) for x_s in y])
-        
-        
         
         n = []
         classes = np.unique(y)
         self.num_classes = classes.shape[0]
         m_kernel = 0
 
-        #1--calculate ANOVA per each time t throught the lenght of the TS
+        # 1--calculate ANOVA per each time t throught the lenght of the TS
         for i in range (X_.shape[1]):
             statistic_per_class= {}
             for c in classes:
                 assert len(X_[np.where(y==c)[0]][:,i])> 0, 'Time t without values in TS'
-
                 statistic_per_class[c]=X_[np.where(y==c)[0]][:,i]
-                #print("statistic_per_class- i:"+str(i)+', c:'+str(c))
-                #print(statistic_per_class[c].shape)
-
-
-            #print('Without pd series')
-            #print(statistic_per_class)
 
             statistic_per_class=pd.Series(statistic_per_class)
-            #statistic_per_class = list(statistic_per_class.values())
             # Calculate t-statistic and p-value
-
             try:
                 t_statistic, p_value = f_oneway(*statistic_per_class)
             except DegenerateDataWarning or ConstantInputWarning:
                 p_value = np.nan
-            
-            #print('statistic_per_class', str(statistic_per_class))
+
             # Interpretation of the results
             # if p_value < 0.05: " The means of the populations are significantly different."
-            #print('pvalue', str(p_value))
             if np.isnan(p_value):
                 n.append(0)
             else:
                 n.append(1-p_value)
-        
-        
 
-
-        #2--calculate PACF and ACF for each TS chossen in each class
+        # 2--calculate PACF and ACF for each TS chossen in each class
         
         for i, c in enumerate(classes):
             X_c = X_[y == c]
 
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
-            #set if the selection of instances is with replacement (if false it is not posible to select the same intance more than one)
+            # set if the selection of instances is with replacement (if false it is not posible to select the same intance more than one)
 
             choosen = self._random_state.permutation(X_c.shape[0])[:cnt]
             
@@ -200,13 +183,13 @@ class RSAST(BaseCollectionTransformer):
                 self._cand_length_list[c+","+str(idx)+","+str(rep)] = []
                 non_zero_acf=[]
                 if (self.len_method == "both" or self.len_method == "ACF" or self.len_method == "Max ACF") :
-                #2.1-- Compute Autorrelation per object
+                # 2.1-- Compute Autorrelation per object
                     acf_val, acf_confint = acf(X_c[idx], nlags=len(X_c[idx])-1,  alpha=.05)
                     prev_acf=0    
                     for j, conf in enumerate(acf_confint):
 
                         if(3<=j and (0 < acf_confint[j][0] <= acf_confint[j][1] or acf_confint[j][0] <= acf_confint[j][1] < 0) ):
-                            #Consider just the maximum ACF value
+                            # Consider just the maximum ACF value
                             if prev_acf!=0 and self.len_method == "Max ACF":
                                 non_zero_acf.remove(prev_acf)
                                 self._cand_length_list[c+","+str(idx)+","+str(rep)].remove(prev_acf)
@@ -216,13 +199,13 @@ class RSAST(BaseCollectionTransformer):
                 
                 non_zero_pacf=[]
                 if (self.len_method == "both" or self.len_method == "PACF" or self.len_method == "Max PACF"):
-                    #2.2 Compute Partial Autorrelation per object
+                    # 2.2 Compute Partial Autorrelation per object
                     pacf_val, pacf_confint = pacf(X_c[idx], method="ols", nlags=(len(X_c[idx])//2) - 1,  alpha=.05)                
                     prev_pacf=0
                     for j, conf in enumerate(pacf_confint):
 
                         if(3<=j and (0 < pacf_confint[j][0] <= pacf_confint[j][1] or pacf_confint[j][0] <= pacf_confint[j][1] < 0) ):
-                            #Consider just the maximum PACF value
+                            # Consider just the maximum PACF value
                             if prev_pacf!=0 and self.len_method == "Max PACF":
                                 non_zero_pacf.remove(prev_pacf)
                                 self._cand_length_list[c+","+str(idx)+","+str(rep)].remove(prev_pacf)
@@ -234,71 +217,46 @@ class RSAST(BaseCollectionTransformer):
                 if (self.len_method == "all"):
                     self._cand_length_list[c+","+str(idx)+","+str(rep)].extend(np.arange(3,1+ len(X_c[idx])))
                 
-                #2.3-- Save the maximum autocorralated lag value as shapelet lenght 
-                
+                # 2.3-- Save the maximum autocorralated lag value as shapelet lenght     
                 if len(self._cand_length_list[c+","+str(idx)+","+str(rep)])==0:
-                    #chose a random lenght using the lenght of the time series (added 1 since the range start in 0)
+                    # chose a random lenght using the lenght of the time series (added 1 since the range start in 0)
                     rand_value= self._random_state.choice(len(X_c[idx]), 1)[0]+1
                     self._cand_length_list[c+","+str(idx)+","+str(rep)].extend([max(3,rand_value)])
-                #elif len(non_zero_acf)==0:
-                    #print("There is no AC in TS", idx, " of class ",c)
-                #elif len(non_zero_pacf)==0:
-                    #print("There is no PAC in TS", idx, " of class ",c)                 
-                #else:
-                    #print("There is AC and PAC in TS", idx, " of class ",c)
 
-                #print("Kernel lenght list:",self.cand_length_list[c+","+str(idx)],"")
-                 
-                #remove duplicates for the list of lenghts
                 self._cand_length_list[c+","+str(idx)+","+str(rep)]=list(set(self._cand_length_list[c+","+str(idx)+","+str(rep)]))
-                #print("Len list:"+str(self.cand_length_list[c+","+str(idx)+","+str(rep)]))
+
                 for max_shp_length in self._cand_length_list[c+","+str(idx)+","+str(rep)]:
-                    
-                    #2.4-- Choose randomly n_random_points point for a TS                
-                    #2.5-- calculate the weights of probabilities for a random point in a TS
+                    # 2.4-- Choose randomly n_random_points point for a TS                
+                    # 2.5-- calculate the weights of probabilities for a random point in a TS
                     if sum(n) == 0 :
                         # Determine equal weights of a random point point in TS is there are no significant points
-                        # print('All p values in One way ANOVA are equal to 0') 
                         weights = [1/len(n) for i in range(len(n))]
                         weights = weights[:len(X_c[idx])-max_shp_length +1]/np.sum(weights[:len(X_c[idx])-max_shp_length+1])
                     else: 
                         # Determine the weights of a random point point in TS (excluding points after n-l+1)
                         weights = n / np.sum(n)
                         weights = weights[:len(X_c[idx])-max_shp_length +1]/np.sum(weights[:len(X_c[idx])-max_shp_length+1])
-                        
-                    
 
                     if self.n_random_points > len(X_c[idx])-max_shp_length+1 :
-                        #set a upper limit for the posible of number of random points when selecting without replacement
+                        # set a upper limit for the posible of number of random points when selecting without replacement
                         limit_rpoint=len(X_c[idx])-max_shp_length+1
                         rand_point_ts = self._random_state.choice(len(X_c[idx])-max_shp_length+1, limit_rpoint, p=weights, replace=False)
-                        #print("limit_rpoint:"+str(limit_rpoint))
+
                     else:
                         rand_point_ts = self._random_state.choice(len(X_c[idx])-max_shp_length+1, self.n_random_points, p=weights, replace=False)
-                        
-                    
-                    
-                    
+         
                     for i in rand_point_ts:        
-                        #2.6-- Extract the subsequence with that point
+                        # 2.6-- Extract the subsequence with that point
                         kernel = X_c[idx][i:i+max_shp_length].reshape(1,-1).copy()
-                        #print("kernel:"+str(kernel))
+                        
                         if m_kernel < max_shp_length:
                             m_kernel = max_shp_length            
                         
                         self._kernel_orig.append(np.squeeze(kernel))
                         self._kernels_generators[c].extend(X_c[idx].reshape(1,-1))
-                        
         
-        
-        
-        
-        
-        #3--save the calculated subsequences
-        
-        
+        # 3--save the calculated subsequences
         n_kernels = len (self._kernel_orig)
-        
         
         self._kernels = np.full(
             (n_kernels, m_kernel), dtype=np.float32, fill_value=np.nan)
@@ -310,7 +268,6 @@ class RSAST(BaseCollectionTransformer):
     
     def _transform(self, X, y=None):
         """Transform the input X using the generated subsequences.
-
         Parameters
         ----------
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
@@ -331,7 +288,6 @@ class RSAST(BaseCollectionTransformer):
 
         set_num_threads(n_jobs)
         
-
         X_transformed = _apply_kernels(X_, self._kernels)  # subsequence transform of X
         set_num_threads(prev_threads)
 
