@@ -174,5 +174,5 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         """
         import tensorflow as tf
 
-        self.model_ = tf.saved_model.load(model_path)
+        self.model_ = tf.keras.models.load_model(model_path)
         self._is_fitted = True
