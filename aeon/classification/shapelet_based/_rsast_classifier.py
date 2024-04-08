@@ -65,12 +65,12 @@ class RSASTClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_random_points = 10,
-        len_method = "both",
-        nb_inst_per_class = 10,
-        seed = None,
-        classifier = None,
-        n_jobs = -1,
+        n_random_points=10,
+        len_method="both",
+        nb_inst_per_class=10,
+        seed=None,
+        classifier=None,
+        n_jobs=-1,
     ):
         super().__init__()
         self.n_random_points = n_random_points

@@ -40,23 +40,27 @@ def _apply_kernels(X, kernels):
 class RSAST(BaseCollectionTransformer):
     """Random Scalable and Accurate Subsequence Transform (SAST).
 
-    RSAST [1] is based on SAST, it uses a stratified sampling strategy for subsequences selection but 
-    additionally takes into account certain statistical criteria such as ANOVA, ACF, and PACF to 
-    further reduce the search space of shapelets.
+    RSAST [1] is based on SAST, it uses a stratified sampling strategy 
+    for subsequences selection but additionally takes into account certain
+    statistical criteria such as ANOVA, ACF, and PACF to further reduce 
+    the search space of shapelets.
     
-    RSAST starts with the pre-computation of a list of weights, using ANOVA, which helps in the 
-    selection of initial points for subsequences. Then randomly select k time series per class, 
-    which are used with an ACF and PACF, obtaining a set of highly correlated lagged values. 
-    These values are used as potential lengths for the shapelets. Lastly, with a pre-defined 
-    number of admissible starting points to sample, the shapelets are extracted and used to 
-    transform the original dataset, replacing each time series by the vector of its distance 
-    to each subsequence.
+    RSAST starts with the pre-computation of a list of weights, using ANOVA,
+    which helps in the selection of initial points for subsequences. Then 
+    randomly select k time series per class, which are used with an ACF and PACF, 
+    obtaining a set of highly correlated lagged values. These values are used as 
+    potential lengths for the shapelets. Lastly, with a pre-defined number of 
+    admissible starting points to sample, the shapelets are extracted and used to 
+    transform the original dataset, replacing each time series by the vector of its 
+    distance to each subsequence.
 
     Parameters
     ----------
     n_random_points: int default = 10 the number of initial random points to extract
-    len_method:  string default="both" the type of statistical tool used to get the length of 
-    shapelets. "both"=ACF&PACF, "ACF"=ACF, "PACF"=PACF, "None"=Extract randomly any length from the TS
+    len_method:  string default="both" the type of statistical tool used to get 
+    the length of shapelets. "both"=ACF&PACF, "ACF"=ACF, "PACF"=PACF, 
+    "None"=Extract randomly any length from the TS
+    
     nb_inst_per_class : int default = 10
         the number of reference time series to select per class
     seed : int, default = None
@@ -68,8 +72,8 @@ class RSAST(BaseCollectionTransformer):
 
     Reference
     ---------
-    .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023). RSAST: Sampling Shapelets for 
-    Time Series Classification.
+    .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023). 
+    RSAST: Sampling Shapelets for Time Series Classification.
     https://hal.science/hal-04311309/
 
 
@@ -95,11 +99,11 @@ class RSAST(BaseCollectionTransformer):
 
     def __init__(
         self,
-        n_random_points = 10,
-        len_method = "both",
-        nb_inst_per_class = 10,
-        seed = None,
-        n_jobs = -1,
+        n_random_points=10,
+        len_method="both",
+        nb_inst_per_class=10,
+        seed=None,
+        n_jobs=-1,
     ):
         self.n_random_points = n_random_points
         self.len_method = len_method
@@ -130,7 +134,7 @@ class RSAST(BaseCollectionTransformer):
 
         """
        
-       # 0- initialize variables and convert values in "y" to string
+        # 0- initialize variables and convert values in "y" to string
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
 
         self._random_state = (
@@ -150,13 +154,15 @@ class RSAST(BaseCollectionTransformer):
         m_kernel = 0
 
         # 1--calculate ANOVA per each time t throught the lenght of the TS
-        for i in range (X_.shape[1]):
+        for i in range(X_.shape[1]):
             statistic_per_class = {}
             for c in classes:
-                assert len(X_[np.where(y == c)[0]][:,i]) > 0, 'Time t without values in TS'
-                statistic_per_class[c] = X_[np.where(y == c)[0]][:,i]
+                assert len(
+                    X_[np.where(y == c)[0]][:, i]
+                    ) > 0, 'Time t without values in TS'
+                statistic_per_class[c] = X_[np.where(y == c)[0]][:, i]
 
-            statistic_per_class=pd.Series(statistic_per_class)
+            statistic_per_class = pd.Series(statistic_per_class)
             # Calculate t-statistic and p-value
             try:
                 t_statistic, p_value = f_oneway(*statistic_per_class)
@@ -218,7 +224,7 @@ class RSAST(BaseCollectionTransformer):
                             prev_pacf=j 
                             
                 if (self.len_method == "all"):
-                    self._cand_length_list[c+","+str(idx)+","+str(rep)].extend(np.arange(3,1+ len(X_c[idx])))
+                    self._cand_length_list[c+","+str(idx)+","+str(rep)].extend(np.arange(3, 1+ len(X_c[idx])))
                 
                 # 2.3-- Save the maximum autocorralated lag value as shapelet lenght     
                 if len(self._cand_length_list[c+","+str(idx)+","+str(rep)]) == 0:
