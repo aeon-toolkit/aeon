@@ -103,8 +103,7 @@ class RSAST(BaseCollectionTransformer):
         len_method="both",
         nb_inst_per_class=10,
         seed=None,
-        n_jobs=-1,
-    ):
+        n_jobs=-1,):
         self.n_random_points = n_random_points
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
@@ -140,8 +139,7 @@ class RSAST(BaseCollectionTransformer):
         self._random_state = (
             np.random.RandomState(self.seed)
             if not isinstance(self.seed, np.random.RandomState)
-            else self.seed
-        )
+            else self.seed)
 
         classes = np.unique(y)
         self._num_classes = classes.shape[0]
@@ -158,8 +156,9 @@ class RSAST(BaseCollectionTransformer):
             statistic_per_class = {}
             for c in classes:
                 assert len(
-                    X_[np.where(y == c)[0]][:, i]
-                    ) > 0, 'Time t without values in TS'
+                    X_[
+                        np.where(y == c)[0]
+                        ][:, i]) > 0, 'Time t without values in TS'
                 statistic_per_class[c] = X_[np.where(y == c)[0]][:, i]
 
             statistic_per_class = pd.Series(statistic_per_class)
@@ -191,19 +190,20 @@ class RSAST(BaseCollectionTransformer):
             for rep, idx in enumerate(choosen):
                 self._cand_length_list[c+","+str(idx)+","+str(rep)] = []
                 non_zero_acf = []
-                if (self.len_method == "both" or 
-                    self.len_method == "ACF" or 
-                    self.len_method == "Max ACF"):
-                # 2.1-- Compute Autorrelation per object
-                    acf_val, acf_confint = acf(X_c[idx], 
-                                               nlags=len(X_c[idx])-1,  alpha=.05)
-                    prev_acf=0    
-                    for j, conf in enumerate(acf_confint):
 
-                        if(3<=j and (0 < acf_confint[j][0] <= acf_confint[j][1] or 
-                                     acf_confint[j][0] <= acf_confint[j][1] < 0) ):
+                if (self.len_method == "both" or self.len_method == "ACF" or 
+                    self.len_method == "Max ACF"):
+
+                # 2.1 -- Compute Autorrelation per object
+                    acf_val, acf_confint = acf(X_c[idx], 
+                                               nlags=len(X_c[idx])-1, alpha=.05)
+                    prev_acf = 0    
+                    for j in range(len(acf_confint)):
+
+                        if(3 <= j and (0 < acf_confint[j][0] <= acf_confint[j][1] or 
+                                     acf_confint[j][0] <= acf_confint[j][1] < 0)):
                             # Consider just the maximum ACF value
-                            if prev_acf!=0 and self.len_method == "Max ACF":
+                            if prev_acf != 0 and self.len_method == "Max ACF":
                                 non_zero_acf.remove(prev_acf)
                                 self._cand_length_list[
                                     c+","+str(idx)+","+str(rep)
@@ -212,8 +212,8 @@ class RSAST(BaseCollectionTransformer):
                             self._cand_length_list[
                                 c+","+str(idx)+","+str(rep)
                                 ].append(j)
-                            prev_acf=j        
-                
+                            prev_acf = j
+
                 non_zero_pacf = []
                 if (self.len_method == "both" or 
                     self.len_method == "PACF" or self.len_method == "Max PACF"):
@@ -222,12 +222,12 @@ class RSAST(BaseCollectionTransformer):
                                                   nlags=(len(X_c[idx])//2) - 1,  
                                                   alpha = .05)                
                     prev_pacf = 0
-                    for j, conf in enumerate(pacf_confint):
+                    for j in range(len(pacf_confint)):
 
                         if(3<=j and (0 < pacf_confint[j][0] <= pacf_confint[j][1] or 
-                                     pacf_confint[j][0] <= pacf_confint[j][1] < 0) ):
+                                     pacf_confint[j][0] <= pacf_confint[j][1] < 0)):
                             # Consider just the maximum PACF value
-                            if prev_pacf!=0 and self.len_method == "Max PACF":
+                            if prev_pacf != 0 and self.len_method == "Max PACF":
                                 non_zero_pacf.remove(prev_pacf)
                                 self._cand_length_list[
                                     c+","+str(idx)+","+str(rep)
@@ -282,12 +282,12 @@ class RSAST(BaseCollectionTransformer):
                         limit_rpoint = len(X_c[idx])-max_shp_length+1
                         rand_point_ts = self._random_state.choice(
                             len(X_c[idx])-max_shp_length+1, limit_rpoint, 
-                            p = weights, replace = False)
+                            p=weights, replace=False)
 
                     else:
                         rand_point_ts = self._random_state.choice(
                             len(X_c[idx])-max_shp_length+1, self.n_random_points, 
-                            p = weights, replace = False)
+                            p=weights, replace=False)
          
                     for i in rand_point_ts:        
                         # 2.6-- Extract the subsequence with that point
@@ -300,17 +300,17 @@ class RSAST(BaseCollectionTransformer):
                         self._kernels_generators[c].extend(X_c[idx].reshape(1, -1))
         
         # 3--save the calculated subsequences
-        n_kernels = len (self._kernel_orig)
+        n_kernels = len(self._kernel_orig)
         
         self._kernels = np.full(
-            (n_kernels, m_kernel), dtype = np.float32, fill_value = np.nan)
+            (n_kernels, m_kernel), dtype=np.float32, fill_value=np.nan)
         
         for k, kernel in enumerate(self._kernel_orig):
             self._kernels[k, :len(kernel)] = z_normalise_series(kernel)
         
         return self
     
-    def _transform(self, X, y = None):
+    def _transform(self, X, y=None):
         """Transform the input X using the generated subsequences.
         Parameters
         ----------
