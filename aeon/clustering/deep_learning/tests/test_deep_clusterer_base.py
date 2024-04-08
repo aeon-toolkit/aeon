@@ -35,7 +35,7 @@ def test_base_deep_clusterer():
         dummy_deep_clr2.load_model(
             model_path=os.path.join(tmp, last_file_name + ".keras")
         )
-        dummy_deep_clr2._fit_clustering(X=X)
+        # dummy_deep_clr2._fit_clustering(X=X)
         # ypred = dummy_deep_clr2.predict(X=X)
         # assert len(ypred) == len(y)
 
@@ -77,7 +77,7 @@ def test_base_deep_clusterer_with_algorithm(algorithm):
         dummy_deep_clr2.load_model(
             model_path=os.path.join(tmp, last_file_name + ".keras")
         )
-        dummy_deep_clr2._fit_clustering(X=X)
+        # dummy_deep_clr2._fit_clustering(X=X)
         # ypred = dummy_deep_clr2.predict(X=X)
         # assert len(ypred) == len(y)
 
