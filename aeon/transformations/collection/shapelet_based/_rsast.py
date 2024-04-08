@@ -91,6 +91,7 @@ class RSAST(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": False,
         "algorithm_type": "subsequence",
+        "python_dependencies": "statsmodels",
     }
 
     def __init__(
@@ -176,7 +177,6 @@ class RSAST(BaseCollectionTransformer):
         
         for i, c in enumerate(classes):
             
-            idx_len_list = c + ","+str(idx) + "," + str(rep)
             X_c = X_[y == c]
 
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
@@ -186,6 +186,9 @@ class RSAST(BaseCollectionTransformer):
             self._kernels_generators[c] = []
 
             for rep, idx in enumerate(choosen):
+                
+                idx_len_list = c + ","+str(idx) + "," + str(rep) # defining indices for length list
+
                 self._cand_length_list[idx_len_list] = []
                 
                 non_zero_acf = []
