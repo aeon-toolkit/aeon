@@ -19,7 +19,7 @@ def elastic_barycenter_average(
     final_step_size: float = 0.005,
     precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
     verbose: bool = False,
-    random_state: int = 1,
+    random_state: Optional[int] = None,
     **kwargs,
 ) -> np.ndarray:
     """Compute the barycenter average of time series using a elastic distance.
@@ -77,7 +77,7 @@ def elastic_barycenter_average(
         Precomputed medoids pairwise.
     verbose: bool, default=False
         Boolean that controls the verbosity.
-    random_state: int, default=1
+    random_state: int or None, default=None
         Random state to use for the barycenter averaging.
     **kwargs
         Keyword arguments to pass to the distance metric.

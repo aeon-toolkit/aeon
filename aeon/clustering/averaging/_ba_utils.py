@@ -46,7 +46,7 @@ def _get_init_barycenter(
     init_barycenter: Union[np.ndarray, str],
     distance: str,
     precomputed_medoids_pw: Optional[np.ndarray] = None,
-    random_state: int = 1,
+    random_state: Optional[int] = None,
     **kwargs,
 ) -> np.ndarray:
     if isinstance(init_barycenter, str):

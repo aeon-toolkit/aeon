@@ -133,8 +133,12 @@ def test_petitjean_dba():
     """Test petitjean dba functionality."""
     X_train_uni = make_example_3d_numpy(10, 1, 10, random_state=1, return_y=False)
 
-    average_ts_uni = elastic_barycenter_average(X_train_uni, method="petitjean")
-    call_directly_average_ts_uni = petitjean_barycenter_average(X_train_uni)
+    average_ts_uni = elastic_barycenter_average(
+        X_train_uni, method="petitjean", random_state=1
+    )
+    call_directly_average_ts_uni = petitjean_barycenter_average(
+        X_train_uni, random_state=1
+    )
     assert isinstance(average_ts_uni, np.ndarray)
     assert average_ts_uni.shape == X_train_uni[0].shape
     assert np.allclose(average_ts_uni, expected_petitjean_dba_univariate)
@@ -142,8 +146,12 @@ def test_petitjean_dba():
 
     X_train_multi = make_example_3d_numpy(10, 3, 10, random_state=1, return_y=False)
 
-    average_ts_multi = elastic_barycenter_average(X_train_multi, method="petitjean")
-    call_directly_average_ts_multi = petitjean_barycenter_average(X_train_multi)
+    average_ts_multi = elastic_barycenter_average(
+        X_train_multi, method="petitjean", random_state=1
+    )
+    call_directly_average_ts_multi = petitjean_barycenter_average(
+        X_train_multi, random_state=1
+    )
 
     assert isinstance(average_ts_multi, np.ndarray)
     assert average_ts_multi.shape == X_train_multi[0].shape
@@ -155,8 +163,12 @@ def test_subgradient_dba():
     """Test stochastic subgradient dba functionality."""
     X_train_uni = make_example_3d_numpy(10, 1, 10, random_state=1, return_y=False)
 
-    average_ts_uni = elastic_barycenter_average(X_train_uni, method="subgradient")
-    call_directly_average_ts_uni = subgradient_barycenter_average(X_train_uni)
+    average_ts_uni = elastic_barycenter_average(
+        X_train_uni, method="subgradient", random_state=1
+    )
+    call_directly_average_ts_uni = subgradient_barycenter_average(
+        X_train_uni, random_state=1
+    )
 
     assert isinstance(average_ts_uni, np.ndarray)
     assert average_ts_uni.shape == X_train_uni[0].shape
@@ -165,8 +177,12 @@ def test_subgradient_dba():
 
     X_train_multi = make_example_3d_numpy(10, 3, 10, random_state=1, return_y=False)
 
-    average_ts_multi = elastic_barycenter_average(X_train_multi, method="subgradient")
-    call_directly_average_ts_multi = subgradient_barycenter_average(X_train_multi)
+    average_ts_multi = elastic_barycenter_average(
+        X_train_multi, method="subgradient", random_state=1
+    )
+    call_directly_average_ts_multi = subgradient_barycenter_average(
+        X_train_multi, random_state=1
+    )
 
     assert isinstance(average_ts_multi, np.ndarray)
     assert average_ts_multi.shape == X_train_multi[0].shape
