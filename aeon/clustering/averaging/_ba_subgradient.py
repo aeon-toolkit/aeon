@@ -108,18 +108,18 @@ def subgradient_barycenter_average(
         if "g" not in kwargs:
             kwargs["g"] = 0.05
 
-    eta = initial_step_size
+    current_step_size = initial_step_size
     X_size = _X.shape[0]
     for i in range(max_iters):
         shuffled_indices = random_state.permutation(X_size)
-        barycenter, cost, eta = _ba_one_iter_subgradient(
+        barycenter, cost, current_step_size = _ba_one_iter_subgradient(
             barycenter,
             _X,
             shuffled_indices,
             distance,
             initial_step_size,
             final_step_size,
-            eta,
+            current_step_size,
             i,
             **kwargs,
         )
@@ -143,7 +143,7 @@ def _ba_one_iter_subgradient(
     distance: str = "dtw",
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
-    eta: float = 0.05,
+    current_step_size: float = 0.05,
     iteration: int = 0,
     window: Union[float, None] = None,
     g: float = 0.0,
@@ -159,10 +159,10 @@ def _ba_one_iter_subgradient(
 
     X_size, X_dims, X_timepoints = X.shape
     cost = 0.0
-    # Only update eta on the first iteration
-    eta_decrement = 0.0
+    # Only update current_step_size on the first iteration
+    step_size_reduction = 0.0
     if iteration == 0:
-        eta_decrement = (initial_step_size - final_step_size) / X_size
+        step_size_reduction = (initial_step_size - final_step_size) / X_size
 
     for i in shuffled_indices:
         curr_ts = X[i]
@@ -186,8 +186,8 @@ def _ba_one_iter_subgradient(
         for j, k in curr_alignment:
             new_ba[:, k] += barycenter[:, k] - curr_ts[:, j]
 
-        barycenter -= (2.0 * eta) * new_ba
+        barycenter -= (2.0 * current_step_size) * new_ba
 
-        eta -= eta_decrement
+        current_step_size -= step_size_reduction
         cost = curr_cost
-    return barycenter, cost, eta
+    return barycenter, cost, current_step_size
