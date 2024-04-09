@@ -225,7 +225,7 @@ class TimeSeriesKMeans(BaseClusterer):
             cluster_centres = self._init_algorithm(X)
         else:
             cluster_centres = self._init_algorithm
-        prev_inertia = np.inf
+        prev_inertia = 0.0
         prev_labels = None
         for i in range(self.max_iter):
             curr_pw = pairwise_distance(
@@ -234,8 +234,13 @@ class TimeSeriesKMeans(BaseClusterer):
             curr_labels = curr_pw.argmin(axis=1)
             curr_inertia = curr_pw.min(axis=1).sum()
 
+            # If an empty cluster is encountered
             if np.unique(curr_labels).size < self.n_clusters:
-                raise EmptyClusterError
+                curr_pw, curr_labels, curr_inertia, cluster_centres = (
+                    self._handle_empty_cluster(
+                        X, cluster_centres, curr_pw, curr_labels, curr_inertia
+                    )
+                )
 
             if self.verbose:
                 print("%.3f" % curr_inertia, end=" --> ")  # noqa: T001, T201
@@ -346,6 +351,36 @@ class TimeSeriesKMeans(BaseClusterer):
 
         centers = X[indexes]
         return centers
+
+    def _handle_empty_cluster(
+        self,
+        X: np.ndarray,
+        cluster_centres: np.ndarray,
+        curr_pw: np.ndarray,
+        curr_labels: np.ndarray,
+        curr_inertia: float,
+    ):
+        # Find the cluster that contributes most to the sum of squared error
+        # and make it a new centre in place of the empty
+        empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
+        j = 0
+        max_iterations = self.n_clusters
+
+        while empty_clusters.size > 0:
+            index_furthest_from_centre = curr_pw.min(axis=1).argmax()
+            cluster_centres[empty_clusters[0]] = X[index_furthest_from_centre]
+            curr_pw = pairwise_distance(
+                X, cluster_centres, metric=self.distance, **self._distance_params
+            )
+            curr_labels = curr_pw.argmin(axis=1)
+            curr_inertia = curr_pw.min(axis=1).sum()
+            empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
+            j += 1
+            if j > max_iterations:
+                # This should be unreachable but just a safety check to stop it looping
+                # forever
+                raise EmptyClusterError
+        return curr_pw, curr_labels, curr_inertia, cluster_centres
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

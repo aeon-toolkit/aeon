@@ -316,3 +316,43 @@ def test_custom_distance_params():
         data, distance="msm", distance_params={"window": 0.2}
     )
     assert not np.array_equal(default_dist, custom_params_dist)
+
+
+def test_empty_cluster():
+    """Test empty cluster handling."""
+    first = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    second = np.array([[4, 5, 6], [7, 8, 9], [11, 12, 13]])
+    third = np.array([[24, 25, 26], [27, 28, 29], [30, 31, 32]])
+    forth = np.array([[14, 15, 16], [17, 18, 19], [20, 21, 22]])
+
+    # Test where two swap must happen to avoid empty clusters
+    empty_cluster = np.array([[100, 100, 100], [100, 100, 100], [100, 100, 100]])
+    init_centres = np.array([first, empty_cluster, empty_cluster])
+
+    kmeans = TimeSeriesKMeans(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init_algorithm=init_centres,
+        distance="euclidean",
+        averaging_method="mean",
+        n_clusters=3,
+    )
+
+    kmeans.fit(np.array([first, second, third, forth]))
+
+    # Test that if a duplicate centre would be created the algorithm throws an error
+    init_centres = np.array([first, first, first])
+
+    kmeans = TimeSeriesKMeans(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init_algorithm=init_centres,
+        distance="euclidean",
+        averaging_method="mean",
+        n_clusters=3,
+    )
+
+    with pytest.raises(ValueError):
+        kmeans.fit(np.array([first, first, third]))
