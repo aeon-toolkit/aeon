@@ -259,7 +259,7 @@ def dtw_pairwise_distance(
     y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
-        If None, then the msm pairwise distance between the instances of X is
+        If None, then the dtw pairwise distance between the instances of X is
         calculated.
     window : float or None, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
