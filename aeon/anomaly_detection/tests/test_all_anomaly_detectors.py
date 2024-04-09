@@ -56,6 +56,9 @@ def test_anomaly_detector_overrides_and_tags(anomaly_detector):
     # Test that all anomaly detectors implement abstract predict.
     assert "_predict" in anomaly_detector.__dict__
 
+    # axis class parameter is for internal use only
+    assert "axis" not in anomaly_detector.__dict__
+
     # Test that fit_is_empty is correctly set
     fit_is_empty = anomaly_detector.get_class_tag(tag_name="fit_is_empty")
     assert not fit_is_empty == "_fit" not in anomaly_detector.__dict__

@@ -152,7 +152,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         self.reset()
         if axis is None:  # If none given, assume it is correct.
             axis = self.axis
-        X = self._preprocess_series(X, axis)
+        X = self._preprocess_series(X, axis, True)
         if y is not None:
             y = self._check_y(y)
         self._fit(X=X, y=y)
@@ -186,7 +186,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         self.check_is_fitted()
         if axis is None:
             axis = self.axis
-        X = self._preprocess_series(X, axis)
+        X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
         return self._predict(X)
 
     def fit_predict(self, X, y=None, axis=None):

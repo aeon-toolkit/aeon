@@ -21,6 +21,9 @@ class MockAnomalyDetector(BaseAnomalyDetector):
         "capability:multivariate": True,
     }
 
+    def __init__(self):
+        super().__init__(axis=1)
+
     def _predict(self, X):
         return np.zeros(X.shape[self.axis])
 

@@ -5,8 +5,11 @@ import pandas as pd
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector, \
-    MockAnomalyDetectorRequiresY, MockAnomalyDetectorRequiresFit
+from aeon.testing.mock_estimators._mock_anomaly_detectors import (
+    MockAnomalyDetector,
+    MockAnomalyDetectorRequiresFit,
+    MockAnomalyDetectorRequiresY,
+)
 from aeon.testing.utils.data_gen import make_series
 
 test_series = make_series(n_timepoints=10, return_numpy=True)
@@ -17,7 +20,9 @@ test_series_pd_2d = make_series(n_timepoints=10, n_columns=2).T
 test_y = np.array([0, 0, 0, 1, 1, 0, 0, 0, 1, 1])
 
 
-@pytest.mark.parametrize("series", [test_series, test_series_2d, test_series_pd, test_series_pd_2d])
+@pytest.mark.parametrize(
+    "series", [test_series, test_series_2d, test_series_pd, test_series_pd_2d]
+)
 def test_fit(series):
     ad = MockAnomalyDetector()
     ad_fit = MockAnomalyDetectorRequiresFit()
@@ -63,8 +68,8 @@ def test_fit_axis(series):
     assert ad_fit._is_fitted
     assert_almost_equal(ad_fit._X, series)
 
-    ad_fit = MockAnomalyDetectorRequiresFit(axis=0)
-    assert ad_fit.axis == 0
+    ad_fit = MockAnomalyDetectorRequiresFit()
+    ad_fit.axis = 0
 
     ad_fit.fit(invert_series)
     assert ad_fit._is_fitted
@@ -75,7 +80,9 @@ def test_fit_axis(series):
     assert_almost_equal(ad_fit._X, invert_series)
 
 
-@pytest.mark.parametrize("series", [test_series, test_series_2d, test_series_pd, test_series_pd_2d])
+@pytest.mark.parametrize(
+    "series", [test_series, test_series_2d, test_series_pd, test_series_pd_2d]
+)
 def test_predict(series):
     ad = MockAnomalyDetector()
     ad_fit = MockAnomalyDetectorRequiresFit()
@@ -115,8 +122,8 @@ def test_predict_axis(series):
     pred = ad.predict(invert_series, axis=0)
     assert len(pred) == series.shape[1]
 
-    ad = MockAnomalyDetector(axis=0)
-    assert ad.axis == 0
+    ad = MockAnomalyDetector()
+    ad.axis = 0
 
     pred = ad.predict(invert_series)
     assert len(pred) == invert_series.shape[0]
@@ -125,7 +132,9 @@ def test_predict_axis(series):
     assert len(pred) == invert_series.shape[0]
 
 
-@pytest.mark.parametrize("series", [test_series, test_series_2d, test_series_pd, test_series_pd_2d])
+@pytest.mark.parametrize(
+    "series", [test_series, test_series_2d, test_series_pd, test_series_pd_2d]
+)
 def test_fit_predict(series):
     ad = MockAnomalyDetector()
     ad_fit = MockAnomalyDetectorRequiresFit()
@@ -188,8 +197,8 @@ def test_fit_predict_axis(series):
     assert_almost_equal(ad_fit._X, series)
     assert len(pred) == series.shape[1]
 
-    ad_fit = MockAnomalyDetectorRequiresFit(axis=0)
-    assert ad_fit.axis == 0
+    ad_fit = MockAnomalyDetectorRequiresFit()
+    ad_fit.axis = 0
 
     pred = ad_fit.fit_predict(invert_series)
     assert ad_fit._is_fitted

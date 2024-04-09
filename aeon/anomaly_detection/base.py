@@ -14,15 +14,7 @@ from aeon.base._base_series import VALID_INPUT_TYPES
 
 class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
     """
-    Parameters
-    ----------
-    axis : int, default = 1
-        Axis along which to segment if passed a multivariate series (2D input). If axis
-        is 0, it is assumed each column is a time series and each row is a
-        timepoint. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
-        ``axis == 1`` indicates the time series are in rows, i.e. the shape of the data
-        is ``(n_channels, n_timepoints)`.
-
+    Todo
     """
 
     _tags = {
@@ -31,13 +23,13 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         "requires_y": False,
     }
 
-    def __init__(self, axis=1):
+    def __init__(self, axis):
         self._is_fitted = False
 
         super().__init__(axis=axis)
 
     @final
-    def fit(self, X, y=None, axis=None):
+    def fit(self, X, y=None, axis=1):
         if self.get_class_tag("fit_is_empty"):
             self._is_fitted = True
             return self
@@ -49,11 +41,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         # reset estimator at the start of fit
         self.reset()
 
-        # If None given, assume it is correct.
-        if axis is None:
-            axis = self.axis
-
-        X = self._preprocess_series(X, axis)
+        X = self._preprocess_series(X, axis, True)
         if y is not None:
             y = self._check_y(y)
 
@@ -64,20 +52,17 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         return self
 
     @final
-    def predict(self, X, axis=None) -> np.ndarray:
-        if not self.get_class_tag("fit_is_empty"):
+    def predict(self, X, axis=1) -> np.ndarray:
+        fit_empty = self.get_class_tag("fit_is_empty")
+        if not fit_empty:
             self.check_is_fitted()
 
-        # If None given, assume it is correct.
-        if axis is None:
-            axis = self.axis
-
-        X = self._preprocess_series(X, axis)
+        X = self._preprocess_series(X, axis, fit_empty)
 
         return self._predict(X)
 
     @final
-    def fit_predict(self, X, y=None, axis=None) -> np.ndarray:
+    def fit_predict(self, X, y=None, axis=1) -> np.ndarray:
         if self.get_class_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
@@ -85,11 +70,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         # reset estimator at the start of fit
         self.reset()
 
-        # If None given, assume it is correct.
-        if axis is None:
-            axis = self.axis
-
-        X = self._preprocess_series(X, axis)
+        X = self._preprocess_series(X, axis, True)
 
         if self.get_class_tag("fit_is_empty"):
             self._is_fitted = True
@@ -108,8 +89,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         return self
 
     @abstractmethod
-    def _predict(self, X) -> np.ndarray:
-        ...
+    def _predict(self, X) -> np.ndarray: ...
 
     def _fit_predict(self, X, y):
         self._fit(X, y)

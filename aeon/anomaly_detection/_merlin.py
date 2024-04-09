@@ -17,7 +17,7 @@ class MERLIN(BaseAnomalyDetector):
         self.min_length = min_length
         self.max_length = max_length
 
-        super().__init__()
+        super().__init__(axis=1)
 
     def _predict(self, X):
         if X.shape[1] < self.min_length:
@@ -98,3 +98,23 @@ class MERLIN(BaseAnomalyDetector):
 
         max = int(np.argmax(D))
         return C[max] + int(length / 2), np.sqrt(D[max])
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`.
+        """
+        return {"max_length": 10}
