@@ -158,7 +158,10 @@ def _validate_single_to_multiple_result(
         expected_size = 1
 
     assert isinstance(single_to_multiple_result, np.ndarray)
-    assert single_to_multiple_result.shape[-1] == expected_size
+    if len(x.shape) > len(y.shape):
+        assert single_to_multiple_result.shape[0] == expected_size
+    else:
+        assert single_to_multiple_result.shape[1] == expected_size
     assert_almost_equal(
         single_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
     )
@@ -409,6 +412,17 @@ def test_new_single_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
+    # Test passing a singular univariate time series of shape (n_channels, n_timepoints)
+    # compared to a collection of univariate time series of shape
+    # (n_cases, n_channels, n_timepoints)
+    _validate_single_to_multiple_result(
+        make_series(5, 5, return_numpy=True, random_state=1),
+        make_example_3d_numpy(5, 5, 5, random_state=2, return_y=False),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )
+
     # ==================== Unequal length tests ====================
     if _supports_nonequal_length(dist):
         # Test passing a singular univariate time series of shape (n_timepoints,)
@@ -487,3 +501,15 @@ def test_new_single_to_multiple_distances(dist):
             dist["distance"],
             dist["pairwise_distance"],
         )
+
+
+def test_temp():
+    """Temp test."""
+    dist = DISTANCES[2]
+    _validate_single_to_multiple_result(
+        make_example_3d_numpy(5, 5, 5, random_state=2, return_y=False),
+        make_series(5, 5, return_numpy=True, random_state=1),
+        dist["name"],
+        dist["distance"],
+        dist["pairwise_distance"],
+    )

@@ -136,7 +136,7 @@ def manhattan_pairwise_distance(
     if y is None:
         # To self
         return _manhattan_pairwise_distance(_X)
-    _y, _ = _convert_to_list(y, "y")
+    _y, _ = _convert_to_list(y, "y", _X[0].shape[0] > 1)
     return _manhattan_from_multiple_to_multiple_distance(_X, _y)
 
 

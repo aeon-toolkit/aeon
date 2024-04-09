@@ -428,7 +428,7 @@ def msm_pairwise_distance(
             _X, window, independent, c, itakura_max_slope, unequal_length
         )
 
-    _y, unequal_length = _convert_to_list(y, "y")
+    _y, unequal_length = _convert_to_list(y, "y", _X[0].shape[0] > 1)
     return _msm_from_multiple_to_multiple_distance(
         _X, _y, window, independent, c, itakura_max_slope, unequal_length
     )

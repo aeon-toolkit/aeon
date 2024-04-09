@@ -137,7 +137,7 @@ def squared_pairwise_distance(
         # To self
         return _squared_pairwise_distance(_X)
 
-    _y, _ = _convert_to_list(y, "y")
+    _y, _ = _convert_to_list(y, "y", _X[0].shape[0] > 1)
     return _squared_from_multiple_to_multiple_distance(_X, _y)
 
 

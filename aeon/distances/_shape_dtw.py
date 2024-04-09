@@ -622,7 +622,7 @@ def shape_dtw_pairwise_distance(
             transformed_x=transformed_x,
             unequal_length=unequal_length,
         )
-    _y, unequal_length = _convert_to_list(y)
+    _y, unequal_length = _convert_to_list(y, is_multivariate=X_pad[0].shape[0] > 1)
     y_pad = _pad_ts_collection_edges(x=_y, reach=reach)
 
     return _shape_dtw_from_multiple_to_multiple_distance(

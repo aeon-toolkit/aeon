@@ -205,7 +205,7 @@ def minkowski_pairwise_distance(
     if y is None:
         return _minkowski_pairwise_distance(_X, p, w)
 
-    _y, _ = _convert_to_list(y, "y")
+    _y, _ = _convert_to_list(y, "y", _X[0].shape[0] > 1)
     return _minkowski_from_multiple_to_multiple_distance(_X, _y, p, w)
 
 

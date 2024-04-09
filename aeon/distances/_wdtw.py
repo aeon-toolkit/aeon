@@ -312,7 +312,7 @@ def wdtw_pairwise_distance(
     if y is None:
         # To self
         return _wdtw_pairwise_distance(_X, window, g, itakura_max_slope, unequal_length)
-    _y, unequal_length = _convert_to_list(y, "y")
+    _y, unequal_length = _convert_to_list(y, "y", _X[0].shape[0] > 1)
     return _wdtw_from_multiple_to_multiple_distance(
         _X, _y, window, g, itakura_max_slope, unequal_length
     )

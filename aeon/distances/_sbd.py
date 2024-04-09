@@ -187,14 +187,14 @@ def sbd_pairwise_distance(
            [0.36754447, 0.        , 0.29289322],
            [0.5527864 , 0.29289322, 0.        ]])
     """
-    _x, _ = _convert_to_list(x, "x")
+    _X, _ = _convert_to_list(x, "x")
 
     if y is None:
         # To self
-        return _sbd_pairwise_distance_single(_x, standardize)
+        return _sbd_pairwise_distance_single(_X, standardize)
 
-    _y, _ = _convert_to_list(y, "y")
-    return _sbd_pairwise_distance(_x, _y, standardize)
+    _y, _ = _convert_to_list(y, "y", _X[0].shape[0] > 1)
+    return _sbd_pairwise_distance(_X, _y, standardize)
 
 
 @njit(cache=True, fastmath=True)

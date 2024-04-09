@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numba import njit
@@ -72,7 +72,9 @@ def reshape_pairwise_to_multiple(
 
 
 def _convert_to_list(
-    x: Union[np.ndarray, List[np.ndarray]], name: str = "X"
+    x: Union[np.ndarray, List[np.ndarray]],
+    name: str = "X",
+    is_multivariate: Optional[bool] = False,
 ) -> NumbaList[np.ndarray]:
     """Convert input collections to a list of arrays for pairwise distance calculation.
 
@@ -90,6 +92,9 @@ def _convert_to_list(
         (n_cases, n_timepoints) or (n_timepoints,).
     name : str, optional
         Name of the variable to be converted for error handling, by default "X".
+    is_multivariate : bool, optional
+        Boolean indicating if the time series is multivariate, by default False.
+        This is passed when for example you have a 2D single multivariate array.
 
     Returns
     -------
@@ -109,6 +114,8 @@ def _convert_to_list(
         if x.ndim == 3:
             return NumbaList(x), False
         elif x.ndim == 2:
+            if is_multivariate:
+                return NumbaList(x.reshape(1, x.shape[0], x.shape[1])), False
             return NumbaList(x.reshape(x.shape[0], 1, x.shape[1])), False
         elif x.ndim == 1:
             return NumbaList(x.reshape(1, 1, x.shape[0])), False
