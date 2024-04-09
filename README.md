@@ -99,6 +99,12 @@ X_test = np.array(
 )
 y_pred = clf.predict(X_test)  # make class predictions on new data
 >>> ['low' 'high' 'high']
+``` 
+
+#### Note: The API for regressors is consistent with that of classifiers.
+For Example:
+```
+from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
 ```
 
 ## 💬 Where to ask questions
