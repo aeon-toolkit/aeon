@@ -225,7 +225,7 @@ class TimeSeriesKMeans(BaseClusterer):
             cluster_centres = self._init_algorithm(X)
         else:
             cluster_centres = self._init_algorithm
-        prev_inertia = 0.0
+        prev_inertia = np.inf
         prev_labels = None
         for i in range(self.max_iter):
             curr_pw = pairwise_distance(
