@@ -243,7 +243,7 @@ class BaseSeriesEstimator(BaseEstimator):
         if X.ndim > 1 and self.axis != axis:
             X = X.T
         elif X.ndim == 1 and isinstance(X, np.ndarray):
-            X = X.reshape(1, -1) if axis == 1 else X.reshape(-1, 1)
+            X = X[np.newaxis, :] if self.axis == 1 else X[:, np.newaxis]
 
         return X
 
