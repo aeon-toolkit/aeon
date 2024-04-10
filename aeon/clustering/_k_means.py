@@ -295,7 +295,7 @@ class TimeSeriesKMeans(BaseClusterer):
                 isinstance(self.init_algorithm, np.ndarray)
                 and len(self.init_algorithm) == self.n_clusters
             ):
-                self._init_algorithm = self.init_algorithm
+                self._init_algorithm = self.init_algorithm.copy()
             else:
                 raise ValueError(
                     f"The value provided for init_algorithm: {self.init_algorithm} is "
@@ -367,6 +367,8 @@ class TimeSeriesKMeans(BaseClusterer):
         max_iterations = self.n_clusters
 
         while empty_clusters.size > 0:
+            # Assign each time series to the cluster that is closest to it
+            # and then find the time series that is furthest from the centre
             index_furthest_from_centre = curr_pw.min(axis=1).argmax()
             cluster_centres[empty_clusters[0]] = X[index_furthest_from_centre]
             curr_pw = pairwise_distance(

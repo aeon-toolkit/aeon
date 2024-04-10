@@ -341,7 +341,10 @@ def test_empty_cluster():
 
     kmeans.fit(np.array([first, second, third, forth]))
 
-    # Test that if a duplicate centre would be created the algorithm throws an error
+    assert not np.array_equal(kmeans.cluster_centers_, init_centres)
+    assert np.unique(kmeans.labels_).size == 3
+
+    # Test that if a duplicate centre would be created the algorithm
     init_centres = np.array([first, first, first])
 
     kmeans = TimeSeriesKMeans(
@@ -354,5 +357,39 @@ def test_empty_cluster():
         n_clusters=3,
     )
 
+    kmeans.fit(np.array([first, second, third]))
+
+    assert not np.array_equal(kmeans.cluster_centers_, init_centres)
+    assert np.unique(kmeans.labels_).size == 3
+
+    # Test duplicate data in dataset
+    init_centres = np.array([first, empty_cluster])
+    kmeans = TimeSeriesKMeans(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init_algorithm=init_centres,
+        distance="euclidean",
+        averaging_method="mean",
+        n_clusters=2,
+    )
+
+    kmeans.fit(np.array([first, first, first, first, second]))
+
+    assert not np.array_equal(kmeans.cluster_centers_, init_centres)
+    assert np.unique(kmeans.labels_).size == 2
+
+    # Test impossible to have 3 different clusters
+    init_centres = np.array([first, empty_cluster, empty_cluster])
+    kmeans = TimeSeriesKMeans(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init_algorithm=init_centres,
+        distance="euclidean",
+        averaging_method="mean",
+        n_clusters=3,
+    )
+
     with pytest.raises(ValueError):
-        kmeans.fit(np.array([first, first, third]))
+        kmeans.fit(np.array([first, first, first, first, first]))
