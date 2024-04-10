@@ -364,7 +364,6 @@ class HMMSegmenter(BaseSegmenter):
             Array of predicted class labels, same size as input.
         """
         X = X.squeeze()
-
         self.num_states = len(self.emission_funcs)
         self.states = list(range(self.num_states))
         self.num_obs = len(X)

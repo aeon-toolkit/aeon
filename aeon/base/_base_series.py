@@ -76,32 +76,36 @@ class BaseSeriesEstimator(BaseEstimator):
         _check_estimator_deps(self)
 
     def _check_X(self, X, axis):
-        """Check classifier input X is valid.
+        """Check input X is valid.
 
         Check if the input data is a compatible type, and that this estimator is
         able to handle the data characteristics. This is done by matching the
         capabilities of the estimator against the metadata for X for
-        univariate/multivariate, equal length/unequal length and no missing
-        values/missing values.
+        univariate/multivariate and no missing values/missing values.
 
         Parameters
         ----------
-        X : data structure
-           A valid aeon collection data structure. See
-           aeon.registry.COLLECTIONS_DATA_TYPES for details
-           on aeon supported data structures.
+        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+           A valid aeon time series data structure. See
+           aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+        axis: int
+            The time point axis of the input data.
 
         Returns
         -------
-        dict
-            Meta data about X, with flags:
-            metadata["missing_values"] : whether X has missing values or not
-            metadata["multivariate"] : whether X has more than one channel or not
+        metadata: dict
+            Metadata about X, with flags:
+            metadata["multivariate"]: whether X has more than one channel or not
+            metadata["n_channels"]: number of channels in X
+            metadata["missing_values"]: whether X has missing values or not
 
         See Also
         --------
-        _convert_X : function that converts X after it has been checked.
+        _convert_X: function that converts to inner type.
         """
+        if axis > 1 or axis < 0:
+            raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
+
         # Checks: check valid type
         if type(X) not in VALID_INPUT_TYPES:
             raise ValueError(
@@ -165,6 +169,33 @@ class BaseSeriesEstimator(BaseEstimator):
         return metadata
 
     def _convert_X(self, X, axis):
+        """Convert input X to internal estimator datatype.
+
+        Converts input X to the internal data type of the estimator using
+        self.get_tag("X_inner_type"). 1D numpy arrays are converted to 2D,
+        and the data will be transposed if the input axis does not match that of the
+        estimator.
+
+        Attempting to convert to a pd.Series for multivariate data or estimators will
+        raise an error.
+
+        Parameters
+        ----------
+        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+           A valid aeon time series data structure. See
+           aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+        axis: int
+            The time point axis of the input data.
+
+        Returns
+        -------
+        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+            Input time series with data structure of type self.get_tag("X_inner_type").
+
+        See Also
+        --------
+        _check_X: function that checks X is valid before conversion.
+        """
         if axis > 1 or axis < 0:
             raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
 
@@ -212,11 +243,11 @@ class BaseSeriesEstimator(BaseEstimator):
         if X.ndim > 1 and self.axis != axis:
             X = X.T
         elif X.ndim == 1 and isinstance(X, np.ndarray):
-            X = X.reshape(1, -1) if axis == 1 else X.reshape(1, -1)
+            X = X.reshape(1, -1) if axis == 1 else X.reshape(-1, 1)
 
         return X
 
-    def _preprocess_series(self, X, axis, overwrite_metadata):
+    def _preprocess_series(self, X, axis, store_metadata):
         """Preprocess input X prior to call to fit.
 
         Checks the characteristics of X, store metadata, checks self can handle
@@ -224,16 +255,17 @@ class BaseSeriesEstimator(BaseEstimator):
 
         Parameters
         ----------
-        X: one of VALID_INNER_TYPES
-            The time series to be processed
+        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+           A valid aeon time series data structure. See
+           aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
         axis: int or None
-            The timepoint axis of the input data. If None, the default axis is used.
-        overwrite_metadata: bool
+            The time point axis of the input data. If None, the default axis is used.
+        store_metadata: bool
             If True, overwrite metadata with the new metadata from X.
 
         Returns
         -------
-        X: one of VALID_INNER_TYPES
+        X: one of aeon.base._base_series.VALID_INPUT_TYPES
             Input time series with data structure of type self.get_tag("X_inner_type").
 
         See Also
@@ -245,7 +277,7 @@ class BaseSeriesEstimator(BaseEstimator):
             axis = self.axis
 
         meta = self._check_X(X, axis)
-        if overwrite_metadata:
+        if store_metadata:
             self.metadata_ = meta
 
         return self._convert_X(X, axis)

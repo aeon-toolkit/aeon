@@ -255,14 +255,14 @@ def test_preprocess_series(input_type, inner_type):
     # test univariate
     X = UNIVARIATE[input_type]
 
-    X2 = dummy._preprocess_series(X, axis=1, overwrite_metadata=True)
+    X2 = dummy._preprocess_series(X, axis=1, store_metadata=True)
     assert type(X2).__name__ == inner_name
     assert X.shape[-1] == X2.shape[-1]
     assert not dummy.metadata_["multivariate"]
     assert dummy.metadata_["n_channels"] == 1
     assert not dummy.metadata_["missing_values"]
 
-    X3 = dummy._preprocess_series(X.T, axis=0, overwrite_metadata=True)
+    X3 = dummy._preprocess_series(X.T, axis=0, store_metadata=True)
     assert type(X3).__name__ == inner_name
     assert X.shape[-1] == X3.shape[-1]
     assert not dummy.metadata_["multivariate"]
@@ -274,7 +274,7 @@ def test_preprocess_series(input_type, inner_type):
         dummy.set_tags(**{"capability:multivariate": True})
         X = MULTIVARIATE[input_type]
 
-        X2 = dummy._preprocess_series(X, axis=1, overwrite_metadata=True)
+        X2 = dummy._preprocess_series(X, axis=1, store_metadata=True)
         assert type(X2).__name__ == inner_name
         assert X2.shape == (5, 20)
         assert X.shape == X2.shape
@@ -282,7 +282,7 @@ def test_preprocess_series(input_type, inner_type):
         assert dummy.metadata_["n_channels"] == 5
         assert not dummy.metadata_["missing_values"]
 
-        X3 = dummy._preprocess_series(X.T, axis=0, overwrite_metadata=True)
+        X3 = dummy._preprocess_series(X.T, axis=0, store_metadata=True)
         assert type(X3).__name__ == inner_name
         assert X3.shape == (5, 20)
         assert X.shape == X3.shape
@@ -294,4 +294,4 @@ def test_preprocess_series(input_type, inner_type):
         X = MULTIVARIATE[input_type]
 
         with pytest.raises(ValueError, match="Cannot convert to pd.Series"):
-            dummy._preprocess_series(X, axis=1, overwrite_metadata=True)
+            dummy._preprocess_series(X, axis=1, store_metadata=True)
