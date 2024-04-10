@@ -112,7 +112,7 @@ shapelets.
 
 ##### Expected Outcomes
 
-We expect the mentee to engage with the aeon community and produce a new implementation 
+We expect the mentee to engage with the aeon community and produce a new implementation
 for the shapelet transform that shows performance gains against the original
 implementation.
 
