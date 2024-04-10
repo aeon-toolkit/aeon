@@ -45,11 +45,12 @@ import pandas as pd
 from scipy.stats import norm
 
 from aeon.base import BaseEstimator
-from aeon.datatypes import VectorizedDF, convert_to, mtype_to_scitype
+from aeon.datatypes import convert_to
+from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_cutoff, update_data
-from aeon.utils.validation import validate_input
+from aeon.utils.validation import abstract_types, validate_input
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index
@@ -331,7 +332,7 @@ class BaseForecaster(BaseEstimator):
 
         # checks and conversions complete, pass to inner fit
         #####################################################
-        vectorization_needed = isinstance(y_inner, VectorizedDF)
+        vectorization_needed = isinstance(y_inner, _VectorizedDF)
         self._is_vectorized = vectorization_needed
         # we call the ordinary _fit if no looping/vectorization needed
         if not vectorization_needed:
@@ -471,7 +472,7 @@ class BaseForecaster(BaseEstimator):
         fh = self._check_fh(fh)
 
         # apply fit and then predict
-        vectorization_needed = isinstance(y_inner, VectorizedDF)
+        vectorization_needed = isinstance(y_inner, _VectorizedDF)
         self._is_vectorized = vectorization_needed
         # we call the ordinary _fit if no looping/vectorization needed
         if not vectorization_needed:
@@ -1314,8 +1315,8 @@ class BaseForecaster(BaseEstimator):
         # retrieve supported mtypes
         y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
         X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
-        y_inner_abstract_type = mtype_to_scitype(y_inner_type, return_unique=True)
-        X_inner_abstract_type = mtype_to_scitype(X_inner_type, return_unique=True)
+        y_inner_abstract_type = abstract_types(y_inner_type)
+        X_inner_abstract_type = abstract_types(X_inner_type)
 
         # checking y
         if y is not None:
@@ -1429,7 +1430,7 @@ class BaseForecaster(BaseEstimator):
                 y_inner_abstract_type, smaller_equal_than=y_type
             )
             if y is not None:
-                y_inner = VectorizedDF(
+                y_inner = _VectorizedDF(
                     X=y,
                     iterate_as=iterate_as,
                     is_scitype=y_type,
@@ -1438,7 +1439,7 @@ class BaseForecaster(BaseEstimator):
             else:
                 y_inner = None
             if X is not None:
-                X_inner = VectorizedDF(X=X, iterate_as=iterate_as, is_scitype=X_type)
+                X_inner = _VectorizedDF(X=X, iterate_as=iterate_as, is_scitype=X_type)
             else:
                 X_inner = None
 
@@ -1483,7 +1484,7 @@ class BaseForecaster(BaseEstimator):
         """
         if y is not None:
             # unwrap y if VectorizedDF
-            if isinstance(y, VectorizedDF):
+            if isinstance(y, _VectorizedDF):
                 y = y.X_multiindex
             # if _y does not exist yet, initialize it with y
             if not hasattr(self, "_y") or self._y is None or not self.is_fitted:
@@ -1496,7 +1497,7 @@ class BaseForecaster(BaseEstimator):
 
         if X is not None:
             # unwrap X if VectorizedDF
-            if isinstance(X, VectorizedDF):
+            if isinstance(X, _VectorizedDF):
                 X = X.X_multiindex
             # if _X does not exist yet, initialize it with X
             if not hasattr(self, "_X") or self._X is None or not self.is_fitted:
@@ -1567,7 +1568,7 @@ class BaseForecaster(BaseEstimator):
         y : aeon compatible time series data container
             must be of one of the following mtypes:
                 pd.Series, pd.DataFrame, np.ndarray, of Series abstract type
-                pd.multiindex, numpy3D, nested_univ, df-list, of Panel abstract type
+                pd.multiindex, numpy3D, nested_univ, of Panel abstract type
                 pd_multiindex_hier, of Hierarchical abstract type
 
         Notes
@@ -2241,9 +2242,9 @@ class BaseForecaster(BaseEstimator):
         y_first_index = get_cutoff(y, return_index=True, reverse_order=True)
         self_copy._set_cutoff(_shift(y_first_index, by=-1, return_index=True))
 
-        if isinstance(y, VectorizedDF):
+        if isinstance(y, _VectorizedDF):
             y = y.X
-        if isinstance(X, VectorizedDF):
+        if isinstance(X, _VectorizedDF):
             X = X.X
 
         # iterate over data

@@ -789,7 +789,6 @@ def _coerce_to_period(x, freq=None):
         Index or index element coerced to period based format.
     """
     if isinstance(x, pd.Timestamp) and freq is None:
-        freq = x.freq
         raise ValueError(
             "_coerce_to_period requires freq argument to be passed if x is pd.Timestamp"
         )

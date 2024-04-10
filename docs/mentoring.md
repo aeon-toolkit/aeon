@@ -3,7 +3,8 @@
 
 # Mentoring and Projects
 
-`aeon` runs a range of short projects interacting with the community and the code
+`aeon` runs a range of short to medium duration projects interacting with the community
+and the code
 base. These projects are designed for internships, usage as part of
 undergraduate/postgraduate projects at academic institutions, and as options for
 programs such as [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com/).
@@ -26,77 +27,47 @@ via Slack if you are interested in any of these projects or have any questions.
 
 We will more widely advertise funding opportunities as and when they become available.
 
-### Forecasting
+Most projects can be extended, possibly into a research project that may lead to
+publication. These projects are for anyone, from core devs to those completely new
+to open source. We list projects by time series task
 
-#### 1. Machine Learning for Time Series Forecasting
+[Classification](#classification)
+1. Optimizing the Shapelet Transform for classification and similarity search
+2. EEG classification with aeon-neuro (Listed for GSoC 2024)
+3. Improved Proximity Forest for classification (listed for GSoC 2024)
+4. Improved HIVE-COTE implementation.
 
-Mentors: Tony Bagnall ({user}`TonyBagnall`) and TBC.
+[Forecasting](#forecasting)
+1. Machine Learning for Time Series Forecasting (listed in GSoC 2024)
+2. Deep Learning for Time Series Forecasting
+3. Implement ETS forecasters in aeon
 
-##### Description
+[Clustering](#clustering)
+1. Density peaks clustering algorithm
+2. Deep learning based clustering algorithms
 
-This project will investigate algorithms for forecasting based on traditional machine
-learning (tree based) and time series machine learning (transformation based). Note
-this project will not involve deep learning based forecasting. It will involve
-helping develop the `aeon` framework to work more transparently with ML algorithms,
-evaluating regression algorithms already in `aeon`[1] for forecasting problems and
-implementing at least one algorithm from the literature not already in aeon, such as
-SETAR-Tree [3].
+[Anomaly Detection](#anomaly-detection)
+1. Anomaly detection with the Matrix Profile and MERLIN
 
-##### Project Stages
+[Segmentation](#segmentation)
+1. Time series segmentation
 
-1. Learn about aeon best practices, coding standards and testing policies.
-2. Work through existing forecasting workflow and experimental reproduction.
-3. Adapt the M competition set up [2] for ML experimental framework to assess time
-   series regression algorithms [1].
-4. Implement a machine learning forecasting algorithm [3]
+[Transformation](#transformation)
+1. Improve ROCKET family of transformers
 
-##### Expected Outcomes
+[Visualisation](#visualisation)
+1. Explainable AI with the shapelet transform (Southampton intern project).
 
-1. Contributions to the aeon forecasting module.
-2. Implementation of a machine learning forecasting algortihms.
-3. Help write up results for a technical report/academic paper (depending on outcomes).
+[Regression](#regression)
+1. Adapt forecasting regressors to time series extrinsic regression.
+2. Adapt HIVE-COTE for regression.
 
-##### Skills Required
-
-1. Python 3
-2. Git and GitHub
-3. Some machine learning and/or forecasting background (e.g. taught courses or
-   practical experience)
-
-##### References
-
-1. Guijo-Rubio, D.,Middlehurst, M., Arcencio, G., Furtado, D. and Bagnall, A.
-Unsupervised Feature Based Algorithms for Time Series Extrinsic Regression,
-arXiv2305.01429, 2023
-2. https://forecasters.org/resources/time-series-data/
-3. Godahewa, R., Webb, G.I., Schmidt, D. et al. SETAR-Tree: a novel and accurate
-tree algorithm for global time series forecasting. Mach Learn 112, 2555–2591 (2023).
-https://link.springer.com/article/10.1007/s10994-023-06316-x
-
-#### 2. Deep Learning for Time Series Forecasting
-
-Mentors: Ali Ismail-Fawaz ({user}`hadifawaz1999`)
-
-##### Description
-
-Implement and evaluate some models from the literature, maybe benchmark them as well
-to non-deep models
-
-##### Project Stages
-
-TBC
-
-##### Expected Outcomes
-
-TBC
-
-##### References
-
-TBC
+[Documentation](#documentation)
+1. Improve automated API documentation
 
 ### Classification
 
-#### 1. Optimizing the Shapelet Transform for Classification and Similarity Search
+#### 1. Optimizing the Shapelet Transform for Classification and Similarity Search (listed for GSoC 2024)
 
 Mentors : Antoine Guillaume ({user}`baraline`) and Tony Bagnall ({user}`TonyBagnall`)
 
@@ -167,7 +138,7 @@ transform: A new approach for time series shapelets. In International Conference
 Pattern Recognition and Artificial Intelligence (pp. 653-664). Cham: Springer
 International Publishing.
 
-#### 2. EEG classification with aeon-neuro
+#### 2. EEG classification with aeon-neuro (Listed for GSoC 2024)
 
 Mentors: Tony Bagnall ({user}`TonyBagnall`) and Aiden Rushbrooke
 
@@ -175,11 +146,11 @@ Mentors: Tony Bagnall ({user}`TonyBagnall`) and Aiden Rushbrooke
 
 EEG (Electroencephalogram) data are high dimensional time series that are used in
 medical, psychology and brain computer interface research. For example, EEG are
-used to detect epilepsy and to control decvices such as mice. There is a huge body
+used to detect epilepsy and to control devices such as mice. There is a huge body
 of work on analysing and learning from EEG, but there is a wide disparity of
 tools, practices and systems used. This project will help members of the `aeon`
 team who are currently researching techniques for EEG classification [1] and
-developing an aeon sister toolkit, ``aeon-neuro`` [LINK](https://github.com/aeon-toolkit/aeon-neuro). We will work together to
+developing an aeon sister toolkit, [``aeon-neuro``](https://github.com/aeon-toolkit/aeon-neuro). We will work together to
 improve the structure and documentation for aeon-neuro, help integrate the
 toolkit with existing EEG toolkits such as NM [2], provide interfaces to standard data
 formats such as BIDS [3] and help develop and assess a range of EEG classification
@@ -206,7 +177,7 @@ Time Series Classification of Electroencephalography Data, IWANN 2023.
 2. MNE Toolkit, https://mne.tools/stable/index.html
 3. The Brain Imaging Data Structure (BIDS) standard, https://bids.neuroimaging.io/
 
-#### 3. Improved Proximity Forest for classification
+#### 3. Improved Proximity Forest for classification (listed for GSoC 2024)
 
 Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`) and Tony Bagnall
 ({user}`TonyBagnall`)
@@ -267,43 +238,214 @@ arXiv:2304.13029.
 new effective and scalable similarity-based classifier for time series. arXiv
 preprint arXiv:2304.05800.
 
-### Clustering
+#### 4. Improved HIVE-COTE implementation
 
-#### 1. Feature based or deep learning based algorithms
-
-Mentors: Tony Bagnall ({user}`TonyBagnall`), Ali Ismail-Fawaz ({user}`hadifawaz1999`)
-and @Chris?
+Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`) and Tony Bagnall
+({user}`TonyBagnall`)
 
 ##### Description
 
-Implement and evaluate some of the recently proposed clustering algorithms
+The Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) [1,2,3]
+is a time series classifier that has claims to be state-of-the-art,
+particularly in terms of probabilistic estimates [4]. There have been several iterations
+that use different base classifiers but they all share the same design basic:
+classifiers using different representations are combined in a weighted meta-ensemble
+[4]. There are two HIVE-COTE implementations currently in `aeon`: HIVE-COTEV1 [2]
+and HIVECOTEV2 [3]. This project will involve combining these into a single
+estimator, modularising the ensemble stage and possibly experimenting with
+alternative structures. This can easily develop into a research project.
 
-The clustering module in `aeon`, up until now, primarily consists of distance-based
-algorithms like K-Means, K-Medoids, and Clara, among others. Recently, we introduced an
-initial deep clustering module featuring an FCN auto-encoder, incorporating
-distance-based algorithms in the latent space. However, there is currently a shortage
-of feature-based clustering algorithms.
+##### Project stages
 
-The objective of this project is to enhance `aeon` by incorporating more deep learning
-approaches for time series clustering. This involves adapting the FCN auto-encoder to
-leverage the ResNet model. Additionally, the project aims to integrate feature-based
-algorithms for time series clustering into the system.
-
-##### Project Stages
-
-TBC
-
-##### Expected Outcomes
-
-TBC
+1. Learn about `aeon` best practices, coding standards and testing policies.
+2. Study the HIVE-COTE algorithm and previous `aeon` implementation.
+3. Combine the HIVE-COTEV1 and HIVE-COTEV2 classifiers into a single classifier
+   configurable into different versions through the constructor.
+4. Restructure the ensemble stage to allow easy experimentation with variants.
 
 ##### References
 
-1. Lafabregue, B., Weber, J., Gançarski, P. and Forestier, G., 2022. End-to-end deep
-representation learning for time series clustering: a comparative study. Data Mining
-and Knowledge Discovery, 36(1), pp.29-81.
+1. A Bagnall, J Lines, J Hills, A Bostrom, Time-series classification with COTE: the
+   collective of transformation-based ensembles, IEEE Transactions on Knowledge and
+   Data Engineering 27 (9), 2522-2535
+2. M Middlehurst, J Large, M Flynn, J Lines, A Bostrom, A Bagnall, HIVE-COTE 2.0: a
+   new meta ensemble for time series classification, Machine Learning 110 (11),
+   3211-3243
+3. J Lines, S Taylor, A Bagnall, Time series classification with HIVE-COTE: The
+   hierarchical vote collective of transformation-based ensembles, ACM Transactions
+   on Knowledge Discovery from Data (TKDD) 12 (5), 1-35
+4. Middlehurst, M., Schäfer, P. and Bagnall, A., 2023. Bake off redux: a review and
+experimental evaluation of recent time series classification algorithms. arXiv preprint
+arXiv:2304.13029.
+
+
+### Forecasting
+
+#### 1. Machine Learning for Time Series Forecasting (listed in GSoC 2024)
+
+Mentors: Tony Bagnall ({user}`TonyBagnall`) and Matthew Middlehurst (@MatthewMiddlehurst).
+
+##### Description
+
+This project will investigate algorithms for forecasting based on traditional machine
+learning (tree based) and time series machine learning (transformation based). Note
+this project will not involve deep learning based forecasting. It will involve
+helping develop the `aeon` framework to work more transparently with ML algorithms,
+evaluating regression algorithms already in `aeon`[1] for forecasting problems and
+implementing at least one algorithm from the literature not already in aeon, such as
+SETAR-Tree [3].
+
+##### Project Stages
+1. Learn about aeon best practices, coding standards and testing policies.
+2. Adapt the M competition set up [2] for ML experimental framework to assess time
+   series regression algorithms [1].
+3. Implement a machine learning forecasting algorithm [3]
+
+##### Expected Outcomes
+
+1. Contributions to the aeon forecasting module.
+2. Implementation of a machine learning forecasting algorithms.
+3. Help write up results for a technical report/academic paper (depending on outcomes).
+
+##### Skills Required
+
+1. Python 3
+2. Git and GitHub
+3. Some machine learning and/or forecasting background (e.g. taught courses or
+   practical experience)
+
+##### References
+
+1. Guijo-Rubio, D.,Middlehurst, M., Arcencio, G., Furtado, D. and Bagnall, A.
+Unsupervised Feature Based Algorithms for Time Series Extrinsic Regression,
+arXiv2305.01429, 2023
+2. https://forecasters.org/resources/time-series-data/
+3. Godahewa, R., Webb, G.I., Schmidt, D. et al. SETAR-Tree: a novel and accurate
+tree algorithm for global time series forecasting. Mach Learn 112, 2555–2591 (2023).
+https://link.springer.com/article/10.1007/s10994-023-06316-x
+
+#### 2. Deep Learning for Time Series Forecasting
+
+Mentors: Tony Bagnall ({user}`TonyBagnall`)  and Ali Ismail-Fawaz ({user}
+`hadifawaz1999`)
+
+##### Description
+
+Deep learning has become incredibly popular for forecasting, see [1] for an
+introduction. This project will involve taking one or more recently proposed
+algorithms, implementing them in aeon, then performing an extensive experimental
+comparison against traditional and machine learning algorithms. As part of this, we
+will collate results from the M Competitions [2]
+
+##### Project Stages
+1. Learn about aeon best practices, coding standards and testing policies.
+2. Adapt the M competition set up [2] for deep learning.
+3. Implement a deep learning forecasting algorithm after discussion with mentors.
+
+##### Expected Outcomes
+
+1. Collated M competition results and partial reproduction.
+2. Extend the forecasting module to include at least one deep forecaster.
+
+##### References
+
+1. [ECML 2024 Tutorial](https://lovvge.github.io/Forecasting-Tutorial-ECML-2023/)
+2. [M Competitions](https://forecasters.org/resources/time-series-data/)
+
+
+#### 3. Implement ETS forecasters
+
+Mentors: Tony Bagnall ({user}`TonyBagnall`)  and Leo Tsaprounis ({user}`ltsaprounis`)
+Exponential smoothing (ETS) is a popular family of algorithms for forecasting, and
+the ETS framework by Hyndman et al. [1] covers 30 possible models for time series
+with different types of Error, Trend, and Seasonal components.
+we already have an (Auto)ETS model in aeon, but it’s wrapping statsmodels. We would
+like our own bespoke, optimised implementation based on the R implementation.
+
+##### Project Stages
+1. Learn about aeon best practices, coding standards and testing policies.
+2. Survey and benchmark existing implementations of ETS forecasting.
+3. Implement basic implementations optimised for numba.
+4. Extended implementation to include modern refinements.
+
+
+##### References
+
+1. Hydman et al. [Forecasting with Exponential Smoothing The State Space Approach](https://link.springer.com/book/10.1007/978-3-540-71918-2)
+2. [Smooth R Package](https://github.com/config-i1/smooth)
+3. Svetunkov, [Forecasting and Analytics with the Augmented Dynamic Adaptive Model
+   (ADAM)](https://openforecast.org/adam/)
+
+### Clustering
+
+#### 1. Density peaks clustering algorithm
+
+Mentors: Tony Bagnall ({user}`TonyBagnall`) and Chris  Holder (`@chrisholder`).
+
+##### Description
+
+The clustering module in `aeon`, up until now, clusters using time series
+specific distance functions with partitional clustering algorithms such as k-means and
+k-medoids. An alternative clustering algorithm is density peaks (DP) [1]. This
+clustering
+algorithm has the benefit of not having to label all cases as cluster members, which
+means it can easily be adapted to anomaly detection [2]. It is
+a general purpose clustering algorithm that is not available in scikit learn. This
+project will implement the algorithm based on Java and matlab implementations then
+compare performance against partitional clustering for time series clustering.
+
+##### Project Stages
+
+1. Research and understand how DP works.
+2. Implement DP as an aeon estimator.
+3. Test the implementation against other implementations for correctness.
+4. Compare against alternative TSCL algorithms
+
+##### Expected Outcomes
+
+1. A well documented, tested and efficient implementation of DP
+2. Possible extensions to reflect recent research [2] with specific time series
+   components [3].
+2. Contributions to a comparative study and paper.
+
+##### References
+1. Rodriguez, A., & Laio, A. Clustering by Fast Search and Find of
+Density Peaks. [Science](https://www.science.org/doi/10.1126/science.1242072), 344
+   (6191), 1492-1496, 2014.
+2. Chen, L., Gao, S. & Liu, B. An improved density peaks clustering algorithm
+based on grid screening and mutual neighborhood degree for network anomaly detection.
+Sci Rep 12, 1409 (2022) [DOI](https://doi.org/10.1038/s41598-021-02038-z)
+3. Begum et al. A General Framework for Density Based  Time Series Clustering
+   Exploiting a Novel Admissible Pruning Strategy, [arXiv](https://arxiv.org/ftp/arxiv/papers/1612/1612.00637.pdf)
+
+
+#### 2. Deep learning for clustering
+
+Mentors: Tony Bagnall ({user}`TonyBagnall`)  and Ali Ismail-Fawaz ({user}
+`hadifawaz1999`)
+
+The clustering module in `aeon`, up until now, primarily consists of distance-based
+partitional clustering algorithms. Recently, we introduced a deep clustering module,
+incorporating distance-based algorithms in the latent space.
+
+The objective of this project is to enhance `aeon` by incorporating more deep learning
+approaches for time series clustering. The specific goal is to implement and assess
+InceptionTime [1] and its recent variants as a clustering algorithm, and contribute to
+an ongoing collaborative effort into a bake off for clustering. More widely, there
+are a broad range of deep learning clustering approaches we could consider [2].
+
+##### Project Stages
+
+1. Research and understand clustering time series and deep learning based approaches.
+2. Implement inception time as an aeon clusterer.
+3. Compare performance of deep learning clusterers to distance based algorithms.
+
+[1] Fawaz et al. InceptionTime: Finding AlexNet for time series classification
+Published: 07 September 2020 Volume 34, pages 1936–1962, (2020)
+[2] Deep learning forecasting [tutorial](https://lovvge.github.io/Forecasting-Tutorial-ECML-2023/)
 
 ### Anomaly detection
+
 
 #### 1. Anomaly detection with the Matrix Profile and MERLIN
 
@@ -402,7 +544,7 @@ pp.92-109.
 
 ### Transformation
 
-#### 1. Improve ROCKET transformers
+#### 1. Improve ROCKET family of transformers
 
 Mentors: Ali Ismail-Fawaz ({user}`hadifawaz1999`) and Matthew Middlehurst
 ({user}`MatthewMiddlehurst`)
@@ -469,6 +611,63 @@ Data Mining and Knowledge Discovery, 36(5), pp.1623-1646.
 4. Dempster, A., Schmidt, D.F. and Webb, G.I., 2023. Hydra: Competing convolutional
 kernels for fast and accurate time series classification. Data Mining and Knowledge
 Discovery, pp.1-27.
+
+### Visualisation
+
+#### 1. Explainable AI with the shapelet transform (Southampton intern project).
+
+Mentors: TonyBagnall ({user}`TonyBagnall`) and David Guijo-Rubio
+({user}`dguijo`)
+
+This project will focus on explainable AI for time series classification (TSC) [1],
+specifically the family of algorithms based on shapelets [2]. Shapelets are small sub
+ certain shape of heartbeat, perhaps a short irregularity, might be useful in
+predicting the medical condition. We will look at the shapelet transform classifier
+[3]. This finds a large set of shapelets from the training data and uses them to
+build a classifier. We want to develop tools to help us visualise the output of the
+search for good shapelets to help explain why predictions are made. This project is
+not tied to a specific data set. It is to develop tools to help any user of the
+toolkit.  It will involve learning about aeon and making contributions to open
+source toolkits, familiarisation with the shapelet code and the development of a
+visualisation tool to help relate shapelets back to the training data. An outline
+for the project is
+
+Weeks 1-2: Familiarisation with open source, aeon and the visualisation module. Make
+contribution for a good first issue.
+Weeks 3-4: Understand the shapelet transfer algorithm, engage in ongoing discussions
+for possible improvements, run experiments to create predictive models for a test data set
+Weeks 5-6: Design and prototype visualisation tools for shapelets, involving a range
+of summary measures and visualisation techniques, including plotting shapelets on training data, calculating frequency, measuring similarity between
+Weeks 7-8: Debug, document and make PRs to merge contributions into the aeon toolkit.
+
+[1] Bagnall, A., Lines, J., Bostrom, A., Large, J. and Keogh, E. The great time series classification bake off: a review and experimental evaluation of recent algorithmic advances. Data Mining and Knowledge Discovery, Volume 31, pages 606–660, (2017)
+[2] Ye, L., Keogh, E. Time series shapelets: a novel technique that allows accurate, interpretable and fast classification. Data Min Knowl Disc 22, 149–182 (2011). https://doi.org/10.1007/s10618-010-0179-5
+[3] Lines, L., Davis, L., Hills, J. and Bagnall, A. A shapelet transform for time series classification, KDD '12: Proceedings of the 18th ACM SIGKDD international conference on Knowledge discovery and data mining (2012) https://doi.org/10.1145/2339530.2339579
+
+### Regression
+
+#### 1. Adapt forecasting regressors to time series extrinsic regression.
+
+Mentors: TonyBagnall ({user}`TonyBagnall`) and David Guijo-Rubio
+({user}`dguijo`)
+
+Forecasting is often reduced to regression through the application of a sliding
+window. This is a large research field that is distinct to time series extrinsic
+regression, where each series is assumed to be independent. This is more of a
+research project to investigate what techniques are used in forecasting for
+regression based forecasting and to compare them to the time series specific
+algorithms in aeon. This project would require further working up with the mentors.
+
+
+#### 2. Adapt HIVE-COTE for regression
+
+Mentors: TonyBagnall ({user}`TonyBagnall`) and David Guijo-Rubio
+({user}`dguijo`)
+
+HIVE-COTE [1] is a state of the art classifier. Adapting it for regression is an
+ongoing research project for which we would welcome collaborators. Ongoing, this
+needs working up.
+
 
 ### Documentation
 

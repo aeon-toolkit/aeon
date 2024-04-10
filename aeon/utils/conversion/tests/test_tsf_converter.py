@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 
-from aeon.testing.utils.data_gen import _convert_tsf_to_hierarchical
+from aeon.utils.conversion._convert_tsf import _convert_tsf_to_hierarchical
 
 
 @pytest.mark.parametrize("freq", [None, "YS"])
