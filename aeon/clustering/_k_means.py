@@ -360,17 +360,22 @@ class TimeSeriesKMeans(BaseClusterer):
         curr_labels: np.ndarray,
         curr_inertia: float,
     ):
-        # Find the cluster that contributes most to the sum of squared error
-        # and make it a new centre in place of the empty
+        """Handle an empty cluster.
+
+        This functions finds the time series that is furthest from its assigned centre
+        and then uses that as the new centre for the empty cluster. In terms of
+        optimisation this means it selects the time series that will reduce inertia
+        by the most.
+        """
         empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
         j = 0
-        max_iterations = self.n_clusters
 
         while empty_clusters.size > 0:
             # Assign each time series to the cluster that is closest to it
-            # and then find the time series that is furthest from the centre
+            # and then find the time series that is furthest from its assigned centre
+            current_empty_cluster_index = empty_clusters[0]
             index_furthest_from_centre = curr_pw.min(axis=1).argmax()
-            cluster_centres[empty_clusters[0]] = X[index_furthest_from_centre]
+            cluster_centres[current_empty_cluster_index] = X[index_furthest_from_centre]
             curr_pw = pairwise_distance(
                 X, cluster_centres, metric=self.distance, **self._distance_params
             )
@@ -378,7 +383,7 @@ class TimeSeriesKMeans(BaseClusterer):
             curr_inertia = curr_pw.min(axis=1).sum()
             empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
             j += 1
-            if j > max_iterations:
+            if j > self.n_clusters:
                 # This should be unreachable but just a safety check to stop it looping
                 # forever
                 raise EmptyClusterError
