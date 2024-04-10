@@ -25,40 +25,33 @@ VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 class BaseSeriesEstimator(BaseEstimator):
     """Base class for estimators that use single (possibly multivariate) time series.
 
-    Provides functions that are common to BaseSeriesEstimator objects, including
-    BaseSeriesTransformer and BaseSegmenter, for the checking and
-    conversion of input to fit, predict and transform, where relevant.
+    Provides functions that are common to BaseSeriesEstimator objects for the checking
+    and conversion of input to fit, predict and transform, where relevant.
 
-    It also stores the common default tags used by all the subclasses and meta data
-    describing the characteristics of time series passed to ``fit``.
+    It also stores the common default tags used by all the subclasses and metadata
+    describing the characteristics of time series passed to ``fit`` (or another method
+    if fit does not exist).
 
-    input and internal data format
+    Input and internal data format (where m is the number of time points and d is the
+    number of channels):
         Univariate series:
-            Numpy array:
-            shape `(m,)`, `(m, 1)` or `(1, m)`. if ``self`` has no multivariate
-            capability, i.e.``self.get_tag(
-            ""capability:multivariate") == False``, all are converted to 1D
-            numpy `(m,)`
-            if ``self`` has multivariate capability, converted to 2D numpy `(m,1)` or
-            `(1, m)` depending on axis
-            pandas DataFrame or Series:
-            DataFrame single column shape `(m,1)`, `(1,m)` or Series shape `(m,)`
-            if ``self`` has no multivariate capability, all converted to Series `(m,)`
-            if ``self`` has multivariate capability, all converted to Pandas DataFrame
-            shape `(m,1)`, `(1,m)` depending on axis
-
+            np.ndarray, shape ``(m,)``, ``(m, 1)`` or ``(1, m)`` depending on axis.
+            This is converted to a 2D np.ndarray internally.
+            pd.DataFrame, shape ``(m, 1)`` or ``(1, m)`` depending on axis.
+            pd.Series, shape ``(m,)``.
         Multivariate series:
-            Numpy array, shape `(m,d)` or `(d,m)`.
-            pandas DataFrame `(m,d)` or `(d,m)`
+            np.ndarray array, shape ``(m, d)`` or ``(d, m)`` depending on axis.
+            pd.DataFrame ``(m, d)`` or ``(d, m)`` depending on axis.
 
     Parameters
     ----------
     axis : int
-        Axis along which to segment if passed a multivariate series (2D input). If axis
-        is 0, it is assumed each column is a time series and each row is a
-        timepoint. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
-        ``axis == 1`` indicates the time series are in rows, i.e. the shape of the data
-        is ``(n_channels, n_timepoints)``.
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
+        Setting this class variable will convert the input data to the chosen axis.
     """
 
     _tags = {
@@ -70,7 +63,7 @@ class BaseSeriesEstimator(BaseEstimator):
 
     def __init__(self, axis):
         self.axis = axis
-        self.metadata_ = {}  # metadata/properties of data seen in fit
+        self.metadata_ = {}  # metadata/properties of data seen in fit/predict/transform
 
         super().__init__()
         _check_estimator_deps(self)
@@ -86,10 +79,14 @@ class BaseSeriesEstimator(BaseEstimator):
         Parameters
         ----------
         X: one of aeon.base._base_series.VALID_INPUT_TYPES
-           A valid aeon time series data structure. See
-           aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
         axis: int
-            The time point axis of the input data.
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels,n_timepoints)``.
 
         Returns
         -------
@@ -185,7 +182,11 @@ class BaseSeriesEstimator(BaseEstimator):
            A valid aeon time series data structure. See
            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
         axis: int
-            The time point axis of the input data.
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
 
         Returns
         -------
@@ -259,7 +260,12 @@ class BaseSeriesEstimator(BaseEstimator):
            A valid aeon time series data structure. See
            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
         axis: int or None
-            The time point axis of the input data. If None, the default axis is used.
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
+            If None, the default class axis is used.
         store_metadata: bool
             If True, overwrite metadata with the new metadata from X.
 
