@@ -2,7 +2,7 @@
 
 import pytest
 
-from aeon.distances.mpdist import mpdist
+from aeon.distances._mpdist import mpdist
 from aeon.testing.utils.data_gen import make_series
 
 
