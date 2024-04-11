@@ -103,7 +103,7 @@ and adapt it to handle collections of time series.
     :toctree: auto_generated/
     :template: class.rst
 
-    BroadcastTransformer
+    SeriesToCollectionBroadcaster
 
 Series-to-tabular transformers
 -------------------------------
