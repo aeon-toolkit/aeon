@@ -20,6 +20,8 @@ Convolution-based
 
     Arsenal
     RocketClassifier
+    HydraClassifier
+    MultiRocketHydraClassifier
 
 Deep learning
 -------------
