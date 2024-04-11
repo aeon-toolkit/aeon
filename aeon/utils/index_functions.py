@@ -3,7 +3,8 @@
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import _VectorizedDF, convert_to
+from aeon.datatypes import convert_to
+from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.utils.validation import (
     is_collection,
     is_hierarchical,
