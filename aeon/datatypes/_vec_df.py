@@ -1,24 +1,18 @@
-"""Wrapper for easy vectorization/iteration of time series data.
+"""Contains a private non-deprecated version of the old VectorizedDF class.
 
-Contains VectorizedDF class.
+Should be removed asap.
 """
 
 from itertools import product
 
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 from aeon.datatypes._check import check_is_scitype, mtype
 from aeon.datatypes._convert import convert_to
 from aeon.utils.multiindex import flatten_multiindex
 
 
-@deprecated(
-    version="0.9.0",
-    reason="VectorizedDF will be made private in v0.10.0.",
-    category=FutureWarning,
-)
-class VectorizedDF:
+class _VectorizedDF:
     """Wrapper for easy vectorization/iteration over instances.
 
     VectorizedDF is an iterable that returns pandas.DataFrame
@@ -227,7 +221,7 @@ class VectorizedDF:
         """
         if X is None:
             X = self.X_multiindex
-        elif isinstance(X, VectorizedDF):
+        elif isinstance(X, _VectorizedDF):
             X = X.X_multiindex
 
         row_ix, col_ix = self.get_iter_indices()
@@ -279,7 +273,7 @@ class VectorizedDF:
         """
         if X is None:
             X = self.X_multiindex
-        elif isinstance(X, VectorizedDF):
+        elif isinstance(X, _VectorizedDF):
             X = X.X_multiindex
 
         if col_ind is None and row_ind is None:
@@ -454,7 +448,7 @@ class VectorizedDF:
             if `other` is not `VectorizedDF`, reference to `other`
             if `other` is VectorizedDF`, returns `other[i]`
         """
-        if isinstance(other, VectorizedDF):
+        if isinstance(other, _VectorizedDF):
             row_ind, col_ind = self._get_item_indexer(i=i, X=other)
             if not vectorize_cols:
                 col_ind = None

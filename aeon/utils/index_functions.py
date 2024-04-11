@@ -344,12 +344,12 @@ def update_data(X, X_new=None):
         if one of X, X_new is None, returns the other; if both are None, returns None
     """
     from aeon.datatypes._convert import convert_to
-    from aeon.datatypes._vectorize import VectorizedDF
+    from aeon.datatypes._vec_df import _VectorizedDF
 
     # if X or X_new is vectorized, unwrap it first
-    if isinstance(X, VectorizedDF):
+    if isinstance(X, _VectorizedDF):
         X = X.X
-    if isinstance(X_new, VectorizedDF):
+    if isinstance(X_new, _VectorizedDF):
         X_new = X_new.X
 
     # we want to ensure that X, X_new are either numpy (1D, 2D, 3D)

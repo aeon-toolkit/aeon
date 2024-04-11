@@ -30,7 +30,6 @@ __all__ = [
     "_assert_correct_columns",
     "_assert_correct_pred_time_index",
     "make_annotation_problem",
-    "_convert_tsf_to_hierarchical",
     "_get_n_columns",
     "get_examples",
     "make_example_2d_unequal_length",
@@ -51,7 +50,6 @@ from aeon.testing.utils.data_gen._collection import (
     make_example_nested_dataframe,
     make_example_unequal_length,
 )
-from aeon.testing.utils.data_gen._data_generators import _convert_tsf_to_hierarchical
 from aeon.testing.utils.data_gen._series import (
     _make_index,
     make_1d_numpy_series,
