@@ -216,7 +216,7 @@ class VARMAX(_StatsModelsAdapter):
         "X-y-must-have-same-index": True,
         "enforce_index_type": None,
         "capability:pred_int": False,
-        "python_dependencies": "pandas<2.0.0",  # needs to be fixed with pandas==2.0.0
+        "python_dependencies": "pandas==2.0.0",
     }
 
     def __init__(
