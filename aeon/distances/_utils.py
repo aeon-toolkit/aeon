@@ -71,10 +71,53 @@ def reshape_pairwise_to_multiple(
         raise ValueError("x and y must be 1D, 2D, or 3D arrays")
 
 
+def _is_multivariate(
+    x: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+) -> bool:
+    if y is not None:
+        if isinstance(x, np.ndarray):
+            x_dims = x.ndim
+            if x_dims == 3:
+                if x.shape[1] == 1:
+                    return False
+                return True
+            if x_dims == 2:
+                if x.shape[0] == 1:
+                    return False
+                return True
+            if x_dims == 1:
+                return False
+
+        if isinstance(x, (List, NumbaList)):
+            x_dims = x[0].ndim
+            if x_dims == 2:
+                if x[0].shape[0] == 1:
+                    return False
+                return True
+            if x_dims == 1:
+                return False
+    else:
+        if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
+            x_dims = x.ndim
+            y_dims = y.ndim
+            if x_dims == 3 and y_dims == 3:
+                if x.shape[1] == 1 and y.shape[1] == 1:
+                    return False
+                return True
+            if x_dims == 2 and y_dims == 2:
+                if x.shape[0] == 1 and y.shape[0] == 1:
+                    return False
+                return True
+            pass
+
+    raise ValueError("The format of you input is not supported.")
+
+
 def _convert_to_list(
     x: Union[np.ndarray, List[np.ndarray]],
     name: str = "X",
-    is_multivariate: Optional[bool] = False,
+    other_ts_is_multivariate: Optional[bool] = False,
 ) -> NumbaList[np.ndarray]:
     """Convert input collections to a list of arrays for pairwise distance calculation.
 
@@ -92,9 +135,9 @@ def _convert_to_list(
         (n_cases, n_timepoints) or (n_timepoints,).
     name : str, optional
         Name of the variable to be converted for error handling, by default "X".
-    is_multivariate : bool, optional
-        Boolean indicating if the time series is multivariate, by default False.
-        This is passed when for example you have a 2D single multivariate array.
+    other_ts_is_multivariate : bool, optional
+        Boolean indicating if the other time series passed to the distance function
+        is multivariate, by default False.
 
     Returns
     -------
@@ -110,6 +153,10 @@ def _convert_to_list(
     ValueError
         If x is not a 1D, 2D or 3D array or a list of 1D or 2D arrays.
     """
+    if other_ts_is_multivariate is True:
+        is_multivariate = _is_multivariate(x) and other_ts_is_multivariate
+    else:
+        is_multivariate = _is_multivariate(x)
     if isinstance(x, np.ndarray):
         if x.ndim == 3:
             return NumbaList(x), False
