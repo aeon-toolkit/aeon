@@ -25,6 +25,11 @@ def test__check_X():
         dummy1._check_X(multi_np)
     with pytest.raises(ValueError, match=r"Multivariate data not supported"):
         dummy1._check_X(multi_pd)
+    missing = np.random.rand(4, 10)
+    missing[3][8] = np.NAN
+    with pytest.raises(ValueError, match=r"Missing values not supported"):
+        dummy1._check_X(missing)
+
     dummy2 = BaseSeriesEstimator()
     all_tags = {
         "capability:multivariate": True,
@@ -58,6 +63,9 @@ def test__check_X():
         dummy2._check_X(uni_np)
     with pytest.raises(ValueError, match=r"Univariate data not supported"):
         dummy2._check_X(uni_pd)
+    wrong_size = np.random.rand(10, 2, 20)
+    with pytest.raises(ValueError, match=r"Should be 1D or 2D"):
+        dummy2._check_X(wrong_size)
 
 
 UNIVARIATE = {
@@ -91,6 +99,14 @@ def test_univariate_convert_X():
             assert type(X2).__name__ == st.split(".")[1]
             X2 = dummy1._convert_X(X, axis=1)
             assert len(X) == len(X2)
+    with pytest.raises(ValueError, match="Axis should be 0 or 1"):
+        dummy1._convert_X(X, axis=2)
+    d = BaseSeriesEstimator.get_test_params()
+    assert d["axis"] == 0
+    all_tags = {"X_inner_type": "numpy3D"}
+    dummy1.set_tags(**all_tags)
+    with pytest.raises(ValueError, match="Unsupported inner"):
+        dummy1._convert_X(X, axis=0)
 
 
 def test_multivariate_convert_X():
@@ -158,3 +174,27 @@ def test_check_y_wrong(y_wrong):
     """Test the _check_y method with incorrect input."""
     with pytest.raises(ValueError, match="Error in input type for y"):
         BaseSeriesEstimator._check_y(None, y_wrong)
+
+
+@pytest.mark.parametrize("returned_type", VALID_TYPES)
+def test__postprocess_series(returned_type):
+    """Test data reformatted correctly."""
+    x = UNIVARIATE[returned_type]
+    dummy1 = BaseSeriesEstimator()
+    tags = {"capability:multivariate": False}
+    dummy1.set_tags(**tags)
+    y = dummy1._postprocess_series(x)
+    y2 = dummy1._postprocess_series(x, axis=0)
+    y3 = dummy1._postprocess_series(x, axis=1)
+    assert y.ndim == 1
+    assert y2.shape == y3.shape
+    tags = {"capability:multivariate": True}
+    dummy1.set_tags(**tags)
+    x = MULTIVARIATE[returned_type]
+    y = dummy1._postprocess_series(x)
+    y2 = dummy1._postprocess_series(x, axis=0)
+    y3 = dummy1._postprocess_series(x, axis=1)
+    assert x.shape == y.shape
+    assert y.shape == y2.shape
+    if returned_type != "pd.Series":
+        assert y.shape[0] == y3.shape[1] and y.shape[1] == y3.shape[0]

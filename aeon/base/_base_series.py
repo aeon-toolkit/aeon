@@ -195,7 +195,7 @@ class BaseSeriesEstimator(BaseEstimator):
                 X = pd.DataFrame(X)
             else:
                 tag = self.get_tag("X_inner_type")
-                raise ValueError(f"Unknown inner type {inner} derived from {tag}")
+                raise ValueError(f"Unsupported inner type {inner} derived from {tag}")
         if axis > 1 or axis < 0:
             raise ValueError("Axis should be 0 or 1")
         if not self.get_tag("capability:multivariate"):
@@ -234,6 +234,16 @@ class BaseSeriesEstimator(BaseEstimator):
         if len(self.metadata_) == 0:
             self.metadata_ = meta
         return self._convert_X(X, axis)
+
+    def _postprocess_series(self, X, axis=None):
+        """Postprocess data X to revert to original shape."""
+        # If a univariate only transformer, return a univariate series
+        if not self.get_tag("capability:multivariate"):
+            return X.squeeze()
+        # If passed an axis, return with that axis
+        if axis is None or axis == self.axis:
+            return X
+        return X.T
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
