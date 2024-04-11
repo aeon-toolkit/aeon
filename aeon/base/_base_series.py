@@ -103,12 +103,6 @@ class BaseSeriesEstimator(BaseEstimator):
         if axis > 1 or axis < 0:
             raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
 
-        # Checks: check valid type
-        if type(X) not in VALID_INPUT_TYPES:
-            raise ValueError(
-                f"Input type of X should be one of {VALID_INNER_TYPES}, saw {type(X)}"
-            )
-
         # Checks: check valid dtype
         if isinstance(X, np.ndarray):
             if not (
@@ -122,6 +116,10 @@ class BaseSeriesEstimator(BaseEstimator):
         elif isinstance(X, pd.DataFrame):
             if not all(pd.api.types.is_numeric_dtype(X[col]) for col in X.columns):
                 raise ValueError("pd.DataFrame dtype must be numeric")
+        else:
+            raise ValueError(
+                f"Input type of X should be one of {VALID_INNER_TYPES}, saw {type(X)}"
+            )
 
         metadata = {}
 
@@ -144,7 +142,7 @@ class BaseSeriesEstimator(BaseEstimator):
             metadata["missing_values"] = np.isnan(X).any()
         elif isinstance(X, pd.Series):
             metadata["missing_values"] = X.isna().any()
-        elif isinstance(X, pd.DataFrame):
+        else:
             metadata["missing_values"] = X.isna().any().any()
 
         allow_multivariate = self.get_tag("capability:multivariate")
@@ -203,13 +201,13 @@ class BaseSeriesEstimator(BaseEstimator):
         inner_type = self.get_tag("X_inner_type")
         if not isinstance(inner_type, list):
             inner_type = [inner_type]
-        inner_type = [i.split(".")[-1] for i in inner_type]
+        inner_names = [i.split(".")[-1] for i in inner_type]
 
         input = type(X).__name__
-        if input not in inner_type:
-            if inner_type[0] == "ndarray":
+        if input not in inner_names:
+            if inner_names[0] == "ndarray":
                 X = X.to_numpy()
-            elif inner_type[0] == "Series":
+            elif inner_names[0] == "Series":
                 if self.get_tag("capability:multivariate"):
                     raise ValueError(
                         "Cannot convert to pd.Series for multivariate capable "
@@ -225,7 +223,7 @@ class BaseSeriesEstimator(BaseEstimator):
 
                 X = X.squeeze()
                 X = pd.Series(X)
-            elif inner_type[0] == "DataFrame":
+            elif inner_names[0] == "DataFrame":
                 # converting a 1d array will create a 2d array in axis 0 format
                 transpose = False
                 if X.ndim == 1 and axis == 1:
@@ -236,9 +234,8 @@ class BaseSeriesEstimator(BaseEstimator):
                 if transpose:
                     X = X.T
             else:
-                tag = self.get_tag("X_inner_type")
                 raise ValueError(
-                    f"Unknown inner type {inner_type[0]} derived from {tag}"
+                    f"Unknown inner type {inner_names[0]} derived from {inner_type}"
                 )
 
         if X.ndim > 1 and self.axis != axis:

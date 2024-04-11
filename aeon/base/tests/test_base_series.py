@@ -69,40 +69,28 @@ def test_check_X():
     assert meta["n_channels"] == 1
     assert not meta["missing_values"]
 
-    # check invalid inputs and data types
-    invalid_always = np.array(["1", "2", "3", "4", "5"])
-
-    with pytest.raises(ValueError, match=r"Input type of X should be one of"):
-        dummy._check_X("String input", axis=1)
-    with pytest.raises(ValueError, match=r"dtype for np.ndarray must be float or int"):
-        dummy._check_X(invalid_always, axis=1)
-    with pytest.raises(ValueError, match=r"pd.Series dtype must be numeric"):
-        dummy._check_X(pd.Series(invalid_always), axis=1)
-    with pytest.raises(ValueError, match=r"pd.DataFrame dtype must be numeric"):
-        dummy._check_X(pd.DataFrame(invalid_always), axis=1)
-
     # check multivariate capability False
-    with pytest.raises(ValueError, match=r"Multivariate data not supported"):
+    with pytest.raises(ValueError, match="Multivariate data not supported"):
         dummy._check_X(MULTIVARIATE["np.ndarray"], axis=1)
-    with pytest.raises(ValueError, match=r"Multivariate data not supported"):
+    with pytest.raises(ValueError, match="Multivariate data not supported"):
         dummy._check_X(MULTIVARIATE["pd.DataFrame"], axis=1)
-    with pytest.raises(ValueError, match=r"Multivariate data not supported"):
+    with pytest.raises(ValueError, match="Multivariate data not supported"):
         dummy._check_X(MULTIVARIATE["np.ndarray"].T, axis=0)
-    with pytest.raises(ValueError, match=r"Multivariate data not supported"):
+    with pytest.raises(ValueError, match="Multivariate data not supported"):
         dummy._check_X(MULTIVARIATE["pd.DataFrame"].T, axis=0)
 
     # check missing value capability False
     dummy.set_tags(**{"capability:multivariate": True})
 
-    with pytest.raises(ValueError, match=r"Missing values not supported"):
+    with pytest.raises(ValueError, match="Missing values not supported"):
         dummy._check_X(UNIVARIATE_MISSING["np.ndarray"], axis=1)
-    with pytest.raises(ValueError, match=r"Missing values not supported"):
+    with pytest.raises(ValueError, match="Missing values not supported"):
         dummy._check_X(UNIVARIATE_MISSING["pd.Series"], axis=1)
-    with pytest.raises(ValueError, match=r"Missing values not supported"):
+    with pytest.raises(ValueError, match="Missing values not supported"):
         dummy._check_X(UNIVARIATE_MISSING["pd.DataFrame"], axis=1)
-    with pytest.raises(ValueError, match=r"Missing values not supported"):
+    with pytest.raises(ValueError, match="Missing values not supported"):
         dummy._check_X(MULTIVARIATE_MISSING["np.ndarray"], axis=1)
-    with pytest.raises(ValueError, match=r"Missing values not supported"):
+    with pytest.raises(ValueError, match="Missing values not supported"):
         dummy._check_X(MULTIVARIATE_MISSING["pd.DataFrame"], axis=1)
 
     # check multivariate capable
@@ -134,14 +122,35 @@ def test_check_X():
     # check univariate capability False
     dummy.set_tags(**{"capability:univariate": False})
 
-    with pytest.raises(ValueError, match=r"Univariate data not supported"):
+    with pytest.raises(ValueError, match="Univariate data not supported"):
         dummy._check_X(UNIVARIATE["np.ndarray"], axis=1)
-    with pytest.raises(ValueError, match=r"Univariate data not supported"):
+    with pytest.raises(ValueError, match="Univariate data not supported"):
         dummy._check_X(UNIVARIATE["pd.Series"], axis=1)
-    with pytest.raises(ValueError, match=r"Univariate data not supported"):
+    with pytest.raises(ValueError, match="Univariate data not supported"):
         dummy._check_X(UNIVARIATE["pd.DataFrame"], axis=1)
-    with pytest.raises(ValueError, match=r"Univariate data not supported"):
+    with pytest.raises(ValueError, match="Univariate data not supported"):
         dummy._check_X(UNIVARIATE["pd.DataFrame"].T, axis=0)
+
+    # check invalid inputs and data types
+    with pytest.raises(ValueError, match="Input type of X should be one of"):
+        dummy._check_X("String input", axis=1)
+
+    invalid_always = np.array(["1", "2", "3", "4", "5"])
+    with pytest.raises(ValueError, match="dtype for np.ndarray must be float or int"):
+        dummy._check_X(invalid_always, axis=1)
+    with pytest.raises(ValueError, match="pd.Series dtype must be numeric"):
+        dummy._check_X(pd.Series(invalid_always), axis=1)
+    with pytest.raises(ValueError, match="pd.DataFrame dtype must be numeric"):
+        dummy._check_X(pd.DataFrame(invalid_always), axis=1)
+
+    with pytest.raises(ValueError, match="Input axis should be 0 or 1, saw 2"):
+        dummy._check_X(UNIVARIATE["np.ndarray"], axis=2)
+    with pytest.raises(ValueError, match="Input axis should be 0 or 1, saw -1"):
+        dummy._check_X(UNIVARIATE["np.ndarray"], axis=-1)
+
+    collection = np.random.random(size=(10, 2, 10))
+    with pytest.raises(ValueError, match="X must have at most 2 dimensions"):
+        dummy._check_X(collection, axis=0)
 
 
 @pytest.mark.parametrize("input_type", VALID_TYPES)
@@ -245,6 +254,20 @@ def test_convert_X_dataframe_inner(input_type):
         assert X2.equals(X3)
 
 
+def test_convert_X_invalid():
+    """Test _convert_X for invalid inputs."""
+    dummy = BaseSeriesEstimator(axis=1)
+
+    with pytest.raises(ValueError, match="Input axis should be 0 or 1, saw 2"):
+        dummy._convert_X(UNIVARIATE["np.ndarray"], axis=2)
+    with pytest.raises(ValueError, match="Input axis should be 0 or 1, saw -1"):
+        dummy._convert_X(UNIVARIATE["np.ndarray"], axis=-1)
+
+    dummy.set_tags(**{"X_inner_type": ["invalid"]})
+    with pytest.raises(ValueError, match="Unknown inner type"):
+        dummy._convert_X(UNIVARIATE["np.ndarray"], axis=1)
+
+
 @pytest.mark.parametrize("input_type", VALID_TYPES)
 @pytest.mark.parametrize("inner_type", VALID_TYPES)
 def test_preprocess_series(input_type, inner_type):
@@ -295,3 +318,45 @@ def test_preprocess_series(input_type, inner_type):
 
         with pytest.raises(ValueError, match="Cannot convert to pd.Series"):
             dummy._preprocess_series(X, axis=1, store_metadata=True)
+
+
+def test_axis():
+    """Test axis property."""
+    dummy = BaseSeriesEstimator(axis=1)
+    dummy.set_tags(**{"capability:multivariate": True})
+    X = MULTIVARIATE["np.ndarray"]
+
+    X2 = dummy._preprocess_series(X, axis=1, store_metadata=True)
+    assert type(X2).__name__ == "ndarray"
+    assert X2.shape == (5, 20)
+    assert X.shape == X2.shape
+    assert dummy.metadata_["multivariate"]
+    assert dummy.metadata_["n_channels"] == 5
+    assert not dummy.metadata_["missing_values"]
+
+    X2 = dummy._preprocess_series(X.T, axis=0, store_metadata=True)
+    assert type(X2).__name__ == "ndarray"
+    assert X2.shape == (5, 20)
+    assert X.shape == X2.shape
+    assert dummy.metadata_["multivariate"]
+    assert dummy.metadata_["n_channels"] == 5
+    assert not dummy.metadata_["missing_values"]
+
+    dummy.axis = 0
+    X = X.T
+
+    X2 = dummy._preprocess_series(X.T, axis=1, store_metadata=True)
+    assert type(X2).__name__ == "ndarray"
+    assert X2.shape == (20, 5)
+    assert X.shape == X2.shape
+    assert dummy.metadata_["multivariate"]
+    assert dummy.metadata_["n_channels"] == 5
+    assert not dummy.metadata_["missing_values"]
+
+    X2 = dummy._preprocess_series(X, axis=0, store_metadata=True)
+    assert type(X2).__name__ == "ndarray"
+    assert X2.shape == (20, 5)
+    assert X.shape == X2.shape
+    assert dummy.metadata_["multivariate"]
+    assert dummy.metadata_["n_channels"] == 5
+    assert not dummy.metadata_["missing_values"]
