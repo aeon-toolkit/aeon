@@ -227,7 +227,7 @@ class SklearnRegressorPipeline(_HeterogenousMetaEstimator, BaseRegressor):
 
         # can handle multivariate iff all transformers can
         # sklearn transformers always support multivariate
-        multivariate = not self.transformers_.get_tag("univariate-only", True)
+        multivariate = not self.transformers_.get_tag("capability:multivariate", False)
         # can handle missing values iff transformer chain removes missing data
         # sklearn regressors might be able to handle missing data (but no tag there)
         # so better set the tag liberally

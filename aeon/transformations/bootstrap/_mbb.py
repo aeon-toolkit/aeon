@@ -172,7 +172,7 @@ class STLBootstrapTransformer(BaseTransformer):
         "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "capability:missing_values": False,
         "X-y-must-have-same-index": False,
         "enforce_index_type": None,
@@ -482,7 +482,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
         "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": True,  # can the transformer handle multivariate X?
+        "capability:multivariate": False,  # can the transformer handle multivariate X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
