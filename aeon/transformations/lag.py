@@ -114,7 +114,7 @@ class Lag(BaseTransformer):
         # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,  # is this an instance-wise transform?
         "capability:inverse_transform": False,  # can the transformer inverse transform?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
@@ -391,7 +391,7 @@ class ReducerTransform(BaseTransformer):
         "output_data_type": "Series",
         "instancewise": True,  # is this an instance-wise transform?
         "capability:inverse_transform": False,  # can the transformer inverse transform?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "pd.DataFrame",
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
