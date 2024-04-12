@@ -45,6 +45,7 @@ def _sliding_dot_products(q, t, len_q, len_t):
     return dot_prod
 
 
+@njit(cache=True, fastmath=True)
 def _calculate_distance_profile(
     dot_prod, q_mean, q_std, t_mean, t_std, q_len, n_t_subs
 ):
@@ -75,15 +76,19 @@ def _calculate_distance_profile(
         d: numpy.array
             Distance profile of query q.
     """
-    d = [
-        2
-        * q_len
-        * (
-            1
-            - ((dot_prod[i] - q_len * q_mean * t_mean[i]) / (q_len * q_std * t_std[i]))
+    for i in range(0, n_t_subs):
+        d = (
+            2
+            * q_len
+            * (
+                1
+                - (
+                    (dot_prod[i] - q_len * q_mean * t_mean[i])
+                    / (q_len * q_std * t_std[i])
+                )
+            )
         )
-        for i in range(0, n_t_subs)
-    ]
+
     d = np.absolute(d)
     d = np.sqrt(d)
 
