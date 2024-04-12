@@ -264,7 +264,7 @@ def test_convert_X_invalid():
         dummy._convert_X(UNIVARIATE["np.ndarray"], axis=-1)
 
     dummy.set_tags(**{"X_inner_type": ["invalid"]})
-    with pytest.raises(ValueError, match="Unknown inner type"):
+    with pytest.raises(ValueError, match="Unsupported inner type"):
         dummy._convert_X(UNIVARIATE["np.ndarray"], axis=1)
 
 
