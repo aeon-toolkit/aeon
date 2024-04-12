@@ -202,8 +202,7 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     """
     if x.ndim == 1 and y.ndim == 1:
         return _mpdist(x, y, m)
-    else:
-        raise ValueError("x and y must be a 1D array of shape (n_timepoints,)")
+    raise ValueError("x and y must be a 1D array of shape (n_timepoints,)")
 
 
 @njit(cache=True, fastmath=True)
