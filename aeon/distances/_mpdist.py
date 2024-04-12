@@ -1,6 +1,7 @@
 """Matrix Profile Distances."""
 
 import numpy as np
+from numba import njit
 
 
 def _sliding_dot_products(q, t, q_len, t_len):
@@ -160,52 +161,60 @@ def _stomp_ab(ts1, ts2, m):
     return mp, ip
 
 
-def mpdist(ts1: np.ndarray, ts2: np.ndarray, m: int = 0):
-    """
-    Matrix profile distance.
+@njit(cache=True, fastmath=True)
+def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
+    r"""Matrix Profile Distance.
 
     Parameters
     ----------
-        ts1: numpy.array
-            First time series.
-        ts2: numpy.array
-            Second time series.
-        m: int
-            Length of the subsequences.
+    x : np.ndarray
+        First time series, univariate, shape ``(n_timepoints,)``
+    y : np.ndarray
+        Second time series, univariate, shape ``(n_timepoints,)``
+    m : int (default = 0)
+        Length of the subsequence
 
-    Output
+    Returns
+    -------
+    float
+        Matrix Profile distance between x and y
+
+    Raises
     ------
-        mpdist: float
-            Distance between the two time series.
+    ValueError
+        If x and y are not 1D arrays
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import euclidean_distance
+    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
+    >>> mpdist(x, y)
+    31.622776601683793
     """
-    if ts1.ndim == 2 and ts1.shape[0] > 1:
-        raise ValueError("ts1 must be a 1D array or shape (1,n)")
-    if ts2.ndim == 2 and ts2.shape[0] > 1:
-        raise ValueError("ts2 must be a 1D array or shape (1,n)")
-    ts1 = ts1.squeeze()
-    ts2 = ts2.squeeze()
+    if x.ndim == 1 and y.ndim == 1:
+        return _mpdist(x, y, m)
+    else:
+        raise ValueError("x and y must be a 1D array of shape (n_timepoints,)")
 
-    len1 = len(ts1)
-    len2 = len(ts2)
 
-    if m == 0:
-        if len1 > len2:
-            m = int(len1 / 4)
-        else:
-            m = int(len2 / 4)
+@njit(cache=True, fastmath=True)
+def _mpdist(x: np.ndarray, y: np.ndarray, m: int) -> float:
     threshold = 0.05
-    mp_ab, ip_ab = _stomp_ab(ts1, ts2, m)  # compute the AB matrix profile
-    mp_ba, ip_ba = _stomp_ab(ts2, ts1, m)  # compute the BA matrix profile
+
+    mp_ab, ip_ab = _stomp_ab(x, y, m)  # AB Matrix profile
+    mp_ba, ip_ba = _stomp_ab(y, x, m)  # BA Matrix profile
 
     join_mp = np.concatenate([mp_ab, mp_ba])
 
-    k = int(np.ceil(threshold * (len1 + len2)))
+    k = int(np.ceil(threshold * (len(x) + len(y))))
 
-    sorted_mp = np.sort(join_mp)  # sort the join matrix profile in ascending order
+    sorted_mp = np.sort(join_mp)
 
     if len(sorted_mp) > k:
-        mpdist = sorted_mp[k]
+        dist = sorted_mp[k]
     else:
-        mpdist = sorted_mp[len(sorted_mp) - 1]
+        dist = sorted_mp[len(sorted_mp) - 1]
 
-    return mpdist
+    return dist
