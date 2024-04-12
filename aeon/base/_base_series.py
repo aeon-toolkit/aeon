@@ -95,10 +95,6 @@ class BaseSeriesEstimator(BaseEstimator):
             metadata["multivariate"]: whether X has more than one channel or not
             metadata["n_channels"]: number of channels in X
             metadata["missing_values"]: whether X has missing values or not
-
-        See Also
-        --------
-        _convert_X: function that converts to inner type.
         """
         if axis > 1 or axis < 0:
             raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
@@ -177,8 +173,8 @@ class BaseSeriesEstimator(BaseEstimator):
         Parameters
         ----------
         X: one of aeon.base._base_series.VALID_INPUT_TYPES
-           A valid aeon time series data structure. See
-           aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
         axis: int
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -190,10 +186,6 @@ class BaseSeriesEstimator(BaseEstimator):
         -------
         X: one of aeon.base._base_series.VALID_INPUT_TYPES
             Input time series with data structure of type self.get_tag("X_inner_type").
-
-        See Also
-        --------
-        _check_X: function that checks X is valid before conversion.
         """
         if axis > 1 or axis < 0:
             raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
@@ -235,7 +227,7 @@ class BaseSeriesEstimator(BaseEstimator):
                     X = X.T
             else:
                 raise ValueError(
-                    f"Unknown inner type {inner_names[0]} derived from {inner_type}"
+                    f"Unsupported inner type {inner_names[0]} derived from {inner_type}"
                 )
 
         if X.ndim > 1 and self.axis != axis:
@@ -254,8 +246,8 @@ class BaseSeriesEstimator(BaseEstimator):
         Parameters
         ----------
         X: one of aeon.base._base_series.VALID_INPUT_TYPES
-           A valid aeon time series data structure. See
-           aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
         axis: int or None
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -270,11 +262,6 @@ class BaseSeriesEstimator(BaseEstimator):
         -------
         X: one of aeon.base._base_series.VALID_INPUT_TYPES
             Input time series with data structure of type self.get_tag("X_inner_type").
-
-        See Also
-        --------
-        _check_X: function that checks X is valid before conversion.
-        _convert_X: function that converts to inner type.
         """
         if axis is None:
             axis = self.axis
@@ -284,3 +271,38 @@ class BaseSeriesEstimator(BaseEstimator):
             self.metadata_ = meta
 
         return self._convert_X(X, axis)
+
+    def _postprocess_series(self, Xt, axis):
+        """Postprocess data Xt to revert to original shape.
+
+        Parameters
+        ----------
+        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            Intended for algorithms which have another series as output.
+        axis: int or None
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
+            If None, the default class axis is used.
+
+        Returns
+        -------
+        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
+            New time series input reshaped to match the original input.
+        """
+        if axis is None:
+            axis = self.axis
+
+        # If a univariate only transformer, return a univariate series
+        if not self.get_tag("capability:multivariate"):
+            Xt = Xt.squeeze()
+
+        # return with input axis
+        if Xt.ndim == 1 or axis == self.axis:
+            return Xt
+        else:
+            return Xt.T

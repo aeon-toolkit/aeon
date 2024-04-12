@@ -292,7 +292,7 @@ def test_preprocess_series(input_type, inner_type):
     assert dummy.metadata_["n_channels"] == 1
     assert not dummy.metadata_["missing_values"]
 
-    # test multivariate, excludes pd.series input type as it cannot be multivariate
+    # test multivariate, excludes pd.Series input type as it cannot be multivariate
     if input_type != "pd.Series" and inner_type != "pd.Series":
         dummy.set_tags(**{"capability:multivariate": True})
         X = MULTIVARIATE[input_type]
@@ -318,6 +318,57 @@ def test_preprocess_series(input_type, inner_type):
 
         with pytest.raises(ValueError, match="Cannot convert to pd.Series"):
             dummy._preprocess_series(X, axis=1, store_metadata=True)
+
+
+@pytest.mark.parametrize("returned_type", VALID_TYPES)
+def test_postprocess_series(returned_type):
+    """Test data reformatted correctly by _postprocess_series."""
+    dummy = BaseSeriesEstimator(axis=1)
+    # test univariate
+    Xu = UNIVARIATE[returned_type]
+
+    X2 = dummy._postprocess_series(Xu, axis=1)
+    assert X2.ndim == 1
+    assert X2.shape == (20,)
+
+    X3 = dummy._postprocess_series(Xu.T, axis=0)
+    assert X2.shape == X3.shape
+
+    # test multivariate and 2d, excludes pd.Series input type as it is 1D only
+    if returned_type != "pd.Series":
+        Xu = Xu.reshape((1, -1)) if returned_type == "np.ndarray" else Xu
+        Xm = MULTIVARIATE[returned_type]
+
+        X2 = dummy._postprocess_series(Xu, axis=1)
+        assert X2.ndim == 1
+        assert X2.shape == (20,)
+
+        X3 = dummy._postprocess_series(Xu.T, axis=0)
+        assert X2.shape == X3.shape
+
+        X2 = dummy._postprocess_series(Xm, axis=1)
+        assert X2.ndim == 2
+        assert X2.shape == (5, 20)
+
+        X3 = dummy._postprocess_series(Xm.T, axis=0)
+        assert X2.shape == X3.shape
+
+        # multivariate capable estimator
+        dummy.set_tags(**{"capability:multivariate": True})
+
+        X2 = dummy._postprocess_series(Xu, axis=1)
+        assert X2.ndim == 2
+        assert X2.shape == (1, 20)
+
+        X3 = dummy._postprocess_series(Xu.T, axis=0)
+        assert X2.shape == X3.shape
+
+        X2 = dummy._postprocess_series(Xm, axis=1)
+        assert X2.ndim == 2
+        assert X2.shape == (5, 20)
+
+        X3 = dummy._postprocess_series(Xm.T, axis=0)
+        assert X2.shape == X3.shape
 
 
 def test_axis():
