@@ -4,7 +4,8 @@ import numpy as np
 from numba import njit
 
 
-def _sliding_dot_products(q, t, q_len, t_len):
+@njit(cache=True, fastmath=True)
+def _sliding_dot_products(q, t, len_q, len_t):
     """
     Compute the sliding dot products between a query and a time series.
 
@@ -14,32 +15,32 @@ def _sliding_dot_products(q, t, q_len, t_len):
             Query.
         t: numpy.array
             Time series.
-        q_len: int
+        len_q: int
             Length of the query.
-        t_len: int
+        len_t: int
             Length of the time series.
 
     Output
     ------
         dot_prod: numpy.array
-                    Sliding dot products between q and t.
+             Sliding dot products between q and t.
     """
     # Reversing query and padding both query and time series
-    t_padded = np.pad(t, (0, t_len))
-    q_reversed = np.flipud(q)
-    q_reversed_padded = np.pad(q_reversed, (0, 2 * t_len - q_len))
+    padded_t = np.pad(t, (0, len_t))
+    reversed_q = np.flipud(q)
+    padded_reversed_q = np.pad(reversed_q, (0, 2 * len_t - len_q))
 
     # Applying FFT to both query and time series
-    t_fft = np.fft.fft(t_padded)
-    q_fft = np.fft.fft(q_reversed_padded)
+    fft_t = np.fft.fft(padded_t)
+    fft_q = np.fft.fft(padded_reversed_q)
 
     # Applying inverse FFT to obtain the convolution of the time series by
     # the query
-    element_wise_mult = np.multiply(t_fft, q_fft)
+    element_wise_mult = np.multiply(fft_t, fft_q)
     inverse_fft = np.fft.ifft(element_wise_mult)
 
     # Returns only the valid dot products from inverse_fft
-    dot_prod = inverse_fft[q_len - 1 : t_len].real
+    dot_prod = inverse_fft[len_q - 1 : len_t].real
 
     return dot_prod
 
