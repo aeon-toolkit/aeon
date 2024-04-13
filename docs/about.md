@@ -52,7 +52,7 @@ The core developers push forward `aeon`'s development and maintain the package.
 ## History
 
 `aeon` was started in January 2023 as a fork of the `sktime` project by 8 core
-developers using [v0.16.0]()
+developers using [v0.16.0](https://github.com/aeon-toolkit/aeon/releases/tag/sktime-v0.16.0)
 as a base. In following year, the project grew to include an additional 4 core
 developers and was accepted as a NumFOCUS affiliated project in December 2023.
 
@@ -92,7 +92,7 @@ and documentation hosting.
 
 `aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
 
-![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=200px}
+![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=300px}
 
 
 ## Pre-fork Acknowledgements
