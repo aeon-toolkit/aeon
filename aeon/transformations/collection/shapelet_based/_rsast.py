@@ -95,8 +95,7 @@ class RSAST(BaseCollectionTransformer):
         "python_dependencies": ["statsmodels"],
     }
 
-    from statsmodels.tsa.stattools import acf, pacf
-    from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
+
 
     def __init__(
         self,
@@ -118,6 +117,10 @@ class RSAST(BaseCollectionTransformer):
         super().__init__()
         
     def _fit(self, X, y):
+        
+        from statsmodels.tsa.stattools import acf, pacf
+        from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
+        
         """Select reference time series and generate subsequences from them.
 
         Parameters
