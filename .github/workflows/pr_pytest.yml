@@ -87,7 +87,7 @@ jobs:
 
   pytest:
     # skip certain python versions unless the PR has the 'full pytest actions' label
-    if: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pytest actions')) || (runner.python-version != '3.9' && runner.python-version != '3.11')}}
+    if: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pytest actions')) || (matrix.python-version != '3.9' && matrix.python-version != '3.11')}}
 
     needs: test-nosoftdeps
     runs-on: ${{ matrix.os }}
