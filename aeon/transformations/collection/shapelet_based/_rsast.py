@@ -92,12 +92,12 @@ class RSAST(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": False,
         "algorithm_type": "subsequence",
-        "python_dependencies": "statsmodels",
+        "python_dependencies": ["statsmodels"],
     }
 
     from statsmodels.tsa.stattools import acf, pacf
     from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
-    
+
     def __init__(
         self,
         n_random_points=10,
