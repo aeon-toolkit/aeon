@@ -10,24 +10,21 @@ A list of all contributors can be found [here](contributors.md).
 The code of conduct workgroup maintains the code of conduct and handles any
 issues related that arise.
 
-```{eval-rst}
-.. include:: about/code_of_conduct_workgroup.md
+```{include} about/code_of_conduct_workgroup.md
 ```
 
 ### Communications Workgroup
 
 The communications workgroup manages the project's communication channels.
 
-```{eval-rst}
-.. include:: about/communications_workgroup.md
+```{include} about/communications_workgroup.md
 ```
 
 ### Finance Workgroup
 
 The finance workgroup is responsible for managing the project's finances.
 
-```{eval-rst}
-.. include:: about/finance_workgroup.md
+```{include} about/finance_workgroup.md
 ```
 
 ### Infrastructure Workgroup
@@ -35,24 +32,21 @@ The finance workgroup is responsible for managing the project's finances.
 The infrastructure workgroup is responsible for managing the project's infrastructure
 and CI.
 
-```{eval-rst}
-.. include:: about/infrastructure_workgroup.md
+```{include} about/infrastructure_workgroup.md
 ```
 
 ### Release Management Workgroup
 
 The release management workgroup is responsible for managing the project's releases.
 
-```{eval-rst}
-.. include:: about/release_management_workgroup.md
+```{include} about/release_management_workgroup.md
 ```
 
 ### Core Developers
 
 The core developers push forward `aeon`'s development and maintain the package.
 
-```{eval-rst}
-.. include:: about/core_developers.md
+```{include} about/core_developers.md
 ```
 
 ## History
@@ -153,14 +147,14 @@ prior to the projects split. We would like to thank the funders from before the 
   - ![https://opensource.mercedes-benz.com](images/funder_logos/mercedes-benz-logo.png)
 ```
 
-##### Sprints
+__Sprints__
 
 The 2019 joint sktime/MLJ development sprint was kindly hosted by
 [UCL](https://www.ucl.ac.uk) and [The Alan Turing Institute](https://turing.ac.uk).
 Some participants could attend thanks to the initial funding of the
 [The Alan Turing Institute](https://turing.ac.uk).
 
-##### Internships
+__Internships__
 
 [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com),
 [Major League Hacking](https://mlh.io) and [Outreachy](https://www.outreachy.org)
