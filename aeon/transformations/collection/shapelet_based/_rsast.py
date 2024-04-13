@@ -86,9 +86,8 @@ class RSAST(BaseCollectionTransformer):
     >>> X_test = rsast.transform(X_test)
 
     """
-    from statsmodels.tsa.stattools import acf, pacf
-    from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
-    
+
+
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": False,
@@ -96,6 +95,9 @@ class RSAST(BaseCollectionTransformer):
         "python_dependencies": "statsmodels",
     }
 
+    from statsmodels.tsa.stattools import acf, pacf
+    from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
+    
     def __init__(
         self,
         n_random_points=10,
