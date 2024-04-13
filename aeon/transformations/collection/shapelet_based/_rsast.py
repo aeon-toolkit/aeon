@@ -3,9 +3,8 @@ from numba import get_num_threads, njit, prange, set_num_threads
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series
 from aeon.utils.validation import check_n_jobs
-
-
 import pandas as pd
+
 
 @njit(fastmath=False)
 def _apply_kernel(ts, arr):
@@ -86,6 +85,7 @@ class RSAST(BaseCollectionTransformer):
     >>> X_test = rsast.transform(X_test)
 
     """
+
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": False,
@@ -312,4 +312,3 @@ class RSAST(BaseCollectionTransformer):
         set_num_threads(prev_threads)
 
         return X_transformed
-
