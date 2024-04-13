@@ -11,7 +11,7 @@ The code of conduct workgroup maintains the code of conduct and handles any
 issues related that arise.
 
 ```{eval-rst}
-.. include:: about/code_of_conduct_workgroup.rst
+.. include:: about/code_of_conduct_workgroup.md
 ```
 
 ### Communications Workgroup
@@ -19,7 +19,7 @@ issues related that arise.
 The communications workgroup manages the project's communication channels.
 
 ```{eval-rst}
-.. include:: about/communications_workgroup.rst
+.. include:: about/communications_workgroup.md
 ```
 
 ### Finance Workgroup
@@ -27,7 +27,7 @@ The communications workgroup manages the project's communication channels.
 The finance workgroup is responsible for managing the project's finances.
 
 ```{eval-rst}
-.. include:: about/finance_workgroup.rst
+.. include:: about/finance_workgroup.md
 ```
 
 ### Infrastructure Workgroup
@@ -36,7 +36,7 @@ The infrastructure workgroup is responsible for managing the project's infrastru
 and CI.
 
 ```{eval-rst}
-.. include:: about/infrastructure_workgroup.rst
+.. include:: about/infrastructure_workgroup.md
 ```
 
 ### Release Management Workgroup
@@ -44,7 +44,7 @@ and CI.
 The release management workgroup is responsible for managing the project's releases.
 
 ```{eval-rst}
-.. include:: about/release_management_workgroup.rst
+.. include:: about/release_management_workgroup.md
 ```
 
 ### Core Developers
@@ -52,46 +52,15 @@ The release management workgroup is responsible for managing the project's relea
 The core developers push forward `aeon`'s development and maintain the package.
 
 ```{eval-rst}
-.. include:: about/core_developers.rst
+.. include:: about/core_developers.md
 ```
-
-#### Pre-fork Core Developers
-
-The following listed contributors were part of the sktime core developer team at some
-point prior to the split of the project.
-
-<details><summary>sktime v0.16.0 core developers</summary>
-<p>
-
-- {user}`abostrom`
-- {user}`ayushmaanseth`
-- {user}`goastler`
-- {user}`hyang1996`
-- {user}`james-large`
-- {user}`jasonlines`
-- {user}`matteogales`
-- {user}`prockenschaub`
-- {user}`sajaysurya`
-- {user}`fkiraly`
-- {user}`mloning`
-- {user}`miraep8`
-- {user}`rnkuhns`
-- {user}`achieveordie`
-- {user}`khrapovs`
-- {user}`SveaMeyer13`
-- {user}`lovkush-a`
-- {user}`freddyaboulton`
-- {user}`danbartl`
-- {user}`big-o`
-
-</p>
-</details>
 
 ## History
 
-`aeon` was started in January 2023 as a fork of the
-[sktime project](https://pypi.org/project/sktime/0.16.0/) by 8 core developers using
-v0.16.0 as a base.
+`aeon` was started in January 2023 as a fork of the `sktime` project by 8 core
+developers using [v0.16.0]()
+as a base. In following year, the project grew to include an additional 4 core
+developers and was accepted as a NumFOCUS affiliated project in December 2023.
 
 ## Artwork
 
@@ -119,13 +88,56 @@ The project developers would like to thank the following funders.
   - ![https://epsrc.ukri.org](images/funder_logos/ukri-epsrc-logo.png)
 ```
 
-#### Pre-fork funding
+## Infrastructure
 
-As a fork of the sktime project, `aeon` has benefited from funding given to sktime prior
-to the projects split. We would like to thank the funders from before the split.
+We would also like to thank [GitHub Actions](https://github.com/features/actions)
+and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers
+and documentation hosting.
+
+## Affiliation
+
+`aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
+
+![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=200px}
+
+
+## Pre-fork Acknowledgements
+
+<details><summary>sktime v0.16.0 core developers</summary>
+<p>
+
+The following listed contributors were part of the `sktime` core developer team at some
+point prior to the split of the project.
+
+- {user}`abostrom`
+- {user}`ayushmaanseth`
+- {user}`goastler`
+- {user}`hyang1996`
+- {user}`james-large`
+- {user}`jasonlines`
+- {user}`matteogales`
+- {user}`prockenschaub`
+- {user}`sajaysurya`
+- {user}`fkiraly`
+- {user}`mloning`
+- {user}`miraep8`
+- {user}`rnkuhns`
+- {user}`achieveordie`
+- {user}`khrapovs`
+- {user}`SveaMeyer13`
+- {user}`lovkush-a`
+- {user}`freddyaboulton`
+- {user}`danbartl`
+- {user}`big-o`
+
+</p>
+</details>
 
 <details><summary>sktime v0.16.0 funders</summary>
 <p>
+
+As a fork of the `sktime` project, `aeon` has benefited from funding given to `sktime`
+prior to the projects split. We would like to thank the funders from before the split.
 
 ```{list-table}
 :widths: 50 50
@@ -188,16 +200,3 @@ Outreachy.
 
 </p>
 </details>
-
-
-## Infrastructure
-
-We would also like to thank [GitHub Actions](https://github.com/features/actions)
-and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers
-and documentation hosting.
-
-## Affiliation
-
-`aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
-
-![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=200px}
