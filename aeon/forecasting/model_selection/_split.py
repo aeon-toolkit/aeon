@@ -16,9 +16,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split as _train_test_split
 
 from aeon.base import BaseObject
+from aeon.datatypes import convert_to
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._fh import VALID_FORECASTING_HORIZON_TYPES
-from aeon.utils.conversion import convert_collection, convert_series
 from aeon.utils.index_functions import get_index_for_series, get_time_index, get_window
 from aeon.utils.validation import (
     ACCEPTED_WINDOW_LENGTH_TYPES,
@@ -28,8 +28,11 @@ from aeon.utils.validation import (
     array_is_datetime64,
     array_is_int,
     check_window_length,
+    is_collection,
     is_datetime,
+    is_hierarchical,
     is_int,
+    is_single_series,
     is_timedelta,
     is_timedelta_or_date_offset,
     validate_input,
@@ -466,6 +469,8 @@ class BaseSplitter(BaseObject):
         for train, test in self.split(y.index):
             y_train = y.iloc[train]
             y_test = y.iloc[test]
+            y_train = convert_to(y_train, y_orig_mtype)
+            y_test = convert_to(y_test, y_orig_mtype)
             yield y_train, y_test
 
     def _coerce_to_index(self, y: ACCEPTED_Y_TYPES) -> pd.Index:
@@ -494,12 +499,12 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
+        y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D), optional (default=None)
             Time series to check, must conform with one of the aeon type conventions.
 
         Returns
         -------
-        y_inner : time series y as pd.Series or pd.DataFrame
+        y_inner : time series y coerced to one of the aeon pandas based mtypes:
             pd.DataFrame, pd.Series, pd-multiindex, pd_multiindex_hier
             returns pd.Series only if y was pd.Series, otherwise a pandas.DataFrame
         y_mtype : original mtype of y
@@ -508,8 +513,7 @@ class BaseSplitter(BaseObject):
         ------
         TypeError if y is not one of the permissible mtypes
         """
-        valid, y_metadata = validate_input(y)
-        if not valid:
+        if not (is_hierarchical(y) or is_collection(y) or is_single_series(y)):
             raise TypeError(
                 "y must be in an aeon compatible format, "
                 "of scitype Series, Panel or Hierarchical, "
@@ -520,16 +524,10 @@ class BaseSplitter(BaseObject):
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
             )
-        y_inner = y
-        if isinstance(y, np.ndarray):
-            if y_metadata["scitype"] == "Series":
-                if y_metadata["is_univariate"]:
-                    y_inner = convert_series(y, output_type="pd.Series")
-                else:
-                    y_inner = convert_series(y, output_type="pd.DataFrame")
-            elif y_metadata["scitype"] == "Panel":
-                y_inner = convert_collection(y, output_type="pd-multiindex")
-            # If hierarchical, it is already in the correct format
+        _, y_metadata = validate_input(y)
+
+        y_inner = convert_to(y, to_type=PANDAS_MTYPES)
+
         mtype = y_metadata["mtype"]
 
         return y_inner, mtype

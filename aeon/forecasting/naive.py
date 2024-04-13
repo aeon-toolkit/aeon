@@ -11,10 +11,10 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
+from aeon.datatypes._convert import convert, convert_to
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA, BaseForecaster
-from aeon.utils.conversion import convert_series
 from aeon.utils.index_functions import get_slice
 from aeon.utils.validation import check_window_length
 from aeon.utils.validation.forecasting import check_sp
@@ -362,8 +362,7 @@ class NaiveForecaster(_BaseWindowForecaster):
                 at quantile probability in second-level col index, for each row index.
         """
         y_pred = self.predict(fh)
-
-        y_pred = convert_series(y_pred, output_type="pd.Series")
+        y_pred = convert(y_pred, from_type=self._y_mtype_last_seen, to_type="pd.Series")
 
         pred_var = self.predict_var(fh)
         z_scores = norm.ppf(alpha)
@@ -411,7 +410,7 @@ class NaiveForecaster(_BaseWindowForecaster):
         .. [1] https://otexts.com/fpp3/prediction-intervals.html#benchmark-methods
         """
         y = self._y
-        y = convert_series(y, "pd.Series")
+        y = convert_to(y, "pd.Series")
         T = len(y)
         sp = self.sp
 
@@ -651,7 +650,7 @@ class NaiveVariance(BaseForecaster):
                 at quantile probability in second-level col index, for each row index.
         """
         y_pred = self.predict(fh, X)
-        y_pred = convert_series(y_pred, output_type="pd.Series")
+        y_pred = convert(y_pred, from_type=self._y_mtype_last_seen, to_type="pd.Series")
         pred_var = self.predict_var(fh, X)
         pred_var = pred_var[pred_var.columns[0]]
         pred_var.index = y_pred.index
@@ -754,7 +753,7 @@ class NaiveVariance(BaseForecaster):
             [i,j]-th entry is signed residual of forecasting y.loc[j] from y.loc[:i],
             using a clone of the forecaster passed through the forecaster arg
         """
-        y = convert_series(y, "pd.Series")
+        y = convert_to(y, "pd.Series")
 
         y_index = y.index[initial_window:]
         residuals_matrix = pd.DataFrame(columns=y_index, index=y_index, dtype="float")

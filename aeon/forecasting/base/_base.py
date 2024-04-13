@@ -396,8 +396,7 @@ class BaseForecaster(BaseEstimator):
             # otherwise we call the vectorized version of predict
             y_pred = self._vectorize("predict", X=X_inner, fh=fh)
 
-        # convert to output type, identical with last y type seen
-
+        # convert to output mtype, identical with last y mtype seen
         y_out = convert_to(
             y_pred,
             self._y_mtype_last_seen,
@@ -1412,7 +1411,6 @@ class BaseForecaster(BaseEstimator):
 
         if not requires_vectorization:
             # converts y, skips conversion if already of right type
-
             y_inner = convert_to(
                 y,
                 to_type=y_inner_type,

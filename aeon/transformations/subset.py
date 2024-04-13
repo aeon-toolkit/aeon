@@ -15,8 +15,8 @@ class IndexSubset(BaseTransformer):
     If `y` is None, returns `X` without subsetting.
     numpy-based `X` are interpreted as having a RangeIndex starting at n,
     where n is the number of numpy rows seen so far through `fit` and `update`.
-    Non-pandas types are interpreted as having index as after conversion to the
-    `"pd.DataFrame"` aeon type.
+    Non-pandas types are interpreted as having index as after conversion to pandas,
+    via `datatypes.convert_to`, to the `"pd.DataFrame"` aeon type.
 
     Parameters
     ----------
