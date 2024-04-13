@@ -4,6 +4,22 @@ import numpy as np
 from numba import njit
 
 
+def precompute_fft(x):
+    return np.fft.fft(x)
+
+
+def precompute_ifft(x):
+    return np.fft.ifft(x)
+
+
+# Custom function to pad array
+@njit(cache=True, fastmath=True)
+def custom_pad(x, padding):
+    padded_x = np.zeros(len(x) + padding[1])
+    padded_x[: len(x)] = x
+    return padded_x.astype(x.dtype)
+
+
 @njit(cache=True, fastmath=True)
 def _sliding_dot_products(q, t, len_q, len_t):
     """
@@ -26,18 +42,18 @@ def _sliding_dot_products(q, t, len_q, len_t):
              Sliding dot products between q and t.
     """
     # Reversing query and padding both query and time series
-    padded_t = np.pad(t, (0, len_t))
+    padded_t = custom_pad(t, (0, len_t))
     reversed_q = np.flipud(q)
-    padded_reversed_q = np.pad(reversed_q, (0, 2 * len_t - len_q))
+    padded_reversed_q = custom_pad(reversed_q, (0, 2 * len_t - len_q))
 
     # Applying FFT to both query and time series
-    fft_t = np.fft.fft(padded_t)
-    fft_q = np.fft.fft(padded_reversed_q)
+    fft_t = precompute_fft(padded_t)
+    fft_q = precompute_fft(padded_reversed_q)
 
     # Applying inverse FFT to obtain the convolution of the time series by
     # the query
     element_wise_mult = np.multiply(fft_t, fft_q)
-    inverse_fft = np.fft.ifft(element_wise_mult)
+    inverse_fft = precompute_ifft(element_wise_mult)
 
     # Returns only the valid dot products from inverse_fft
     dot_prod = inverse_fft[len_q - 1 : len_t].real
