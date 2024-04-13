@@ -86,16 +86,12 @@ class RSAST(BaseCollectionTransformer):
     >>> X_test = rsast.transform(X_test)
 
     """
-
-
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": False,
         "algorithm_type": "subsequence",
         "python_dependencies": ["statsmodels"],
     }
-
-
 
     def __init__(
         self,
