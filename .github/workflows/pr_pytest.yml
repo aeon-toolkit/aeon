@@ -86,6 +86,9 @@ jobs:
         run: python -m pytest -k 'not TestAll' --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   pytest:
+    # skip certain python versions unless the PR has the 'full pytest actions' label
+    if: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pytest actions')) || (runner.python-version != '3.9' && runner.python-version != '3.11')}}
+
     needs: test-nosoftdeps
     runs-on: ${{ matrix.os }}
 
@@ -93,7 +96,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macOS-13, windows-2022 ]
-        python-version: [ "3.8", "3.10", "3.12" ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
       - name: Checkout main
