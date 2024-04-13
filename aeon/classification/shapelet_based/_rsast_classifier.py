@@ -17,7 +17,7 @@ from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.shapelet_based import RSAST
 from aeon.utils.numba.general import z_normalise_series
-import matplotlib.pyplot as plt
+
 
 
 class RSASTClassifier(BaseClassifier):
@@ -159,7 +159,7 @@ class RSASTClassifier(BaseClassifier):
         return dists
 
     def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
-        
+        import matplotlib.pyplot as plt
         """Plot the most important features on ts.
 
         Parameters

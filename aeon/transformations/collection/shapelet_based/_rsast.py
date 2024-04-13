@@ -3,8 +3,8 @@ from numba import get_num_threads, njit, prange, set_num_threads
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series
 from aeon.utils.validation import check_n_jobs
-from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
-from statsmodels.tsa.stattools import acf, pacf
+
+
 import pandas as pd
 
 @njit(fastmath=False)
@@ -86,11 +86,14 @@ class RSAST(BaseCollectionTransformer):
     >>> X_test = rsast.transform(X_test)
 
     """
+    from statsmodels.tsa.stattools import acf, pacf
+    from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
     
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": False,
         "algorithm_type": "subsequence",
+        "python_dependencies": "statsmodels",
     }
 
     def __init__(
