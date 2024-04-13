@@ -111,7 +111,7 @@ class RSAST(BaseCollectionTransformer):
         self._kernel_orig = []
         self._kernels_generators = {}  # Reference time series
         super().__init__()
-        
+
     def _fit(self, X, y):
         
         from statsmodels.tsa.stattools import acf, pacf
@@ -285,7 +285,7 @@ class RSAST(BaseCollectionTransformer):
             self._kernels[k, :len(kernel)] = z_normalise_series(kernel)
         
         return self
-    
+
     def _transform(self, X, y=None):
         """Transform the input X using the generated subsequences.
         Parameters
