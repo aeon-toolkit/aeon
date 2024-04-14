@@ -96,7 +96,7 @@ jobs:
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
         # skip certain python versions unless the PR has the 'full pytest actions' label
         pr-testing:
-          - ${{ (github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions'))
+          - ${{ (github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
         exclude:
           - pr-testing: false
             python-version: ["3.9", "3.11"]
