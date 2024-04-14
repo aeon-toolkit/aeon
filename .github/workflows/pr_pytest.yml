@@ -95,10 +95,13 @@ jobs:
         os: [ ubuntu-20.04, macOS-13, windows-2022 ]
         python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
-    # skip certain python versions unless the PR has the 'full pytest actions' label
-    if: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pytest actions')) || (matrix.python-version != '3.9' && matrix.python-version != '3.11')}}
 
     steps:
+      - if: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pytest actions')) || (matrix.python-version != '3.9' && matrix.python-version != '3.11')}}
+        name: Skip matrix job
+        # skip certain python versions unless the PR has the 'full pytest actions' label
+        run: exit 78
+
       - name: Checkout main
         uses: actions/checkout@v4
 
