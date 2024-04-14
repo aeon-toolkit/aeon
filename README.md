@@ -79,6 +79,12 @@ pred = forecaster.predict(fh=[1, 2, 3])  # forecast the next 3 values
 
 ### Classification
 
+#### Note: 
+* It's worth mentioning that the classifier used in the example can easily be
+swapped out for a regressor, and the labels for numeric targets. This flexibility
+allowing for seamless adaptation to different tasks and datasets while preserving
+API consistency. *
+
 ```python
 import numpy as np
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
@@ -100,12 +106,6 @@ X_test = np.array(
 y_pred = clf.predict(X_test)  # make class predictions on new data
 >>> ['low' 'high' 'high']
 ``` 
-
-#### Note: The API for Regressors is similar to that of Classifiers.
-*For Example:*
-```
-from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-```
 
 ### Clustering
 
