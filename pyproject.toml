@@ -51,7 +51,7 @@ dependencies = [
     "numpy>=1.21.0,<1.27.0",
     "packaging>=20.0",
     "pandas>=1.5.3,<2.1.0",
-    "scikit-learn>=1.0.0,<1.4.2",
+    "scikit-learn>=1.0.0,<1.5.0",
     "scipy>=1.2.0,<1.13.0",
     "typing-extensions>=4.6.0",
 ]
@@ -74,7 +74,7 @@ all_extras = [
     "pydot>=2.0.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
-    "statsforecast>=0.5.2,<1.7.4",
+    "statsforecast>=0.5.2",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
@@ -89,6 +89,8 @@ all_extras = [
     # later versions of pyarrow
     "pyarrow<12; python_version < '3.12'",
     "pyarrow-hotfix; python_version < '3.12'",
+
+    "utilsforecast<0.1.3",
 ]
 dl = [
     "keras-self-attention",
