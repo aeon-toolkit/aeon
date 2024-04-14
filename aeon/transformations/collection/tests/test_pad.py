@@ -93,7 +93,7 @@ def test_padding_fill_too_short_pad_value():
 
 @pytest.mark.parametrize(
     "fill_value",
-    ["mean", "median", "max", "min", np.random.random(size=10)],
+    ["mean", "median", "max", "min", np.random.random(size=(10, 2))],
 )
 def test_fill_value_with_string_params(fill_value):
     """Test if the fill_value argument returns  the correct results."""
