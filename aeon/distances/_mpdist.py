@@ -4,23 +4,6 @@ import numpy as np
 from numba import njit
 
 
-def precompute_fft(x):
-    return np.fft.fft(x)
-
-
-def precompute_ifft(x):
-    return np.fft.ifft(x)
-
-
-# Custom function to pad array
-@njit(cache=True, fastmath=True)
-def custom_pad(x, padding):
-    padded_x = np.zeros(len(x) + padding[1])
-    padded_x[: len(x)] = x
-    return padded_x.astype(x.dtype)
-
-
-@njit(cache=True, fastmath=True)
 def _sliding_dot_products(q, t, len_q, len_t):
     """
     Compute the sliding dot products between a query and a time series.
@@ -42,18 +25,18 @@ def _sliding_dot_products(q, t, len_q, len_t):
              Sliding dot products between q and t.
     """
     # Reversing query and padding both query and time series
-    padded_t = custom_pad(t, (0, len_t))
+    padded_t = np.pad(t, (0, len_t))
     reversed_q = np.flipud(q)
-    padded_reversed_q = custom_pad(reversed_q, (0, 2 * len_t - len_q))
+    padded_reversed_q = np.pad(reversed_q, (0, 2 * len_t - len_q))
 
     # Applying FFT to both query and time series
-    fft_t = precompute_fft(padded_t)
-    fft_q = precompute_fft(padded_reversed_q)
+    fft_t = np.fft.fft(padded_t)
+    fft_q = np.fft.fft(padded_reversed_q)
 
     # Applying inverse FFT to obtain the convolution of the time series by
     # the query
     element_wise_mult = np.multiply(fft_t, fft_q)
-    inverse_fft = precompute_ifft(element_wise_mult)
+    inverse_fft = np.fft.ifft(element_wise_mult)
 
     # Returns only the valid dot products from inverse_fft
     dot_prod = inverse_fft[len_q - 1 : len_t].real
@@ -112,7 +95,13 @@ def _calculate_distance_profile(
 
 
 @njit(cache=True, fastmath=True)
-def _stomp_ab(x: np.ndarray, y: np.ndarray, m: int):
+def _stomp_ab(
+    x: np.ndarray,
+    y: np.ndarray,
+    m: int,
+    first_dot_prod: np.ndarray,
+    dot_prod: np.ndarray,
+):
     """
     STOMP implementation for AB similarity join.
 
@@ -124,6 +113,10 @@ def _stomp_ab(x: np.ndarray, y: np.ndarray, m: int):
             Second time series.
         m: int
             Length of the subsequences.
+        first_dot_prod: np.ndarray
+            The distance profile for the first y subsequence.
+        dot_prod: np.ndarray
+            the distance profile for the first x subsequence.
 
     Output
     ------
@@ -156,15 +149,10 @@ def _stomp_ab(x: np.ndarray, y: np.ndarray, m: int):
         y_mean.append(np.mean(y[i : i + m]))
         y_std.append(np.std(y[i : i + m]))
 
-    # Compute the distance profile for the first y subsequence
-    first_dot_prod = _sliding_dot_products(y[0:m], x, m, len_x)
-
     # Initialization
-    mp = np.full(subs_x, float("inf"))  # matrix profile
+    mp = np.full(subs_x, np.inf)  # matrix profile
     ip = np.zeros(subs_x)  # index profile
 
-    # Compute the distance profile for the first x subsequence
-    dot_prod = _sliding_dot_products(x[0:m], y, m, len_y)
     dp = _calculate_distance_profile(
         dot_prod, x_mean[0], x_std[0], y_mean, y_std, m, subs_y
     )
@@ -178,8 +166,7 @@ def _stomp_ab(x: np.ndarray, y: np.ndarray, m: int):
             dot_prod[j] = (
                 dot_prod[j - 1] - y[j - 1] * x[i - 1] + y[j - 1 + m] * x[i - 1 + m]
             )
-
-            # Compute the next dot products using previous ones
+        # Compute the next dot products using previous ones
         dot_prod[0] = first_dot_prod[i]
         dp = _calculate_distance_profile(
             dot_prod, x_mean[i], x_std[i], y_mean, y_std, m, subs_y
@@ -190,9 +177,8 @@ def _stomp_ab(x: np.ndarray, y: np.ndarray, m: int):
     return mp, ip
 
 
-@njit(cache=True, fastmath=True)
 def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
-    r"""Matrix Profile Distance.
+    """Matrix Profile Distance.
 
     Parameters
     ----------
@@ -217,8 +203,8 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     --------
     >>> import numpy as np
     >>> from aeon.distances import euclidean_distance
-    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
+    >>> x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> y = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     >>> mpdist(x, y)
     31.622776601683793
     """
@@ -227,12 +213,22 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     raise ValueError("x and y must be a 1D array of shape (n_timepoints,)")
 
 
-@njit(cache=True, fastmath=True)
 def _mpdist(x: np.ndarray, y: np.ndarray, m: int) -> float:
     threshold = 0.05
+    len_x = len(x)
+    len_y = len(y)
 
-    mp_ab, ip_ab = _stomp_ab(x, y, m)  # AB Matrix profile
-    mp_ba, ip_ba = _stomp_ab(y, x, m)  # BA Matrix profile
+    first_dot_prod_ab = _sliding_dot_products(y[0:m], x, m, len_x)
+    dot_prod_ab = _sliding_dot_products(x[0:m], y, m, len_y)
+    mp_ab, ip_ab = _stomp_ab(
+        x, y, m, first_dot_prod_ab, dot_prod_ab
+    )  # AB Matrix profile
+
+    first_dot_prod_ba = _sliding_dot_products(x[0:m], y, m, len_y)
+    dot_prod_ba = _sliding_dot_products(y[0:m], x, m, len_x)
+    mp_ba, ip_ba = _stomp_ab(
+        y, x, m, first_dot_prod_ba, dot_prod_ba
+    )  # BA Matrix profile
 
     join_mp = np.concatenate([mp_ab, mp_ba])
 
