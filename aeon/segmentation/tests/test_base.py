@@ -1,6 +1,7 @@
 """Test base segmenter."""
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from aeon.segmentation.base import BaseSegmenter
@@ -53,3 +54,31 @@ def test_to_clusters():
     assert np.array_equal(labels, np.array([0, 0, 1, 1, 1, 1, 1, 1, 2, 2]))
     labels = BaseSegmenter.to_clusters([1, 2, 3], 4)
     assert np.array_equal(labels, np.array([0, 1, 2, 3]))
+
+
+INPUT_CORRECT = [
+    np.array([0, 0, 0, 1, 1]),
+    pd.Series([0, 0, 0, 1, 1]),
+    pd.DataFrame([0, 0, 0, 1, 1]),
+]
+INPUT_WRONG = [
+    np.array([[0, 0, 0, 1, 1, 2], [0, 0, 0, 1, 1, 2]]),
+    pd.DataFrame([[0, 0, 0, 1, 1, 2], [0, 0, 0, 1, 1, 2]]),
+    np.array([0, 0, 0, 1, "FOO"]),
+    pd.Series([0, 0, 0, 1, "FOO"]),
+    pd.DataFrame([0, 0, 0, 1, "FOO"]),
+    "Up the arsenal",
+]
+
+
+@pytest.mark.parametrize("y_correct", INPUT_CORRECT)
+def test_check_y_correct(y_correct):
+    """Test the _check_y method with correct input."""
+    assert BaseSegmenter._check_y(None, y_correct) is None
+
+
+@pytest.mark.parametrize("y_wrong", INPUT_WRONG)
+def test_check_y_wrong(y_wrong):
+    """Test the _check_y method with incorrect input."""
+    with pytest.raises(ValueError, match="Error in input type for y"):
+        BaseSegmenter._check_y(None, y_wrong)

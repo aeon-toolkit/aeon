@@ -70,7 +70,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         self.reset()
         if axis is None:  # If none given, assume it is correct.
             axis = self.axis
-        X = self._preprocess_series(X, axis=axis)
+        X = self._preprocess_series(X, axis=axis, store_metadata=True)
         if y is not None:
             self._check_y(y)
         self._fit(X=X, y=y)
@@ -109,7 +109,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
         if axis is None:
             axis = self.axis
-        X = self._preprocess_series(X, axis=axis)
+        X = self._preprocess_series(
+            X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
+        )
         Xt = self._transform(X)
         return self._postprocess_series(Xt, axis=axis)
 
@@ -145,7 +147,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # input checks and datatype conversion, to avoid doing in both fit and transform
         self.reset()
-        X = self._preprocess_series(X, axis=axis)
+        X = self._preprocess_series(X, axis=axis, store_metadata=True)
         Xt = self._fit_transform(X=X, y=y)
         self._is_fitted = True
         return self._postprocess_series(Xt, axis=axis)
@@ -179,7 +181,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(X, axis=axis)
+        X = self._preprocess_series(
+            X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
+        )
         Xt = self._inverse_transform(X=X, y=y)
         return self._postprocess_series(Xt, axis=axis)
 
@@ -204,7 +208,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(X, axis=axis)
+        X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
         return self._update(X=X, y=y, update_params=update_params)
 
     def _fit(self, X, y=None):
