@@ -97,6 +97,9 @@ class RSASTClassifier(BaseClassifier):
             This pipeline classifier
 
         """
+        from statsmodels.tsa.stattools import acf, pacf
+        from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
+        
         self._transformer = RSAST(
             self.n_random_points,
             self.len_method,
