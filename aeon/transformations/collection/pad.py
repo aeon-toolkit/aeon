@@ -169,6 +169,6 @@ class PaddingTransformer(BaseCollectionTransformer):
                 )
                 temp_array.append(padded_array)
             Xt.append(temp_array)
-        Xt = np.array(Xt, dtype="object")
+        Xt = np.array(Xt)
 
         return Xt
