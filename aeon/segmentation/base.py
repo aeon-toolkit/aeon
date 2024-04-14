@@ -7,8 +7,10 @@ from abc import ABC, abstractmethod
 from typing import List, final
 
 import numpy as np
+import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
+from aeon.base._base_series import VALID_INPUT_TYPES
 
 
 class BaseSegmenter(BaseSeriesEstimator, ABC):
@@ -150,7 +152,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         self.reset()
         if axis is None:  # If none given, assume it is correct.
             axis = self.axis
-        X = self._preprocess_series(X, axis)
+        X = self._preprocess_series(X, axis, True)
         if y is not None:
             y = self._check_y(y)
         self._fit(X=X, y=y)
@@ -184,7 +186,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         self.check_is_fitted()
         if axis is None:
             axis = self.axis
-        X = self._preprocess_series(X, axis)
+        X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
         return self._predict(X)
 
     def fit_predict(self, X, y=None, axis=None):
@@ -202,6 +204,48 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
     def _predict(self, X) -> np.ndarray:
         """Create and return a segmentation of X."""
         ...
+
+    def _check_y(self, y: VALID_INPUT_TYPES):
+        """Check y specific to segmentation.
+
+        y must be a univariate series
+        """
+        if type(y) not in VALID_INPUT_TYPES:
+            raise ValueError(
+                f"Error in input type for y: it should be one of "
+                f"{VALID_INPUT_TYPES}, saw {type(y)}"
+            )
+        if isinstance(y, np.ndarray):
+            # Check valid shape
+            if y.ndim > 1:
+                raise ValueError(
+                    "Error in input type for y: y input as np.ndarray " "should be 1D"
+                )
+            if not (
+                issubclass(y.dtype.type, np.integer)
+                or issubclass(y.dtype.type, np.floating)
+            ):
+                raise ValueError(
+                    "Error in input type for y: y input must contain " "floats or ints"
+                )
+        elif isinstance(y, pd.Series):
+            if not pd.api.types.is_numeric_dtype(y):
+                raise ValueError(
+                    "Error in input type for y: y input as pd.Series must be numeric"
+                )
+        else:  # pd.DataFrame
+            if y.shape[1] > 2:
+                raise ValueError(
+                    "Error in input type for y: y input as pd.DataFrame "
+                    "should have a single "
+                    "column series"
+                )
+
+            if not all(pd.api.types.is_numeric_dtype(y[col]) for col in y.columns):
+                raise ValueError(
+                    "Error in input type for y: y input as pd.DataFrame "
+                    "must be numeric"
+                )
 
     @classmethod
     def to_classification(cls, change_points: List[int], length: int):
