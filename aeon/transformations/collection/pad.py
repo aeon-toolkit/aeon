@@ -92,7 +92,7 @@ class PaddingTransformer(BaseCollectionTransformer):
                 self.fill_value = np.zeros((len(X), X[0].shape[0]))
                 for i, series in enumerate(X):
                     for j, channel in enumerate(series):
-                        self.fill_value[i][j] = channel.mean()
+                        self.fill_value[i][j] = np.mean(channel)
             elif self.fill_value == "median":
                 self.fill_value = np.zeros((len(X), X[0].shape[0]))
                 for i, series in enumerate(X):
@@ -102,12 +102,12 @@ class PaddingTransformer(BaseCollectionTransformer):
                 self.fill_value = np.zeros((len(X), X[0].shape[0]))
                 for i, series in enumerate(X):
                     for j, channel in enumerate(series):
-                        self.fill_value[i][j] = channel.min()
+                        self.fill_value[i][j] = np.min(channel)
             elif self.fill_value == "max":
                 self.fill_value = np.zeros((len(X), X[0].shape[0]))
                 for i, series in enumerate(X):
                     for j, channel in enumerate(series):
-                        self.fill_value[i][j] = channel.max()
+                        self.fill_value[i][j] = np.max(channel)
             else:
                 raise ValueError(
                     "Supported modes are mean, median, min, max. \
