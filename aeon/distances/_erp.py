@@ -2,7 +2,7 @@ r"""Edit real penalty (erp) distance between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple
 
 import numpy as np
 from numba import njit
@@ -20,10 +20,10 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def erp_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.0,
-    g_arr: np.ndarray = None,
-    itakura_max_slope: float = None,
+    g_arr: Optional[np.ndarray] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the ERP distance between two time series.
 
@@ -115,10 +115,10 @@ def erp_distance(
 def erp_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
-    g: Union[float, np.ndarray] = 0.0,
-    g_arr: np.ndarray = None,
-    itakura_max_slope: float = None,
+    window: Optional[float] = None,
+    g: float = 0.0,
+    g_arr: Optional[np.ndarray] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the ERP cost matrix between two time series.
 
@@ -190,7 +190,7 @@ def _erp_distance(
     y: np.ndarray,
     bounding_matrix: np.ndarray,
     g: float,
-    g_arr: np.ndarray,
+    g_arr: Optional[np.ndarray],
 ) -> float:
     return _erp_cost_matrix(x, y, bounding_matrix, g, g_arr)[
         x.shape[1] - 1, y.shape[1] - 1
@@ -203,7 +203,7 @@ def _erp_cost_matrix(
     y: np.ndarray,
     bounding_matrix: np.ndarray,
     g: float,
-    g_arr: np.ndarray,
+    g_arr: Optional[np.ndarray],
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -231,7 +231,7 @@ def _erp_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _precompute_g(
-    x: np.ndarray, g: float, g_array: np.ndarray
+    x: np.ndarray, g: float, g_array: Optional[np.ndarray]
 ) -> Tuple[np.ndarray, float]:
     gx_distance = np.zeros(x.shape[1])
     if g_array is None:
@@ -252,11 +252,11 @@ def _precompute_g(
 @njit(cache=True, fastmath=True)
 def erp_pairwise_distance(
     X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    y: Optional[np.ndarray] = None,
+    window: Optional[float] = None,
     g: float = 0.0,
-    g_arr: np.ndarray = None,
-    itakura_max_slope: float = None,
+    g_arr: Optional[np.ndarray] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the ERP pairwise distance between a set of time series.
 
@@ -318,7 +318,7 @@ def erp_pairwise_distance(
            [12., 21., 30.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> erp_pairwise_distance(X, y_univariate)
     array([[30.],
            [21.],
@@ -331,7 +331,7 @@ def erp_pairwise_distance(
         if X.ndim == 2:
             _X = X.reshape((X.shape[0], 1, X.shape[1]))
             return _erp_pairwise_distance(_X, window, g, g_arr, itakura_max_slope)
-        raise ValueError("x and y must be 2D or 3D arrays")
+        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     _x, _y = reshape_pairwise_to_multiple(X, y)
     return _erp_from_multiple_to_multiple_distance(
         _x, _y, window, g, g_arr, itakura_max_slope
@@ -341,10 +341,10 @@ def erp_pairwise_distance(
 @njit(cache=True, fastmath=True)
 def _erp_pairwise_distance(
     X: np.ndarray,
-    window: float,
+    window: Optional[float],
     g: float,
-    g_arr: np.ndarray,
-    itakura_max_slope: float,
+    g_arr: Optional[np.ndarray],
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = X.shape[0]
     distances = np.zeros((n_cases, n_cases))
@@ -364,10 +364,10 @@ def _erp_pairwise_distance(
 def _erp_from_multiple_to_multiple_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float,
+    window: Optional[float],
     g: float,
-    g_arr: np.ndarray,
-    itakura_max_slope: float,
+    g_arr: Optional[np.ndarray],
+    itakura_max_slope: Optional[float],
 ) -> np.ndarray:
     n_cases = x.shape[0]
     m_cases = y.shape[0]
@@ -386,10 +386,10 @@ def _erp_from_multiple_to_multiple_distance(
 def erp_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     g: float = 0.0,
-    g_arr: np.ndarray = None,
-    itakura_max_slope: float = None,
+    g_arr: Optional[np.ndarray] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ERP alignment path between two time series.
 

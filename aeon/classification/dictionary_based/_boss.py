@@ -7,7 +7,6 @@ Contains a single BOSS and a BOSS ensemble.
 __maintainer__ = []
 __all__ = ["BOSSEnsemble", "IndividualBOSS", "pairwise_distances"]
 
-import warnings
 from itertools import compress
 
 import numpy as np
@@ -58,11 +57,6 @@ class BOSSEnsemble(BaseClassifier):
         Maximum window length as a proportion of the series length.
     min_window : int, default=10
         Minimum window size.
-    save_train_predictions : bool, default="deprecated"
-        Save the ensemble member train predictions in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
     feature_selection : str, default: "none"
         Sets the feature selections strategy to be usedfrom  {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
@@ -134,7 +128,6 @@ class BOSSEnsemble(BaseClassifier):
         max_ensemble_size=500,
         max_win_len_prop=1,
         min_window=10,
-        save_train_predictions="deprecated",
         feature_selection="none",
         use_boss_distance=True,
         alphabet_size=4,
@@ -158,15 +151,6 @@ class BOSSEnsemble(BaseClassifier):
         self._word_lengths = [16, 14, 12, 10, 8]
         self._norm_options = [True, False]
         self.alphabet_size = alphabet_size
-
-        # TODO remove 'save_train_predictions' in v0.8.0
-        self.save_train_predictions = save_train_predictions
-        if save_train_predictions != "deprecated":
-            warnings.warn(
-                "the save_train_predictions parameter is deprecated and will be "
-                "removed in v0.8.0.",
-                stacklevel=2,
-            )
 
         super().__init__()
 

@@ -70,7 +70,7 @@ class BKFilter(BaseTransformer):
         "output_data_type": "Series",
         # what abstract type is returned: Primitives, Series, Panel
         "instancewise": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "X_inner_type": "np.ndarray",
         "y_inner_type": "None",
         "enforce_index_type": [pd.RangeIndex],

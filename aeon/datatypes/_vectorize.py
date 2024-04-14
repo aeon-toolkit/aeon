@@ -6,12 +6,18 @@ Contains VectorizedDF class.
 from itertools import product
 
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.datatypes._check import check_is_scitype, mtype
 from aeon.datatypes._convert import convert_to
 from aeon.utils.multiindex import flatten_multiindex
 
 
+@deprecated(
+    version="0.9.0",
+    reason="VectorizedDF will be made private in v0.10.0.",
+    category=FutureWarning,
+)
 class VectorizedDF:
     """Wrapper for easy vectorization/iteration over instances.
 

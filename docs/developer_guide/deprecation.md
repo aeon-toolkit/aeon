@@ -18,8 +18,9 @@ Note that the deprecation policy does not necessarily apply to modules we class 
 - `benchmarking`
 - `segmentation`
 - `similarity_search`
-- `visualisation`
 - `testing`
+- `transformations/series`
+- `visualisation`
 
 When we introduce a new module, we may classify it as experimental until the API is stable. We will try to not make drastic changes to experimental modules, but we need to retain the freedom to be more agile with the design in these cases.
 

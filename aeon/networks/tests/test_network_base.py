@@ -1,3 +1,5 @@
+"""Base for deep learning network base."""
+
 import pytest
 
 from aeon.networks.base import BaseDeepNetwork
@@ -14,6 +16,7 @@ class DummyDeepNetwork(BaseDeepNetwork):
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):
+        """Build a neural network."""
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)
@@ -27,6 +30,7 @@ class DummyDeepNetwork(BaseDeepNetwork):
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_network():
+    """Test the dummy network."""
     dummy_network = DummyDeepNetwork()
 
     X, y = make_example_3d_numpy()

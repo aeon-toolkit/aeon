@@ -1,6 +1,6 @@
 """Test series module."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 
 import numpy as np
 import pandas as pd
@@ -9,11 +9,17 @@ import pytest
 from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.utils.validation.series import (
     _check_is_multivariate,
+    _check_pd_dataframe,
+    _common_checks,
     check_consistent_index_type,
     check_equal_time_index,
     check_is_univariate,
     check_series,
     check_time_index,
+    get_index_for_series,
+    is_pdmultiindex_hierarchical,
+    is_pred_interval_proba,
+    is_pred_quantiles_proba,
     is_univariate_series,
 )
 
@@ -113,3 +119,80 @@ def test_check_consistent_index_type():
     # An exception should be raised because index types are inconsistent
     with pytest.raises(TypeError):
         check_consistent_index_type(index1, index2)
+
+
+def test_df_checks():
+    """Test check_pd_dataframe function."""
+    data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    df = pd.DataFrame(data)
+    n1 = np.random.random(size=(10, 10))
+    _check_pd_dataframe(df)
+    assert _common_checks(df)
+    assert not _common_checks(n1)
+    assert not is_pred_interval_proba(n1)
+    assert not is_pred_quantiles_proba(n1)
+    assert not is_pdmultiindex_hierarchical(n1)
+    assert isinstance(get_index_for_series(n1), pd.RangeIndex)
+    assert isinstance(get_index_for_series(df), pd.RangeIndex)
+
+    columns = ["A", "B", "B"]  # Notice the duplicate column name 'B'
+    df = pd.DataFrame(data, columns=columns)
+    assert not _common_checks(df)
+    with pytest.raises(ValueError, match="must have unique column indices"):
+        _check_pd_dataframe(df)
+
+    index_strings = ["a", "b", "c"]
+    # Creating the DataFrame
+    df = pd.DataFrame(data, index=index_strings)
+    with pytest.raises(ValueError, match="is not supported for series"):
+        _check_pd_dataframe(df)
+    data = {
+        "Column1": [1, 2, {"a": 1, "b": 2}],
+        # The third entry is a dictionary, which is an object
+        "Column2": ["A", "B", "C"],
+    }
+    # Creating the DataFrame
+    df = pd.DataFrame(data)
+    with pytest.raises(ValueError, match="should not have column of 'object' dtype"):
+        _check_pd_dataframe(df)
+    assert not _common_checks(df)
+    index_non_monotonic = [1, 3, 2, 5, 4]  # This index is not monotonic increasing
+    data = {"Column1": [10, 20, 30, 40, 50], "Column2": ["A", "B", "C", "D", "E"]}
+
+    # Creating the DataFrame
+    df = pd.DataFrame(data, index=index_non_monotonic)
+    assert not _common_checks(df)
+
+
+def test_is_pred_interval_proba():
+    """Test is_pred_interval_proba."""
+    # Create a correct MultiIndex DataFrame
+    idx = pd.MultiIndex.from_tuples(
+        [(1, 0.9, "upper"), (1, 0.9, "lower")], names=["level_0", "coverage", "bound"]
+    )
+    df_correct = pd.DataFrame([[0.1, 0.2]], columns=idx)
+
+    # Create a DataFrame with incorrect MultiIndex levels
+    idx_wrong_levels = pd.MultiIndex.from_tuples(
+        [(1, "upper"), (1, "lower")], names=["level_0", "bound"]
+    )
+    df_wrong_levels = pd.DataFrame([[0.1, 0.2]], columns=idx_wrong_levels)
+
+    # Create a DataFrame with incorrect data type in coverage level
+    idx_wrong_dtype = pd.MultiIndex.from_tuples(
+        [(1, "0.9", "upper"), (1, "0.9", "lower")],
+        names=["level_0", "coverage", "bound"],
+    )
+    df_wrong_dtype = pd.DataFrame([[0.1, 0.2]], columns=idx_wrong_dtype)
+
+    # Create a DataFrame with incorrect coverage values
+    idx_wrong_values = pd.MultiIndex.from_tuples(
+        [(1, 1.5, "upper"), (1, -0.1, "lower")], names=["level_0", "coverage", "bound"]
+    )
+    df_wrong_values = pd.DataFrame([[0.1, 0.2]], columns=idx_wrong_values)
+
+    # Assertions
+    assert is_pred_interval_proba(df_correct)
+    assert not is_pred_interval_proba(df_wrong_levels)
+    assert not is_pred_interval_proba(df_wrong_dtype)
+    assert not is_pred_interval_proba(df_wrong_values)

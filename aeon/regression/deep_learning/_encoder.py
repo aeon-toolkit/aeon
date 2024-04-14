@@ -66,12 +66,20 @@ class EncoderRegressor(BaseDeepRegressor):
         The number of times the entire training dataset
         will be passed forward and backward
         through the neural network.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     loss:
         The loss function to use for training.
-    metrics:
-        The evaluation metrics to use during training.
+    metrics: str or list of str, default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     use_bias:
         Whether to use bias in the dense layers.
     optimizer:
@@ -83,6 +91,7 @@ class EncoderRegressor(BaseDeepRegressor):
     -----
     Adapted from source code
     https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/encoder.py
+
     References
     ----------
     ..[1] Serrà et al. Towards a Universal Neural Network Encoder for Time Series
@@ -116,7 +125,7 @@ class EncoderRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         verbose=False,
         loss="mean_squared_error",
-        metrics=None,
+        metrics="mean_squared_error",
         use_bias=True,
         optimizer=None,
         random_state=None,
@@ -177,14 +186,12 @@ class EncoderRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
-
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
@@ -201,7 +208,7 @@ class EncoderRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -224,8 +231,11 @@ class EncoderRegressor(BaseDeepRegressor):
 
         # Transpose X to conform to Keras input style
         X = X.transpose(0, 2, 1)
-        check_random_state(self.random_state)
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 
