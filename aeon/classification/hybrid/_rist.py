@@ -156,7 +156,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         params : dict or list of dict
             Parameters to create testing instances of the class.
         """
-        if parameter_set == "result_comparison":
+        if parameter_set == "results_comparison":
             return {
                 "n_intervals": 2,
                 "n_shapelets": 3,
