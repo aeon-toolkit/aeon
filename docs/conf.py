@@ -365,9 +365,13 @@ def _make_estimator_overview(app):
             + estimator_name
             + "</a>"
         )
-
+        algorithm_type = algorithm_type.split("::")
         data["Estimator name"].append(estimator_name_as_link)
-        data["Estimator type"].append(algorithm_type)
+        data["Module"].append(algorithm_type[0])
+        if len(algorithm_type) > 1:
+            data["Familly of method"].append("/".join(algorithm_type[1:]))
+        else:
+            data["Familly of method"].append("N/A")
         for capability_name in capabilities_to_include:
             _val = tag_dict.get(f"capability:{capability_name}")
             _str = capability_name.replace("_", " ")
