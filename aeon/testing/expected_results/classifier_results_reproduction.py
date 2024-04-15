@@ -58,7 +58,6 @@ from aeon.classification.ordinal_classification import OrdinalTDE
 from aeon.classification.shapelet_based import (
     LearningShapeletClassifier,
     MrSQMClassifier,
-    RDSTClassifier,
     SASTClassifier,
     ShapeletTransformClassifier,
 )
@@ -247,10 +246,6 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         )
     elif classifier_name == "MrSQMClassifier":
         classifier = MrSQMClassifier.create_test_instance(
-            parameter_set="results_comparison"
-        )
-    elif classifier_name == "RDSTClassifier":
-        classifier = RDSTClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "SASTClassifier":

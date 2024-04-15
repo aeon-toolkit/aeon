@@ -156,7 +156,20 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         params : dict or list of dict
             Parameters to create testing instances of the class.
         """
-        return {
+        if parameter_set == "result_comparison":
+            return {
+                "rist_params": {
+                    "n_intervals": 2,
+                    "n_shapelets": 3,
+                    "series_transformers": [
+                        None,
+                        FunctionTransformer(func=first_order_differences_3d, validate=False),
+                    ],
+                    "estimator": ExtraTreesClassifier(n_estimators=3, criterion="entropy"),
+                },
+            }
+        else:
+            return {
             "series_transformers": [
                 None,
                 FunctionTransformer(func=first_order_differences_3d, validate=False),
