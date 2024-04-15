@@ -209,7 +209,8 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     >>> from aeon.distances import mpdist
     >>> x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     >>> y = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
-    >>> mpdist(x, y)
+    >>> m = 4
+    >>> mpdist(x, y, m)
     31.622776601683793
     """
     if x.ndim == 1 and y.ndim == 1:
