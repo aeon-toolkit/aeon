@@ -26,7 +26,7 @@ jobs:
           python-version: "3.10"
 
       - name: Get changed files
-        uses: tj-actions/changed-files@v44.0.0
+        uses: tj-actions/changed-files@v44.0.1
         id: changed-files
 
       - name: List changed files
