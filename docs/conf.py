@@ -375,7 +375,7 @@ def _make_estimator_overview(app):
 
             # For case where tag is not included output as not supported.
             if not _val or _val is None:
-                data[f"Support {_str}"].append(":math:`\\color{red}\times`")
+                data[f"Support {_str}"].append(r":math:`\color{red}\times`")
             else:
                 data[f"Support {_str}"].append(r":math:`\color{green}\checkmark`")
 
