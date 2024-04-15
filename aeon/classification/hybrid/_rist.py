@@ -166,9 +166,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
                         func=first_order_differences_3d, validate=False
                     ),
                 ],
-                "estimator": ExtraTreesClassifier(
-                    n_estimators=3, criterion="entropy"
-                ),
+                "estimator": ExtraTreesClassifier(n_estimators=3, criterion="entropy"),
                 "random_state": 0,
                 "n_jobs": 1,
             }
