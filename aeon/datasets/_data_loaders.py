@@ -370,7 +370,7 @@ def _load_saved_dataset(
             X = X_train + X_test
         y = np.concatenate([y_train, y_test])
     else:
-        raise ValueError("Invalid `split` value =", split)     
+        raise ValueError("Invalid `split` value =", split)
     if return_type is not None:
         X = convert_collection(X, return_type)
 
