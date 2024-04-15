@@ -25,7 +25,7 @@ df = pd.DataFrame(
     not all(
         (
             _check_soft_dependencies("statsmodels", severity="none"),
-            _check_soft_dependencies("pandas<2.0.0", severity="none"),
+            _check_soft_dependencies("pandas>2.0.0", severity="none"),
         )
     ),
     reason="skip test if required soft dependency not available",
@@ -58,7 +58,7 @@ def test_VARMAX_against_statsmodels():
     not all(
         (
             _check_soft_dependencies("statsmodels", severity="none"),
-            _check_soft_dependencies("pandas<2.0.0", severity="none"),
+            _check_soft_dependencies("pandas>2.0.0", severity="none"),
         )
     ),
     reason="skip test if required soft dependency not available",
