@@ -370,7 +370,7 @@ def _make_estimator_overview(app):
         data["Estimator name"].append(estimator_name_as_link)
         data["Estimator type"].append(algorithm_type)
         for capability_name in capabilities_to_include:
-            _val = tag_dict.get([f"capability:{capability_name}"])
+            _val = tag_dict.get(f"capability:{capability_name}")
             _str = capability_name.replace("_", " ")
 
             # For case where tag is not included output as not supported.
@@ -379,7 +379,7 @@ def _make_estimator_overview(app):
             else:
                 data[f"Support {_str}"].append("Yes")
 
-    df = pd.from_dict(data)
+    df = pd.DataFrame.from_dict(data)
     with open("estimator_overview_table.md", "w") as file:
         df.to_markdown(file, index=False)
 
