@@ -263,7 +263,9 @@ html_favicon = "images/logo/aeon-favicon.ico"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 html_css_files = ["css/custom.css"]
-
+html_js_files = [
+    "js/dynamic_table.js",
+]
 html_show_sourcelink = False
 
 # -- Options for HTMLHelp output ---------------------------------------------
