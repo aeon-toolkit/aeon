@@ -1,5 +1,7 @@
 """Test MPDist function."""
 
+import re
+
 import pytest
 
 from aeon.distances._mpdist import mpdist
@@ -10,10 +12,24 @@ def test_mpdist():
     """Minimal test for MPDist prior to redesign."""
     x = make_series(10, return_numpy=True, random_state=1)
     y = make_series(10, 2, return_numpy=True, random_state=2)
-    with pytest.raises(ValueError, match="ts1 must be a 1D array"):
+
+    # Test for ValueError if ts1 is not a 1D array
+    with pytest.raises(
+        ValueError,
+        match=re.escape("x and y must be a 1D array of shape (n_timepoints,)"),
+    ):
         mpdist(y, y)
-    with pytest.raises(ValueError, match="ts2 must be a 1D array"):
+
+    # Test for ValueError if ts2 is not a 1D array
+    with pytest.raises(
+        ValueError,
+        match=re.escape("x and y must be a 1D array of shape (n_timepoints,)"),
+    ):
         mpdist(x, y)
+
     y = make_series(10, 1, return_numpy=True, random_state=2)
+
+    # Test MPDist function with valid inputs
     d = mpdist(x, y)
-    assert d >= 0
+    assert isinstance(d, float)  # Check if the result is a float
+    assert d >= 0  # Check if the distance is non-negative

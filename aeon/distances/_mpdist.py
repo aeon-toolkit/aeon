@@ -206,7 +206,7 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import euclidean_distance
+    >>> from aeon.distances import mpdist
     >>> x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     >>> y = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     >>> mpdist(x, y)
