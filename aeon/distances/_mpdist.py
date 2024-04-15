@@ -75,8 +75,9 @@ def _calculate_distance_profile(
         d: numpy.array
             Distance profile of query q.
     """
-    for i in range(0, n_t_subs):
-        d = (
+    d = np.empty(n_t_subs)
+    for i in range(n_t_subs):
+        d[i] = (
             2
             * q_len
             * (
@@ -133,9 +134,12 @@ def _stomp_ab(
             m = int(len_x / 4)
         else:
             m = int(len_y / 4)
+
+    # Number of subsequences
     subs_x = len_x - m + 1
     subs_y = len_y - m + 1
 
+    # Compute the mean and standard deviation
     x_mean = []
     x_std = []
     y_mean = []
