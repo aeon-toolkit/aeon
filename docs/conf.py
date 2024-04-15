@@ -288,7 +288,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "aeon.tex", "aeon Documentation", "aeon developers", "manual"),
+    (
+        master_doc,
+        "aeon.tex",
+        "aeon Documentation",
+        "aeon developers",
+        "manual",
+    ),
 ]
 
 # -- Options for manual page output ------------------------------------------
@@ -313,6 +319,87 @@ texinfo_documents = [
         "Miscellaneous",
     ),
 ]
+
+
+def _make_estimator_overview(app):
+    """Make estimator overview table."""
+    import pandas as pd
+
+    from aeon.registry import all_estimators
+
+    def _does_not_start_with_underscore(input_string):
+        return not input_string.startswith("_")
+
+    # Columns for the output table
+    COLNAMES = [
+        "Estimator name",
+        "Estimator type",
+    ]
+    capabilities_to_include = [
+        "multivariate",
+        "unequal_length",
+        "missing_values",
+    ]
+
+    for capability_name in capabilities_to_include:
+        _str = capability_name.replace("_", " ")
+        COLNAMES.append(f"Support {_str}")
+
+    data = {k: [] for k in COLNAMES}
+
+    for estimator_name, estimator_class in all_estimators():
+        algorithm_type = "::".join(str(estimator_class).split(".")[1:-2])
+        # fetch tags
+        tag_dict = estimator_class.get_class_tags()
+
+        # includes part of class string
+        modpath = str(estimator_class)[8:-2]
+        path_parts = modpath.split(".")
+        # joins strings excluding starting with '_'
+        clean_path = ".".join(list(filter(_does_not_start_with_underscore, path_parts)))
+        # adds html link reference
+        estimator_name_as_link = str(
+            '<a href="https://www.aeon-toolkit.org/en/latest/api_reference'
+            + "/auto_generated/"
+            + clean_path
+            + '.html">'
+            + estimator_name
+            + "</a>"
+        )
+
+        data["Estimator name"].append(estimator_name_as_link)
+        data["Estimator type"].append(algorithm_type)
+        for capability_name in capabilities_to_include:
+            _val = tag_dict.get([f"capability:{capability_name}"])
+            _str = capability_name.replace("_", " ")
+
+            # For case where tag is not included output as not supported.
+            if not _val or _val is None:
+                data[f"Support {_str}"].append("No")
+            else:
+                data[f"Support {_str}"].append("Yes")
+
+    df = pd.from_dict(data)
+    with open("estimator_overview_table.md", "w") as file:
+        df.to_markdown(file, index=False)
+
+
+def setup(app):
+    """Set up sphinx builder.
+
+    Parameters
+    ----------
+    app : Sphinx application object
+    """
+
+    def adds(pth):
+        print("Adding stylesheet: %s" % pth)  # noqa: T201, T001
+        app.add_css_file(pth)
+
+    adds("fields.css")  # for parameters, etc.
+
+    app.connect("builder-inited", _make_estimator_overview)
+
 
 # -- Extension configuration -------------------------------------------------
 

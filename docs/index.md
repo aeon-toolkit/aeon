@@ -270,6 +270,7 @@ code_of_conduct.md
 :hidden:
 
 glossary.md
+estimator_overview.md
 changelog.md
 papers_using_aeon.md
 ```
