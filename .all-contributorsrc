@@ -168,11 +168,17 @@
         "doc",
         "design",
         "example",
+        "ideas",
         "infra",
         "maintenance",
+        "mentoring",
+        "promotion",
+        "question",
+        "research",
+        "review",
         "test",
         "tutorial",
-        "review"
+        "talk"
       ]
     },
     {
@@ -2371,6 +2377,15 @@
       "profile": "https://github.com/vNtzYy",
       "contributions": [
         "bug"
+      ]
+    },
+    {
+      "login": "wayneadams",
+      "name": "Wayne Adams",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15034841?v=4",
+      "profile": "https://github.com/wayneadams",
+      "contributions": [
+        "doc"
       ]
     }
   ],
