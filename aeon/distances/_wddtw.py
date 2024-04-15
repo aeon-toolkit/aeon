@@ -11,7 +11,7 @@ from numba.typed import List as NumbaList
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._ddtw import average_of_slope
-from aeon.distances._utils import _convert_to_list
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 from aeon.distances._wdtw import _wdtw_cost_matrix, _wdtw_distance
 
 
@@ -239,14 +239,15 @@ def wddtw_pairwise_distance(
            [0., 0., 0.],
            [0., 0., 0.]])
     """
-    _X, unequal_length = _convert_to_list(X, "X")
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
 
     if y is None:
         return _wddtw_pairwise_distance(
             _X, window, g, itakura_max_slope, unequal_length
         )
 
-    _y, unequal_length = _convert_to_list(y, "y", _X[0].shape[0] > 1)
+    _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
     return _wddtw_from_multiple_to_multiple_distance(
         _X, _y, window, g, itakura_max_slope, unequal_length
     )

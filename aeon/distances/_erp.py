@@ -14,7 +14,7 @@ from aeon.distances._alignment_paths import (
 )
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._euclidean import _univariate_euclidean_distance
-from aeon.distances._utils import _convert_to_list
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -329,12 +329,13 @@ def erp_pairwise_distance(
            [16.,  0., 28.],
            [44., 28.,  0.]])
     """
-    _X, unequal_length = _convert_to_list(X, "X")
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
     if y is None:
         return _erp_pairwise_distance(
             _X, window, g, g_arr, itakura_max_slope, unequal_length
         )
-    _y, unequal_length = _convert_to_list(y, "y", _X[0].shape[0] > 1)
+    _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
     return _erp_from_multiple_to_multiple_distance(
         _X, _y, window, g, g_arr, itakura_max_slope, unequal_length
     )

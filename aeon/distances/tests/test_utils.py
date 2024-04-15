@@ -1,5 +1,7 @@
 """Tests for distance utility function."""
 
+import itertools
+
 import numpy as np
 import pytest
 
@@ -104,36 +106,58 @@ def test_is_multvariate():
     """Test is multivariate."""
     # Test np.ndarray (n_timepoints,)
     x_uni_1d = make_series(10, return_numpy=True)
-    assert _is_multivariate(x_uni_1d) is False
 
     # Test np.ndarray (1, n_timepoints)
     x_uni_2d = np.array([x_uni_1d])
-    assert _is_multivariate(x_uni_2d) is False
+
+    # Test np.ndarray (n_cases, n_timepoints)
+    x_uni_dataset_2d = make_series(10, 10, return_numpy=True)
+
+    # Test np.ndarray (n_cases, 1, n_timepoints)
+    x_uni_dataset_3d = make_example_3d_numpy(10, 1, 10, return_y=False)
+
+    # Test list of np.ndarray (n_timepoints)
+    x_unequal_dataset_uni_1d = make_example_2d_unequal_length(
+        10, 5, max_n_timepoints=10, return_y=False
+    )
+
+    # Test list of np.ndarray (1, n_timepoints)
+    x_unequal_dataset_uni_2d = make_example_unequal_length(10, return_y=False)
+
+    # ==================================================================================
 
     # Test np.ndarray (n_channels, n_timepoints)
     x_multi_2d = make_series(2, 10, return_numpy=True)
-    assert _is_multivariate(x_multi_2d) is True
-
-    # Test np.ndarray (n_cases, 1, n_timepoints)
-    x_uni_3d = make_example_3d_numpy(10, 1, 10, return_y=False)
-    assert _is_multivariate(x_uni_3d) is False
 
     # Test np.ndarray (n_cases, n_channels, n_timepoints)
-    x_multi_3d = make_example_3d_numpy(10, 2, 10, return_y=False)
-    assert _is_multivariate(x_multi_3d) is True
-
-    # Test list of np.ndarray (n_timepoints)
-    x_unequal_uni_1d = make_example_2d_unequal_length(
-        10, 5, max_n_timepoints=10, return_y=False
-    )
-    assert _is_multivariate(x_unequal_uni_1d) is False
-
-    # Test list of np.ndarray (1, n_timepoints)
-    x_unequal_uni_2d = make_example_unequal_length(10, return_y=False)
-    assert _is_multivariate(x_unequal_uni_2d) is False
+    x_multi_dataset_3d = make_example_3d_numpy(10, 2, 10, return_y=False)
 
     # Test list of np.ndarray (n_channels, n_timepoints)
     x_unequal_multi_2d = make_example_unequal_length(10, 2, return_y=False)
-    assert _is_multivariate(x_unequal_multi_2d) is True
 
-    # maybe split into function
+    valid_univariate_formats = [
+        x_uni_1d,
+        x_uni_2d,
+        x_uni_dataset_2d,
+        x_uni_dataset_3d,
+        x_unequal_dataset_uni_1d,
+        x_unequal_dataset_uni_2d,
+    ]
+
+    valid_multivariate_formats = [
+        x_multi_2d,
+        x_multi_dataset_3d,
+        x_unequal_multi_2d,
+    ]
+    for x, y in itertools.product(valid_univariate_formats, repeat=2):
+        assert _is_multivariate(x, y) is False
+
+    for x, y in itertools.product(valid_multivariate_formats, repeat=2):
+        try:
+            assert _is_multivariate(x, y) is True
+        except AssertionError as e:
+            # If two 2d arrays passed as this function is used for pairwise we assume
+            # it isnt two multivariate time series but two collections of univariate.
+            # As such ignore the assertion error in this specific instance.
+            if x.ndim != 2 and y.ndim != 2:
+                raise e

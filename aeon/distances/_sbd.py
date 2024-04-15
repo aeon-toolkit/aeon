@@ -9,7 +9,7 @@ from numba import njit, objmode
 from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
-from aeon.distances._utils import _convert_to_list
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -113,7 +113,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
 
 
 def sbd_pairwise_distance(
-    x: Union[np.ndarray, List[np.ndarray]],
+    X: Union[np.ndarray, List[np.ndarray]],
     y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
     standardize: bool = True,
 ) -> np.ndarray:
@@ -127,7 +127,7 @@ def sbd_pairwise_distance(
 
     Parameters
     ----------
-    x : np.ndarray or List of np.ndarray
+    X : np.ndarray or List of np.ndarray
         A collection of time series instances  of shape ``(n_cases, n_timepoints)``
         or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or List of np.ndarray or None, default=None
@@ -187,13 +187,14 @@ def sbd_pairwise_distance(
            [0.36754447, 0.        , 0.29289322],
            [0.5527864 , 0.29289322, 0.        ]])
     """
-    _X, _ = _convert_to_list(x, "x")
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, _ = _convert_to_list(X, "", multivariate_conversion)
 
     if y is None:
         # To self
         return _sbd_pairwise_distance_single(_X, standardize)
 
-    _y, _ = _convert_to_list(y, "y", _X[0].shape[0] > 1)
+    _y, _ = _convert_to_list(y, "y", multivariate_conversion)
     return _sbd_pairwise_distance(_X, _y, standardize)
 
 

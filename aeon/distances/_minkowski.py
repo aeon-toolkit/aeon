@@ -6,7 +6,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._utils import _convert_to_list
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -201,11 +201,12 @@ def minkowski_pairwise_distance(
            [ 5.19615242,  0.        ,  8.        ],
            [12.12435565,  8.        ,  0.        ]])
     """
-    _X, _ = _convert_to_list(X, "X")
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, _ = _convert_to_list(X, "X", multivariate_conversion)
     if y is None:
         return _minkowski_pairwise_distance(_X, p, w)
 
-    _y, _ = _convert_to_list(y, "y", _X[0].shape[0] > 1)
+    _y, _ = _convert_to_list(y, "y", multivariate_conversion)
     return _minkowski_from_multiple_to_multiple_distance(_X, _y, p, w)
 
 

@@ -75,7 +75,7 @@ def _is_multivariate(
     x: Union[np.ndarray, List[np.ndarray]],
     y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
 ) -> bool:
-    if y is not None:
+    if y is None:
         if isinstance(x, np.ndarray):
             x_dims = x.ndim
             if x_dims == 3:
@@ -83,9 +83,9 @@ def _is_multivariate(
                     return False
                 return True
             if x_dims == 2:
-                if x.shape[0] == 1:
-                    return False
-                return True
+                # As this function is used for pairwise we assume it isnt a single
+                # multivariate time series but two collections of univariate
+                return False
             if x_dims == 1:
                 return False
 
@@ -101,15 +101,60 @@ def _is_multivariate(
         if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
             x_dims = x.ndim
             y_dims = y.ndim
+            if x_dims < y_dims:
+                return _is_multivariate(y, x)
+
             if x_dims == 3 and y_dims == 3:
                 if x.shape[1] == 1 and y.shape[1] == 1:
                     return False
                 return True
-            if x_dims == 2 and y_dims == 2:
-                if x.shape[0] == 1 and y.shape[0] == 1:
+            if x_dims == 3 and y_dims == 2:
+                if x.shape[1] == 1:
                     return False
                 return True
-            pass
+            if x_dims == 3 and y_dims == 1:
+                if x.shape[1] == 1:
+                    return False
+            if x_dims == 2 and y_dims == 2:
+                # If two 2d arrays passed as this function is used for pairwise we
+                # assume it isnt two multivariate time series but two collections of
+                # univariate
+                return False
+            if x_dims == 2 and y_dims == 1:
+                return False
+            if x_dims == 1 and y_dims == 1:
+                return False
+        if isinstance(x, (List, NumbaList)) and isinstance(y, (List, NumbaList)):
+            x_dims = x[0].ndim
+            y_dims = y[0].ndim
+
+            if x_dims < y_dims:
+                return _is_multivariate(y, x)
+
+            if x_dims == 1 or y_dims == 1:
+                return False
+
+            if x_dims == 2 and y_dims == 2:
+                if x[0].shape[0] == 1 or y[0].shape[0] == 1:
+                    return False
+                return True
+        list_x = None
+        ndarray_y: Optional[np.ndarray] = None
+        if isinstance(x, (List, NumbaList)):
+            list_x = x
+            ndarray_y = y
+        elif isinstance(y, (List, NumbaList)):
+            list_x = y
+            ndarray_y = x
+
+        if list_x is not None and ndarray_y is not None:
+            list_y = []
+            if ndarray_y.ndim == 3:
+                for i in range(ndarray_y.shape[0]):
+                    list_y.append(ndarray_y[i])
+            else:
+                list_y = [ndarray_y]
+            return _is_multivariate(list_x, list_y)
 
     raise ValueError("The format of you input is not supported.")
 
@@ -117,7 +162,7 @@ def _is_multivariate(
 def _convert_to_list(
     x: Union[np.ndarray, List[np.ndarray]],
     name: str = "X",
-    other_ts_is_multivariate: Optional[bool] = False,
+    multivariate_conversion: bool = False,
 ) -> NumbaList[np.ndarray]:
     """Convert input collections to a list of arrays for pairwise distance calculation.
 
@@ -135,9 +180,10 @@ def _convert_to_list(
         (n_cases, n_timepoints) or (n_timepoints,).
     name : str, optional
         Name of the variable to be converted for error handling, by default "X".
-    other_ts_is_multivariate : bool, optional
-        Boolean indicating if the other time series passed to the distance function
-        is multivariate, by default False.
+    multivariate_conversion : bool, optional
+        Boolean indicating if the conversion should be multivariate, by default False.
+        If True, the input is assumed to be multivariate and reshaped accordingly.
+        If False, the input is reshaped to univariate.
 
     Returns
     -------
@@ -153,15 +199,11 @@ def _convert_to_list(
     ValueError
         If x is not a 1D, 2D or 3D array or a list of 1D or 2D arrays.
     """
-    if other_ts_is_multivariate is True:
-        is_multivariate = _is_multivariate(x) and other_ts_is_multivariate
-    else:
-        is_multivariate = _is_multivariate(x)
     if isinstance(x, np.ndarray):
         if x.ndim == 3:
             return NumbaList(x), False
         elif x.ndim == 2:
-            if is_multivariate:
+            if multivariate_conversion:
                 return NumbaList(x.reshape(1, x.shape[0], x.shape[1])), False
             return NumbaList(x.reshape(x.shape[0], 1, x.shape[1])), False
         elif x.ndim == 1:

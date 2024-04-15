@@ -12,7 +12,7 @@ from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._dtw import _dtw_cost_matrix
 from aeon.distances._squared import _univariate_squared_distance
-from aeon.distances._utils import _convert_to_list
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -608,7 +608,8 @@ def shape_dtw_pairwise_distance(
            [ 43.,   0.,  89.],
            [292.,  89.,   0.]])
     """
-    _X, unequal_length = _convert_to_list(X)
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
     X_pad = _pad_ts_collection_edges(x=_X, reach=reach)
     if y is None:
         # To self
@@ -622,7 +623,7 @@ def shape_dtw_pairwise_distance(
             transformed_x=transformed_x,
             unequal_length=unequal_length,
         )
-    _y, unequal_length = _convert_to_list(y, is_multivariate=X_pad[0].shape[0] > 1)
+    _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
     y_pad = _pad_ts_collection_edges(x=_y, reach=reach)
 
     return _shape_dtw_from_multiple_to_multiple_distance(
