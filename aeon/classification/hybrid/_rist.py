@@ -163,18 +163,24 @@ class RISTClassifier(BaseRIST, BaseClassifier):
                     "n_shapelets": 3,
                     "series_transformers": [
                         None,
-                        FunctionTransformer(func=first_order_differences_3d, validate=False),
+                        FunctionTransformer(
+                            func=first_order_differences_3d, validate=False
+                        ),
                     ],
-                    "estimator": ExtraTreesClassifier(n_estimators=3, criterion="entropy"),
+                    "estimator": ExtraTreesClassifier(
+                        n_estimators=3, criterion="entropy"
+                    ),
                 },
             }
         else:
             return {
-            "series_transformers": [
-                None,
-                FunctionTransformer(func=first_order_differences_3d, validate=False),
-            ],
-            "n_intervals": 1,
-            "n_shapelets": 2,
-            "estimator": ExtraTreesClassifier(n_estimators=2, criterion="entropy"),
-        }
+                "series_transformers": [
+                    None,
+                    FunctionTransformer(
+                        func=first_order_differences_3d, validate=False
+                    ),
+                ],
+                "n_intervals": 1,
+                "n_shapelets": 2,
+                "estimator": ExtraTreesClassifier(n_estimators=2, criterion="entropy"),
+            }
