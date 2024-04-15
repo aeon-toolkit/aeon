@@ -377,11 +377,9 @@ def _make_estimator_overview(app):
 
             # For case where tag is not included output as not supported.
             if not _val or _val is None:
-                data[f"Support {_str}"].append(r"<p>:math:`\color{red}\times`</p>")
+                data[f"Support {_str}"].append(r"$\color{red}\times$")
             else:
-                data[f"Support {_str}"].append(
-                    r"<p>:math:`\color{green}\checkmark`</p>"
-                )
+                data[f"Support {_str}"].append(r"$\color{green}\checkmark$")
 
     df = pd.DataFrame.from_dict(data)
     with open("estimator_overview_table.md", "w") as file:
