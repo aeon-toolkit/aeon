@@ -44,7 +44,7 @@ class TimeBinAggregate(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "input_data_type": "Series",
         # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",

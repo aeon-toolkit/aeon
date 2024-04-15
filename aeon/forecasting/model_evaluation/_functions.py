@@ -10,10 +10,15 @@ from typing import List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import convert_to
 from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.base import ForecastingHorizon
-from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
+from aeon.utils.conversion import convert_collection, convert_series
+from aeon.utils.validation import (
+    is_collection,
+    is_hierarchical,
+    is_single_series,
+    validate_input,
+)
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_cv, check_scoring
 
@@ -229,9 +234,9 @@ def evaluate(
         aeon forecaster (concrete BaseForecaster descendant)
     cv : aeon BaseSplitter descendant
         Splitter of how to split the data into test data and train data
-    y : aeon time series container
+    y : aeon time series data structure
         Target (endogeneous) time series used in the evaluation experiment
-    X : aeon time series container, of same mtype as y
+    X : aeon time series data structure, of same type as y
         Exogenous time series used in the evaluation experiment
     strategy : {"refit", "update", "no-update_params"}, optional, default="refit"
         defines the ingestion mode when the forecaster sees new data when window expands
@@ -331,13 +336,20 @@ def evaluate(
     else:
         scoring = check_scoring(scoring)
 
-    if not (is_single_series(y) or is_hierarchical(y) or is_collection(y)):
+    valid, y_metadata = validate_input(y)
+    if not valid:
         raise TypeError(
             f"Expected a series, collection or hierarchy. Got {type(y)} instead."
         )
-
-    y = convert_to(y, to_type=PANDAS_MTYPES)
-
+    if isinstance(y, np.ndarray):
+        if y_metadata["scitype"] == "Series":
+            if y_metadata["is_univariate"]:
+                y = convert_series(y, output_type="pd.Series")
+            else:
+                y = convert_series(y, output_type="pd.DataFrame")
+        elif y_metadata["scitype"] == "Panel":
+            y = convert_collection(y, output_type="pd-multiindex")
+        # If hierarchical, we don't need to convert
     freq = None
     try:
         if y.index.nlevels == 1:
@@ -348,11 +360,22 @@ def evaluate(
         pass
 
     if X is not None:
-        if not (is_single_series(X) or is_hierarchical(X) or is_collection(X)):
+        series = is_single_series(X)
+        hier = is_hierarchical(X)
+        collection = is_collection(X)
+        if not (series or hier or collection):
             raise TypeError(
                 f"Expected a series, collection or hierarchy. Got {type(y)} instead."
             )
-        X = convert_to(X, to_type=PANDAS_MTYPES)
+        _, x_metadata = validate_input(X)
+        if isinstance(X, np.ndarray):
+            if series:
+                if x_metadata["is_univariate"]:
+                    X = convert_series(X, output_type="pd.Series")
+                else:
+                    X = convert_series(X, output_type="pd.DataFrame")
+            elif collection:
+                X = convert_collection(X, output_type="pd-multiindex")
     score_name = (
         f"test_{scoring.__name__}"
         if not isinstance(scoring, List)

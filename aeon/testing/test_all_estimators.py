@@ -6,6 +6,7 @@ adapted from scikit-learn's estimator_checks
 __maintainer__ = []
 
 import numbers
+import pickle
 import types
 from copy import deepcopy
 from inspect import getfullargspec, isclass, signature
@@ -18,7 +19,7 @@ from sklearn.utils.estimator_checks import (
     check_get_params_invariance as _check_get_params_invariance,
 )
 
-from aeon.base import BaseEstimator, BaseObject, load
+from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base import BaseForecaster
@@ -1267,9 +1268,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         vanilla_result = scenario.run(estimator, method_sequence=[method_nsc])
 
         # Serialize and deserialize
-        serialized_estimator = estimator.save()
-        deserialized_estimator = load(serialized_estimator)
-
+        serialized_estimator = pickle.dumps(estimator)
+        deserialized_estimator = pickle.loads(serialized_estimator)
         deserialized_result = scenario.run(
             deserialized_estimator, method_sequence=[method_nsc]
         )
