@@ -347,18 +347,20 @@ def _load_saved_dataset(
     return_type = _alias_datatype_check(return_type)
     if dir_name is None:
         dir_name = name
+    if local_dirname is not None:
+        local_module = os.path.join(local_module, local_dirname)
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
 
         fname = name + "_TEST.ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X_test, y_test, meta_data_test = load_from_tsfile(
             abspath, return_meta_data=True
         )
