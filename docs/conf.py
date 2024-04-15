@@ -333,10 +333,7 @@ def _make_estimator_overview(app):
         return not input_string.startswith("_")
 
     # Columns for the output table
-    COLNAMES = [
-        "Estimator name",
-        "Estimator type",
-    ]
+    COLNAMES = ["Estimator name", "Module", "Familly of method"]
     capabilities_to_include = [
         "multivariate",
         "unequal_length",
@@ -377,13 +374,17 @@ def _make_estimator_overview(app):
 
             # For case where tag is not included output as not supported.
             if not _val or _val is None:
-                data[f"Support {_str}"].append(r"$\color{red}\times$")
+                data[f"Support {_str}"].append(
+                    r"<center> $\color{red}\times$ </center>"
+                )
             else:
-                data[f"Support {_str}"].append(r"$\color{green}\checkmark$")
+                data[f"Support {_str}"].append(
+                    r"<center> $\color{green}\checkmark$ </center>"
+                )
 
     df = pd.DataFrame.from_dict(data)
     with open("estimator_overview_table.md", "w") as file:
-        df.to_markdown(file, index=False)
+        df.to_markdown(file, index=False, tablefmt="github")
 
 
 def setup(app):
@@ -393,6 +394,13 @@ def setup(app):
     ----------
     app : Sphinx application object
     """
+
+    def adds(pth):
+        print("Adding stylesheet: %s" % pth)  # noqa: T201, T001
+        app.add_css_file(pth)
+
+    adds("fields.css")
+
     app.connect("builder-inited", _make_estimator_overview)
 
 
