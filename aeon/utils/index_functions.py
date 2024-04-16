@@ -168,7 +168,7 @@ def get_cutoff(
     return_index=False,
     reverse_order=False,
 ):
-    """Get cutoff = latest time point of time series or time series panel.
+    """Get the latest time point of time series or collection of time series.
 
     Assumptions on obj are not checked, these should be validated separately.
     Function may return unexpected results without prior validation.
@@ -176,27 +176,28 @@ def get_cutoff(
     Parameters
     ----------
     obj : aeon compatible time series data container or pandas.Index
-        if aeon time series, must be of Series, Panel, or Hierarchical abstract type.
-        if pandas.Index, it is assumed that last level is time-like or integer,
-        e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier mtypes
-    cutoff : int, optional, default=0
-        current cutoff, used to offset index if obj is np.ndarray
-    return_index : bool, optional, default=False
-        whether a pd.Index object should be returned (True)
-            or a pandas compatible index element (False)
+        if aeon time series, must be of Series, Collection, or Hierarchical abstract
+        type. if ``pandas.Index``, it is assumed that last level is time-like or integer
+        e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier internal
+        types.
+    cutoff : int, default=0
+        Current cutoff, used to offset index if obj is np.ndarray
+    return_index : bool, default=False
+        Whether a pd.Index object should be returned (True) or a pandas compatible
+        index element (False).
         note: return_index=True may set freq attribute of time types to None
-            return_index=False will typically preserve freq attribute
-    reverse_order : bool, optional, default=False
-        if False, returns largest time index. If True, returns smallest time index
+            return_index=False will typically preserve freq attribute.
+    reverse_order : bool, default=False
+        if False, returns largest time index. If True, returns smallest time index.
 
     Returns
     -------
     cutoff_index : pandas compatible index element (if return_index=False)
-        pd.Index of length 1 (if return_index=True)
+        pd.Index of length 1 (if return_index=True).
 
     Raises
     ------
-    ValueError, TypeError, if check_input or convert_input are True
+    ValueError, TypeError, if check_input or convert_input are True.
     """
     # deal with VectorizedDF
     if hasattr(obj, "X"):
