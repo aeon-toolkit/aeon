@@ -1,3 +1,3 @@
 $(document).ready( function () {
-    $('#myInput').DataTable();
+    $('.interactive-table').DataTable();
 } );
