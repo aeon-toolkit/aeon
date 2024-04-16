@@ -325,9 +325,9 @@ def update_data(X, X_new=None):
     # we want to ensure that X, X_new are either numpy (1D, 2D, 3D)
     # or in one of the long pandas formats
     if is_collection(X):
-        X = convert_collection(X, to_type="numpy3D")
+        X = convert_collection(X, output_type="numpy3D")
     if is_collection(X_new):
-        X_new = convert_collection(X, to_type="numpy3D")
+        X_new = convert_collection(X, output_type="numpy3D")
 
     # we only need to modify X if X_new is not None
     if X_new is None:
