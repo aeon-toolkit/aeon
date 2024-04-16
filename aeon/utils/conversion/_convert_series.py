@@ -99,13 +99,25 @@ def convert_series(y, output_type):
     if output_type == "np.ndarray":
         return y.to_numpy()
     if output_type == "pd.Series":
-        y = y.squeeze()
-        if y.ndim > 1:
-            raise ValueError(
-                "DataFrame of more than one row or column, cannot convert to "
-                "pd.Series"
-            )
-        return pd.Series(y)
+        if input_type == "pd.DataFrame":
+            if y.shape == (1, 1):  # special case of single element, cant squeeze
+                y = pd.Series(y.iloc[0, 0])
+            else:
+                y = y.squeeze()
+            if y.ndim > 1:
+                raise ValueError(
+                    "pd.DataFrame of more than one row or column, cannot convert to "
+                    "pd.Series"
+                )
+            return y
+        elif input_type == "np.ndarray":
+            y = y.squeeze()
+            if y.ndim > 1:
+                raise ValueError(
+                    "np.ndarray of more than one row or column, cannot convert to "
+                    "pd.Series"
+                )
+            return pd.Series(y)
     if output_type == "pd.DataFrame":
         if input_type == "pd.Series":
             return y.to_frame()
