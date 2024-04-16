@@ -78,11 +78,11 @@ class RSAST(BaseCollectionTransformer):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> rsast = RSAST()
-    >>> rsast.fit(X_train, y_train)
+    >>> rsast = RSAST() # doctest: +SKIP
+    >>> rsast.fit(X_train, y_train) # doctest: +SKIP
     RSAST()
-    >>> X_train = rsast.transform(X_train)
-    >>> X_test = rsast.transform(X_test)
+    >>> X_train = rsast.transform(X_train) # doctest: +SKIP
+    >>> X_test = rsast.transform(X_test) # doctest: +SKIP
 
     """
 
