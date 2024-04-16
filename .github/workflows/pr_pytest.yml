@@ -99,7 +99,9 @@ jobs:
           - ${{ (github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
         exclude:
           - pr-testing: false
-            python-version: ["3.9", "3.11"]
+            python-version: "3.9"
+          - pr-testing: false
+            python-version: "3.11"
 
     steps:
       - name: Checkout main
