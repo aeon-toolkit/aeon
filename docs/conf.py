@@ -391,15 +391,9 @@ def _make_estimator_overview(app):
         by=["Module", "Family of method", "Estimator name"]
     )
 
-    markdown_string = """.. table::
-        :class: datatable
-
-    """
-
     df_str = df.to_markdown(index=False, tablefmt="github")
-    markdown_string += "\n".join(["    " + s for s in df_str.split("\n")])
     with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
-        file.write(markdown_string)
+        file.write(df_str)
 
 
 def setup(app):
