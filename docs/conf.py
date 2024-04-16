@@ -378,12 +378,14 @@ def _make_estimator_overview(app):
 
             # For case where tag is not included output as not supported.
             if not _val or _val is None:
-                data[f"Support {_str}"].append(r"unicode:: U+274C")
+                data[f"Support {_str}"].append("\u274C")
             else:
-                data[f"Support {_str}"].append(r"unicode:: U+2705")
+                data[f"Support {_str}"].append("\u2705")
 
-    df = pd.DataFrame.from_dict(data)
-    with open("estimator_overview_table.md", "w") as file:
+    df = pd.DataFrame.from_dict(data).sort_values(
+        by=["Module", "Family of method", "Estimator name"]
+    )
+    with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
         df.to_markdown(file, index=False, tablefmt="github")
 
 
