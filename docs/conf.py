@@ -37,6 +37,7 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
+    "sphinx.ext.mathjax",
     "sphinxext.opengraph",
     "numpydoc",
     "nbsphinx",  # integrates example notebooks
@@ -333,7 +334,7 @@ def _make_estimator_overview(app):
         return not input_string.startswith("_")
 
     # Columns for the output table
-    COLNAMES = ["Estimator name", "Module", "Familly of method"]
+    COLNAMES = ["Estimator name", "Module", "Family of method"]
     capabilities_to_include = [
         "multivariate",
         "unequal_length",
@@ -369,9 +370,9 @@ def _make_estimator_overview(app):
         data["Estimator name"].append(estimator_name_as_link)
         data["Module"].append(algorithm_type[0])
         if len(algorithm_type) > 1:
-            data["Familly of method"].append("/".join(algorithm_type[1:]))
+            data["Family of method"].append("/".join(algorithm_type[1:]))
         else:
-            data["Familly of method"].append("N/A")
+            data["Family of method"].append("N/A")
         for capability_name in capabilities_to_include:
             _val = tag_dict.get(f"capability:{capability_name}")
             _str = capability_name.replace("_", " ")
