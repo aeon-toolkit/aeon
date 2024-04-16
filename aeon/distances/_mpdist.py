@@ -10,7 +10,15 @@ from aeon.distances._utils import _convert_to_list
 
 
 def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
-    """Matrix Profile Distance.
+    r"""Matrix Profile Distance.
+
+    MPdist is a recently introduced distance measure which considers
+    two time series to be similar if they share many similar subsequences,
+    2regardless of the order of matching subsequences. MPdist combines the
+    results of an AB-join and a BA-join, then identifies the kth smallest
+    value as the reported distance. It's important to note that MPdist is
+    a measure, not a metric. As a result, it doesn't adhere to the triangular
+    inequality.
 
     Parameters
     ----------
@@ -31,13 +39,20 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     ValueError
         If x and y are not 1D arrays
 
+    References
+    ----------
+    .. [1] S. Gharghabi, S. Imani, A. Bagnall, A. Darvishzadeh and E. Keogh,
+    "Matrix Profile XII: MPdist: A Novel Time Series Distance Measure to Allow
+    Data Mining in More Challenging Scenarios," 2018 IEEE International Conference
+    on Data Mining (ICDM), Singapore, 2018.
+
     Examples
     --------
     >>> import numpy as np
     >>> from aeon.distances import mpdist
     >>> x = np.array([5, 9, 16, 23, 19, 13, 7])
     >>> y = np.array([3, 7, 13, 19, 23, 31, 36, 40, 48, 55, 63])
-    >>> m = 3
+    >>> m = 4
     >>> mpdist(x, y, m)
     0.05663764013361034
     """
@@ -295,8 +310,8 @@ def mpdist_pairwise_distance(
     >>> from aeon.distances import mpdist_pairwise_distance
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1, 2, 3, 7, 9, 6]],
-                    [[4, 5, 6, 20, 26, 30]],
-                    [[7, 8, 9, 19, 15, 7]]])
+    [[4, 5, 6, 20, 26, 30]],
+    [[7, 8, 9, 19, 15, 7]]])
     >>> mpdist_pairwise_distance(X, m = 3)
     array([[0.00000000e+00, 3.65002415e-08, 3.65002415e-08],
            [3.65002415e-08, 0.00000000e+00, 3.65002415e-08],
