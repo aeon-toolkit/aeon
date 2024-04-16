@@ -12,37 +12,40 @@ ALL_ANOMALY_DETECTORS = all_estimators(
     return_names=False,
 )
 
+labels = np.zeros(15)
+labels[np.random.choice(15, 5)] = 1
+uv_series = make_series(n_timepoints=15, return_numpy=True)
+uv_series[labels == 1] += 1
+mv_series = make_series(n_timepoints=15, n_columns=2, return_numpy=True).T
+mv_series[:, labels == 1] += 1
+
 
 @pytest.mark.parametrize("anomaly_detector", ALL_ANOMALY_DETECTORS)
 def test_anomaly_detector_univariate(anomaly_detector):
     ad = anomaly_detector.create_test_instance()
-    series = make_series(n_timepoints=10, return_numpy=True)
-    y = np.random.randint(0, 2, 10)
 
     if anomaly_detector.get_class_tag(tag_name="capability:univariate"):
-        pred = ad.fit_predict(series, y)
+        pred = ad.fit_predict(uv_series, labels)
         assert isinstance(pred, np.ndarray)
-        assert pred.shape == (10,)
+        assert pred.shape == (15,)
         assert issubclass(pred.dtype.type, (np.integer, np.floating, np.bool_))
     else:
         with pytest.raises(ValueError, match="Univariate data not supported"):
-            ad.fit_predict(series, y)
+            ad.fit_predict(uv_series, labels)
 
 
 @pytest.mark.parametrize("anomaly_detector", ALL_ANOMALY_DETECTORS)
 def test_anomaly_detector_multivariate(anomaly_detector):
     ad = anomaly_detector.create_test_instance()
-    series = make_series(n_timepoints=10, n_columns=2, return_numpy=True).T
-    y = np.random.randint(0, 2, 10)
 
     if anomaly_detector.get_class_tag(tag_name="capability:multivariate"):
-        pred = ad.fit_predict(series, y)
+        pred = ad.fit_predict(mv_series, labels)
         assert isinstance(pred, np.ndarray)
-        assert pred.shape == (10,)
+        assert pred.shape == (15,)
         assert issubclass(pred.dtype.type, (np.integer, np.floating, np.bool_))
     else:
         with pytest.raises(ValueError, match="Multivariate data not supported"):
-            ad.fit_predict(series, y)
+            ad.fit_predict(mv_series, labels)
 
 
 @pytest.mark.parametrize("anomaly_detector", ALL_ANOMALY_DETECTORS)

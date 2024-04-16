@@ -7,7 +7,7 @@ import numpy as np
 from numba import njit
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
-from aeon.distances import euclidean_distance
+from aeon.distances import euclidean_distance, squared_distance
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.numba.stats import mean, std
 
@@ -20,36 +20,50 @@ class MERLIN(BaseAnomalyDetector):
         super().__init__(axis=1)
 
     def _predict(self, X):
-        if X.shape[1] < self.min_length:
+        X = X.squeeze()
+
+        if X.shape[0] < self.min_length:
             raise ValueError(
-                f"Series length of X {X.shape[1]} is less than min_length "
+                f"Series length of X {X.shape[0]} is less than min_length "
                 f"{self.min_length}"
             )
+        elif self.min_length > self.max_length:
+            raise ValueError(
+                f"min_length {self.min_length} must be less than max_length "
+                f"{self.max_length}"
+            )
+        elif self.min_length < 4:
+            raise ValueError("min_length must be at least 4")
+        elif int(len(X) / 2) < self.max_length:
+            raise ValueError(
+                f"Series length of X {X.shape[0]} must be at least double max_length "
+                f"{self.max_length}"
+            )
 
-        for i in range(X.shape[1] - self.min_length + 1):
-            if std(X[:, i : i + self.min_length]) > AEON_NUMBA_STD_THRESHOLD:
+        for i in range(X.shape[0] - self.min_length + 1):
+            if std(X[i : i + self.min_length]) > AEON_NUMBA_STD_THRESHOLD:
                 warnings.warn(
                     "There is region close to constant that will cause the results "
                     "will be unstable. It is suggested to delete the constant region "
                     "or try again with a longer min_length."
                 )
 
-        lengths = np.linspace(self.min_length, self.max_length, dtype=np.int32)
+        lengths = np.linspace(self.min_length, self.max_length, num=self.max_length-self.min_length+1, dtype=np.int32)
 
         r = 2 * np.sqrt(self.min_length)
-        distances = np.full(len(lengths), -1)
+        distances = np.full(len(lengths), -1.0)
         indicies = np.full(len(lengths), -1)
         while distances[0] < 0:
             indicies[0], distances[0] = self._drag(X, lengths[0], r)
             r = r * 0.5
 
-        for i in range(1, 5):
+        for i in range(1, min(5, len(lengths))):
             r = distances[i - 1] * 0.99
             while distances[i] < 0:
                 indicies[i], distances[i] = self._drag(X, lengths[i], r)
                 r = r * 0.99
 
-        for i in range(5, len(lengths)):
+        for i in range(min(5, len(lengths)), len(lengths)):
             m = mean(distances[i - 5 : i])
             s = std(distances[i - 5 : i])
             r = m - 2 * s
@@ -58,23 +72,33 @@ class MERLIN(BaseAnomalyDetector):
                 indicies[i], distances[i] = self._drag(X, lengths[i], r)
                 r = r - s
 
+        if np.all(distances == -1):
+            raise ValueError("No discord found in the series.")
+
+        anomalies = np.zeros(X.shape[0])
+        for i in indicies:
+            if i != np.nan:
+                anomalies[i] = 1
+
+        return anomalies
+
     @staticmethod
-    @njit(fastmath=True, cache=True)
     def _drag(X, length, discord_range):
         C = []
-        data = np.zeros((X.shape[1] - length + 1, length))
-        for i in range(X.shape[1] - length + 1):
+        data = np.zeros((X.shape[0] - length + 1, length))
+        for i in range(X.shape[0] - length + 1):
             is_candidate = True
             data[i] = X[i : i + length]
-            data[i] = (data[i] - np.mean(data[i])) / np.std(data[i])
+            data[i] = (data[i] - mean(data[i])) / std(data[i])
 
-            for n, j in reversed(list(enumerate(C))):
+            for n, j in enumerate(C):
                 if (
                     np.abs(i - j) >= length
-                    and euclidean_distance(data[i], data[j]) < discord_range
+                    and squared_distance(data[i], data[j]) < discord_range
                 ):
                     del C[n]
                     is_candidate = False
+                    break
 
             if is_candidate:
                 C.append(i)
@@ -83,10 +107,10 @@ class MERLIN(BaseAnomalyDetector):
             return -1, -1
 
         D = [np.inf] * len(C)
-        for i in range(X.shape[1] - length + 1):
+        for i in range(X.shape[0] - length + 1):
             for n, j in reversed(list(enumerate(C))):
                 if np.abs(i - j) >= length:
-                    d = euclidean_distance(data[i], data[j])
+                    d = squared_distance(data[i], data[j])
                     if d < discord_range:
                         del C[n]
                         del D[n]
@@ -96,8 +120,15 @@ class MERLIN(BaseAnomalyDetector):
         if len(C) == 0:
             return -1, -1
 
-        max = int(np.argmax(D))
-        return C[max] + int(length / 2), np.sqrt(D[max])
+        for n in range(len(C)):
+            if D[n] == np.inf:
+                D[n] = -1
+
+        if np.all(D == -1):
+            return np.nan, np.nan
+
+        d_max = int(np.argmax(D))
+        return C[d_max] + int(length/2), np.sqrt(D[d_max])
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -117,4 +148,4 @@ class MERLIN(BaseAnomalyDetector):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {"max_length": 10}
+        return {"min_length": 4, "max_length": 7}
