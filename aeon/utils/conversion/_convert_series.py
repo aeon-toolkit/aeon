@@ -12,6 +12,58 @@ import numpy as np
 import pandas as pd
 
 
+def _resolve_input_type(y):
+    """Resolve the input type of y.
+
+    Parameters
+    ----------
+    y : np.ndarray, pd.Series, pd.DataFrame
+        Time series to be converted.
+
+    Returns
+    -------
+    str
+        String identifier of the input type.
+    """
+    if isinstance(y, pd.Series):
+        return "pd.Series"
+    if isinstance(y, pd.DataFrame):
+        return "pd.DataFrame"
+    if isinstance(y, np.ndarray):
+        return "np.ndarray"
+    raise ValueError(f"Unknown input type: {type(y)}")
+
+
+def _resolve_output_type(output_type):
+    """Resolve the output type of y.
+
+    Parameters
+    ----------
+    output_type : str or list of str
+        The type to convert y to. If a list of string, either the type of y is in the
+        list, in which case y is returned, or conversion is attempted on the first
+        entry in the list of a valid output_type ["np.ndarray", "pd.Series",
+        "pd.DataFrame"].
+
+    Returns
+    -------
+    str
+        String identifier of the output type.
+    """
+    valid_types = ["np.ndarray", "pd.Series", "pd.DataFrame"]
+    # Check if output_type is a list
+    if isinstance(output_type, list):
+        # Iterate over the list and find the first valid type
+        for typ in output_type:
+            if typ in valid_types:
+                return typ
+        # If none in the list are valid, raise an error
+        raise ValueError("None of the types in the list are valid output types")
+    if isinstance(output_type, str) and output_type in valid_types:
+        return output_type
+    raise ValueError(f"Unknown output type {output_type}")
+
+
 def convert_series(y, output_type):
     """Convert series y to the specified output_type.
 
@@ -20,46 +72,44 @@ def convert_series(y, output_type):
     Parameters
     ----------
     y : np.ndarray, pd.Series, pd.DataFrame
-        Time series to be converted
-    output_type : string
-        The type to convert y to
+        Time series to be converted.
+    output_type : string or list of string
+        The type to convert y to. If a list of string, either the type of y is in the
+        list, in which case y is returned, or conversion is attempted on the first
+        entry in the list of a valid output_type ["np.ndarray", "pd.Series",
+        "pd.DataFrame"].
 
     Returns
     -------
     converted version of y
     """
+    input_type = _resolve_input_type(y)
+    # If input type in the list, return it
+    if isinstance(output_type, list):
+        if input_type in output_type:
+            return y
+    elif isinstance(output_type, str):
+        if input_type == output_type:
+            return y
+    else:
+        raise ValueError("Unknown output type must be list or string")
+    output_type = _resolve_output_type(output_type)
+    if input_type == output_type:
+        return y
     if output_type == "np.ndarray":
-        if isinstance(y, (pd.Series, pd.DataFrame)):
-            return y.to_numpy()
-        elif isinstance(y, np.ndarray):
-            return y
-        else:
-            raise ValueError(f"Cannot convert: {type(y)} to np.ndarray")
-    elif output_type == "pd.Series":
-        if isinstance(y, pd.Series):
-            return y
-        elif isinstance(y, pd.DataFrame):
-            if y.shape[1] > 1:
-                raise ValueError(
-                    "DataFrame more than one column, cannot convert to Series"
-                )
-            y = y.iloc[:, 0]
-            return y
-        elif isinstance(y, np.ndarray):
-            y = y.squeeze()
-            if y.ndim == 1:
-                # Convert 1D numpy array to pandas Series
-                return pd.Series(y)
-            else:
-                raise ValueError(
-                    "Cannot convert array with more than one dimension to a pd.Series"
-                )
-    elif output_type == "pd.DataFrame":
-        if isinstance(y, pd.DataFrame):
-            return y
-        elif isinstance(y, pd.Series):
+        return y.to_numpy()
+    if output_type == "pd.Series":
+        y = y.squeeze()
+        if y.ndim > 1:
+            raise ValueError(
+                "DataFrame of more than one row or column, cannot convert to "
+                "pd.Series"
+            )
+        return pd.Series(y)
+    if output_type == "pd.DataFrame":
+        if input_type == "pd.Series":
             return y.to_frame()
-        elif isinstance(y, np.ndarray):
+        elif input_type == "np.ndarray":
             return pd.DataFrame(y)
         else:
             raise ValueError(
