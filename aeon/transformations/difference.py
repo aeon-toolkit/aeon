@@ -226,7 +226,7 @@ class Differencer(BaseTransformer):
         "y_inner_type": "None",
         "fit_is_empty": False,
         "transform-returns-same-time-index": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": True,
     }
 

@@ -188,7 +188,7 @@ class WindowSummarizer(BaseTransformer):
             "pd_multiindex_hier",
         ],
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "capability:missing_values": True,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -748,7 +748,7 @@ class PlateauFinder(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "output_data_type": "Series",
         "instancewise": False,
         "X_inner_type": "numpy3D",
@@ -838,7 +838,7 @@ class FittedParamExtractor(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "input_data_type": "Series",
         # what is the abstract type of X: Series, or Panel
         "output_data_type": "Primitives",
