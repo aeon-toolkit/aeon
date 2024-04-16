@@ -400,7 +400,7 @@ def get_window(obj, window_length=None, lag=None):
         return obj
     valid, metadata = validate_input(obj)
     if not valid:
-        raise ValueError("obj must be of Series, Collection, or Hierarchical scitype")
+        raise ValueError("obj must be of Series, Collection, or Hierarchical type")
     input_type = metadata["mtype"]
     abstract_type = metadata["scitype"]
     obj, reconvert = _convert(obj, abstract_type, input_type)
@@ -476,7 +476,7 @@ def get_slice(obj, start=None, end=None):
     Parameters
     ----------
     obj : aeon compatible time series data container or None
-        if not None, must be of Series, Panel, or Hierarchical scitype
+        if not None, must be of Series, Collection, or Hierarchical type
         all mtypes are supported via conversion to internally supported types
         to avoid conversions, pass data in one of SUPPORTED_SERIES or
         SUPPORTED_COLLECTION.
@@ -499,7 +499,7 @@ def get_slice(obj, start=None, end=None):
 
     valid, metadata = validate_input(obj)
     if not valid:
-        raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
+        raise ValueError("obj must be of Series, Collection or Hierarchical type")
     input_type = metadata["mtype"]
     abstract_type = metadata["scitype"]
     obj, reconvert = _convert(obj, abstract_type, input_type)
