@@ -392,7 +392,9 @@ def _make_estimator_overview(app):
     )
 
     markdown_string = """.. table::
-        :class: datatable"""
+        :class: datatable
+
+    """
 
     df_str = df.to_markdown(index=False, tablefmt="github")
     markdown_string += "\n".join(["    " + s for s in df_str.split("\n")])
