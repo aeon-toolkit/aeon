@@ -264,12 +264,8 @@ html_favicon = "images/logo/aeon-favicon.ico"
 html_static_path = ["_static"]
 html_css_files = [
     "css/custom.css",
-    "https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.min.css",
 ]
-html_js_files = [
-    "https://cdn.datatables.net/2.0.3/js/dataTables.min.js",
-    "js/dynamic_table.js",
-]
+html_js_files = []
 
 html_show_sourcelink = False
 
@@ -390,11 +386,9 @@ def _make_estimator_overview(app):
     df = pd.DataFrame.from_dict(data).sort_values(
         by=["Module", "Family of method", "Estimator name"]
     )
-
     df_str = df.to_markdown(index=False, tablefmt="github")
     with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
         file.write(df_str)
-        file.write("\n{.interactive-table}")
 
 
 def setup(app):
