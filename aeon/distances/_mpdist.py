@@ -1,7 +1,84 @@
 """Matrix Profile Distances."""
 
+from typing import List, Optional, Union
+
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
+
+from aeon.distances._utils import _convert_to_list
+
+
+def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
+    """Matrix Profile Distance.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        First time series, univariate, shape ``(n_timepoints,)``
+    y : np.ndarray
+        Second time series, univariate, shape ``(n_timepoints,)``
+    m : int (default = 0)
+        Length of the subsequence
+
+    Returns
+    -------
+    float
+        Matrix Profile distance between x and y
+
+    Raises
+    ------
+    ValueError
+        If x and y are not 1D arrays
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import mpdist
+    >>> x = np.array([5, 9, 16, 23, 19, 13, 7])
+    >>> y = np.array([3, 7, 13, 19, 23, 31, 36, 40, 48, 55, 63])
+    >>> m = 3
+    >>> mpdist(x, y, m)
+    3.854496446637726
+    """
+    x = np.squeeze(x)
+    y = np.squeeze(y)
+
+    if x.ndim == 1 and y.ndim == 1:
+        return _mpdist(x, y, m)
+
+    raise ValueError("x and y must be a 1D array of shape (n_timepoints,)")
+
+
+def _mpdist(x: np.ndarray, y: np.ndarray, m: int) -> float:
+    threshold = 0.05
+    len_x = len(x)
+    len_y = len(y)
+
+    first_dot_prod_ab = _sliding_dot_products(y[0:m], x, m, len_x)
+    dot_prod_ab = _sliding_dot_products(x[0:m], y, m, len_y)
+    mp_ab, ip_ab = _stomp_ab(
+        x, y, m, first_dot_prod_ab, dot_prod_ab
+    )  # AB Matrix profile
+
+    first_dot_prod_ba = _sliding_dot_products(x[0:m], y, m, len_y)
+    dot_prod_ba = _sliding_dot_products(y[0:m], x, m, len_x)
+    mp_ba, ip_ba = _stomp_ab(
+        y, x, m, first_dot_prod_ba, dot_prod_ba
+    )  # BA Matrix profile
+
+    join_mp = np.concatenate([mp_ab, mp_ba])
+
+    k = int(np.ceil(threshold * (len(x) + len(y))))
+
+    sorted_mp = np.sort(join_mp)
+
+    if len(sorted_mp) > k:
+        dist = sorted_mp[k]
+    else:
+        dist = sorted_mp[len(sorted_mp) - 1]
+
+    return dist
 
 
 def _sliding_dot_products(q, t, len_q, len_t):
@@ -181,69 +258,103 @@ def _stomp_ab(
     return mp, ip
 
 
-def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
-    """Matrix Profile Distance.
+def mpdist_pairwise_distance(
+    X: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    m: int = 0,
+) -> np.ndarray:
+    """Compute the mpdist pairwise distance between a set of time series.
 
     Parameters
     ----------
-    x : np.ndarray
-        First time series, univariate, shape ``(n_timepoints,)``
-    y : np.ndarray
-        Second time series, univariate, shape ``(n_timepoints,)``
+    X : np.ndarray or List of np.ndarray
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``.
+    y : np.ndarray or List of np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_cases, m_timepoints)``.
+        If None, then the mpdist pairwise distance between the instances of X is
+        calculated.
     m : int (default = 0)
         Length of the subsequence
 
     Returns
     -------
-    float
-        Matrix Profile distance between x and y
+    np.ndarray (n_cases, n_cases)
+        mpdist pairwise matrix between the instances of X if only X is given
+        else mpdist pairwise matrix between the instances of X and y.
 
     Raises
     ------
     ValueError
-        If x and y are not 1D arrays
+        If X is not 2D or 3D array when only passing X.
+        If X and y are not 1D, 2D arrays when passing both X and y.
 
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import mpdist
-    >>> x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> y = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
-    >>> m = 4
-    >>> mpdist(x, y, m)
-    31.622776601683793
+    >>> from aeon.distances import mpdist_pairwise_distance
+    >>> # Distance between each time series in a collection of time series
+    >>> X = np.array([[[1, 2, 3, 7, 9, 6]],
+                    [[4, 5, 6, 20, 26, 30]],
+                    [[7, 8, 9, 19, 15, 7]]])
+    >>> mpdist_pairwise_distance(X, m = 3)
+    array([[0.00000000e+00, 3.65002415e-08, 3.65002415e-08],
+           [3.65002415e-08, 0.00000000e+00, 3.65002415e-08],
+           [3.65002415e-08, 3.65002415e-08, 0.00000000e+00]])
+
+    >>> # Distance between two collections of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y = np.array([[[21, 13, 9]],[[19, 14, 5]], [[17, 11, 6]]])
+    >>> mpdist_pairwise_distance(X, y, m = 2)
+    array([[2.82842712, 2.82842712, 2.82842712],
+           [2.82842712, 2.82842712, 2.82842712],
+           [2.82842712, 2.82842712, 2.82842712]])
+
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y_univariate = np.array([22, 18, 12])
+    >>> mpdist_pairwise_distance(X, y_univariate, m = 2)
+    array([[2.82842712],
+           [2.82842712],
+           [2.82842712]])
     """
-    if x.ndim == 1 and y.ndim == 1:
-        return _mpdist(x, y, m)
-    raise ValueError("x and y must be a 1D array of shape (n_timepoints,)")
+    if X.ndim == 3 and X.shape[1] == 1:
+        X = np.squeeze(X)
+
+    if m == 0:
+        m = int(X.shape[1] / 4)
+
+    _X = _convert_to_list(X, "X")
+
+    if y is None:
+        # To self
+        return _mpdist_pairwise_distance_single(_X, m)
+
+    if y.ndim == 3 and y.shape[1] == 1:
+        y = np.squeeze(y)
+    _y = _convert_to_list(y, "y")
+    return _mpdist_pairwise_distance(_X, _y, m)
 
 
-def _mpdist(x: np.ndarray, y: np.ndarray, m: int) -> float:
-    threshold = 0.05
-    len_x = len(x)
-    len_y = len(y)
+def _mpdist_pairwise_distance_single(x: NumbaList[np.ndarray], m: int) -> np.ndarray:
+    n_cases = len(x)
+    distances = np.zeros((n_cases, n_cases))
 
-    first_dot_prod_ab = _sliding_dot_products(y[0:m], x, m, len_x)
-    dot_prod_ab = _sliding_dot_products(x[0:m], y, m, len_y)
-    mp_ab, ip_ab = _stomp_ab(
-        x, y, m, first_dot_prod_ab, dot_prod_ab
-    )  # AB Matrix profile
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
+            distances[i, j] = mpdist(x[i], x[j], m)
+            distances[j, i] = distances[i, j]
 
-    first_dot_prod_ba = _sliding_dot_products(x[0:m], y, m, len_y)
-    dot_prod_ba = _sliding_dot_products(y[0:m], x, m, len_x)
-    mp_ba, ip_ba = _stomp_ab(
-        y, x, m, first_dot_prod_ba, dot_prod_ba
-    )  # BA Matrix profile
+    return distances
 
-    join_mp = np.concatenate([mp_ab, mp_ba])
 
-    k = int(np.ceil(threshold * (len(x) + len(y))))
+def _mpdist_pairwise_distance(
+    x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], m: int
+) -> np.ndarray:
+    n_cases = len(x)
+    m_cases = len(y)
+    distances = np.zeros((n_cases, m_cases))
 
-    sorted_mp = np.sort(join_mp)
-
-    if len(sorted_mp) > k:
-        dist = sorted_mp[k]
-    else:
-        dist = sorted_mp[len(sorted_mp) - 1]
-
-    return dist
+    for i in range(n_cases):
+        for j in range(m_cases):
+            distances[i, j] = mpdist(x[i], y[j], m)
+    return distances
