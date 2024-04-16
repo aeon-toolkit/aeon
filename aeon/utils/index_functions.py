@@ -350,13 +350,6 @@ def update_data(X, X_new=None):
         return X_new.combine_first(X)
 
 
-GET_WINDOW_SUPPORTED_MTYPES = [
-    "pd.DataFrame",
-    "pd-multiindex",
-    "pd_multiindex_hier",
-    "np.ndarray",
-    "numpy3D",
-]
 SUPPORTED_SERIES = [
     "pd.DataFrame",
     "np.ndarray",
@@ -395,7 +388,8 @@ def get_window(obj, window_length=None, lag=None):
     obj : aeon compatible time series data container or None
         if not None, must be of Series, Panel, or Hierarchical internal types.
         all valid internal types are supported via conversion to internally supported
-        types to avoid conversions, pass data in one of GET_WINDOW_SUPPORTED_MTYPES
+        types to avoid conversions, pass data in one of SUPPORTED_SERIES or
+        SUPPORTED_COLLECTION
     window_length : int or timedelta, optional, default=-inf
         must be int if obj is int indexed, timedelta if datetime indexed
         length of the window to slice to. Default = window of infinite size
@@ -475,7 +469,6 @@ def get_window(obj, window_length=None, lag=None):
                 obj_subset = convert_collection(obj_subset, input_type)
 
         return obj_subset
-        # convert_to(obj_subset, input_type)
 
     raise ValueError(
         "passed get_window an object that is not of type np.ndarray or pd.DataFrame"
@@ -494,7 +487,8 @@ def get_slice(obj, start=None, end=None):
     obj : aeon compatible time series data container or None
         if not None, must be of Series, Panel, or Hierarchical scitype
         all mtypes are supported via conversion to internally supported types
-        to avoid conversions, pass data in one of GET_WINDOW_SUPPORTED_MTYPES
+        to avoid conversions, pass data in one of SUPPORTED_SERIES or
+        SUPPORTED_COLLECTION.
     start : int or timestamp, optional, default = None
         must be int if obj is int indexed, timestamp if datetime indexed
         Inclusive start of slice. Default = None.
@@ -515,9 +509,9 @@ def get_slice(obj, start=None, end=None):
     valid, metadata = validate_input(obj)
     if not valid:
         raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
-    obj_in_mtype = metadata["mtype"]
-
-    obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)
+    input_type = metadata["mtype"]
+    abstract_type = metadata["scitype"]
+    obj, reconvert = _convert(obj, abstract_type, input_type)
 
     # numpy3D (Panel) or np.npdarray (Series)
     # Assumes the index is integer so will be exclusive by default
@@ -557,8 +551,9 @@ def get_slice(obj, start=None, end=None):
             slice_select = time_indices >= start
 
         obj_subset = obj.iloc[slice_select]
-        return convert_to(obj_subset, obj_in_mtype)
-
-    raise ValueError(
-        "bug in get_slice, unreachable condition, ifs should be exhaustive"
-    )
+        if reconvert:
+            if abstract_type == "Series" and input_type == "pd.Series":
+                obj_subset = convert_series(obj_subset, input_type)
+            elif abstract_type == "Panel":
+                obj_subset = convert_collection(obj_subset, input_type)
+        return obj_subset
