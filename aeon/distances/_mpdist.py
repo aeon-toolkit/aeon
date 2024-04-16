@@ -309,13 +309,10 @@ def mpdist_pairwise_distance(
     >>> import numpy as np
     >>> from aeon.distances import mpdist_pairwise_distance
     >>> # Distance between each time series in a collection of time series
-    >>> X = np.array([[[1, 2, 3, 7, 9, 6]],
-    [[4, 5, 6, 20, 26, 30]],
-    [[7, 8, 9, 19, 15, 7]]])
+    >>> X = np.array([[16, 23, 19, 13],[48, 55, 63, 67]])
     >>> mpdist_pairwise_distance(X, m = 3)
-    array([[0.00000000e+00, 3.65002415e-08, 3.65002415e-08],
-           [3.65002415e-08, 0.00000000e+00, 3.65002415e-08],
-           [3.65002415e-08, 3.65002415e-08, 0.00000000e+00]])
+    array([[0.        , 1.56786235],
+           [1.56786235, 0.        ]])
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
