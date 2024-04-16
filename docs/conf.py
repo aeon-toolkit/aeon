@@ -37,7 +37,6 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
     "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
-    "sphinx.ext.mathjax",
     "sphinxext.opengraph",
     "numpydoc",
     "nbsphinx",  # integrates example notebooks
@@ -379,9 +378,9 @@ def _make_estimator_overview(app):
 
             # For case where tag is not included output as not supported.
             if not _val or _val is None:
-                data[f"Support {_str}"].append(r":math:`\color{red}\times`")
+                data[f"Support {_str}"].append(r"unicode:: U+274C")
             else:
-                data[f"Support {_str}"].append(r":math:`\color{green}\checkmark`")
+                data[f"Support {_str}"].append(r"unicode:: U+2705")
 
     df = pd.DataFrame.from_dict(data)
     with open("estimator_overview_table.md", "w") as file:
