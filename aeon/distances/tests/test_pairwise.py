@@ -178,9 +178,7 @@ def _validate_single_to_multiple_result(
     )
 
     if len(x_shape) < len(y_shape):
-        temp_x = y
-        y = x
-        x = temp_x
+        x, y = y, x
 
     if not isinstance(x, np.ndarray):
         y = np.array(y)
