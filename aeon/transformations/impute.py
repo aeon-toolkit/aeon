@@ -90,7 +90,7 @@ class Imputer(BaseTransformer):
         "capability:missing_values": True,
         "skip-inverse-transform": True,
         "capability:inverse_transform": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:missing_values:removes": True,
         "remember_data": False,
     }

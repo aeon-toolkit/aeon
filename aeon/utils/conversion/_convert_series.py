@@ -46,6 +46,7 @@ def convert_series(y, output_type):
             y = y.iloc[:, 0]
             return y
         elif isinstance(y, np.ndarray):
+            y = y.squeeze()
             if y.ndim == 1:
                 # Convert 1D numpy array to pandas Series
                 return pd.Series(y)

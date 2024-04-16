@@ -66,7 +66,7 @@ class ThetaLinesTransformer(BaseTransformer):
         "X_inner_type": ["pd.DataFrame", "pd.Series"],
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": True,
     }
 
