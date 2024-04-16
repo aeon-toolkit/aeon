@@ -3,7 +3,6 @@
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import convert_to
 from aeon.utils.conversion import convert_collection, convert_series
 from aeon.utils.validation import (
     is_collection,
@@ -31,10 +30,10 @@ def get_time_index(X):
     Parameters
     ----------
     X : pd.DataFrame, pd.Series, np.ndarray
-    in one of the following aeon mtype specifications for Series, Panel, Hierarchical:
+    in one of the following data container types
     pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, nested_univ, pd_multiindex_hier
     assumes all time series have equal length and equal index set
-    will *not* work for list-of-df, pd-wide, pd-long, numpy2D
+    will *not* work for list-of-df, pd-wide, pd-long, numpy2D or np-list.
 
     Returns
     -------
@@ -82,8 +81,8 @@ def get_index_for_series(obj, cutoff=0):
     Parameters
     ----------
     obj : aeon data container
-        must be of one of the following mtypes:
-            pd.Series, pd.DataFrame, np.ndarray, of Series scitype
+        must be of one of the following single series data structures:
+            pd.Series, pd.DataFrame, np.ndarray
     cutoff : int, or pd.datetime, optional, default=0
         current cutoff, used to offset index if obj is np.ndarray
 
@@ -106,7 +105,7 @@ def _get_cutoff_from_index(idx, return_index=False, reverse_order=False):
     Parameters
     ----------
     obj : pd.Index, possibly MultiIndex, with last level assumed timelike or integer,
-        e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier mtypes
+        e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier types
     return_index : bool, optional, default=False
         whether a pd.Index object should be returned (True)
             or a pandas compatible index element (False)
@@ -287,13 +286,13 @@ def get_cutoff(
         return agg(idxs)
 
 
-UPDATE_DATA_INTERNAL_MTYPES = [
+SUPPORTED_SERIES = [
     "pd.DataFrame",
-    "pd.Series",
     "np.ndarray",
+]
+SUPPORTED_COLLECTIONS = [
     "pd-multiindex",
     "numpy3D",
-    "pd_multiindex_hier",
 ]
 
 
@@ -325,8 +324,10 @@ def update_data(X, X_new=None):
 
     # we want to ensure that X, X_new are either numpy (1D, 2D, 3D)
     # or in one of the long pandas formats
-    X = convert_to(X, to_type=UPDATE_DATA_INTERNAL_MTYPES)
-    X_new = convert_to(X_new, to_type=UPDATE_DATA_INTERNAL_MTYPES)
+    if is_collection(X):
+        X = convert_collection(X, to_type="numpy3D")
+    if is_collection(X_new):
+        X_new = convert_collection(X, to_type="numpy3D")
 
     # we only need to modify X if X_new is not None
     if X_new is None:
@@ -348,16 +349,6 @@ def update_data(X, X_new=None):
     #  if y is pandas, we use combine_first to update
     elif isinstance(X_new, (pd.Series, pd.DataFrame)) and len(X_new) > 0:
         return X_new.combine_first(X)
-
-
-SUPPORTED_SERIES = [
-    "pd.DataFrame",
-    "np.ndarray",
-]
-SUPPORTED_COLLECTIONS = [
-    "pd-multiindex",
-    "numpy3D",
-]
 
 
 def _convert(obj, abstract_type, input_type):
