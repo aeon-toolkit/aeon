@@ -199,7 +199,7 @@ def get_cutoff(
     ------
     ValueError, TypeError, if check_input or convert_input are True.
     """
-    # deal with legacy VectorizedDF
+    # deal with legacy method of wrapping a Broadcaster
     if hasattr(obj, "X"):
         obj = obj.X
 
@@ -300,15 +300,15 @@ UPDATE_DATA_INTERNAL_MTYPES = [
 def update_data(X, X_new=None):
     """Update time series container with another one.
 
-    Coerces X, X_new to one of the assumed mtypes, if not already of that type.
+    Converts X, X_new to one of the valid internal types, if not one already.
 
     Parameters
     ----------
-    X : None, or aeon data container, in one of the following mtype formats
+    X : None, or aeon data container, in one of the following internal type formats
         pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, numpy3D,
-        pd_multiindex_hier. If not of that format, coerced.
-    X_new : None, or aeon data container, should be same mtype as X,
-        or convert to same format when converting to format list via convert_to
+        pd_multiindex_hier. If not of that format, converted.
+    X_new : None, or aeon data container, should be same type as X,
+        or convert to same format when converting X
 
     Returns
     -------
@@ -317,7 +317,7 @@ def update_data(X, X_new=None):
         numpy based containers will always be interpreted as having new row index
         if one of X, X_new is None, returns the other; if both are None, returns None
     """
-    # Temproary measure to deal with legacy VectorizedDF
+    # Temproary measure to deal with legacy method of wrapping a Broadcaster
     if hasattr(X, "X"):
         X = X.X
     if hasattr(X_new, "X"):
