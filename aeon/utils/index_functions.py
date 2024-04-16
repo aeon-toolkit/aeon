@@ -367,6 +367,19 @@ SUPPORTED_COLLECTIONS = [
 ]
 
 
+def _convert(obj, abstract_type, input_type):
+    reconvert = False
+    if abstract_type == "Series":
+        obj = convert_series(obj, SUPPORTED_SERIES)
+        if input_type == "pd.Series":
+            reconvert = True
+    elif abstract_type == "Panel":
+        if input_type not in SUPPORTED_COLLECTIONS:
+            obj = convert_collection(obj, "pd-multiindex")
+            reconvert = True
+    return obj, reconvert
+
+
 def get_window(obj, window_length=None, lag=None):
     """Slice obj to the time index window with given length and lag.
 
@@ -405,16 +418,7 @@ def get_window(obj, window_length=None, lag=None):
         raise ValueError("obj must be of Series, Collection, or Hierarchical scitype")
     input_type = metadata["mtype"]
     abstract_type = metadata["scitype"]
-    reconvert = False
-    if abstract_type == "Series":
-        obj = convert_series(obj, SUPPORTED_SERIES)
-        if input_type == "pd.Series":
-            reconvert = True
-    elif abstract_type == "Panel":
-        if input_type not in SUPPORTED_COLLECTIONS:
-            obj = convert_collection(obj, "pd-multiindex")
-            reconvert = True
-    #    obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)
+    obj, reconvert = _convert(obj, abstract_type, input_type)
 
     # numpy3D (Collection) or np.npdarray (Series)
     if isinstance(obj, np.ndarray):

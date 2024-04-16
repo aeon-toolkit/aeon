@@ -101,7 +101,7 @@ def convert_series(y, output_type):
     if output_type == "pd.Series":
         if input_type == "pd.DataFrame":
             if y.shape == (1, 1):  # special case of single element, cant squeeze
-                y = pd.Series(y.iloc[0, 0])
+                y = y[y.columns[0]]
             else:
                 y = y.squeeze()
             if y.ndim > 1:
