@@ -394,6 +394,7 @@ def _make_estimator_overview(app):
     df_str = df.to_markdown(index=False, tablefmt="github")
     with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
         file.write(df_str)
+        file.write("\n{.interactive-table}")
 
 
 def setup(app):
