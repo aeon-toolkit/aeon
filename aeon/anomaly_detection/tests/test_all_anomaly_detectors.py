@@ -1,3 +1,5 @@
+"""Tests for all anomaly detectors."""
+
 __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
@@ -22,6 +24,7 @@ mv_series[:, labels == 1] += 1
 
 @pytest.mark.parametrize("anomaly_detector", ALL_ANOMALY_DETECTORS)
 def test_anomaly_detector_univariate(anomaly_detector):
+    """Test the anomaly detector on univariate data."""
     ad = anomaly_detector.create_test_instance()
 
     if anomaly_detector.get_class_tag(tag_name="capability:univariate"):
@@ -36,6 +39,7 @@ def test_anomaly_detector_univariate(anomaly_detector):
 
 @pytest.mark.parametrize("anomaly_detector", ALL_ANOMALY_DETECTORS)
 def test_anomaly_detector_multivariate(anomaly_detector):
+    """Test the anomaly detector on multivariate data."""
     ad = anomaly_detector.create_test_instance()
 
     if anomaly_detector.get_class_tag(tag_name="capability:multivariate"):

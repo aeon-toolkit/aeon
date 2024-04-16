@@ -1,18 +1,43 @@
+"""MERLIN anomaly detector."""
+
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["MERLIN"]
 
 import warnings
 
 import numpy as np
-from numba import njit
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
-from aeon.distances import euclidean_distance, squared_distance
+from aeon.distances import squared_distance
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.numba.stats import mean, std
 
 
 class MERLIN(BaseAnomalyDetector):
+    """MERLIN anomaly detector.
+
+    MERLIN is a discord discovery algorithm that uses a sliding window to find the
+    most anomalous subsequence in a time series. The algorithm is based on the
+    Euclidean distance between subsequences of the time series.
+
+    Parameters
+    ----------
+    min_length : int, default=5
+        Minimum length of the subsequence to search for. Must be at least 4.
+    max_length : int, default=50
+        Maximum length of the subsequence to search for. Must be at half the length
+        of the time series or less.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.anomaly_detection import MERLIN
+    >>> X = np.array([1, 2, 3, 1, 2, 3, 2, 3, 4, 1, 2, 3])
+    >>> detector = MERLIN(min_length=3, max_length=5)
+    >>> detector.fit_predict(X)
+    array([False, False, False, False, False, False, False, False, False, False])
+    """
+
     def __init__(self, min_length=5, max_length=50):
         self.min_length = min_length
         self.max_length = max_length
@@ -45,10 +70,16 @@ class MERLIN(BaseAnomalyDetector):
                 warnings.warn(
                     "There is region close to constant that will cause the results "
                     "will be unstable. It is suggested to delete the constant region "
-                    "or try again with a longer min_length."
+                    "or try again with a longer min_length.",
+                    stacklevel=2,
                 )
 
-        lengths = np.linspace(self.min_length, self.max_length, num=self.max_length-self.min_length+1, dtype=np.int32)
+        lengths = np.linspace(
+            self.min_length,
+            self.max_length,
+            num=self.max_length - self.min_length + 1,
+            dtype=np.int32,
+        )
 
         r = 2 * np.sqrt(self.min_length)
         distances = np.full(len(lengths), -1.0)
@@ -75,10 +106,10 @@ class MERLIN(BaseAnomalyDetector):
         if np.all(distances == -1):
             raise ValueError("No discord found in the series.")
 
-        anomalies = np.zeros(X.shape[0])
+        anomalies = np.zeros(X.shape[0], dtype=bool)
         for i in indicies:
             if i != np.nan:
-                anomalies[i] = 1
+                anomalies[i] = True
 
         return anomalies
 
@@ -89,7 +120,8 @@ class MERLIN(BaseAnomalyDetector):
         for i in range(X.shape[0] - length + 1):
             is_candidate = True
             data[i] = X[i : i + length]
-            data[i] = (data[i] - mean(data[i])) / std(data[i])
+            sstd = std(data[i]) + AEON_NUMBA_STD_THRESHOLD
+            data[i] = (data[i] - mean(data[i])) / sstd
 
             for n, j in enumerate(C):
                 if (
@@ -128,7 +160,7 @@ class MERLIN(BaseAnomalyDetector):
             return np.nan, np.nan
 
         d_max = int(np.argmax(D))
-        return C[d_max] + int(length/2), np.sqrt(D[d_max])
+        return C[d_max], np.sqrt(D[d_max])
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

@@ -1,3 +1,5 @@
+"""Test anomaly detection base class."""
+
 __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
@@ -24,6 +26,7 @@ test_y = np.array([0, 0, 0, 1, 1, 0, 0, 0, 1, 1])
     "series", [test_series, test_series_2d, test_series_pd, test_series_pd_2d]
 )
 def test_fit(series):
+    """Test the anomaly detection fit method."""
     ad = MockAnomalyDetector()
     ad_fit = MockAnomalyDetectorRequiresFit()
     ad_y = MockAnomalyDetectorRequiresY()
@@ -56,6 +59,7 @@ def test_fit(series):
 
 @pytest.mark.parametrize("series", [test_series_2d, test_series_pd_2d])
 def test_fit_axis(series):
+    """Test the anomaly detection fit method with axis."""
     ad_fit = MockAnomalyDetectorRequiresFit()
     assert ad_fit.axis == 1
     invert_series = series.T
@@ -73,6 +77,7 @@ def test_fit_axis(series):
     "series", [test_series, test_series_2d, test_series_pd, test_series_pd_2d]
 )
 def test_predict(series):
+    """Test the anomaly detection predict method."""
     ad = MockAnomalyDetector()
     ad_fit = MockAnomalyDetectorRequiresFit()
 
@@ -101,6 +106,7 @@ def test_predict(series):
 
 @pytest.mark.parametrize("series", [test_series_2d, test_series_pd_2d])
 def test_predict_axis(series):
+    """Test the anomaly detection predict method with axis."""
     ad = MockAnomalyDetector()
     assert ad.axis == 1
     invert_series = series.T
@@ -116,6 +122,7 @@ def test_predict_axis(series):
     "series", [test_series, test_series_2d, test_series_pd, test_series_pd_2d]
 )
 def test_fit_predict(series):
+    """Test the anomaly detection fit_predict method."""
     ad = MockAnomalyDetector()
     ad_fit = MockAnomalyDetectorRequiresFit()
     ad_y = MockAnomalyDetectorRequiresY()
@@ -163,6 +170,7 @@ def test_fit_predict(series):
 
 @pytest.mark.parametrize("series", [test_series_2d, test_series_pd_2d])
 def test_fit_predict_axis(series):
+    """Test the anomaly detection fit_predict method with axis."""
     ad_fit = MockAnomalyDetectorRequiresFit()
     assert ad_fit.axis == 1
     invert_series = series.T
