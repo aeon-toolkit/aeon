@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 
 from aeon.datatypes import convert_to
-from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.utils.conversion import convert_collection, convert_series
 from aeon.utils.validation import (
     is_collection,
@@ -31,7 +30,7 @@ def get_time_index(X):
 
     Parameters
     ----------
-    X : pd.DataFrame, pd.Series, np.ndarray, or VectorizedDF
+    X : pd.DataFrame, pd.Series, np.ndarray
     in one of the following aeon mtype specifications for Series, Panel, Hierarchical:
     pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, nested_univ, pd_multiindex_hier
     assumes all time series have equal length and equal index set
@@ -200,7 +199,7 @@ def get_cutoff(
     ------
     ValueError, TypeError, if check_input or convert_input are True.
     """
-    # deal with VectorizedDF
+    # deal with legacy VectorizedDF
     if hasattr(obj, "X"):
         obj = obj.X
 
@@ -318,10 +317,10 @@ def update_data(X, X_new=None):
         numpy based containers will always be interpreted as having new row index
         if one of X, X_new is None, returns the other; if both are None, returns None
     """
-    # if X or X_new is vectorized, unwrap it first
-    if isinstance(X, _VectorizedDF):
+    # Temproary measure to deal with legacy VectorizedDF
+    if hasattr(X, "X"):
         X = X.X
-    if isinstance(X_new, _VectorizedDF):
+    if hasattr(X_new, "X"):
         X_new = X_new.X
 
     # we want to ensure that X, X_new are either numpy (1D, 2D, 3D)
