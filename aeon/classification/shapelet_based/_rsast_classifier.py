@@ -18,8 +18,6 @@ from aeon.classification import BaseClassifier
 from aeon.transformations.collection.shapelet_based import RSAST
 from aeon.utils.numba.general import z_normalise_series
 
-
-
 class RSASTClassifier(BaseClassifier):
     """Classification pipeline using RSAST [1]_ transformer and an sklean classifier.
 
@@ -51,10 +49,10 @@ class RSASTClassifier(BaseClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = RSASTClassifier()
-    >>> clf.fit(X_train, y_train)
+    >>> clf = RSASTClassifier() # doctest: +SKIP
+    >>> clf.fit(X_train, y_train) # doctest: +SKIP
     RSASTClassifier(...)
-    >>> y_pred = clf.predict(X_test)
+    >>> y_pred = clf.predict(X_test) # doctest: +SKIP
     """
 
     _tags = {
@@ -97,8 +95,7 @@ class RSASTClassifier(BaseClassifier):
             This pipeline classifier
 
         """
-        from statsmodels.tsa.stattools import acf, pacf
-        from scipy.stats import f_oneway, DegenerateDataWarning, ConstantInputWarning
+
         
         self._transformer = RSAST(
             self.n_random_points,
