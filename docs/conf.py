@@ -262,10 +262,15 @@ html_favicon = "images/logo/aeon-favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_css_files = ["css/custom.css"]
+html_css_files = [
+    "css/custom.css",
+    "https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.min.css",
+]
 html_js_files = [
+    "https://cdn.datatables.net/2.0.3/js/dataTables.min.js",
     "js/dynamic_table.js",
 ]
+
 html_show_sourcelink = False
 
 # -- Options for HTMLHelp output ---------------------------------------------
@@ -385,8 +390,14 @@ def _make_estimator_overview(app):
     df = pd.DataFrame.from_dict(data).sort_values(
         by=["Module", "Family of method", "Estimator name"]
     )
+
+    markdown_string = """.. table::
+        :class: datatable"""
+
+    df_str = df.to_markdown(index=False, tablefmt="github")
+    markdown_string += "\n".join(["    " + s for s in df_str.split("\n")])
     with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
-        df.to_markdown(file, index=False, tablefmt="github")
+        file.write(markdown_string)
 
 
 def setup(app):
@@ -396,13 +407,6 @@ def setup(app):
     ----------
     app : Sphinx application object
     """
-
-    def adds(pth):
-        print("Adding stylesheet: %s" % pth)  # noqa: T201, T001
-        app.add_css_file(pth)
-
-    adds("fields.css")
-
     app.connect("builder-inited", _make_estimator_overview)
 
 
