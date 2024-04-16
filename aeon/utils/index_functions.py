@@ -5,6 +5,7 @@ import pandas as pd
 
 from aeon.datatypes import convert_to
 from aeon.datatypes._vec_df import _VectorizedDF
+from aeon.utils.conversion import convert_collection, convert_series
 from aeon.utils.validation import (
     is_collection,
     is_hierarchical,
@@ -357,22 +358,32 @@ GET_WINDOW_SUPPORTED_MTYPES = [
     "np.ndarray",
     "numpy3D",
 ]
+SUPPORTED_SERIES = [
+    "pd.DataFrame",
+    "np.ndarray",
+]
+SUPPORTED_COLLECTIONS = [
+    "pd-multiindex",
+    "numpy3D",
+]
 
 
 def get_window(obj, window_length=None, lag=None):
     """Slice obj to the time index window with given length and lag.
 
-    Returns time series or time series panel with time indices
+    Returns time series or time series collection with time indices
         strictly greater than cutoff - lag - window_length, and
         equal or less than cutoff - lag.
     Cutoff if of obj, as determined by get_cutoff.
+    This function does not work with pd.Series, hence the conversion to pd.DataFrame.
+    It also does not work with unequal length collections of series.
 
     Parameters
     ----------
     obj : aeon compatible time series data container or None
-        if not None, must be of Series, Panel, or Hierarchical scitype
-        all mtypes are supported via conversion to internally supported types
-        to avoid conversions, pass data in one of GET_WINDOW_SUPPORTED_MTYPES
+        if not None, must be of Series, Panel, or Hierarchical internal types.
+        all valid internal types are supported via conversion to internally supported
+        types to avoid conversions, pass data in one of GET_WINDOW_SUPPORTED_MTYPES
     window_length : int or timedelta, optional, default=-inf
         must be int if obj is int indexed, timedelta if datetime indexed
         length of the window to slice to. Default = window of infinite size
@@ -393,9 +404,18 @@ def get_window(obj, window_length=None, lag=None):
     valid, metadata = validate_input(obj)
     if not valid:
         raise ValueError("obj must be of Series, Collection, or Hierarchical scitype")
-    obj_in_mtype = metadata["mtype"]
-
-    obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)
+    input_type = metadata["mtype"]
+    abstract_type = metadata["scitype"]
+    reconvert = False
+    if abstract_type == "Series":
+        obj = convert_series(obj, SUPPORTED_SERIES)
+        if input_type == "pd.Series":
+            reconvert = True
+    elif abstract_type == "Panel":
+        if input_type not in SUPPORTED_COLLECTIONS:
+            obj = convert_collection(obj, "pd-multiindex")
+            reconvert = True
+    #    obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)
 
     # numpy3D (Collection) or np.npdarray (Series)
     if isinstance(obj, np.ndarray):
@@ -445,8 +465,14 @@ def get_window(obj, window_length=None, lag=None):
                 win_select = win_select & (time_indices > win_start_excl)
 
         obj_subset = obj.iloc[win_select]
+        if reconvert:
+            if abstract_type == "Series" and input_type == "pd.Series":
+                obj_subset = convert_series(obj_subset, input_type)
+            elif abstract_type == "Panel":
+                obj_subset = convert_collection(obj_subset, input_type)
 
-        return convert_to(obj_subset, obj_in_mtype)
+        return obj_subset
+        # convert_to(obj_subset, input_type)
 
     raise ValueError(
         "passed get_window an object that is not of type np.ndarray or pd.DataFrame"
