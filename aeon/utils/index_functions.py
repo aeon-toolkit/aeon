@@ -317,7 +317,7 @@ def update_data(X, X_new=None):
         numpy based containers will always be interpreted as having new row index
         if one of X, X_new is None, returns the other; if both are None, returns None
     """
-    # Temproary measure to deal with legacy method of wrapping a Broadcaster
+    # Temporary measure to deal with legacy method of wrapping a Broadcaster
     if hasattr(X, "X"):
         X = X.X
     if hasattr(X_new, "X"):
