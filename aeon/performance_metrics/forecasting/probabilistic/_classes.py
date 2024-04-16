@@ -4,6 +4,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from pandas.api.types import is_numeric_dtype
 from sklearn.utils import check_array, check_consistent_length
 
@@ -14,6 +15,15 @@ from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.performance_metrics.base import BaseMetric
 
 
+# TODO: remove v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="BaseForecastingErrorMetric and remaining subclasses of it will be removed "
+    "in version 0.10.0. Functionality for pinball loss and related functions is "
+    "available in scikit-learn and we are no longer supporting the functor "
+    "model for metrics.",
+    category=FutureWarning,
+)
 class BaseForecastingErrorMetric(BaseMetric):
     """Base class for defining forecasting error metrics in aeon.
 
