@@ -62,10 +62,11 @@ class TimeSeriesCLARA(BaseClusterer):
         convergence.
     verbose : bool, default=False
         Verbosity mode.
-    random_state : int, RandomState instance or None, default=None
+    random_state : int, np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
         If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
+        If `np.random.RandomState` instance,
+        random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     distance_params : dict, default=None
