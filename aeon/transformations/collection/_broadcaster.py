@@ -21,7 +21,7 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.testing.mock_estimators import MockSeriesTransformer
+    >>> from aeon.testing.mock_estimators import MockUnivariateSeriesTransformer
     >>> import numpy as np
     >>> X = np.random.rand(4, 1, 10)
     >>> transformer = MockSeriesTransformer()
@@ -152,7 +152,7 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.testing.mock_estimators._mock_series_transformers import (
-            MockSeriesTransformer,
+            MockUnivariateSeriesTransformer,
         )
 
-        return {"transformer": MockSeriesTransformer()}
+        return {"transformer": MockUnivariateSeriesTransformer()}
