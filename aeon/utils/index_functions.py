@@ -208,7 +208,7 @@ def get_cutoff(
         )
     if not (is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)):
         raise ValueError(
-            "obj must be of Series, Collection, or Hierarchical abstract " "type"
+            "obj must be of Series, Collection, or Hierarchical abstract type"
         )
 
     if cutoff is None:

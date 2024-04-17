@@ -213,7 +213,9 @@ def test_get_cutoff_wrong_input(bad_inputs):
     ------
     Exception (from pytest) if the error is not raised as expected
     """
-    with pytest.raises(Exception, match="must be of Series, Panel, or Hierarchical"):
+    with pytest.raises(
+        Exception, match="must be of Series, Collection, " "or Hierarchical"
+    ):
         get_cutoff(bad_inputs)
 
 
