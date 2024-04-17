@@ -1014,14 +1014,27 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
             url = f"https://zenodo.org/record/{id}/files/{name}.zip"
             file_save = f"{local_module}/{local_dirname}/{name}.zip"
             if not os.path.exists(file_save):
+                req = Request(url, method="HEAD")
                 try:
-                    urllib.request.urlretrieve(url, file_save)
-                except Exception:
-                    raise ValueError(
-                        f"Invalid dataset name ={name} is not available on extract path"
-                        f" {extract_path}.\n Nor is it available on "
-                        f"https://forecastingdata.org/ via path {url}",
+                    # Perform the request
+                    response = urlopen(req, timeout=60)
+                    # Check the status code of the response, if 200 incorrect input args
+                    if response.status != 200:
+                        raise ValueError("eRROR")
+                except Exception as e:
+                    raise e
+                try:
+                    _download_and_extract(
+                        url,
+                        extract_path=extract_path,
                     )
+                except zipfile.BadZipFile:
+                    raise ValueError(
+                        f"Invalid dataset name ={name} is  available on extract path ="
+                        f"{extract_path} or https://timeseriesclassification.com/"
+                        f" but it is not correctly formatted.",
+                    )
+
             if not os.path.exists(
                 f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
             ):
