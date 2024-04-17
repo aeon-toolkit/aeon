@@ -18,7 +18,6 @@ from aeon.transformations.collection.shapelet_based import SAST
 from aeon.utils.numba.general import z_normalise_series
 
 
-
 class SASTClassifier(BaseClassifier):
     """Classification pipeline using SAST [1]_ transformer and an sklean classifier.
 

@@ -18,14 +18,15 @@ from aeon.classification import BaseClassifier
 from aeon.transformations.collection.shapelet_based import RSAST
 from aeon.utils.numba.general import z_normalise_series
 
+
 class RSASTClassifier(BaseClassifier):
     """Classification pipeline using RSAST [1]_ transformer and an sklean classifier.
 
     Parameters
     ----------
     n_random_points: int default = 10 the number of initial random points to extract
-    len_method:  string default="both" the type of statistical tool used to get the 
-    length of shapelets. "both"=ACF&PACF, "ACF"=ACF, "PACF"=PACF, 
+    len_method:  string default="both" the type of statistical tool used to get the
+    length of shapelets. "both"=ACF&PACF, "ACF"=ACF, "PACF"=PACF,
     "None"=Extract randomly any length from the TS
     nb_inst_per_class : int default = 10
         the number of reference time series to select per class
@@ -39,10 +40,10 @@ class RSASTClassifier(BaseClassifier):
 
     Reference
     ---------
-    .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023). RSAST: Sampling 
+    .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023). RSAST: Sampling
     Shapelets for Time Series Classification.
     https://hal.science/hal-04311309/
-    
+
     Examples
     --------
     >>> from aeon.classification.shapelet_based import RSASTClassifier
@@ -95,8 +96,6 @@ class RSASTClassifier(BaseClassifier):
             This pipeline classifier
 
         """
-
-        
         self._transformer = RSAST(
             self.n_random_points,
             self.len_method,
@@ -160,6 +159,7 @@ class RSASTClassifier(BaseClassifier):
 
     def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
         import matplotlib.pyplot as plt
+
         """Plot the most important features on ts.
 
         Parameters
