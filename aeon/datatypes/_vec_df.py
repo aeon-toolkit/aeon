@@ -13,7 +13,7 @@ from aeon.utils.multiindex import flatten_multiindex
 
 
 class _VectorizedDF:
-    """Wrapper for easy vectorization/iteration over instances.
+    """Wrapper for easy iteration over instances.
 
     VectorizedDF is an iterable that returns pandas.DataFrame
         in aeon Series or Panel format.
