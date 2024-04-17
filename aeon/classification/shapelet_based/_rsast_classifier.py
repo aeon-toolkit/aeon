@@ -20,7 +20,7 @@ from aeon.utils.numba.general import z_normalise_series
 
 
 class RSASTClassifier(BaseClassifier):
-    """Classification pipeline using RSAST [1]_ transformer and an sklean classifier.
+    """Classification pipeline using RSAST [1]_ transformer and an sklearn classifier.
 
     Parameters
     ----------
