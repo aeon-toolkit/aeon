@@ -1,73 +1,50 @@
-""""Test the base series transformer."""
-
-__maintainer__ = ["baraline"]
+"""Test the base series transformer."""
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
-from aeon.testing.mock_estimators._mock_series_transformers import MockSeriesTransformer
-from aeon.testing.utils.data_gen import (
-    make_1d_numpy_series,
-    make_2d_numpy_series,
-    make_example_3d_numpy,
-    make_series,
+from aeon.testing.mock_estimators import (
+    MockMultivariateSeriesTransformer,
+    MockSeriesTransformerNoFit,
+    MockUnivariateSeriesTransformer,
 )
 
-
-@pytest.mark.parametrize(
-    "data_gen",
-    [
-        make_1d_numpy_series,
-        make_2d_numpy_series,
-        make_series,
-    ],
-)
-def test_series_transformer_valid_input(data_gen):
-    """Test that BaseCollectionTransformer works with collection input."""
-    X = data_gen()
-
-    t = MockSeriesTransformer()
-    t.fit(X)
-    Xt = t.transform(X)
-    assert isinstance(Xt, np.ndarray)
-    assert Xt.ndim == 2
+ALL_TRANSFORMERS = [MockMultivariateSeriesTransformer(), MockSeriesTransformerNoFit()]
+MULTIVARIATE_SERIES = [
+    np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]),
+    np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]),
+    np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]),
+]
 
 
-@pytest.mark.parametrize("data_gen", [make_example_3d_numpy])
-def test_series_transformer_invalid_input(data_gen):
-    """Test that BaseCollectionTransformer fails with collection input."""
-    X, y = data_gen()
-    t = MockSeriesTransformer()
-    with pytest.raises(ValueError):
-        t.fit_transform(X, y)
+@pytest.mark.parametrize("transformer", ALL_TRANSFORMERS)
+@pytest.mark.parametrize("series", MULTIVARIATE_SERIES)
+def test_fit_transform_multivariate(transformer, series):
+    """Test fit then transform equivalent to fit_transform with setting axis."""
+    transformer.fit(series)
+    x2 = transformer.transform(series)
+    x3 = transformer.fit_transform(series)
+    np.testing.assert_array_almost_equal(x2, x3)
+    assert series.shape == x2.shape
 
 
-def test_inverse_transform():
-    """Test inverse transform."""
-    d = MockSeriesTransformer()
-    x = make_2d_numpy_series(axis=1)
-    d.fit(x)
-    d.set_tags(**{"skip-inverse-transform": True})
-    x2 = d.inverse_transform(x)
-    assert_almost_equal(x, x2)
-    d.set_tags(**{"skip-inverse-transform": False})
-    xt = d.transform(x)
-    x3 = d.inverse_transform(xt)
-    assert_almost_equal(x, x3)
+@pytest.mark.parametrize("transformer", ALL_TRANSFORMERS)
+@pytest.mark.parametrize("series", MULTIVARIATE_SERIES)
+def test_axis(transformer, series):
+    """Test axis."""
+    transformer.fit(series, axis=1)
+    x2 = transformer.transform(series, axis=1)
+    assert series.shape == x2.shape
 
 
-def test_axis_convertion():
-    """Test axis convertion."""
-    # Expect shape=(n_channels, n_timepoints) (axis=1)
-    d = MockSeriesTransformer()
-    x = make_2d_numpy_series(axis=0)
-    d.fit(x, axis=0)
-    xt = d.transform(x, axis=0)
-    expected = x.copy()
-    for i in range(x.shape[1]):
-        expected[:, i] = expected[:, i] + (d.constant + d.random_values_[i])
-
-    assert_array_almost_equal(xt, expected)
-    x2 = d.inverse_transform(xt, axis=0)
-    assert_array_almost_equal(x, x2)
+def test_fit_transform_univariate():
+    """Test fit transform for univariate."""
+    x1 = np.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
+    transformer = MockUnivariateSeriesTransformer()
+    x2 = transformer.fit_transform(x1)
+    assert x1.shape == x2.shape
+    x3 = np.array([[10, 9, 8, 7, 6, 5, 4, 3, 2, 1]])
+    x4 = transformer.fit_transform(x3)
+    assert isinstance(x4, np.ndarray) and x4.ndim == 1
+    with pytest.raises(ValueError, match="Multivariate data not supported"):
+        transformer.fit_transform(np.random.rand(2, 10))

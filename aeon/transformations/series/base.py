@@ -8,8 +8,6 @@ transform - transform(self, X, y=None)
 fit & transform - fit_transform(self, X, y=None)
 """
 
-__maintainer__ = ["baraline", "TonyBagnall"]
-
 from abc import ABCMeta, abstractmethod
 from typing import final
 
@@ -46,8 +44,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         X : Input data
             Time series to fit transform to, of type ``np.ndarray``, ``pd.Series``
             ``pd.DataFrame``.
-        y : ignored argument for interface compatibility
-
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
         axis : int, default = None
             Axis along which to segment if passed a multivariate X series (2D input).
             If axis is 0, it is assumed each column is a time series and each row is
@@ -62,7 +60,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         self : a fitted instance of the estimator
         """
         if self.get_tag("requires_y"):
-            raise ValueError("Tag requires_y is not supported")
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
@@ -71,13 +70,15 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         self.reset()
         if axis is None:  # If none given, assume it is correct.
             axis = self.axis
-        X = self._preprocess_series(X, axis=axis)
-        self._fit(X=X)
+        X = self._preprocess_series(X, axis=axis, store_metadata=True)
+        if y is not None:
+            self._check_y(y)
+        self._fit(X=X, y=y)
         self._is_fitted = True
         return self
 
     @final
-    def transform(self, X, y=None, axis=None):
+    def transform(self, X, axis=None):
         """Transform X and return a transformed version.
 
         State required:
@@ -87,7 +88,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         ----------
         X : Input data
             Data to fit transform to, of valid collection type.
-        y : ignored argument for interface compatibility
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
         axis : int, default = None
             Axis along which to segment if passed a multivariate X series (2D input).
             If axis is 0, it is assumed each column is a time series and each row is
@@ -99,21 +101,19 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
         Returns
         -------
-        transformed version of X
+        transformed version of X with the same axis as passed by the user, if axis
+        not None.
         """
         # check whether is fitted
         self.check_is_fitted()
 
         if axis is None:
             axis = self.axis
-
-        X = self._preprocess_series(X, axis=axis)
+        X = self._preprocess_series(
+            X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
+        )
         Xt = self._transform(X)
-        if self.axis == axis:
-            return Xt
-        else:
-            # If axis is different, return transposed to match input shape
-            return Xt.T
+        return self._postprocess_series(Xt, axis=axis)
 
     @final
     def fit_transform(self, X, y=None, axis=None):
@@ -129,8 +129,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         ----------
         X : Input data
             Data to fit transform to, of valid collection type.
-        y : ignored argument for interface compatibility
-
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
         axis : int, default = None
             Axis along which to segment if passed a multivariate X series (2D input).
             If axis is 0, it is assumed each column is a time series and each row is
@@ -142,22 +142,15 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
         Returns
         -------
-        transformed version of X
+        transformed version of X with the same axis as passed by the user, if axis
+        not None.
         """
         # input checks and datatype conversion, to avoid doing in both fit and transform
         self.reset()
-        if axis is None:
-            axis = self.axis
-
-        X = self._preprocess_series(X, axis=axis)
-        Xt = self._fit_transform(X=X)
+        X = self._preprocess_series(X, axis=axis, store_metadata=True)
+        Xt = self._fit_transform(X=X, y=y)
         self._is_fitted = True
-
-        if self.axis == axis:
-            return Xt
-        else:
-            # If axis is different, return transposed to match input shape
-            return Xt.T
+        return self._postprocess_series(Xt, axis=axis)
 
     @final
     def inverse_transform(self, X, y=None, axis=None):
@@ -170,7 +163,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         ----------
         X : Input data
             Data to fit transform to, of valid collection type.
-        y : ignored argument for interface compatibility
+        y : Target variable, default=None
+             Additional data, e.g., labels for transformation
 
         Returns
         -------
@@ -184,17 +178,14 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             raise NotImplementedError(
                 f"{type(self)} does not implement inverse_transform"
             )
-        if axis is None:
-            axis = self.axis
+
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(X, axis=axis)
-        Xt = self._inverse_transform(X=X)
-        if self.axis == axis:
-            return Xt
-        else:
-            # If axis is different, return transposed to match input shape
-            return Xt.T
+        X = self._preprocess_series(
+            X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
+        )
+        Xt = self._inverse_transform(X=X, y=y)
+        return self._postprocess_series(Xt, axis=axis)
 
     @final
     def update(self, X, y=None, update_params=True, axis=None):
@@ -203,9 +194,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         Parameters
         ----------
         X : data to update of valid series type.
-
-        y : ignored argument for interface compatibility
-
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
         update_params : bool, default=True
             whether the model is updated. Yes if true, if false, simply skips call.
             argument exists for compatibility with forecasting module.
@@ -218,8 +208,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(X, axis=axis)
-        return self._update(X=X, update_params=update_params)
+        X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
+        return self._update(X=X, y=y, update_params=update_params)
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -230,7 +220,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         ----------
         X : Input data
             Data to fit transform to, of valid collection type.
-        y : ignored argument for interface compatibility
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
 
         Returns
         -------
@@ -249,7 +240,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         ----------
         X : Input data
             Data to fit transform to, of valid collection type.
-        y : ignored argument for interface compatibility
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
 
         Returns
         -------
@@ -267,7 +259,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         ----------
         X : Input data
             Data to fit transform to, of valid collection type.
-        y : ignored argument for interface compatibility
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
@@ -286,7 +279,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         ----------
         X : Input data
             Time series to fit transform to, of valid collection type.
-        y : ignored argument for interface compatibility
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
 
         Returns
         -------
