@@ -207,7 +207,9 @@ def get_cutoff(
             idx=obj, return_index=return_index, reverse_order=reverse_order
         )
     if not (is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)):
-        raise ValueError("obj must be of Series, Panel, or Hierarchical abstract type")
+        raise ValueError(
+            "obj must be of Series, Collection, or Hierarchical abstract " "type"
+        )
 
     if cutoff is None:
         cutoff = 0
@@ -224,7 +226,7 @@ def get_cutoff(
     if len(obj) == 0:
         return cutoff
 
-    # numpy3D (Panel) or np.npdarray (Series)
+    # numpy3D (Collection) or np.npdarray (Series)
     if isinstance(obj, np.ndarray):
         if obj.ndim == 3:
             cutoff_ind = obj.shape[-1] + cutoff - 1
@@ -258,7 +260,7 @@ def get_cutoff(
     if isinstance(obj, pd.Series):
         return sub_idx(obj.index, ix, return_index)
 
-    # nested_univ (Panel) or pd.DataFrame(Series)
+    # nested_univ (Collection) or pd.DataFrame(Series)
     if isinstance(obj, pd.DataFrame) and not isinstance(obj.index, pd.MultiIndex):
         objcols = [x for x in obj.columns if obj.dtypes[x] == "object"]
         # pd.DataFrame
@@ -271,7 +273,7 @@ def get_cutoff(
             ]
             return agg(idxx)
 
-    # pd-multiindex (Panel) and pd_multiindex_hier (Hierarchical)
+    # pd-multiindex (Collection) and pd_multiindex_hier (Hierarchical)
     if isinstance(obj, pd.DataFrame) and isinstance(obj.index, pd.MultiIndex):
         idx = obj.index
         series_idx = [
@@ -280,7 +282,7 @@ def get_cutoff(
         cutoffs = [sub_idx(x, ix, return_index) for x in series_idx]
         return agg(cutoffs)
 
-    # df-list (Panel)
+    # df-list (Collection)
     if isinstance(obj, list):
         idxs = [sub_idx(x.index, ix, return_index) for x in obj]
         return agg(idxs)
@@ -376,7 +378,7 @@ def get_window(obj, window_length=None, lag=None):
     Parameters
     ----------
     obj : aeon compatible time series data container or None
-        if not None, must be of Series, Panel, or Hierarchical internal types.
+        if not None, must be of Series, Collection, or Hierarchical internal types.
         all valid internal types are supported via conversion to internally supported
         types to avoid conversions, pass data in one of SUPPORTED_SERIES or
         SUPPORTED_COLLECTION
@@ -468,7 +470,7 @@ def get_window(obj, window_length=None, lag=None):
 def get_slice(obj, start=None, end=None):
     """Slice obj with start (inclusive) and end (exclusive) indices.
 
-    Returns time series or time series panel with time indices
+    Returns time series or time series collection with time indices
         strictly greater and equal to start index and less than
         end index.
 
@@ -476,9 +478,7 @@ def get_slice(obj, start=None, end=None):
     ----------
     obj : aeon compatible time series data container or None
         if not None, must be of Series, Collection, or Hierarchical type
-        all mtypes are supported via conversion to internally supported types
-        to avoid conversions, pass data in one of SUPPORTED_SERIES or
-        SUPPORTED_COLLECTION.
+        in one of SUPPORTED_SERIES or SUPPORTED_COLLECTION.
     start : int or timestamp, optional, default = None
         must be int if obj is int indexed, timestamp if datetime indexed
         Inclusive start of slice. Default = None.
@@ -503,7 +503,7 @@ def get_slice(obj, start=None, end=None):
     abstract_type = metadata["scitype"]
     obj, reconvert = _convert(obj, abstract_type, input_type)
 
-    # numpy3D (Panel) or np.npdarray (Series)
+    # numpy3D (Collection) or np.npdarray (Series)
     # Assumes the index is integer so will be exclusive by default
     if isinstance(obj, np.ndarray):
         # if 2D or 3D, we need to subset by last, not first dimension
@@ -524,7 +524,8 @@ def get_slice(obj, start=None, end=None):
             obj_subset = obj_subset.swapaxes(1, -1)
         return obj_subset
 
-    # pd.DataFrame(Series), pd-multiindex (Panel) and pd_multiindex_hier (Hierarchical)
+    # pd.DataFrame(Series), pd-multiindex (Collection) and pd_multiindex_hier (
+    # Hierarchical)
     # Assumes the index is pd.Timestamp or pd.Period and ensures the end is
     # exclusive with slice_select
     if isinstance(obj, pd.DataFrame):
