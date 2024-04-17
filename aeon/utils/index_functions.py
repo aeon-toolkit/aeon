@@ -321,14 +321,6 @@ def update_data(X, X_new=None):
         X = X.X
     if hasattr(X_new, "X"):
         X_new = X_new.X
-
-    # we want to ensure that X, X_new are either numpy (1D, 2D, 3D)
-    # or in one of the long pandas formats
-    if is_collection(X):
-        X = convert_collection(X, output_type="numpy3D")
-    if is_collection(X_new):
-        X_new = convert_collection(X, output_type="numpy3D")
-
     # we only need to modify X if X_new is not None
     if X_new is None:
         return X
@@ -336,6 +328,13 @@ def update_data(X, X_new=None):
     # if X is None, but X_new is not, return N_new
     if X is None:
         return X_new
+
+    # we want to ensure that X, X_new are either numpy (1D, 2D, 3D)
+    # or in one of the long pandas formats if they are collections
+    if is_collection(X):
+        X = convert_collection(X, output_type="numpy3D")
+    if is_collection(X_new):
+        X_new = convert_collection(X_new, output_type="numpy3D")
 
     # update X with the new rows in X_new
     #  if X is np.ndarray, we assume all rows are new
