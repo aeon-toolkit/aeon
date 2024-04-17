@@ -16,9 +16,11 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 class AutoCorrelationTransformer(BaseSeriesTransformer):
     """Auto-correlation transformer.
 
-    The autocorrelation function measures how correlated a timeseries is
+    The autocorrelation function (ACF) measures how correlated a time series is
     with itself at different lags. The AutocorrelationTransformer returns
-    these values as a series for each lag up to the `n_lags` specified.
+    these values as a series for each lag up to the `n_lags` specified. This transformer
+    intentionally uses a simple implementation without use of FFT and makes minimal
+    adjustments to the ACF. It does not adjust for the mean or variance or trend.
 
     Parameters
     ----------
@@ -29,15 +31,6 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         Number of lags to return autocorrelation for. If None,
         statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1).
 
-    See Also
-    --------
-    PartialAutoCorrelationTransformer
-
-    Notes
-    -----
-    Provides wrapper around statsmodels
-    `acf <https://www.statsmodels.org/devel/generated/
-    statsmodels.tsa.stattools.acf.html>`_ function.
 
     Examples
     --------
