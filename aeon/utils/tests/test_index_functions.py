@@ -84,11 +84,10 @@ def test_get_time_index(datatype):
         assert (idx == exp_idx).all()
 
 
-@pytest.mark.parametrize("convert_input", [True, False])
 @pytest.mark.parametrize("reverse_order", [True, False])
 @pytest.mark.parametrize("return_index", [True, False])
 @pytest.mark.parametrize("datatype", EXAMPLE_DATA.keys())
-def test_get_cutoff(datatype, return_index, reverse_order, convert_input):
+def test_get_cutoff(datatype, return_index, reverse_order):
     """Tests that get_cutoff has correct output.
 
     Parameters
@@ -96,7 +95,6 @@ def test_get_cutoff(datatype, return_index, reverse_order, convert_input):
     datatype : str - datatype of input
     return_index : bool - whether index (True) or index element is returned (False)
     reverse_order : bool - whether first (True) or last index (False) is retrieved
-    convert_input : bool - whether input is converted (True) or passed through (False)
 
     Raises
     ------
@@ -110,7 +108,6 @@ def test_get_cutoff(datatype, return_index, reverse_order, convert_input):
         data,
         return_index=return_index,
         reverse_order=reverse_order,
-        convert_input=convert_input,
     )
 
     if return_index:
@@ -217,7 +214,7 @@ def test_get_cutoff_wrong_input(bad_inputs):
     Exception (from pytest) if the error is not raised as expected
     """
     with pytest.raises(Exception, match="must be of Series, Panel, or Hierarchical"):
-        get_cutoff(bad_inputs, check_input=True)
+        get_cutoff(bad_inputs)
 
 
 @pytest.mark.parametrize("window_length, lag", [(2, 0), (None, 0), (4, 1)])

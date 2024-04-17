@@ -8,6 +8,7 @@ from sklearn.utils import check_random_state
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.datasets import load_basic_motions, load_gunpoint
 from aeon.distances import euclidean_distance
+from aeon.testing.utils.data_gen import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 expected_results = {
@@ -199,12 +200,9 @@ def _get_model_centres(data, distance, average_params=None, distance_params=None
     return model.cluster_centers_
 
 
-def test_different_ba():
-    """Test different ba methods."""
-    X_train, y_train = load_basic_motions(split="train")
-
-    num_test_values = 5
-    data = X_train[0:num_test_values]
+def test_petitjean_ba_params():
+    """Test different petitjean ba params."""
+    data = make_example_3d_numpy(5, 2, 10, random_state=1, return_y=False)
 
     # Test passing distance param
     default_dba = _get_model_centres(data, distance="dtw")
@@ -235,7 +233,7 @@ def test_different_ba():
 
     # Test passing multiple params
     mba_custom_params_window_and_indep = _get_model_centres(
-        data, distance="msm", average_params={"window": 0.2, "independent": False}
+        data, distance="msm", average_params={"window": 0.1, "independent": False}
     )
 
     # Check not equal to just when indep set
@@ -246,6 +244,26 @@ def test_different_ba():
     )
     # Check not equal to default
     assert not np.array_equal(default_mba, mba_custom_params_window_and_indep)
+
+
+def test_ssg_ba_params():
+    """Test different ssg-ba params."""
+    data = make_example_3d_numpy(5, 2, 10, random_state=1, return_y=False)
+
+    # Test subgradient ba
+    subgradient_dba_specified = _get_model_centres(
+        data,
+        distance="dtw",
+        average_params={"distance": "dtw", "method": "subgradient"},
+    )
+
+    # Test another distance and check passing custom distance param
+    subgradient_mba_specified = _get_model_centres(
+        data,
+        distance="msm",
+        average_params={"distance": "msm", "method": "subgradient"},
+    )
+    assert not np.array_equal(subgradient_dba_specified, subgradient_mba_specified)
 
 
 def check_value_in_every_cluster(num_clusters, initial_centres):
@@ -311,8 +329,16 @@ def test_custom_distance_params():
     data = X_train[0:num_test_values]
 
     # Test passing distance param
-    default_dist = _get_model_centres(data, distance="msm")
+    default_dist = _get_model_centres(
+        data,
+        distance="msm",
+        distance_params={"window": 0.2},
+        average_params={"init_barycenter": "medoids"},
+    )
     custom_params_dist = _get_model_centres(
-        data, distance="msm", distance_params={"window": 0.2}
+        data,
+        distance="msm",
+        distance_params={"window": 0.2},
+        average_params={"init_barycenter": "mean"},
     )
     assert not np.array_equal(default_dist, custom_params_dist)

@@ -8,7 +8,17 @@ the class methods `load_from_serial` and `load_from_path`.
 
 __maintainer__ = []
 
+from deprecated.sphinx import deprecated
 
+
+# TODO: remove v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="This load function will be removed in version 0.10.0, we recommend just "
+    "using pickle directly for non deep learning estimators, and built in "
+    "save for tensorflow estimators. ",
+    category=FutureWarning,
+)
 def load(serial):
     """Load an object either from in-memory object or from a file location.
 
@@ -55,23 +65,23 @@ def load(serial):
 
     Example 2: saving a deep learning estimator on the hard drive and loading
     >>> import numpy as np
-    >>> from aeon.classification.deep_learning import CNNClassifier
+    >>> from aeon.classification.convolution_based import RocketClassifier
     >>>
     >>> # 1. fit the estimator
     >>> sample_X = np.random.randn(15, 24, 16) # doctest: +SKIP
     >>> sample_y = np.random.randint(0, 2, size=(15, )) # doctest: +SKIP
     >>> sample_test_X = np.random.randn(5, 24, 16) # doctest: +SKIP
-    >>> cnn = CNNClassifier(n_epochs=1) # doctest: +SKIP
-    >>> cnn.fit(sample_X, sample_y) # doctest: +SKIP
+    >>> rocket = RocketClassifier(num_kernels=100) # doctest: +SKIP
+    >>> rocket.fit(sample_X, sample_y) # doctest: +SKIP
     >>>
     >>> # 2. save the fitted estimator
     >>> save_folder_location = "save_folder" # doctest: +SKIP
-    >>> cnn.save(save_folder_location) # doctest: +SKIP
+    >>> rocket.save(save_folder_location) # doctest: +SKIP
     >>>
     >>> # 3. load the saved estimator (can do this on empty kernel)
     >>> from aeon.base import load
     >>> save_folder_location = "save_folder" # doctest: +SKIP
-    >>> loaded_cnn = load(save_folder_location) # doctest: +SKIP
+    >>> loaded_rocket = load(save_folder_location) # doctest: +SKIP
     >>>
     >>> # 4. continue using the loaded estimator
     >>> pred = cnn.predict(X=sample_test_X) # doctest: +SKIP
