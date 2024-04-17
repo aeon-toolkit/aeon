@@ -6,8 +6,8 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from aeon.testing.mock_estimators._mock_series_transformers import (
-    MockSeriesTransformer,
     MockSeriesTransformerNoFit,
+    MockUnivariateSeriesTransformer,
 )
 from aeon.testing.utils.data_gen import (
     make_example_3d_numpy,
@@ -52,7 +52,7 @@ def test_broadcaster_methods(data_gen):
     X, y = data_gen()
     constant = 1
     broadcaster = SeriesToCollectionBroadcaster(
-        MockSeriesTransformer(constant=constant)
+        MockUnivariateSeriesTransformer(constant=constant)
     )
     broadcaster.fit(X, y)
     Xt = broadcaster.transform(X)
