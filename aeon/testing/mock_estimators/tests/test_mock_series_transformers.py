@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 
 from aeon.testing.mock_estimators._mock_series_transformers import (
-    MockSeriesTransformer,
     MockSeriesTransformerNoFit,
+    MockUnivariateSeriesTransformer,
 )
 
 INPUT_SHAPES = [(2, 5), (1, 5)]
@@ -18,7 +18,7 @@ def test_mock_series_transformer(input_shape):
     """Test dummy transformer fit, transform and inverse_transform methods."""
     constant = 1
     X = np.zeros(input_shape)
-    transformer = MockSeriesTransformer(constant=constant).fit(X)
+    transformer = MockUnivariateSeriesTransformer(constant=constant).fit(X)
     Xt = transformer.transform(X)
     assert Xt.shape == input_shape
     for i in range(X.shape[0]):
@@ -31,7 +31,7 @@ def test_mock_series_transformer_1D_convertion():
     """Test that dummy transformer correctly handle 1D data series."""
     constant = 1
     X = np.zeros(5)
-    transformer = MockSeriesTransformer(constant=constant).fit(X)
+    transformer = MockUnivariateSeriesTransformer(constant=constant).fit(X)
     Xt = transformer.transform(X)
     assert np.all(Xt == constant + transformer.random_values_) and Xt.shape == (1, 5)
     Xit = transformer.inverse_transform(Xt)
