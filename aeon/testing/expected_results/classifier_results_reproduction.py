@@ -42,7 +42,7 @@ from aeon.classification.feature_based import (
     SummaryClassifier,
     TSFreshClassifier,
 )
-from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2, RISTClassifier
+from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2
 from aeon.classification.interval_based import (
     RSTSF,
     CanonicalIntervalForestClassifier,
@@ -190,10 +190,6 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = HIVECOTEV1.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "HIVECOTEV2":
         classifier = HIVECOTEV2.create_test_instance(parameter_set="results_comparison")
-    elif classifier_name == "RISTClassifier":
-        classifier = RISTClassifier.create_test_instance(
-            parameter_set="results_comparison"
-        )
     elif classifier_name == "CanonicalIntervalForestClassifier":
         classifier = CanonicalIntervalForestClassifier.create_test_instance(
             parameter_set="results_comparison"

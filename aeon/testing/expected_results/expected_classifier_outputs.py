@@ -289,20 +289,6 @@ unit_test_proba["HIVECOTEV2"] = np.array(
         [0.9374, 0.0626],
     ]
 )
-unit_test_proba["RISTClassifier"] = np.array(
-    [
-        [1.0, 0.0],
-        [0.5, 0.5],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [0.5, 0.5],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-    ]
-)
 unit_test_proba["CanonicalIntervalForestClassifier"] = np.array(
     [
         [0.3, 0.7],
@@ -736,20 +722,6 @@ basic_motions_proba["HIVECOTEV2"] = np.array(
         [0.0, 0.0, 0.8618, 0.1382],
         [0.0068, 0.8645, 0.1088, 0.0199],
         [0.0, 0.8645, 0.1088, 0.0267],
-    ]
-)
-basic_motions_proba["RISTClassifier"] = np.array(
-    [
-        [0.0, 0.0, 0.0, 1.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.5, 0.5],
-        [0.5, 0.5, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0],
-        [0.0, 0.0, 0.0, 1.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.5, 0.5],
-        [0.0, 1.0, 0.0, 0.0],
-        [0.5, 0.5, 0.0, 0.0],
     ]
 )
 basic_motions_proba["CanonicalIntervalForestClassifier"] = np.array(
