@@ -265,7 +265,6 @@ html_static_path = ["_static"]
 html_css_files = [
     "css/custom.css",
 ]
-html_js_files = []
 
 html_show_sourcelink = False
 
@@ -334,7 +333,7 @@ def _make_estimator_overview(app):
         return not input_string.startswith("_")
 
     # Columns for the output table
-    COLNAMES = ["Estimator name", "Module", "Family of method"]
+    COLNAMES = ["Estimator name", "Module", "Method family"]
     capabilities_to_include = [
         "multivariate",
         "unequal_length",
@@ -359,8 +358,7 @@ def _make_estimator_overview(app):
         clean_path = ".".join(list(filter(_does_not_start_with_underscore, path_parts)))
         # adds html link reference
         estimator_name_as_link = str(
-            '<a href="https://www.aeon-toolkit.org/en/latest/api_reference'
-            + "/auto_generated/"
+            '<a href="api_reference/auto_generated/'
             + clean_path
             + '.html">'
             + estimator_name
@@ -370,21 +368,21 @@ def _make_estimator_overview(app):
         data["Estimator name"].append(estimator_name_as_link)
         data["Module"].append(algorithm_type[0])
         if len(algorithm_type) > 1:
-            data["Family of method"].append("/".join(algorithm_type[1:]))
+            data["Method family"].append("/".join(algorithm_type[1:]))
         else:
-            data["Family of method"].append("N/A")
+            data["Method family"].append("N/A")
         for capability_name in capabilities_to_include:
             _val = tag_dict.get(f"capability:{capability_name}")
             _str = capability_name.replace("_", " ")
 
             # For case where tag is not included output as not supported.
             if not _val or _val is None:
-                data[f"Support {_str}"].append("\u274C")
+                data[f"Supports {_str}"].append("\u274C")
             else:
-                data[f"Support {_str}"].append("\u2705")
+                data[f"Supports {_str}"].append("\u2705")
 
     df = pd.DataFrame.from_dict(data).sort_values(
-        by=["Module", "Family of method", "Estimator name"]
+        by=["Module", "Method family", "Estimator name"]
     )
     df_str = df.to_markdown(index=False, tablefmt="github")
     with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
