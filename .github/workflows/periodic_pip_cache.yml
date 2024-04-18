@@ -1,0 +1,73 @@
+name: Update pip cache every night
+
+on:
+  schedule:
+    # every day at 1:30 AM UTC
+    - cron:  "30 1 * * *"
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  create-dependency-cache:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04, macOS-13, windows-2022 ]
+        python-version: [ "3.8", "3.10", "3.12" ]
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Set optimal environment variables for pip cache
+        uses: ./.github/actions/pip_cache
+        with:
+          runner_os: ${{ runner.os }}
+          python_version: ${{ matrix.python-version }}
+          restore_cache: "false"
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install CPU version of pytorch on linux
+        uses: nick-fields/retry@v3
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Linux'
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+      # Install extras and dev on everything except Linux 3.10
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        if: runner.os != 'Linux' || matrix.python-version != '3.10'
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
+
+      # Install extras, dev and binder on Linux 3.10 (Examples run on this)
+      - name: Install notebook if on linux 3.10
+        uses: nick-fields/retry@v3
+        if: runner.os == 'Linux' && matrix.python-version == '3.10'
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev,binder]
+
+      - name: Show dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: python -m pip list
+
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          path: ${{ env.PIP_CACHE_DIR }}
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ env.CURRENT_DATE }}
