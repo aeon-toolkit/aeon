@@ -400,7 +400,7 @@ def check_scoring(scoring, allow_y_pred_benchmark=False):
 
     Parameters
     ----------
-    scoring : object that inherits from BaseMetric from aeon.performance_metrics.
+    scoring : function.
 
     Returns
     -------
