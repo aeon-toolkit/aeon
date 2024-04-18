@@ -342,7 +342,7 @@ def _make_estimator_overview(app):
 
     for capability_name in capabilities_to_include:
         _str = capability_name.replace("_", " ")
-        COLNAMES.append(f"Support {_str}")
+        COLNAMES.append(f"Supports {_str}")
 
     data = {k: [] for k in COLNAMES}
 
