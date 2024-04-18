@@ -65,7 +65,7 @@ from aeon.distances._twe import (
     twe_distance,
     twe_pairwise_distance,
 )
-from aeon.distances._utils import _convert_to_list, reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_cost_matrix,
@@ -433,25 +433,14 @@ def _custom_func_pairwise(
 ) -> np.ndarray:
     if dist_func is None:
         raise ValueError("dist_func must be a callable")
+
+    multivariate_conversion = _is_multivariate(X, y)
+    X, _ = _convert_to_list(X, "X", multivariate_conversion)
     if y is None:
         # To self
-        if isinstance(X, np.ndarray):
-            if X.ndim == 3:
-                return _custom_pairwise_distance(X, dist_func, **kwargs)
-            if X.ndim == 2:
-                _X = X.reshape((X.shape[0], 1, X.shape[1]))
-                return _custom_pairwise_distance(_X, dist_func, **kwargs)
-            raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-        else:
-            _X = _convert_to_list(X)
-            return _custom_pairwise_distance(_X, dist_func, **kwargs)
-    if isinstance(X, np.ndarray) and isinstance(y, np.ndarray):
-        _x, _y = reshape_pairwise_to_multiple(X, y)
-        return _custom_from_multiple_to_multiple_distance(_x, _y, dist_func, **kwargs)
-    else:
-        _x = _convert_to_list(X)
-        _y = _convert_to_list(y)
-        return _custom_from_multiple_to_multiple_distance(_x, _y, dist_func, **kwargs)
+        return _custom_pairwise_distance(X, dist_func, **kwargs)
+    y, _ = _convert_to_list(y, "y", multivariate_conversion)
+    return _custom_from_multiple_to_multiple_distance(X, y, dist_func, **kwargs)
 
 
 def _custom_pairwise_distance(
