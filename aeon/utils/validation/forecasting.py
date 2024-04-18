@@ -394,7 +394,7 @@ def check_cutoffs(cutoffs: VALID_CUTOFF_TYPES) -> np.ndarray:
     return np.sort(cutoffs)
 
 
-def check_scoring(scoring, allow_y_pred_benchmark=False):
+def check_scoring(scoring):
     """
     Validate the performance scoring.
 
