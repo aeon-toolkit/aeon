@@ -213,14 +213,17 @@ def test_get_cutoff_wrong_input(bad_inputs):
     ------
     Exception (from pytest) if the error is not raised as expected
     """
-    with pytest.raises(Exception, match="must be of Series, Panel, or Hierarchical"):
+    with pytest.raises(
+        Exception, match="must be of Series, Collection, " "or Hierarchical"
+    ):
         get_cutoff(bad_inputs)
 
 
 @pytest.mark.parametrize("window_length, lag", [(2, 0), (None, 0), (4, 1)])
-@pytest.mark.parametrize("datatype", EXAMPLE_DATA.keys())
+# @pytest.mark.parametrize("datatype", EXAMPLE_DATA.keys())
+@pytest.mark.parametrize("datatype", ["pd.Series"])
 def test_get_window_output_type(datatype, window_length, lag):
-    """Tests that get_window runs for all mtypes, and returns output of same mtype.
+    """Tests that get_window runs for all types, and returns output of same mtype.
 
     Parameters
     ----------

@@ -106,3 +106,12 @@ def test_convert_series_lists():
         test.insert(0, "FOO")
         x = convert_series(UNIVARIATE[i], test)
         assert x.__class__.__name__ == test[1].split(".")[1]
+
+
+def test_convert_series_single_element():
+    """Test a DataFrame with a single element is correctly converted to a pd.Series."""
+    x = pd.DataFrame([1])
+    x = pd.DataFrame({"0": [10]}, index=pd.to_datetime(["2000-02-18"]))
+    y = convert_series(x, "pd.Series")
+    assert isinstance(y, pd.Series)
+    assert isinstance(y.index, pd.DatetimeIndex)
