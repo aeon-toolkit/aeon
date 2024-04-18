@@ -12,6 +12,7 @@ import pandas as pd
 
 from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.base import ForecastingHorizon
+from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.utils.conversion import convert_collection, convert_series
 from aeon.utils.validation import (
     is_collection,
@@ -20,7 +21,7 @@ from aeon.utils.validation import (
     validate_input,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.forecasting import check_cv, check_scoring
+from aeon.utils.validation.forecasting import check_cv
 
 PANDAS_MTYPES = ["pd.DataFrame", "pd.Series", "pd-multiindex", "pd_multiindex_hier"]
 
@@ -331,10 +332,17 @@ def evaluate(
 
     _check_strategy(strategy)
     cv = check_cv(cv, enforce_start_with_window=True)
+
+    def _check_scoring(s):
+        if s is None:
+            return mean_absolute_percentage_error
+        if not callable(s):
+            raise TypeError("`scoring` must be a callable object")
+
     if isinstance(scoring, List):
-        scoring = [check_scoring(s) for s in scoring]
+        scoring = [_check_scoring(s) for s in scoring]
     else:
-        scoring = check_scoring(scoring)
+        scoring = [_check_scoring(scoring)]
 
     valid, y_metadata = validate_input(y)
     if not valid:

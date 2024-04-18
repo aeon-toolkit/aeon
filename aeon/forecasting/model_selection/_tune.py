@@ -12,8 +12,8 @@ from sklearn.model_selection import ParameterGrid, ParameterSampler, check_cv
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.forecasting.model_evaluation import evaluate
+from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.utils.validation import abstract_types
-from aeon.utils.validation.forecasting import check_scoring
 
 
 class BaseGridSearch(_DelegatedForecaster):
@@ -139,8 +139,12 @@ class BaseGridSearch(_DelegatedForecaster):
         self : returns an instance of self.
         """
         cv = check_cv(self.cv)
-
-        scoring = check_scoring(self.scoring)
+        if self.scoring is None:
+            scoring = mean_absolute_percentage_error
+        else:
+            scoring = self.scoring
+        if not callable(scoring):
+            raise TypeError("`scoring` must be a callable object")
         scoring_name = f"test_{scoring.__name__}"
 
         def _fit_and_score(params):
