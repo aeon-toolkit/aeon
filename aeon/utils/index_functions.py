@@ -30,10 +30,10 @@ def get_time_index(X):
     Parameters
     ----------
     X : pd.DataFrame, pd.Series, np.ndarray
-    in one of the following data container types
-    pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, nested_univ, pd_multiindex_hier
-    assumes all time series have equal length and equal index set
-    will *not* work for list-of-df, pd-wide, pd-long, numpy2D or np-list.
+        in one of the following data container types pd.DataFrame, pd.Series,
+        np.ndarray, pd-multiindex, nested_univ, pd_multiindex_hier
+        assumes all time series have equal length and equal index set
+        will *not* work for list-of-df, pd-wide, pd-long, numpy2D or np-list.
 
     Returns
     -------
@@ -368,9 +368,8 @@ def _convert(obj, abstract_type, input_type):
 def get_window(obj, window_length=None, lag=None):
     """Slice obj to the time index window with given length and lag.
 
-    Returns time series or time series collection with time indices
-        strictly greater than cutoff - lag - window_length, and
-        equal or less than cutoff - lag.
+    Returns time series or time series collection with time indices strictly greater
+    than cutoff - lag - window_length, and equal or less than cutoff - lag.
     Cutoff if of obj, as determined by get_cutoff.
     This function does not work with pd.Series, hence the conversion to pd.DataFrame.
     It also does not work with unequal length collections of series.
@@ -470,9 +469,8 @@ def get_window(obj, window_length=None, lag=None):
 def get_slice(obj, start=None, end=None):
     """Slice obj with start (inclusive) and end (exclusive) indices.
 
-    Returns time series or time series collection with time indices
-        strictly greater and equal to start index and less than
-        end index.
+    Returns time series or time series collection with time indices strictly greater
+    and equal to start index and less than end index.
 
     Parameters
     ----------
