@@ -338,6 +338,7 @@ def evaluate(
             return mean_absolute_percentage_error
         if not callable(s):
             raise TypeError("`scoring` must be a callable object")
+        return s
 
     if isinstance(scoring, List):
         scoring = [_check_scoring(s) for s in scoring]
