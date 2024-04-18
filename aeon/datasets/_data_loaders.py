@@ -1020,7 +1020,10 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
                     response = urlopen(req, timeout=60)
                     # Check the status code of the response, if 200 incorrect input args
                     if response.status != 200:
-                        raise ValueError("eRROR")
+                        raise ValueError(
+                            "The file does not exist on the server which "
+                            "returned a File Not Found (200)"
+                        )
                 except Exception as e:
                     raise e
                 try:
@@ -1031,7 +1034,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
                 except zipfile.BadZipFile:
                     raise ValueError(
                         f"Invalid dataset name ={name} is  available on extract path ="
-                        f"{extract_path} or https://timeseriesclassification.com/"
+                        f"{extract_path} or https://zenodo.org/"
                         f" but it is not correctly formatted.",
                     )
 
