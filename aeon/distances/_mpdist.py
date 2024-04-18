@@ -6,8 +6,6 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._utils import _convert_to_list
-
 
 def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     r"""Matrix Profile Distance.
@@ -282,9 +280,9 @@ def mpdist_pairwise_distance(
 
     Parameters
     ----------
-    X : np.ndarray or List of np.ndarray
+    X : np.ndarray
         A collection of time series instances  of shape ``(n_cases, n_timepoints)``.
-    y : np.ndarray or List of np.ndarray or None, default=None
+    y : np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_cases, m_timepoints)``.
         If None, then the mpdist pairwise distance between the instances of X is
@@ -323,7 +321,7 @@ def mpdist_pairwise_distance(
            [2.82842712, 2.82842712, 2.82842712]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([22, 18, 12])
+    >>> y_univariate = np.array([[22, 18, 12]])
     >>> mpdist_pairwise_distance(X, y_univariate, m = 2)
     array([[2.82842712],
            [2.82842712],
@@ -335,16 +333,13 @@ def mpdist_pairwise_distance(
     if m == 0:
         m = int(X.shape[1] / 4)
 
-    _X = _convert_to_list(X, "X")
-
     if y is None:
-        # To self
-        return _mpdist_pairwise_distance_single(_X, m)
+        return _mpdist_pairwise_distance_single(X, m)
 
     if y.ndim == 3 and y.shape[1] == 1:
         y = np.squeeze(y)
-    _y = _convert_to_list(y, "y")
-    return _mpdist_pairwise_distance(_X, _y, m)
+
+    return _mpdist_pairwise_distance(X, y, m)
 
 
 def _mpdist_pairwise_distance_single(x: NumbaList[np.ndarray], m: int) -> np.ndarray:
@@ -363,7 +358,12 @@ def _mpdist_pairwise_distance(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], m: int
 ) -> np.ndarray:
     n_cases = len(x)
-    m_cases = len(y)
+
+    if y.ndim == 1:
+        m_cases = 1
+    else:
+        m_cases = len(y)
+
     distances = np.zeros((n_cases, m_cases))
 
     for i in range(n_cases):
