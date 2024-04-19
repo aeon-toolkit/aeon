@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.testing.utils.data_gen import make_example_nested_dataframe
+from aeon.testing.utils.data_gen import make_series
 from aeon.utils.validation.series import (
     _check_is_multivariate,
     _check_pd_dataframe,
@@ -23,17 +23,14 @@ from aeon.utils.validation.series import (
     is_univariate_series,
 )
 
-
-def test_is_univariate_series():
-    """Test Univariate Series."""
-    assert not is_univariate_series(None)
-    assert is_univariate_series(pd.Series([1, 2, 3, 4, 5]))
-    assert is_univariate_series(np.array([1, 2, 3, 4, 5]))
-    assert is_univariate_series(pd.DataFrame({"A": [1, 2, 3, 4, 5]}))
-    assert not is_univariate_series(
-        pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [6, 7, 8, 9, 10]})
-    )
-    assert not is_univariate_series(np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]))
+UNIVARIATE_SERIES = [
+    make_series(n_timepoints=10, n_columns=1),
+    make_series(n_timepoints=10, n_columns=1, return_numpy=True),
+]
+MULTIVARIATE_SERIES = [
+    make_series(n_timepoints=10, n_columns=3),
+    make_series(n_timepoints=10, n_columns=3, return_numpy=True),
+]
 
 
 def test_check_equal_time_index():
@@ -54,46 +51,44 @@ def test_check_equal_time_index():
         check_equal_time_index(*ys, mode="equal")
 
 
-def test__check_is_univariate():
+@pytest.mark.parametrize("series", UNIVARIATE_SERIES)
+def test_is_univariate(series):
     """Test check_is_univariate."""
-    X = np.random.random(size=(10, 1, 20))
-    check_is_univariate(X)
-    X = np.random.random(size=(10, 3, 20))
+    check_is_univariate(series)
+    assert is_univariate_series(series)
+
+
+@pytest.mark.parametrize("series", MULTIVARIATE_SERIES)
+def test_is_univariate_fail(series):
+    """Test check_is_univariate."""
     with pytest.raises(ValueError, match="must be univariate"):
-        check_is_univariate(X)
-    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=1, n_timepoints=10)
-    check_is_univariate(X)
-    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=2, n_timepoints=10)
-    with pytest.raises(ValueError, match="must be univariate"):
-        check_is_univariate(X)
+        check_is_univariate(series)
+    assert not is_univariate_series(series)
 
 
-def test__check_is_multivariate():
-    """Test _check_is_multivariate.
-
-    This function assumes ndarrays are in (n_timepoints, n_channels) shape.
-    """
-    X = pd.Series([1, 2, 3, 4, 5])
-    with pytest.raises(ValueError, match=" must have 2 or more variables, but found 1"):
-        _check_is_multivariate(X)
-    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=2, n_timepoints=10)
-    _check_is_multivariate(X)
-    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=1, n_timepoints=10)
-    with pytest.raises(ValueError, match="must have 2 or more variables"):
-        _check_is_multivariate(X)
-    X = np.random.random(size=(10, 1))
+@pytest.mark.parametrize("series", MULTIVARIATE_SERIES)
+def test__check_is_multivariate(series):
+    """Test _check_is_multivariate."""
+    _check_is_multivariate(series)
+    assert not is_univariate_series(series)
 
 
 def test_check_series():
     """Test check_series."""
-    check_series(None)
-    with pytest.raises(ValueError, match="cannot be None"):
-        check_series(None, allow_None=False)
-    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=2, n_timepoints=10)
-    with pytest.raises(ValueError, match="cannot both be set to True"):
-        check_series(Z=X, enforce_univariate=True, enforce_multivariate=True)
-    X, _ = make_example_nested_dataframe(n_cases=4, n_channels=2, n_timepoints=10)
-    check_series(Z=X, enforce_multivariate=True)
+    for series in UNIVARIATE_SERIES + MULTIVARIATE_SERIES:
+        check_series(series, allow_numpy=True)
+    check_series(UNIVARIATE_SERIES[0], allow_numpy=False)
+    check_series(MULTIVARIATE_SERIES[0], allow_numpy=False, enforce_univariate=False)
+    with pytest.raises(TypeError, match="Series cannot be a numpy array"):
+        check_series(UNIVARIATE_SERIES[1], allow_numpy=False)
+    with pytest.raises(TypeError, match="Series cannot be a numpy array"):
+        check_series(MULTIVARIATE_SERIES[1], allow_numpy=False)
+    # Test empty series
+    empty = [np.array([]), pd.Series([])]
+    for e in empty:
+        check_series(e, allow_empty=True, allow_numpy=True)
+        with pytest.raises(ValueError, match="Series cannot be empty"):
+            check_series(e, allow_empty=False, allow_numpy=True)
 
 
 def test_check_time_index():
