@@ -121,6 +121,9 @@ def _get_alignment_path(
     descriptor: str = "identity",
     reach: int = 30,
     warp_penalty: float = 1.0,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     if distance == "dtw":
         return dtw_alignment_path(ts, center, window)
@@ -140,7 +143,14 @@ def _get_alignment_path(
         return msm_alignment_path(ts, center, window, independent, c)
     elif distance == "shape_dtw":
         return shape_dtw_alignment_path(
-            ts, center, window=window, descriptor=descriptor, reach=reach
+            ts,
+            center,
+            window=window,
+            descriptor=descriptor,
+            reach=reach,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
+            transformation_precomputed=transformation_precomputed,
         )
     elif distance == "adtw":
         return adtw_alignment_path(ts, center, window=window, warp_penalty=warp_penalty)
