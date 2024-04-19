@@ -104,15 +104,15 @@ def check_X(
     Raises
     ------
     ValueError, TypeError
-        If X is an invalid input
+        If X is not a pd.Series or pd.DataFrame
     UserWarning
         Warning that X is given and model can't use it
     """
     # Check if pandas series or numpy array
     return check_series(
         X,
-        enforce_univariate=enforce_univariate,
         allow_empty=allow_empty,
+        enforce_univariate=enforce_univariate,
         enforce_index_type=enforce_index_type,
         allow_numpy=False,
     )
