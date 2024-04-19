@@ -52,8 +52,8 @@ from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_cutoff, update_data
 from aeon.utils.validation import abstract_types, validate_input
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
-from aeon.utils.validation.series import check_equal_time_index
+from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh
+from aeon.utils.validation.series import check_equal_time_index, check_series
 
 DEFAULT_ALPHA = 0.05
 
@@ -1451,7 +1451,7 @@ class BaseForecaster(BaseEstimator):
 
     def _update_X(self, X, enforce_index_type=None):
         if X is not None:
-            X = check_X(X, enforce_index_type=enforce_index_type)
+            X = check_series(X, enforce_index_type=enforce_index_type)
             if X is len(X) > 0:
                 self._X = X.combine_first(self._X)
 
