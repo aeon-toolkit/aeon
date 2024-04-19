@@ -209,6 +209,7 @@ def check_series(
     enforce_univariate=False,
     enforce_index_type=None,
     allow_numpy=True,
+    allow_index_names=False,
 ):
     """Validate input data to be a valid type for Series.
 
@@ -216,10 +217,14 @@ def check_series(
     ----------
     Z : pd.Series, pd.DataFrame, np.ndarray, or None
         Univariate or multivariate time series.
+    allow_empty : bool, default = False
+        Allow an empty series to be passed.
     enforce_univariate : bool, default = False
         If True, multivariate Z will raise an error.
     enforce_index_type : type, default = None
         type of time index
+    allow_index_names : bool, default = False
+        If False, names of Z.index will be set to None
 
     Returns
     -------
@@ -257,6 +262,9 @@ def check_series(
             allow_empty=allow_empty,
             enforce_index_type=enforce_index_type,
         )
+    if not allow_index_names and not isinstance(Z, np.ndarray):
+        Z.index.names = [None for name in Z.index.names]
+
     return Z
 
 
