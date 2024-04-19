@@ -208,7 +208,7 @@ def check_series(
     allow_empty=False,
     enforce_univariate=False,
     enforce_index_type=None,
-    allow_numpy=False,
+    allow_numpy=True,
 ):
     """Validate input data to be a valid type for Series.
 
