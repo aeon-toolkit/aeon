@@ -47,11 +47,12 @@ class VAR(_StatsModelsAdapter):
         fpe : Final prediction error
         hqic : Hannan-Quinn
         bic : Bayesian a.k.a. Schwarz
-    random_state : int, RandomState instance or None, optional ,
-        default=None – If int, random_state is the seed used by the random
-        number generator; If RandomState instance, random_state is the random
-        number generator; If None, the random number generator is the
-        RandomState instance used by np.random.
+    random_state : int, RandomState instance or None, default=None
+        Used to set random_state of the default regressor.
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     References
     ----------

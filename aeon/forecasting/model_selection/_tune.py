@@ -604,6 +604,11 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
         Controls the number of jobs that get dispatched during parallel execution when
         using the "loky", "threading", or "multiprocessing" backend.
     random_state : int, RandomState instance or None, default=None
+        Used to set random_state of the default regressor.
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
         Pseudo random number generator state used for random uniform sampling
         from lists of possible values instead of scipy.stats distributions.
         Pass an int for reproducible output across multiple
