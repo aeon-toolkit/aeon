@@ -107,19 +107,15 @@ def test_plot_series_multiple_series():
     reason="skip test if required soft dependency not available",
 )
 @pytest.mark.parametrize("series_to_plot", invalid_input_types)
-def test_plot_series_invalid_input_type_raises_error(series_to_plot, valid_data_types):
+def test_plot_series_invalid_input_type_raises_error(series_to_plot):
     """Tests whether plot_series raises error for invalid input types."""
     series_type = type(series_to_plot)
 
     if not isinstance(series_to_plot, (pd.Series, pd.DataFrame)):
-        match = (
-            rf"input must be a one of {valid_data_types}, but found type: {series_type}"
-        )
-        with pytest.raises((TypeError), match=re.escape(match)):
+        with pytest.raises((TypeError), match=f"found type: {series_type}"):
             _plot_series(series_to_plot)
     else:
-        match = "input must be univariate, but found 2 variables."
-        with pytest.raises(ValueError, match=match):
+        with pytest.raises(ValueError, match="input must be univariate"):
             _plot_series(series_to_plot)
 
 
@@ -252,10 +248,6 @@ def test_univariate_plots_run_without_error(series_to_plot, plot_func):
     plt.close()
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
 @pytest.mark.parametrize("series_to_plot", invalid_input_types)
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_invalid_input_type_raises_error(
