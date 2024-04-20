@@ -11,6 +11,7 @@ import warnings
 
 import numpy as np
 from numba import njit, prange, set_num_threads
+from numba.typed import List
 from sklearn.preprocessing import LabelEncoder
 
 from aeon.distances import manhattan_distance
@@ -436,8 +437,10 @@ def _init_random_shapelet_params(
     threshold = np.zeros(max_shapelets, dtype=np.float64)
 
     # Init values array
-    values = np.zeros(
-        (max_shapelets, n_channels, max(shapelet_lengths)), dtype=np.float64
+    values = np.full(
+        (max_shapelets, n_channels, max(shapelet_lengths)),
+        np.inf,
+        dtype=np.float64,
     )
 
     # Is shapelet using z-normalization ?
@@ -565,7 +568,6 @@ def random_dilated_shapelet_extraction(
     # Get unique dilations to loop over
     unique_dil = np.unique(dilations)
     n_dilations = unique_dil.shape[0]
-
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
         # (2, _, _): Mask is different for normalized and non-normalized shapelets
@@ -583,12 +585,18 @@ def random_dilated_shapelet_extraction(
             length = lengths[i_shp]
             norm = np.int_(normalize[i_shp])
             # Possible sampling points given self similarity mask
-            current_mask = [
-                np.where(
-                    alpha_mask[norm, _i, : n_timepointss[_i] - (length - 1) * dilation]
-                )[0]
-                for _i in range(n_cases)
-            ]
+            current_mask = List(
+                [
+                    np.where(
+                        alpha_mask[
+                            norm,
+                            _i,
+                            : n_timepointss[_i] - (length - 1) * dilation,
+                        ]
+                    )[0]
+                    for _i in range(n_cases)
+                ]
+            )
             idx_sample, idx_timestamp = _get_admissible_sampling_point(current_mask)
             if idx_sample >= 0:
                 # Update the mask in two directions from the sampling point
@@ -646,7 +654,7 @@ def random_dilated_shapelet_extraction(
 
     mask_values = np.ones(max_shapelets, dtype=np.bool_)
     for i in prange(max_shapelets):
-        if threshold[i] == 0 and np.all(values[i] == 0):
+        if np.all(values[i] == np.inf):
             mask_values[i] = False
 
     return (
@@ -692,7 +700,15 @@ def dilated_shapelet_transform(X, shapelets):
         feature from the distance vector computed on each time series.
 
     """
-    (values, lengths, dilations, threshold, normalize, means, stds) = shapelets
+    (
+        values,
+        lengths,
+        dilations,
+        threshold,
+        normalize,
+        means,
+        stds,
+    ) = shapelets
     n_shapelets = len(lengths)
     n_cases = len(X)
     n_ft = 3
