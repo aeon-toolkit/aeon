@@ -29,12 +29,16 @@ from typing import final
 import numpy as np
 import pandas as pd
 from deprecated.sphinx import deprecated
+from sklearn.metrics import max_error, r2_score
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
-from aeon.performance_metrics.forecasting import mean_squared_error
+from aeon.performance_metrics.forecasting import (
+    mean_absolute_percentage_error,
+    mean_squared_error,
+)
 from aeon.utils.sklearn import is_sklearn_transformer
 
 
@@ -256,7 +260,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return y_pred
 
-    def score(self, X, y) -> float:
+    def score(self, X, y, metric="mse") -> float:
         """Scores predicted labels against ground truth labels on X.
 
         Parameters
@@ -282,6 +286,10 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         y : np.ndarray
             1D np.array of float, of shape ``(n_cases)`` - regression targets
             (ground truth) for fitting indices corresponding to instance indices in X.
+        metric : str, default="accuracy",
+            Defines the scoring metric to test the fit of the model. Supported arguments
+            are "mse", "mape", "r2" and "max" which compute mean squared error, mean
+            absolute percentage error, r2 score and max error respectively.
 
         Returns
         -------
@@ -290,7 +298,16 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         """
         self.check_is_fitted()
         y = self._check_y(y, len(X))
-        return mean_squared_error(y, self.predict(X))
+        if metric == "mse":
+            return mean_squared_error(y, self.predict(X))
+        elif metric == "mape":
+            return mean_absolute_percentage_error(y, self.predict(X))
+        elif metric == "r2":
+            return r2_score(y, self.predict(X))
+        elif metric == "max":
+            return max_error(y, self.predict(X))
+        else:
+            raise ValueError("Enter a supported scoring metric for regression.")
 
     @abstractmethod
     def _fit(self, X, y):

@@ -206,6 +206,15 @@ def test_classifier_score():
     assert dummy.score(X, y) == 0.5
     assert dummy.score(X, y2) == 0.5
 
+    r = dummy.score(X, y, metric="accuracy")
+    assert (r is not None) and (isinstance(r, float))
+    r = dummy.score(X, y, metric="balanced_accuracy")
+    assert (r is not None) and (isinstance(r, float))
+    r = dummy.score(X, y, metric="auc_roc")
+    assert (r is not None) and (isinstance(r, float))
+    r = dummy.score(X, y, metric="neg_log_loss")
+    assert (r is not None) and (isinstance(r, float))
+
 
 def test_predict_single_class():
     """Test return of predict/predict_proba in case only single class seen in fit."""

@@ -29,7 +29,12 @@ from typing import final
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import (
+    accuracy_score,
+    balanced_accuracy_score,
+    log_loss,
+    roc_auc_score,
+)
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
@@ -334,7 +339,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return y_proba
 
-    def score(self, X, y) -> float:
+    def score(self, X, y, metric="accuracy") -> float:
         """Scores predicted labels against ground truth labels on X.
 
         Parameters
@@ -360,6 +365,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         y : np.ndarray
             1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
+        metric : str, default="accuracy",
+            Defines the scoring metric to test the fit of the model. Supported arguments
+            are "accuracy", "balanced_accuracy", "roc_auc" and "neg_log_loss".
+
 
         Returns
         -------
@@ -368,7 +377,22 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         """
         self.check_is_fitted()
         self._check_y(y, len(X), update_classes=False)
-        return accuracy_score(y, self.predict(X), normalize=True)
+
+        if metric == "accuracy":
+            return accuracy_score(y, self.predict(X), normalize=True)
+        elif metric == "balanced_accuracy":
+            return balanced_accuracy_score(y, self.predict(X))
+        elif metric == "roc_auc":
+            if len(y.unique()) == 2:
+                return roc_auc_score(y, self.predict_proba(X)[:, 1], average=None)
+            else:  # Mulitclass
+                return roc_auc_score(
+                    y, self.predict_proba(X), multi_class="ovr", average="macro"
+                )
+        elif metric == "neg_log_loss":
+            return log_loss(y, self.predict_proba(X))
+        else:
+            raise ValueError("Enter a supported scoring metric for classification.")
 
     @abstractmethod
     def _fit(self, X, y):
