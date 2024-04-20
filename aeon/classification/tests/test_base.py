@@ -210,7 +210,7 @@ def test_classifier_score():
     assert (r is not None) and (isinstance(r, float))
     r = dummy.score(X, y, metric="balanced_accuracy")
     assert (r is not None) and (isinstance(r, float))
-    r = dummy.score(X, y, metric="auc_roc")
+    r = dummy.score(X, y, metric="roc_auc")
     assert (r is not None) and (isinstance(r, float))
     r = dummy.score(X, y, metric="neg_log_loss")
     assert (r is not None) and (isinstance(r, float))

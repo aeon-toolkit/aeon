@@ -383,7 +383,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         elif metric == "balanced_accuracy":
             return balanced_accuracy_score(y, self.predict(X))
         elif metric == "roc_auc":
-            if len(y.unique()) == 2:
+            if len(np.unique(y)) == 2:
                 return roc_auc_score(y, self.predict_proba(X)[:, 1], average=None)
             else:  # Mulitclass
                 return roc_auc_score(
