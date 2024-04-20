@@ -31,6 +31,11 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         Number of lags to return autocorrelation for. If None,
         statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1).
 
+    normalised : bool, default=False
+        If the data you want to transform has been normalised to zero mean and unit
+        variance, the ACF can be calculated more efficiently. Set this to True only
+        if this is the case for all calls to transform. This class does *not*
+        normalise the data itself.
 
     Examples
     --------
@@ -50,8 +55,10 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
     def __init__(
         self,
         n_lags=None,
+        normalised=False,
     ):
         self.n_lags = n_lags
+        self.normalised = normalised
         super().__init__(axis=1)
 
     def _transform(self, X, y=None):
@@ -72,15 +79,16 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         """
         # statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1)
         if self.n_lags is None:
-            self._n_lags = min(int(10 * np.log10(X.shape[1])), X.shape[1] - 1)
+            self._n_lags = int(min(int(10 * np.log10(X.shape[1])), X.shape[1] - 1))
         else:
-            self._n_lags = self.n_lags
-
+            self._n_lags = int(self.n_lags)
+        if self._n_lags < 1:
+            self._n_lags = 1
         if X.shape[1] - self._n_lags < 3:
             raise ValueError(
                 f"The number of lags is too large for the length of the "
-                f"series, autocorrelation will be calculated "
-                f"{X.shape[1]-self._n_lags} points."
+                f"series, autocorrelation would be calculated with just"
+                f"{X.shape[1]-self._n_lags} observations."
             )
         return self._acf(X, max_lag=self._n_lags)
 
@@ -88,11 +96,12 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
     @njit(cache=True, fastmath=True)
     def _acf(X, max_lag):
         n_channels, length = X.shape
-        X_t = np.zeros((n_channels, max_lag))
-        for i, x in enumerate(X):
+        X_t = np.zeros((n_channels, max_lag), dtype=float)
+
+        for i in range(0, n_channels):
             for lag in range(1, max_lag + 1):
                 lag_length = length - lag
-                x1, x2 = x[:-lag], x[lag:]
+                x1, x2 = X[i][:-lag], X[lag:]
                 s1 = np.sum(x1)
                 s2 = np.sum(x2)
                 m1 = s1 / lag_length
@@ -110,7 +119,35 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
                     X_t[i][lag - 1] = 0
                 else:
                     X_t[i][lag - 1] = np.sum((x1 - m1) * (x2 - m2)) / np.sqrt(v1 * v2)
+        return X_t
 
+    @staticmethod
+    @njit(cache=True, fastmath=True)
+    def _acf_normed(X, max_lag):
+        n_channels, length = X.shape
+        X_t = np.zeros((n_channels, max_lag), dtype=float)
+
+        for i in range(0, n_channels):
+            for lag in range(1, max_lag + 1):
+                lag_length = length - lag
+                x1, x2 = X[i][:-lag], X[lag:]
+                s1 = np.sum(x1)
+                s2 = np.sum(x2)
+                m1 = s1 / lag_length
+                m2 = s2 / lag_length
+                ss1 = np.sum(x1 * x1)
+                ss2 = np.sum(x2 * x2)
+                v1 = ss1 - s1 * m1
+                v2 = ss2 - s2 * m2
+                v1_is_zero, v2_is_zero = v1 <= 1e-9, v2 <= 1e-9
+                if v1_is_zero and v2_is_zero:  # Both zero variance,
+                    # so must be 100% correlated
+                    X_t[i][lag - 1] = 1
+                elif v1_is_zero or v2_is_zero:  # One zero variance
+                    # the other not
+                    X_t[i][lag - 1] = 0
+                else:
+                    X_t[i][lag - 1] = np.sum((x1 - m1) * (x2 - m2)) / np.sqrt(v1 * v2)
         return X_t
 
     @classmethod
