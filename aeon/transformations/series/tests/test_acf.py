@@ -27,21 +27,22 @@ def test_acf():
 TEST_DATA = [
     np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
     np.array([-4.5, -3.5, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5, 4.5]),
+    np.array([1.0, 5.0, 3.0, 4.0, 2.0, 1.0, 3.0, 4.0, 5.0, 2.0]),
 ]
 EXPECTED_RESULTS = [
     np.array([1.0, 1.0, 1.0, 1.0]),
     np.array([1.0, 1.0, 1.0, 1.0]),
+    np.array([-0.18797908, -0.22454436, -0.70898489, -0.11094004]),
 ]
 
 
-@pytest.mark.parametrize("data", TEST_DATA)
-@pytest.mark.parametrize("result", EXPECTED_RESULTS)
-def test_acf_against_expected(data, result):
+def test_acf_against_expected():
     """Test ACF series transformer against expected results."""
     acf = AutoCorrelationTransformer(n_lags=4)
-    xt = acf.fit_transform(data)
-    xt = xt.squeeze()
-    assert_array_almost_equal(xt, result, decimal=5)
+    for i in range(len(EXPECTED_RESULTS)):
+        xt = acf.fit_transform(TEST_DATA[i])
+        xt = xt.squeeze()
+        assert_array_almost_equal(xt, EXPECTED_RESULTS[i], decimal=5)
 
 
 def test_multivariate():
