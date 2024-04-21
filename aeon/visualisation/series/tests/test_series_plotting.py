@@ -248,6 +248,10 @@ def test_univariate_plots_run_without_error(series_to_plot, plot_func):
     plt.close()
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("series_to_plot", invalid_input_types)
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_invalid_input_type_raises_error(

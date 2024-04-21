@@ -101,7 +101,8 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         for i in range(0, n_channels):
             for lag in range(1, max_lag + 1):
                 lag_length = length - lag
-                x1, x2 = X[i][:-lag], X[lag:]
+                x1 = X[i][:-lag]
+                x2 = X[i][lag:]
                 s1 = np.sum(x1)
                 s2 = np.sum(x2)
                 m1 = s1 / lag_length
