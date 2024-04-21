@@ -32,10 +32,11 @@ class MERLIN(BaseAnomalyDetector):
     --------
     >>> import numpy as np
     >>> from aeon.anomaly_detection import MERLIN
-    >>> X = np.array([1, 2, 3, 1, 2, 3, 2, 3, 4, 1, 2, 3])
-    >>> detector = MERLIN(min_length=3, max_length=5)
+    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 4, 2, 3, 4, 5, 1, 2, 3, 4])
+    >>> detector = MERLIN(min_length=4, max_length=5)
     >>> detector.fit_predict(X)
-    array([False, False, False, False, False, False, False, False, False, False])
+    array([False, False, False, False,  True,  True, False, False, False,
+           False, False, False, False, False, False, False])
     """
 
     def __init__(self, min_length=5, max_length=50):

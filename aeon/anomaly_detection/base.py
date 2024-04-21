@@ -1,3 +1,5 @@
+"""Abstract base class for time series anomaly detectors."""
+
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseAnomalyDetector"]
 
@@ -13,8 +15,33 @@ from aeon.base._base_series import VALID_INPUT_TYPES
 
 
 class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
-    """
-    Todo
+    """Base class for anomaly detection algorithms.
+
+    Anomaly detection algorithms are used to identify anomalous subsequences in time
+    series data. These algorithms take a series of length m and return a boolean, int or
+    float array of length m, where each element indicates whether the corresponding
+    subsequence is anomalous or its anomaly score.
+
+    Input and internal data format (where m is the number of time points and d is the
+    number of channels):
+        Univariate series:
+            np.ndarray, shape ``(m,)``, ``(m, 1)`` or ``(1, m)`` depending on axis.
+            This is converted to a 2D np.ndarray internally.
+            pd.DataFrame, shape ``(m, 1)`` or ``(1, m)`` depending on axis.
+            pd.Series, shape ``(m,)``.
+        Multivariate series:
+            np.ndarray array, shape ``(m, d)`` or ``(d, m)`` depending on axis.
+            pd.DataFrame ``(m, d)`` or ``(d, m)`` depending on axis.
+
+    Parameters
+    ----------
+    axis : int
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
+        Setting this class variable will convert the input data to the chosen axis.
     """
 
     _tags = {
@@ -30,6 +57,35 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
     @final
     def fit(self, X, y=None, axis=1):
+        """Fit time series anomaly detector to X.
+
+        If the tag ``fit_is_empty`` is true, this just sets the ``is_fitted`` tag to
+        true. Otherwise, it checks ``self`` can handle ``X``, formats ``X`` into
+        the structure required by ``self`` then passes ``X`` (and possibly ``y``) to
+        ``_fit``.
+
+        Parameters
+        ----------
+        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+            The time series to fit the model to.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+        y: one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
+            The target values for the time series.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+        axis: int
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
+
+        Returns
+        -------
+        self: BaseAnomalyDetector
+            The fitted estimator, reference to self.
+        """
         if self.get_class_tag("fit_is_empty"):
             self._is_fitted = True
             return self
@@ -53,6 +109,27 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
     @final
     def predict(self, X, axis=1) -> np.ndarray:
+        """Find anomalies in X.
+
+        Parameters
+        ----------
+        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+            The time series to fit the model to.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+        axis: int, default=1
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
+
+        Returns
+        -------
+        anomalies: np.ndarray
+            A boolean, int or float array of length len(X), where each element indicates
+            whether the corresponding subsequence is anomalous or its anomaly score.
+        """
         fit_empty = self.get_class_tag("fit_is_empty")
         if not fit_empty:
             self.check_is_fitted()
@@ -63,6 +140,31 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
     @final
     def fit_predict(self, X, y=None, axis=1) -> np.ndarray:
+        """Fit time series anomaly detector and find anomalies for X.
+
+        Parameters
+        ----------
+        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+            The time series to fit the model to.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+        y: one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
+            The target values for the time series.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+        axis: int, default=1
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
+
+        Returns
+        -------
+        anomalies: np.ndarray
+            A boolean, int or float array of length len(X), where each element indicates
+            whether the corresponding subsequence is anomalous or its anomaly score.
+        """
         if self.get_class_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
