@@ -5,12 +5,15 @@ set -euxo pipefail
 
 CMD="jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
 
-excluded=(
-  "examples/datasets/load_data_from_web.ipynb"
-  "examples/benchmarking/reference_results.ipynb"
-  "examples/benchmarking/bakeoff_results.ipynb"
-  "examples/benchmarking/regression.ipynb"
-)
+excluded=()
+if [ "$1" = true ]; then
+  excluded+=(
+    "examples/datasets/load_data_from_web.ipynb"
+    "examples/benchmarking/reference_results.ipynb"
+    "examples/benchmarking/bakeoff_results.ipynb"
+    "examples/benchmarking/regression.ipynb"
+  )
+fi
 
 shopt -s lastpipe
 notebooks=()

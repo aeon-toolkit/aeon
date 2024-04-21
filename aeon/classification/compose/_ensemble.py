@@ -32,9 +32,8 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
     Parameters
     ----------
-    classifiers : dict or None, default=None
-        Parameters for the ShapeletTransformClassifier module. If None, uses the
-        default parameters with a 2 hour transform contract.
+    classifiers : list of tuples (str, classifier) of aeon classifiers
+        Classifiers to apply to the input series.
     weights : float, or iterable of float, optional, default=None
         if float, ensemble weight for classifier i will be train score to this power
         if iterable of float, must be equal length as classifiers
