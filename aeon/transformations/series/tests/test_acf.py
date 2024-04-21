@@ -39,10 +39,34 @@ EXPECTED_RESULTS = [
 def test_acf_against_expected():
     """Test ACF series transformer against expected results."""
     acf = AutoCorrelationTransformer(n_lags=4)
-    for i in range(len(EXPECTED_RESULTS)):
+    for i in range(len(TEST_DATA)):
         xt = acf.fit_transform(TEST_DATA[i])
         xt = xt.squeeze()
         assert_array_almost_equal(xt, EXPECTED_RESULTS[i], decimal=5)
+
+
+NORMED_TEST_DATA = [
+    np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+    np.array([-4.5, -3.5, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5, 4.5]),
+    np.array([1.0, 5.0, 3.0, 4.0, 2.0, 1.0, 3.0, 4.0, 5.0, 2.0]),
+]
+NORMED_EXPECTED_RESULTS = [
+    np.array([1.0, 1.0, 1.0, 1.0]),
+    np.array([1.0, 1.0, 1.0, 1.0]),
+    np.array([-0.18797908, -0.22454436, -0.70898489, -0.11094004]),
+]
+
+
+def test_acf_normed():
+    """Test on normalised data, output should be the same."""
+    acf = AutoCorrelationTransformer(n_lags=4)
+    acf_normed = AutoCorrelationTransformer(n_lags=4, normalised=True)
+    for i in range(len(NORMED_TEST_DATA)):
+        xt = acf.fit_transform(NORMED_TEST_DATA[i])
+        xt = xt.squeeze()
+        xt_normed = acf_normed.fit_transform(NORMED_TEST_DATA[i])
+        assert_array_almost_equal(xt_normed, EXPECTED_RESULTS[i], decimal=5)
+        assert_array_almost_equal(xt_normed, xt, decimal=5)
 
 
 def test_multivariate():
