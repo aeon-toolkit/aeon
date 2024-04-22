@@ -49,8 +49,11 @@ class ElasticEnsemble(BaseClassifier):
     n_jobs : int, default=1
       The number of jobs to run in parallel for both `fit` and `predict`.
       ``-1`` means using all processors.
-    random_state : int, default=0
+    random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     verbose : int, default=0
       If ``>0``, then prints out debug information.
     majority_vote: boolean, default = False

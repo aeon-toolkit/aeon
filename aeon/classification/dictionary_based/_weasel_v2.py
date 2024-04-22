@@ -80,8 +80,9 @@ class WEASEL_V2(BaseClassifier):
     max_feature_count : int, default=30_000
        size of the dictionary - number of words to use - if feature_selection set to
        "chi2" or "random". Else ignored.
-    random_state : int or None, default=None
+    random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
 
