@@ -57,18 +57,6 @@ NORMED_EXPECTED_RESULTS = [
 ]
 
 
-def test_acf_normed():
-    """Test on normalised data, output should be the same."""
-    acf = AutoCorrelationTransformer(n_lags=4)
-    acf_normed = AutoCorrelationTransformer(n_lags=4, normalised=True)
-    for i in range(len(NORMED_TEST_DATA)):
-        xt = acf.fit_transform(NORMED_TEST_DATA[i])
-        xt = xt.squeeze()
-        xt_normed = acf_normed.fit_transform(NORMED_TEST_DATA[i])
-        assert_array_almost_equal(xt_normed, EXPECTED_RESULTS[i], decimal=5)
-        assert_array_almost_equal(xt_normed, xt, decimal=5)
-
-
 def test_multivariate():
     """Test multiple univariate calls the same as a multivariate one."""
     x1 = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])

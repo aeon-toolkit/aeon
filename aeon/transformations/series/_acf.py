@@ -28,8 +28,8 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         If True, then denominators for autocovariance are n-k, otherwise n.
 
     n_lags : int, default=None
-        Number of lags to return autocorrelation for. If None,
-        statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1).
+        Number of lags to return autocorrelation for. If None, it sets it to max(1,
+        n_timepoints/4).
 
     Examples
     --------
@@ -71,7 +71,7 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         """
         # statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1)
         if self.n_lags is None:
-            self._n_lags = int(min(int(10 * np.log10(X.shape[1])), X.shape[1] - 1))
+            self._n_lags = int(max(1, X.shape[1] / 4))
         else:
             self._n_lags = int(self.n_lags)
         if self._n_lags < 1:
