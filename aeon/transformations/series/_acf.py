@@ -33,7 +33,7 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.acf import AutoCorrelationTransformer
+    >>> from aeon.transformations.series._acf import AutoCorrelationTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = AutoCorrelationTransformer(n_lags=12)
