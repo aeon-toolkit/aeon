@@ -1,12 +1,12 @@
 """Compositors that control stream and refitting behaviour of update."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pandas as pd
 
-from aeon.datatypes import ALL_TIME_SERIES_TYPES
-from aeon.datatypes._utilities import get_window
 from aeon.forecasting.base._delegate import _DelegatedForecaster
+from aeon.utils._data_types import ALL_TIME_SERIES_TYPES
+from aeon.utils.index_functions import get_window
 
 # prepare tags to clone - exceptions are TAGS_TO_KEEP
 TAGS_TO_KEEP = ["fit_is_empty", "X_inner_type", "y_inner_type"]

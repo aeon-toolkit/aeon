@@ -1,14 +1,13 @@
 """Tests for Lag transformer."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import itertools
 
 import pandas as pd
 import pytest
 
-from aeon.datatypes import get_examples
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.utils.data_gen import get_examples, make_series
 from aeon.transformations.lag import Lag
 
 # some examples with range vs time index, univariate vs multivariate (mv)

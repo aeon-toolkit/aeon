@@ -5,7 +5,7 @@ The class can take callables or uses string references to utilise the numba base
 distances in aeon.distances.
 """
 
-__author__ = ["TonyBagnall", "GuiArcencio"]
+__maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
 
 import numpy as np
@@ -204,8 +204,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         if self.weights == "distance":
             ws = distances[closest_idx]
-            ws = ws**2
-
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)
         elif self.weights == "uniform":

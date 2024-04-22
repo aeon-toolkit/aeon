@@ -4,18 +4,13 @@ import os
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal
-from scipy.stats import rankdata
 
 import aeon
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
-from aeon.datasets.tsc_data_lists import univariate_equal_length
+from aeon.datasets.tsc_datasets import univariate_equal_length
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation.results._critical_difference import (
     _build_cliques,
-    _check_friedman,
-    _nemenyi_test,
-    _wilcoxon_test,
     plot_critical_difference,
 )
 
@@ -23,86 +18,6 @@ data_path = os.path.join(
     os.path.dirname(aeon.__file__),
     "benchmarking/example_results/",
 )
-
-
-def test_nemenyi_test():
-    """Test Nemenyi test for differences in ranks."""
-    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
-    alpha = 0.05
-    data_full = list(univariate_equal_length)
-    data_full.sort()
-
-    res = get_estimator_results_as_array(
-        estimators=cls, datasets=data_full, path=data_path, include_missing=True
-    )
-
-    ranked_data = rankdata(-1 * res, axis=1)
-
-    avranks = ranked_data.mean(axis=0)
-    avranks = np.array([s for s, _ in sorted(zip(avranks, cls))])
-
-    cliques = _nemenyi_test(avranks, len(data_full), alpha)
-
-    assert np.all(cliques == [False, True, True, True])
-
-    # to check the existence of a clique we select a subset of the datasets.
-    data = data_full[45:55]
-
-    res = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path=data_path, include_missing=True
-    )
-
-    ranked_data = rankdata(-1 * res, axis=1)
-    avranks = ranked_data.mean(axis=0)
-    avranks = np.array([s for s, _ in sorted(zip(avranks, cls))])
-    cliques = _nemenyi_test(avranks, len(data), 0.01)
-
-    assert np.all(cliques == [True, True, True, True])
-
-
-def test_wilcoxon_test():
-    """Test Wilcoxon pairwise test for multiple estimators."""
-    cls = ["HC2", "InceptionT", "WEASEL-D", "FreshPRINCE"]
-    data_full = list(univariate_equal_length)
-    data_full.sort()
-    res = get_estimator_results_as_array(
-        estimators=cls, datasets=data_full, path=data_path, include_missing=True
-    )
-    p_vals = _wilcoxon_test(res, cls)
-    assert_almost_equal(p_vals[0], np.array([1.0, 0.0, 0.0, 0.0]), decimal=2)
-
-    res = get_estimator_results_as_array(
-        estimators=cls, datasets=data_full, path=data_path, include_missing=True
-    )
-    p_vals = _wilcoxon_test(res, cls, lower_better=True)
-    assert_almost_equal(p_vals[0], np.array([1, 0.99, 0.99, 0.99]), decimal=2)
-
-
-def test__check_friedman():
-    """Test Friedman test for overall difference in estimators."""
-    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
-    data = univariate_equal_length
-    res = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path=data_path, include_missing=True
-    )
-    ranked_data = rankdata(-1 * res, axis=1)
-    assert _check_friedman(ranked_data) < 0.05
-
-    # test that approaches are not significantly different.
-    cls = ["HC2", "HC2", "HC2"]
-    res = get_estimator_results_as_array(
-        estimators=cls,
-        datasets=data,
-        path=data_path,
-        include_missing=True,
-    )
-    # add some tiny noise to the results.
-    np.random.seed(42)
-    random_values = np.random.uniform(-0.01, 0.01, size=res.shape)
-    res = np.clip(res + random_values, 0, 1)
-    ranked_data = rankdata(-1 * res, axis=1)
-    assert _check_friedman(ranked_data) > 0.05
-
 
 test_clique1 = np.array(
     [
@@ -186,10 +101,13 @@ def test__build_cliques_empty():
     not _check_soft_dependencies("matplotlib", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_plot_critical_difference():
+@pytest.mark.parametrize("correction", ["bonferroni", "holm", None])
+def test_plot_critical_difference(correction):
     """Test plot critical difference diagram."""
-    _check_soft_dependencies("matplotlib")
-    from matplotlib.figure import Figure
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
 
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
     data_full = list(univariate_equal_length)
@@ -199,7 +117,36 @@ def test_plot_critical_difference():
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
 
-    plot = plot_critical_difference(
+    fig, ax = plot_critical_difference(
+        res,
+        cls,
+        correction=correction,
+    )
+    plt.gcf().canvas.draw_idle()
+
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("matplotlib", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+def test_plot_critical_difference_p_values():
+    """Test plot critical difference diagram."""
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
+
+    cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
+    data_full = list(univariate_equal_length)
+    data_full.sort()
+
+    res = get_estimator_results_as_array(
+        estimators=cls, datasets=data_full, path=data_path, include_missing=True
+    )
+
+    fig, ax, p_values = plot_critical_difference(
         res,
         cls,
         highlight=None,
@@ -208,10 +155,9 @@ def test_plot_critical_difference():
         width=6,
         textspace=1.5,
         reverse=True,
+        return_p_values=True,
     )
-    assert isinstance(plot, Figure)
+    plt.gcf().canvas.draw_idle()
 
-
-if __name__ == "__main__":
-    test_wilcoxon_test()
-    test_plot_critical_difference()
+    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+    assert isinstance(p_values, np.ndarray)

@@ -3,7 +3,7 @@
 Configurable SFA transform for discretising time series into words.
 """
 
-__author__ = ["MatthewMiddlehurst", "patrickzib"]
+__maintainer__ = []
 __all__ = ["SFA"]
 
 import math
@@ -90,7 +90,7 @@ class SFA(BaseCollectionTransformer):
     ----------
     words: []
         words is a list of arrays of integers, one for each case. Each array is
-        length ``(series_length - window_size+1)``. Each integer is a birt
+        length ``(n_timepoints - window_size+1)``. Each integer is a birt
         representation of a word. So, for example if ``word_length=6`` and
         ``alphabet_size=4`, integer 3235 is bit string 11 00 10 10 00 11,
         representing word daccad.
@@ -176,8 +176,8 @@ class SFA(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self.n_instances = 0
-        self.series_length = 0
+        self.n_cases = 0
+        self.n_timepoints = 0
         self.letter_bits = 0
         self.letter_max = 0
         self.word_bits = 0
@@ -250,7 +250,7 @@ class SFA(BaseCollectionTransformer):
             self.level_bits = math.ceil(math.log2(quadrants))
             self.level_max = pow(2, self.level_bits) - 1
 
-        self.n_instances, self.series_length = X.shape
+        self.n_cases, self.n_timepoints = X.shape
         self.breakpoints = self._binning(X, y)
 
         self._is_fitted = True
@@ -401,11 +401,11 @@ class SFA(BaseCollectionTransformer):
         ]
 
     def _binning(self, X, y=None):
-        num_windows_per_inst = math.ceil(self.series_length / self.window_size)
+        num_windows_per_inst = math.ceil(self.n_timepoints / self.window_size)
         dft = np.array(
             [
                 self._binning_dft(X[i, :], num_windows_per_inst)
-                for i in range(self.n_instances)
+                for i in range(self.n_cases)
             ]
         )
         if self.keep_binning_dft:
@@ -458,8 +458,8 @@ class SFA(BaseCollectionTransformer):
         return breakpoints
 
     def _mcb(self, dft):
-        num_windows_per_inst = math.ceil(self.series_length / self.window_size)
-        total_num_windows = int(self.n_instances * num_windows_per_inst)
+        num_windows_per_inst = math.ceil(self.n_timepoints / self.window_size)
+        total_num_windows = int(self.n_cases * num_windows_per_inst)
         breakpoints = np.zeros((self.word_length, self.alphabet_size))
 
         for letter in range(self.word_length):
@@ -536,8 +536,8 @@ class SFA(BaseCollectionTransformer):
                 dtype=np.int_,
             ),
         )
-        start = self.series_length - self.window_size
-        split[-1] = series[start : self.series_length]
+        start = self.n_timepoints - self.window_size
+        split[-1] = series[start : self.n_timepoints]
 
         result = np.zeros((len(split), self.dft_length), dtype=np.float64)
 
@@ -854,7 +854,7 @@ class SFA(BaseCollectionTransformer):
         for i in range(self.levels):
             if self._typed_dict:
                 new_word, num_quadrants = SFA._add_level_typed(
-                    word, start, i, window_ind, self.window_size, self.series_length
+                    word, start, i, window_ind, self.window_size, self.n_timepoints
                 )
             else:
                 new_word, num_quadrants = (
@@ -864,7 +864,7 @@ class SFA(BaseCollectionTransformer):
                         i,
                         window_ind,
                         self.window_size,
-                        self.series_length,
+                        self.n_timepoints,
                         self.level_bits,
                     )
                     if self.word_bits + self.level_bits <= 64
@@ -883,11 +883,11 @@ class SFA(BaseCollectionTransformer):
     @staticmethod
     @njit(fastmath=True, cache=True)
     def _add_level(
-        word, start, level, window_ind, window_size, series_length, level_bits
+        word, start, level, window_ind, window_size, n_timepoints, level_bits
     ):
         num_quadrants = pow(2, level)
         quadrant = start + int(
-            (window_ind + int(window_size / 2)) / int(series_length / num_quadrants)
+            (window_ind + int(window_size / 2)) / int(n_timepoints / num_quadrants)
         )
         return (word << level_bits) | quadrant, num_quadrants
 
@@ -895,16 +895,16 @@ class SFA(BaseCollectionTransformer):
         num_quadrants = pow(2, level)
         quadrant = start + int(
             (window_ind + int(self.window_size / 2))
-            / int(self.series_length / num_quadrants)
+            / int(self.n_timepoints / num_quadrants)
         )
         return (word << self.level_bits) | quadrant, num_quadrants
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _add_level_typed(word, start, level, window_ind, window_size, series_length):
+    def _add_level_typed(word, start, level, window_ind, window_size, n_timepoints):
         num_quadrants = pow(2, level)
         quadrant = start + int(
-            (window_ind + int(window_size / 2)) / int(series_length / num_quadrants)
+            (window_ind + int(window_size / 2)) / int(n_timepoints / num_quadrants)
         )
         return (word, quadrant), num_quadrants
 

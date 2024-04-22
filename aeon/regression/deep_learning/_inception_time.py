@@ -1,6 +1,6 @@
 """InceptionTime regressor."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["InceptionTimeRegressor"]
 
 import gc
@@ -14,7 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.networks import InceptionNetwork
 from aeon.regression.base import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionTimeRegressor(BaseRegressor):
@@ -31,12 +30,12 @@ class InceptionTimeRegressor(BaseRegressor):
             InceptionTime.
         depth               : int, default = 6,
             the number of inception modules used
-        nb_filters          : int or list of int32, default = 32,
+        n_filters          : int or list of int32, default = 32,
             the number of filters used in one inception
             module, if not a list,
             the same number of filters is used in
             all inception modules
-        nb_conv_per_layer   : int or list of int, default = 3,
+        n_conv_per_layer   : int or list of int, default = 3,
             the number of convolution layers in each inception
             module, if not a list,
             the same number of convolution layers is used
@@ -116,8 +115,13 @@ class InceptionTimeRegressor(BaseRegressor):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
-        random_state        : int, default = 0
-            seed to any needed random actions.
+        random_state : int, RandomState instance or None, default=None
+            If `int`, random_state is the seed used by the random number generator;
+            If `RandomState` instance, random_state is the random number generator;
+            If `None`, the random number generator is the `RandomState` instance used
+            by `np.random`.
+            Seeded random number generation can only be guaranteed on CPU processing,
+            GPU processing will be non-deterministic.
         verbose             : boolean, default = False
             whether to output extra information
         optimizer           : keras optimizer, default = Adam
@@ -164,8 +168,8 @@ class InceptionTimeRegressor(BaseRegressor):
     def __init__(
         self,
         n_regressors=5,
-        nb_filters=32,
-        nb_conv_per_layer=3,
+        n_filters=32,
+        n_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
         max_pool_size=3,
@@ -196,8 +200,8 @@ class InceptionTimeRegressor(BaseRegressor):
     ):
         self.n_regressors = n_regressors
 
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
+        self.n_filters = n_filters
+        self.n_conv_per_layer = n_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
         self.strides = strides
@@ -238,10 +242,10 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data target values.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints).
+        y : np.ndarray
+            The training data target values of shape (n_cases,).
 
         Returns
         -------
@@ -253,8 +257,8 @@ class InceptionTimeRegressor(BaseRegressor):
 
         for n in range(0, self.n_regressors):
             rgs = IndividualInceptionRegressor(
-                nb_filters=self.nb_filters,
-                nb_conv_per_layer=self.nb_conv_per_layer,
+                n_filters=self.n_filters,
+                n_conv_per_layer=self.n_conv_per_layer,
                 kernel_size=self.kernel_size,
                 use_max_pooling=self.use_max_pooling,
                 max_pool_size=self.max_pool_size,
@@ -293,12 +297,12 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances)
+        Y : np.ndarray of shape = (n_cases)
             The predicted values
 
         """
@@ -353,10 +357,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
     ----------
         depth               : int, default = 6,
             the number of inception modules used
-        nb_filters          : int or list of int32, default = 32,
+        n_filters          : int or list of int32, default = 32,
             the number of filters used in one inception module, if not a list,
             the same number of filters is used in all inception modules
-        nb_conv_per_layer   : int or list of int, default = 3,
+        n_conv_per_layer   : int or list of int, default = 3,
             the number of convolution layers in each inception module, if not a list,
             the same number of convolution layers is used in all inception modules
         kernel_size         : int or list of int, default = 40,
@@ -428,8 +432,13 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
-        random_state        : int, default = 0
-            seed to any needed random actions.
+        random_state : int, RandomState instance or None, default=None
+            If `int`, random_state is the seed used by the random number generator;
+            If `RandomState` instance, random_state is the random number generator;
+            If `None`, the random number generator is the `RandomState` instance used
+            by `np.random`.
+            Seeded random number generation can only be guaranteed on CPU processing,
+            GPU processing will be non-deterministic.
         verbose             : boolean, default = False
             whether to output extra information
         optimizer           : keras optimizer, default = Adam
@@ -464,8 +473,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        nb_filters=32,
-        nb_conv_per_layer=3,
+        n_filters=32,
+        n_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
         max_pool_size=3,
@@ -494,11 +503,9 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         loss="mse",
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__(last_file_name=last_file_name)
         # predefined
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
+        self.n_filters = n_filters
+        self.n_conv_per_layer = n_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
         self.strides = strides
@@ -511,7 +518,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.bottleneck_size = bottleneck_size
         self.depth = depth
         self.kernel_size = kernel_size
-        self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.use_custom_filters = use_custom_filters
         self.output_activation = output_activation
@@ -521,7 +527,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -530,9 +535,11 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.loss = loss
         self.optimizer = optimizer
 
+        super().__init__(batch_size=batch_size, last_file_name=last_file_name)
+
         self._network = InceptionNetwork(
-            nb_filters=self.nb_filters,
-            nb_conv_per_layer=self.nb_conv_per_layer,
+            n_filters=self.n_filters,
+            n_conv_per_layer=self.n_conv_per_layer,
             kernel_size=self.kernel_size,
             use_max_pooling=self.use_max_pooling,
             max_pool_size=self.max_pool_size,
@@ -546,7 +553,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             bottleneck_size=self.bottleneck_size,
             depth=self.depth,
             use_custom_filters=self.use_custom_filters,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, **kwargs):
@@ -563,8 +569,12 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         tf.keras.models.Model
             A compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(1, activation=self.output_activation)(
@@ -572,8 +582,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        tf.random.set_seed(self.random_state)
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
@@ -592,20 +600,18 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-        y : np.ndarray of shape (n_instances)
-            The training data target values.
+        X : np.ndarray
+            The training input samples of,
+            shape (n_cases, n_channels, n_timepoints).
+            If a 2D array-like is passed, n_channels is assumed to be 1.
+        y : np.ndarray
+            The training data target values of shape (n_cases,).
 
         Returns
         -------
         self : object
         """
         import tensorflow as tf
-
-        rng = check_random_state(self.random_state)
-        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
@@ -633,7 +639,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -653,10 +659,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".hdf5")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 

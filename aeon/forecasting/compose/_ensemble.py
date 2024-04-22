@@ -4,7 +4,7 @@ Creates univariate (optionally weighted)
 combination of the predictions from underlying forecasts.
 """
 
-__author__ = ["mloning", "GuzalBulatova", "aiwalter", "RNKuhns", "AnH0ang"]
+__maintainer__ = []
 __all__ = ["EnsembleForecaster", "AutoEnsembleForecaster"]
 
 import numpy as np
@@ -15,13 +15,13 @@ from sklearn.pipeline import Pipeline
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._meta import _HeterogenousEnsembleForecaster
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.utils.stats import (
+from aeon.utils.validation.forecasting import check_regressor
+from aeon.utils.weighted_metrics import (
     _weighted_geometric_mean,
     _weighted_max,
     _weighted_median,
     _weighted_min,
 )
-from aeon.utils.validation.forecasting import check_regressor
 
 VALID_AGG_FUNCS = {
     "mean": {"unweighted": np.mean, "weighted": np.average},

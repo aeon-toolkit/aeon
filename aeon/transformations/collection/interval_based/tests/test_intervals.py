@@ -1,6 +1,6 @@
 """Interval extraction test code."""
 
-from aeon.testing.utils.data_gen import make_3d_test_data
+from aeon.testing.utils.data_gen import make_example_3d_numpy
 from aeon.transformations.collection.feature_based import (
     Catch22,
     SevenNumberSummaryTransformer,
@@ -13,7 +13,8 @@ from aeon.utils.numba.stats import row_mean, row_median
 
 
 def test_interval_prune():
-    X, y = make_3d_test_data(random_state=0, n_channels=2, n_timepoints=10)
+    """Test pruning of intervals by the RandomIntervals transformer."""
+    X, y = make_example_3d_numpy(random_state=0, n_channels=2, n_timepoints=10)
 
     rit = RandomIntervals(
         features=[row_mean, row_median],
@@ -27,7 +28,8 @@ def test_interval_prune():
 
 
 def test_random_interval_transformer():
-    X, y = make_3d_test_data(random_state=0, n_channels=2, n_timepoints=10)
+    """Test the RandomIntervals transformer output."""
+    X, y = make_example_3d_numpy(random_state=0, n_channels=2, n_timepoints=10)
 
     rit = RandomIntervals(
         features=SevenNumberSummaryTransformer(),
@@ -41,7 +43,8 @@ def test_random_interval_transformer():
 
 
 def test_supervised_transformers():
-    X, y = make_3d_test_data(random_state=0)
+    """Test the SupervisedIntervals transformer output."""
+    X, y = make_example_3d_numpy(random_state=0)
 
     sit = SupervisedIntervals(
         features=[

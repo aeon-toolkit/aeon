@@ -28,12 +28,17 @@ BASE_CLASS_LOOKUP - dictionary
 
 """
 
-__author__ = ["fkiraly", "MatthewMiddlehurst", "TonyBagnall"]
+__maintainer__ = []
 
 import pandas as pd
 
 from aeon.annotation.base import BaseSeriesAnnotator
-from aeon.base import BaseEstimator, BaseObject
+from aeon.base import (
+    BaseCollectionEstimator,
+    BaseEstimator,
+    BaseObject,
+    BaseSeriesEstimator,
+)
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
@@ -46,27 +51,27 @@ from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search.base import BaseSimiliaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.series import BaseSeriesTransformer
 
 BASE_CLASS_REGISTER = [
     ("object", BaseObject, "object"),
     ("estimator", BaseEstimator, "estimator = object with fit"),
-    ("classifier", BaseClassifier, "time series classifier"),
-    ("clusterer", BaseClusterer, "time series clusterer"),
+    ("classifier", BaseClassifier, "classifier"),
+    ("collection-estimator", BaseCollectionEstimator, "collection estimator"),
+    ("collection-transformer", BaseCollectionTransformer, "collection transformer"),
+    ("clusterer", BaseClusterer, "clusterer"),
     ("early_classifier", BaseEarlyClassifier, "early time series classifier"),
     ("forecaster", BaseForecaster, "forecaster"),
     ("metric", BaseMetric, "performance metric"),
     ("network", BaseDeepNetwork, "deep learning network"),
-    ("regressor", BaseRegressor, "time series regressor"),
-    ("segmenter", BaseSegmenter, "time series segmenter"),
-    ("series-annotator", BaseSeriesAnnotator, "time series annotator"),
-    ("splitter", BaseSplitter, "time series splitter"),
-    ("transformer", BaseTransformer, "time series transformer"),
-    (
-        "collection-transformer",
-        BaseCollectionTransformer,
-        "time series collection transformer",
-    ),
+    ("regressor", BaseRegressor, "regressor"),
+    ("segmenter", BaseSegmenter, "segmenter"),
+    ("series-annotator", BaseSeriesAnnotator, "annotator"),
+    ("series-estimator", BaseSeriesEstimator, "single series estimator"),
+    ("series-transformer", BaseSeriesTransformer, "single series transformer"),
+    ("splitter", BaseSplitter, "splitter"),
     ("similarity-search", BaseSimiliaritySearch, "similarity search"),
+    ("transformer", BaseTransformer, "transformer"),
 ]
 
 

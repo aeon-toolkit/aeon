@@ -11,8 +11,8 @@ Regression data is and forecasting
 
 Classification/Regression
 -------------------------
-Classification data available are listed in tsc_data_lists.py. Regression problems
-are in tser_data_lists.py. The data can be downloaded and loaded with
+Classification data available are listed in tsc_datasets.py. Regression problems
+are in tser_datasets.py. The data can be downloaded and loaded with
 >>> from aeon.datasets import load_from_tsfile
 
 If the data is already stored on disk, you can just load it directly
@@ -26,7 +26,7 @@ Forecasting
 
 """
 
-__author__ = ["Tony Bagnall"]
+__maintainer__ = []
 __all__ = [
     "get_downloaded_tsc_tsr_datasets",
     "get_downloaded_tsf_datasets",
@@ -36,15 +36,15 @@ __all__ = [
 import os
 
 import aeon
-from aeon.datasets.tsc_data_lists import multivariate, univariate
-from aeon.datasets.tser_data_lists import tser_monash, tser_soton
-from aeon.datasets.tsf_data_lists import tsf_all
+from aeon.datasets.tsc_datasets import multivariate, univariate
+from aeon.datasets.tser_datasets import tser_monash, tser_soton
+from aeon.datasets.tsf_datasets import tsf_all
 
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
 
 
 def get_available_tser_datasets(name="tser_soton", return_list=True):
-    """List available tser data.
+    """List available tser data as specified by lists.
 
     Parameters
     ----------
@@ -69,16 +69,14 @@ def get_available_tser_datasets(name="tser_soton", return_list=True):
             return sorted(list(tser_monash))
         else:
             return tser_monash
-    return []
+    return name in tser_soton
 
 
 def get_available_tsf_datasets(name=None):
     """List available tsf data."""
     if name is None:  # List them all
         return sorted(list(tsf_all))
-    if name in tsf_all:
-        return True
-    return False
+    return name in tsf_all
 
 
 def get_available_tsc_datasets(name=None):
@@ -99,9 +97,7 @@ def get_available_tsc_datasets(name=None):
     if name is None:  # List them all
         merged_set = univariate.union(multivariate)
         return sorted(list(merged_set))
-    if name in univariate or name in multivariate:
-        return True
-    return False
+    return name in univariate or name in multivariate
 
 
 def get_downloaded_tsc_tsr_datasets(extract_path=None):

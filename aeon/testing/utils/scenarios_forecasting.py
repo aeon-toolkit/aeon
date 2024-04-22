@@ -3,7 +3,7 @@
 Contains TestScenario concrete children to run in tests for forecasters.
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = [
     "forecasting_scenarios_simple",
@@ -236,7 +236,7 @@ class ForecasterFitPredictMultivariateWithX(ForecasterTestScenario):
 
 
 y_panel = _make_collection_X(
-    n_instances=3,
+    n_cases=3,
     n_timepoints=10,
     n_channels=1,
     random_state=RAND_SEED,

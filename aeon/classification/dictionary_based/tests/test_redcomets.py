@@ -82,7 +82,7 @@ def test_redcomets_score_multivariate():
     reason="skip test if required soft dependency imbalanced-learn not available",
 )
 def test_redcomets_lens_generation():
-    """Test of REDCOMETS random lens generation"""
+    """Test of REDCOMETS random lens generation."""
     # load unit test data
     X, y = load_unit_test()
 

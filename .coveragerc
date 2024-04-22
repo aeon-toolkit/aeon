@@ -1,5 +1,9 @@
 [report]
 show_missing = True
+exclude_lines =
+    pragma: no cover
+    @abstractmethod
+    @abc.abstractmethod
 
 [run]
 branch = True

@@ -10,37 +10,39 @@ from aeon.transformations.collection import BaseCollectionTransformer
 class MultiRocketMultivariate(BaseCollectionTransformer):
     """Multi RandOm Convolutional KErnel Transform (MultiRocket).
 
-    MultiRocket [1]_ is uses the same set of kernels as MiniRocket on both the raw
+    MultiRocket [1]_ uses the same set of kernels as MiniRocket on both the raw
     series and the first order differenced series representation. It uses a different
     set of dilations and used for each representation. In addition to percentage of
-    positive values (PPV) MultiRocket adds 3 pooling operators: Mean of Positive
+    positive values (PPV), MultiRocket adds 3 pooling operators: Mean of Positive
     Values (MPV); Mean of Indices of Positive Values (MIPV); and Longest Stretch of
     Positive Values (LSPV). This version is the multivariate version.
 
     Parameters
     ----------
     num_kernels : int, default=6,250
-       number of random convolutional kernels. The calculated number of features is the
-       nearest multiple of n_features_per_kernel(default 4)*84=336 < 50,000
-       (2*n_features_per_kernel(default 4)*num_kernels(default 6,250)).
+       Number of random convolutional kernels. The calculated number of features is the
+       nearest multiple of ``n_features_per_kernel(default 4)*84=336 < 50,000``
+       (``2*n_features_per_kernel(default 4)*num_kernels(default 6,250)``).
     max_dilations_per_kernel : int, default=32
-        maximum number of dilations per kernel.
+        Maximum number of dilations per kernel.
     n_features_per_kernel : int, default =4
-        number of features per kernel.
+        Number of features per kernel.
     normalise : bool, default False
+        Whether or not to normalise the input time series per instance.
     n_jobs : int, default=1
         The number of jobs to run in parallel for `transform`. ``-1`` means using all
         processors.
     random_state : None or int, default = None
+        Seed for random number generation.
 
     Attributes
     ----------
     parameter : tuple
-        parameter (dilations, num_features_per_dilation, biases) for
-        transformation of input X
+        Parameter (dilations, num_features_per_dilation, biases) for
+        transformation of input `X`.
     parameter1 : tuple
-        parameter (dilations, num_features_per_dilation, biases) for
-        transformation of input X1 = np.diff(X, 1)
+        Parameter (dilations, num_features_per_dilation, biases) for
+        transformation of input ``X1 = np.diff(X, 1)``.
 
 
     See Also
@@ -102,7 +104,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -110,6 +112,9 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
         -------
         self
         """
+        if self.random_state is not None:
+            np.random.seed(self.random_state)
+
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
@@ -137,7 +142,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 

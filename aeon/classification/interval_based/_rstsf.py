@@ -1,6 +1,6 @@
 """Random Supervised Time Series Forest (RSTSF) Classifier."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["RSTSF"]
 
 import numpy as np
@@ -101,7 +101,7 @@ class RSTSF(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 

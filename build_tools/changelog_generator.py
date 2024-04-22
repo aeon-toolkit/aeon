@@ -176,7 +176,7 @@ def assign_prs(
 
 
 def render_row(pr: Dict):  # noqa
-    """Render a single row with PR in Myst Markdown format"""
+    """Render a single row with PR in Myst Markdown format."""
     print(  # noqa: T201
         "-",
         pr["title"],
@@ -218,7 +218,9 @@ if __name__ == "__main__":
         ["Regression", ["regression"]],
         ["Segmentation", ["segmentation"]],
         ["Similarity Search", ["similarity search"]],
+        ["Unit Testing", ["testing"]],
         ["Transformations", ["transformations"]],
+        ["Visualisations", ["visualisation"]],
     ]
     categories = [
         ["Bug Fixes", ["bug"]],

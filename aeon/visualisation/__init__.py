@@ -7,14 +7,17 @@ __all__ = [
     "plot_correlations",
     "plot_series_collection",
     "plot_collection_by_class",
+    "plot_spectrogram",
     # Learning task plotting
     "plot_series_windows",
     "plot_series_with_change_points",
     # Results plotting
     "plot_critical_difference",
+    "plot_significance",
     "plot_boxplot_median",
     "plot_scatter_predictions",
-    "plot_scatter",
+    "plot_pairwise_scatter",
+    "plot_score_vs_time_scatter",
     # Estimator plotting
     "plot_series_with_profiles",
     "plot_cluster_algorithm",
@@ -32,9 +35,19 @@ from aeon.visualisation.learning_task._segmentation import (
 )
 from aeon.visualisation.results._boxplot import plot_boxplot_median
 from aeon.visualisation.results._critical_difference import plot_critical_difference
-from aeon.visualisation.results._scatter import plot_scatter, plot_scatter_predictions
+from aeon.visualisation.results._scatter import (
+    plot_pairwise_scatter,
+    plot_scatter_predictions,
+    plot_score_vs_time_scatter,
+)
+from aeon.visualisation.results._significance import plot_significance
 from aeon.visualisation.series._collections import (
     plot_collection_by_class,
     plot_series_collection,
 )
-from aeon.visualisation.series._series import plot_correlations, plot_lags, plot_series
+from aeon.visualisation.series._series import (
+    plot_correlations,
+    plot_lags,
+    plot_series,
+    plot_spectrogram,
+)

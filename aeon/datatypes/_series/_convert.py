@@ -26,7 +26,7 @@ ValueError and TypeError, if requested conversion is not possible
                             (depending on conversion logic)
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["convert_dict"]
 
@@ -212,7 +212,7 @@ if _check_soft_dependencies("xarray", severity="none"):
 
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import (
+    from aeon.utils.conversion.dask_converters import (
         convert_dask_to_pandas,
         convert_pandas_to_dask,
     )

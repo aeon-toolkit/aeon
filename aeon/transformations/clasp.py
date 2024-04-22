@@ -12,7 +12,7 @@ As described in
 }
 """
 
-__author__ = ["ermshaua", "patrickzib"]
+__maintainer__ = []
 __all__ = ["ClaSPTransformer"]
 
 import warnings
@@ -398,7 +398,7 @@ class ClaSPTransformer(BaseTransformer):
         "instancewise": True,
         "X_inner_type": "np.ndarray",
         "y_inner_type": "None",
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": True,
     }
 

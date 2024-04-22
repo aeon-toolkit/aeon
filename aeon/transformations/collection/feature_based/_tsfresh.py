@@ -1,11 +1,32 @@
 """tsfresh interface class."""
 
-__author__ = ["AyushmaanSeth", "mloning", "Alwin Wang", "MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
 
-from aeon.datatypes._panel._convert import from_3d_numpy_to_long
+import numpy as np
+import pandas as pd
+
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
+
+
+def _from_3d_numpy_to_long(arr):
+    # Converting the numpy array to a long format DataFrame
+    n_cases, n_channels, n_timepoints = arr.shape
+
+    # Creating a DataFrame from the numpy array with multi-level index
+    df = pd.DataFrame(arr.reshape(n_cases * n_channels, n_timepoints))
+    df["case_index"] = np.repeat(np.arange(n_cases), n_channels)
+    df["dimension"] = np.tile(np.arange(n_channels), n_cases)
+    df = df.melt(
+        id_vars=["case_index", "dimension"], var_name="time_index", value_name="value"
+    )
+
+    # Adjusting the column order and renaming columns
+    df = df[["case_index", "time_index", "dimension", "value"]]
+    df = df.rename(columns={"case_index": "index", "dimension": "column"})
+    df["column"] = "dim_" + df["column"].astype(str)
+    return df
 
 
 class _TSFreshFeatureExtractor(BaseCollectionTransformer):
@@ -254,17 +275,17 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
 
         Parameters
         ----------
-        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+        X : 3D numpy array of shape (n_cases, n_channels, n_features)
             input time series collection.
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        X : 3D numpy array of shape (n_instances, n_channels, n_features)
+        X : 3D numpy array of shape (n_cases, n_channels, n_features)
             input time series collection.
             transformed version of X
         """
-        Xt = from_3d_numpy_to_long(X)
+        Xt = _from_3d_numpy_to_long(X)
 
         # lazy imports to avoid hard dependency
         from tsfresh import extract_features

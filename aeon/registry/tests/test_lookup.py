@@ -1,6 +1,6 @@
 """Testing of registry lookup functionality."""
 
-__author__ = ["fkiraly", "MatthewMiddlehurst"]
+__maintainer__ = []
 
 import pytest
 
@@ -19,6 +19,8 @@ CLASSES_WITHOUT_TAGS = [
     "network",
     "collection-transformer",
     "collection-estimator",
+    "series-estimator",
+    "series-transformer",
     "similarity-search",
 ]
 

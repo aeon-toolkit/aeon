@@ -1,6 +1,6 @@
 """Implements adaptor for applying Scikit-learn-like transformers to time series."""
 
-__author__ = ["mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = ["TabularToSeriesAdaptor"]
 
 import numpy as np
@@ -92,7 +92,7 @@ class TabularToSeriesAdaptor(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "np.ndarray",
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "transform-returns-same-time-index": True,
         "fit_is_empty": False,
     }
@@ -267,7 +267,7 @@ class PandasTransformAdaptor(BaseTransformer):
         "instancewise": True,
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "transform-returns-same-time-index": False,
         "fit_is_empty": False,
         "capability:inverse_transform": False,

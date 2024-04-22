@@ -1,6 +1,6 @@
 """Extract calendar features from datetimeindex."""
 
-__author__ = ["danbartl", "KishManani"]
+__maintainer__ = []
 __all__ = ["DateTimeFeatures"]
 
 import warnings
@@ -122,7 +122,7 @@ class DateTimeFeatures(BaseTransformer):
             "pd_multiindex_hier",
         ],
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": True,
         "transform-returns-same-time-index": True,
         "enforce_index_type": [pd.DatetimeIndex, pd.PeriodIndex],

@@ -1,6 +1,6 @@
 """Optimized distance profile for euclidean distance."""
 
-__author__ = ["baraline"]
+__maintainer__ = []
 
 
 import numpy as np
@@ -25,7 +25,7 @@ def squared_distance_profile(X, q, mask):
         The input samples.
     q : np.ndarray shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_instances, n_timepoints - query_length + 1)
+    mask : array, shape (n_cases, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
 
@@ -59,16 +59,16 @@ def normalized_squared_distance_profile(
 
     Parameters
     ----------
-    X : array, shape (n_instances, n_channels, n_timepoints)
+    X : array, shape (n_cases, n_channels, n_timepoints)
         The input samples.
     q : array, shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_instances, n_timepoints - query_length + 1)
+    mask : array, shape (n_cases, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
-    X_means : array, shape (n_instances, n_channels, n_timepoints - query_length + 1)
+    X_means : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
         Means of each subsequences of X of size query_length
-    X_stds : array, shape (n_instances, n_channels, n_timepoints - query_length + 1)
+    X_stds : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
         Stds of each subsequences of X of size query_length
     q_means : array, shape (n_channels)
         Means of the query q
@@ -78,7 +78,7 @@ def normalized_squared_distance_profile(
     Returns
     -------
     distance_profile : np.ndarray
-        shape (n_instances, n_channels, n_timepoints - query_length + 1).
+        shape (n_cases, n_channels, n_timepoints - query_length + 1).
         The distance profile between q and the input time series X independently
         for each channel.
 

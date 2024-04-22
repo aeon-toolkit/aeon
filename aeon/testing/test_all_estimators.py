@@ -3,9 +3,10 @@
 adapted from scikit-learn's estimator_checks
 """
 
-__author__ = ["mloning", "fkiraly", "achieveordie", "MatthewMiddlehurst"]
+__maintainer__ = []
 
 import numbers
+import pickle
 import types
 from copy import deepcopy
 from inspect import getfullargspec, isclass, signature
@@ -18,7 +19,7 @@ from sklearn.utils.estimator_checks import (
     check_get_params_invariance as _check_get_params_invariance,
 )
 
-from aeon.base import BaseEstimator, BaseObject, load
+from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base import BaseForecaster
@@ -59,12 +60,20 @@ def subsample_by_version_os(x):
     Ensures each estimator is tested at least once on every OS and python version,
     if combined with a matrix of OS/versions.
 
-    Currently assumes that matrix includes py3.8-3.11, and win/ubuntu/mac.
+    Currently assumes that matrix includes py3.8-3.12, and win/ubuntu/mac.
     """
     import platform
     import sys
 
-    ix = sys.version_info.minor % 4
+    # only use 3 Python versions in PR
+    ix = sys.version_info.minor
+    if ix == 8:
+        ix = 0
+    elif ix == 10:
+        ix = 1
+    elif ix == 12:
+        ix = 2
+
     os_str = platform.system()
     if os_str == "Windows":
         ix = ix
@@ -1182,8 +1191,11 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
     def test_fit_deterministic(
         self, estimator_instance, scenario, method_nsc_arraylike
     ):
-        """Check that calling fit twice is equivalent to calling it once, and also
-        tests pickling (done here to save time)."""
+        """Test that fit is deterministic.
+
+        Check that calling fit twice is equivalent to calling it once, and also
+        tests pickling (done here to save time).
+        """
         # escape known non-deterministic estimators
         if estimator_instance.get_tag(
             "non-deterministic", tag_value_default=False, raise_error=False
@@ -1256,9 +1268,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         vanilla_result = scenario.run(estimator, method_sequence=[method_nsc])
 
         # Serialize and deserialize
-        serialized_estimator = estimator.save()
-        deserialized_estimator = load(serialized_estimator)
-
+        serialized_estimator = pickle.dumps(estimator)
+        deserialized_estimator = pickle.loads(serialized_estimator)
         deserialized_result = scenario.run(
             deserialized_estimator, method_sequence=[method_nsc]
         )

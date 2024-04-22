@@ -1,6 +1,6 @@
 """Implements functionality for specifying forecast horizons in aeon."""
 
-__author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]
+__maintainer__ = []
 __all__ = ["ForecastingHorizon"]
 
 from functools import lru_cache
@@ -789,7 +789,6 @@ def _coerce_to_period(x, freq=None):
         Index or index element coerced to period based format.
     """
     if isinstance(x, pd.Timestamp) and freq is None:
-        freq = x.freq
         raise ValueError(
             "_coerce_to_period requires freq argument to be passed if x is pd.Timestamp"
         )

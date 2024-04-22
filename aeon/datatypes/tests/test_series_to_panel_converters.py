@@ -8,7 +8,7 @@ from aeon.datatypes._series_as_panel import (
     convert_Panel_to_Series,
     convert_Series_to_Panel,
 )
-from aeon.testing.utils.data_gen import make_3d_test_data, make_series
+from aeon.testing.utils.data_gen import make_example_3d_numpy, make_series
 
 
 def test_convert_numpy_series_to_collection():
@@ -25,7 +25,7 @@ def test_convert_numpy_series_to_collection():
 
 def test_convert_numpy_collection_to_series():
     """Test output format of panel-to-series for numpy type input."""
-    X_collection, _ = make_3d_test_data(n_cases=1, n_channels=2)
+    X_collection, _ = make_example_3d_numpy(n_cases=1, n_channels=2)
     _, n_var, n_time = X_collection.shape
 
     X_series = convert_Panel_to_Series(X_collection)
@@ -47,7 +47,7 @@ def test_convert_df_series_to_collection():
 
 def test_convert_df_collection_to_series():
     """Test output format of collection-to-series for dataframe type input."""
-    X_collection, _ = make_3d_test_data(n_cases=1, n_channels=2, n_labels=1)
+    X_collection, _ = make_example_3d_numpy(n_cases=1, n_channels=2, n_labels=1)
     X_collection = from_3d_numpy_to_multi_index(X_collection)
     X_series = convert_Panel_to_Series(X_collection)
 

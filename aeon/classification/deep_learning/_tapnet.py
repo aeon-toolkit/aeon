@@ -1,10 +1,6 @@
 """Time Convolutional Neural Network (CNN) for classification."""
 
-__author__ = [
-    "Jack Russon",
-    "TonyBagnall",
-    "achieveordie",
-]
+__maintainer__ = []
 __all__ = [
     "TapNetClassifier",
 ]
@@ -16,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import TapNetNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TapNetClassifier(BaseDeepClassifier):
@@ -62,8 +57,13 @@ class TapNetClassifier(BaseDeepClassifier):
         whether to use a CNN layer
     verbose : bool, default = False
         whether to output extra information
-    random_state : int or None, default = None
-        seed for random
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
 
     Attributes
     ----------
@@ -87,7 +87,9 @@ class TapNetClassifier(BaseDeepClassifier):
     TapNetClassifier(...)
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
+    _tags = {
+        "python_dependencies": ["tensorflow", "keras_self_attention"],
+    }
 
     def __init__(
         self,
@@ -113,11 +115,6 @@ class TapNetClassifier(BaseDeepClassifier):
         callbacks=None,
         verbose=False,
     ):
-        _check_soft_dependencies("tensorflow")
-        super().__init__()
-
-        self.batch_size = batch_size
-        self.random_state = random_state
         self.kernel_size = kernel_size
         self.layers = layers
         self.rp_params = rp_params
@@ -143,6 +140,11 @@ class TapNetClassifier(BaseDeepClassifier):
         self.use_rp = use_rp
         self.rp_params = rp_params
 
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+        )
+
         self._network = TapNetNetwork(
             dropout=self.dropout,
             filter_sizes=self.filter_sizes,
@@ -154,7 +156,6 @@ class TapNetClassifier(BaseDeepClassifier):
             use_att=self.use_att,
             use_lstm=self.use_lstm,
             use_cnn=self.use_cnn,
-            random_state=self.random_state,
             padding=self.padding,
         )
 
@@ -177,16 +178,18 @@ class TapNetClassifier(BaseDeepClassifier):
         -------
         output: a compiled Keras model
         """
+        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
-
-        tf.random.set_seed(self.random_state)
 
         if self.metrics is None:
             metrics = ["accuracy"]
         else:
             metrics = self.metrics
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
@@ -213,10 +216,10 @@ class TapNetClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances(n), n_channels(d), series_length(m))
-            Input training samples
-        y : np.ndarray of shape n
-            Input training class labels
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints)
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------
@@ -226,7 +229,6 @@ class TapNetClassifier(BaseDeepClassifier):
         # Transpose to conform to expectation format by keras
         X = X.transpose(0, 2, 1)
 
-        check_random_state(self.random_state)
         self.input_shape = X.shape[1:]
         self.model_ = self.build_model(self.input_shape, self.n_classes_)
         if self.verbose:

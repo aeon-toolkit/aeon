@@ -1,6 +1,6 @@
 """Discrete wavelet transform."""
 
-__author__ = "Vincent Nicholson"
+__maintainer__ = []
 
 import math
 
@@ -43,16 +43,16 @@ class DWTTransformer(BaseCollectionTransformer):
 
         private _transform containing core logic, called from transform
 
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        Xt : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of transformed time series
         """
-        n_instances, n_channels, n_timepoints = X.shape
+        n_cases, n_channels, n_timepoints = X.shape
         _X = np.swapaxes(X, 0, 1)
         self._check_parameters()
 

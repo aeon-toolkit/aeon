@@ -1,6 +1,6 @@
 """Implements a transfromer to generate hierarcical data from bottom level."""
 
-__author__ = ["ciaran-g"]
+__maintainer__ = []
 
 from warnings import warn
 
@@ -60,7 +60,7 @@ class Aggregator(BaseTransformer):
         "y_inner_type": "None",
         "capability:inverse_transform": False,  # does transformer have inverse
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True

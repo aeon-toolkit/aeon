@@ -147,18 +147,18 @@ def _check_equal_index(X):
 def from_3d_numpy_to_nplist(X, store=None):
     """Convert 3D np.darray to a list of 2D numpy.
 
-    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
-    a 2D numpy array with shape (n_instances, n_channels*n_timepoints)
+    Converts 3D numpy array (n_cases, n_channels, n_timepoints) to
+    a 2D numpy array with shape (n_cases, n_channels*n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
         The input 3d-NumPy array with shape
-        (n_instances, n_channels, n_timepoints)
+        (n_cases, n_channels, n_timepoints)
 
     Returns
     -------
-    list : list [n_instances] np.ndarray
+    list : list [n_cases] np.ndarray
         A list of np.ndarray
     """
     np_list = []
@@ -173,19 +173,19 @@ convert_dict[("numpy3D", "np-list", "Panel")] = from_3d_numpy_to_nplist
 def from_3d_numpy_to_2d_array(X):
     """Convert 3D np.ndarray to 2D.
 
-    Converts 3D numpy array (n_instances, n_channels, n_timepoints) to
-    a 2D numpy array with shape (n_instances, n_channels*n_timepoints)
+    Converts 3D numpy array (n_cases, n_channels, n_timepoints) to
+    a 2D numpy array with shape (n_cases, n_channels*n_timepoints)
 
     Parameters
     ----------
     X : np.ndarray
         The input 3d-NumPy array with shape
-        (n_instances, n_channels, n_timepoints)
+        (n_cases, n_channels, n_timepoints)
 
     Returns
     -------
     array_2d : np.ndarray
-        A 2d-NumPy array with shape (n_instances, n_channels*n_timepoints)
+        A 2d-NumPy array with shape (n_cases, n_channels*n_timepoints)
     """
     array_2d = X.reshape(X.shape[0], -1)
     return array_2d
@@ -328,15 +328,13 @@ def from_2d_array_to_nested(
     container = np.array if cells_as_numpy else pd.Series
 
     # for 2d numpy array, rows represent instances, columns represent time points
-    n_instances, n_timepoints = X.shape
+    n_cases, n_timepoints = X.shape
 
     if time_index is None:
         time_index = np.arange(n_timepoints)
     kwargs = {"index": time_index}
 
-    Xt = pd.DataFrame(
-        pd.Series([container(X[i, :], **kwargs) for i in range(n_instances)])
-    )
+    Xt = pd.DataFrame(pd.Series([container(X[i, :], **kwargs) for i in range(n_cases)]))
     if index is not None:
         Xt.index = index
     if columns is not None:
@@ -592,7 +590,7 @@ def from_multi_index_to_3d_numpy(X):
     """Convert pandas multi-index Panel to numpy 3D Panel.
 
     Convert panel data stored as pandas multi-index DataFrame to
-    Numpy 3-dimensional NumPy array (n_instances, n_channels, n_timepoints).
+    Numpy 3-dimensional NumPy array (n_cases, n_channels, n_timepoints).
 
     Parameters
     ----------
@@ -602,16 +600,16 @@ def from_multi_index_to_3d_numpy(X):
     Returns
     -------
     X_3d : np.ndarray
-        3-dimensional NumPy array (n_instances, n_channels, n_timepoints)
+        3-dimensional NumPy array (n_cases, n_channels, n_timepoints)
     """
     if X.index.nlevels != 2:
         raise ValueError("Multi-index DataFrame should have 2 levels.")
 
-    n_instances = len(X.index.get_level_values(0).unique())
+    n_cases = len(X.index.get_level_values(0).unique())
     n_timepoints = len(X.index.get_level_values(1).unique())
     n_channels = X.shape[1]
 
-    X_3d = X.values.reshape(n_instances, n_timepoints, n_channels).swapaxes(1, 2)
+    X_3d = X.values.reshape(n_cases, n_timepoints, n_channels).swapaxes(1, 2)
 
     return X_3d
 
@@ -633,13 +631,13 @@ def from_3d_numpy_to_multi_index(
 ):
     """Convert 3D numpy Panel to pandas multi-index Panel.
 
-    Convert 3-dimensional NumPy array (n_instances, n_channels, n_timepoints)
+    Convert 3-dimensional NumPy array (n_cases, n_channels, n_timepoints)
     to panel data stored as pandas multi-indexed DataFrame.
 
     Parameters
     ----------
     X : np.ndarray
-        3-dimensional NumPy array (n_instances, n_channels, n_timepoints)
+        3-dimensional NumPy array (n_cases, n_channels, n_timepoints)
 
     instance_index : str
         Name of the multi-index level corresponding to the DataFrame's instances
@@ -657,14 +655,14 @@ def from_3d_numpy_to_multi_index(
         msg = " ".join(
             [
                 "Input should be 3-dimensional NumPy array with shape",
-                "(n_instances, n_channels, n_timepoints).",
+                "(n_cases, n_channels, n_timepoints).",
             ]
         )
         raise TypeError(msg)
 
-    n_instances, n_channels, n_timepoints = X.shape
+    n_cases, n_channels, n_timepoints = X.shape
     multi_index = pd.MultiIndex.from_product(
-        [range(n_instances), range(n_channels), range(n_timepoints)],
+        [range(n_cases), range(n_channels), range(n_timepoints)],
         names=["instances", "columns", "timepoints"],
     )
 
@@ -856,7 +854,7 @@ def from_nested_to_3d_numpy(X):
 
     Convert nested pandas DataFrame (with time series as pandas Series
     in cells) into NumPy ndarray with shape
-    (n_instances, n_channels, n_timepoints).
+    (n_cases, n_channels, n_timepoints).
 
     Parameters
     ----------
@@ -900,7 +898,7 @@ convert_dict[("nested_univ", "numpy3D", "Panel")] = from_nested_to_3d_numpy_adp
 def from_3d_numpy_to_nested(X, column_names=None, cells_as_numpy=False):
     """Convert numpy 3D Panel to nested pandas Panel.
 
-    Convert NumPy ndarray with shape (n_instances, n_channels, n_timepoints)
+    Convert NumPy ndarray with shape (n_cases, n_channels, n_timepoints)
     into nested pandas DataFrame (with time series as pandas Series in cells)
 
     Parameters
@@ -920,7 +918,7 @@ def from_3d_numpy_to_nested(X, column_names=None, cells_as_numpy=False):
     -------
     df : pd.DataFrame
     """
-    n_instances, n_channels, n_timepoints = X.shape
+    n_cases, n_channels, n_timepoints = X.shape
     array_type = X.dtype
 
     container = np.array if cells_as_numpy else pd.Series
@@ -1095,7 +1093,7 @@ _extend_conversions("numpy2D", "numpy3D", convert_dict, mtype_universe=TYPE_LIST
 
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import (
+    from aeon.utils.conversion.dask_converters import (
         convert_dask_to_pandas,
         convert_pandas_to_dask,
     )

@@ -16,12 +16,11 @@ def test_tde_oob_train_estimate():
         n_parameter_samples=5,
         max_ensemble_size=2,
         randomly_selected_params=3,
+        train_estimate_method="oob",
         random_state=0,
     )
-    tde.fit(X_train, y_train)
+    train_proba = tde.fit_predict_proba(X_train, y_train)
 
-    # test oob estimate
-    train_proba = tde._get_train_probs(X_train, y_train, train_estimate_method="oob")
     assert isinstance(train_proba, np.ndarray)
     assert train_proba.shape == (len(X_train), 2)
     np.testing.assert_almost_equal(train_proba.sum(axis=1), 1, decimal=4)

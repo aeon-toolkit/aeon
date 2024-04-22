@@ -4,7 +4,7 @@ import numpy as np
 
 from aeon.transformations.base import BaseTransformer
 
-__author__ = ["afzal442"]
+__maintainer__ = []
 __all__ = ["CosineTransformer"]
 
 
@@ -34,7 +34,7 @@ class CosineTransformer(BaseTransformer):
         "instancewise": True,
         "X_inner_type": "np.ndarray",
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": True,
         "transform-returns-same-time-index": True,
         "capability:inverse_transform": False,

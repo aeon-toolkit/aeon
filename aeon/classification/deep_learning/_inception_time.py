@@ -1,6 +1,6 @@
 """InceptionTime classifier."""
 
-__author__ = ["James-Large", "TonyBagnall", "MatthewMiddlehurst", "hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["InceptionTimeClassifier"]
 
 import gc
@@ -14,7 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import InceptionNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionTimeClassifier(BaseClassifier):
@@ -30,12 +29,12 @@ class InceptionTimeClassifier(BaseClassifier):
         InceptionTime.
     depth               : int, default = 6,
             the number of inception modules used
-    nb_filters          : int or list of int32, default = 32,
+    n_filters          : int or list of int32, default = 32,
         the number of filters used in one inception
         module, if not a list,
         the same number of filters is used in
         all inception modules
-    nb_conv_per_layer   : int or list of int, default = 3,
+    n_conv_per_layer   : int or list of int, default = 3,
         the number of convolution layers in each inception
         module, if not a list,
         the same number of convolution layers is used
@@ -112,8 +111,13 @@ class InceptionTimeClassifier(BaseClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state        : int, default = 0
-        seed to any needed random actions.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose             : boolean, default = False
         whether to output extra information
     optimizer           : keras optimizer, default = Adam
@@ -159,8 +163,8 @@ class InceptionTimeClassifier(BaseClassifier):
     def __init__(
         self,
         n_classifiers=5,
-        nb_filters=32,
-        nb_conv_per_layer=3,
+        n_filters=32,
+        n_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
         max_pool_size=3,
@@ -191,8 +195,8 @@ class InceptionTimeClassifier(BaseClassifier):
     ):
         self.n_classifiers = n_classifiers
 
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
+        self.n_filters = n_filters
+        self.n_conv_per_layer = n_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
         self.strides = strides
@@ -234,10 +238,10 @@ class InceptionTimeClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data class labels.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints)
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------
@@ -248,8 +252,8 @@ class InceptionTimeClassifier(BaseClassifier):
 
         for n in range(0, self.n_classifiers):
             cls = IndividualInceptionClassifier(
-                nb_filters=self.nb_filters,
-                nb_conv_per_layer=self.nb_conv_per_layer,
+                n_filters=self.n_filters,
+                n_conv_per_layer=self.n_conv_per_layer,
                 kernel_size=self.kernel_size,
                 use_max_pooling=self.use_max_pooling,
                 max_pool_size=self.max_pool_size,
@@ -288,12 +292,12 @@ class InceptionTimeClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances (n)), the predicted labels
+        Y : np.ndarray of shape = (n_cases (n)), the predicted labels
 
         """
         rng = check_random_state(self.random_state)
@@ -309,12 +313,12 @@ class InceptionTimeClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances (n), n_classes (c)), the predicted probs
+        Y : np.ndarray of shape = (n_cases (n), n_classes (c)), the predicted probs
 
         """
         probs = np.zeros((X.shape[0], self.n_classes_))
@@ -368,10 +372,10 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
     ----------
         depth               : int, default = 6,
             the number of inception modules used
-        nb_filters          : int or list of int32, default = 32,
+        n_filters          : int or list of int32, default = 32,
             the number of filters used in one inception module, if not a list,
             the same number of filters is used in all inception modules
-        nb_conv_per_layer   : int or list of int, default = 3,
+        n_conv_per_layer   : int or list of int, default = 3,
             the number of convolution layers in each inception module, if not a list,
             the same number of convolution layers is used in all inception modules
         kernel_size         : int or list of int, default = 40,
@@ -441,8 +445,13 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
-        random_state        : int, default = 0
-            seed to any needed random actions.
+        random_state : int, RandomState instance or None, default=None
+            If `int`, random_state is the seed used by the random number generator;
+            If `RandomState` instance, random_state is the random number generator;
+            If `None`, the random number generator is the `RandomState` instance used
+            by `np.random`.
+            Seeded random number generation can only be guaranteed on CPU processing,
+            GPU processing will be non-deterministic.
         verbose             : boolean, default = False
             whether to output extra information
         optimizer           : keras optimizer, default = Adam
@@ -477,8 +486,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        nb_filters=32,
-        nb_conv_per_layer=3,
+        n_filters=32,
+        n_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
         max_pool_size=3,
@@ -507,11 +516,9 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         metrics=None,
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow", severity="error")
-        super().__init__(last_file_name=last_file_name)
         # predefined
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
+        self.n_filters = n_filters
+        self.n_conv_per_layer = n_conv_per_layer
         self.use_max_pooling = use_max_pooling
         self.max_pool_size = max_pool_size
         self.strides = strides
@@ -524,7 +531,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.bottleneck_size = bottleneck_size
         self.depth = depth
         self.kernel_size = kernel_size
-        self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.use_custom_filters = use_custom_filters
 
@@ -533,19 +539,23 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
 
         self.callbacks = callbacks
-        self.random_state = random_state
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
 
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+            last_file_name=last_file_name,
+        )
+
         self._network = InceptionNetwork(
-            nb_filters=self.nb_filters,
-            nb_conv_per_layer=self.nb_conv_per_layer,
+            n_filters=self.n_filters,
+            n_conv_per_layer=self.n_conv_per_layer,
             kernel_size=self.kernel_size,
             use_max_pooling=self.use_max_pooling,
             max_pool_size=self.max_pool_size,
@@ -577,8 +587,12 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(n_classes, activation="softmax")(
@@ -586,8 +600,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        tf.random.set_seed(self.random_state)
 
         if self.metrics is None:
             metrics = ["accuracy"]
@@ -612,11 +624,13 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : array-like of shape = (n_instances, n_channels, n_timepoints)
-            The training input samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-        y : array-like, shape = (n_instances)
-            The training data class labels.
+        X : np.ndarray
+            The training input samples of,
+            shape (n_cases, n_channels, n_timepoints).
+            If a 2D array-like is passed, n_channels is assumed to be 1.
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
+
 
         Returns
         -------
@@ -651,7 +665,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -671,10 +685,10 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".hdf5")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 

@@ -1,16 +1,16 @@
 """Implements the probabilistic Squaring Residuals forecaster."""
 
 __all__ = ["SquaringResiduals"]
-__author__ = ["kcc-lion"]
+__maintainer__ = []
 
 from warnings import warn
 
 import pandas as pd
 
-from aeon.datatypes._convert import convert_to
 from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
 from aeon.forecasting.model_selection import ExpandingWindowSplitter
 from aeon.forecasting.naive import NaiveForecaster
+from aeon.utils.conversion import convert_series
 
 
 class SquaringResiduals(BaseForecaster):
@@ -154,7 +154,7 @@ class SquaringResiduals(BaseForecaster):
         self._residual_forecaster_ = self.residual_forecaster.clone()
         self._forecaster_ = self.forecaster.clone()
 
-        y = convert_to(y, "pd.Series")
+        y = convert_series(y, "pd.Series")
         cv = ExpandingWindowSplitter(initial_window=self.initial_window, fh=fh_rel)
         self._forecaster_.fit(y=y.iloc[: self.initial_window], X=X)
         y_pred = self._forecaster_.update_predict(y=y, cv=cv, X=X, update_params=True)

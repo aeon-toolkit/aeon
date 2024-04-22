@@ -11,6 +11,8 @@ DISTANCE = [
     "wdtw",
     "erp",
     "msm",
+    "euclidean",
+    "twe",
 ]
 PARAS = {
     "dtw": {"window"},
@@ -18,6 +20,8 @@ PARAS = {
     "lcss": {"epsilon", "window"},
     "erp": {"g", "window"},
     "msm": {"c"},
+    "euclidean": {},
+    "twe": {"nu", "lmbda", "window"},
 }
 DATA = np.random.random((10, 1, 50))
 
@@ -26,6 +30,7 @@ DATA = np.random.random((10, 1, 50))
 @pytest.mark.parametrize("data", [None, DATA])
 def test_get_100_param_options(dist, data):
     """Test the method to get 100 options per distance function.
+
     1. Test 100 returned.
     2. Test on specified range.
     """
@@ -39,7 +44,10 @@ def test_get_100_param_options(dist, data):
         paras = ElasticEnsemble._get_100_param_options(dist, data)
         para_values = paras["distance_params"]
         # Check correct number of para combos
-        assert len(para_values) == 100
+        if dist == "euclidean":
+            assert len(para_values) == 1
+        else:
+            assert len(para_values) == 100
         # Check all provided parameters are valid for this distance
         expected_paras = PARAS[dist]
         for p in para_values:

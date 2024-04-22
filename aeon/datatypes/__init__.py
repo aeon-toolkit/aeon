@@ -1,7 +1,5 @@
 """Module exports: data type definitions, checks, validation, fixtures, converters."""
 
-__author__ = ["fkiraly"]
-
 from aeon.datatypes._check import (
     check_is_mtype,
     check_is_scitype,
@@ -24,18 +22,16 @@ from aeon.datatypes._registry import (
     mtype_to_scitype,
     scitype_to_mtype,
 )
-from aeon.datatypes._utilities import get_cutoff, update_data
 from aeon.datatypes._vectorize import VectorizedDF
 
 __all__ = [
-    "ALL_TIME_SERIES_TYPES",
     "check_is_mtype",
+    "ALL_TIME_SERIES_TYPES",
     "check_is_scitype",
     "check_raise",
     "convert",
     "convert_to",
     "mtype",
-    "get_cutoff",
     "get_examples",
     "mtype_to_scitype",
     "TYPE_REGISTER",
@@ -48,6 +44,5 @@ __all__ = [
     "scitype_to_mtype",
     "SCITYPE_LIST",
     "DATATYPE_REGISTER",
-    "update_data",
     "VectorizedDF",
 ]

@@ -3,7 +3,7 @@
 Pipeline regressor using the Catch22 transformer and an estimator.
 """
 
-__author__ = ["MatthewMiddlehurst", "RavenRudi", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["Catch22Regressor"]
 
 import numpy as np
@@ -136,11 +136,11 @@ class Catch22Regressor(BaseRegressor):
         Parameters
         ----------
         X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+                of shape (n_cases, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
+                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
                 n_timepoints_i is length of series i
-        y : 1D np.array, of shape [n_instances] - target labels for fitting
+        y : 1D np.array, of shape [n_cases] - target labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -182,14 +182,14 @@ class Catch22Regressor(BaseRegressor):
         Parameters
         ----------
         X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+                of shape (n_cases, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
+                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
                 n_timepoints_i is length of series i
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted target labels.
         """
         return self._estimator.predict(self._transformer.transform(X))

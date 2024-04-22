@@ -1,19 +1,11 @@
 """Forecasting testing utils."""
 
-__author__ = ["mloning"]
-__all__ = [
-    "_get_expected_index_for_update_predict",
-    "_generate_polynomial_series",
-    "make_forecasting_problem",
-    "_get_expected_index_for_update_predict",
-    "make_forecasting_problem",
-]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
 
 from aeon.forecasting.base import ForecastingHorizon
-from aeon.testing.utils.data_gen._series import make_series
 from aeon.utils.validation.forecasting import check_fh
 
 
@@ -27,103 +19,6 @@ def _get_n_columns(tag):
     else:
         raise ValueError(f"Unexpected tag {tag} in _get_n_columns.")
     return n_columns_list
-
-
-def _get_expected_index_for_update_predict(y, fh, step_length, initial_window):
-    """Compute expected time index from update_predict()."""
-    # time points at which to make predictions
-    fh = check_fh(fh)
-    index = y.index
-
-    # only works with date-time index
-    assert isinstance(index, pd.DatetimeIndex)
-    assert hasattr(index, "freq") and index.freq is not None
-    assert fh.is_relative
-
-    freq = index.freq
-    start = index[0] + (-1 + initial_window) * freq  # initial cutoff
-    end = index[-1]  # last point to predict
-
-    # generate date-time range
-    cutoffs = pd.date_range(start, end)
-
-    # only predict at time points if all steps in fh can be predicted before
-    # the end of y_test
-    cutoffs = cutoffs[cutoffs + max(fh) * freq <= max(index)]
-
-    # apply step length and recast to ignore inferred freq value
-    cutoffs = cutoffs[::step_length]
-    cutoffs = pd.DatetimeIndex(cutoffs, freq=None)
-
-    # generate all predicted time points, including duplicates from overlapping fh steps
-    pred_index = pd.DatetimeIndex([])
-    for step in fh:
-        values = cutoffs + step * freq
-        pred_index = pred_index.append(values)
-
-    # return unique and sorted index
-    return pred_index.unique().sort_values()
-
-
-def _generate_polynomial_series(n, order, coefs=None):
-    """Generate polynomial series of given order and coefficients."""
-    if coefs is None:
-        coefs = np.ones((order + 1, 1))
-    x = np.vander(np.arange(n), N=order + 1).dot(coefs)
-    return x.ravel()
-
-
-def make_forecasting_problem(
-    n_timepoints=50,
-    all_positive=True,
-    index_type=None,
-    make_X=False,
-    n_columns=1,
-    random_state=None,
-):
-    """Return test data for forecasting tests.
-
-    Parameters
-    ----------
-    n_timepoints : int, optional
-        Lenght of data, by default 50
-    all_positive : bool, optional
-        Only positive values or not, by default True
-    index_type : e.g. pd.PeriodIndex, optional
-        pandas Index type, by default None
-    make_X : bool, optional
-        Should X data also be returned, by default False
-    n_columns : int, optional
-        Number of columns of y, by default 1
-    random_state : inst, str, float, optional
-        Set seed of random state, by default None
-
-    Returns
-    -------
-    ps.Series, pd.DataFrame
-        y, if not make_X
-        y, X if make_X
-    """
-    y = make_series(
-        n_timepoints=n_timepoints,
-        n_columns=n_columns,
-        all_positive=all_positive,
-        index_type=index_type,
-        random_state=random_state,
-    )
-
-    if not make_X:
-        return y
-
-    X = make_series(
-        n_timepoints=n_timepoints,
-        n_columns=2,
-        all_positive=all_positive,
-        index_type=index_type,
-        random_state=random_state,
-    )
-    X.index = y.index
-    return y, X
 
 
 def _assert_correct_pred_time_index(y_pred_index, cutoff, fh):

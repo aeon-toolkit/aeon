@@ -1,6 +1,6 @@
 """sklearn PCA applied as transformation."""
 
-__author__ = ["prockenschaub", "fkiraly", "aiwalter"]
+__maintainer__ = []
 __all__ = ["PCATransformer"]
 
 import pandas as pd
@@ -111,7 +111,7 @@ class PCATransformer(BaseTransformer):
         "instancewise": False,  # is this an instance-wise transform?
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
         "capability:missing_values": False,
         "python_version": ">=3.8",

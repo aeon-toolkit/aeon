@@ -1,6 +1,6 @@
 """Implement transformers for summarizing a time series."""
 
-__author__ = ["mloning", "RNKuhns", "danbartl", "grzegorzrut"]
+__maintainer__ = []
 __all__ = ["SummaryTransformer", "WindowSummarizer"]
 
 import numpy as np
@@ -188,7 +188,7 @@ class WindowSummarizer(BaseTransformer):
             "pd_multiindex_hier",
         ],
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "capability:missing_values": True,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -609,7 +609,7 @@ class SummaryTransformer(BaseTransformer):
     flatten_transform_index : bool, optional (default=True)
         if True, columns of return DataFrame are flat, by "variablename__feature"
         if False, columns are MultiIndex (variablename__feature)
-        has no effect if return mtype is one without column names
+        has no effect if return type is one without column names
 
     See Also
     --------
@@ -748,7 +748,7 @@ class PlateauFinder(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "output_data_type": "Series",
         "instancewise": False,
         "X_inner_type": "numpy3D",
@@ -765,7 +765,7 @@ class PlateauFinder(BaseTransformer):
 
         Parameters
         ----------
-        X : numpy3D array shape (n_cases, 1, series_length)
+        X : numpy3D array shape (n_cases, 1, n_timepoints)
 
         Returns
         -------
@@ -838,7 +838,7 @@ class FittedParamExtractor(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "input_data_type": "Series",
         # what is the abstract type of X: Series, or Panel
         "output_data_type": "Primitives",
@@ -859,7 +859,7 @@ class FittedParamExtractor(BaseTransformer):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, 1, series_length)
+        X: np.ndarray shape (n_cases, 1, n_timepoints)
             The training input samples.
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
@@ -870,7 +870,7 @@ class FittedParamExtractor(BaseTransformer):
             Extracted parameters; columns are parameter values
         """
         param_names = self._check_param_names(self.param_names)
-        n_instances = X.shape[0]
+        n_cases = X.shape[0]
 
         def _fit_extract(forecaster, x, param_names):
             forecaster.fit(x)
@@ -889,7 +889,7 @@ class FittedParamExtractor(BaseTransformer):
             delayed(_fit_extract)(
                 self.forecaster.clone(), _get_instance(X, i), param_names
             )
-            for i in range(n_instances)
+            for i in range(n_cases)
         )
 
         return pd.DataFrame(extracted_params, columns=param_names)

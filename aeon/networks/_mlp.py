@@ -1,20 +1,14 @@
 """Multi Layer Perceptron (MLP) (minus the final output layer)."""
 
-__author__ = ["James-Large", "Withington", "AurumnPegasus"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class MLPNetwork(BaseDeepNetwork):
     """Establish the network structure for a MLP.
 
     Adapted from the implementation used in [1]_
-
-    Parameters
-    ----------
-    random_state : int, default = 0
-        Deed to any needed random actions/
 
     Notes
     -----
@@ -27,14 +21,10 @@ class MLPNetwork(BaseDeepNetwork):
     networks: A strong baseline, IJCNN, 2017.
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
-
     def __init__(
         self,
-        random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
-        self.random_state = random_state
+
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):
@@ -42,7 +32,7 @@ class MLPNetwork(BaseDeepNetwork):
 
         Parameters
         ----------
-        input_shape : tuple of shape = (series_length (m), n_channels (d))
+        input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer
 
         Returns

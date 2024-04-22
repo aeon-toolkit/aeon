@@ -1,6 +1,6 @@
 """Implements the scaled logit transformation."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 __all__ = ["ScaledLogitTransformer"]
 
 from copy import deepcopy
@@ -98,7 +98,7 @@ class ScaledLogitTransformer(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": True,
         "skip-inverse-transform": False,
     }
@@ -159,7 +159,7 @@ class ScaledLogitTransformer(BaseTransformer):
         ----------
         X : 2D np.ndarray
             Data to be inverse transformed
-        y : Series or Panel of mtype y_inner_type, optional (default=None)
+        y : data of y_inner_type, optional (default=None)
             Ignored argument for interface compatibility
 
         Returns

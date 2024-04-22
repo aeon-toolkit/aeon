@@ -1,4 +1,6 @@
-__author__ = ["mloning"]
+"""Small testing config for Time Series Forecasting."""
+
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

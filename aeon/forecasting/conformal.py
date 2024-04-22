@@ -4,7 +4,7 @@ Code based partially on NaiveVariance by ilyasmoutawwakil.
 """
 
 __all__ = ["ConformalIntervals"]
-__author__ = ["fkiraly", "bethrice44"]
+__maintainer__ = []
 
 from math import floor
 from warnings import warn
@@ -14,9 +14,9 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import clone
 
-from aeon.datatypes import convert, convert_to
-from aeon.datatypes._utilities import get_slice
 from aeon.forecasting.base import BaseForecaster
+from aeon.utils.conversion import convert_series
+from aeon.utils.index_functions import get_slice
 
 
 class ConformalIntervals(BaseForecaster):
@@ -249,7 +249,7 @@ class ConformalIntervals(BaseForecaster):
             pred_int.loc[fh_ind] = pred_int_row
 
         y_pred = self.predict(fh=fh, X=X)
-        y_pred = convert(y_pred, from_type=self._y_mtype_last_seen, to_type="pd.Series")
+        y_pred = convert_series(y_pred, output_type="pd.Series")
         y_pred.index = fh_absolute.to_pandas()
 
         for col in cols:
@@ -353,6 +353,7 @@ class ConformalIntervals(BaseForecaster):
         update : bool
             Whether residuals_matrix has been calculated previously and just
             needs extending. Default = False
+
         Returns
         -------
         residuals_matrix : pd.DataFrame, row and column index = y.index[initial_window:]
@@ -361,7 +362,7 @@ class ConformalIntervals(BaseForecaster):
             if sample_frac is passed this will have NaN values for 1 - sample_frac
             fraction of the matrix
         """
-        y = convert_to(y, "pd.Series")
+        y = convert_series(y, "pd.Series")
 
         n_initial_window = self._parse_initial_window(y, initial_window=initial_window)
 

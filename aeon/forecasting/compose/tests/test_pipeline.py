@@ -1,6 +1,6 @@
 """Tests for forecasting pipelines."""
 
-__author__ = ["mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = []
 
 import numpy as np
@@ -10,8 +10,6 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.svm import SVR
 
 from aeon.datasets import load_airline, load_longley
-from aeon.datatypes import get_examples
-from aeon.datatypes._utilities import get_window
 from aeon.forecasting.compose import (
     ForecastingPipeline,
     TransformedTargetForecaster,
@@ -27,7 +25,7 @@ from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.sarimax import SARIMAX
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.testing.mock_estimators import MockForecaster
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.utils.data_gen import get_examples, make_series
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.boxcox import LogTransformer
@@ -38,6 +36,7 @@ from aeon.transformations.exponent import ExponentTransformer
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.impute import Imputer
 from aeon.transformations.outlier_detection import HampelFilter
+from aeon.utils.index_functions import get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

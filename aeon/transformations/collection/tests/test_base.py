@@ -1,16 +1,16 @@
 """Test input for the BaseCollectionTransformer."""
 
-__author__ = ["MatthewMiddlehurst", "TonyBagnall"]
+__maintainer__ = []
 
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.testing.utils.data_gen import (
-    make_2d_test_data,
-    make_3d_test_data,
+    make_example_2d_numpy,
+    make_example_3d_numpy,
+    make_example_unequal_length,
     make_series,
-    make_unequal_length_test_data,
 )
 from aeon.transformations.collection import (
     BaseCollectionTransformer,
@@ -19,7 +19,8 @@ from aeon.transformations.collection import (
 
 
 @pytest.mark.parametrize(
-    "data_gen", [make_3d_test_data, make_2d_test_data, make_unequal_length_test_data]
+    "data_gen",
+    [make_example_3d_numpy, make_example_2d_numpy, make_example_unequal_length],
 )
 def test_collection_transformer_valid_input(data_gen):
     """Test that BaseCollectionTransformer works with collection input."""
@@ -61,7 +62,9 @@ def test_collection_transformer_wrapper_series(dtype):
     assert yt[0].ndim == 2
 
 
-@pytest.mark.parametrize("data_gen", [make_3d_test_data, make_unequal_length_test_data])
+@pytest.mark.parametrize(
+    "data_gen", [make_example_3d_numpy, make_example_unequal_length]
+)
 def test_collection_transformer_wrapper_collection(data_gen):
     """Test that the wrapper for regular transformers works with collection input."""
     X, y = data_gen()
@@ -77,7 +80,7 @@ def test_collection_transformer_wrapper_collection(data_gen):
 def test_inverse_transform():
     """Test inverse transform."""
     d = _Dummy()
-    x, _ = make_3d_test_data()
+    x, _ = make_example_3d_numpy()
     d.fit(x)
     d.set_tags(**{"skip-inverse-transform": True})
     x2 = d.inverse_transform(x)

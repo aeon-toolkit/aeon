@@ -20,7 +20,7 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- ensure interface compatibility by aeon.testing.estimator_checks.check_estimator
 - once complete: use as a local library, or contribute to aeon via PR
 - more details:
     https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
@@ -36,7 +36,7 @@ Testing - implement if aeon forecaster (not needed locally):
 # todo: write an informative docstring for the file or module, remove the above
 
 # todo: uncomment the following line, enter authors' GitHub IDs
-# __author__ = [authorGitHubID, anotherAuthorGitHubID]
+# __maintainer__ = []
 
 
 from aeon.forecasting.base import BaseForecaster

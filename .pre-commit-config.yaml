@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: check-ast
       - id: check-added-large-files
@@ -22,8 +22,20 @@ repos:
       - id: requirements-txt-fixer
       - id: trailing-whitespace
 
+  - repo: https://github.com/lk16/detect-missing-init
+    rev: v0.1.6
+    hooks:
+      - id: detect-missing-init
+        args: [ "--create", "--python-folders", "aeon" ]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.1
+    hooks:
+      - id: ruff
+        args: [ "--fix"]
+
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.0
+    rev: v3.15.2
     hooks:
       - id: pyupgrade
         args: [ "--py38-plus" ]
@@ -43,38 +55,23 @@ repos:
         args: [ "--max-line-length=88", "--extend-ignore=E203" ]
 
   - repo: https://github.com/psf/black
-    rev: 24.1.1
+    rev: 24.4.0
     hooks:
       - id: black
         language_version: python3
 
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.7.1
+    rev: 1.8.5
     hooks:
       - id: nbqa-isort
-        additional_dependencies: [ isort==5.10.1 ]
+        additional_dependencies: [ isort==5.13.2 ]
         args: [ "--nbqa-dont-skip-bad-cells", "--profile=black", "--multi-line=3" ]
       - id: nbqa-black
-        additional_dependencies: [ black==22.10.0 ]
+        additional_dependencies: [ black==24.2.0 ]
         args: [ "--nbqa-dont-skip-bad-cells" ]
       - id: nbqa-flake8
-        additional_dependencies: [ flake8==5.0.4 ]
+        additional_dependencies: [ flake8==7.0.0 ]
         args: [ "--nbqa-dont-skip-bad-cells", "--extend-ignore=E402,E203", "--max-line-length=88" ]
-
-  - repo: https://github.com/pycqa/pydocstyle
-    rev: 6.3.0
-    hooks:
-      - id: pydocstyle
-        args: [ "--convention=numpy" ]
-        additional_dependencies: [ toml, tomli ]
-
-  # not ready to be enabled yet
-  #  - repo: https://github.com/pre-commit/mirrors-mypy
-  #    rev: v1.0.1
-  #    hooks:
-  #      - id: mypy
-  #        files: aeon/
-  #        additional_dependencies: [ pytest ]
 
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.49"

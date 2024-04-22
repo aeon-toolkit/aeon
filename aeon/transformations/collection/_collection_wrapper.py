@@ -1,6 +1,6 @@
 """A wrapper to treat a BaseCollectionTransformer as a BaseTransformer."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["CollectionToSeriesWrapper"]
 
 from aeon.base._base import _clone_estimator
@@ -36,8 +36,11 @@ class CollectionToSeriesWrapper(BaseTransformer):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> wrap = CollectionToSeriesWrapper(Catch22())
-    >>> wrap.fit_transform(y).shape
-    (1, 22)
+    >>> wrap.fit_transform(y)
+               0           1     2         3   ...        18        19        20    21
+    0  155.800003  181.700012  49.0  0.541667  ...  0.282051  0.769231  0.166667  11.0
+    <BLANKLINE>
+    [1 rows x 22 columns]
     """
 
     _tags = {
@@ -47,7 +50,7 @@ class CollectionToSeriesWrapper(BaseTransformer):
     def __init__(
         self,
         transformer,
-        _output_convert=None,
+        _output_convert="auto",
     ):
         self.transformer = transformer
         self.transformer_ = _clone_estimator(self.transformer)
@@ -90,4 +93,4 @@ class CollectionToSeriesWrapper(BaseTransformer):
         """
         from aeon.transformations.collection.convolution_based import Rocket
 
-        return {"transformer": Rocket(num_kernels=50, random_state=42)}
+        return {"transformer": Rocket(num_kernels=50)}

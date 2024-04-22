@@ -1,14 +1,14 @@
 """Cluster plotting tools."""
 
-__author__ = ["Christopher Holder", "Tony Bagnall"]
+__maintainer__ = []
 
 __all__ = ["plot_cluster_algorithm"]
 
 import numpy as np
 
 from aeon.clustering.base import BaseClusterer
+from aeon.utils.conversion import convert_collection
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.collection import convert_collection
 
 
 def plot_cluster_algorithm(model: BaseClusterer, X, k: int):

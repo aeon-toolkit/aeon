@@ -9,17 +9,17 @@ __all__ = [
     "check_step_length",
     "check_alpha",
     "check_cutoffs",
-    "check_scoring",
     "check_sp",
     "check_regressor",
 ]
-__author__ = ["mloning", "@big-o", "khrapovs"]
+__maintainer__ = ["TonyBagnall"]
 
 from datetime import timedelta
 from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from pandas.api.types import is_numeric_dtype
 from sklearn.base import clone, is_regressor
 from sklearn.ensemble import GradientBoostingRegressor
@@ -394,18 +394,24 @@ def check_cutoffs(cutoffs: VALID_CUTOFF_TYPES) -> np.ndarray:
     return np.sort(cutoffs)
 
 
-def check_scoring(scoring, allow_y_pred_benchmark=False):
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason=("check_scoring is being removed from aeon in v0.10.0."),
+    category=FutureWarning,
+)
+def check_scoring(scoring):
     """
     Validate the performance scoring.
 
     Parameters
     ----------
-    scoring : object that inherits from BaseMetric from aeon.performance_metrics.
+    scoring : function in aeon.performance_metrics.
 
     Returns
     -------
     scoring :
-        MeanAbsolutePercentageError if the object is None.
+        mean_absolute_percentage_error if the object is None.
 
     Raises
     ------
@@ -414,20 +420,10 @@ def check_scoring(scoring, allow_y_pred_benchmark=False):
     NotImplementedError
         if metric requires y_pred_benchmark to be passed
     """
-    # Note symmetric=True is default arg for MeanAbsolutePercentageError
-    from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
+    from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 
     if scoring is None:
-        return MeanAbsolutePercentageError()
-
-    scoring_req_bench = scoring.get_class_tag("requires-y-pred-benchmark", False)
-
-    if scoring_req_bench and not allow_y_pred_benchmark:
-        msg = """Scoring requiring benchmark forecasts (y_pred_benchmark) are not
-                 fully supported yet. Please use a performance metric that does not
-                 require y_pred_benchmark as a keyword argument in its call signature.
-              """
-        raise NotImplementedError(msg)
+        return mean_absolute_percentage_error
 
     if not callable(scoring):
         raise TypeError("`scoring` must be a callable object")

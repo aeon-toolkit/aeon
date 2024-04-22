@@ -1,6 +1,6 @@
 """Time series kmedoids."""
 
-__author__ = ["chrisholder", "TonyBagnall"]
+__maintainer__ = []
 
 import math
 from typing import Callable, Union
@@ -64,9 +64,9 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
 
     Attributes
     ----------
-    cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
+    cluster_centers_ : np.ndarray, of shape (n_cases, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centers.
-    labels_ : np.ndarray (1d array of shape (n_instance,))
+    labels_ : np.ndarray (1d array of shape (n_case,))
         Labels that is the index each time series belongs to.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by

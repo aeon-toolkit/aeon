@@ -1,6 +1,6 @@
 """Tests for dilated shapelet transform functions."""
 
-__author__ = ["baraline"]
+__maintainer__ = ["baraline"]
 
 import numpy as np
 import pytest
@@ -81,6 +81,7 @@ DATATYPES = ["int64", "float64"]
 
 
 def test_shapelet_prime_dilation():
+    """Test if dilations are prime numbers."""
     X_train, y_train = load_basic_motions(split="train")
     indices = np.random.RandomState(4).choice(len(y_train), 3, replace=False)
     rdst = RandomDilatedShapeletTransform(
@@ -92,6 +93,7 @@ def test_shapelet_prime_dilation():
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_normalize_subsequences(dtype):
+    """Test normalization of subsequences."""
     X = np.asarray([[[1, 1, 1]], [[1, 1, 1]]], dtype=dtype)
     X_norm = normalize_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
     assert np.all(X_norm == 0)
@@ -100,6 +102,7 @@ def test_normalize_subsequences(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_get_all_subsequences(dtype):
+    """Test generation of all subsequences."""
     X = np.asarray([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype)
     length = 3
     dilation = 1
@@ -134,6 +137,7 @@ def test_get_all_subsequences(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_compute_shapelet_features(dtype):
+    """Test computation of shapelet features."""
     X = np.asarray([[1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1, 2]], dtype=dtype)
     values = np.asarray([[1, 1, 2]], dtype=dtype)
     length = 3
@@ -169,6 +173,7 @@ def test_compute_shapelet_features(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_compute_shapelet_dist_vector(dtype):
+    """Test computation of shapelet distance vector."""
     X = np.random.rand(3, 50).astype(dtype)
     for length in [3, 5]:
         for dilation in [1, 3, 5]:

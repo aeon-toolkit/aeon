@@ -9,7 +9,7 @@ from numba import njit
 
 from aeon.segmentation.base import BaseSegmenter
 
-__author__ = ["KatieBuc", "patrickzib"]
+__maintainer__ = []
 __all__ = ["EAggloSegmenter"]
 
 
@@ -82,7 +82,7 @@ class EAggloSegmenter(BaseSegmenter):
     """
 
     _tags = {
-        "X_inner_type": "DataFrame",  # One of VALID_INNER_TYPES
+        "X_inner_type": "pd.DataFrame",  # One of VALID_INNER_TYPES
         "capability:multivariate": True,
         "fit_is_empty": False,
         "returns_dense": False,

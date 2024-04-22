@@ -100,7 +100,7 @@ def df_datetime_daily_idx():
 
 @pytest.fixture()
 def df_panel():
-    """Create panel data of two time series using pd-multiindex mtype."""
+    """Create hierarchical data."""
     return _make_hierarchical(hierarchy_levels=(2,), min_timepoints=3, max_timepoints=3)
 
 

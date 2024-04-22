@@ -19,6 +19,8 @@ Convolution-based
     :template: class.rst
 
     RocketRegressor
+    HydraRegressor
+    MultiRocketHydraRegressor
 
 Deep learning
 -------------
@@ -35,6 +37,8 @@ Deep learning
     InceptionTimeRegressor
     IndividualInceptionRegressor
     ResNetRegressor
+    LITETimeRegressor
+    IndividualLITERegressor
 
 Distance-based
 --------------
@@ -67,7 +71,21 @@ Feature-based
     :toctree: auto_generated/
     :template: class.rst
 
+    Catch22Regressor
     FreshPRINCERegressor
+    SummaryRegressor
+    TSFreshRegressor
+
+Hybrid
+------
+
+.. currentmodule:: aeon.regression.hybrid
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RISTRegression
 
 
 Interval-based
@@ -80,6 +98,18 @@ Interval-based
     :template: class.rst
 
     TimeSeriesForestRegressor
+
+Shapelet-based
+--------------
+
+.. currentmodule:: aeon.regression.shapelet_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RDSTRegressor
+
 
 sklearn
 -------

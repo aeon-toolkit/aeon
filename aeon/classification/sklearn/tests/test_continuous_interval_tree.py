@@ -6,11 +6,12 @@ import pytest
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.classification.sklearn._continuous_interval_tree import _TreeNode
 from aeon.exceptions import NotFittedError
-from aeon.testing.utils.data_gen import make_2d_test_data, make_3d_test_data
+from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
 
 
 def test_predict_proba():
-    X, y = make_2d_test_data(n_cases=5, n_labels=1)
+    """Test ContinuousIntervalTree predict_proba."""
+    X, y = make_example_2d_numpy(n_cases=5, n_labels=1)
     cit = ContinuousIntervalTree(max_depth=1)
     with pytest.raises(NotFittedError, match="please call `fit` first"):
         cit.predict_proba(X)
@@ -19,13 +20,13 @@ def test_predict_proba():
     preds = cit.predict(X)
     assert np.all(preds == 0)
     # Should predict all 0
-    X, y = make_2d_test_data(n_cases=5)
+    X, y = make_example_2d_numpy(n_cases=5)
     cit = ContinuousIntervalTree(max_depth=1)
     cit.fit(X, y)
     node = cit._root
     assert isinstance(node, _TreeNode)
     assert len(node.children[0].children) == 0
-    X, y = make_3d_test_data(n_channels=3)
+    X, y = make_example_3d_numpy(n_channels=3)
     with pytest.raises(
         ValueError, match="ContinuousIntervalTree is not a time series classifier"
     ):

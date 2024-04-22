@@ -1,6 +1,6 @@
 """Implemenents Box-Cox and Log Transformations."""
 
-__author__ = ["mloning", "aiwalter", "fkiraly"]
+__maintainer__ = []
 __all__ = ["BoxCoxTransformer", "LogTransformer"]
 
 import numpy as np
@@ -125,7 +125,7 @@ class BoxCoxTransformer(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": False,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "capability:inverse_transform": True,
     }
 
@@ -256,7 +256,7 @@ class LogTransformer(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": True,
     }
 

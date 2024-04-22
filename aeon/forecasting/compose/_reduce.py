@@ -1,14 +1,6 @@
 """Composition functionality for reduction approaches to forecasting."""
 
-__author__ = [
-    "mloning",
-    "AyushmaanSeth",
-    "kAnand77",
-    "LuisZugasti",
-    "Lovkush-A",
-    "fkiraly",
-]
-
+__maintainer__ = []
 __all__ = [
     "make_reduction",
     "DirectTimeSeriesRegressionForecaster",
@@ -29,7 +21,6 @@ import pandas as pd
 from sklearn.base import clone
 from sklearn.multioutput import MultiOutputRegressor
 
-from aeon.datatypes._utilities import get_time_index
 from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
 from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA
@@ -38,6 +29,7 @@ from aeon.regression.base import BaseRegressor
 from aeon.transformations.compose import FeatureUnion
 from aeon.transformations.summarize import WindowSummarizer
 from aeon.utils.datetime import _shift
+from aeon.utils.index_functions import get_time_index
 from aeon.utils.sklearn import is_sklearn_regressor
 from aeon.utils.validation import check_window_length
 

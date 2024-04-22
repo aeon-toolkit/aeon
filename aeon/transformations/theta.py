@@ -1,6 +1,6 @@
 """Implements Theta-lines transformation for use with Theta forecasting."""
 
-__author__ = ["GuzalBulatova", "mloning"]
+__maintainer__ = []
 __all__ = ["ThetaLinesTransformer"]
 
 import numpy as np
@@ -66,7 +66,7 @@ class ThetaLinesTransformer(BaseTransformer):
         "X_inner_type": ["pd.DataFrame", "pd.Series"],
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": True,
     }
 

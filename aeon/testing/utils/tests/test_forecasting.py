@@ -1,4 +1,6 @@
-__author__ = ["mloning"]
+"""Test for making forecasting problems."""
+
+__maintainer__ = []
 __all__ = []
 
 import pandas as pd

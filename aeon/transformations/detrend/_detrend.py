@@ -1,14 +1,14 @@
 """Implements transformations to detrend a time series."""
 
 __all__ = ["Detrender"]
-__author__ = ["mloning", "SveaMeyer13", "KishManani", "fkiraly"]
+__maintainer__ = []
 
 import pandas as pd
 
-from aeon.datatypes import update_data
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.index_functions import update_data
 
 
 class Detrender(BaseTransformer):
@@ -73,7 +73,7 @@ class Detrender(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
         "capability:inverse_transform": True,
         "transform-returns-same-time-index": True,

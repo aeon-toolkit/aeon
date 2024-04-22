@@ -1,9 +1,8 @@
 """Inception Network."""
 
-__author__ = ["James-Large", "Withington", "TonyBagnall", "hadifawaz1999"]
+__maintainer__ = []
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class InceptionNetwork(BaseDeepNetwork):
@@ -13,10 +12,10 @@ class InceptionNetwork(BaseDeepNetwork):
     ----------
     depth : int, default = 6,
             The number of inception modules used
-    nb_filters : int or list of int32, default = 32
+    n_filters : int or list of int32, default = 32
         The number of filters used in one inception module, if not a list, the same
         number of filters is used in all inception modules.
-    nb_conv_per_layer : int or list of int, default = 3
+    n_conv_per_layer : int or list of int, default = 3
         The number of convolution layers in each inception module, if not a list,
         the same number of convolution layers is used in all inception modules.
     kernel_size : int or list of int, default = 40
@@ -51,7 +50,6 @@ class InceptionNetwork(BaseDeepNetwork):
         The bottleneck size in case ``use_bottleneck = True``.
     use_custom_filters : bool, default = False
         Condition on whether or not to use custom filters in the first inception module.
-    random_state : int, default = 0
 
     Adapted from the implementation from Fawaz et. al
 
@@ -92,12 +90,10 @@ class InceptionNetwork(BaseDeepNetwork):
     }
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
-
     def __init__(
         self,
-        nb_filters=32,
-        nb_conv_per_layer=3,
+        n_filters=32,
+        n_conv_per_layer=3,
         kernel_size=40,
         use_max_pooling=True,
         max_pool_size=3,
@@ -111,12 +107,9 @@ class InceptionNetwork(BaseDeepNetwork):
         bottleneck_size=32,
         depth=6,
         use_custom_filters=False,
-        random_state=0,
     ):
-        _check_soft_dependencies("tensorflow")
-
-        self.nb_filters = nb_filters
-        self.nb_conv_per_layer = nb_conv_per_layer
+        self.n_filters = n_filters
+        self.n_conv_per_layer = n_conv_per_layer
         self.kernel_size = kernel_size
         self.activation = activation
         self.padding = padding
@@ -130,7 +123,6 @@ class InceptionNetwork(BaseDeepNetwork):
         self.depth = depth
         self.bottleneck_size = bottleneck_size
         self.use_custom_filters = use_custom_filters
-        self.random_state = random_state
 
         super().__init__()
 
@@ -284,14 +276,14 @@ class InceptionNetwork(BaseDeepNetwork):
     def _inception_module(
         self,
         input_tensor,
-        nb_filters=32,
+        n_filters=32,
         dilation_rate=1,
         padding="same",
         strides=1,
         activation="relu",
         use_bias=False,
         kernel_size=40,
-        nb_conv_per_layer=3,
+        n_conv_per_layer=3,
         use_max_pooling=True,
         max_pool_size=3,
         use_custom_filters=False,
@@ -309,14 +301,15 @@ class InceptionNetwork(BaseDeepNetwork):
         else:
             input_inception = input_tensor
 
-        kernel_size_s = [kernel_size // (2**i) for i in range(nb_conv_per_layer)]
+        kernel_size_s = [kernel_size // (2**i) for i in range(n_conv_per_layer)]
+        self.kernel_size_s = kernel_size_s
 
         conv_list = []
 
         for i in range(len(kernel_size_s)):
             conv_list.append(
                 tf.keras.layers.Conv1D(
-                    filters=nb_filters,
+                    filters=n_filters,
                     kernel_size=kernel_size_s[i],
                     strides=strides,
                     dilation_rate=dilation_rate,
@@ -332,7 +325,7 @@ class InceptionNetwork(BaseDeepNetwork):
             )(input_tensor)
 
             conv_max_pool = tf.keras.layers.Conv1D(
-                filters=nb_filters,
+                filters=n_filters,
                 kernel_size=1,
                 padding=padding,
                 activation="linear",
@@ -384,52 +377,62 @@ class InceptionNetwork(BaseDeepNetwork):
 
         import tensorflow as tf
 
-        if isinstance(self.nb_filters, list):
-            self._nb_filters = self.nb_filters
+        if isinstance(self.n_filters, list):
+            assert len(self.n_filters) == self.depth
+            self._nb_filters = self.n_filters
         else:
-            self._nb_filters = [self.nb_filters] * self.depth
+            self._nb_filters = [self.n_filters] * self.depth
 
         if isinstance(self.kernel_size, list):
+            assert len(self.kernel_size) == self.depth
             self._kernel_size = self.kernel_size
         else:
             self._kernel_size = [self.kernel_size] * self.depth
 
-        if isinstance(self.nb_conv_per_layer, list):
-            self._nb_conv_per_layer = self.nb_conv_per_layer
+        if isinstance(self.n_conv_per_layer, list):
+            assert len(self.n_conv_per_layer) == self.depth
+            self._nb_conv_per_layer = self.n_conv_per_layer
         else:
-            self._nb_conv_per_layer = [self.nb_conv_per_layer] * self.depth
+            self._nb_conv_per_layer = [self.n_conv_per_layer] * self.depth
 
         if isinstance(self.strides, list):
+            assert len(self.strides) == self.depth
             self._strides = self.strides
         else:
             self._strides = [self.strides] * self.depth
 
         if isinstance(self.dilation_rate, list):
+            assert len(self.dilation_rate) == self.depth
             self._dilation_rate = self.dilation_rate
         else:
             self._dilation_rate = [self.dilation_rate] * self.depth
 
         if isinstance(self.padding, list):
+            assert len(self.padding) == self.depth
             self._padding = self.padding
         else:
             self._padding = [self.padding] * self.depth
 
         if isinstance(self.activation, list):
+            assert len(self.activation) == self.depth
             self._activation = self.activation
         else:
             self._activation = [self.activation] * self.depth
 
         if isinstance(self.use_max_pooling, list):
+            assert len(self.use_max_pooling) == self.depth
             self._use_max_pooling = self.use_max_pooling
         else:
             self._use_max_pooling = [self.use_max_pooling] * self.depth
 
         if isinstance(self.max_pool_size, list):
+            assert len(self.max_pool_size) == self.depth
             self._max_pool_size = self.max_pool_size
         else:
             self._max_pool_size = [self.max_pool_size] * self.depth
 
         if isinstance(self.use_bias, list):
+            assert len(self.use_bias) == self.depth
             self._use_bias = self.use_bias
         else:
             self._use_bias = [self.use_bias] * self.depth
@@ -449,7 +452,7 @@ class InceptionNetwork(BaseDeepNetwork):
 
             x = self._inception_module(
                 x,
-                nb_filters=self._nb_filters[d],
+                n_filters=self._nb_filters[d],
                 dilation_rate=self._dilation_rate[d],
                 kernel_size=self._kernel_size[d],
                 padding=self._padding[d],
@@ -458,7 +461,7 @@ class InceptionNetwork(BaseDeepNetwork):
                 use_bias=self._use_bias[d],
                 use_max_pooling=self._use_max_pooling[d],
                 max_pool_size=self._max_pool_size[d],
-                nb_conv_per_layer=self._nb_conv_per_layer[d],
+                n_conv_per_layer=self._nb_conv_per_layer[d],
                 use_custom_filters=_use_custom_filters,
             )
 

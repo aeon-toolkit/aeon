@@ -5,15 +5,13 @@ Time Series Classification.
 
 """
 
-__author__ = ["patrickzib"]
+__maintainer__ = []
 __all__ = ["WEASEL_V2", "WEASELTransformerV2"]
-
-import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse import hstack
-from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
+from sklearn.linear_model import RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -70,17 +68,6 @@ class WEASEL_V2(BaseClassifier):
         If the array contains True, words are computed over first order differences.
         If the array contains False, words are computed over the raw time series.
         If both are set, words are computed for both.
-    support_probabilities : str or bool, default="deprecated"
-         Old parameter to support probabilities, no longer needed as probabilities
-         are supported by default.
-
-         If set to False or "deprecated", a RidgeClassifierCV will be trained,
-         which has higher accuracy and is faster. Now also supports probabilities.
-         If set to True, a LogisticRegression will be trained, which supports better
-         probabilities, yet is slower and typically less accurate. Probabilities are
-         needed, for example in Early-Classification like TEASER.
-
-         Deprecated and will be removed in v0.8.0.
     feature_selection : str, default = "chi2_top_k"
         Sets the feature selections strategy to be used. Options from {"chi2_top_k",
         "none", "random"}. Large amounts of memory may be needed depending on the
@@ -139,7 +126,6 @@ class WEASEL_V2(BaseClassifier):
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
-        support_probabilities="deprecated",
         n_jobs=4,
     ):
         self.norm_options = norm_options
@@ -156,15 +142,6 @@ class WEASEL_V2(BaseClassifier):
         self.clf = None
         self.n_jobs = n_jobs
 
-        # TODO remove 'support_probabilities' in v0.8.0
-        self.support_probabilities = support_probabilities
-        if support_probabilities == "deprecated":
-            warnings.warn(
-                "the support_probabilities parameter is deprecated and will be"
-                "removed in v0.8.0",
-                stacklevel=2,
-            )
-
         super().__init__()
 
     def _fit(self, X, y):
@@ -173,9 +150,9 @@ class WEASEL_V2(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The class labels shape = (n_instances).
+            The class labels shape = (n_cases).
 
         Returns
         -------
@@ -198,24 +175,8 @@ class WEASEL_V2(BaseClassifier):
         )
         words = self.transform.fit_transform(X, y)
 
-        if (self.support_probabilities == "deprecated") or (
-            not self.support_probabilities
-        ):
-            # use RidgeClassifierCV for classification,
-            # if support_probabilities is not set to True
-            self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
-        else:
-            # TODO remove 'support_probabilities' in v0.8.0
-            # Use legacy classifier, if support_probabilities is set to True
-            self.clf = LogisticRegression(
-                max_iter=5000,
-                solver="liblinear",
-                dual=True,
-                penalty="l2",
-                random_state=self.random_state,
-                n_jobs=self.n_jobs,
-            )
-
+        # use RidgeClassifierCV for classification
+        self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
         self.clf.fit(words, y)
 
         if hasattr(self.clf, "best_score_"):
@@ -229,13 +190,13 @@ class WEASEL_V2(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         1D np.ndarray
-            Predicted class labels shape = (n_instances).
+            Predicted class labels shape = (n_cases).
         """
         bag = self.transform.transform(X)
         return self.clf.predict(bag)
@@ -245,12 +206,12 @@ class WEASEL_V2(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         m = getattr(self.clf, "predict_proba", None)
@@ -360,8 +321,8 @@ class WEASELTransformerV2:
         self.max_window = MAX_WINDOW_LARGE
         self.ensemble_size = ENSEMBLE_SIZE_LARGE
         self.window_sizes = []
-        self.series_length_ = 0
-        self.n_instances_ = 0
+        self.n_timepoints_ = 0
+        self.n_cases_ = 0
 
         self.SFA_transformers = []
 
@@ -370,9 +331,9 @@ class WEASELTransformerV2:
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -380,27 +341,27 @@ class WEASELTransformerV2:
         scipy csr_matrix, transformed features
         """
         # Window length parameter space dependent on series length
-        self.n_instances_, self.series_length_ = X.shape[0], X.shape[-1]
+        self.n_cases_, self.n_timepoints_ = X.shape[0], X.shape[-1]
         XX = X.squeeze(1)
 
         # avoid overfitting with too many features
-        if self.n_instances_ < SWITCH_SMALL_INSTANCES:
+        if self.n_cases_ < SWITCH_SMALL_INSTANCES:
             self.max_window = MAX_WINDOW_SMALL
             self.ensemble_size = ENSEMBLE_SIZE_SMALL
-        elif self.series_length_ < SWITCH_MEDIUM_LENGTH:
+        elif self.n_timepoints_ < SWITCH_MEDIUM_LENGTH:
             self.max_window = MAX_WINDOW_MEDIUM
             self.ensemble_size = ENSEMBLE_SIZE_MEDIUM
         else:
             self.max_window = MAX_WINDOW_LARGE
             self.ensemble_size = ENSEMBLE_SIZE_LARGE
 
-        self.max_window = int(min(self.series_length_, self.max_window))
+        self.max_window = int(min(self.n_timepoints_, self.max_window))
         if self.min_window > self.max_window:
             raise ValueError(
                 f"Error in WEASEL, min_window ="
                 f"{self.min_window} is bigger"
                 f" than max_window ={self.max_window},"
-                f" series length is {self.series_length_}"
+                f" series length is {self.n_timepoints_}"
                 f" try set min_window to be smaller than series length in "
                 f"the constructor, but the classifier may not work at "
                 f"all with very short series"
@@ -417,7 +378,7 @@ class WEASELTransformerV2:
                 self.window_sizes,
                 self.alphabet_sizes,
                 self.word_lengths,
-                self.series_length_,
+                self.n_timepoints_,
                 self.norm_options,
                 self.use_first_differences,
                 self.binning_strategies,
@@ -455,7 +416,7 @@ class WEASELTransformerV2:
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
            The data to make predictions for.
         y : ignored argument for interface compatibility
 
@@ -487,7 +448,7 @@ def _parallel_fit(
     window_sizes,
     alphabet_sizes,
     word_lengths,
-    series_length,
+    n_timepoints,
     norm_options,
     use_first_differences,
     binning_strategies,
@@ -510,7 +471,7 @@ def _parallel_fit(
     window_size = rng.choice(window_sizes)
     dilation = np.maximum(
         1,
-        np.int32(2 ** rng.uniform(0, np.log2((series_length - 1) / (window_size - 1)))),
+        np.int32(2 ** rng.uniform(0, np.log2((n_timepoints - 1) / (window_size - 1)))),
     )
 
     alphabet_size = rng.choice(alphabet_sizes)

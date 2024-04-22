@@ -1,6 +1,6 @@
 """Unit tests of ThetaLinesTransformer functionality."""
 
-__author__ = ["Guzal Bulatova"]
+__maintainer__ = []
 __all__ = []
 
 import numpy as np

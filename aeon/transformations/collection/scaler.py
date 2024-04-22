@@ -1,6 +1,6 @@
 """Wrapper for sklearn StandardScaler."""
 
-__author__ = ["TonyBagnall"]
+__maintainer__ = []
 __all__ = ["TimeSeriesScaler"]
 
 import numpy as np
@@ -72,6 +72,7 @@ class TimeSeriesScaler(BaseCollectionTransformer):
         "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "fit_is_empty": True,
     }
 
     def __init__(self, copy=True, with_mean=True, with_std=True):
@@ -87,9 +88,9 @@ class TimeSeriesScaler(BaseCollectionTransformer):
         Parameters
         ----------
         X : 3D np.ndarray (any number of channels, equal length series)
-                of shape ``(n_instances, n_channels, n_timepoints)``
+                of shape ``(n_cases, n_channels, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape ``[n_instances]``, 2D np.ndarray `
+                of shape ``[n_cases]``, 2D np.ndarray `
                 `(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length
                 of series i.
 

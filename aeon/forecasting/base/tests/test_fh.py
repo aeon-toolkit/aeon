@@ -1,6 +1,6 @@
 """Tests for ForecastingHorizon object."""
 
-__author__ = ["mloning", "khrapovs"]
+__maintainer__ = []
 
 from datetime import timedelta
 
@@ -11,7 +11,6 @@ from numpy.testing._private.utils import assert_array_equal
 from pytest import raises
 
 from aeon.datasets import load_airline
-from aeon.datatypes._utilities import get_cutoff
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._fh import (
     DELEGATED_METHODS,
@@ -36,6 +35,7 @@ from aeon.utils.datetime import (
     _shift,
     infer_freq,
 )
+from aeon.utils.index_functions import get_cutoff
 from aeon.utils.validation.series import is_in_valid_index_types, is_integer_index
 
 

@@ -13,7 +13,7 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- ensure interface compatibility by aeon.testing.estimator_checks.check_estimator
 - once complete: use as a local library, or contribute to aeon via PR
 - more details:
     https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
@@ -123,6 +123,7 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
             training data to fit model to, time series
         Y : pd.Series, optional
             ground truth annotations for training if annotator is supervised
+
         Returns
         -------
         self : returns a reference to self
@@ -167,6 +168,7 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
             training data to update model with, time series
         Y : pd.Series, optional
             ground truth annotations for training if annotator is supervised
+
         Returns
         -------
         self : returns a reference to self

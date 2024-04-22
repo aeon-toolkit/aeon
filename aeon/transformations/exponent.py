@@ -1,6 +1,6 @@
 """Implements transformers raise time series to user provided exponent."""
 
-__author__ = ["Ryan Kuhns"]
+__maintainer__ = []
 __all__ = ["ExponentTransformer", "SqrtTransformer"]
 
 from warnings import warn
@@ -78,7 +78,7 @@ class ExponentTransformer(BaseTransformer):
         "y_inner_type": "None",
         "fit_is_empty": True,
         "transform-returns-same-time-index": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": True,
     }
 

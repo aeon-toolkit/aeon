@@ -1,6 +1,6 @@
 """Bootstrapping methods for time series."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 from copy import copy
 from typing import Tuple, Union
@@ -167,17 +167,16 @@ class STLBootstrapTransformer(BaseTransformer):
         "input_data_type": "Series",
         "output_data_type": "Panel",
         "transform_labels": "None",
-        "instancewise": True,  # is this an instance-wise transform?
+        "instancewise": True,
         "X_inner_type": "pd.DataFrame",
-        # X_inner_type can be Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "None",
         "capability:inverse_transform": False,
-        "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": True,  # can the transformer handle multivariate X?
-        "capability:missing_values": False,  # can estimator handle missing data?
-        "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
-        "enforce_index_type": None,  # index type that needs to be enforced in X/y
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
+        "skip-inverse-transform": True,
+        "capability:multivariate": False,
+        "capability:missing_values": False,
+        "X-y-must-have-same-index": False,
+        "enforce_index_type": None,
+        "fit_is_empty": False,
         "transform-returns-same-time-index": False,
         "python_dependencies": "statsmodels",
     }
@@ -480,11 +479,10 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
         "transform_labels": "None",
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "pd.DataFrame",
-        # X_inner_type can be Panel mtype even if transform-input is Series, vectorized
         "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": True,  # can the transformer handle multivariate X?
+        "capability:multivariate": False,  # can the transformer handle multivariate X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y

@@ -7,7 +7,7 @@ __all__ = [
     "SingleWindowSplitter",
     "temporal_train_test_split",
 ]
-__author__ = ["mloning", "kkoralturk", "khrapovs", "chillerobscuro"]
+__maintainer__ = []
 
 from typing import Iterator, Optional, Tuple, Union
 
@@ -16,10 +16,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split as _train_test_split
 
 from aeon.base import BaseObject
-from aeon.datatypes import check_is_scitype, convert_to
-from aeon.datatypes._utilities import get_index_for_series, get_time_index, get_window
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._fh import VALID_FORECASTING_HORIZON_TYPES
+from aeon.utils.conversion import convert_collection, convert_series
+from aeon.utils.index_functions import get_index_for_series, get_time_index, get_window
 from aeon.utils.validation import (
     ACCEPTED_WINDOW_LENGTH_TYPES,
     NON_FLOAT_WINDOW_LENGTH_TYPES,
@@ -32,6 +32,7 @@ from aeon.utils.validation import (
     is_int,
     is_timedelta,
     is_timedelta_or_date_offset,
+    validate_input,
 )
 from aeon.utils.validation.forecasting import (
     VALID_CUTOFF_TYPES,
@@ -455,9 +456,9 @@ class BaseSplitter(BaseObject):
 
         Yields
         ------
-        train : time series of same aeon mtype as `y`
+        train : time series of same aeon type as `y`
             training series in the split
-        test : time series of same aeon mtype as `y`
+        test : time series of same aeon type as `y`
             test series in the split
         """
         y, y_orig_mtype = self._check_y(y)
@@ -465,8 +466,6 @@ class BaseSplitter(BaseObject):
         for train, test in self.split(y.index):
             y_train = y.iloc[train]
             y_test = y.iloc[test]
-            y_train = convert_to(y_train, y_orig_mtype)
-            y_test = convert_to(y_test, y_orig_mtype)
             yield y_train, y_test
 
     def _coerce_to_index(self, y: ACCEPTED_Y_TYPES) -> pd.Index:
@@ -484,23 +483,23 @@ class BaseSplitter(BaseObject):
         y_index : y, if y was pd.Index; otherwise _check_y(y).index
         """
         if not isinstance(y, pd.Index):
-            y, _ = self._check_y(y, allow_index=True)
+            y, _ = self._check_y(y)
             y_index = y.index
         else:
             y_index = y
         return y_index
 
-    def _check_y(self, y, allow_index=False):
+    def _check_y(self, y):
         """Check and coerce y to a pandas based mtype.
 
         Parameters
         ----------
-        y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D), optional (default=None)
+        y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
             Time series to check, must conform with one of the aeon type conventions.
 
         Returns
         -------
-        y_inner : time series y coerced to one of the aeon pandas based mtypes:
+        y_inner : time series y as pd.Series or pd.DataFrame
             pd.DataFrame, pd.Series, pd-multiindex, pd_multiindex_hier
             returns pd.Series only if y was pd.Series, otherwise a pandas.DataFrame
         y_mtype : original mtype of y
@@ -509,55 +508,28 @@ class BaseSplitter(BaseObject):
         ------
         TypeError if y is not one of the permissible mtypes
         """
-        if allow_index and isinstance(y, pd.Index):
-            return y, "pd.Index"
-
-        ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-        ALLOWED_MTYPES = [
-            "pd.Series",
-            "pd.DataFrame",
-            "np.ndarray",
-            "nested_univ",
-            "numpy3D",
-            # "numpy2D",
-            "pd-multiindex",
-            # "pd-wide",
-            # "pd-long",
-            "df-list",
-            "pd_multiindex_hier",
-        ]
-        y_valid, _, y_metadata = check_is_scitype(
-            y, scitype=ALLOWED_SCITYPES, return_metadata=True, var_name="y"
-        )
-        if allow_index:
-            msg = (
-                "y must be a pandas.Index, or a time series in an aeon compatible "
-                "format, of scitype Series, Panel or Hierarchical, "
-                "for instance a pandas.DataFrame with aeon compatible time indices, "
-                "or with MultiIndex and last(-1) level an aeon compatible time index."
-                f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
-                "For further details see  examples/forecasting, or examples/datasets"
-                "If you think y is already in an aeon supported input format, "
-                "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
-                "where mtype is the string of the type specification you want for y. "
-            )
-        else:
-            msg = (
+        valid, y_metadata = validate_input(y)
+        if not valid:
+            raise TypeError(
                 "y must be in an aeon compatible format, "
                 "of scitype Series, Panel or Hierarchical, "
                 "for instance a pandas.DataFrame with aeon compatible time indices, "
                 "or with MultiIndex and last(-1) level an aeon compatible time index."
-                f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
                 "See  examples/forecasting, or examples/datasets, "
                 "If you think y is already in an aeon supported input format, "
                 "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
             )
-        if not y_valid:
-            raise TypeError(msg)
-
-        y_inner = convert_to(y, to_type=PANDAS_MTYPES)
-
+        y_inner = y
+        if isinstance(y, np.ndarray):
+            if y_metadata["scitype"] == "Series":
+                if y_metadata["is_univariate"]:
+                    y_inner = convert_series(y, output_type="pd.Series")
+                else:
+                    y_inner = convert_series(y, output_type="pd.DataFrame")
+            elif y_metadata["scitype"] == "Panel":
+                y_inner = convert_collection(y, output_type="pd-multiindex")
+            # If hierarchical, it is already in the correct format
         mtype = y_metadata["mtype"]
 
         return y_inner, mtype

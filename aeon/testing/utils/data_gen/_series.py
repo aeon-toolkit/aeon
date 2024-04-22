@@ -1,7 +1,7 @@
 """Series testing utils."""
 
-__author__ = ["mloning"]
-__all__ = []
+__maintainer__ = []
+__all__ = ["make_series", "make_forecasting_problem"]
 
 import numpy as np
 import pandas as pd
@@ -9,15 +9,38 @@ from sklearn.utils import check_random_state
 
 
 def make_series(
-    n_timepoints=50,
-    n_columns=1,
-    all_positive=True,
+    n_timepoints: int = 50,
+    n_columns: int = 1,
+    all_positive: bool = True,
     index_type=None,
-    return_numpy=False,
+    return_numpy: bool = False,
     random_state=None,
-    add_nan=False,
+    add_nan: bool = False,
 ):
-    """Generate univariate or multivariate time series."""
+    """Generate univariate or multivariate time series.
+
+    Parameters
+    ----------
+    n_timepoints : int, default = 50
+        Num of timepoints in series.
+    n_columns : int, default = 1
+        Number of columns of y.
+    all_positive : bool, default = True
+        Only positive values or not.
+    index_type : pd.PeriodIndex or None, default = None
+        pandas Index type to use.
+    random_state : inst, str, float, default=None
+        Set seed of random state
+    add_nan : bool, default = False
+        Add nan values to the series.
+
+    Returns
+    -------
+    np.ndarray, pd.Series, pd.DataFrame
+        np.ndarray if return_numpy is True
+        pd.Series if n_columns == 1
+        else pd.DataFrame
+    """
     rng = check_random_state(random_state)
     data = rng.normal(size=(n_timepoints, n_columns))
     if add_nan:
@@ -61,3 +84,57 @@ def _make_index(n_timepoints, index_type=None):
 
     else:
         raise ValueError(f"index_class: {index_type} is not supported")
+
+
+def make_forecasting_problem(
+    n_timepoints: int = 50,
+    all_positive: bool = True,
+    index_type=None,
+    make_X: bool = False,
+    n_columns: int = 1,
+    random_state=None,
+):
+    """Return test data for forecasting tests.
+
+    Parameters
+    ----------
+    n_timepoints : int, default = 50
+        Num of timepoints in series.
+    all_positive : bool, default = True
+        Only positive values or not.
+    index_type : pd.PeriodIndex or None, default = None
+        pandas Index type to use.
+    make_X : bool, default = False
+        Should X data also be returned.
+    n_columns : int, default = 1
+        Number of columns of y.
+    random_state : inst, str, float, default=None
+        Set seed of random state
+
+    Returns
+    -------
+    pd.Series
+        generated series if not make_X
+    (pd.Series, pd.DataFrame)
+        (pd.Series, pd.DataFrame) if make_X
+    """
+    y = make_series(
+        n_timepoints=n_timepoints,
+        n_columns=n_columns,
+        all_positive=all_positive,
+        index_type=index_type,
+        random_state=random_state,
+    )
+
+    if not make_X:
+        return y
+
+    X = make_series(
+        n_timepoints=n_timepoints,
+        n_columns=2,
+        all_positive=all_positive,
+        index_type=index_type,
+        random_state=random_state,
+    )
+    X.index = y.index
+    return y, X

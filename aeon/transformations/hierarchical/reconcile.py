@@ -3,7 +3,7 @@
 These reconcilers only depend on the structure of the hierarchy.
 """
 
-__author__ = ["ciaran-g", "eenticott-shell", "k1m190r"]
+__maintainer__ = []
 
 from warnings import warn
 
@@ -84,7 +84,7 @@ class Reconciler(BaseTransformer):
         "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": True,  # can the transformer handle multivariate X?
+        "capability:multivariate": False,  # can the transformer handle multivariate X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
@@ -162,7 +162,7 @@ class Reconciler(BaseTransformer):
 
         Returns
         -------
-        recon_preds : multi-indexed pd.DataFrame of Panel mtype pd_multiindex
+        recon_preds : multi-indexed pd.DataFrame
         """
         # check the length of index
         if X.index.nlevels < 2:

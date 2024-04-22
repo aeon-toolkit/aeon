@@ -2,7 +2,7 @@
 
 import warnings
 
-__author__ = ["ermshaua", "patrickzib"]
+__maintainer__ = []
 __all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
 
 from queue import PriorityQueue
@@ -225,6 +225,7 @@ class ClaSPSegmenter(BaseSegmenter):
         list
             List of change points found in X.
         """
+        X = X.squeeze()
         if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
             warnings.warn(
                 "Period-Length is larger than size of the time series", stacklevel=1

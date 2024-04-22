@@ -7,7 +7,6 @@ import pytest
 from pytest import raises
 
 from aeon.benchmarking.results_loaders import (
-    NAME_ALIASES,
     estimator_alias,
     get_available_estimators,
     get_bake_off_2017_results,
@@ -16,6 +15,7 @@ from aeon.benchmarking.results_loaders import (
     get_estimator_results,
     get_estimator_results_as_array,
 )
+from aeon.datasets._data_loaders import CONNECTION_ERRORS
 from aeon.testing.test_config import PR_TESTING
 
 cls = ["HC2", "FreshPRINCE", "InceptionT"]
@@ -24,6 +24,11 @@ test_path = os.path.dirname(__file__)
 data_path = os.path.join(test_path, "../example_results/")
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_get_estimator_results():
     """Test loading results returned in a dict.
 
@@ -41,6 +46,11 @@ def test_get_estimator_results():
         get_estimator_results(estimators=cls, measure="madness")
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_get_estimator_results_as_array():
     """Test loading results returned in an array.
 
@@ -80,15 +90,61 @@ def test_alias():
 
 
 # Tests for the results loaders that should not be part of the general CI.
+# Add to this list if new results are added
+CLASSIFIER_NAMES = {
+    "Arsenal",
+    "BOSS",
+    "cBOSS",
+    "CIF",
+    "CNN",
+    "Catch22",
+    "DrCIF",
+    "EE",
+    "FreshPRINCE",
+    "FP",
+    "GRAIL",
+    "HC1",
+    "HC2",
+    "Hydra",
+    "H-InceptionTime",
+    "InceptionTime",
+    "LiteTime",
+    "MR",
+    "MiniROCKET",
+    "MrSQM",
+    "MR-Hydra",
+    "PF",
+    "QUANT",
+    "RDST",
+    "RISE",
+    "RIST",
+    "ROCKET",
+    "RSF",
+    "R-STSF",
+    "ResNet",
+    "STC",
+    "STSF",
+    "ShapeDTW",
+    "Signatures",
+    "TDE",
+    "TS-CHIEF",
+    "TSF",
+    "TSFresh",
+    "WEASEL-1.0",
+    "WEASEL-2.0",
+    "1NN-DTW",
+}
 
 
-@pytest.mark.skip(
-    reason="Only run locally, this depends on " "timeseriesclassification.com"
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_all_classifier_results():
-    """Run through all classifiers in NAME_ALIASES."""
-    for measure in ["accuracy", "auroc", "balancedaccuracy", "nll"]:
-        for name_key in NAME_ALIASES.keys():
+    """Run through all classifiers in CLASSIFIER_NAMES."""
+    for measure in ["accuracy", "auroc", "balacc", "logloss"]:
+        for name_key in CLASSIFIER_NAMES:
             res, names = get_estimator_results_as_array(
                 estimators=[name_key],
                 include_missing=False,
@@ -103,7 +159,7 @@ def test_load_all_classifier_results():
                 measure=measure,
                 default_only=False,
             )
-            from aeon.datasets.tsc_data_lists import univariate as UCR
+            from aeon.datasets.tsc_datasets import univariate as UCR
 
             assert res.shape[0] == len(UCR)
             assert res.shape[1] == 1
@@ -113,7 +169,9 @@ def test_load_all_classifier_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_get_available_estimators():
+    """Test the get_available_estimators function for tsc.com results."""
     with pytest.raises(ValueError, match="not available on tsc.com"):
         get_available_estimators(task="smiling")
     classifiers = get_available_estimators(task="classification")
@@ -128,6 +186,7 @@ def test_get_available_estimators():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_get_bake_off_2017_results():
     """Test original bake off results."""
     default_results = get_bake_off_2017_results()
@@ -144,6 +203,7 @@ def test_get_bake_off_2017_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_get_bake_off_2020_results():
     """Test multivariate bake off results."""
     default_results = get_bake_off_2021_results()
@@ -160,6 +220,7 @@ def test_get_bake_off_2020_results():
     PR_TESTING,
     reason="Only run on overnights because it relies on external website.",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_get_bake_off_2023_results():
     """Test bake off redux results."""
     default_results = get_bake_off_2023_results()

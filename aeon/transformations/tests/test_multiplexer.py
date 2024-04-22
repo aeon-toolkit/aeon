@@ -1,6 +1,6 @@
 """Tests for MultiplexTransformer and associated dunders."""
 
-__author__ = ["miraep8"]
+__maintainer__ = []
 
 import numpy as np
 import pytest
@@ -15,9 +15,9 @@ from aeon.forecasting.model_selection import (
     ForecastingGridSearchCV,
 )
 from aeon.forecasting.naive import NaiveForecaster
+from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.transformations.compose import MultiplexTransformer
 from aeon.transformations.exponent import ExponentTransformer
-from aeon.utils.validation.forecasting import check_scoring
 
 
 def test_multiplex_transformer_alone():
@@ -52,8 +52,8 @@ def test_multiplex_transformer_alone():
 
 def _find_best_transformer(forecaster, transformers, cv, y):
     """Evaluate all the transformers on y and return the name of best."""
-    scoring = check_scoring(None)
-    scoring_name = f"test_{scoring.name}"
+    scoring = mean_absolute_percentage_error
+    scoring_name = f"test_{scoring.__name__}"
     score = None
     for name, transformer in transformers:
         test_transformer = clone(transformer)

@@ -1,11 +1,11 @@
 """Implements forecaster for selecting among different model classes."""
 
 from aeon.base import _HeterogenousMetaEstimator
-from aeon.datatypes import ALL_TIME_SERIES_TYPES
 from aeon.forecasting.base._base import BaseForecaster
 from aeon.forecasting.base._delegate import _DelegatedForecaster
+from aeon.utils._data_types import ALL_TIME_SERIES_TYPES
 
-__author__ = ["kkoralturk", "aiwalter", "fkiraly", "miraep8"]
+__maintainer__ = []
 __all__ = ["MultiplexForecaster"]
 
 

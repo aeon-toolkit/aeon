@@ -1,9 +1,11 @@
 """Implements meta estimator for estimators composed of other estimators."""
 
-__author__ = ["mloning, fkiraly"]
+__maintainer__ = []
 __all__ = ["_HeterogenousMetaEstimator"]
 
 from inspect import isclass
+
+from sklearn import clone
 
 from aeon.base import BaseEstimator
 
@@ -366,7 +368,9 @@ class _HeterogenousMetaEstimator:
         """
         ests = self._get_estimator_list(estimators)
         if clone_ests:
-            ests = [e.clone() for e in ests]
+            ests = [
+                e.clone() if isinstance(e, BaseEstimator) else clone(e) for e in ests
+            ]
         unique_names = self._get_estimator_names(estimators, make_unique=True)
         est_tuples = list(zip(unique_names, ests))
         return est_tuples

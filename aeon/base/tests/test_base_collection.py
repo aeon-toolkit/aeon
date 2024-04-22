@@ -1,13 +1,15 @@
+"""Tests for BaseCollectionEstimator."""
+
 import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
-from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation.tests.test_collection import (
+from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
-    get_type,
 )
+from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.validation import get_type
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -97,7 +99,7 @@ def test__convert_X(internal_type, data):
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_preprocess_fit(data):
+def test_preprocess_collection(data):
     """Test the functionality for preprocessing fit."""
     data = EQUAL_LENGTH_UNIVARIATE[data]
     cls = BaseCollectionEstimator()

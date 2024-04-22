@@ -3,7 +3,7 @@
 Contains TestScenario concrete children to run in tests for classifiers/regressors.
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = [
     "scenarios_classification",
@@ -17,7 +17,10 @@ from aeon.base import BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.regression.base import BaseRegressor
-from aeon.testing.utils.data_gen import make_3d_test_data, make_unequal_length_test_data
+from aeon.testing.utils.data_gen import (
+    make_example_3d_numpy,
+    make_example_unequal_length,
+)
 from aeon.testing.utils.scenarios import TestScenario
 
 # random seed for generating data to keep scenarios exactly reproducible
@@ -91,21 +94,21 @@ class ClassifierTestScenario(TestScenario, BaseObject):
         return True
 
 
-X, y = make_3d_test_data(n_cases=10, n_timepoints=20, random_state=RAND_SEED)
-X_test, _ = make_3d_test_data(n_cases=5, n_timepoints=20, random_state=RAND_SEED)
+X, y = make_example_3d_numpy(n_cases=10, n_timepoints=20, random_state=RAND_SEED)
+X_test, _ = make_example_3d_numpy(n_cases=5, n_timepoints=20, random_state=RAND_SEED)
 
-X_mv, _ = make_3d_test_data(
+X_mv, _ = make_example_3d_numpy(
     n_cases=10, n_channels=2, n_timepoints=20, random_state=RAND_SEED
 )
-X_test_mv, _ = make_3d_test_data(
+X_test_mv, _ = make_example_3d_numpy(
     n_cases=5, n_channels=2, n_timepoints=20, random_state=RAND_SEED
 )
 
-X_ul, _ = make_unequal_length_test_data(
-    n_cases=10, max_series_length=15, min_series_length=10, random_state=RAND_SEED
+X_ul, _ = make_example_unequal_length(
+    n_cases=10, max_n_timepoints=15, min_n_timepoints=10, random_state=RAND_SEED
 )
-X_test_ul, _ = make_unequal_length_test_data(
-    n_cases=5, max_series_length=15, min_series_length=10, random_state=RAND_SEED
+X_test_ul, _ = make_example_unequal_length(
+    n_cases=5, max_n_timepoints=15, min_n_timepoints=10, random_state=RAND_SEED
 )
 
 

@@ -3,7 +3,7 @@
 Results are saved a standardised format used by both tsml and aeon.
 """
 
-__author__ = ["TonyBagnall"]
+__maintainer__ = []
 __all__ = [
     "run_clustering_experiment",
     "load_and_run_clustering_experiment",
@@ -15,15 +15,87 @@ __all__ = [
 import os
 import time
 from datetime import datetime
+from itertools import chain
 
 import numpy as np
+import pandas as pd
 from sklearn import preprocessing
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_predict
+from sklearn.utils import check_random_state
 
 from aeon.datasets import write_results_to_uea_format
 from aeon.datasets._data_loaders import load_from_tsfile as load_ts
-from aeon.utils.sampling import stratified_resample
+
+
+def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
+    """Stratified resample data without replacement using a random state.
+
+    Reproducable resampling. Combines train and test, resamples to get the same class
+    distribution, then returns new train and test.
+
+    Parameters
+    ----------
+    X_train : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints), list of
+    shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i), or pd.DataFrame
+        train data attributes.
+    y_train : np.array
+        train data class labels.
+    X_test : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints), list of
+    shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i), or pd.DataFrame
+        test data attributes.
+    y_test : np.array
+        test data class labels as np array.
+    random_state : int
+        seed to enable reproduceable resamples
+
+    Returns
+    -------
+    new train and test attributes and class labels.
+    """
+    random_state = check_random_state(random_state)
+    all_labels = np.concatenate([y_train, y_test], axis=0)
+    if isinstance(X_train, pd.DataFrame):
+        all_data = pd.concat([X_train, X_test], ignore_index=True)
+    elif isinstance(X_train, list):
+        all_data = list(x for x in chain(X_train, X_test))
+    else:  # 3D or 2D numpy
+        all_data = np.concatenate([X_train, X_test], axis=0)
+
+    # count class occurrences
+    unique_train, counts_train = np.unique(y_train, return_counts=True)
+    unique_test = np.unique(y_test)
+
+    # haven't built functionality to deal with classes that exist in
+    # test but not in train
+    assert set(unique_train) == set(unique_test)
+
+    new_train_indices = []
+    new_test_indices = []
+    for label, count_train in zip(unique_train, counts_train):
+        class_indexes = np.argwhere(all_labels == label).ravel()
+
+        # randomizes the order and partition into train and test
+        random_state.shuffle(class_indexes)
+        new_train_indices.extend(class_indexes[:count_train])
+        new_test_indices.extend(class_indexes[count_train:])
+
+    if isinstance(X_train, pd.DataFrame):
+        new_X_train = all_data.iloc[new_train_indices]
+        new_X_test = all_data.iloc[new_test_indices]
+        new_X_train = new_X_train.reset_index(drop=True)
+        new_X_test = new_X_test.reset_index(drop=True)
+    elif isinstance(X_train, list):
+        new_X_train = list(all_data[i] for i in new_train_indices)
+        new_X_test = list(all_data[i] for i in new_test_indices)
+    else:  # 3D or 2D numpy
+        new_X_train = all_data[new_train_indices]
+        new_X_test = all_data[new_test_indices]
+
+    new_y_train = all_labels[new_train_indices]
+    new_y_test = all_labels[new_test_indices]
+
+    return new_X_train, new_y_train, new_X_test, new_y_test
 
 
 def run_clustering_experiment(

@@ -1,6 +1,6 @@
 """Functions for plotting results boxplot diagrams."""
 
-__author__ = ["dguijo"]
+__maintainer__ = []
 
 __all__ = [
     "plot_boxplot_median",
@@ -50,8 +50,8 @@ def plot_boxplot_median(
 
     Returns
     -------
-    fig: matplotlib.figure
-        Figure created.
+    fig : matplotlib.figure.Figure
+    ax : matplotlib.axes.Axes
 
     Example
     -------
@@ -78,7 +78,7 @@ def plot_boxplot_median(
         where=sum_results_medians != 0,
     )
 
-    fig = plt.figure(figsize=(10, 6), layout="tight")
+    fig, ax = plt.subplots(figsize=(10, 6), layout="tight")
 
     # Plots violin or boxplots
     if plot_type == "violin":
@@ -86,7 +86,7 @@ def plot_boxplot_median(
             data=deviation_from_median,
             linewidth=0.2,
             palette="pastel",
-            bw=0.3,
+            bw_method=0.3,
         )
     elif plot_type == "boxplot":
         plot = sns.boxplot(
@@ -122,18 +122,18 @@ def plot_boxplot_median(
     ):
         y_max = np.around(np.amax(deviation_from_median) + 0.05, 2)
 
-    plot.set_ylim(y_min, y_max)
+    ax.set_ylim(y_min, y_max)
 
     # Setting labels for x-axis. Rotate only if labels are too long.
-    plot.set_xticks(np.arange(len(labels)))
+    ax.set_xticks(np.arange(len(labels)))
     label_lengths = np.array([len(i) for i in labels])
     if (sum(label_lengths) > 40) or (max(label_lengths[:-1] + label_lengths[1:]) > 20):
-        plot.set_xticklabels(labels, rotation=45, ha="right")
+        ax.set_xticklabels(labels, rotation=45, ha="right")
     else:
-        plot.set_xticklabels(labels)
+        ax.set_xticklabels(labels)
 
     # Setting title if provided.
     if title is not None:
         plot.set_title(rf"{title}")
 
-    return fig
+    return fig, ax

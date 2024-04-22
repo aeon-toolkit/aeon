@@ -1,6 +1,6 @@
 """Transformers for index and column subsetting."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pandas as pd
 from pandas.api.types import is_integer_dtype
@@ -15,8 +15,8 @@ class IndexSubset(BaseTransformer):
     If `y` is None, returns `X` without subsetting.
     numpy-based `X` are interpreted as having a RangeIndex starting at n,
     where n is the number of numpy rows seen so far through `fit` and `update`.
-    Non-pandas types are interpreted as having index as after conversion to pandas,
-    via `datatypes.convert_to`, to the `"pd.DataFrame"` aeon type.
+    Non-pandas types are interpreted as having index as after conversion to the
+    `"pd.DataFrame"` aeon type.
 
     Parameters
     ----------
@@ -45,7 +45,7 @@ class IndexSubset(BaseTransformer):
         "y_inner_type": ["pd.DataFrame", "pd.Series"],
         "transform-returns-same-time-index": False,
         "fit_is_empty": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": False,
         "remember_data": True,  # remember all data seen as _X
     }
@@ -158,7 +158,7 @@ class ColumnSelect(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": False,
     }
 

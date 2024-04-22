@@ -27,7 +27,7 @@ import pandas as pd
 from aeon.segmentation.base import BaseSegmenter
 
 __all__ = ["InformationGainSegmenter"]
-__author__ = ["lmmentel"]
+__maintainer__ = []
 
 
 @dataclass
@@ -350,6 +350,7 @@ class InformationGainSegmenter(BaseSegmenter):
     """
 
     _tags = {
+        "capability:univariate": False,
         "capability:multivariate": True,
         "returns_dense": False,
     }
@@ -367,7 +368,7 @@ class InformationGainSegmenter(BaseSegmenter):
         )
         super().__init__(n_segments=k_max + 1, axis=0)
 
-    def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
+    def _predict(self, X, y=None) -> np.ndarray:
         """Perform segmentation.
 
         Parameters
@@ -384,7 +385,11 @@ class InformationGainSegmenter(BaseSegmenter):
         """
         self.change_points_ = self._igts.find_change_points(X)
         self.intermediate_results_ = self._igts.intermediate_results_
-        return self.to_clusters(self.change_points_)
+        return self.to_clusters(self.change_points_[1:-1], X.shape[0])
+
+    def __repr__(self) -> str:
+        """Return a string representation of the estimator."""
+        return self._igts.__repr__()
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

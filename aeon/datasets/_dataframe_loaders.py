@@ -1,12 +1,6 @@
 """Legacy functions that load collections of time series into nested dataframes."""
 
-__author__ = [
-    "Emiliathewolf",
-    "TonyBagnall",
-    "jasonlines",
-    "achieveordie",
-]
-
+__maintainer__ = []
 __all__ = [
     "load_from_tsfile_to_dataframe",
     "load_from_arff_to_dataframe",
@@ -18,7 +12,7 @@ import pandas as pd
 
 import aeon
 from aeon.datasets._data_loaders import load_from_arff_file, load_from_tsfile
-from aeon.utils.validation.collection import convert_collection
+from aeon.utils.conversion import convert_collection
 
 DIRNAME = "data"
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")

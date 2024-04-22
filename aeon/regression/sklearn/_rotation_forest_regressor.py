@@ -4,7 +4,7 @@ A Rotation Forest aeon implementation for continuous values only. Fits sklearn
 conventions.
 """
 
-__author__ = ["MatthewMiddlehurst", "DavidGuijo-Rubio"]
+__maintainer__ = []
 __all__ = ["RotationForestRegressor"]
 
 import time
@@ -66,7 +66,7 @@ class RotationForestRegressor(BaseEstimator):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_atts_ : int
         The number of attributes in the training set.
@@ -93,7 +93,7 @@ class RotationForestRegressor(BaseEstimator):
     --------
     >>> from aeon.regression.sklearn import RotationForestRegressor
     >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
-    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12, return_y=True,
+    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12,
     ...                              regression_target=True, random_state=0)
     >>> reg = RotationForestRegressor(n_estimators=10)
     >>> reg.fit(X, y)
@@ -134,9 +134,9 @@ class RotationForestRegressor(BaseEstimator):
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_instances, n_attributes]
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The output values.
 
         Returns
@@ -165,7 +165,7 @@ class RotationForestRegressor(BaseEstimator):
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self.n_instances_, self.n_atts_ = X.shape
+        self.n_cases_, self.n_atts_ = X.shape
 
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
@@ -240,12 +240,12 @@ class RotationForestRegressor(BaseEstimator):
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_instances, n_attributes]
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted output values.
         """
         if not self._is_fitted:
@@ -304,11 +304,11 @@ class RotationForestRegressor(BaseEstimator):
             )
         X = self._validate_data(X=X, reset=False)
 
-        n_instances, n_atts = X.shape
+        n_cases, n_atts = X.shape
 
-        if n_instances != self.n_instances_ or n_atts != self.n_atts_:
+        if n_cases != self.n_cases_ or n_atts != self.n_atts_:
             raise ValueError(
-                "n_instances, n_atts mismatch. X should be the same as the training "
+                "n_cases, n_atts mismatch. X should be the same as the training "
                 "data used in fit for generating train predictions."
             )
 
@@ -328,12 +328,12 @@ class RotationForestRegressor(BaseEstimator):
         y_preds, oobs = zip(*p)
 
         results = np.sum(y_preds, axis=0)
-        divisors = np.zeros(n_instances)
+        divisors = np.zeros(n_cases)
         for oob in oobs:
             for inst in oob:
                 divisors[inst] += 1
 
-        for i in range(n_instances):
+        for i in range(n_cases):
             results[i] = (
                 self._label_average if divisors[i] == 0 else results[i] / divisors[i]
             )
@@ -399,11 +399,11 @@ class RotationForestRegressor(BaseEstimator):
         return clf.predict(X_t)
 
     def _train_preds_for_estimator(self, y, idx, rng):
-        indices = range(self.n_instances_)
-        subsample = rng.choice(self.n_instances_, size=self.n_instances_)
+        indices = range(self.n_cases_)
+        subsample = rng.choice(self.n_cases_, size=self.n_cases_)
         oob = [n for n in indices if n not in subsample]
 
-        results = np.zeros(self.n_instances_)
+        results = np.zeros(self.n_cases_)
         if len(oob) == 0:
             return [results, oob]
 
