@@ -248,7 +248,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         if (isinstance(self.estimator, RotationForestClassifier)) or (
             self.estimator is None
         ):
-            return self._estimator._fit_predict_proba(X_t, y)
+            return self._estimator.fit_predict_proba(X_t, y)
         else:
             self._estimator.fit(X_t, y)
 
