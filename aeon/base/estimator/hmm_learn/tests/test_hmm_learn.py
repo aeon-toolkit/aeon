@@ -18,7 +18,7 @@ def test_GaussianHMM_wrapper():
     # moved all potential soft dependency import inside the test:
     from hmmlearn.hmm import GaussianHMM as _GaussianHMM
 
-    from aeon.annotation.hmm_learn import GaussianHMM
+    from aeon.base.estimator.hmm_learn import GaussianHMM
 
     data = piecewise_normal(
         means=[2, 4, 1], lengths=[10, 35, 40], random_state=7
@@ -41,7 +41,7 @@ def test_GMMHMM_wrapper():
     # moved all potential soft dependency import inside the test:
     from hmmlearn.hmm import GMMHMM as _GMMHMM
 
-    from aeon.annotation.hmm_learn import GMMHMM
+    from aeon.base.estimator.hmm_learn import GMMHMM
 
     data = piecewise_normal(
         means=[2, 4, 1], lengths=[10, 35, 40], random_state=7
@@ -64,7 +64,7 @@ def test_PoissonHMM_wrapper():
     # moved all potential soft dependency import inside the test:
     from hmmlearn.hmm import PoissonHMM as _PoissonHMM
 
-    from aeon.annotation.hmm_learn import PoissonHMM
+    from aeon.base.estimator.hmm_learn import PoissonHMM
 
     data = piecewise_poisson(
         lambdas=[1, 2, 3], lengths=[2, 4, 8], random_state=42

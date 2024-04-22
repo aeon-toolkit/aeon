@@ -11,17 +11,17 @@ Please see the original library
 import numpy as np
 import pandas as pd
 
-from aeon.annotation.base import BaseSeriesAnnotator
+from aeon.base import BaseSeriesEstimator
 
 __maintainer__ = []
 __all__ = ["BaseHMMLearn"]
 
 
-class BaseHMMLearn(BaseSeriesAnnotator):
+class BaseHMMLearn(BaseSeriesEstimator):
     """Base class for all HMM wrappers, handles required overlap between packages."""
 
     _tags = {
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": True,
         "python_dependencies": "hmmlearn",
     }  # for unit test cases

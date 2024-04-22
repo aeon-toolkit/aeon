@@ -7,7 +7,7 @@ Please see the original library
 
 from typing import Dict
 
-from aeon.annotation.hmm_learn import BaseHMMLearn
+from aeon.base.estimator.hmm_learn import BaseHMMLearn
 
 __maintainer__ = []
 __all__ = ["GMMHMM"]
