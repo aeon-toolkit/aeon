@@ -175,3 +175,5 @@ def test_score():
     assert (r is not None) and (isinstance(r, float))
     r = dummy.score(x_test, y_test, metric="max")
     assert (r is not None) and (isinstance(r, float))
+    with pytest.raises(ValueError):
+        dummy.score(x_test, y_test, metric="r3")

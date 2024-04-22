@@ -214,6 +214,8 @@ def test_classifier_score():
     assert (r is not None) and (isinstance(r, float))
     r = dummy.score(X, y, metric="neg_log_loss")
     assert (r is not None) and (isinstance(r, float))
+    with pytest.raises(ValueError):
+        dummy.score(X, y, metric="log_loss")
 
 
 def test_predict_single_class():
