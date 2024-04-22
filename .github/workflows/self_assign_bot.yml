@@ -1,0 +1,24 @@
+name: Self-Assign Bot
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  self-assign:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check if the comment is on PR or Issue
+        run: |
+          issue_number=$(jq --raw-output .issue.number "$GITHUB_EVENT_PATH")
+          comment_body=$(jq --raw-output .comment.body "$GITHUB_EVENT_PATH")
+          if [[ "$comment_body" == *"Aeon-Assign bot "* ]]; then
+            mentioned_user=$(echo "$comment_body" | grep -o '@[[:alnum:]]*' | head -1 | sed 's/@//')
+            if [[ -n "$mentioned_user" ]]; then
+              curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/aeon-toolkit/aeon/issues/$issue_number/assignees" \
+                -d "{\"assignees\": [\"$mentioned_user\"]}"
+            fi
+          fi
+        shell: bash
