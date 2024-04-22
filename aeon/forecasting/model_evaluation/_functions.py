@@ -158,15 +158,6 @@ def _evaluate_window(
 
         scitype = None
         metric_args = {}
-        from aeon.performance_metrics.forecasting.probabilistic import (
-            _BaseProbaForecastingErrorMetric,
-        )
-
-        if isinstance(scoring, _BaseProbaForecastingErrorMetric):
-            if hasattr(scoring, "metric_args"):
-                metric_args = scoring.metric_args
-            scitype = scoring.get_tag("y_input_type_pred")
-
         y_pred = eval(pred_type[scitype])(fh, X_test, **metric_args)
         pred_time = time.perf_counter() - start_pred
         # score
