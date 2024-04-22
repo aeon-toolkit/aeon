@@ -49,11 +49,11 @@ class _StatsForecastAdapter(BaseForecaster):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
@@ -80,10 +80,10 @@ class _StatsForecastAdapter(BaseForecaster):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -203,7 +203,7 @@ class _StatsForecastAdapter(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon, default = y.index (in-sample forecast)
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

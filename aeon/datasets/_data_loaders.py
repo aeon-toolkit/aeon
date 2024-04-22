@@ -493,10 +493,10 @@ def _load_tsc_dataset(
     Parameters
     ----------
     name : string, file name to load from
-    split: None or one of "TRAIN", "TEST", optional (default=None)
+    split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem.
         By default it loads both train and test instances (in a single container).
-    return_X_y: bool, optional (default=True)
+    return_X_y: bool, default=True
         If True, returns (features, target) separately instead of a single
         dataframe with columns for features and the target.
     return_data_type : str, optional, default = None

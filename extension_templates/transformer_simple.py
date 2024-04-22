@@ -56,9 +56,9 @@ class MyTransformer(BaseTransformer):
     ----------
     parama : int
         descriptive explanation of parama
-    paramb : string, optional (default='default')
+    paramb : string, default='default'
         descriptive explanation of paramb
-    paramc : boolean, optional (default= whether paramb is not the default)
+    paramc : boolean, default= whether paramb is not the default
         descriptive explanation of paramc
     and so on
     """
