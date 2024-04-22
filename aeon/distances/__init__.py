@@ -1,5 +1,4 @@
 """Distance computation."""
-__author__ = ["chrisholder", "TonyBagnall", "baraline"]
 
 __all__ = [
     "create_bounding_matrix",
@@ -9,6 +8,8 @@ __all__ = [
     "euclidean_pairwise_distance",
     "manhattan_distance",
     "manhattan_pairwise_distance",
+    "minkowski_distance",
+    "minkowski_pairwise_distance",
     "adtw_distance",
     "adtw_pairwise_distance",
     "adtw_cost_matrix",
@@ -55,12 +56,15 @@ __all__ = [
     "cost_matrix",
     "get_cost_matrix_function",
     "get_distance_function",
+    "get_distance_function_names",
     "get_pairwise_distance_function",
     "get_alignment_path_function",
     "shape_dtw_distance",
     "shape_dtw_cost_matrix",
     "shape_dtw_alignment_path",
     "shape_dtw_pairwise_distance",
+    "sbd_distance",
+    "sbd_pairwise_distance",
 ]
 
 
@@ -84,6 +88,7 @@ from aeon.distances._distance import (
     get_alignment_path_function,
     get_cost_matrix_function,
     get_distance_function,
+    get_distance_function_names,
     get_pairwise_distance_function,
     pairwise_distance,
 )
@@ -113,12 +118,14 @@ from aeon.distances._lcss import (
     lcss_pairwise_distance,
 )
 from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
+from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
 from aeon.distances._msm import (
     msm_alignment_path,
     msm_cost_matrix,
     msm_distance,
     msm_pairwise_distance,
 )
+from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
 from aeon.distances._shape_dtw import (
     shape_dtw_alignment_path,
     shape_dtw_cost_matrix,

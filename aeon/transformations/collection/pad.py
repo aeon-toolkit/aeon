@@ -1,10 +1,11 @@
 """Padding transformer, pad unequal length time series to max length or fixed length."""
-import numpy as np
-
-from aeon.transformations.base import BaseTransformer
 
 __all__ = ["PaddingTransformer"]
-__author__ = ["abostrom", "TonyBagnall"]
+__maintainer__ = []
+
+import numpy as np
+
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
 def _get_max_length(X):
@@ -16,7 +17,7 @@ def _get_max_length(X):
     return max_length
 
 
-class PaddingTransformer(BaseTransformer):
+class PaddingTransformer(BaseCollectionTransformer):
     """Pad unequal length time series to equal, fixed length.
 
     Pads the input dataset to either fixed length (at least as long as the longest
@@ -30,8 +31,10 @@ class PaddingTransformer(BaseTransformer):
         instead. If the pad_length passed is less than the max length, it is reset to
         max length.
 
-    fill_value : int, default = 0
-        value to pad with.
+    fill_value : Union[int, str, np.ndarray], default = 0
+        Value to pad with. Can be a float or a statistic string or an numpy array for
+        each time series. Supported statistic strings are "mean", "median", "max",
+        "min".
 
     Example
     -------
@@ -46,11 +49,9 @@ class PaddingTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": ["np-list", "numpy3D"],
-        "y_inner_mtype": "None",
+        "X_inner_type": ["np-list", "numpy3D"],
         "fit_is_empty": False,
+        "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:unequal_length:removes": True,
     }
@@ -58,7 +59,7 @@ class PaddingTransformer(BaseTransformer):
     def __init__(self, pad_length=None, fill_value=0):
         self.pad_length = pad_length
         self.fill_value = fill_value
-        super(PaddingTransformer, self).__init__(_output_convert=False)
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit padding transformer to X and y.
@@ -85,6 +86,48 @@ class PaddingTransformer(BaseTransformer):
                 self.pad_length_ = max_length
             else:
                 self.pad_length_ = self.pad_length
+
+        if isinstance(self.fill_value, str):
+            if self.fill_value == "mean":
+                self.fill_value = np.zeros((len(X), X[0].shape[0]))
+                for i, series in enumerate(X):
+                    for j, channel in enumerate(series):
+                        self.fill_value[i][j] = np.mean(channel)
+            elif self.fill_value == "median":
+                self.fill_value = np.zeros((len(X), X[0].shape[0]))
+                for i, series in enumerate(X):
+                    for j, channel in enumerate(series):
+                        self.fill_value[i][j] = np.median(channel)
+            elif self.fill_value == "min":
+                self.fill_value = np.zeros((len(X), X[0].shape[0]))
+                for i, series in enumerate(X):
+                    for j, channel in enumerate(series):
+                        self.fill_value[i][j] = np.min(channel)
+            elif self.fill_value == "max":
+                self.fill_value = np.zeros((len(X), X[0].shape[0]))
+                for i, series in enumerate(X):
+                    for j, channel in enumerate(series):
+                        self.fill_value[i][j] = np.max(channel)
+            else:
+                raise ValueError(
+                    "Supported modes are mean, median, min, max. \
+                                    Please check arguments passed."
+                )
+        elif isinstance(self.fill_value, np.ndarray):
+            if not (len(self.fill_value) == len(X)):
+                raise ValueError(
+                    "The length of fill_value must match the \
+                                length of X if a numpy array is passed as fill_value."
+                )
+            if not self.fill_value.ndim == 2:
+                raise ValueError(
+                    """The fill_value argument must be
+                                a 2D Numpy array, containing values for
+                                each `n_channel` for `n_cases` series."""
+                )
+        else:
+            self.fill_value = self.fill_value * np.ones((len(X), X[0].shape[0]))
+
         return self
 
     def _transform(self, X, y=None):
@@ -111,13 +154,21 @@ class PaddingTransformer(BaseTransformer):
                     is greater than the one found when fit or set."
             )
         # Calculate padding amounts
+
         Xt = []
-        for series in X:
-            pad_width = ((0, 0), (0, self.pad_length_ - series.shape[1]))
-            # Pad the input array
-            padded_array = np.pad(
-                series, pad_width, mode="constant", constant_values=self.fill_value
-            )
-            Xt.append(padded_array)
+        for i, series in enumerate(X):
+            pad_width = (0, self.pad_length_ - series.shape[1])
+            temp_array = []
+            for j, channel in enumerate(series):
+                # Pad the input array
+                padded_array = np.pad(
+                    channel,
+                    pad_width,
+                    mode="constant",
+                    constant_values=self.fill_value[i][j],
+                )
+                temp_array.append(padded_array)
+            Xt.append(temp_array)
         Xt = np.array(Xt)
+
         return Xt

@@ -4,30 +4,31 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
 
 jobs:
-  check_manifest:
-    runs-on: ubuntu-22.04
+  check-manifest:
+    runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - uses: pre-commit/action@v3.0.0
+      - uses: pre-commit/action@v3.0.1
         with:
           extra_args: check-manifest --hook-stage manual
 
-  build_project:
-    needs: check_manifest
-    runs-on: ubuntu-22.04
+  build-project:
+    needs: check-manifest
+    runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -37,29 +38,30 @@ jobs:
           python -m build
 
       - name: Store build files
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/*
+          retention-days: 5
 
-  test_wheels:
-    needs: build_project
+  test-wheels:
+    needs: build-project
     runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
-        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+        os: [ ubuntu-20.04, macOS-13, windows-2022 ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
@@ -73,20 +75,28 @@ jobs:
 
       - if: runner.os == 'Windows'
         name: Windows install
-        run: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
       - if: runner.os != 'Windows'
         name: Unix install
-        run: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
 
       - name: Tests
         run: python -m pytest
 
-  upload_wheels:
-    needs: test_wheels
-    runs-on: ubuntu-22.04
+  upload-wheels:
+    needs: test-wheels
+    runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist

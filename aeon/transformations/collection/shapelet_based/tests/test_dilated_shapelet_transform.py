@@ -1,6 +1,6 @@
 """Tests for dilated shapelet transform functions."""
 
-__author__ = ["baraline"]
+__maintainer__ = ["baraline"]
 
 import numpy as np
 import pytest
@@ -24,62 +24,64 @@ from aeon.utils.numba.stats import is_prime
 
 DATATYPES = ["int64", "float64"]
 
+
 # The following test fail on MacOS due to an issue with the random seed.
-"""
-shapelet_transform_unit_test_data = np.array(
-    [
-        [1.90317756, 8.0, 2.0, 2.87919021, 10.0, 3.0, 0.0, 1.0, 1.0],
-        [2.16550181, 8.0, 2.0, 0.0, 10.0, 2.0, 1.52148128, 3.0, 1.0],
-        [0.0, 8.0, 1.0, 3.41218663, 10.0, 2.0, 1.00243477, 1.0, 2.0],
-        [2.76771406, 8.0, 2.0, 5.75682976, 10.0, 1.0, 1.66589725, 3.0, 1.0],
-        [2.95206323, 8.0, 2.0, 2.82417348, 10.0, 3.0, 0.91588726, 1.0, 1.0],
-    ]
-)
-
-
-def test_rdst_on_unit_test():
-    Test of ShapeletTransform on unit test data.
-    # load unit test data
-    X_train, y_train = load_unit_test(split="train")
-    indices = np.random.RandomState(0).choice(len(y_train), 5, replace=False)
-
-    # fit the shapelet transform
-    st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
-    st.fit(X_train[indices], y_train[indices])
-
-    # assert transformed data is the same
-    data = st.transform(X_train[indices])
-    assert_array_almost_equal(data, shapelet_transform_unit_test_data, decimal=4)
-
-
-shapelet_transform_basic_motions_data = np.array(
-    [
-        [32.45712774, 25.0, 5.0, 58.52357949, 5.0, 0.0, 56.32267413, 21.0, 4.0],
-        [59.8154656, 69.0, 0.0, 64.16747582, 37.0, 0.0, 0.0, 18.0, 5.0],
-        [58.27369761, 11.0, 0.0, 67.49320392, 53.0, 0.0, 61.18423956, 31.0, 1.0],
-        [62.49300933, 13.0, 0.0, 0.0, 13.0, 5.0, 59.51080993, 34.0, 3.0],
-        [0.0, 12.0, 12.0, 64.73843849, 13.0, 0.0, 62.52577812, 8.0, 0.0],
-    ]
-)
-
-
-def test_rdst_on_basic_motions():
-    Test of ShapeletTransform on basic motions data.
-    # load basic motions data
-    X_train, y_train = load_basic_motions(split="train")
-    indices = np.random.RandomState(4).choice(len(y_train), 5, replace=False)
-
-    # fit the shapelet transform
-    st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
-    st.fit(X_train[indices], y_train[indices])
-
-    # assert transformed data is the same
-    data = st.transform(X_train[indices])
-    assert_array_almost_equal(data, shapelet_transform_basic_motions_data, decimal=4)
-"""
+#
+# shapelet_transform_unit_test_data = np.array(
+#     [
+#         [1.90317756, 8.0, 2.0, 2.87919021, 10.0, 3.0, 0.0, 1.0, 1.0],
+#         [2.16550181, 8.0, 2.0, 0.0, 10.0, 2.0, 1.52148128, 3.0, 1.0],
+#         [0.0, 8.0, 1.0, 3.41218663, 10.0, 2.0, 1.00243477, 1.0, 2.0],
+#         [2.76771406, 8.0, 2.0, 5.75682976, 10.0, 1.0, 1.66589725, 3.0, 1.0],
+#         [2.95206323, 8.0, 2.0, 2.82417348, 10.0, 3.0, 0.91588726, 1.0, 1.0],
+#     ]
+# )
+#
+#
+# def test_rdst_on_unit_test():
+#     Test of ShapeletTransform on unit test data.
+#     # load unit test data
+#     X_train, y_train = load_unit_test(split="train")
+#     indices = np.random.RandomState(0).choice(len(y_train), 5, replace=False)
+#
+#     # fit the shapelet transform
+#     st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
+#     st.fit(X_train[indices], y_train[indices])
+#
+#     # assert transformed data is the same
+#     data = st.transform(X_train[indices])
+#     assert_array_almost_equal(data, shapelet_transform_unit_test_data, decimal=4)
+#
+#
+# shapelet_transform_basic_motions_data = np.array(
+#     [
+#         [32.45712774, 25.0, 5.0, 58.52357949, 5.0, 0.0, 56.32267413, 21.0, 4.0],
+#         [59.8154656, 69.0, 0.0, 64.16747582, 37.0, 0.0, 0.0, 18.0, 5.0],
+#         [58.27369761, 11.0, 0.0, 67.49320392, 53.0, 0.0, 61.18423956, 31.0, 1.0],
+#         [62.49300933, 13.0, 0.0, 0.0, 13.0, 5.0, 59.51080993, 34.0, 3.0],
+#         [0.0, 12.0, 12.0, 64.73843849, 13.0, 0.0, 62.52577812, 8.0, 0.0],
+#     ]
+# )
+#
+#
+# def test_rdst_on_basic_motions():
+#     Test of ShapeletTransform on basic motions data.
+#     # load basic motions data
+#     X_train, y_train = load_basic_motions(split="train")
+#     indices = np.random.RandomState(4).choice(len(y_train), 5, replace=False)
+#
+#     # fit the shapelet transform
+#     st = RandomDilatedShapeletTransform(max_shapelets=3, random_state=0)
+#     st.fit(X_train[indices], y_train[indices])
+#
+#     # assert transformed data is the same
+#     data = st.transform(X_train[indices])
+#     assert_array_almost_equal(data, shapelet_transform_basic_motions_data, decimal=4)
+#
 
 
 def test_shapelet_prime_dilation():
+    """Test if dilations are prime numbers."""
     X_train, y_train = load_basic_motions(split="train")
     indices = np.random.RandomState(4).choice(len(y_train), 3, replace=False)
     rdst = RandomDilatedShapeletTransform(
@@ -91,6 +93,7 @@ def test_shapelet_prime_dilation():
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_normalize_subsequences(dtype):
+    """Test normalization of subsequences."""
     X = np.asarray([[[1, 1, 1]], [[1, 1, 1]]], dtype=dtype)
     X_norm = normalize_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
     assert np.all(X_norm == 0)
@@ -99,6 +102,7 @@ def test_normalize_subsequences(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_get_all_subsequences(dtype):
+    """Test generation of all subsequences."""
     X = np.asarray([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype)
     length = 3
     dilation = 1
@@ -133,6 +137,7 @@ def test_get_all_subsequences(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_compute_shapelet_features(dtype):
+    """Test computation of shapelet features."""
     X = np.asarray([[1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1, 2]], dtype=dtype)
     values = np.asarray([[1, 1, 2]], dtype=dtype)
     length = 3
@@ -168,6 +173,7 @@ def test_compute_shapelet_features(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_compute_shapelet_dist_vector(dtype):
+    """Test computation of shapelet distance vector."""
     X = np.random.rand(3, 50).astype(dtype)
     for length in [3, 5]:
         for dilation in [1, 3, 5]:

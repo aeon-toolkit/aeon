@@ -40,9 +40,8 @@ class SignatureTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
         "capability:multivariate": True,
-        "fit_is_empty": False,
         "python_dependencies": "esig",
         "python_version": "<3.11",
     }
@@ -67,7 +66,7 @@ class SignatureTransformer(BaseCollectionTransformer):
         self.sig_tfm = sig_tfm
         self.depth = depth
 
-        super(SignatureTransformer, self).__init__()
+        super().__init__()
         self.setup_feature_pipeline()
 
     def setup_feature_pipeline(self):

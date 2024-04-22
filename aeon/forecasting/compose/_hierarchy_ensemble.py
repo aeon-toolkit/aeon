@@ -1,6 +1,6 @@
 """Implements forecaster for applying different univariates on hierarchical data."""
 
-__author__ = ["VyomkeshVyas"]
+__maintainer__ = []
 __all__ = ["HierarchyEnsembleForecaster"]
 
 
@@ -58,7 +58,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
     >>> from aeon.forecasting.compose import HierarchyEnsembleForecaster
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster, TrendForecaster
-    >>> from aeon.utils._testing.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
     >>> y = _bottom_hier_datagen(
     ...         no_bottom_nodes=7,
     ...         no_levels=2,
@@ -93,10 +93,10 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
     """
 
     _tags = {
-        "scitype:y": "both",
+        "y_input_type": "both",
         "ignores-exogeneous-X": False,
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
     }
@@ -109,7 +109,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
         self.forecasters = forecasters
         self.by = by
         self.default = default
-        super(HierarchyEnsembleForecaster, self).__init__(forecasters=forecasters)
+        super().__init__(forecasters=forecasters)
 
         if isinstance(forecasters, BaseForecaster):
             tags_to_clone = [

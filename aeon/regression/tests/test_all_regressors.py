@@ -1,18 +1,18 @@
 """Unit tests for all time series regressors."""
 
-__author__ = ["mloning", "TonyBagnall", "fkiraly", "DavidGuijo-Rubio"]
+__maintainer__ = []
 
 
 import numpy as np
 from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_cardano_sentiment, load_covid_3month
-from aeon.regression.tests._expected_outputs import (
+from aeon.testing.expected_results.expected_regressor_outputs import (
     cardano_sentiment_preds,
     covid_3month_preds,
 )
-from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 
 
 class RegressorFixtureGenerator(BaseFixtureGenerator):
@@ -82,4 +82,32 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
                 expected_preds,
                 decimal=2,
                 err_msg=f"Failed to reproduce results for {classname} on {data_name}",
+            )
+
+    def test_regressor_tags_consistent(self, estimator_class):
+        """Test the tag X_inner_type is consistent with capability:unequal_length."""
+        valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
+        unequal = estimator_class.get_class_tag("capability:unequal_length")
+        if unequal:  # one of X_inner_types must be capable of storing unequal length
+            internal_types = estimator_class.get_class_tag("X_inner_type")
+            if isinstance(internal_types, str):
+                assert internal_types in valid_types
+            else:  # must be a list
+                assert bool(set(internal_types) & valid_types)
+        # Test can actually fit/predict with multivariate if tag is set
+        multivariate = estimator_class.get_class_tag("capability:multivariate")
+        if multivariate:
+            X = np.random.random((10, 2, 20))
+            y = np.random.random(10)
+            inst = estimator_class.create_test_instance(parameter_set="default")
+            inst.fit(X, y)
+            inst.predict(X)
+
+    def test_does_not_override_final_methods(self, estimator_class):
+        """Test does not override final methods."""
+        if "fit" in estimator_class.__dict__:
+            raise ValueError(f"Classifier {estimator_class} overrides the method fit")
+        if "predict" in estimator_class.__dict__:
+            raise ValueError(
+                f"Classifier {estimator_class} overrides the method " f"predict"
             )

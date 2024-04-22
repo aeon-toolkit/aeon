@@ -1,6 +1,6 @@
 """Multivariate MiniRocket transformer."""
 
-__author__ = ["angus924"]
+__maintainer__ = []
 __all__ = ["MiniRocketMultivariate"]
 
 import multiprocessing
@@ -14,8 +14,8 @@ from aeon.transformations.collection import BaseCollectionTransformer
 class MiniRocketMultivariate(BaseCollectionTransformer):
     """MINImally RandOm Convolutional KErnel Transform (MiniRocket) multivariate.
 
-    MiniRocketMultivariate [1]_ is an almost deterministic version of Rocket. If creates
-    convolutions of length of 9 with weights restricted to two values, and uses 84 fixed
+    MiniRocketMultivariate [1]_ is an almost deterministic version of Rocket. It creates
+    convolutions of length 9 with weights restricted to two values, and uses 84 fixed
     convolutions with six of one weight, three of the second weight to seed dilations.
     MiniRocketMultivariate works with univariate and multivariate time series.
 
@@ -59,8 +59,9 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Primitives",
+        "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "algorithm_type": "convolution",
     }
 
     def __init__(
@@ -86,14 +87,14 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
         else:
             self.random_state_ = random_state
 
-        super(MiniRocketMultivariate, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fits dilations and biases to input time series.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -105,10 +106,8 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
         *_, n_timepoints = X.shape
         if n_timepoints < 9:
             raise ValueError(
-                (
-                    f"n_timepoints must be >= 9, but found {n_timepoints};"
-                    " zero pad shorter series so that n_timepoints == 9"
-                )
+                f"n_timepoints must be >= 9, but found {n_timepoints};"
+                " zero pad shorter series so that n_timepoints == 9"
             )
         self.parameters = _fit_multi(
             X, self.num_kernels, self.max_dilations_per_kernel, self.random_state_
@@ -120,7 +119,7 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -159,7 +158,7 @@ def _fit_biases_multi(
     if seed is not None:
         np.random.seed(seed)
 
-    n_instances, n_columns, n_timepoints = X.shape
+    n_cases, n_columns, n_timepoints = X.shape
 
     # equivalent to:
     # >>> from itertools import combinations
@@ -453,7 +452,7 @@ def _fit_biases_multi(
                 num_channels_start:num_channels_end
             ]
 
-            _X = X[np.random.randint(n_instances)][channels_this_combination]
+            _X = X[np.random.randint(n_cases)][channels_this_combination]
 
             A = -_X  # A = alpha * X = -X
             G = _X + _X + _X  # G = gamma * X = 3X
@@ -608,7 +607,7 @@ def _PPV(a, b):
     cache=True,
 )
 def _transform_multi(X, parameters):
-    n_instances, n_columns, n_timepoints = X.shape
+    n_cases, n_columns, n_timepoints = X.shape
 
     (
         num_channels_per_combination,
@@ -884,9 +883,9 @@ def _transform_multi(X, parameters):
 
     num_features = num_kernels * np.sum(num_features_per_dilation)
 
-    features = np.zeros((n_instances, num_features), dtype=np.float32)
+    features = np.zeros((n_cases, num_features), dtype=np.float32)
 
-    for example_index in prange(n_instances):
+    for example_index in prange(n_cases):
         _X = X[example_index]
 
         A = -_X  # A = alpha * X = -X
@@ -953,17 +952,17 @@ def _transform_multi(X, parameters):
 
                 if _padding1 == 0:
                     for feature_count in range(num_features_this_dilation):
-                        features[
-                            example_index, feature_index_start + feature_count
-                        ] = _PPV(C, biases[feature_index_start + feature_count]).mean()
+                        features[example_index, feature_index_start + feature_count] = (
+                            _PPV(C, biases[feature_index_start + feature_count]).mean()
+                        )
                 else:
                     for feature_count in range(num_features_this_dilation):
-                        features[
-                            example_index, feature_index_start + feature_count
-                        ] = _PPV(
-                            C[padding:-padding],
-                            biases[feature_index_start + feature_count],
-                        ).mean()
+                        features[example_index, feature_index_start + feature_count] = (
+                            _PPV(
+                                C[padding:-padding],
+                                biases[feature_index_start + feature_count],
+                            ).mean()
+                        )
 
                 feature_index_start = feature_index_end
 

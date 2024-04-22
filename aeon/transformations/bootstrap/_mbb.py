@@ -1,6 +1,6 @@
 """Bootstrapping methods for time series."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 from copy import copy
 from typing import Tuple, Union
@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.series.boxcox import BoxCoxTransformer
+from aeon.transformations.boxcox import BoxCoxTransformer
 
 
 class STLBootstrapTransformer(BaseTransformer):
@@ -141,7 +141,7 @@ class STLBootstrapTransformer(BaseTransformer):
     --------
     >>> from aeon.transformations.bootstrap import STLBootstrapTransformer
     >>> from aeon.datasets import load_airline
-    >>> from aeon.utils.plotting import plot_series  # doctest: +SKIP
+    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
     >>> y = load_airline()  # doctest: +SKIP
     >>> transformer = STLBootstrapTransformer(10)  # doctest: +SKIP
     >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
@@ -164,23 +164,19 @@ class STLBootstrapTransformer(BaseTransformer):
     """
 
     _tags = {
-        # todo: what is the scitype of X: Series, or Panel
-        "scitype:transform-input": "Series",
-        # todo: what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-output": "Panel",
-        # todo: what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
-        # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "input_data_type": "Series",
+        "output_data_type": "Panel",
+        "transform_labels": "None",
+        "instancewise": True,
+        "X_inner_type": "pd.DataFrame",
+        "y_inner_type": "None",
         "capability:inverse_transform": False,
-        "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": True,  # can the transformer handle multivariate X?
-        "capability:missing_values": False,  # can estimator handle missing data?
-        "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
-        "enforce_index_type": None,  # index type that needs to be enforced in X/y
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
+        "skip-inverse-transform": True,
+        "capability:multivariate": False,
+        "capability:missing_values": False,
+        "X-y-must-have-same-index": False,
+        "enforce_index_type": None,
+        "fit_is_empty": False,
         "transform-returns-same-time-index": False,
         "python_dependencies": "statsmodels",
     }
@@ -229,7 +225,7 @@ class STLBootstrapTransformer(BaseTransformer):
         self.outer_iter = outer_iter
         self.random_state = random_state
 
-        super(STLBootstrapTransformer, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -455,7 +451,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
     --------
     >>> from aeon.transformations.bootstrap import MovingBlockBootstrapTransformer
     >>> from aeon.datasets import load_airline
-    >>> from aeon.utils.plotting import plot_series  # doctest: +SKIP
+    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
     >>> y = load_airline()
     >>> transformer = MovingBlockBootstrapTransformer(10)
     >>> y_hat = transformer.fit_transform(y)
@@ -478,19 +474,15 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
     """
 
     _tags = {
-        # todo: what is the scitype of X: Series, or Panel
-        "scitype:transform-input": "Series",
-        # todo: what scitype is returned: Primitives, Series, Panel
-        "scitype:transform-output": "Panel",
-        # todo: what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": True,  # is this an instance-wise transform?
-        "X_inner_mtype": "pd.DataFrame",  # which mtypes do _fit/_predict support for X?
-        # X_inner_mtype can be Panel mtype even if transform-input is Series, vectorized
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "input_data_type": "Series",
+        "output_data_type": "Panel",
+        "transform_labels": "None",
+        "instancewise": True,  # is this an instance-wise transform?
+        "X_inner_type": "pd.DataFrame",
+        "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": True,  # can the transformer handle multivariate X?
+        "capability:multivariate": False,  # can the transformer handle multivariate X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -512,7 +504,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
         self.return_actual = return_actual
         self.random_state = random_state
 
-        super(MovingBlockBootstrapTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -521,10 +513,10 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : Series or Panel of mtype X_inner_mtype
-            if X_inner_mtype is list, _transform must support all types in it
+        X: data structure of type X_inner_type
+            if X_inner_type is list, _transform must support all types in it
             Data to be transformed
-        y : Series or Panel of mtype y_inner_mtype, default=None
+        y : data structure of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns

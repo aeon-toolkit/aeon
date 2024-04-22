@@ -1,6 +1,6 @@
-"""aeon."""
+"""aeon toolkit."""
 
-__version__ = "0.5.0"
+__version__ = "0.8.0"
 
 __all__ = ["show_versions"]
 

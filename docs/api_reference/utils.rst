@@ -5,40 +5,13 @@ Utility functions
 
 ``aeon`` has a number of modules dedicated to utilities:
 
-* :mod:`aeon.datatypes`, which contains utilities for data format checks and conversion.
 * :mod:`aeon.pipeline`, which contains generics for pipeline construction.
 * :mod:`aeon.registry`, which contains utilities for estimator and tag search.
 * :mod:`aeon.utils`, which contains generic utility functions.
 
 
-Data Format Checking and Conversion
------------------------------------
-
-:mod:`aeon.datatypes`
-
-.. automodule:: aeon.datatypes
-    :no-members:
-    :no-inherited-members:
-
-.. currentmodule:: aeon.datatypes
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    convert_to
-    convert
-    check_raise
-    check_is_mtype
-    check_is_scitype
-    mtype
-    scitype
-    mtype_to_scitype
-    scitype_to_mtype
-
-
-Pipeline construction generics
-------------------------------
+Pipeline construction
+---------------------
 
 :mod:`aeon.pipeline`
 
@@ -75,38 +48,37 @@ Estimator Search and Retrieval, Estimator Tags
     all_tags
     check_tag_is_valid
 
-Plotting
---------
-
-:mod:`aeon.utils.plotting`
-
-.. automodule:: aeon.utils.plotting
-    :no-members:
-    :no-inherited-members:
-
-.. currentmodule:: aeon.utils.plotting
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    plot_series
-    plot_lags
-    plot_correlations
 
 Estimator Validity Checking
 ---------------------------
 
-:mod:`aeon.utils.estimator_checks`
+:mod:`aeon.testing.estimator_checks`
 
-.. automodule:: aeon.utils.estimator_checks
+.. automodule:: aeon.testing.estimator_checks
     :no-members:
     :no-inherited-members:
 
-.. currentmodule:: aeon.utils.estimator_checks
+.. currentmodule:: aeon.testing.estimator_checks
 
 .. autosummary::
     :toctree: auto_generated/
     :template: function.rst
 
     check_estimator
+
+Data Validation Tools
+---------------------
+
+:mod:`aeon.utils`
+
+.. automodule:: aeon.utils.validation
+    :no-members:
+    :no-inherited-members:
+
+.. currentmodule:: aeon.testing.estimator_checks
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    convert_collection

@@ -4,7 +4,7 @@ A transformer that selects a subset of channels/dimensions for time series
 classification using a scoring system with an elbow point method.
 """
 
-__author__ = ["haskarb"]
+__maintainer__ = []
 __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
@@ -13,6 +13,7 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from scipy.stats import median_abs_deviation
 from sklearn.preprocessing import LabelEncoder
 
@@ -122,9 +123,9 @@ class ClassPrototype:
 
     References
     ----------
-    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
-    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
-    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    ..[1]: Bhaskar Dhariyal et al. "Fast Channel Selection for Scalable Multivariate
+    Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
 
     """
@@ -225,6 +226,13 @@ class ClassPrototype:
         return (prototypes, le.classes_)
 
 
+# TODO: remove in v0.9.0
+@deprecated(
+    version="0.8.0",
+    reason="ElbowClassSum will be moved to the new channel_selection package in "
+    "transformations.collection in v0.9.0.",
+    category=FutureWarning,
+)
 class ElbowClassSum(BaseCollectionTransformer):
     """Elbow Class Sum (ECS) transformer to select a subset of channels/variables.
 
@@ -270,9 +278,9 @@ class ElbowClassSum(BaseCollectionTransformer):
 
     References
     ----------
-    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
-    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
-    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    ..[1]: Bhaskar Dhariyal et al. "Fast Channel Selection for Scalable Multivariate
+    Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
 
     Examples
@@ -290,7 +298,7 @@ class ElbowClassSum(BaseCollectionTransformer):
     _tags = {
         "capability:multivariate": True,
         "skip-inverse-transform": True,
-        "y_inner_mtype": "numpy1D",
+        "y_inner_type": "numpy1D",
         "requires_y": True,
     }
 
@@ -305,7 +313,7 @@ class ElbowClassSum(BaseCollectionTransformer):
         self.prototype_type = prototype_type
         self._is_fitted = False
 
-        super(ElbowClassSum, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit ECS to a specified X and y.
@@ -359,6 +367,13 @@ class ElbowClassSum(BaseCollectionTransformer):
         return X[:, self.channels_selected_idx]
 
 
+# TODO: remove in v0.9.0
+@deprecated(
+    version="0.8.0",
+    reason="ElbowClassPairwise will be moved to the new channel_selection package in "
+    "transformations.collection in v0.9.0.",
+    category=FutureWarning,
+)
 class ElbowClassPairwise(BaseCollectionTransformer):
     """Elbow Class Pairwise (ECP) transformer to select a subset of channels.
 
@@ -404,9 +419,9 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
     References
     ----------
-    ..[1]: Bhaskar Dhariyal et al. “Fast Channel Selection for Scalable Multivariate
-    Time Series Classification.” AALTD, ECML-PKDD, Springer, 2021
-    ..[2]: Bhaskar Dhariyal et al. “Scalable Classifier-Agnostic Channel Selection
+    ..[1]: Bhaskar Dhariyal et al. "Fast Channel Selection for Scalable Multivariate
+    Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
+    ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
 
     Examples
@@ -422,12 +437,8 @@ class ElbowClassPairwise(BaseCollectionTransformer):
     """
 
     _tags = {
-        "requires_y": True,  # does y need to be passed in fit?
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
-        "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "capability:unequal_length": False,
+        "requires_y": True,
         "capability:multivariate": True,
-        "y_inner_mtype": "numpy1D",
     }
 
     def __init__(
@@ -441,7 +452,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
         self.mean_center = mean_center
         self._is_fitted = False
 
-        super(ElbowClassPairwise, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """
@@ -449,7 +460,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: pandas DataFrame or np.ndarray
+        X: np.ndarray
             The training input samples.
         y: array-like or list
             The class values for X.

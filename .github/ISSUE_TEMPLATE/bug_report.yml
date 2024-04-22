@@ -26,7 +26,7 @@ body:
 
       ```python
       from aeon.datasets import load_airline
-      from aeon.utils.plotting import plot_series
+      from aeon.visualisation import plot_series
 
       y = load_airline()
       y = y.to_frame()

@@ -3,9 +3,10 @@
 An ensemble of elastic nearest neighbour classifiers.
 """
 
-__author__ = ["jasonlines", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["ElasticEnsemble"]
 
+import math
 import time
 from itertools import product
 
@@ -93,7 +94,7 @@ class ElasticEnsemble(BaseClassifier):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "algorithm_type": "distance",
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def __init__(
@@ -119,7 +120,7 @@ class ElasticEnsemble(BaseClassifier):
         self.train_accs_by_classifier_ = None
         self.constituent_build_times_ = None
 
-        super(ElasticEnsemble, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Build an ensemble of 1-NN classifiers from the training set (X, y).
@@ -145,6 +146,8 @@ class ElasticEnsemble(BaseClassifier):
                 "lcss",
                 "erp",
                 "msm",
+                "euclidean",
+                "twe",
             ]
         else:
             self._distance_measures = self.distance_measures
@@ -279,7 +282,7 @@ class ElasticEnsemble(BaseClassifier):
                     param_distributions=ElasticEnsemble._get_100_param_options(
                         self._distance_measures[dm], X
                     ),
-                    n_iter=100 * self.proportion_of_param_options,
+                    n_iter=math.ceil(100 * self.proportion_of_param_options),
                     cv=LeaveOneOut(),
                     scoring="accuracy",
                     n_jobs=self._n_jobs,
@@ -333,7 +336,7 @@ class ElasticEnsemble(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = (n_cases, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             or list of [n_cases] numpy arrays size n_channels, n_timepoints_i)
 
         Returns
@@ -445,6 +448,24 @@ class ElasticEnsemble(BaseClassifier):
                     {"c": x} for x in np.concatenate([a, b[1:], c[1:], d[1:]])
                 ]
             }
+        elif distance_measure == "euclidean":
+            return {"distance_params": [{}]}  # No parameters for Euclidean distance
+        elif distance_measure == "twe":
+            band_sizes = get_inclusive(0, 0.25, 5)
+            nu_values = get_inclusive(0.0001, 0.001, 10)
+            lmbda_values = get_inclusive(1.0, 2.0, 2)
+            b_and_nu_and_lmbda = list(product(band_sizes, nu_values, lmbda_values))
+            return {
+                "distance_params": [
+                    {
+                        "window": b_and_nu_and_lmbda[x][0],
+                        "nu": b_and_nu_and_lmbda[x][1],
+                        "lmbda": b_and_nu_and_lmbda[x][2],
+                    }
+                    for x in range(0, len(b_and_nu_and_lmbda))
+                ]
+            }
+
         else:
             raise NotImplementedError(
                 "EE does not currently support: " + str(distance_measure)

@@ -1,6 +1,6 @@
 """Implements adapter for pmdarima forecasters to be used in aeon framework."""
 
-__author__ = ["mloning", "hyang1996", "kejsitake", "fkiraly"]
+__maintainer__ = []
 __all__ = ["_PmdArimaAdapter"]
 
 import pandas as pd
@@ -22,7 +22,7 @@ class _PmdArimaAdapter(BaseForecaster):
 
     def __init__(self):
         self._forecaster = None
-        super(_PmdArimaAdapter, self).__init__()
+        super().__init__()
 
     def _instantiate_model(self):
         raise NotImplementedError("abstract method")

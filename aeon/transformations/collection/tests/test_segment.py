@@ -1,4 +1,5 @@
 """Tests for IntervalSegmenter and RandomIntervalSegmenter."""
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -9,25 +10,25 @@ from aeon.transformations.collection.segment import (
     _rand_intervals_fixed_n,
     _rand_intervals_rand_n,
 )
-from aeon.utils._testing.collection import _make_nested_from_array
 
 N_ITER = 10
 
 
 @pytest.mark.parametrize("n_intervals", [1, 2, 5, 6, 50])
 def test_interval_segmenters(n_intervals):
+    """Test IntervalSegmenter with specified number of intervals."""
     X = np.ones((10, 1, 100))
     trans = IntervalSegmenter(intervals=n_intervals)
     Xt = trans.fit_transform(X)
     assert Xt.shape[1] == n_intervals
 
 
-@pytest.mark.parametrize("n_instances", [1, 3])
+@pytest.mark.parametrize("n_cases", [1, 3])
 @pytest.mark.parametrize("n_timepoints", [10, 20])
 @pytest.mark.parametrize("n_intervals", [0.1, 1.0, 1, 3, 10, "sqrt", "random", "log"])
-def test_output_format_dim(n_timepoints, n_instances, n_intervals):
+def test_output_format_dim(n_timepoints, n_cases, n_intervals):
     """Test output format and dimensions."""
-    X = np.random.random((n_instances, 1, n_timepoints))
+    X = np.random.random((n_cases, 1, n_timepoints))
     trans = RandomIntervalSegmenter(n_intervals=n_intervals)
     Xt = trans.fit_transform(X)
 
@@ -50,7 +51,7 @@ def test_output_format_dim(n_timepoints, n_instances, n_intervals):
 @pytest.mark.parametrize("bad_interval", [0, -0, "str", 1.2, -1.2, -1])
 def test_bad_input_args(bad_interval):
     """Check that exception is raised for bad input args."""
-    X = _make_nested_from_array(np.ones(10), n_instances=10, n_columns=2)
+    X = np.random.random(size=(10, 1, 20))
     with pytest.raises(ValueError):
         RandomIntervalSegmenter(n_intervals=bad_interval).fit(X)
 

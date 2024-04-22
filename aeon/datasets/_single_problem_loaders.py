@@ -1,20 +1,6 @@
 """Utilities for loading datasets."""
 
-__author__ = [
-    "mloning",
-    "sajaysurya",
-    "big-o",
-    "SebasKoel",
-    "Emiliathewolf",
-    "TonyBagnall",
-    "yairbeer",
-    "patrickZIB",
-    "aiwalter",
-    "jasonlines",
-    "achieveordie",
-    "ciaran-g",
-]
-
+__maintainer__ = []
 __all__ = [
     "load_airline",
     "load_plaid",
@@ -46,8 +32,8 @@ from warnings import warn
 import numpy as np
 import pandas as pd
 
+from aeon.datasets import load_from_tsf_file
 from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
-from aeon.datasets._dataframe_loaders import load_tsf_to_dataframe
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 DIRNAME = "data"
@@ -382,7 +368,7 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
     Number of classes:  4
     Details:http://www.timeseriesclassification.com/description.php?Dataset=BasicMotions
     """
-    if return_type == "numpy2d" or return_type == "numpyflat":
+    if return_type == "numpy2d" or return_type == "numpy2D":
         raise ValueError(
             f"BasicMotions loader: Error, attempting to load into a {return_type} "
             f"array, but cannot because it is a multivariate problem. Use "
@@ -899,9 +885,16 @@ def load_macroeconomic():
     return y
 
 
-def load_unit_test_tsf():
+def load_unit_test_tsf(return_type="tsf_default"):
     """
     Load tsf UnitTest dataset.
+
+    Parameters
+    ----------
+    return_type : str - "pd_multiindex_hier" or "tsf_default" (default)
+        - "tsf_default" = container that faithfully mirrors tsf format from the original
+            implementation in: https://github.com/rakshitha123/TSForecasting/
+            blob/master/utils/data_loader.py.
 
     Returns
     -------
@@ -917,7 +910,7 @@ def load_unit_test_tsf():
         Whether the series have equal lengths or not.
     """
     path = os.path.join(MODULE, DIRNAME, "UnitTest", "UnitTest_Tsf_Loader.tsf")
-    data, meta = load_tsf_to_dataframe(path)
+    data, meta = load_from_tsf_file(path, return_type=return_type)
     return (
         data,
         meta["frequency"],

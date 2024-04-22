@@ -1,11 +1,20 @@
 """Estimator checker for extension."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = ["check_estimator"]
 
 from inspect import isclass
 
+from deprecated.sphinx import deprecated
 
+
+@deprecated(
+    version="0.7.1",
+    reason="Use of aeon.utils.estimator_checks.check_estimator is \
+    deprecated and will be removed in the next release, use \
+    aeon.testing.estimator_checks.check_estimator instead.",
+    category=FutureWarning,
+)
 def check_estimator(
     estimator,
     raise_exceptions=False,
@@ -19,7 +28,7 @@ def check_estimator(
 
     Tests that are run on estimator:
         all tests in test_all_estimators
-        all interface compatibility tests from the module of estimator's scitype
+        all interface compatibility tests from the module of estimator's type
             for example, test_all_forecasters if estimator is a forecaster
 
     Parameters
@@ -60,8 +69,8 @@ def check_estimator(
 
     Examples
     --------
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
-    >>> from aeon.utils.estimator_checks import check_estimator
+    >>> from aeon.transformations.exponent import ExponentTransformer
+    >>> from aeon.testing.estimator_checks import check_estimator
 
     Running all tests for ExponentTransformer class,
     this uses all instances from get_test_params and compatible scenarios
@@ -93,9 +102,9 @@ def check_estimator(
     )
     from aeon.classification.tests.test_all_classifiers import TestAllClassifiers
     from aeon.forecasting.tests.test_all_forecasters import TestAllForecasters
-    from aeon.registry import scitype
+    from aeon.registry import get_identifiers
     from aeon.regression.tests.test_all_regressors import TestAllRegressors
-    from aeon.tests.test_all_estimators import TestAllEstimators, TestAllObjects
+    from aeon.testing.test_all_estimators import TestAllEstimators, TestAllObjects
     from aeon.transformations.tests.test_all_transformers import TestAllTransformers
 
     testclass_dict = dict()
@@ -133,12 +142,12 @@ def check_estimator(
         results.update(results_estimator)
 
     try:
-        scitype_of_estimator = scitype(estimator)
+        type_of_estimator = get_identifiers(estimator)
     except Exception:
-        scitype_of_estimator = ""
+        type_of_estimator = ""
 
-    if scitype_of_estimator in testclass_dict.keys():
-        results_scitype = testclass_dict[scitype_of_estimator]().run_tests(
+    if type_of_estimator in testclass_dict.keys():
+        results_type = testclass_dict[type_of_estimator]().run_tests(
             estimator=estimator,
             raise_exceptions=raise_exceptions,
             tests_to_run=tests_to_run,
@@ -146,7 +155,7 @@ def check_estimator(
             tests_to_exclude=tests_to_exclude,
             fixtures_to_exclude=fixtures_to_exclude,
         )
-        results.update(results_scitype)
+        results.update(results_type)
 
     failed_tests = [key for key in results.keys() if results[key] != "PASSED"]
     if len(failed_tests) > 0:

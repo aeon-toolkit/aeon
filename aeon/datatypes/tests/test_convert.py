@@ -1,17 +1,13 @@
 """Testing machine type converters for scitypes."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
-from aeon.datatypes import SCITYPE_REGISTER, scitype_to_mtype
+from aeon.datatypes import DATATYPE_REGISTER, scitype_to_mtype
 from aeon.datatypes._convert import _conversions_defined, convert
 from aeon.datatypes._examples import get_examples
-from aeon.utils._testing.deep_equals import deep_equals
+from aeon.testing.utils.deep_equals import deep_equals
 
-SCITYPES = [sci[0] for sci in SCITYPE_REGISTER]
-
-# scitypes which have no conversions defined
-# should be listed here to avoid false positive test errors
-SCITYPES_NO_CONVERSIONS = ["Alignment"]
+SCITYPES = [sci[0] for sci in DATATYPE_REGISTER]
 
 
 def _generate_fixture_tuples():
@@ -20,12 +16,7 @@ def _generate_fixture_tuples():
     fixture_tuples = []
 
     for scitype in SCITYPES:
-        # if we know there are no conversions defined, skip this scitype
-        if scitype in SCITYPES_NO_CONVERSIONS:
-            continue
-
         conv_mat = _conversions_defined(scitype)
-
         mtypes = scitype_to_mtype(scitype, softdeps="exclude")
 
         if len(mtypes) == 0:

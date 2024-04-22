@@ -1,16 +1,17 @@
 """Testing vectorization via VectorizedDF."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datatypes import MTYPE_REGISTER, SCITYPE_REGISTER
+from aeon.datatypes import DATATYPE_REGISTER, TYPE_REGISTER
 from aeon.datatypes._check import AMBIGUOUS_MTYPES, check_is_mtype
 from aeon.datatypes._examples import get_examples
-from aeon.datatypes._vectorize import VectorizedDF, _enforce_index_freq
-from aeon.utils._testing.deep_equals import deep_equals
+from aeon.datatypes._vec_df import _VectorizedDF
+from aeon.datatypes._vectorize import _enforce_index_freq
+from aeon.testing.utils.deep_equals import deep_equals
 
 SCITYPES = ["Panel", "Hierarchical"]
 
@@ -26,9 +27,9 @@ def _get_all_mtypes_for_scitype(scitype):
     -------
     mtypes : list of str - list of mtypes for scitype
     """
-    if scitype not in [s[0] for s in SCITYPE_REGISTER]:
-        raise RuntimeError(scitype + " is not in the SCITYPE_REGISTER")
-    mtypes = [key[0] for key in MTYPE_REGISTER if key[1] == scitype]
+    if scitype not in [s[0] for s in DATATYPE_REGISTER]:
+        raise RuntimeError(scitype + " is not in the DATATYPE_REGISTER")
+    mtypes = [key[0] for key in TYPE_REGISTER if key[1] == scitype]
     mtypes = [mtype for mtype in mtypes if mtype not in AMBIGUOUS_MTYPES]
 
     if len(mtypes) == 0:
@@ -122,7 +123,7 @@ def pytest_generate_tests(metafunc):
 
     fixturenames = set(metafunc.fixturenames)
 
-    if set(["scitype", "mtype", "fixture_index"]).issubset(fixturenames):
+    if {"scitype", "mtype", "fixture_index"}.issubset(fixturenames):
         keys = _generate_scitype_mtype_fixtureindex_combinations()
 
         ids = []
@@ -132,7 +133,7 @@ def pytest_generate_tests(metafunc):
         # parameterize test with from-mtpes
         metafunc.parametrize("scitype,mtype,fixture_index", keys, ids=ids)
 
-    elif set(["scitype", "mtype"]).issubset(fixturenames):
+    elif {"scitype", "mtype"}.issubset(fixturenames):
         keys = _generate_scitype_mtype_combinations()
 
         ids = []
@@ -168,12 +169,12 @@ def test_construct_vectorizeddf(
     fixture = get_examples(mtype=mtype, as_scitype=scitype).get(fixture_index)
 
     # iterate as Series, without automated identification of scitype
-    VectorizedDF(
+    _VectorizedDF(
         X=fixture, iterate_as=iterate_as, is_scitype=scitype, iterate_cols=iterate_cols
     )
 
     # iterate as Series, with automated identification of scitype
-    VectorizedDF(
+    _VectorizedDF(
         X=fixture, iterate_as=iterate_as, is_scitype=None, iterate_cols=iterate_cols
     )
 
@@ -192,15 +193,15 @@ def test_construct_vectorizeddf_errors(scitype, mtype, fixture_index):
 
     # if both iterate_as and as_scitype are "Panel", should raise an error
     with pytest.raises(ValueError, match=r'is_scitype is "Panel"'):
-        VectorizedDF(X=fixture, iterate_as="Hierarchical", is_scitype="Panel")
+        _VectorizedDF(X=fixture, iterate_as="Hierarchical", is_scitype="Panel")
 
     # invalid argument to iterate_as
     with pytest.raises(ValueError, match=r"iterate_as must be"):
-        VectorizedDF(X=fixture, iterate_as="Pumuckl", is_scitype="Panel")
+        _VectorizedDF(X=fixture, iterate_as="Pumuckl", is_scitype="Panel")
 
     # invalid argument to is_scitype
     with pytest.raises(ValueError, match=r"is_scitype must be"):
-        VectorizedDF(X=fixture, iterate_as="Panel", is_scitype="Pumuckl")
+        _VectorizedDF(X=fixture, iterate_as="Panel", is_scitype="Pumuckl")
     # we may have to change this if we introduce a "Pumuckl" scitype, but seems unlikely
 
 
@@ -229,7 +230,7 @@ def test_item_len(scitype, mtype, fixture_index, iterate_as, iterate_cols):
         _, _, metadata = check_is_mtype(
             fixture, mtype=mtype, scitype=scitype, return_metadata=True
         )
-        true_length = metadata["n_instances"]
+        true_length = metadata["n_cases"]
     elif iterate_as == "Panel":
         _, _, metadata = check_is_mtype(
             fixture, mtype=mtype, scitype=scitype, return_metadata=True
@@ -237,7 +238,7 @@ def test_item_len(scitype, mtype, fixture_index, iterate_as, iterate_cols):
         true_length = metadata["n_panels"]
 
     # construct VectorizedDF - we've tested above that this works
-    X_vect = VectorizedDF(
+    X_vect = _VectorizedDF(
         X=fixture, iterate_as=iterate_as, is_scitype=None, iterate_cols=iterate_cols
     )
 
@@ -245,7 +246,7 @@ def test_item_len(scitype, mtype, fixture_index, iterate_as, iterate_cols):
     if iterate_cols:
         true_length = true_length * len(X_vect.X_multiindex.columns)
 
-    # check length against n_instances metadata field
+    # check length against n_cases metadata field
     assert len(X_vect) == true_length, (
         "X_vect.__len__ returns incorrect length.",
         f"True={true_length}, returned={len(X_vect)}",
@@ -271,7 +272,7 @@ def test_iteration(scitype, mtype, fixture_index, iterate_as, iterate_cols):
     fixture = get_examples(mtype=mtype, as_scitype=scitype).get(fixture_index)
 
     # construct VectorizedDF - we've tested above that this works
-    X_vect = VectorizedDF(
+    X_vect = _VectorizedDF(
         X=fixture, iterate_as=iterate_as, is_scitype=None, iterate_cols=iterate_cols
     )
 
@@ -311,7 +312,7 @@ def test_series_item_mtype(scitype, mtype, fixture_index, iterate_as, iterate_co
     fixture = get_examples(mtype=mtype, as_scitype=scitype).get(fixture_index)
 
     # construct VectorizedDF - we've tested above that this works
-    X_vect = VectorizedDF(
+    X_vect = _VectorizedDF(
         X=fixture, iterate_as=iterate_as, is_scitype=None, iterate_cols=iterate_cols
     )
 
@@ -362,7 +363,7 @@ def test_reconstruct_identical(scitype, mtype, fixture_index, iterate_as, iterat
     fixture = get_examples(mtype=mtype, as_scitype=scitype).get(fixture_index)
 
     # construct VectorizedDF - we've tested above that this works
-    X_vect = VectorizedDF(
+    X_vect = _VectorizedDF(
         X=fixture, iterate_as=iterate_as, is_scitype=None, iterate_cols=iterate_cols
     )
 
@@ -442,7 +443,7 @@ def test_vectorize_est(
 
     # retrieve fixture for checking
     fixture = get_examples(mtype=mtype, as_scitype=scitype).get(fixture_index)
-    X_vect = VectorizedDF(
+    X_vect = _VectorizedDF(
         X=fixture, iterate_as=iterate_as, is_scitype=None, iterate_cols=iterate_cols
     )
 

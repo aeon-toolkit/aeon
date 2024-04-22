@@ -1,6 +1,6 @@
 """Tests for ForecastingHorizon object."""
 
-__author__ = ["mloning", "khrapovs"]
+__maintainer__ = []
 
 from datetime import timedelta
 
@@ -11,7 +11,6 @@ from numpy.testing._private.utils import assert_array_equal
 from pytest import raises
 
 from aeon.datasets import load_airline
-from aeon.datatypes._utilities import get_cutoff
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._fh import (
     DELEGATED_METHODS,
@@ -26,8 +25,8 @@ from aeon.forecasting.tests import (
     TEST_FHS_TIMEDELTA,
     VALID_INDEX_FH_COMBINATIONS,
 )
-from aeon.utils._testing.forecasting import _make_fh, make_forecasting_problem
-from aeon.utils._testing.series import _make_index
+from aeon.testing.mock_estimators import MockForecaster
+from aeon.testing.utils.data_gen import _make_fh, _make_index, make_forecasting_problem
 from aeon.utils.datetime import (
     _coerce_duration_to_int,
     _get_duration,
@@ -36,7 +35,7 @@ from aeon.utils.datetime import (
     _shift,
     infer_freq,
 )
-from aeon.utils.estimators import MockForecaster
+from aeon.utils.index_functions import get_cutoff
 from aeon.utils.validation.series import is_in_valid_index_types, is_integer_index
 
 

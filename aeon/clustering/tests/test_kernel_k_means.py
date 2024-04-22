@@ -1,8 +1,9 @@
 """Tests for time series kernel kmeans."""
+
 import numpy as np
 import pytest
 
-from aeon.clustering.kernel_k_means import TimeSeriesKernelKMeans
+from aeon.clustering._kernel_k_means import TimeSeriesKernelKMeans
 from aeon.datasets import load_basic_motions
 from aeon.utils.validation._dependencies import _check_estimator_deps
 

@@ -1,6 +1,6 @@
 """Implements adapter for using tbats forecasters in aeon framework."""
 
-__author__ = ["mloning", "aiwalter", "k1m190r"]
+__maintainer__ = []
 __all__ = ["_TbatsAdapter"]
 
 import numpy as np
@@ -50,7 +50,7 @@ class _TbatsAdapter(BaseForecaster):
         self._forecaster = None
         self._yname = None  # .fit(y) -> y.name
 
-        super(_TbatsAdapter, self).__init__()
+        super().__init__()
 
     def _create_model_class(self):
         """Instantiate (T)BATS model.

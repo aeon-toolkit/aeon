@@ -1,21 +1,22 @@
 """Slope transformer."""
+
+__all__ = ["SlopeTransformer"]
+__maintainer__ = []
+
 import math
 
 import numpy as np
 
 from aeon.transformations._split import SplitsTimeSeries
-from aeon.transformations.base import BaseTransformer
-
-__all__ = ["SlopeTransformer"]
-__author__ = ["mloning"]
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class SlopeTransformer(BaseTransformer, SplitsTimeSeries):
+class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
     """Piecewise slope transformation.
 
     Class to perform a slope transformation on a collection of time series.
-    Numpy array of shape (n_instances, n_channels, series_length) is
-    transformed to numpy array of shape (n_instances, n_channels, n_intervals).
+    Numpy array of shape (n_cases, n_channels, n_timepoints) is
+    transformed to numpy array of shape (n_cases, n_channels, n_intervals).
     The new feature is the slope over that interval found using a
     total least squares regression (note that total least squares is different
     from ordinary least squares regression.)
@@ -35,16 +36,13 @@ class SlopeTransformer(BaseTransformer, SplitsTimeSeries):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
+        "capability:multivariate": True,
         "fit_is_empty": True,
     }
 
     def __init__(self, n_intervals=8):
         self.n_intervals = n_intervals
-        super(SlopeTransformer, self).__init__(_output_convert=False)
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -53,18 +51,18 @@ class SlopeTransformer(BaseTransformer, SplitsTimeSeries):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
         collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
         collection of time series to transform
         """
         # Get information about the dataframe
-        n_cases, n_channels, series_length = X.shape
-        self._check_parameters(series_length)
+        n_cases, n_channels, n_timepoints = X.shape
+        self._check_parameters(n_timepoints)
         full_data = []
         for i in range(n_cases):
             case_data = []

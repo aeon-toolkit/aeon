@@ -1,4 +1,5 @@
 """Test the signature module augmentations."""
+
 import numpy as np
 
 from aeon.transformations.collection.signature_based._augmentations import (

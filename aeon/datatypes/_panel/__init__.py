@@ -9,14 +9,14 @@ from aeon.datatypes._panel._examples import (
 from aeon.datatypes._panel._examples import (
     example_dict_metadata as example_dict_metadata_Panel,
 )
-from aeon.datatypes._panel._registry import MTYPE_LIST_PANEL, MTYPE_REGISTER_PANEL
+from aeon.datatypes._panel._registry import TYPE_LIST_PANEL, TYPE_REGISTER_PANEL
 
 __all__ = [
     "check_dict_Panel",
     "convert_dict_Panel",
     "infer_mtype_dict_Panel",
-    "MTYPE_LIST_PANEL",
-    "MTYPE_REGISTER_PANEL",
+    "TYPE_LIST_PANEL",
+    "TYPE_REGISTER_PANEL",
     "example_dict_Panel",
     "example_dict_lossy_Panel",
     "example_dict_metadata_Panel",

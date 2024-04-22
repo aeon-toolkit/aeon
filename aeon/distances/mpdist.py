@@ -1,8 +1,9 @@
 """Matrix Profile Distances."""
+
 import numpy as np
 
 
-def sliding_dot_products(q, t, q_len, t_len):
+def _sliding_dot_products(q, t, q_len, t_len):
     """
     Compute the sliding dot products between a query and a time series.
 
@@ -42,7 +43,9 @@ def sliding_dot_products(q, t, q_len, t_len):
     return dot_prod
 
 
-def calculate_distance_profile(dot_prod, q_mean, q_std, t_mean, t_std, q_len, n_t_subs):
+def _calculate_distance_profile(
+    dot_prod, q_mean, q_std, t_mean, t_std, q_len, n_t_subs
+):
     """
     Calculate the distance profile for the given query.
 
@@ -85,7 +88,7 @@ def calculate_distance_profile(dot_prod, q_mean, q_std, t_mean, t_std, q_len, n_
     return d
 
 
-def stomp_ab(ts1, ts2, m):
+def _stomp_ab(ts1, ts2, m):
     """
     STOMP implementation for AB similarity join.
 
@@ -109,9 +112,6 @@ def stomp_ab(ts1, ts2, m):
     len1 = len(ts1)
     len2 = len(ts2)
 
-    ts1 = ts1.flatten()
-    ts2 = ts2.flatten()
-
     # Number of subsequences
     n_ts1_subs = len1 - m + 1
     n_ts2_subs = len2 - m + 1
@@ -125,7 +125,7 @@ def stomp_ab(ts1, ts2, m):
 
     # Compute the dot products between the first ts2 subsequence and every
     # ts1 subsequence
-    dot_prod = sliding_dot_products(ts2[0:m], ts1, m, len1)
+    dot_prod = _sliding_dot_products(ts2[0:m], ts1, m, len1)
     first_dot_prod = np.copy(dot_prod)
 
     # Initialization
@@ -133,8 +133,8 @@ def stomp_ab(ts1, ts2, m):
     ip = np.zeros(n_ts1_subs)  # index profile
 
     # Compute the distance profile for the first ts1 subsequence
-    dot_prod = sliding_dot_products(ts1[0:m], ts2, m, len2)
-    dp = calculate_distance_profile(
+    dot_prod = _sliding_dot_products(ts1[0:m], ts2, m, len2)
+    dp = _calculate_distance_profile(
         dot_prod, ts1_mean[0], ts1_std[0], ts2_mean, ts2_std, m, n_ts2_subs
     )
 
@@ -151,7 +151,7 @@ def stomp_ab(ts1, ts2, m):
             )  # compute the next dot products
             # using the previous ones
         dot_prod[0] = first_dot_prod[i]
-        dp = calculate_distance_profile(
+        dp = _calculate_distance_profile(
             dot_prod, ts1_mean[i], ts1_std[i], ts2_mean, ts2_std, m, n_ts2_subs
         )
         mp[i] = np.amin(dp)
@@ -160,7 +160,7 @@ def stomp_ab(ts1, ts2, m):
     return mp, ip
 
 
-def mpdist(ts1, ts2, m=0):
+def mpdist(ts1: np.ndarray, ts2: np.ndarray, m: int = 0):
     """
     Matrix profile distance.
 
@@ -178,18 +178,24 @@ def mpdist(ts1, ts2, m=0):
         mpdist: float
             Distance between the two time series.
     """
+    if ts1.ndim == 2 and ts1.shape[0] > 1:
+        raise ValueError("ts1 must be a 1D array or shape (1,n)")
+    if ts2.ndim == 2 and ts2.shape[0] > 1:
+        raise ValueError("ts2 must be a 1D array or shape (1,n)")
+    ts1 = ts1.squeeze()
+    ts2 = ts2.squeeze()
+
     len1 = len(ts1)
     len2 = len(ts2)
 
     if m == 0:
         if len1 > len2:
-            m = len1 / 4
+            m = int(len1 / 4)
         else:
-            m = len2 / 4
-
+            m = int(len2 / 4)
     threshold = 0.05
-    mp_ab, ip_ab = stomp_ab(ts1, ts2, m)  # compute the AB matrix profile
-    mp_ba, ip_ba = stomp_ab(ts2, ts1, m)  # compute the BA matrix profile
+    mp_ab, ip_ab = _stomp_ab(ts1, ts2, m)  # compute the AB matrix profile
+    mp_ba, ip_ba = _stomp_ab(ts2, ts1, m)  # compute the BA matrix profile
 
     join_mp = np.concatenate([mp_ab, mp_ba])
 

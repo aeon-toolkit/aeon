@@ -14,16 +14,16 @@ from aeon.datatypes._hierarchical._examples import (
     example_dict_metadata as example_dict_metadata_Hierarchical,
 )
 from aeon.datatypes._hierarchical._registry import (
-    MTYPE_LIST_HIERARCHICAL,
-    MTYPE_REGISTER_HIERARCHICAL,
+    TYPE_LIST_HIERARCHICAL,
+    TYPE_REGISTER_HIERARCHICAL,
 )
 
 __all__ = [
     "check_dict_Hierarchical",
     "convert_dict_Hierarchical",
     "infer_mtype_dict_Hierarchical",
-    "MTYPE_LIST_HIERARCHICAL",
-    "MTYPE_REGISTER_HIERARCHICAL",
+    "TYPE_LIST_HIERARCHICAL",
+    "TYPE_REGISTER_HIERARCHICAL",
     "example_dict_Hierarchical",
     "example_dict_lossy_Hierarchical",
     "example_dict_metadata_Hierarchical",

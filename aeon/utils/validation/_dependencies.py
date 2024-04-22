@@ -1,6 +1,6 @@
 """Utility to check soft dependency imports, and raise warnings or errors."""
 
-__author__ = ["fkiraly", "mloning"]
+__maintainer__ = ["TonyBagnall"]
 
 import io
 import sys
@@ -82,10 +82,6 @@ def _check_soft_dependencies(
         class_name = type(obj).__name__
     elif isclass(obj):
         class_name = obj.__name__
-    elif isinstance(obj, str):
-        class_name = obj
-    else:
-        raise TypeError("obj must be a class, an object, a str, or None")
 
     for package in packages:
         try:
@@ -210,13 +206,11 @@ def _check_dl_dependencies(msg=None, severity="error"):
     """
     if not isinstance(msg, str):
         msg = (
-            "tensorflow and tensorflow-probability are required for "
-            "deep learning and probabilistic functionality in `aeon`. "
-            "To install these dependencies, run: `pip install aeon[dl]`"
+            "tensorflow is required for deep learning in `aeon`. "
+            "To install this dependency, run: `pip install aeon[dl]`"
         )
     try:
         import_module("tensorflow")
-        import_module("tensorflow_probability")
         return True
     except ModuleNotFoundError as e:
         if severity == "error":

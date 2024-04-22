@@ -4,7 +4,7 @@ A Rotation Forest aeon implementation for continuous values only. Fits sklearn
 conventions.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["RotationForestClassifier"]
 
 import time
@@ -69,7 +69,7 @@ class RotationForestClassifier(BaseEstimator):
         The unique class labels in the training set.
     n_classes_ : int
         The number of unique classes in the training set.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_atts_ : int
         The number of attributes in the training set.
@@ -101,9 +101,8 @@ class RotationForestClassifier(BaseEstimator):
     Examples
     --------
     >>> from aeon.classification.sklearn import RotationForestClassifier
-    >>> from aeon.datasets import make_example_2d_numpy
-    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12,
-    ...                              return_y=True, random_state=0)
+    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
+    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12, random_state=0)
     >>> clf = RotationForestClassifier(n_estimators=10)
     >>> clf.fit(X, y)
     RotationForestClassifier(n_estimators=10)
@@ -135,16 +134,16 @@ class RotationForestClassifier(BaseEstimator):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        super(RotationForestClassifier, self).__init__()
+        super().__init__()
 
     def fit(self, X, y):
         """Fit a forest of trees on cases (X,y), where y is the target variable.
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_instances, n_attributes]
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -171,7 +170,7 @@ class RotationForestClassifier(BaseEstimator):
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self.n_instances_, self.n_atts_ = X.shape
+        self.n_cases_, self.n_atts_ = X.shape
         self.classes_ = np.unique(y)
         self.n_classes_ = self.classes_.shape[0]
         self._class_dictionary = {}
@@ -260,12 +259,12 @@ class RotationForestClassifier(BaseEstimator):
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_instances, n_attributes]
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         rng = check_random_state(self.random_state)
@@ -281,12 +280,12 @@ class RotationForestClassifier(BaseEstimator):
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_instances, n_attributes]
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         if not self._is_fitted:
@@ -354,11 +353,11 @@ class RotationForestClassifier(BaseEstimator):
         if len(self._class_dictionary) == 1:
             return np.repeat([[1]], len(X), axis=0)
 
-        n_instances, n_atts = X.shape
+        n_cases, n_atts = X.shape
 
-        if n_instances != self.n_instances_ or n_atts != self.n_atts_:
+        if n_cases != self.n_cases_ or n_atts != self.n_atts_:
             raise ValueError(
-                "n_instances, n_atts mismatch. X should be the same as the training "
+                "n_cases, n_atts mismatch. X should be the same as the training "
                 "data used in fit for generating train probabilities."
             )
 
@@ -378,12 +377,12 @@ class RotationForestClassifier(BaseEstimator):
         y_probas, oobs = zip(*p)
 
         results = np.sum(y_probas, axis=0)
-        divisors = np.zeros(n_instances)
+        divisors = np.zeros(n_cases)
         for oob in oobs:
             for inst in oob:
                 divisors[inst] += 1
 
-        for i in range(n_instances):
+        for i in range(n_cases):
             results[i] = (
                 np.ones(self.n_classes_) * (1 / self.n_classes_)
                 if divisors[i] == 0
@@ -470,11 +469,11 @@ class RotationForestClassifier(BaseEstimator):
         return probas
 
     def _train_probas_for_estimator(self, y, idx, rng):
-        indices = range(self.n_instances_)
-        subsample = rng.choice(self.n_instances_, size=self.n_instances_)
+        indices = range(self.n_cases_)
+        subsample = rng.choice(self.n_cases_, size=self.n_cases_)
         oob = [n for n in indices if n not in subsample]
 
-        results = np.zeros((self.n_instances_, self.n_classes_))
+        results = np.zeros((self.n_cases_, self.n_classes_))
         if len(oob) == 0:
             return [results, oob]
 
@@ -495,7 +494,7 @@ class RotationForestClassifier(BaseEstimator):
         return [results, oob]
 
     def _generate_groups(self, rng):
-        permutation = rng.permutation((np.arange(0, self._n_atts)))
+        permutation = rng.permutation(np.arange(0, self._n_atts))
 
         # select the size of each group.
         group_size_count = np.zeros(self.max_group - self.min_group + 1)

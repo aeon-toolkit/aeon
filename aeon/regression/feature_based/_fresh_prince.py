@@ -4,14 +4,14 @@ Pipeline regressor using the full set of TSFresh features and a RotationForestRe
 regressor.
 """
 
-__author__ = ["MatthewMiddlehurst", "DavidGuijo-Rubio"]
+__maintainer__ = []
 __all__ = ["FreshPRINCERegressor"]
 
 import numpy as np
 
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
-from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 from aeon.utils.validation.panel import check_X_y
 
 
@@ -90,24 +90,24 @@ class FreshPRINCERegressor(BaseRegressor):
         self.chunksize = chunksize
         self.random_state = random_state
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
         self.transformed_data_ = []
 
         self._rotf = None
         self._tsfresh = None
 
-        super(FreshPRINCERegressor, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -120,7 +120,7 @@ class FreshPRINCERegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._rotf = RotationForestRegressor(
             n_estimators=self.n_estimators,
@@ -149,12 +149,12 @@ class FreshPRINCERegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted output values.
         """
         return self._rotf.predict(self._tsfresh.transform(X))
@@ -163,15 +163,15 @@ class FreshPRINCERegressor(BaseRegressor):
         self.check_is_fitted()
         X, y = check_X_y(X, y, coerce_to_numpy=True)
 
-        n_instances, n_dims, series_length = X.shape
+        n_cases, n_channels, n_timepoints = X.shape
 
         if (
-            n_instances != self.n_instances_
-            or n_dims != self.n_dims_
-            or series_length != self.series_length_
+            n_cases != self.n_cases_
+            or n_channels != self.n_channels_
+            or n_timepoints != self.n_timepoints_
         ):
             raise ValueError(
-                "n_instances, n_dims, series_length mismatch. X should be "
+                "n_cases, n_channels, n_timepoints mismatch. X should be "
                 "the same as the training data used in fit for generating train "
                 "probabilities."
             )

@@ -1,8 +1,10 @@
+"""Tests for CLARANS."""
+
 import numpy as np
 from sklearn import metrics
 from sklearn.utils import check_random_state
 
-from aeon.clustering.clarans import TimeSeriesCLARANS
+from aeon.clustering._clarans import TimeSeriesCLARANS
 from aeon.clustering.tests.test_k_medoids import check_value_in_every_cluster
 from aeon.datasets import load_basic_motions, load_gunpoint
 from aeon.distances import euclidean_distance

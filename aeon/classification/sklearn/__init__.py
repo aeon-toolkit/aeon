@@ -1,4 +1,5 @@
 """Vector sklearn classifiers."""
+
 __all__ = [
     "RotationForestClassifier",
     "ContinuousIntervalTree",

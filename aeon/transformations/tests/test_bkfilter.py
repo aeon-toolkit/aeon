@@ -1,6 +1,6 @@
 """Tests for BKfilter wrapper annotation estimator."""
 
-__author__ = ["klam-data", "pyyim"]
+__maintainer__ = []
 
 import pandas as pd
 import pytest
@@ -18,7 +18,7 @@ def test_BKFilter_wrapper():
     # moved all potential soft dependency import inside the test:
     import statsmodels.api as sm
 
-    from aeon.transformations.series.bkfilter import BKFilter as _BKFilter
+    from aeon.transformations.bkfilter import BKFilter as _BKFilter
 
     dta = sm.datasets.macrodata.load_pandas().data
     index = pd.date_range(start="1959Q1", end="2009Q4", freq="Q")

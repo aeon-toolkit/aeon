@@ -9,11 +9,12 @@ on:
 
 jobs:
   generate-markdown-and-commit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+    runs-on: ubuntu-20.04
 
-      - uses: actions/setup-node@v3
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
 
@@ -24,10 +25,17 @@ jobs:
         id: generate
         run: npx all-contributors generate
 
-      - uses: peter-evans/create-pull-request@v5
+      - uses: actions/create-github-app-token@v1
+        id: app-token
         with:
-          commit-message: "Automated CONTRIBUTORS.md update"
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "Automated `CONTRIBUTORS.md` update"
           branch: update_contributors
-          title: "[MNT] Automated CONTRIBUTORS.md update"
-          body: "Automated update to CONTRIBUTORS.md caused by an update to the .all-contributorsrc file."
+          title: "[MNT] Automated `CONTRIBUTORS.md` update"
+          body: "Automated update to CONTRIBUTORS.md caused by an update to the `.all-contributorsrc` file."
           labels: maintenance, no changelog

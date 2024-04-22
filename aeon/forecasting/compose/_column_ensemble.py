@@ -1,6 +1,6 @@
 """Implements forecaster for applying different univariates by column."""
 
-__author__ = ["GuzalBulatova", "mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = ["ColumnEnsembleForecaster"]
 
 import numpy as np
@@ -77,10 +77,10 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
     """
 
     _tags = {
-        "scitype:y": "both",
+        "y_input_type": "both",
         "ignores-exogeneous-X": False,
-        "y_inner_mtype": PANDAS_MTYPES,
-        "X_inner_mtype": PANDAS_MTYPES,
+        "y_inner_type": PANDAS_MTYPES,
+        "X_inner_type": PANDAS_MTYPES,
         "requires-fh-in-fit": False,
         "capability:missing_values": False,
         "capability:pred_int": True,
@@ -99,7 +99,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
 
     def __init__(self, forecasters):
         self.forecasters = forecasters
-        super(ColumnEnsembleForecaster, self).__init__(forecasters=forecasters)
+        super().__init__(forecasters=forecasters)
 
         # set requires-fh-in-fit depending on forecasters
         if isinstance(forecasters, BaseForecaster):
@@ -290,7 +290,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -331,7 +331,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

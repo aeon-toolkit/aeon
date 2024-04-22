@@ -19,7 +19,7 @@ def write_to_tsfile(
 
     Parameters
     ----------
-    X : np.ndarray (n_cases, n_channels, series_length) or list of np.ndarray[
+    X : np.ndarray (n_cases, n_channels, n_timepoints) or list of np.ndarray[
     n_cases] or pd.DataFrame with (n_cases,n_channels), each cell a pd.Series
         Collection of time series: univariate, multivariate, equal or unequal length.
     path : string.
@@ -43,13 +43,16 @@ def write_to_tsfile(
             f"n_cases, n_channels,n_timepoints) if equal length or list "
             f"of [n_cases] np.ndarray shape (n_channels, n_timepoints) if unequal"
         )
+
     # See if passed file name contains .ts extension or not
     split = problem_name.split(".")
     if split[-1] != "ts":
         problem_name = problem_name + ".ts"
 
     if isinstance(X, np.ndarray) or isinstance(X, list):
-        _write_data_to_tsfile(X, path, problem_name, y=y, regression=regression)
+        _write_data_to_tsfile(
+            X, path, problem_name, y=y, comment=header, regression=regression
+        )
     else:
         _write_dataframe_to_tsfile(
             X,
@@ -126,15 +129,15 @@ def _write_data_to_tsfile(
             if length != len(X[i][0]):
                 equal_length = False
                 break
-    series_length = -1
+    n_timepoints = -1
     if equal_length:
-        series_length = len(X[0][0])
+        n_timepoints = len(X[0][0])
     file = _write_header(
         path,
         problem_name,
         univariate=univariate,
         equal_length=equal_length,
-        series_length=series_length,
+        n_timepoints=n_timepoints,
         class_labels=class_labels,
         comment=comment,
         regression=regression,
@@ -151,6 +154,369 @@ def _write_data_to_tsfile(
         if y is not None:
             file.write(str(y[i]))
         file.write("\n")
+    file.close()
+
+
+def _write_dataframe_to_tsfile(
+    X, path, problem_name="sample_data", y=None, comment=None, regression=False
+):
+    # ensure data provided is a dataframe
+    if not isinstance(X, pd.DataFrame):
+        raise ValueError(f"Data provided must be a DataFrame, passed a {type(X)}")
+    # See if passed file name contains .ts extension or not
+    split = problem_name.split(".")
+    if split[-1] != "ts":
+        problem_name = problem_name + ".ts"
+    class_labels = None
+    if y is not None:
+        class_labels = np.unique(y)
+    univariate = X.shape[1] == 1
+    # dataframes are always equal length
+    equal_length = True
+    n_timepoints = X.shape[0]
+    file = _write_header(
+        path,
+        problem_name,
+        univariate=univariate,
+        equal_length=equal_length,
+        n_timepoints=n_timepoints,
+        class_labels=class_labels,
+        comment=comment,
+        regression=regression,
+        extension=None,
+    )
+    n_cases, n_channels = X.shape
+    for i in range(0, n_cases):
+        for j in range(0, n_channels):
+            series = X.iloc[i, j]
+            for k in range(0, series.size - 1):
+                file.write(f"{series[k]},")
+            file.write(f"{series[series.size-1]}:")
+        file.write(f"{y[i]}\n")
+    file.close()
+
+
+def _write_header(
+    path,
+    problem_name,
+    univariate=True,
+    equal_length=False,
+    n_timepoints=-1,
+    comment=None,
+    regression=False,
+    class_labels=None,
+    suffix=None,
+    extension=None,
+):
+    if class_labels is not None and regression:
+        raise ValueError("Cannot have class_labels true for a regression problem")
+    # create path if it does not exist
+    dir = f"{str(path)}/"
+    try:
+        os.makedirs(dir, exist_ok=True)
+    except OSError:
+        raise ValueError(f"Error trying to access {dir} in _write_header")
+    # create ts file in the path
+    load_path = f"{dir}{str(problem_name)}"
+    if suffix is not None:
+        load_path = load_path + suffix
+    if extension is not None:
+        load_path = load_path + extension
+    file = open(load_path, "w")
+    # write comment if any as a block at start of file
+    if comment is not None:
+        file.write("\n# ".join(textwrap.wrap("# " + comment)))
+        file.write("\n")
+
+    """ Writes the header info for a ts file"""
+    file.write(f"@problemName {problem_name}\n")
+    file.write("@timestamps false\n")
+    file.write(f"@univariate {str(univariate).lower()}\n")
+    file.write(f"@equalLength {str(equal_length).lower()}\n")
+    if n_timepoints > 0 and equal_length:
+        file.write(f"@seriesLength {n_timepoints}\n")
+    # write class labels line
+    if class_labels is not None:
+        space_separated_class_label = " ".join(str(label) for label in class_labels)
+        file.write(f"@classLabel true {space_separated_class_label}\n")
+    else:
+        file.write("@classLabel false\n")
+        if regression:  # or if a regresssion problem, write target label
+            file.write("@targetlabel true\n")
+    file.write("@data\n")
+    return file
+
+
+def write_to_tsf_file(
+    X,
+    path,
+    y=None,
+    problem_name="sample_data.tsf",
+    header=None,
+    attribute=None,
+    frequency=None,
+    horizon=0,
+):
+    """Write an aeon collection of time series to text file in .tsf format.
+
+    Write metadata and data stored in aeon compatible data set to file.
+    A description of the tsf format is in examples/load_data.ipynb.
+
+    Note that this file is structured to still support the
+
+    Parameters
+    ----------
+    X : pd.DataFrame, each cell a pd.Series
+        Collection of time series: univariate, multivariate, equal or unequal length.
+    path : string.
+        Location of the directory to write file
+    y: None or pd.Series, default = None
+        Response variable, discrete for classification, continuous for regression
+        None if clustering.
+    problem_name : string, default = "sample_data"
+        The file is written to <path>/<problem_name>/<problem_name>.tsf
+    header: string, default = None
+        Optional text at the top of the file that is ignored when loading.
+    """
+    if not (isinstance(X, pd.DataFrame)):
+        raise TypeError(f" Wrong input data type {type(X)} convert to pd.DataFrame")
+
+    # See if passed file name contains .tsf extension or not
+    split = problem_name.split(".")
+    if split[-1] != "tsf":
+        problem_name = problem_name + ".tsf"
+
+    _write_dataframe_to_tsf_file(
+        X,
+        path,
+        y=None,
+        problem_name=problem_name,
+        attribute=attribute,
+        frequency=frequency,
+        horizon=horizon,
+        comment=header,
+    )
+
+
+def _write_dataframe_to_tsf_file(
+    X,
+    path,
+    y=None,
+    problem_name="sample_data",
+    comment=None,
+    attribute=None,
+    frequency=None,
+    horizon=0,
+):
+    # ensure data provided is a dataframe
+    if not isinstance(X, pd.DataFrame):
+        raise ValueError(f"Data provided must be a DataFrame, passed a {type(X)}")
+    # See if passed file name contains .tsf extension or not
+    split = problem_name.split(".")
+    if split[-1] != "tsf":
+        problem_name = problem_name + ".tsf"
+    equal_length = not X.isnull().values.any()
+    missing = X.isnull().values.any()
+    if frequency is None:
+        frequency = calculate_frequency(X)
+    if attribute is None:
+        attribute = {"series_name": "string", "start_timestamp": "date"}
+
+    file = _write_header_tsf(
+        path,
+        problem_name=problem_name,
+        attribute=attribute,
+        equal_length=equal_length,
+        frequency=frequency,
+        horizon=horizon,
+        missing=missing,
+        comment=comment,
+    )
+
+    X = X.reset_index(drop=False, inplace=False)
+
+    n_cases, n_channels = X.shape
+
+    for j in range(1, n_channels):
+        column_name = X.columns[j]
+        file.write(f"{str(column_name)}:")
+
+        # Find the index of the first non-empty value in the column
+        first_non_empty_index = X.iloc[:, j].first_valid_index()
+        start_timestamp_index = None
+
+        if first_non_empty_index is not None:
+            start_timestamp_index = X.index[first_non_empty_index]
+            start_timestamp = X.iloc[start_timestamp_index, 0].strftime(
+                "%Y-%m-%d %H-%M-%S"
+            )
+        file.write(f"{str(start_timestamp)}:")
+
+        for i in range(start_timestamp_index, n_cases - 1):
+            series = X.iloc[i, j]
+            # Check if the value is NaN
+            if pd.notna(series):
+                series_str = str(series)
+            else:
+                series_str = "?"  # Replace NaN with a ?
+
+            # Write the series string to the file
+            file.write(f"{series_str},")
+
+        series = X.iloc[-1, j]
+        # Check if he value is NaN
+        if pd.notna(series):
+            series_str = str(series)
+        else:
+            series_str = "?"  # Replace NaN with a ?
+        # Write the series string to the file
+        file.write(f"{series_str}")
+
+        # Check if y is not None before accessing its elements
+        if y is not None:
+            file.write(f"{y[i]}\n")
+        else:
+            file.write("\n")  # Write a newline if y is None
+    file.close()
+
+
+def _write_header_tsf(
+    path,
+    problem_name,
+    attribute,
+    equal_length=True,
+    frequency=None,
+    horizon=0,
+    missing=False,
+    comment=None,
+):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    # See if passed file name contains .tsf extension or not
+    split = problem_name.split(".")
+    if split[-1] != "tsf":
+        problem_name = problem_name + ".tsf"
+    load_path = f"{path}/{problem_name}"
+
+    file = open(load_path, "w")
+
+    if comment is not None:
+        file.write("\n# ".join(textwrap.wrap("# " + comment)))
+        file.write("\n")
+
+    file.write(f"@relation {str(split[0]).lower()}\n")
+    # Write attribute metadata for each column
+    if attribute is not None:
+        for attr in attribute:
+            file.write(f"@attribute {str(attr)} {str(attribute[attr])}\n")
+    file.write(f"@frequency {str(frequency).lower()}\n")
+    file.write(f"@horizon {str(horizon).lower()}\n")
+    file.write(f"@missing {str(missing).lower()}\n")
+    file.write(f"@equallength {str(equal_length).lower()}\n")
+    file.write("@data\n")
+
+    return file
+
+
+def calculate_frequency(df):
+    # Convert timestamps to DateTime format
+    df["Timestamp"] = pd.to_datetime(df.index)
+
+    # Calculate time differences
+    time_diffs = df["Timestamp"].diff().dropna()
+
+    # Calculate median time difference
+    median_diff = time_diffs.median()
+
+    # Determine frequency based on median time difference
+    if median_diff <= pd.Timedelta(days=1):
+        frequency = "daily"
+    elif median_diff <= pd.Timedelta(weeks=1):
+        frequency = "weekly"
+    elif median_diff <= pd.Timedelta(days=30):
+        frequency = "monthly"
+    elif median_diff <= pd.Timedelta(days=365):
+        frequency = "yearly"
+    else:
+        frequency = "other"  # You can define more granular frequencies as needed
+    df.drop("Timestamp", axis=1, inplace=True)
+
+    return frequency
+
+
+def write_to_arff_file(
+    X,
+    y,
+    path,
+    problem_name="sample_data",
+    header=None,
+    suffix="",
+):
+    """Write an aeon collection of time series to text file in .arff format.
+
+    Only compatible for classification-like problems with univariate equal
+    length time series currently.
+
+    Parameters
+    ----------
+    X : np.ndarray (n_cases, n_channels, n_timepoints)
+        Collection of univariate time series with equal length.
+    y: ndarray
+        Discrete response variable.
+    path : string.
+        Location of the directory to write file
+    problem_name: str, default="Data"
+        The problem name to print in the header of the arff file and also the name of
+        the file.
+    header: string, default=None
+        Optional text at the top of the file that is ignored when loading.
+    suffix: str or None, default=""
+        Addon at the end of the filename before the file extension, i.e. _TRAIN or
+        _TEST.
+
+    Returns
+    -------
+    None
+    """
+    if not (isinstance(X, np.ndarray)):
+        raise TypeError(
+            f" Wrong input data type {type(X)}. Convert to np.ndarray (n_cases, "
+            f"n_channels, n_timepoints) if possible."
+        )
+
+    if len(X.shape) != 3 or X.shape[1] != 1:
+        raise ValueError(
+            f"X must be a 3D array with shape (n_cases, 1, n_timepoints), but "
+            f"received {X.shape}"
+        )
+
+    file = open(f"{path}/{problem_name}{suffix}.arff", "w")
+
+    # write comment if any as a block at start of file
+    if header is not None:
+        file.write("\n% ".join(textwrap.wrap("% " + header)))
+        file.write("\n")
+
+    # begin writing header information
+    file.write(f"@Relation {problem_name}\n")
+
+    # write each attribute
+    for i in range(X.shape[2]):
+        file.write(f"@attribute att{str(i)} numeric\n")
+
+    # lass attribute if it exists
+    comma_separated_class_label = ",".join(str(label) for label in np.unique(y))
+    file.write(f"@attribute target {{{comma_separated_class_label}}}\n")
+
+    # write data
+    file.write("@data\n")
+    for case, target in zip(X, y):
+        # turn attributes into comma-separated row
+        atts = ",".join([str(num) if not np.isnan(num) else "?" for num in case[0]])
+        file.write(str(atts))
+        file.write(f",{target}")
+        file.write("\n")  # open a new line
+
     file.close()
 
 
@@ -203,7 +569,7 @@ def write_results_to_uea_format(
     third_line : str
         summary performance information (see comment below)
     """
-    if len(y_true) != len(y_pred):
+    if y_true is not None and len(y_true) != len(y_pred):
         raise IndexError(
             "The number of predicted values is not the same as the "
             "number of actual class values"
@@ -213,7 +579,7 @@ def write_results_to_uea_format(
         output_path = f"{output_path}/{estimator_name}/Predictions/{dataset_name}/"
     try:
         os.makedirs(output_path)
-    except os.error:
+    except OSError:
         pass  # raises os.error if path already exists, so just ignore this
 
     if split == "TRAIN" or split == "train":
@@ -271,98 +637,4 @@ def write_results_to_uea_format(
                 for j in predicted_probs[i]:
                     file.write("," + str(j))
             file.write("\n")
-    file.close()
-
-
-def _write_header(
-    path,
-    problem_name,
-    univariate=True,
-    equal_length=False,
-    series_length=-1,
-    comment=None,
-    regression=False,
-    class_labels=None,
-    suffix=None,
-    extension=None,
-):
-    if class_labels is not None and regression:
-        raise ValueError(
-            "Cannot have class_labels and targetlabel. If the problem "
-            "is classification, add class_labels. If regression, "
-            "set targetlabel to true."
-        )
-    # create path if it does not exist
-    dir = f"{str(path)}/"
-    try:
-        os.makedirs(dir, exist_ok=True)
-    except os.error:
-        raise ValueError(f"Error trying to access {dir} in _write_header")
-    # create ts file in the path
-    load_path = f"{dir}{str(problem_name)}"
-    if suffix is not None:
-        load_path = load_path + suffix
-    if extension is not None:
-        load_path = load_path + extension
-    file = open(load_path, "w")
-    # write comment if any as a block at start of file
-    if comment is not None:
-        file.write("\n# ".join(textwrap.wrap("# " + comment)))
-        file.write("\n")
-
-    """ Writes the header info for a ts file"""
-    file.write(f"@problemName {problem_name}\n")
-    file.write("@timestamps false\n")
-    file.write(f"@univariate {str(univariate).lower()}\n")
-    file.write(f"@equalLength {str(equal_length).lower()}\n")
-    if series_length > 0 and equal_length:
-        file.write(f"@seriesLength {series_length}\n")
-    # write class labels line
-    if class_labels is not None:
-        space_separated_class_label = " ".join(str(label) for label in class_labels)
-        file.write(f"@classLabel true {space_separated_class_label}\n")
-    else:
-        file.write("@classLabel false\n")
-        if regression:  # or if a regresssion problem, write target label
-            file.write("@targetlabel true\n")
-    file.write("@data\n")
-    return file
-
-
-def _write_dataframe_to_tsfile(
-    X, path, problem_name="sample_data", y=None, comment=None, regression=False
-):
-    # ensure data provided is a dataframe
-    if not isinstance(X, pd.DataFrame):
-        raise ValueError(f"Data provided must be a DataFrame, passed a {type(X)}")
-    # See if passed file name contains .ts extension or not
-    split = problem_name.split(".")
-    if split[-1] != "ts":
-        problem_name = problem_name + ".ts"
-    class_labels = None
-    if y is not None:
-        class_labels = np.unique(y)
-    univariate = X.shape[1] == 1
-    # dataframes are always equal length
-    equal_length = True
-    series_length = X.shape[0]
-    file = _write_header(
-        path,
-        problem_name,
-        univariate=univariate,
-        equal_length=equal_length,
-        series_length=series_length,
-        class_labels=class_labels,
-        comment=comment,
-        regression=regression,
-        extension=None,
-    )
-    n_cases, n_channels = X.shape
-    for i in range(0, n_cases):
-        for j in range(0, n_channels):
-            series = X.iloc[i, j]
-            for k in range(0, series.size - 1):
-                file.write(f"{series[k]},")
-            file.write(f"{series[series.size-1]}:")
-        file.write(f"{y[i]}\n")
     file.close()

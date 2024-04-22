@@ -9,7 +9,7 @@ from sklearn.pipeline import Pipeline
 
 from aeon.base import BaseObject
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 
 def is_sklearn_estimator(obj):
@@ -33,7 +33,7 @@ def is_sklearn_estimator(obj):
     return is_sklearn_est
 
 
-mixin_to_scitype = {
+mixin_to_identifier = {
     ClassifierMixin: "classifier",
     ClusterMixin: "clusterer",
     RegressorMixin: "regressor",
@@ -41,8 +41,8 @@ mixin_to_scitype = {
 }
 
 
-def sklearn_scitype(obj, var_name="obj"):
-    """Return sklearn scitype.
+def sklearn_estimator_identifier(obj, var_name="obj"):
+    """Return sklearn identifier.
 
     Parameters
     ----------
@@ -52,7 +52,7 @@ def sklearn_scitype(obj, var_name="obj"):
 
     Returns
     -------
-    str, the sklearn scitype of obj, inferred from inheritance tree, one of
+    str, the sklearn identifier of obj, inferred from inheritance tree, one of
         "classifier" - supervised classifier
         "clusterer" - unsupervised clusterer
         "regressor" - supervised regressor
@@ -67,7 +67,7 @@ def sklearn_scitype(obj, var_name="obj"):
         raise TypeError(f"{var_name} is not an sklearn estimator, has type {type(obj)}")
 
     # first check whether obj class inherits from sklearn mixins
-    sklearn_mixins = tuple(mixin_to_scitype.keys())
+    sklearn_mixins = tuple(mixin_to_identifier.keys())
 
     if not isclass(obj):
         obj_class = type(obj)
@@ -76,15 +76,15 @@ def sklearn_scitype(obj, var_name="obj"):
     if issubclass(obj_class, sklearn_mixins):
         for mx in sklearn_mixins:
             if issubclass(obj_class, mx):
-                return mixin_to_scitype[mx]
+                return mixin_to_identifier[mx]
 
-    # deal with sklearn pipelines: scitype is determined by the last element
+    # deal with sklearn pipelines: type is determined by the last element
     if isinstance(obj, Pipeline) or hasattr(obj, "steps"):
-        return sklearn_scitype(obj.steps[-1][1], var_name=var_name)
+        return sklearn_estimator_identifier(obj.steps[-1][1], var_name=var_name)
 
-    # deal with generic composites: scitype is type of wrapped "estimator"
+    # deal with generic composites: type is type of wrapped "estimator"
     if isinstance(obj, (GridSearchCV, RandomizedSearchCV)) or hasattr(obj, "estimator"):
-        return sklearn_scitype(obj.estimator, var_name=var_name)
+        return sklearn_estimator_identifier(obj.estimator, var_name=var_name)
 
     # fallback - estimator of indeterminate type
     return "estimator"
@@ -101,7 +101,9 @@ def is_sklearn_transformer(obj):
     -------
     bool, whether obj is an sklearn transformer
     """
-    return is_sklearn_estimator(obj) and sklearn_scitype(obj) == "transformer"
+    return (
+        is_sklearn_estimator(obj) and sklearn_estimator_identifier(obj) == "transformer"
+    )
 
 
 def is_sklearn_classifier(obj):
@@ -115,7 +117,9 @@ def is_sklearn_classifier(obj):
     -------
     bool, whether obj is an sklearn classifier
     """
-    return is_sklearn_estimator(obj) and sklearn_scitype(obj) == "classifier"
+    return (
+        is_sklearn_estimator(obj) and sklearn_estimator_identifier(obj) == "classifier"
+    )
 
 
 def is_sklearn_regressor(obj):
@@ -129,7 +133,9 @@ def is_sklearn_regressor(obj):
     -------
     bool, whether obj is an sklearn regressor
     """
-    return is_sklearn_estimator(obj) and sklearn_scitype(obj) == "regressor"
+    return (
+        is_sklearn_estimator(obj) and sklearn_estimator_identifier(obj) == "regressor"
+    )
 
 
 def is_sklearn_clusterer(obj):
@@ -143,4 +149,6 @@ def is_sklearn_clusterer(obj):
     -------
     bool, whether obj is an sklearn clusterer
     """
-    return is_sklearn_estimator(obj) and sklearn_scitype(obj) == "clusterer"
+    return (
+        is_sklearn_estimator(obj) and sklearn_estimator_identifier(obj) == "clusterer"
+    )

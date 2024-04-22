@@ -4,7 +4,7 @@ Uses PR_TESTING flag to switch between full parameter combinations
 (PR_TESTING==False) and running a reduced parameter combination (PR_TESTING==True).
 """
 
-from aeon.tests.test_all_estimators import PR_TESTING
+from aeon.testing.test_config import PR_TESTING
 
 __all__ = [
     "TEST_CUTOFFS_INT_LIST",
@@ -38,7 +38,7 @@ __all__ = [
 ]
 
 if not PR_TESTING:
-    from aeon.forecasting.tests._config_full import (
+    from aeon.forecasting.tests.test_config_full import (
         INDEX_TYPE_LOOKUP,
         TEST_ALPHAS,
         TEST_CUTOFFS,
@@ -69,7 +69,7 @@ if not PR_TESTING:
         VALID_INDEX_FH_COMBINATIONS,
     )
 else:
-    from aeon.forecasting.tests._config import (
+    from aeon.forecasting.tests.test_config import (
         INDEX_TYPE_LOOKUP,
         TEST_ALPHAS,
         TEST_CUTOFFS,

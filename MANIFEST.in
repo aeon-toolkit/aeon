@@ -11,7 +11,6 @@ include LICENSE
 include MANIFEST.in
 include pyproject.toml
 include README.md
-include setup.cfg
 
 recursive-exclude .binder *
 recursive-exclude .github *
@@ -28,4 +27,3 @@ exclude CODEOWNERS
 exclude CONTRIBUTING.md
 exclude CONTRIBUTORS.md
 exclude GOVERNANCE.md
-exclude sweep.yaml

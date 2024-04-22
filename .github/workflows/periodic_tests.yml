@@ -4,41 +4,111 @@ on:
   schedule:
     # every day at 1:30 AM UTC
     - cron:  "30 1 * * *"
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
 jobs:
-  run-notebook-examples:
-    runs-on: ubuntu-22.04
+  check-manifest:
+    runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+
+      - name: Run check-manifest
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: check-manifest --hook-stage manual
+
+  pre-commit:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+  run-notebook-examples:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "run-notebook-examples"
+          runner_os: ${{ runner.os }}
+          python_version: "3.10"
+          restore_cache: "false"
 
       - name: Install dependencies
-        run: python -m pip install .[all_extras,binder,dev]
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,binder,dev]
 
       - name: Run example notebooks
-        run: build_tools/run_examples.sh
+        run: build_tools/run_examples.sh false
         shell: bash
 
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-run-notebook-examples-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
+
   test-nosoftdeps:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "test-nosoftdeps"
+          runner_os: ${{ runner.os }}
+          python_version: "3.10"
+          restore_cache: "false"
+
       - name: Install aeon and dependencies
-        run: python -m pip install .[dev]
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[dev]
 
       - name: Show dependencies
         run: python -m pip list
@@ -47,26 +117,54 @@ jobs:
         run: |
           python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
           python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
-          python -m pytest --pyargs aeon.tests.test_softdeps
+          python -m pytest --pyargs aeon.testing.test_softdeps
+
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-test-nosoftdeps-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
 
   test-nosoftdeps-full:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "test-nosoftdeps-full"
+          runner_os: ${{ runner.os }}
+          python_version: "3.10"
+          restore_cache: "false"
+
       - name: Install aeon and dependencies
-        run: python -m pip install .[dev]
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[dev]
 
       - name: Show dependencies
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -k 'not TestAll' --ignore=aeon/utils/tests/test_mlflow_aeon_model_export.py
+        run: python -m pytest -k 'not TestAll'
+
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-test-nosoftdeps-full-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
 
   pytest:
     runs-on: ${{ matrix.os }}
@@ -74,18 +172,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macOS-12, windows-2022 ]
-        python-version: [ "3.8", "3.9", "3.10", "3.11" ]
+        os: [ ubuntu-20.04, macOS-13, windows-2022 ]
+        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "pytest"
+          runner_os: ${{ runner.os }}
+          python_version: ${{ matrix.python-version }}
+          restore_cache: "false"
+
       - name: Install aeon and dependencies
-        run: python -m pip install .[all_extras,dev]
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
 
       - name: Show dependencies
         run: python -m pip list
@@ -93,13 +205,22 @@ jobs:
       - name: Run tests
         run: python -m pytest
 
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-pytest-${{ runner.os }}-${{ matrix.python-version}}-${{ env.CURRENT_DATE }}
+
   codecov:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
@@ -107,12 +228,19 @@ jobs:
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
       - name: Install aeon and dependencies
-        run: python -m pip install .[all_extras,unstable_extras,dev]
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,unstable_extras,dev]
 
       - name: Show dependencies
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --cov=aeon --cov-report=xml
+        run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
 
-      - uses: codecov/codecov-action@v3
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

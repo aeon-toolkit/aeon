@@ -1,7 +1,8 @@
 """General numba utilities."""
 
-__author__ = ["MatthewMiddlehurst", "baraline"]
+__maintainer__ = []
 __all__ = [
+    "generate_new_default_njit_func",
     "unique_count",
     "first_order_differences",
     "first_order_differences_2d",
@@ -22,12 +23,116 @@ __all__ = [
     "slope_derivative_3d",
 ]
 
+
+import inspect
+import types
+from copy import deepcopy
 from typing import Tuple
 
 import numpy as np
 from numba import njit, prange
+from numba.core.registry import CPUDispatcher
 
 import aeon.utils.numba.stats as stats
+
+AEON_NUMBA_STD_THRESHOLD = 1e-8
+
+
+def generate_new_default_njit_func(
+    base_func,
+    new_defaults_args,
+    use_fastmath_for_callable=True,
+    use_cache_for_callable=True,
+):
+    """
+    Return a function with same code, globals, defaults, closure, and name.
+
+    If the function is not a CPUDispatcher (numba) function, it will try to create
+    a numba function if the base function is callable.
+
+    Parameters
+    ----------
+    base_func : function or CPUDispatcher
+        A Python or Numba function to modify.
+    new_defaults_args : dict
+        Dictionnary of new default keyword args. If new_defaults_args is None or empty,
+        directly return base_func.
+    use_fastmath_for_callable : bool
+        If base_func is a callable, add fastmath as numba option when compiling
+        the new function to numba.
+    use_cache_for_callable : bool
+        If base_func is a callable, add cache as numba option when compiling
+        the new function to numba.
+
+    Returns
+    -------
+    new_func_njit : CPUDispatcher
+        Created numba function with new default args.
+
+    """
+    # empty dict evaluate to false
+    if new_defaults_args is None or (
+        isinstance(new_defaults_args, dict) and not new_defaults_args
+    ):
+        if isinstance(base_func, CPUDispatcher):
+            return base_func
+        else:
+            numba_args_for_callable = {}
+            if use_fastmath_for_callable:
+                numba_args_for_callable.update({"fastmath": True})
+            if use_cache_for_callable:
+                numba_args_for_callable.update({"cache": True})
+            return njit(base_func, **numba_args_for_callable)
+
+    elif not isinstance(new_defaults_args, dict):
+        raise TypeError(
+            "Expected new_defaults_args to be a dict but got "
+            f"{type(new_defaults_args)}"
+        )
+    if isinstance(base_func, CPUDispatcher):
+        base_func_py = base_func.py_func
+    elif callable(base_func):
+        base_func_py = base_func
+    else:
+        raise TypeError(
+            "Expected base_func to be of callable or CPUDispatcher type (numba "
+            f"function), but got {type(base_func)}"
+        )
+    signature = inspect.signature(base_func_py)
+
+    _new_defaults = []
+    for k, v in signature.parameters.items():
+        if v.default is not inspect.Parameter.empty:
+            if k in new_defaults_args.keys():
+                _new_defaults.append(new_defaults_args[k])
+            else:
+                _new_defaults.append(v.default)
+
+    new_func = types.FunctionType(
+        base_func_py.__code__,
+        base_func_py.__globals__,
+        "_tmp_" + base_func_py.__name__,
+        tuple(_new_defaults),
+        base_func_py.__closure__,
+    )
+    # If new_func was given attrs (dict is a shallow copy we shouldn't modify)
+    new_func.__dict__.update(base_func_py.__dict__)
+    if isinstance(base_func, CPUDispatcher):
+        numba_options = deepcopy(base_func.targetoptions)
+        # remove nopython option as we already use njit to avoid a warning
+        numba_options.pop("nopython")
+        new_func_njit = njit(new_func, **numba_options)
+
+    elif callable(base_func):
+        # This should return a Python function when DISABLE_NJIT = True
+        numba_args_for_callable = {}
+        if use_fastmath_for_callable:
+            numba_args_for_callable.update({"fastmath": True})
+        if use_cache_for_callable:
+            numba_args_for_callable.update({"cache": True})
+        new_func_njit = njit(new_func, **numba_args_for_callable)
+
+    return new_func_njit
 
 
 @njit(fastmath=True, cache=True)
@@ -171,7 +276,7 @@ def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarra
     >>> X_norm = z_normalise_series_with_mean(X, mean(X))
     """
     s = stats.std(X)
-    if s > 0:
+    if s > AEON_NUMBA_STD_THRESHOLD:
         arr = (X - series_mean) / s
     else:
         arr = X - series_mean
@@ -200,10 +305,38 @@ def z_normalise_series(X: np.ndarray) -> np.ndarray:
     >>> X_norm = z_normalise_series(X)
     """
     s = stats.std(X)
-    if s > 0:
+    if s > AEON_NUMBA_STD_THRESHOLD:
         arr = (X - stats.mean(X)) / s
     else:
         arr = X - stats.mean(X)
+    return arr
+
+
+@njit(fastmath=True, cache=True)
+def z_normalize_series_with_mean_std(
+    X: np.ndarray, series_mean: float, series_std: float
+):
+    """
+    Numba series normalization function for a 1d numpy array with mean and std.
+
+    Parameters
+    ----------
+    X : 1d numpy array
+        A 1d numpy array of values
+    series_mean : float
+        The mean of the series
+    series_std : float
+        The standard deviation of the series
+
+    Returns
+    -------
+    arr :  1d numpy array
+        The normalized series
+    """
+    if series_std > AEON_NUMBA_STD_THRESHOLD:
+        arr = (X - series_mean) / series_std
+    else:
+        arr = X - series_mean
     return arr
 
 
@@ -231,6 +364,33 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     arr = np.zeros(X.shape)
     for i in range(X.shape[0]):
         arr[i] = z_normalise_series(X[i])
+    return arr
+
+
+@njit(fastmath=True, cache=True)
+def z_normalize_series_2d_with_mean_std(
+    X: np.ndarray, series_mean: np.ndarray, series_std: np.ndarray
+) -> np.ndarray:
+    """
+    Numba series normalization function for a 2d numpy array with means and stds.
+
+    Parameters
+    ----------
+    X : array, shape = (n_channels, n_timestamps)
+        Input array to normalize.
+    mean : array, shape = (n_channels)
+        Mean of each channel of X.
+    std : array, shape = (n_channels)
+        Std of each channel of X.
+
+    Returns
+    -------
+    arr : array, shape = (n_channels, n_timestamps)
+        The normalized array
+    """
+    arr = np.zeros(X.shape)
+    for i in range(X.shape[0]):
+        arr[i] = z_normalize_series_with_mean_std(X[i], series_mean[i], series_std[i])
     return arr
 
 
@@ -387,7 +547,7 @@ def get_subsequence_with_mean_std(
 
         means[i_channel] = _sum / length
         _s = (_sum2 / length) - (means[i_channel] ** 2)
-        if _s > 0:
+        if _s > AEON_NUMBA_STD_THRESHOLD:
             stds[i_channel] = _s**0.5
 
     return values, means, stds
@@ -447,7 +607,7 @@ def sliding_mean_std_one_series(
             for i_channel in prange(n_channels):
                 mean[i_channel, i_mod_dil] = _sum[i_channel] / length
                 _s = (_sum2[i_channel] / length) - (mean[i_channel, i_mod_dil] ** 2)
-                if _s > 0:
+                if _s > AEON_NUMBA_STD_THRESHOLD:
                     std[i_channel, i_mod_dil] = _s**0.5
 
         _idx_sub += dilation
@@ -462,7 +622,7 @@ def sliding_mean_std_one_series(
 
                 mean[i_channel, _idx_sub[0]] = _sum[i_channel] / length
                 _s = (_sum2[i_channel] / length) - (mean[i_channel, _idx_sub[0]] ** 2)
-                if _s > 0:
+                if _s > AEON_NUMBA_STD_THRESHOLD:
                     std[i_channel, _idx_sub[0]] = _s**0.5
             _idx_sub += dilation
 

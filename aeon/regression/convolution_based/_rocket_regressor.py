@@ -3,8 +3,10 @@
 Pipeline regressor using the ROCKET transformer and RidgeCV estimator.
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = ["RocketRegressor"]
+
+import warnings
 
 import numpy as np
 from sklearn.linear_model import RidgeCV
@@ -23,56 +25,57 @@ from aeon.transformations.collection.convolution_based import (
 
 
 class RocketRegressor(BaseRegressor):
-    """Regressor wrapped for the Rocket transformer using RidgeCV regressor.
+    """
+    Regressor wrapped for the Rocket transformer using RidgeCV regressor.
 
-    This regressor simply transforms the input data using the Rocket [1]_
-    transformer and builds a RidgeCV estimator using the transformed data.
+    This regressor simply transforms the input data using a Rocket [1,2,3]_
+    transformer, performs a Standard scaling and fits a sklearn regressor,
+    using the transformed data (default regressor is RidgeCV).
 
     The regressor can be configured to use Rocket [1]_, MiniRocket [2]_ or
     MultiRocket [3]_.
 
     Parameters
     ----------
-    num_kernels : int, optional, default=10,000
-        The number of kernels the for Rocket transform.
-    rocket_transform : str, optional, default="rocket"
+    num_kernels : int, default=10,000
+        The number of kernels for the Rocket transform.
+    rocket_transform : str, default="rocket"
         The type of Rocket transformer to use.
         Valid inputs = ["rocket", "minirocket", "multirocket"]
-    max_dilations_per_kernel : int, optional, default=32
+    max_dilations_per_kernel : int, default=32
         MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
-    n_features_per_kernel : int, optional, default=4
+    n_features_per_kernel : int, default=4
         MultiRocket only. The number of features per kernel.
-    use_multivariate : str, ["auto", "yes", "no"], optional, default="auto"
-        whether to use multivariate rocket transforms or univariate ones
-        "auto" = multivariate iff data seen in fit is multivariate, otherwise univariate
-        "yes" = always uses multivariate transformers, native multi/univariate
-        "no" = always univariate transformers, multivariate by framework vectorization
-    random_state : int or None, default=None
-        Seed for random number generation.
     estimator : sklearn compatible regressor or None, default=None
-        if none, a RidgeCV(alphas=np.logspace(-3, 3, 10)) is used
+        The estimator used. If None, a RidgeCV(alphas=np.logspace(-3, 3, 10)) is used.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
 
-    Attributes
-    ----------
-    n_classes : int
-        The number of classes.
-    classes_ : list
-        The classes labels.
-    estimator_ : RegressorPipeline
-        RocketRegressor as a RegressorPipeline, fitted to data internally
-
     See Also
     --------
-    Rocket, RocketClassifier
+    Rocket
+        Rocket transformers are in transformations/collection.
+    RocketClassifier
 
     References
     ----------
-    .. [1] Dempster, Angus, François Petitjean, and Geoffrey I. Webb. "Rocket:
-       exceptionally fast and accurate time series classification using random
-       convolutional kernels." Data Mining and Knowledge Discovery 34.5 (2020)
+    .. [1] Dempster, A., Petitjean, F. and Webb, G.I., 2020. ROCKET: exceptionally fast
+        and accurate time series classification using random convolutional kernels.
+        Data Mining and Knowledge Discovery, 34(5), pp.1454-1495.
+    .. [2] Dempster, A., Schmidt, D.F. and Webb, G.I., 2021, August. Minirocket: A very
+        fast (almost) deterministic transform for time series classification. In
+        Proceedings of the 27th ACM SIGKDD conference on knowledge discovery & data
+        mining (pp. 248-257).
+    .. [3] Tan, C.W., Dempster, A., Bergmeir, C. and Webb, G.I., 2022. MultiRocket:
+        multiple pooling operators and transformations for fast and effective time
+        series classification. Data Mining and Knowledge Discovery, 36(5), pp.1623-1646.
+
 
     Examples
     --------
@@ -89,6 +92,7 @@ class RocketRegressor(BaseRegressor):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
+        "algorithm_type": "convolution",
     }
 
     def __init__(
@@ -97,21 +101,28 @@ class RocketRegressor(BaseRegressor):
         rocket_transform="rocket",
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
-        use_multivariate="auto",
-        random_state=None,
+        use_multivariate="deprecated",
         estimator=None,
+        random_state=None,
         n_jobs=1,
     ):
         self.num_kernels = num_kernels
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
-        self.use_multivariate = use_multivariate
         self.random_state = random_state
         self.estimator = estimator
         self.n_jobs = n_jobs
 
-        super(RocketRegressor, self).__init__()
+        self.use_multivariate = use_multivariate
+        if use_multivariate != "deprecated":
+            warnings.warn(
+                "the use_multivariate parameter is deprecated and will be "
+                "removed in v0.9.0. Datatype will be automatically detected.",
+                stacklevel=2,
+            )
+
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Rocket variant to training data.
@@ -119,9 +130,9 @@ class RocketRegressor(BaseRegressor):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data of shape = (n_instances, n_channels, n_timepoints).
+            The training data of shape = (n_cases, n_channels, n_timepoints).
         y : 3D np.ndarray
-            The target variable values, shape = (n_instances,).
+            The target variable values, shape = (n_cases,).
 
         Returns
         -------
@@ -133,16 +144,17 @@ class RocketRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
-        if self.rocket_transform == "rocket":
+        rocket_transform = self.rocket_transform.lower()
+        if rocket_transform == "rocket":
             self._transformer = Rocket(
                 num_kernels=self.num_kernels,
                 n_jobs=self.n_jobs,
                 random_state=self.random_state,
             )
-        elif self.rocket_transform == "minirocket":
-            if self.n_dims_ > 1:
+        elif rocket_transform == "minirocket":
+            if self.n_channels_ > 1:
                 self._transformer = MiniRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -156,8 +168,8 @@ class RocketRegressor(BaseRegressor):
                     n_jobs=self.n_jobs,
                     random_state=self.random_state,
                 )
-        elif self.rocket_transform == "multirocket":
-            if self.n_dims_ > 1:
+        elif rocket_transform == "multirocket":
+            if self.n_channels_ > 1:
                 self._transformer = MultiRocketMultivariate(
                     num_kernels=self.num_kernels,
                     max_dilations_per_kernel=self.max_dilations_per_kernel,
@@ -175,19 +187,24 @@ class RocketRegressor(BaseRegressor):
                 )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
+
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
-            RidgeCV(alphas=np.logspace(-3, 3, 10))
-            if self.estimator is None
-            else self.estimator,
+            (
+                RidgeCV(alphas=np.logspace(-3, 3, 10))
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
+
         self.pipeline_ = make_pipeline(
             self._transformer,
             self._scaler,
             self._estimator,
         )
         self.pipeline_.fit(X, y)
+
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -195,12 +212,12 @@ class RocketRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = (n_cases,)
             Predicted class labels.
         """
         return self.pipeline_.predict(X)

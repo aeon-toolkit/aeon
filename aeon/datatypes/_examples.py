@@ -14,13 +14,13 @@ the representation is considered "lossy" if the representation is incomplete
 
 from aeon.datatypes._registry import mtype_to_scitype
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = [
     "get_examples",
 ]
 
-from aeon.datatypes._alignment import example_dict_Alignment
+
 from aeon.datatypes._hierarchical import (
     example_dict_Hierarchical,
     example_dict_lossy_Hierarchical,
@@ -49,7 +49,6 @@ from aeon.datatypes._table import (
 
 # pool example_dict-s
 example_dict = dict()
-example_dict.update(example_dict_Alignment)
 example_dict.update(example_dict_Series)
 example_dict.update(example_dict_Panel)
 example_dict.update(example_dict_Hierarchical)
@@ -82,9 +81,9 @@ def get_examples(
     Parameters
     ----------
     mtype: str - name of the mtype for the example, a valid mtype string
-        valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
+        valid mtype strings, with explanation, are in datatypes.TYPE_REGISTER
     as_scitype : str, optional - name of scitype of the example, a valid scitype string
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
         default = inferred from mtype of obj
     return_lossy: bool, optional, default=False
         whether to return second argument

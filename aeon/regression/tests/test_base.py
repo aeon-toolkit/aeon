@@ -1,16 +1,17 @@
 """Unit tests for regression base class functionality."""
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from aeon.datasets import load_covid_3month
-from aeon.regression._dummy import DummyRegressor
 from aeon.regression.base import BaseRegressor
-from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation.tests.test_collection import (
+from aeon.regression.dummy import DummyRegressor
+from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
+from aeon.utils import COLLECTIONS_DATA_TYPES
 
 
 class _TestRegressor(BaseRegressor):
@@ -32,7 +33,7 @@ class _DummyHandlesAllInput(BaseRegressor):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def _fit(self, X, y):
@@ -51,7 +52,7 @@ class _TestHandlesAllInput(BaseRegressor):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def _fit(self, X, y):
@@ -167,4 +168,4 @@ def test_score():
     x_test, y_test = load_covid_3month(split="test")
     dummy.fit(x_train, y_train)
     r = dummy.score(x_test, y_test)
-    np.testing.assert_almost_equal(r, -0.004303695, decimal=6)
+    np.testing.assert_almost_equal(r, 0.0019998715745554777, decimal=6)

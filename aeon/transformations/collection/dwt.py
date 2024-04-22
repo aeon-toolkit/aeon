@@ -1,14 +1,15 @@
 """Discrete wavelet transform."""
+
+__maintainer__ = []
+
 import math
 
 import numpy as np
 
-from aeon.transformations.base import BaseTransformer
-
-__author__ = "Vincent Nicholson"
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class DWTTransformer(BaseTransformer):
+class DWTTransformer(BaseCollectionTransformer):
     """Discrete Wavelet Transform Transformer.
 
     Performs the Haar wavelet transformation on a time series.
@@ -29,32 +30,29 @@ class DWTTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
         "fit_is_empty": True,
+        "capability:multivariate": True,
     }
 
     def __init__(self, n_levels=3):
         self.n_levels = n_levels
-        super(DWTTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
 
         private _transform containing core logic, called from transform
 
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        Xt : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of transformed time series
         """
-        n_instances, n_channels, n_timepoints = X.shape
+        n_cases, n_channels, n_timepoints = X.shape
         _X = np.swapaxes(X, 0, 1)
         self._check_parameters()
 

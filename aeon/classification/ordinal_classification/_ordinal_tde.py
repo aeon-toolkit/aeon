@@ -4,7 +4,7 @@ Dictionary based Ordinal TDE classifiers based on SFA transform. Contains a sing
 IndividualOrdinalTDE and Ordinal TDE.
 """
 
-__author__ = ["RafaelAyllon"]
+__maintainer__ = []
 __all__ = [
     "OrdinalTDE",
     "IndividualOrdinalTDE",
@@ -27,7 +27,6 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFA
-from aeon.utils.validation.panel import check_X_y
 
 
 class OrdinalTDE(BaseClassifier):
@@ -81,9 +80,10 @@ class OrdinalTDE(BaseClassifier):
         be faster for larger datasets. As the Dict cannot be pickled currently, there
         will be some overhead converting it to a python dict with multiple threads and
         pickling.
-    save_train_predictions : bool, default=False
-        Save the ensemble member train predictions in fit for use in _get_train_probs
-        leave-one-out cross-validation.
+    train_estimate_method : str, default="loocv"
+        Method used to generate train estimates in `fit_predict` and
+        `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
+        "oob" for out of bag estimates.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -96,16 +96,16 @@ class OrdinalTDE(BaseClassifier):
         The number of classes.
     classes_ : list
         The classes labels.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
-    series_length_ : int
+    n_timepoints_ : int
         The length of each series.
-    n_estimators_ : int
-        The final number of classifiers used (<= max_ensemble_size)
     estimators_ : list of shape (n_estimators) of IndividualOrdinalTDE
         The collections of estimators trained in fit.
+    n_estimators_ : int
+        The final number of classifiers used. Will be <= `max_ensemble_size`.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
 
@@ -162,7 +162,7 @@ class OrdinalTDE(BaseClassifier):
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
         typed_dict=True,
-        save_train_predictions=False,
+        train_estimate_method="loocv",
         n_jobs=1,
         random_state=None,
     ):
@@ -180,13 +180,13 @@ class OrdinalTDE(BaseClassifier):
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_parameter_samples = contract_max_n_parameter_samples
         self.typed_dict = typed_dict
-        self.save_train_predictions = save_train_predictions
+        self.train_estimate_method = train_estimate_method
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
         self.n_estimators_ = 0
         self.estimators_ = []
         self.weights_ = []
@@ -199,10 +199,9 @@ class OrdinalTDE(BaseClassifier):
         self._weight_sum = 0
         self._prev_parameters_x = []
         self._prev_parameters_y = []
+        super().__init__()
 
-        super(OrdinalTDE, self).__init__()
-
-    def _fit(self, X, y):
+    def _fit(self, X, y, keep_train_preds=False):
         """Fit an ensemble on cases (X,y), where y is the target variable.
 
         Build an ensemble of base TDE classifiers from the training set (X,
@@ -211,9 +210,9 @@ class OrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -234,7 +233,7 @@ class OrdinalTDE(BaseClassifier):
                 stacklevel=2,
             )
 
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self.estimators_ = []
         self.weights_ = []
@@ -242,8 +241,8 @@ class OrdinalTDE(BaseClassifier):
         self._prev_parameters_y = []
 
         # Window length parameter space dependent on series length
-        max_window_searches = self.series_length_ / 4
-        max_window = int(self.series_length_ * self.max_win_len_prop)
+        max_window_searches = self.n_timepoints_ / 4
+        max_window = int(self.n_timepoints_ * self.max_win_len_prop)
 
         if self.min_window >= max_window:
             self._min_window = max_window
@@ -260,7 +259,7 @@ class OrdinalTDE(BaseClassifier):
 
         possible_parameters = self._unique_parameters(max_window, win_inc)
         num_classifiers = 0
-        subsample_size = int(self.n_instances_ * 0.7)
+        subsample_size = int(self.n_cases_ * 0.7)
         highest_mae = 0
         highest_mae_idx = 0
 
@@ -277,7 +276,7 @@ class OrdinalTDE(BaseClassifier):
         rng = check_random_state(self.random_state)
 
         if self.bigrams is None:
-            if self.n_dims_ > 1:
+            if self.n_channels_ > 1:
                 use_bigrams = False
             else:
                 use_bigrams = True
@@ -308,9 +307,7 @@ class OrdinalTDE(BaseClassifier):
                     rng.choice(np.flatnonzero(preds == preds.min()))
                 )
 
-            subsample = rng.choice(
-                self.n_instances_, size=subsample_size, replace=False
-            )
+            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
             X_subsample = X[subsample]
             y_subsample = y[subsample]
 
@@ -332,6 +329,7 @@ class OrdinalTDE(BaseClassifier):
                 y_subsample,
                 subsample_size,
                 100 if num_classifiers < self.max_ensemble_size else highest_mae,
+                keep_train_preds,
             )
 
             w = 1 / (1 + abs(tde._mae))
@@ -368,12 +366,12 @@ class OrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         rng = check_random_state(self.random_state)
@@ -389,16 +387,16 @@ class OrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        _, _, series_length = X.shape
-        if series_length != self.series_length_:
+        _, _, n_timepoints = X.shape
+        if n_timepoints != self.n_timepoints_:
             raise TypeError(
                 "ERROR number of attributes in the train does not match "
                 "that in the test data"
@@ -413,16 +411,57 @@ class OrdinalTDE(BaseClassifier):
 
         return sums / (np.ones(self.n_classes_) * self._weight_sum)
 
-    def _worst_ensemble_acc(self):
-        min_acc = 1.0
-        min_acc_idx = 0
+    def _fit_predict(self, X, y) -> np.ndarray:
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._fit_predict_proba(X, y)
+            ]
+        )
 
-        for c, classifier in enumerate(self.estimators_):
-            if classifier._accuracy < min_acc:
-                min_acc = classifier._accuracy
-                min_acc_idx = c
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        self._fit(X, y, keep_train_preds=True)
 
-        return min_acc, min_acc_idx
+        results = np.zeros((self.n_cases_, self.n_classes_))
+        divisors = np.zeros(self.n_cases_)
+
+        if self.train_estimate_method.lower() == "loocv":
+            for i, clf in enumerate(self.estimators_):
+                subsample = clf._subsample
+                preds = clf._train_predictions
+
+                for n, pred in enumerate(preds):
+                    results[subsample[n]][
+                        self._class_dictionary[pred]
+                    ] += self.weights_[i]
+                    divisors[subsample[n]] += self.weights_[i]
+        elif self.train_estimate_method.lower() == "oob":
+            indices = range(self.n_cases_)
+            for i, clf in enumerate(self.estimators_):
+                oob = [n for n in indices if n not in clf._subsample]
+
+                if len(oob) == 0:
+                    continue
+
+                preds = clf.predict(X[oob])
+
+                for n, pred in enumerate(preds):
+                    results[oob[n]][self._class_dictionary[pred]] += self.weights_[i]
+                    divisors[oob[n]] += self.weights_[i]
+        else:
+            raise ValueError(
+                "Invalid train_estimate_method. Available options: loocv, oob"
+            )
+
+        for i in range(self.n_cases_):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
 
     def _worst_ensemble_mae(self):
         worst_mae = 0.0
@@ -447,109 +486,7 @@ class OrdinalTDE(BaseClassifier):
 
         return possible_parameters
 
-    def _get_train_probs(self, X, y, train_estimate_method="loocv") -> np.ndarray:
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True)
-
-        n_instances, n_dims, series_length = X.shape
-
-        if (
-            n_instances != self.n_instances_
-            or n_dims != self.n_dims_
-            or series_length != self.series_length_
-        ):
-            raise ValueError(
-                "n_instances, n_dims, series_length mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
-
-        results = np.zeros((n_instances, self.n_classes_))
-        divisors = np.zeros(n_instances)
-
-        if train_estimate_method.lower() == "loocv":
-            for i, clf in enumerate(self.estimators_):
-                subsample = clf._subsample
-                preds = (
-                    clf._train_predictions
-                    if self.save_train_predictions
-                    else Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                        delayed(clf._train_predict)(
-                            i,
-                        )
-                        for i in range(len(subsample))
-                    )
-                )
-
-                for n, pred in enumerate(preds):
-                    results[subsample[n]][
-                        self._class_dictionary[pred]
-                    ] += self.weights_[i]
-                    divisors[subsample[n]] += self.weights_[i]
-        elif train_estimate_method.lower() == "oob":
-            indices = range(n_instances)
-            for i, clf in enumerate(self.estimators_):
-                oob = [n for n in indices if n not in clf._subsample]
-
-                if len(oob) == 0:
-                    continue
-
-                preds = clf.predict(X[oob])
-
-                for n, pred in enumerate(preds):
-                    results[oob[n]][self._class_dictionary[pred]] += self.weights_[i]
-                    divisors[oob[n]] += self.weights_[i]
-        else:
-            raise ValueError(
-                "Invalid train_estimate_method. Available options: loocv, oob"
-            )
-
-        for i in range(n_instances):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
-
-        return results
-
-    def _individual_train_acc(self, tde, y, train_size, lowest_acc):
-        correct = 0
-        required_correct = int(lowest_acc * train_size)
-
-        if self._n_jobs > 1:
-            c = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-                delayed(tde._train_predict)(
-                    i,
-                )
-                for i in range(train_size)
-            )
-
-            for i in range(train_size):
-                if correct + train_size - i < required_correct:
-                    return -1
-                elif c[i] == y[i]:
-                    correct += 1
-
-                if self.save_train_predictions:
-                    tde._train_predictions.append(c[i])
-
-        else:
-            for i in range(train_size):
-                if correct + train_size - i < required_correct:
-                    return -1
-
-                c = tde._train_predict(i)
-
-                if c == y[i]:
-                    correct += 1
-
-                if self.save_train_predictions:
-                    tde._train_predictions.append(c)
-
-        return correct / train_size
-
-    def _individual_train_mae(self, tde, y, train_size, highest_mae):
+    def _individual_train_mae(self, tde, y, train_size, highest_mae, keep_train_preds):
         absolute_error = 0
 
         if self._n_jobs > 1:
@@ -559,15 +496,19 @@ class OrdinalTDE(BaseClassifier):
                 )
                 for i in range(train_size)
             )
+
             for i in range(train_size):
                 absolute_error += abs(int(y[i]) - int(c[i]))
-                if self.save_train_predictions:
+
+                if keep_train_preds:
                     tde._train_predictions.append(c[i])
         else:
             for i in range(train_size):
                 c = tde._train_predict(i)
+
                 absolute_error += abs(int(y[i]) - int(c))
-                if self.save_train_predictions:
+
+                if keep_train_preds:
                     tde._train_predictions.append(c)
 
         mae = absolute_error / train_size
@@ -609,13 +550,6 @@ class OrdinalTDE(BaseClassifier):
                 "contract_max_n_parameter_samples": 5,
                 "max_ensemble_size": 2,
                 "randomly_selected_params": 3,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_parameter_samples": 5,
-                "max_ensemble_size": 2,
-                "randomly_selected_params": 3,
-                "save_train_predictions": True,
             }
         else:
             return {
@@ -680,11 +614,11 @@ class IndividualOrdinalTDE(BaseClassifier):
         The number of classes.
     classes_ : list
         The classes labels.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
-    series_length_ : int
+    n_timepoints_ : int
         The length of each series.
 
     See Also
@@ -756,9 +690,9 @@ class IndividualOrdinalTDE(BaseClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
 
         # we will disable typed_dict if numba is disabled
         self._typed_dict = typed_dict and not os.environ.get("NUMBA_DISABLE_JIT") == "1"
@@ -772,7 +706,7 @@ class IndividualOrdinalTDE(BaseClassifier):
         self._subsample = []
         self._train_predictions = []
 
-        super(IndividualOrdinalTDE, self).__init__()
+        super().__init__()
 
     # todo remove along with BOSS and SFA workarounds when Dict becomes serialisable.
     def __getstate__(self):
@@ -798,7 +732,7 @@ class IndividualOrdinalTDE(BaseClassifier):
                     Dict.empty(
                         key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
                     )
-                    if self.levels > 1 or self.n_dims_ > 1
+                    if self.levels > 1 or self.n_channels_ > 1
                     else Dict.empty(key_type=types.int64, value_type=types.uint32)
                 )
                 for key, val in pdict.items():
@@ -807,13 +741,13 @@ class IndividualOrdinalTDE(BaseClassifier):
             self._transformed_data = nl
 
     def _fit(self, X, y):
-        """Fit a single base TDE classifier on n_instances cases (X,y).
+        """Fit a single base TDE classifier on n_cases cases (X,y).
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -826,11 +760,11 @@ class IndividualOrdinalTDE(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
         self._class_vals = y
 
         # select dimensions using accuracy estimate if multivariate
-        if self.n_dims_ > 1:
+        if self.n_channels_ > 1:
             self._dims, self._transformers = self._select_dims(X, y)
 
             words = (
@@ -838,18 +772,18 @@ class IndividualOrdinalTDE(BaseClassifier):
                     Dict.empty(
                         key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
                     )
-                    for _ in range(self.n_instances_)
+                    for _ in range(self.n_cases_)
                 ]
                 if self._typed_dict
-                else [defaultdict(int) for _ in range(self.n_instances_)]
+                else [defaultdict(int) for _ in range(self.n_cases_)]
             )
 
             for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(self.n_instances_, 1, self.series_length_)
+                X_dim = X[:, dim, :].reshape(self.n_cases_, 1, self.n_timepoints_)
                 dim_words = self._transformers[i].transform(X_dim, y)
                 dim_words = dim_words[0]
 
-                for n in range(self.n_instances_):
+                for n in range(self.n_cases_):
                     if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
@@ -891,34 +825,34 @@ class IndividualOrdinalTDE(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        num_cases = X.shape[0]
+        n_cases = X.shape[0]
 
-        if self.n_dims_ > 1:
+        if self.n_channels_ > 1:
             words = (
                 [
                     Dict.empty(
                         key_type=types.UniTuple(types.int64, 2), value_type=types.uint32
                     )
-                    for _ in range(num_cases)
+                    for _ in range(n_cases)
                 ]
                 if self._typed_dict
-                else [defaultdict(int) for _ in range(num_cases)]
+                else [defaultdict(int) for _ in range(n_cases)]
             )
 
             for i, dim in enumerate(self._dims):
-                X_dim = X[:, dim, :].reshape(num_cases, 1, self.series_length_)
+                X_dim = X[:, dim, :].reshape(n_cases, 1, self.n_timepoints_)
                 dim_words = self._transformers[i].transform(X_dim)
                 dim_words = dim_words[0]
 
-                for n in range(num_cases):
+                for n in range(n_cases):
                     if self._typed_dict:
                         for word, count in dim_words[n].items():
                             if self.levels > 1:
@@ -961,12 +895,12 @@ class IndividualOrdinalTDE(BaseClassifier):
         return nn
 
     def _select_dims(self, X, y):
-        self._highest_dim_bit = (math.ceil(math.log2(self.n_dims_))) + 1
+        self._highest_dim_bit = (math.ceil(math.log2(self.n_channels_))) + 1
         maes = []
         transformers = []
 
         # select dimensions based on reduced bag size accuracy
-        for i in range(self.n_dims_):
+        for i in range(self.n_channels_):
             self._dims.append(i)
             transformers.append(
                 SFA(
@@ -987,7 +921,7 @@ class IndividualOrdinalTDE(BaseClassifier):
                 )
             )
 
-            X_dim = X[:, i, :].reshape(self.n_instances_, 1, self.series_length_)
+            X_dim = X[:, i, :].reshape(self.n_cases_, 1, self.n_timepoints_)
 
             transformers[i].fit(X_dim, y)
             sfa = transformers[i].transform(
@@ -998,10 +932,10 @@ class IndividualOrdinalTDE(BaseClassifier):
             transformers[i].binning_dft = None
 
             total_absolute_err = 0
-            for i in range(self.n_instances_):
+            for i in range(self.n_cases_):
                 absolute_err = abs(int(y[i]) - int(self._train_predict(i, sfa[0])))
                 total_absolute_err += absolute_err
-            mae = total_absolute_err / self.n_instances_
+            mae = total_absolute_err / self.n_cases_
             maes.append(mae)
 
         min_mae = min(maes)
@@ -1009,7 +943,7 @@ class IndividualOrdinalTDE(BaseClassifier):
         dims = []
         fin_transformers = []
         mae_min_threshold = 1 + (1 - self.dim_threshold)
-        for i in range(self.n_dims_):
+        for i in range(self.n_channels_):
             if maes[i] <= min_mae * mae_min_threshold:
                 dims.append(i)
                 fin_transformers.append(transformers[i])

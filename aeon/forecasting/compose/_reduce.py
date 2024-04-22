@@ -1,14 +1,6 @@
 """Composition functionality for reduction approaches to forecasting."""
 
-__author__ = [
-    "mloning",
-    "AyushmaanSeth",
-    "kAnand77",
-    "LuisZugasti",
-    "Lovkush-A",
-    "fkiraly",
-]
-
+__maintainer__ = []
 __all__ = [
     "make_reduction",
     "DirectTimeSeriesRegressionForecaster",
@@ -29,16 +21,15 @@ import pandas as pd
 from sklearn.base import clone
 from sklearn.multioutput import MultiOutputRegressor
 
-from aeon.datatypes._utilities import get_time_index
 from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
 from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA
 from aeon.forecasting.base._fh import _index_range
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.compose import FeatureUnion
-from aeon.transformations.series.summarize import WindowSummarizer
+from aeon.transformations.summarize import WindowSummarizer
 from aeon.utils.datetime import _shift
-from aeon.utils.estimators.dispatch import construct_dispatch
+from aeon.utils.index_functions import get_time_index
 from aeon.utils.sklearn import is_sklearn_regressor
 from aeon.utils.validation import check_window_length
 
@@ -189,6 +180,36 @@ def _sliding_window_transform(
         return yt, Xt
 
 
+def construct_dispatch(cls, params=None):
+    """Construct an estimator with an overspecified parameter dictionary.
+
+    Constructs and returns an instance of `cls`, using parameters in a dict `params`.
+    The dict `params` may contain keys that `cls` does not have, which are ignored.
+
+    This is useful in multiplexing or dispatching over multiple `cls` which have
+    different and potentially intersecting parameter sets.
+
+    Parameters
+    ----------
+    cls : aeon estimator, inheriting from `BaseObject`
+    params : dict with str keys, optional, default = None = {}
+
+    Examples
+    --------
+    >>> from aeon.forecasting.compose._reduce import construct_dispatch
+    >>> from aeon.forecasting.naive import NaiveForecaster
+    >>> params = {"strategy": "drift", "foo": "bar", "bar": "foo"}
+    >>> construct_dispatch(NaiveForecaster, params)
+    NaiveForecaster(strategy='drift')
+    """
+    cls_param_names = cls.get_param_names()
+    cls_params_in_dict = set(cls_param_names).intersection(params.keys())
+    params_for_cls = {key: params[key] for key in cls_params_in_dict}
+
+    obj = cls(**params_for_cls)
+    return obj
+
+
 class _Reducer(_BaseWindowForecaster):
     """Base class for reducing forecasting to regression."""
 
@@ -204,7 +225,7 @@ class _Reducer(_BaseWindowForecaster):
         transformers=None,
         pooling="local",
     ):
-        super(_Reducer, self).__init__(window_length=window_length)
+        super().__init__(window_length=window_length)
         self.transformers = transformers
         self.transformers_ = None
         self.estimator = estimator
@@ -398,7 +419,7 @@ class _DirectReducer(_Reducer):
         windows_identical=True,
     ):
         self.windows_identical = windows_identical
-        super(_DirectReducer, self).__init__(
+        super().__init__(
             estimator=estimator,
             window_length=window_length,
             transformers=transformers,
@@ -973,7 +994,6 @@ class _DirRecReducer(_Reducer):
         self : Estimator
             An fitted instance of self.
         """
-        # todo: logic for X below is broken. Escape X until fixed.
         if X is not None:
             X = None
 
@@ -1033,7 +1053,7 @@ class _DirRecReducer(_Reducer):
         y_pred = pd.Series or pd.DataFrame
         """
         # Exogenous variables are not yet support for the dirrec strategy.
-        # todo: implement this. For now, we escape.
+
         if X is not None:
             X = None
 
@@ -1112,8 +1132,8 @@ class DirectTabularRegressionForecaster(_DirectReducer):
                 ' "local", "global", "panel", '
                 f"but found {pooling}"
             )
-        self.set_tags(**{"X_inner_mtype": mtypes_x})
-        self.set_tags(**{"y_inner_mtype": mtypes_y})
+        self.set_tags(**{"X_inner_type": mtypes_x})
+        self.set_tags(**{"y_inner_type": mtypes_y})
 
     _estimator_scitype = "tabular-regressor"
 
@@ -1192,8 +1212,8 @@ class RecursiveTabularRegressionForecaster(_RecursiveReducer):
                 ' "local", "global", "panel", '
                 f"but found {pooling}"
             )
-        self.set_tags(**{"X_inner_mtype": mtypes_x})
-        self.set_tags(**{"y_inner_mtype": mtypes_y})
+        self.set_tags(**{"X_inner_type": mtypes_x})
+        self.set_tags(**{"y_inner_type": mtypes_y})
 
     _estimator_scitype = "tabular-regressor"
 
@@ -1756,8 +1776,8 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
     _tags = {
         "requires-fh-in-fit": True,  # is the forecasting horizon required in fit?
         "ignores-exogeneous-X": False,
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
     }
 
     def __init__(
@@ -1777,7 +1797,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
         self.impute_method = impute_method
         self.pooling = pooling
         self._lags = list(range(window_length))
-        super(DirectReductionForecaster, self).__init__()
+        super().__init__()
 
         warn(
             "DirectReductionForecaster is experimental, and interfaces may change. "
@@ -1797,8 +1817,8 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
                 ' "local", "global", "panel", '
                 f"but found {pooling}"
             )
-        self.set_tags(**{"X_inner_mtype": mtypes})
-        self.set_tags(**{"y_inner_mtype": mtypes})
+        self.set_tags(**{"X_inner_type": mtypes})
+        self.set_tags(**{"y_inner_type": mtypes})
 
         # it seems that the sklearn tags are not fully reliable
         # see discussion in PR #3405 and issue #3402
@@ -1819,7 +1839,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _fit_shifted(self, y, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.series.lag import Lag, ReducerTransform
+        from aeon.transformations.lag import Lag, ReducerTransform
 
         impute_method = self.impute_method
         lags = self._lags
@@ -1898,7 +1918,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _fit_concurrent(self, y, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.series.lag import Lag, ReducerTransform
+        from aeon.transformations.lag import Lag, ReducerTransform
 
         impute_method = self.impute_method
 
@@ -1963,7 +1983,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _predict_concurrent(self, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.lag import Lag
 
         if X is not None and self._X is not None:
             X_pool = X.combine_first(self._X)
@@ -2097,8 +2117,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
     _tags = {
         "requires-fh-in-fit": False,  # is the forecasting horizon required in fit?
         "ignores-exogeneous-X": False,
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
     }
 
     def __init__(
@@ -2113,7 +2133,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         self.impute_method = impute_method
         self.pooling = pooling
         self._lags = list(range(window_length))
-        super(RecursiveReductionForecaster, self).__init__()
+        super().__init__()
 
         warn(
             "RecursiveReductionForecaster is experimental, and interfaces may change. "
@@ -2133,8 +2153,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
                 ' "local", "global", "panel", '
                 f"but found {pooling}"
             )
-        self.set_tags(**{"X_inner_mtype": mtypes})
-        self.set_tags(**{"y_inner_mtype": mtypes})
+        self.set_tags(**{"X_inner_type": mtypes})
+        self.set_tags(**{"y_inner_type": mtypes})
 
     def _fit(self, y, X=None, fh=None):
         """Fit forecaster to training data.
@@ -2144,23 +2164,22 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         Parameters
         ----------
         y : pd.DataFrame
-            mtype is pd.DataFrame, pd-multiindex, or pd_multiindex_hier
+            pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Time series to which to fit the forecaster.
         fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
         X : pd.DataFrame optional (default=None)
-            mtype is pd.DataFrame, pd-multiindex, or pd_multiindex_hier
+            pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Exogeneous time series to fit to.
 
         Returns
         -------
         self : reference to self
         """
-        # todo: very similar to _fit_concurrent of DirectReductionForecaster - refactor?
-        from aeon.transformations.series.impute import Imputer
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.impute import Imputer
+        from aeon.transformations.lag import Lag
 
         impute_method = self.impute_method
 
@@ -2211,7 +2230,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
         X : pd.DataFrame, optional (default=None)
-            mtype is pd.DataFrame, pd-multiindex, or pd_multiindex_hier
+            pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Exogeneous time series for the forecast
 
         Returns
@@ -2246,8 +2265,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
     def _predict_out_of_sample(self, X_pool, fh):
         """Recursive reducer: predict out of sample (ahead of cutoff)."""
         # very similar to _predict_concurrent of DirectReductionForecaster - refactor?
-        from aeon.transformations.series.impute import Imputer
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.impute import Imputer
+        from aeon.transformations.lag import Lag
 
         fh_idx = self._get_expected_pred_idx(fh=fh)
         y_cols = self._y.columns
@@ -2313,8 +2332,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _predict_in_sample(self, X_pool, fh):
         """Recursive reducer: predict out of sample (in past of of cutoff)."""
-        from aeon.transformations.series.impute import Imputer
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.impute import Imputer
+        from aeon.transformations.lag import Lag
 
         fh_idx = self._get_expected_pred_idx(fh=fh)
         y_cols = self._y.columns
@@ -2378,7 +2397,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         params1 = {
             "estimator": est,
             "window_length": 3,
-            "pooling": "global",  # all internal mtypes are tested across scenarios
+            "pooling": "global",
         }
 
         return params1

@@ -3,7 +3,7 @@
 Builds classifiers on each channel (dimension) independently.
 """
 
-__author__ = ["abostrom", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["ChannelEnsembleClassifier"]
 
 from itertools import chain
@@ -27,7 +27,7 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
         self.verbose = verbose
         self.estimators = estimators
         self.remainder = "drop"
-        super(_BaseChannelEnsembleClassifier, self).__init__()
+        super().__init__()
         self._anytagis_then_set(
             "capability:unequal_length", False, True, self._estimators
         )
@@ -129,9 +129,9 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
 
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         """
@@ -246,7 +246,7 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
 
     def __init__(self, estimators, remainder="drop", verbose=False):
         self.remainder = remainder
-        super(ChannelEnsembleClassifier, self).__init__(estimators, verbose=verbose)
+        super().__init__(estimators, verbose=verbose)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

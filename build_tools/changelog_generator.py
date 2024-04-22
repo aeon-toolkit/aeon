@@ -18,6 +18,8 @@ EXCLUDED_USERS = [
     "github-actions[bot]",
     "allcontributors[bot]",
     "sweep-ai[bot]",
+    "aeon-actions-bot[bot]",
+    "dependabot[bot]",
 ]
 
 
@@ -174,7 +176,7 @@ def assign_prs(
 
 
 def render_row(pr: Dict):  # noqa
-    """Render a single row with PR in Myst Markdown format"""
+    """Render a single row with PR in Myst Markdown format."""
     print(  # noqa: T201
         "-",
         pr["title"],
@@ -205,7 +207,7 @@ if __name__ == "__main__":
 
     # if you edit these, consider editing the PR template as well
     packages = [
-        ["Annotation", ["annotation"]],
+        ["Anomaly Detection", ["anomaly detection"]],
         ["Benchmarking", ["benchmarking"]],
         ["Classification", ["classification"]],
         ["Clustering", ["clustering"]],
@@ -214,7 +216,11 @@ if __name__ == "__main__":
         ["Forecasting", ["forecasting"]],
         ["Networks", ["networks"]],
         ["Regression", ["regression"]],
+        ["Segmentation", ["segmentation"]],
+        ["Similarity Search", ["similarity search"]],
+        ["Unit Testing", ["testing"]],
         ["Transformations", ["transformations"]],
+        ["Visualisations", ["visualisation"]],
     ]
     categories = [
         ["Bug Fixes", ["bug"]],
@@ -222,6 +228,7 @@ if __name__ == "__main__":
         ["Enhancements", ["enhancement"]],
         ["Maintenance", ["maintenance"]],
         ["Refactored", ["refactor"]],
+        ["Deprecation", ["deprecation"]],
     ]
 
     pulls = fetch_pull_requests_since_last_release()

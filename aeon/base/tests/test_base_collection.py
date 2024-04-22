@@ -1,13 +1,15 @@
+"""Tests for BaseCollectionEstimator."""
+
 import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
-from aeon.utils.validation.collection import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation.tests.test_collection import (
+from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
-    get_type,
 )
+from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.validation import get_type
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -70,34 +72,34 @@ def test__convert_X(internal_type, data):
     X = EQUAL_LENGTH_UNIVARIATE[data]
     cls.metadata_ = cls._check_X(X)
     X2 = cls._convert_X(X)
-    assert get_type(X2) == cls.get_tag("X_inner_mtype")
+    assert get_type(X2) == cls.get_tag("X_inner_type")
     # Add the internal_type tag to cls, should still all revert to numpy3D
-    cls.set_tags(**{"X_inner_mtype": ["numpy3D", internal_type]})
+    cls.set_tags(**{"X_inner_type": ["numpy3D", internal_type]})
     X2 = cls._convert_X(X)
     assert get_type(X2) == "numpy3D"
     # Set cls inner type to just internal_type, should convert to internal_type
-    cls.set_tags(**{"X_inner_mtype": internal_type})
+    cls.set_tags(**{"X_inner_type": internal_type})
     X2 = cls._convert_X(X)
     assert get_type(X2) == internal_type
     # Set to single type but in a list
-    cls.set_tags(**{"X_inner_mtype": [internal_type]})
+    cls.set_tags(**{"X_inner_type": [internal_type]})
     X2 = cls._convert_X(X)
     assert get_type(X2) == internal_type
     # Set to the lowest priority data type, should convert to internal_type
-    cls.set_tags(**{"X_inner_mtype": ["nested_univ", internal_type]})
+    cls.set_tags(**{"X_inner_type": ["nested_univ", internal_type]})
     X2 = cls._convert_X(X)
     assert get_type(X2) == internal_type
     if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
         if internal_type in UNEQUAL_LENGTH_UNIVARIATE.keys():
             cls.set_tags(**{"capability:unequal_length": True})
-            cls.set_tags(**{"X_inner_mtype": ["nested_univ", "np-list", internal_type]})
+            cls.set_tags(**{"X_inner_type": ["nested_univ", "np-list", internal_type]})
             X = UNEQUAL_LENGTH_UNIVARIATE[data]
             X2 = cls._convert_X(X)
             assert get_type(X2) == "np-list"
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_preprocess_fit(data):
+def test_preprocess_collection(data):
     """Test the functionality for preprocessing fit."""
     data = EQUAL_LENGTH_UNIVARIATE[data]
     cls = BaseCollectionEstimator()

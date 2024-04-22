@@ -1,7 +1,7 @@
 """Wraps the UnobservedComponents (state space) model from statsmodels."""
 
 __all__ = ["UnobservedComponents"]
-__author__ = ["juanitorduz"]
+__maintainer__ = []
 
 import pandas as pd
 
@@ -176,8 +176,8 @@ class UnobservedComponents(_StatsModelsAdapter):
 
     References
     ----------
-    .. [1] Seabold, Skipper, and Josef Perktold. “statsmodels: Econometric
-       and statistical modeling with python.” Proceedings of the 9th Python
+    .. [1] Seabold, Skipper, and Josef Perktold. "statsmodels: Econometric
+       and statistical modeling with python." Proceedings of the 9th Python
        in Science Conference. 2010.
 
     .. [2] Durbin, James, and Siem Jan Koopman. 2012.
@@ -273,7 +273,7 @@ class UnobservedComponents(_StatsModelsAdapter):
         self.flags = flags
         self.low_memory = low_memory
 
-        super(UnobservedComponents, self).__init__(random_state=random_state)
+        super().__init__(random_state=random_state)
 
     def _fit_forecaster(self, y, X=None):
         """Fit to training data.

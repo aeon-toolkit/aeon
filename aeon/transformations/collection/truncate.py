@@ -1,13 +1,14 @@
 """Truncation transformer - truncate unequal length panels to lower/upper bounds."""
-import numpy as np
-
-from aeon.transformations.base import BaseTransformer
 
 __all__ = ["TruncationTransformer"]
-__author__ = ["abostrom", "TonyBagnall"]
+__maintainer__ = []
+
+import numpy as np
+
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class TruncationTransformer(BaseTransformer):
+class TruncationTransformer(BaseCollectionTransformer):
     """Truncate unequal length time series to a lower bounds.
 
     Truncates all series in panel between lower/upper range bounds. This transformer
@@ -34,18 +35,15 @@ class TruncationTransformer(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": ["np-list", "numpy3D"],
-        "y_inner_mtype": "None",
-        "fit_is_empty": False,
+        "X_inner_type": ["np-list", "numpy3D"],
+        "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:unequal_length:removes": True,
     }
 
     def __init__(self, truncated_length=None):
         self.truncated_length = truncated_length
-        super(TruncationTransformer, self).__init__(_output_convert=False)
+        super().__init__()
 
     @staticmethod
     def _get_min_length(X):

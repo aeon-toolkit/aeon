@@ -1,11 +1,10 @@
 """Matrix profile transformer."""
 
-__author__ = ["Claudia Rincon Sanchez"]
+__maintainer__ = []
 
 import numpy as np
-import pandas as pd
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
 def _sliding_dot_products(q, t, q_len, t_len):
@@ -193,7 +192,7 @@ def _stomp_self(ts, m):
     return mp
 
 
-class MatrixProfile(BaseTransformer):
+class MatrixProfile(BaseCollectionTransformer):
     """Return the matrix profile and index profile for each time series of a dataset.
 
     Example of use:
@@ -206,38 +205,29 @@ class MatrixProfile(BaseTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
         "fit_is_empty": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Primitives",
-        # what is the scitype of y: None (not needed), Primitives, Series, Panel
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for X?
     }
 
     def __init__(self, m=10):
         self.m = m  # subsequence length
-        super(MatrixProfile, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Return the matrix profile for each single time series of the dataset.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : pandas.DataFrame in nested_univ mtype format
-            Dataframe with the n_instances rows as the input.
-            The number of columns equals the number of subsequences
-            of the desired length in each time series.
+        Xt : Matrix profile series
         """
         # Input checks
-        n_instances = X.shape[0]
-        Xt = pd.DataFrame([_stomp_self(X[i], self.m) for i in range(n_instances)])
+        import pandas as pd
+
+        n_cases = len(X)
+        Xt = pd.DataFrame([_stomp_self(X[i], self.m) for i in range(n_cases)])
         return Xt

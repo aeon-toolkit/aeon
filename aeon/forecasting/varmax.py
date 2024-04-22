@@ -1,6 +1,7 @@
 """Vector Autoregressive Moving Average with eXogenous regressors model (VARMAX)."""
+
 __all__ = ["VARMAX"]
-__author__ = ["KatieBuc"]
+__maintainer__ = []
 
 import warnings
 
@@ -206,11 +207,11 @@ class VARMAX(_StatsModelsAdapter):
     """
 
     _tags = {
-        "scitype:y": "multivariate",
+        "y_input_type": "multivariate",
         "ignores-exogeneous-X": False,
         "capability:missing_values": False,
-        "y_inner_mtype": "pd.DataFrame",
-        "X_inner_mtype": "pd.DataFrame",
+        "y_inner_type": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "X-y-must-have-same-index": True,
         "enforce_index_type": None,
@@ -277,7 +278,7 @@ class VARMAX(_StatsModelsAdapter):
         self.signal_only = signal_only
         self.suppress_warnings = suppress_warnings
 
-        super(VARMAX, self).__init__()
+        super().__init__()
 
     def _fit_forecaster(self, y, X=None):
         """Fit forecaster to training data.
@@ -372,7 +373,7 @@ class VARMAX(_StatsModelsAdapter):
         # but only when out-of-sample forecasting, i.e. when forecasting horizon is
         # greater than zero
         if pd.__version__ < "2.0.0":
-            if (type(self._y.index) == pd.core.indexes.numeric.Int64Index) & (
+            if (type(self._y.index) is pd.core.indexes.numeric.Int64Index) & (
                 any(fh.to_relative(self.cutoff) > 0)
             ):
                 y_pred.index = y_pred.index + self._y.index[0]

@@ -13,13 +13,8 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest `aeon` release is `v0.5.0`. You can view the full changelog
-[here](https://www.aeon-toolkit.org/en/latest/changelog.html).
-
-```diff
-- The deprecation policy is currently suspended, be careful with the version bounds used when including aeon as a dependency.
-- The policy will return in version v0.6.0, but in the mean time the suspension allows us to quickly develop and maintain the package in the forking transition period.
-```
+The latest `aeon` release is `v0.8.0`. You can view the full changelog
+[here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
 
@@ -32,7 +27,7 @@ Our webpage and documentation is available at https://aeon-toolkit.org.
 ## ⚙️ Installation
 
 `aeon` requires a Python version of 3.8 or greater. Our full installation guide is
-available in our [documentation](https://www.aeon-toolkit.org/en/latest/installation.html).
+available in our [documentation](https://www.aeon-toolkit.org/en/stable/installation.html).
 
 The easiest way to install `aeon` is via pip:
 
@@ -48,14 +43,14 @@ pip install aeon[all_extras]
 ```
 
 Instructions for installation from the [GitHub source](https://github.com/aeon-toolkit/aeon)
-can be found [here](https://www.aeon-toolkit.org/en/latest/developer_guide/dev_installation.html).
+can be found [here](https://www.aeon-toolkit.org/en/stable/developer_guide/dev_installation.html).
 
 ## ⏲️ Getting started
 
-The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/latest/getting_started.html).
+The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/stable/getting_started.html).
 
-Below we provide a quick example of how to use `aeon` for forecasting and
-classification.
+Below we provide a quick example of how to use `aeon` for forecasting,
+classification and clustering.
 
 ### Forecasting
 
@@ -104,6 +99,30 @@ X_test = np.array(
 )
 y_pred = clf.predict(X_test)  # make class predictions on new data
 >>> ['low' 'high' 'high']
+```
+
+### Clustering
+
+```python
+import numpy as np
+from aeon.clustering import TimeSeriesKMeans
+
+X = np.array([[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
+     [[1, 2, 3, 4, 4, 2]],  # Three samples, one channel, six series length,
+     [[8, 7, 6, 5, 4, 4]]])
+
+clu = TimeSeriesKMeans(distance="dtw", n_clusters=2)
+clu.fit(X)  # fit the clusterer on train data
+>>> TimeSeriesKMeans(distance='dtw', n_clusters=2)
+
+clu.labels_ # get training cluster labels
+>>> array([0, 0, 1])
+
+X_test = np.array(
+    [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
+)
+clu.predict(X_test)  # Assign clusters to new data
+>>> array([1, 0, 0])
 ```
 
 ## 💬 Where to ask questions

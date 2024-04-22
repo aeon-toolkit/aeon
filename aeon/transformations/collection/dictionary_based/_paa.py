@@ -1,7 +1,6 @@
 """Piecewise Aggregate Approximation Transformer (PAA)."""
 
-
-__author__ = ["MatthewMiddlehurst", "hadifawaz1999"]
+__maintainer__ = []
 
 import numpy as np
 
@@ -41,26 +40,27 @@ class PAA(BaseCollectionTransformer):
     _tags = {
         "capability:multivariate": True,
         "fit_is_empty": True,
+        "algorithm_type": "dictionary",
     }
 
     def __init__(self, n_segments=8):
         self.n_segments = n_segments
 
-        super(PAA, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform the input time series to PAA segments.
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances, n_channels, series_length)
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The input time series
-        y : np.ndarray of shape = (n_instances,), default = None
+        y : np.ndarray of shape = (n_cases,), default = None
             The labels are not used
 
         Returns
         -------
-        X_paa : np.ndarray of shape = (n_instances, n_channels, n_segments)
+        X_paa : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the PAA transformation
         """
         length_TS = int(X.shape[-1])
@@ -95,7 +95,7 @@ class PAA(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances, n_channels, n_segments)
+        X : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the PAA transformation
         original_length : int
             The original length of the series.
@@ -103,7 +103,7 @@ class PAA(BaseCollectionTransformer):
         Returns
         -------
         np.ndarray
-            (n_instances, n_channels, n_timepoints) the inverse of paa transform.
+            (n_cases, n_channels, n_timepoints) the inverse of paa transform.
         """
         if original_length % self.n_segments == 0:
             return np.repeat(X, repeats=int(original_length / self.n_segments), axis=-1)

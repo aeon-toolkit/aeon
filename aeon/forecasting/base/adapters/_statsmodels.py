@@ -1,6 +1,6 @@
 """Implements adapter for statsmodels forecasters to be used in aeon framework."""
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = ["_StatsModelsAdapter"]
 
 import inspect
@@ -28,7 +28,7 @@ class _StatsModelsAdapter(BaseForecaster):
         self._forecaster = None
         self.random_state = random_state
         self._fitted_forecaster = None
-        super(_StatsModelsAdapter, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.

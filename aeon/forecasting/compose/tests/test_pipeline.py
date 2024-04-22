@@ -1,6 +1,6 @@
 """Tests for forecasting pipelines."""
 
-__author__ = ["mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = []
 
 import numpy as np
@@ -10,8 +10,6 @@ from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.svm import SVR
 
 from aeon.datasets import load_airline, load_longley
-from aeon.datatypes import get_examples
-from aeon.datatypes._utilities import get_window
 from aeon.forecasting.compose import (
     ForecastingPipeline,
     TransformedTargetForecaster,
@@ -26,18 +24,19 @@ from aeon.forecasting.model_selection import (
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.sarimax import SARIMAX
 from aeon.forecasting.trend import PolynomialTrendForecaster
+from aeon.testing.mock_estimators import MockForecaster
+from aeon.testing.utils.data_gen import get_examples, make_series
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
+from aeon.transformations.adapt import TabularToSeriesAdaptor
+from aeon.transformations.boxcox import LogTransformer
 from aeon.transformations.compose import OptionalPassthrough
+from aeon.transformations.detrend import Detrender
+from aeon.transformations.difference import Differencer
+from aeon.transformations.exponent import ExponentTransformer
 from aeon.transformations.hierarchical.aggregate import Aggregator
-from aeon.transformations.series.adapt import TabularToSeriesAdaptor
-from aeon.transformations.series.boxcox import LogTransformer
-from aeon.transformations.series.detrend import Detrender
-from aeon.transformations.series.difference import Differencer
-from aeon.transformations.series.exponent import ExponentTransformer
-from aeon.transformations.series.impute import Imputer
-from aeon.transformations.series.outlier_detection import HampelFilter
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
-from aeon.utils._testing.series import _make_series
-from aeon.utils.estimators import MockForecaster
+from aeon.transformations.impute import Imputer
+from aeon.transformations.outlier_detection import HampelFilter
+from aeon.utils.index_functions import get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -105,12 +104,12 @@ def test_skip_inverse_transform():
 def test_nesting_pipelines():
     """Test that nesting of pipelines works."""
     from aeon.forecasting.ets import AutoETS
-    from aeon.transformations.compose import OptionalPassthrough
-    from aeon.transformations.series.boxcox import LogTransformer
-    from aeon.transformations.series.detrend import Detrender
-    from aeon.utils._testing.scenarios_forecasting import (
+    from aeon.testing.utils.scenarios_forecasting import (
         ForecasterFitPredictUnivariateWithX,
     )
+    from aeon.transformations.boxcox import LogTransformer
+    from aeon.transformations.compose import OptionalPassthrough
+    from aeon.transformations.detrend import Detrender
 
     pipe = ForecastingPipeline(
         steps=[
@@ -313,9 +312,9 @@ def test_forecasting_pipeline_dunder_endog():
 )
 def test_forecasting_pipeline_dunder_exog():
     """Test forecasting pipeline dunder for exogeneous transformation."""
-    y = _make_series()
+    y = make_series()
     y_train, y_test = temporal_train_test_split(y)
-    X = _make_series(n_columns=2)
+    X = make_series(n_columns=2)
     X_train, X_test = temporal_train_test_split(X)
 
     forecaster = (
@@ -380,7 +379,7 @@ def test_tag_handles_missing_data():
     # make sure that test forecaster cant handle missing data
     forecaster.set_tags(**{"capability:missing_values": False})
 
-    y = _make_series()
+    y = make_series()
     y[10] = np.nan
 
     # test only TransformedTargetForecaster
@@ -403,10 +402,10 @@ def test_tag_handles_missing_data():
 )
 def test_subset_getitem():
     """Test subsetting using the [ ] dunder, __getitem__."""
-    y = _make_series(n_columns=3)
+    y = make_series(n_columns=3)
     y.columns = ["x", "y", "z"]
     y_train, _ = temporal_train_test_split(y)
-    X = _make_series(n_columns=3)
+    X = make_series(n_columns=3)
     X.columns = ["a", "b", "c"]
     X_train, X_test = temporal_train_test_split(X)
 

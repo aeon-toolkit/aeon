@@ -1,16 +1,27 @@
 # noqa: D100
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = []
 
 from warnings import warn
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.forecasting import check_sp, check_y
 
 
+# TODO: remove in v0.9.0
+@deprecated(
+    version="0.8.0",
+    reason=(
+        "autocorrelation_seasonality_test is moving to "
+        "transformation/detrend/_deseasonalize.py, "
+        "this version will be removed in v0.9.0."
+    ),
+    category=FutureWarning,
+)
 def autocorrelation_seasonality_test(y, sp):
     """Seasonality test used in M4 competition.
 

@@ -1,6 +1,6 @@
 """Unit tests of ColumnEnsembleForecaster functionality."""
 
-__author__ = ["GuzalBulatova", "canbooo", "fkiraly"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -9,7 +9,6 @@ import pytest
 from aeon.forecasting.compose import ColumnEnsembleForecaster
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.parametrize(
@@ -71,27 +70,3 @@ def test_column_ensemble_multivariate_and_int():
     )
     fc.fit(df, fh=[1, 42])
     fc.predict()
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependencies not available",
-)
-def test_column_ensemble_hierarchical():
-    """Tests column ensemble with hierarchical reconciliation, see bug #3784."""
-    from aeon.datatypes import get_examples
-    from aeon.datatypes._utilities import get_window
-    from aeon.forecasting.sarimax import SARIMAX
-    from aeon.transformations.hierarchical.aggregate import Aggregator
-    from aeon.transformations.hierarchical.reconcile import Reconciler
-
-    X = get_examples("pd_multiindex_hier")[0]
-    y = get_examples("pd_multiindex_hier")[1]
-
-    X_train = get_window(X, lag=1)
-    y_train = get_window(y, lag=1)
-
-    f = Aggregator() * (Aggregator() ** SARIMAX()) * Reconciler()
-
-    f_hat = ColumnEnsembleForecaster(f)
-    f_hat.fit(y=y_train, X=X_train, fh=1)

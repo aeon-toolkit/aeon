@@ -1,11 +1,11 @@
 """KNN time series classification.
 
 A KNN classifier which supports time series distance measures.
-The class has hardcoded string references to numba based distances in aeon.distances.
-It can also be used with callable distance functions.
+The class can take callables or uses string references to utilise the numba based
+distances in aeon.distances.
 """
 
-__author__ = ["TonyBagnall", "GuiArcencio"]
+__maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
 
 import numpy as np
@@ -21,8 +21,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     K-Nearest Neighbour Time Series Classifier.
 
     A KNN classifier which supports time series distance measures.
-    It has hardcoded string references to numba based distances in aeon.distances,
-    and can also be used with callables, or aeon (pairwise transformer) estimators.
+    It determines distance function through string references to numba
+    based distances in aeon.distances, and can also be used with callables.
 
     Parameters
     ----------
@@ -33,22 +33,20 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         function.
     distance : str or callable, default ='dtw'
         Distance measure between time series.
-        if str, must be one of the following strings:
-            'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
-            'lcss', 'edr', 'erp', 'msm', 'twe', 'mpdist'
-        this will substitute a hard-coded distance metric from aeon.distances
-        When mpdist is used, the subsequence length (parameter m) must be set
-            Example: knn_mpdist = KNeighborsTimeSeriesClassifier(
-                                distance='mpdist', distance_params={'m':30})
-        if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function` or through calling
+        :func:`aeon.distances.get_distance_function_names`. If a
+        callable is passed it must be
+        a function that takes two 2d numpy arrays of shape ``(n_channels,
+        n_timepoints)`` as input and returns a float.
     distance_params : dict, default = None
         Dictionary for metric parameters for the case that distance is a str.
     n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
-        Parameter for compatibility purposes, still unimplemented.
+        for more details. Parameter for compatibility purposes, still unimplemented.
 
     Examples
     --------
@@ -65,7 +63,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "X_inner_mtype": ["np-list", "numpy3D"],
+        "X_inner_type": ["np-list", "numpy3D"],
         "algorithm_type": "distance",
     }
 
@@ -93,7 +91,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             )
         self.weights = weights
 
-        super(KNeighborsTimeSeriesClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the model using X as training data and y as target values.
@@ -107,9 +105,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array-like, shape = (n_cases)
             The class labels.
         """
-        if isinstance(self.distance, str):
-            self.metric_ = get_distance_function(metric=self.distance)
-
+        self.metric_ = get_distance_function(metric=self.distance)
         self.X_ = X
         self.classes_, self.y_ = np.unique(y, return_inverse=True)
         return self
@@ -181,11 +177,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
-        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-                If the series are all equal length, a numpy3D will be passed. If
-                unequal, a list of 2D numpy arrays is passed, which may have
-                different lengths.
+        X : np.ndarray
+            A single time series instance if shape = (n_channels, n_timepoints)
 
         Returns
         -------
@@ -211,8 +204,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         if self.weights == "distance":
             ws = distances[closest_idx]
-            ws = ws**2
-
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)
         elif self.weights == "uniform":

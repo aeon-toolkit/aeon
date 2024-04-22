@@ -1,6 +1,6 @@
 """Test reduce."""
 
-__author__ = ["Lovkush-A", "mloning", "LuisZugasti", "AyushmaanSeth"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -33,8 +33,8 @@ from aeon.forecasting.tests import TEST_OOS_FHS, TEST_WINDOW_LENGTHS_INT
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.regression.base import BaseRegressor
 from aeon.regression.interval_based import TimeSeriesForestRegressor
+from aeon.testing.utils.data_gen import make_forecasting_problem
 from aeon.transformations.collection.reduce import Tabularizer
-from aeon.utils._testing.forecasting import make_forecasting_problem
 from aeon.utils.validation.forecasting import check_fh
 
 N_TIMEPOINTS = [13, 17]

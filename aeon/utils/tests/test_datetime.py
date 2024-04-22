@@ -1,6 +1,6 @@
 """Tests for datetime functions."""
 
-__author__ = ["xiaobenbenecho", "khrapovs"]
+__maintainer__ = []
 
 import datetime
 
@@ -8,12 +8,10 @@ import numpy as np
 import pandas as pd
 
 from aeon.datasets import load_airline
-from aeon.datatypes import VectorizedDF
-from aeon.datatypes._utilities import get_time_index
-from aeon.utils._testing.hierarchical import _bottom_hier_datagen
 from aeon.utils.datetime import (
     _coerce_duration_to_int,
     _get_freq,
+    get_time_index,
     infer_freq,
     set_hier_freq,
 )
@@ -70,8 +68,6 @@ def test_coerce_duration_to_int() -> None:
 
 def test_infer_freq() -> None:
     """Test frequency inference."""
-    assert infer_freq(None) is None
-
     y = pd.Series(dtype=int)
     assert infer_freq(y) is None
 
@@ -89,38 +85,6 @@ def test_infer_freq() -> None:
     y = pd.DataFrame(
         {"a": 1}, index=pd.date_range(start="2021-01-01", periods=1, freq="M")
     )
-    assert infer_freq(y) == "M"
-
-    y = _bottom_hier_datagen(no_levels=2)
-    y = VectorizedDF(X=y, iterate_as="Series", is_scitype="Hierarchical")
-    assert infer_freq(y) == "M"
-
-
-def test_set_freq() -> None:
-    """Test frequency inference."""
-    assert infer_freq(None) is None
-
-    y = pd.Series(dtype=int)
-    assert infer_freq(y) is None
-
-    index = pd.date_range(start="2021-01-01", periods=1)
-    y = pd.Series(index=index, dtype=int)
-    assert infer_freq(y) == "D"
-
-    index = pd.date_range(start="2021-01-01", periods=1, freq="M")
-    y = pd.Series(index=index, dtype=int)
-    assert infer_freq(y) == "M"
-
-    y = pd.DataFrame({"a": 1}, index=pd.date_range(start="2021-01-01", periods=1))
-    assert infer_freq(y) == "D"
-
-    y = pd.DataFrame(
-        {"a": 1}, index=pd.date_range(start="2021-01-01", periods=1, freq="M")
-    )
-    assert infer_freq(y) == "M"
-
-    y = _bottom_hier_datagen(no_levels=2)
-    y = VectorizedDF(X=y, iterate_as="Series", is_scitype="Hierarchical")
     assert infer_freq(y) == "M"
 
 

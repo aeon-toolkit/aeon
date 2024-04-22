@@ -1,8 +1,6 @@
-"""Tests for Prophet.
+"""Tests for Prophet."""
 
-"""
-
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pandas as pd
 import pytest

@@ -1,6 +1,8 @@
 """Pipeline making utility."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
+from aeon.classification import BaseClassifier
+from aeon.classification.compose import ClassifierPipeline
 
 
 def make_pipeline(*steps):
@@ -14,7 +16,7 @@ def make_pipeline(*steps):
     Returns
     -------
     pipe : aeon pipeline containing steps, in order
-        always a descendant of BaseObject, precise object determined by scitype
+        always a descendant of BaseObject, precise object determined by
         equivalent to result of step[0] * step[1] * ... * step[-1]
 
     Examples
@@ -26,7 +28,7 @@ def make_pipeline(*steps):
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.pipeline import make_pipeline
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> y = load_airline()
     >>> pipe = make_pipeline(ExponentTransformer(), PolynomialTrendForecaster())
     >>> type(pipe).__name__
@@ -35,20 +37,23 @@ def make_pipeline(*steps):
     Example 2: classifier pipeline
     >>> from aeon.classification.feature_based import Catch22Classifier
     >>> from aeon.pipeline import make_pipeline
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> pipe = make_pipeline(ExponentTransformer(), Catch22Classifier())
     >>> type(pipe).__name__
     'ClassifierPipeline'
 
     Example 3: transformer pipeline
     >>> from aeon.pipeline import make_pipeline
-    >>> from aeon.transformations.series.exponent import ExponentTransformer
+    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> pipe = make_pipeline(ExponentTransformer(), ExponentTransformer())
     >>> type(pipe).__name__
     'TransformerPipeline'
     """
-    pipe = steps[0]
-    for i in range(1, len(steps)):
-        pipe = pipe * steps[i]
+    if isinstance(steps[-1], BaseClassifier):
+        pipe = ClassifierPipeline(list(steps[:-1]), steps[-1])
+    else:
+        pipe = steps[0]
+        for i in range(1, len(steps)):
+            pipe = pipe * steps[i]
 
     return pipe

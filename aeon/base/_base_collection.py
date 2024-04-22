@@ -1,16 +1,18 @@
 """Base class for estimators that fit collections of time series."""
 
 from aeon.base._base import BaseEstimator
+from aeon.utils.conversion import (
+    convert_collection,
+    resolve_equal_length_inner_type,
+    resolve_unequal_length_inner_type,
+)
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import (
-    convert_collection,
     get_n_cases,
     has_missing,
     is_equal_length,
     is_univariate,
-    resolve_equal_length_inner_type,
-    resolve_unequal_length_inner_type,
 )
 
 
@@ -29,7 +31,7 @@ class BaseCollectionEstimator(BaseEstimator):
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:multithreading": False,
         "python_version": None,  # PEP 440 python version specifier to limit versions
     }
@@ -38,7 +40,7 @@ class BaseCollectionEstimator(BaseEstimator):
         self.metadata_ = {}  # metadata/properties of data seen in fit
         self.fit_time_ = 0  # time elapsed in last fit call
         self._n_jobs = 1
-        super(BaseCollectionEstimator, self).__init__()
+        super().__init__()
         _check_estimator_deps(self)
 
     def _preprocess_collection(self, X):
@@ -51,13 +53,13 @@ class BaseCollectionEstimator(BaseEstimator):
 
         Parameters
         ----------
-        X : data structure
-            See aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES for details
+        X : collection
+            See aeon.registry.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
 
         Returns
         -------
-        Data structure of type self.tags["x_inner_mtype"]
+        Data structure of type self.tags["X_inner_type"]
 
         See Also
         --------
@@ -93,16 +95,16 @@ class BaseCollectionEstimator(BaseEstimator):
     def _check_X(self, X):
         """Check classifier input X is valid.
 
-        Check if the input data is a compatible type, and that this classifier is
+        Check if the input data is a compatible type, and that this estimator is
         able to handle the data characteristics. This is done by matching the
-        capabilities of the classifier against the metadata for X for
+        capabilities of the estimator against the metadata for X for
         univariate/multivariate, equal length/unequal length and no missing
         values/missing values.
 
         Parameters
         ----------
         X : data structure
-           See aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES for details
+           See aeon.registry.COLLECTIONS_DATA_TYPES for details
            on aeon supported data structures.
 
         Returns
@@ -123,7 +125,7 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> import numpy as np
         >>> X = np.random.random(size=(5,3,10)) # X is equal length, multivariate
         >>> hc = HIVECOTEV2()
-        >>> m = hc._check_X(X)    # HC2 can handle this
+        >>> meta=hc._check_X(X)    # HC2 can handle this
         """
         metadata = self._get_metadata(X)
         # Check classifier capabilities for X
@@ -152,7 +154,7 @@ class BaseCollectionEstimator(BaseEstimator):
         return metadata
 
     def _convert_X(self, X):
-        """Convert X to type defined by tag X_inner_mtype.
+        """Convert X to type defined by tag X_inner_type.
 
         if self.metadata_ has not been set, it is set here from X, because we need to
         know if the data is unequal length in order to choose between different
@@ -164,11 +166,11 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-        must be of type aeon.utils.validation.collection.COLLECTIONS_DATA_TYPES.
+        must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
 
         Returns
         -------
-        data structure of type one of self.get_tag("X_inner_mtype").
+        data structure of type one of self.get_tag("X_inner_type").
 
 
         See Also
@@ -179,12 +181,12 @@ class BaseCollectionEstimator(BaseEstimator):
         --------
         >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
-        >>> from aeon.utils.validation.collection import get_type
+        >>> from aeon.utils.validation import get_type
         >>> X = [np.random.random(size=(5,10)), np.random.random(size=(5,10))]
         >>> get_type(X)
         'np-list'
         >>> hc = HIVECOTEV2()
-        >>> hc.get_tag("X_inner_mtype")
+        >>> hc.get_tag("X_inner_type")
         'numpy3D'
         >>> X = hc._convert_X(X)
         >>> get_type(X)
@@ -194,9 +196,9 @@ class BaseCollectionEstimator(BaseEstimator):
             metadata = self._get_metadata(X)
         else:
             metadata = self.metadata_
-        # Convert X to X_inner_mtype if possible
-        inner_type = self.get_tag("X_inner_mtype")
-        if type(inner_type) == list:
+        # Convert X to X_inner_type if possible
+        inner_type = self.get_tag("X_inner_type")
+        if isinstance(inner_type, list):
             # If self can handle more than one internal type, resolve correct conversion
             # If unequal, choose data structure that can hold unequal
             if metadata["unequal_length"]:

@@ -4,15 +4,16 @@ Pipeline classifier using the full set of TSFresh features and a
 RotationForestClassifier.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["FreshPRINCEClassifier"]
 
+
 import numpy as np
+from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.collection.tsfresh import TSFreshFeatureExtractor
-from aeon.utils.validation.panel import check_X_y
+from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 
 
 class FreshPRINCEClassifier(BaseClassifier):
@@ -30,8 +31,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestClassifier ensemble.
-    save_transformed_data: bool, default=False
-        Whether to save the transformed data.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     n_jobs : int, default=1
@@ -75,7 +74,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         self,
         default_fc_parameters="comprehensive",
         n_estimators=200,
-        save_transformed_data=False,
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -84,21 +82,20 @@ class FreshPRINCEClassifier(BaseClassifier):
         self.default_fc_parameters = default_fc_parameters
         self.n_estimators = n_estimators
 
-        self.save_transformed_data = save_transformed_data
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.chunksize = chunksize
         self.random_state = random_state
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
         self.transformed_data_ = []
 
         self._rotf = None
         self._tsfresh = None
 
-        super(FreshPRINCEClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
@@ -106,9 +103,9 @@ class FreshPRINCEClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The training labels, shape = (n_instances).
+            The training labels, shape = (n_cases).
 
         Returns
         -------
@@ -120,11 +117,62 @@ class FreshPRINCEClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self._fit_fresh_prince(X, y)
+
+        return self
+
+    def _predict(self, X) -> np.ndarray:
+        """Predict class values of n instances in X.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_cases, n_channels,
+            n_timepoints).
+
+        Returns
+        -------
+        y : 1D np.ndarray
+            The predicted class labels, shape = (n_cases).
+        """
+        return self._rotf.predict(self._tsfresh.transform(X))
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predict class probabilities for n instances in X.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_cases, n_channels,
+            n_timepoints).
+
+        Returns
+        -------
+        y : 2D np.ndarray
+            Predicted probabilities using the ordering in classes_ shape = (
+            n_cases, n_classes_).
+        """
+        return self._rotf.predict_proba(self._tsfresh.transform(X))
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._fit_predict_proba(X, y)
+            ]
+        )
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        Xt = self._fit_fresh_prince(X, y, save_rotf_data=True)
+        return self._rotf._get_train_probs(Xt, y)
+
+    def _fit_fresh_prince(self, X, y, save_rotf_data=False):
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,
-            save_transformed_data=self.save_transformed_data,
+            save_transformed_data=save_rotf_data,
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
@@ -139,65 +187,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         X_t = self._tsfresh.fit_transform(X, y)
         self._rotf.fit(X_t, y)
 
-        if self.save_transformed_data:
-            self.transformed_data_ = X_t
-
-        return self
-
-    def _predict(self, X) -> np.ndarray:
-        """Predict class values of n instances in X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
-            n_timepoints).
-
-        Returns
-        -------
-        y : 1D np.ndarray
-            The predicted class labels, shape = (n_instances).
-        """
-        return self._rotf.predict(self._tsfresh.transform(X))
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
-            n_timepoints).
-
-        Returns
-        -------
-        y : 2D np.ndarray
-            Predicted probabilities using the ordering in classes_ shape = (
-            n_instances, n_classes_).
-        """
-        return self._rotf.predict_proba(self._tsfresh.transform(X))
-
-    def _get_train_probs(self, X, y) -> np.ndarray:
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True)
-
-        n_instances, n_dims, series_length = X.shape
-
-        if (
-            n_instances != self.n_instances_
-            or n_dims != self.n_dims_
-            or series_length != self.series_length_
-        ):
-            raise ValueError(
-                "n_instances, n_dims, series_length mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
-
-        if not self.save_transformed_data:
-            raise ValueError("Currently only works with saved transform data from fit.")
-
-        return self._rotf._get_train_probs(self.transformed_data_, y)
+        return X_t
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -228,12 +218,6 @@ class FreshPRINCEClassifier(BaseClassifier):
             return {
                 "n_estimators": 10,
                 "default_fc_parameters": "minimal",
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "default_fc_parameters": "minimal",
-                "save_transformed_data": True,
             }
         else:
             return {

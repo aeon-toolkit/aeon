@@ -1,16 +1,52 @@
 """Interval and window segmenter transformers."""
+
 import math
 
 import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
 
-from aeon.datatypes._panel._convert import _concat_nested_arrays, _get_time_index
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.datetime import get_time_index
 from aeon.utils.validation import check_window_length
 
 
-class IntervalSegmenter(BaseTransformer):
+def _concat_nested_arrays(arrs, cells_as_numpy=False):
+    """Nest tabular arrays from nested list.
+
+    Helper function to nest tabular arrays from nested list of arrays.
+
+    Parameters
+    ----------
+    arrs : list of numpy arrays
+        Arrays must have the same number of rows, but can have varying
+        number of columns.
+
+    cells_as_numpy : bool, default = False
+        If True, then nested cells contain NumPy array
+        If False, then nested cells contain pandas Series
+
+    Returns
+    -------
+    Xt : pandas DataFrame
+        Transformed dataframe with nested column for each input array.
+    """
+    if cells_as_numpy:
+        Xt = pd.DataFrame(
+            np.column_stack(
+                [pd.Series([np.array(vals) for vals in interval]) for interval in arrs]
+            )
+        )
+    else:
+        Xt = pd.DataFrame(
+            np.column_stack(
+                [pd.Series([pd.Series(vals) for vals in interval]) for interval in arrs]
+            )
+        )
+    return Xt
+
+
+class IntervalSegmenter(BaseCollectionTransformer):
     """Interval segmentation transformer.
 
     Parameters
@@ -25,22 +61,14 @@ class IntervalSegmenter(BaseTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": True,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
-        "fit_is_empty": False,
         "capability:unequal_length:removes": True,
-        "capability:multivariate": False,
     }
 
     def __init__(self, intervals=10):
         self.intervals = intervals
         self._time_index = []
         self.input_shape_ = ()
-        super(IntervalSegmenter, self).__init__(_output_convert=False)
+        super().__init__()
 
     def _fit(self, X, y=None):
         """
@@ -48,7 +76,7 @@ class IntervalSegmenter(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
+        X : 3D np.ndarray of shape = (n_cases, 1, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
@@ -57,26 +85,26 @@ class IntervalSegmenter(BaseTransformer):
         -------
         self : an instance of self.
         """
-        n_instances, n_channels, series_length = X.shape
+        n_cases, n_channels, n_timepoints = X.shape
         if n_channels > 1:
             raise ValueError(
                 f"IntervalSegmenter only works with univariate series, "
                 f"data with {n_channels} was passed"
             )
 
-        self.input_shape_ = n_instances, n_channels, series_length
+        self.input_shape_ = n_cases, n_channels, n_timepoints
 
-        self._time_index = np.arange(series_length)
+        self._time_index = np.arange(n_timepoints)
 
         if isinstance(self.intervals, np.ndarray):
             self.intervals_ = list(self.intervals)
 
         elif isinstance(self.intervals, (int, np.integer)):
-            if not self.intervals <= series_length // 2:
+            if not self.intervals <= n_timepoints // 2:
                 raise ValueError(
                     f"The number of intervals must be half the number of time points "
                     f"or less. Interval length ={self.intervals}, series length ="
-                    f" {series_length}"
+                    f" {n_timepoints}"
                 )
             self.intervals_ = np.array_split(self._time_index, self.intervals)
 
@@ -96,7 +124,7 @@ class IntervalSegmenter(BaseTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
+        X : 3D np.ndarray of shape = (n_cases, 1, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
 
@@ -183,9 +211,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which mtypes do _fit/_predict support for X?
-        "y_inner_mtype": "pd_Series_Table",
-        # which mtypes do _fit/_predict support for y?
+        "X_inner_type": "numpy3D",
     }
 
     def __init__(
@@ -195,14 +221,14 @@ class RandomIntervalSegmenter(IntervalSegmenter):
         self.min_length = min_length
         self.max_length = max_length
         self.random_state = random_state
-        super(RandomIntervalSegmenter, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer, generating random interval indices.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
+        X : 3D np.ndarray of shape = (n_cases, 1, n_timepoints)
             collection of time series to transform
         y : any container with method shape, optional, default=None
             y.shape[0] determines n_timepoints, 1 if None
@@ -234,7 +260,7 @@ class RandomIntervalSegmenter(IntervalSegmenter):
         self.input_shape_ = X.shape
 
         # Retrieve time-series indexes from each column.
-        self._time_index = _get_time_index(X)
+        self._time_index = get_time_index(X)
 
         # Compute random intervals for each column.
         if self.n_intervals == "random":
@@ -347,7 +373,7 @@ def _rand_intervals_fixed_n(
     return np.column_stack([starts, ends])
 
 
-class SlidingWindowSegmenter(BaseTransformer):
+class SlidingWindowSegmenter(BaseCollectionTransformer):
     """Sliding window segmenter transformer.
 
     This class is to transform a univariate series into a multivariate one by
@@ -376,7 +402,7 @@ class SlidingWindowSegmenter(BaseTransformer):
 
     Returns
     -------
-        np.array [n_instances, n_timepoints, window_length]
+        np.array [n_cases, n_timepoints, window_length]
 
     Examples
     --------
@@ -388,32 +414,27 @@ class SlidingWindowSegmenter(BaseTransformer):
     """
 
     _tags = {
-        "univariate-only": True,
         "fit_is_empty": True,
-        "scitype:transform-input": "Series",
-        # what is the scitype of X: Series, or Panel
-        "scitype:transform-output": "Series",
-        "scitype:instancewise": False,
-        "X_inner_mtype": "numpy3D",
-        "y_inner_mtype": "None",
+        "instancewise": False,
+        "y_inner_type": "None",
     }
 
     def __init__(self, window_length=5):
         self.window_length = window_length
-        super(SlidingWindowSegmenter, self).__init__(_output_convert=False)
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform time series.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, 1, series_length)
+        X : 3D np.ndarray of shape = (n_cases, 1, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        X : 3D np.ndarray of shape = (n_cases, series_length, window_length)
+        X : 3D np.ndarray of shape = (n_cases, n_timepoints, window_length)
             windowed series
         """
         # get the number of attributes and instances
@@ -422,22 +443,22 @@ class SlidingWindowSegmenter(BaseTransformer):
         X = X.squeeze(1)
 
         n_timepoints = X.shape[1]
-        n_instances = X.shape[0]
+        n_cases = X.shape[0]
 
         # Check the parameters are appropriate
         self._check_parameters(n_timepoints)
 
         pad_amnt = math.floor(self.window_length / 2)
-        padded_data = np.zeros((n_instances, n_timepoints + (2 * pad_amnt)))
+        padded_data = np.zeros((n_cases, n_timepoints + (2 * pad_amnt)))
 
         # Pad both ends of X
-        for i in range(n_instances):
+        for i in range(n_cases):
             padded_data[i] = np.pad(X[i], pad_amnt, mode="edge")
 
-        subsequences = np.zeros((n_instances, n_timepoints, self.window_length))
+        subsequences = np.zeros((n_cases, n_timepoints, self.window_length))
 
         # Extract subsequences
-        for i in range(n_instances):
+        for i in range(n_cases):
             subsequences[i] = self._extract_subsequences(padded_data[i], n_timepoints)
         return np.array(subsequences)
 

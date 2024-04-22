@@ -1,6 +1,6 @@
 """Tests for sklearn typing utilities in utils.aeon."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 
 import pytest
@@ -10,16 +10,16 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.feature_based import SummaryClassifier
 from aeon.forecasting.naive import NaiveForecaster
-from aeon.utils.sklearn import is_sklearn_estimator, sklearn_scitype
+from aeon.utils.sklearn import is_sklearn_estimator, sklearn_estimator_identifier
 
-CORRECT_SCITYPES = {
+CORRECT_IDENTIFIERS = {
     KMeans: "clusterer",
     KNeighborsClassifier: "classifier",
     KNeighborsRegressor: "regressor",
     StandardScaler: "transformer",
 }
 
-sklearn_estimators = list(CORRECT_SCITYPES.keys())
+sklearn_estimators = list(CORRECT_IDENTIFIERS.keys())
 aeon_estimators = [SummaryClassifier, NaiveForecaster]
 
 
@@ -44,13 +44,12 @@ def test_is_sklearn_estimator_negative(estimator):
 
 
 @pytest.mark.parametrize("estimator", sklearn_estimators)
-def test_sklearn_scitype(estimator):
-    """Test that sklearn_scitype returns the correct scitype string."""
-    scitype = sklearn_scitype(estimator)
-    expected_scitype = CORRECT_SCITYPES[estimator]
+def test_sklearn_identifiers(estimator):
+    """Test that sklearn_estimator_identifier returns the correct identifier string."""
+    identifier = sklearn_estimator_identifier(estimator)
+    expected_identifier = CORRECT_IDENTIFIERS[estimator]
     msg = (
-        f"is_sklearn_estimator returns the incorrect scitype string for "
-        f'"{estimator.__name__}". Should be {expected_scitype}, but '
-        f'{scitype}" was returned.'
+        f"is_sklearn_estimator returns the incorrect identifier string. Should be"
+        f" {expected_identifier}, but {identifier} was returned."
     )
-    assert scitype == expected_scitype, msg
+    assert identifier == expected_identifier, msg

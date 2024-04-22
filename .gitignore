@@ -26,11 +26,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 
-#TSC results
-results/
-
-MANIFEST
-
 #downloaded datasets
 aeon/datasets/local_data/
 
@@ -110,6 +105,9 @@ env.bak/
 venv.bak/
 aeon-dev/
 
+#Pyright
+pyrightconfig.json
+
 # mkdocs documentation
 /site
 
@@ -159,7 +157,7 @@ build_doc_site/
 envs/
 *.html
 
-# example mlflow runs
+# example run output
 examples/local/
 
 # local files

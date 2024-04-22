@@ -1,1 +1,1 @@
-aeon/datasets/data/* linguist-vendored
+*.ts linguist-detectable=false

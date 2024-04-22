@@ -1,6 +1,6 @@
 """Random Supervised Time Series Forest (RSTSF) Classifier."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["RSTSF"]
 
 import numpy as np
@@ -11,8 +11,8 @@ from aeon.classification import BaseClassifier
 from aeon.transformations.collection import (
     ARCoefficientTransformer,
     PeriodogramTransformer,
-    SupervisedIntervals,
 )
+from aeon.transformations.collection.interval_based import SupervisedIntervals
 from aeon.utils.numba.general import first_order_differences_3d
 from aeon.utils.validation import check_n_jobs
 
@@ -62,7 +62,7 @@ class RSTSF(BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import RSTSF
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = RSTSF(n_estimators=10, n_intervals=5, random_state=0)  # doctest: +SKIP
@@ -98,10 +98,10 @@ class RSTSF(BaseClassifier):
         if use_pyfftw:
             self.set_tags(**{"python_dependencies": ["statsmodels", "pyfftw"]})
 
-        super(RSTSF, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 

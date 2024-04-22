@@ -1,16 +1,16 @@
 """Tests simple forecasts based on naive assumptions."""
 
-__author__ = ["mloning", "Piyush Gade", "Flix6x"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.datatypes._utilities import get_cutoff
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.tests import TEST_OOS_FHS, TEST_SPS, TEST_WINDOW_LENGTHS_INT
-from aeon.utils._testing.forecasting import _assert_correct_pred_time_index
+from aeon.testing.utils.data_gen import _assert_correct_pred_time_index
+from aeon.utils.index_functions import get_cutoff
 from aeon.utils.validation.forecasting import check_fh
 
 n_timepoints = 30

@@ -1,4 +1,5 @@
 """Rotation Forest test code."""
+
 import numpy as np
 
 from aeon.classification.sklearn import RotationForestClassifier

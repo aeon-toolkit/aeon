@@ -8,9 +8,9 @@ tests are run on each operating system at least once, and on each python version
 least once, but not necessarily on each operating system / python version combination.
 """
 
-__author__ = ["fkiraly", "MatthewMiddlehurst"]
+__maintainer__ = []
 
-from aeon.tests import _config
+from aeon.testing import test_config
 
 
 def pytest_addoption(parser):
@@ -29,4 +29,4 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     """Pytest configuration preamble."""
     if config.getoption("--prtesting") in [True, "True", "true"]:
-        _config.PR_TESTING = True
+        test_config.PR_TESTING = True

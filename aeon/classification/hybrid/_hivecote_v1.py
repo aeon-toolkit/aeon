@@ -4,14 +4,13 @@ Hybrid ensemble of classifiers from 4 separate time series classification
 representations, using the weighted probabilistic CAWPE as an ensemble controller.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["HIVECOTEV1"]
 
 from datetime import datetime
 
 import numpy as np
 from sklearn.metrics import accuracy_score
-from sklearn.model_selection import cross_val_predict
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -144,7 +143,7 @@ class HIVECOTEV1(BaseClassifier):
         self._rise = None
         self._cboss = None
 
-        super(HIVECOTEV1, self).__init__()
+        super().__init__()
 
     _DEFAULT_N_TREES = 500
     _DEFAULT_N_SHAPELETS = 10000
@@ -156,9 +155,9 @@ class HIVECOTEV1(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, n_timepoints]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -178,35 +177,17 @@ class HIVECOTEV1(BaseClassifier):
                 "max_ensemble_size": HIVECOTEV1._DEFAULT_MAX_ENSEMBLE_SIZE,
             }
 
-        # Cross-validation size for TSF and RISE
-        cv_size = 10
-        _, counts = np.unique(y, return_counts=True)
-        min_class = max(2, np.min(counts))
-        if min_class < cv_size:
-            cv_size = min_class
-
         # Build STC
         self._stc = ShapeletTransformClassifier(
             **self._stc_params,
-            save_transformed_data=True,
             random_state=self.random_state,
             n_jobs=self._n_jobs,
         )
-        self._stc.fit(X, y)
-
-        if self.verbose > 0:
-            print("STC ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-
-        # Find STC weight using train set estimate
-        train_probs = self._stc._get_train_probs(X, y)
-        train_preds = self._stc.classes_[np.argmax(train_probs, axis=1)]
+        train_preds = self._stc.fit_predict(X, y)
         self.stc_weight_ = accuracy_score(y, train_preds) ** 4
 
         if self.verbose > 0:
-            print(  # noqa
-                "STC train estimate ",
-                datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
-            )
+            print("STC ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
             print("STC weight = " + str(self.stc_weight_))  # noqa
 
         # Build TSF
@@ -215,28 +196,11 @@ class HIVECOTEV1(BaseClassifier):
             random_state=self.random_state,
             n_jobs=self._n_jobs,
         )
-        self._tsf.fit(X, y)
-
-        if self.verbose > 0:
-            print("TSF ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-
-        # Find TSF weight using train set estimate found through CV
-        train_preds = cross_val_predict(
-            TimeSeriesForestClassifier(
-                **self._tsf_params, random_state=self.random_state
-            ),
-            X=X,
-            y=y,
-            cv=cv_size,
-            n_jobs=self._n_jobs,
-        )
+        train_preds = self._tsf.fit_predict(X, y)
         self.tsf_weight_ = accuracy_score(y, train_preds) ** 4
 
         if self.verbose > 0:
-            print(  # noqa
-                "TSF train estimate ",
-                datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
-            )
+            print("TSF ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
             print("TSF weight = " + str(self.tsf_weight_))  # noqa
 
         # Build RISE
@@ -245,29 +209,11 @@ class HIVECOTEV1(BaseClassifier):
             random_state=self.random_state,
             n_jobs=self._n_jobs,
         )
-        self._rise.fit(X, y)
-
-        if self.verbose > 0:
-            print("RISE ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-
-        # Find RISE weight using train set estimate found through CV
-        train_preds = cross_val_predict(
-            RandomIntervalSpectralEnsembleClassifier(
-                **self._rise_params,
-                random_state=self.random_state,
-            ),
-            X=X,
-            y=y,
-            cv=cv_size,
-            n_jobs=self._n_jobs,
-        )
+        train_preds = self._rise.fit_predict(X, y)
         self.rise_weight_ = accuracy_score(y, train_preds) ** 4
 
         if self.verbose > 0:
-            print(  # noqa
-                "RISE train estimate ",
-                datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
-            )
+            print("RISE ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
             print("RISE weight = " + str(self.rise_weight_))  # noqa
 
         # Build cBOSS
@@ -276,18 +222,11 @@ class HIVECOTEV1(BaseClassifier):
             random_state=self.random_state,
             n_jobs=self._n_jobs,
         )
-        self._cboss.fit(X, y)
-
-        # Find cBOSS weight using train set estimate
-        train_probs = self._cboss._get_train_probs(X, y)
-        train_preds = self._cboss.classes_[np.argmax(train_probs, axis=1)]
+        train_preds = self._cboss.fit_predict(X, y)
         self.cboss_weight_ = accuracy_score(y, train_preds) ** 4
 
         if self.verbose > 0:
-            print(  # noqa
-                "cBOSS (estimate included)",
-                datetime.now().strftime("%H:%M:%S %d/%m/%Y"),
-            )
+            print("cBOSS ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
             print("cBOSS weight = " + str(self.cboss_weight_))  # noqa
 
         return self
@@ -297,12 +236,12 @@ class HIVECOTEV1(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, n_timepoints]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         rng = check_random_state(self.random_state)
@@ -318,12 +257,12 @@ class HIVECOTEV1(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array of shape = [n_instances, n_dimensions, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         dists = np.zeros((X.shape[0], self.n_classes_))

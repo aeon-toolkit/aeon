@@ -1,7 +1,8 @@
 """Clustering averaging metrics."""
-__author__ = ["chrisholder", "TonyBagnall"]
 
-from typing import Callable, Dict
+__maintainer__ = []
+
+from typing import Callable, Dict, Union
 
 import numpy as np
 
@@ -13,12 +14,12 @@ def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
 
     Parameters
     ----------
-    X : np.ndarray (3d array of shape (n_instances, n_dimensions, series_length))
+    X : np.ndarray (3d array of shape (n_cases, n_channels, n_timepoints))
         Time series instances compute average from.
 
     Returns
     -------
-    np.ndarray (2d array of shape (n_dimensions, series_length)
+    np.ndarray (2d array of shape (n_channels, n_timepoints)
         The time series that is the mean.
     """
     if X.shape[0] <= 1:
@@ -33,7 +34,7 @@ _AVERAGE_DICT = {
 
 
 def _resolve_average_callable(
-    averaging_method: [str, Callable[[np.ndarray], np.ndarray]]
+    averaging_method: Union[str, Callable[[np.ndarray, Dict], np.ndarray]]
 ) -> Callable[[np.ndarray, Dict], np.ndarray]:
     """Resolve a string or callable to a averaging callable.
 
@@ -56,5 +57,4 @@ def _resolve_average_callable(
                 _AVERAGE_DICT.keys(),
             )
         return _AVERAGE_DICT[averaging_method]
-
     return averaging_method

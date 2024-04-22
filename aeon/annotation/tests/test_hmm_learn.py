@@ -1,11 +1,11 @@
 """Tests for hmmlearn wrapper annotation estimator."""
 
-__author__ = ["miraep8", "klam-data", "pyyim", "mgorlin"]
+__maintainer__ = []
 
 import pytest
 from numpy import array_equal
 
-from aeon.annotation.datagen import piecewise_normal, piecewise_poisson
+from aeon.testing.utils.data_gen import piecewise_normal, piecewise_poisson
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

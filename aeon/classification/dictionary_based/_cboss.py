@@ -4,7 +4,7 @@ Dictionary based cBOSS classifier based on SFA transform. Improves the ensemble
 structure of the original BOSS algorithm.
 """
 
-__author__ = ["MatthewMiddlehurst", "BINAYKUMAR943"]
+__maintainer__ = []
 
 __all__ = ["ContractableBOSS", "pairwise_distances"]
 
@@ -17,7 +17,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based import IndividualBOSS
 from aeon.classification.dictionary_based._boss import pairwise_distances
-from aeon.utils.validation.panel import check_X_y
 
 
 class ContractableBOSS(BaseClassifier):
@@ -62,9 +61,6 @@ class ContractableBOSS(BaseClassifier):
     contract_max_n_parameter_samples : int, default=np.inf
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
-    save_train_predictions : bool, default=False
-        Save the ensemble member train predictions in fit for use in _get_train_probs
-        leave-one-out cross-validation.
     n_jobs : int, default = 1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -83,15 +79,14 @@ class ContractableBOSS(BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : list
         The classes labels.
-    n_instances_ : int
+    n_cases_ : int
         Number of instances. Extracted from the data.
-    n_estimators_ : int
-        The final number of classifiers used. Will be <= `max_ensemble_size` if
-        `max_ensemble_size` has been specified.
-    series_length_ : int
+    n_timepoints_ : int
         Length of all series (assumed equal).
     estimators_ : list
        List of DecisionTree classifiers.
+    n_estimators_ : int
+        The final number of classifiers used. Will be <= `max_ensemble_size`.
     weights_ :
         Weight of each classifier in the ensemble.
 
@@ -145,7 +140,6 @@ class ContractableBOSS(BaseClassifier):
         min_window=10,
         time_limit_in_minutes=0.0,
         contract_max_n_parameter_samples=np.inf,
-        save_train_predictions=False,
         feature_selection="none",
         n_jobs=1,
         random_state=None,
@@ -157,7 +151,6 @@ class ContractableBOSS(BaseClassifier):
 
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_parameter_samples = contract_max_n_parameter_samples
-        self.save_train_predictions = save_train_predictions
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.feature_selection = feature_selection
@@ -165,17 +158,17 @@ class ContractableBOSS(BaseClassifier):
         self.estimators_ = []
         self.weights_ = []
         self.n_estimators_ = 0
-        self.series_length_ = 0
-        self.n_instances_ = 0
+        self.n_timepoints_ = 0
+        self.n_cases_ = 0
 
         self._weight_sum = 0
         self._word_lengths = [16, 14, 12, 10, 8]
         self._norm_options = [True, False]
         self._alphabet_size = 4
 
-        super(ContractableBOSS, self).__init__()
+        super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X, y, keep_train_preds=True):
         """Fit a cBOSS ensemble on cases (X,y), where y is the target variable.
 
         Build an ensemble of BOSS classifiers from the training set (X,
@@ -185,9 +178,9 @@ class ContractableBOSS(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The training labels, shape = (n_instances).
+            The training labels, shape = (n_cases).
 
         Returns
         -------
@@ -200,14 +193,14 @@ class ContractableBOSS(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         time_limit = self.time_limit_in_minutes * 60
-        self.n_instances_, _, self.series_length_ = X.shape
+        self.n_cases_, _, self.n_timepoints_ = X.shape
 
         self.estimators_ = []
         self.weights_ = []
 
         # Window length parameter space dependent on series length
-        max_window_searches = self.series_length_ / 4
-        max_window = int(self.series_length_ * self.max_win_len_prop)
+        max_window_searches = self.n_timepoints_ / 4
+        max_window = int(self.n_timepoints_ * self.max_win_len_prop)
         win_inc = int((max_window - self.min_window) / max_window_searches)
         win_inc = max(win_inc, 1)
         if self.min_window > max_window + 1:
@@ -223,7 +216,7 @@ class ContractableBOSS(BaseClassifier):
         num_classifiers = 0
         start_time = time.time()
         train_time = 0
-        subsample_size = int(self.n_instances_ * 0.7)
+        subsample_size = int(self.n_cases_ * 0.7)
         lowest_acc = 1
         lowest_acc_idx = 0
 
@@ -247,9 +240,7 @@ class ContractableBOSS(BaseClassifier):
                 rng.randint(0, len(possible_parameters))
             )
 
-            subsample = rng.choice(
-                self.n_instances_, size=subsample_size, replace=False
-            )
+            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
             X_subsample = X[subsample]
             y_subsample = y[subsample]
 
@@ -270,6 +261,7 @@ class ContractableBOSS(BaseClassifier):
                 y_subsample,
                 subsample_size,
                 0 if num_classifiers < self.max_ensemble_size else lowest_acc,
+                keep_train_preds,
             )
             if boss._accuracy > 0:
                 weight = math.pow(boss._accuracy, 4)
@@ -303,13 +295,13 @@ class ContractableBOSS(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         1D np.ndarray
-            Predicted class labels shape = (n_instances).
+            Predicted class labels shape = (n_cases).
 
         """
         rng = check_random_state(self.random_state)
@@ -326,15 +318,18 @@ class ContractableBOSS(BaseClassifier):
         Parameters
         ----------
          X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         2D np.ndarray
-            Predicted class labels shape = (n_instances).
+            Predicted class labels shape = (n_cases).
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
+
+        if self.n_estimators_ == 0:
+            return sums + 1 / self.n_classes_
 
         for n, clf in enumerate(self.estimators_):
             preds = clf.predict(X)
@@ -342,6 +337,38 @@ class ContractableBOSS(BaseClassifier):
                 sums[i, self._class_dictionary[preds[i]]] += self.weights_[n]
 
         return sums / (np.ones(self.n_classes_) * self._weight_sum)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._fit_predict_proba(X, y)
+            ]
+        )
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        self._fit(X, y, keep_train_preds=True)
+
+        results = np.zeros((self.n_cases_, self.n_classes_))
+        divisors = np.zeros(self.n_cases_)
+
+        for i, clf in enumerate(self.estimators_):
+            subsample = clf._subsample
+            preds = clf._train_predictions
+
+            for n, pred in enumerate(preds):
+                results[subsample[n]][self._class_dictionary[pred]] += self.weights_[i]
+                divisors[subsample[n]] += self.weights_[i]
+
+        for i in range(self.n_cases_):
+            results[i] = (
+                np.ones(self.n_classes_) * (1 / self.n_classes_)
+                if divisors[i] == 0
+                else results[i] / (np.ones(self.n_classes_) * divisors[i])
+            )
+
+        return results
 
     def _worst_ensemble_acc(self):
         min_acc = 1.0
@@ -362,55 +389,16 @@ class ContractableBOSS(BaseClassifier):
             for g, word_len in enumerate(self._word_lengths)
         ]
 
-    def _get_train_probs(self, X, y) -> np.ndarray:
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True, enforce_univariate=True)
-
-        n_instances, _, series_length = X.shape
-
-        if n_instances != self.n_instances_ or series_length != self.series_length_:
-            raise ValueError(
-                "n_instances, series_length mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
-
-        results = np.zeros((n_instances, self.n_classes_))
-        divisors = np.zeros(n_instances)
-
-        for i, clf in enumerate(self.estimators_):
-            subsample = clf._subsample
-            if self.save_train_predictions:
-                preds = clf._train_predictions
-
-            else:
-                distance_matrix = pairwise_distances(
-                    clf._transformed_data, n_jobs=self.n_jobs
-                )
-
-                preds = [
-                    clf._train_predict(j, distance_matrix)
-                    for j in range(len(subsample))
-                ]
-            for n, pred in enumerate(preds):
-                results[subsample[n]][self._class_dictionary[pred]] += self.weights_[i]
-                divisors[subsample[n]] += self.weights_[i]
-
-        for i in range(n_instances):
-            results[i] = (
-                np.ones(self.n_classes_) * (1 / self.n_classes_)
-                if divisors[i] == 0
-                else results[i] / (np.ones(self.n_classes_) * divisors[i])
-            )
-
-        return results
-
-    def _individual_train_acc(self, boss, y, train_size, lowest_acc):
+    def _individual_train_acc(self, boss, y, train_size, lowest_acc, keep_train_preds):
         correct = 0
         required_correct = int(lowest_acc * train_size)
 
-        # there may be no words if feature selection is too aggressive
-        if boss._transformed_data.shape[1] > 0:
+        # there may be no words if feature selection is too aggressive or
+        # subsampling is too small
+        if (
+            not isinstance(boss._transformed_data, list)
+            and boss._transformed_data.shape[1] > 0
+        ):
             distance_matrix = pairwise_distances(
                 boss._transformed_data, n_jobs=self.n_jobs
             )
@@ -423,7 +411,7 @@ class ContractableBOSS(BaseClassifier):
                 if c == y[i]:
                     correct += 1
 
-                if self.save_train_predictions:
+                if keep_train_preds:
                     boss._train_predictions.append(c)
 
         return correct / train_size
@@ -463,12 +451,6 @@ class ContractableBOSS(BaseClassifier):
                 "time_limit_in_minutes": 5,
                 "contract_max_n_parameter_samples": 4,
                 "max_ensemble_size": 2,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_parameter_samples": 4,
-                "max_ensemble_size": 2,
-                "save_train_predictions": True,
             }
         else:
             return {"n_parameter_samples": 4, "max_ensemble_size": 2}

@@ -5,7 +5,7 @@ The reason for this class between BaseClassifier and deep_learning classifiers i
 because we can generalise tags and _predict
 """
 
-__author__ = ["AurumnPegasus", "achieveordie"]
+__maintainer__ = []
 __all__ = ["BaseDeepRegressor"]
 
 from abc import ABC, abstractmethod
@@ -32,20 +32,22 @@ class BaseDeepRegressor(BaseRegressor, ABC):
     """
 
     _tags = {
-        "X_inner_mtype": "numpy3D",
+        "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
         "non-deterministic": True,
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
+        "python_version": "<3.12",
     }
 
     def __init__(self, batch_size=40, last_file_name="last_model"):
-        super(BaseDeepRegressor, self).__init__()
-
         self.batch_size = batch_size
         self.last_file_name = last_file_name
+
         self.model_ = None
+
+        super().__init__()
 
     @abstractmethod
     def build_model(self, input_shape):
@@ -81,7 +83,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_dimensions, series_length)
+        X : an np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The training input samples.
 
         Returns
@@ -106,4 +108,4 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         -------
         None
         """
-        self.model_.save(file_path + self.last_file_name + ".hdf5")
+        self.model_.save(file_path + self.last_file_name + ".keras")

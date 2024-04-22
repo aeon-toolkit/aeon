@@ -3,7 +3,7 @@
 Pipeline classifiers which extract interval features then build a base estimator.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["RandomIntervalClassifier", "SupervisedIntervalClassifier"]
 
 import numpy as np
@@ -11,8 +11,10 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection import SupervisedIntervals
-from aeon.transformations.collection.random_intervals import RandomIntervals
+from aeon.transformations.collection.interval_based import (
+    RandomIntervals,
+    SupervisedIntervals,
+)
 
 
 class RandomIntervalClassifier(BaseClassifier):
@@ -62,7 +64,7 @@ class RandomIntervalClassifier(BaseClassifier):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_channels_ : int
         The number of dimensions per case.
@@ -81,7 +83,7 @@ class RandomIntervalClassifier(BaseClassifier):
     --------
     >>> from aeon.classification.interval_based import RandomIntervalClassifier
     >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = RandomIntervalClassifier(
@@ -123,16 +125,16 @@ class RandomIntervalClassifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(RandomIntervalClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit RandomIntervalClassifier to training data.
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
-        y : 1D np.array, of shape [n_instances] - class labels for fitting
+        X : 3D np.ndarray (any number of channels, equal length series)
+                of shape (n_cases, n_channels, n_timepoints)
+        y : 1D np.array, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -140,7 +142,7 @@ class RandomIntervalClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = RandomIntervals(
             n_intervals=self.n_intervals,
@@ -154,9 +156,11 @@ class RandomIntervalClassifier(BaseClassifier):
         )
 
         self._estimator = _clone_estimator(
-            RandomForestClassifier(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestClassifier(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 
@@ -174,12 +178,12 @@ class RandomIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray (any number of channels, equal length series)
+                of shape (n_cases, n_channels, n_timepoints)
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         return self._estimator.predict(self._transformer.transform(X))
@@ -189,12 +193,12 @@ class RandomIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray (any number of channels, equal length series)
+                of shape (n_cases, n_channels, n_timepoints)
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         m = getattr(self._estimator, "predict_proba", None)
@@ -263,16 +267,16 @@ class SupervisedIntervalClassifier(BaseClassifier):
         The minimum length of extracted intervals. Minimum value of 3.
     features : callable, list of callables, default=None
         Functions used to extract features from selected intervals. Must take a 2d
-        array of shape (n_instances, interval_length) and return a 1d array of shape
-        (n_instances) containing the features.
+        array of shape (n_cases, interval_length) and return a 1d array of shape
+        (n_cases) containing the features.
         If None, defaults to the following statistics used in [2]:
         [mean, median, std, slope, min, max, iqr, count_mean_crossing,
         count_above_mean].
     metric : ["fisher"] or callable, default="fisher"
         The metric used to evaluate the usefulness of a feature extracted on an
         interval. If "fisher", the Fisher score is used. If a callable, it must take
-        a 1d array of shape (n_instances) and return a 1d array of scores of shape
-        (n_instances).
+        a 1d array of shape (n_cases) and return a 1d array of scores of shape
+        (n_cases).
     randomised_split_point : bool, default=True
         If True, the split point for interval extraction is randomised as is done in [2]
         rather than split in half.
@@ -297,7 +301,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
     n_channels_ : int
         The number of dimensions per case.
@@ -316,7 +320,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
     --------
     >>> from aeon.classification.interval_based import SupervisedIntervalClassifier
     >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = SupervisedIntervalClassifier(
@@ -360,16 +364,16 @@ class SupervisedIntervalClassifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(SupervisedIntervalClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit SupervisedIntervalClassifier to training data.
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
-        y : 1D np.array, of shape [n_instances] - class labels for fitting
+        X : 3D np.ndarray (any number of channels, equal length series)
+                of shape (n_cases, n_channels, n_timepoints)
+        y : 1D np.array, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -377,7 +381,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
         self :
             Reference to self.
         """
-        self.n_instances_, self.n_channels_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = SupervisedIntervals(
             n_intervals=self.n_intervals,
@@ -392,9 +396,11 @@ class SupervisedIntervalClassifier(BaseClassifier):
         )
 
         self._estimator = _clone_estimator(
-            RandomForestClassifier(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestClassifier(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 
@@ -412,12 +418,12 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray (any number of channels, equal length series)
+                of shape (n_cases, n_channels, n_timepoints)
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         return self._estimator.predict(self._transformer.transform(X))
@@ -427,12 +433,12 @@ class SupervisedIntervalClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.array (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray (any number of channels, equal length series)
+                of shape (n_cases, n_channels, n_timepoints)
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         m = getattr(self._estimator, "predict_proba", None)

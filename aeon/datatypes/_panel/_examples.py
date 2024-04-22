@@ -41,8 +41,8 @@ X = np.array(
 example_dict[("numpy3D", "Panel", 0)] = X
 example_dict_lossy[("numpy3D", "Panel", 0)] = False
 
-example_dict[("numpyflat", "Panel", 0)] = None
-example_dict_lossy[("numpyflat", "Panel", 0)] = None
+example_dict[("numpy2D", "Panel", 0)] = None
+example_dict_lossy[("numpy2D", "Panel", 0)] = None
 
 cols = [f"var_{i}" for i in range(2)]
 Xlist = [
@@ -81,7 +81,7 @@ example_dict[("nested_univ", "Panel", 0)] = X
 example_dict_lossy[("nested_univ", "Panel", 0)] = False
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import convert_pandas_to_dask
+    from aeon.utils.conversion.dask_converters import convert_pandas_to_dask
 
     df_dask = convert_pandas_to_dask(
         example_dict[("pd-multiindex", "Panel", 0)], npartitions=1
@@ -99,7 +99,7 @@ example_dict_metadata[("Panel", 0)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 3,
+    "n_cases": 3,
 }
 
 ###
@@ -115,8 +115,8 @@ example_dict_lossy[("numpy3D", "Panel", 1)] = False
 
 X = np.array([[4, 5, 6], [4, 55, 6], [42, 5, 6]], dtype=np.int64)
 
-example_dict[("numpyflat", "Panel", 1)] = X
-example_dict_lossy[("numpyflat", "Panel", 1)] = False
+example_dict[("numpy2D", "Panel", 1)] = X
+example_dict_lossy[("numpy2D", "Panel", 1)] = False
 
 cols = [f"var_{i}" for i in range(1)]
 Xlist = [
@@ -151,7 +151,7 @@ example_dict[("nested_univ", "Panel", 1)] = X
 example_dict_lossy[("nested_univ", "Panel", 1)] = False
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import convert_pandas_to_dask
+    from aeon.utils.conversion.dask_converters import convert_pandas_to_dask
 
     df_dask = convert_pandas_to_dask(
         example_dict[("pd-multiindex", "Panel", 1)], npartitions=1
@@ -170,7 +170,7 @@ example_dict_metadata[("Panel", 1)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 3,
+    "n_cases": 3,
 }
 
 ###
@@ -186,8 +186,8 @@ example_dict_lossy[("numpy3D", "Panel", 2)] = False
 
 X = np.array([[4, 5, 6]], dtype=np.int64)
 
-example_dict[("numpyflat", "Panel", 2)] = X
-example_dict_lossy[("numpyflat", "Panel", 2)] = False
+example_dict[("numpy2D", "Panel", 2)] = X
+example_dict_lossy[("numpy2D", "Panel", 2)] = False
 
 cols = [f"var_{i}" for i in range(1)]
 Xlist = [
@@ -216,7 +216,7 @@ example_dict[("nested_univ", "Panel", 2)] = X
 example_dict_lossy[("nested_univ", "Panel", 2)] = False
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import convert_pandas_to_dask
+    from aeon.utils.conversion.dask_converters import convert_pandas_to_dask
 
     df_dask = convert_pandas_to_dask(
         example_dict[("pd-multiindex", "Panel", 2)], npartitions=1
@@ -234,5 +234,5 @@ example_dict_metadata[("Panel", 2)] = {
     "is_equal_length": True,
     "is_empty": False,
     "has_nans": False,
-    "n_instances": 1,
+    "n_cases": 1,
 }

@@ -1,17 +1,17 @@
 """Unit tests for early classifier input output."""
 
-__author__ = ["mloning", "TonyBagnall", "fkiraly", "MatthewMiddlehurst"]
+__maintainer__ = []
 
 import numpy as np
 from sklearn.utils._testing import set_random_state
 
-from aeon.classification.tests._expected_outputs import (
+from aeon.datasets import load_basic_motions, load_unit_test
+from aeon.testing.expected_results.expected_classifier_outputs import (
     basic_motions_proba,
     unit_test_proba,
 )
-from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 
 
 class EarlyClassifierFixtureGenerator(BaseFixtureGenerator):

@@ -1,4 +1,5 @@
 """Tests for KNeighborsTimeSeriesRegressor."""
+
 import numpy as np
 
 from aeon.regression.distance_based._time_series_neighbors import (
@@ -8,7 +9,6 @@ from aeon.regression.distance_based._time_series_neighbors import (
 
 def test_knn_neighbors():
     """Tests kneighbors method."""
-
     from sklearn.datasets import make_regression
     from sklearn.model_selection import train_test_split
 

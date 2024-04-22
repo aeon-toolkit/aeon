@@ -1,4 +1,5 @@
 """Transformers."""
+
 __all__ = ["PAA", "SFA", "SFAFast", "SAX"]
 
 from aeon.transformations.collection.dictionary_based._paa import PAA

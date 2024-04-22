@@ -1,6 +1,6 @@
 """Test OnlineEnsembleForecaster."""
 
-__author__ = ["magittan"]
+__maintainer__ = []
 
 import numpy as np
 import pytest

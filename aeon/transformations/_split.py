@@ -13,7 +13,7 @@ class SplitsTimeSeries:
 
         Parameters
         ----------
-        X : a numpy array of shape = [time_series_length]
+        X : a numpy array of shape = [time_n_timepoints]
 
         Returns
         -------

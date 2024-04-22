@@ -1,8 +1,9 @@
 """Tests for time series k-shapes."""
+
 import numpy as np
 import pytest
 
-from aeon.clustering.k_shapes import TimeSeriesKShapes
+from aeon.clustering._k_shapes import TimeSeriesKShapes
 from aeon.datasets import load_basic_motions
 from aeon.utils.validation._dependencies import _check_estimator_deps
 

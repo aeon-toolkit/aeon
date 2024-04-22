@@ -1,7 +1,7 @@
 """Implements VAR Model as interface to statsmodels."""
 
 __all__ = ["VAR"]
-__author__ = ["thayeylolu", "aiwalter", "lbventura"]
+__maintainer__ = []
 
 import itertools
 from collections import OrderedDict
@@ -73,8 +73,8 @@ class VAR(_StatsModelsAdapter):
     _fitted_param_names = ("aic", "fpe", "hqic", "bic")
 
     _tags = {
-        "scitype:y": "multivariate",
-        "y_inner_mtype": "pd.DataFrame",
+        "y_input_type": "multivariate",
+        "y_inner_type": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "univariate-only": False,
         "ignores-exogeneous-X": True,
@@ -103,7 +103,7 @@ class VAR(_StatsModelsAdapter):
         self.freq = freq
         self.ic = ic
 
-        super(VAR, self).__init__(random_state=random_state)
+        super().__init__(random_state=random_state)
 
     def _fit_forecaster(self, y, X=None):
         """Fit forecaster to training data.
@@ -208,7 +208,7 @@ class VAR(_StatsModelsAdapter):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
         X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -221,7 +221,7 @@ class VAR(_StatsModelsAdapter):
                     in the same order as in input `coverage`.
                 Third level is string "lower" or "upper", for lower/upper interval end.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are forecasts of lower/upper interval end,
                 for var in col index, at nominal coverage in second col index,
                 lower/upper depending on third col index, for the row index.

@@ -30,6 +30,7 @@ Testing - implement if aeon classifier (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 
 """
+
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
@@ -81,7 +82,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
     # optional todo: override base class estimator default tags here if necessary
     # these are the default values, only add if different to these.
     _tags = {
-        "X_inner_mtype": "numpy3D",  # which type do _fit/_predict accept, usually
+        "X_inner_type": "numpy3D",  # which type do _fit/_predict accept, usually
         # this is usually "numpy3D" for equal length time series, np-list for unequal
         # length time series, see datatypes/panel/_registry.py for options.
         "capability:multivariate": False,
@@ -105,7 +106,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
         self.param_c = param_c
 
         # todo: change "MyTimeSeriesClassifier" to the name of the class
-        super(MyTimeSeriesClassifier, self).__init__()
+        super().__init__()
 
     # todo: implement this abstract function
     def _fit(self, X, y):
@@ -118,10 +119,10 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
+                3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        y : 1D np.array of int, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -146,15 +147,15 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
-                list of 2D np.ndarray of shape = (n_instances,)
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
+                3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            if self.get_tag("X_inner_type") = "np-list":
+                list of 2D np.ndarray of shape = (n_cases,)
 
         Returns
         -------
-        y : 1D np.array of int, of shape [n_instances] - predicted class labels
+        y : 1D np.array of int, of shape [n_cases] - predicted class labels
             indices correspond to instance indices in X
         """
 
@@ -175,15 +176,15 @@ class MyTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            if self.get_tag("X_inner_mtype") = "numpy3D":
-                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
-            if self.get_tag("X_inner_mtype") = "np-list":
-                list of 2D np.ndarray of shape = (n_instances,)
+        X : guaranteed to be of a type in self.get_tag("X_inner_type")
+            if self.get_tag("X_inner_type") = "numpy3D":
+                3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            if self.get_tag("X_inner_type") = "np-list":
+                list of 2D np.ndarray of shape = (n_cases,)
 
         Returns
         -------
-        y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
