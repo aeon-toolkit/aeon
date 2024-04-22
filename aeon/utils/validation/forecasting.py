@@ -406,12 +406,12 @@ def check_scoring(scoring):
 
     Parameters
     ----------
-    scoring : object that inherits from BaseMetric from aeon.performance_metrics.
+    scoring : function in aeon.performance_metrics.
 
     Returns
     -------
     scoring :
-        MeanAbsolutePercentageError if the object is None.
+        mean_absolute_percentage_error if the object is None.
 
     Raises
     ------
