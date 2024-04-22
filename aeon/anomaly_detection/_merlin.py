@@ -6,6 +6,7 @@ __all__ = ["MERLIN"]
 import warnings
 
 import numpy as np
+from numba import njit
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.distances import squared_distance
@@ -70,7 +71,7 @@ class MERLIN(BaseAnomalyDetector):
             if std(X[i : i + self.min_length]) > AEON_NUMBA_STD_THRESHOLD:
                 warnings.warn(
                     "There is region close to constant that will cause the results "
-                    "will be unstable. It is suggested to delete the constant region "
+                    "to be unstable. It is suggested to delete the constant region "
                     "or try again with a longer min_length.",
                     stacklevel=2,
                 )
@@ -115,6 +116,7 @@ class MERLIN(BaseAnomalyDetector):
         return anomalies
 
     @staticmethod
+    @njit(cache=True, fastmath=True)
     def _drag(X, length, discord_range):
         C = []
         data = np.zeros((X.shape[0] - length + 1, length))
@@ -140,27 +142,36 @@ class MERLIN(BaseAnomalyDetector):
             return -1, -1
 
         D = [np.inf] * len(C)
+        del_list = [False] * len(C)
         for i in range(X.shape[0] - length + 1):
-            for n, j in reversed(list(enumerate(C))):
+            for n, j in enumerate(C):
                 if np.abs(i - j) >= length:
                     d = squared_distance(data[i], data[j])
                     if d < discord_range:
-                        del C[n]
-                        del D[n]
+                        del_list[n] = True
                     else:
                         D[n] = np.minimum(D[n], d)
+
+            for n, j in enumerate(del_list):
+                if j:
+                    del C[n]
+                    del D[n]
+                    del del_list[n]
 
         if len(C) == 0:
             return -1, -1
 
+        all_inf = True
         for n in range(len(C)):
             if D[n] == np.inf:
                 D[n] = -1
+            else:
+                all_inf = False
 
-        if np.all(D == -1):
+        if all_inf:
             return np.nan, np.nan
 
-        d_max = int(np.argmax(D))
+        d_max = int(np.argmax(np.array(D)))
         return C[d_max], np.sqrt(D[d_max])
 
     @classmethod

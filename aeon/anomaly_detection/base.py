@@ -6,7 +6,6 @@ __all__ = ["BaseAnomalyDetector"]
 from abc import ABC, abstractmethod
 from typing import final
 
-import numpy
 import numpy as np
 import pandas as pd
 
@@ -220,7 +219,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
             if issubclass(y.dtype.type, np.integer):
                 new_y = y.astype(bool)
                 fail = not np.array_equal(y, new_y)
-            elif not issubclass(y.dtype.type, numpy.bool_):
+            elif not issubclass(y.dtype.type, np.bool_):
                 fail = True
 
             if fail:
