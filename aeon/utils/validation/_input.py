@@ -47,19 +47,21 @@ def _abstract_type(input_type: str) -> str:
     return "Unknown"
 
 
-def abstract_types(input_types: list) -> list:
+def abstract_types(input_types) -> list:
     """Return the abstract types based on the string identifier of the input.
 
     Parameters
     ----------
-    input_types : list of str
-        List of string representation of the input types.
+    input_types : str or list of str
+        String or list of string representations of the input types.
 
     Returns
     -------
     list of str
         Abstract type of the input, one of Series, Panel, Hierarchical or Unknown.
     """
+    if isinstance(input_types, str):
+        input_types = [input_types]
     return [_abstract_type(x) for x in input_types]
 
 
