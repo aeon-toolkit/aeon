@@ -9,7 +9,6 @@ __all__ = [
     "check_step_length",
     "check_alpha",
     "check_cutoffs",
-    "check_scoring",
     "check_sp",
     "check_regressor",
 ]
@@ -20,6 +19,7 @@ from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from pandas.api.types import is_numeric_dtype
 from sklearn.base import clone, is_regressor
 from sklearn.ensemble import GradientBoostingRegressor
@@ -394,7 +394,13 @@ def check_cutoffs(cutoffs: VALID_CUTOFF_TYPES) -> np.ndarray:
     return np.sort(cutoffs)
 
 
-def check_scoring(scoring, allow_y_pred_benchmark=False):
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason=("check_scoring is being removed from aeon in v0.10.0."),
+    category=FutureWarning,
+)
+def check_scoring(scoring):
     """
     Validate the performance scoring.
 
