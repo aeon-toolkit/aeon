@@ -539,7 +539,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -554,7 +554,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -693,7 +693,7 @@ class CutoffSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -714,7 +714,7 @@ class CutoffSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -942,7 +942,7 @@ class BaseWindowSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -962,7 +962,7 @@ class BaseWindowSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -1032,11 +1032,11 @@ class SlidingWindowSplitter(BaseWindowSplitter):
         Forecasting horizon
     window_length : int or timedelta or pd.DateOffset
         Window length
-    step_length : int or timedelta or pd.DateOffset, optional (default=1)
+    step_length : int or timedelta or pd.DateOffset, default=1
         Step length between windows
-    initial_window : int or timedelta or pd.DateOffset, optional (default=None)
+    initial_window : int or timedelta or pd.DateOffset, default=None
         Window length of first window
-    start_with_window : bool, optional (default=True)
+    start_with_window : bool, default=True
         - If True, starts with full window.
         - If False, starts with empty window.
 
@@ -1099,11 +1099,11 @@ class ExpandingWindowSplitter(BaseWindowSplitter):
 
     Parameters
     ----------
-    fh : int, list or np.array, optional (default=1)
+    fh : int, list or np.array, default=1
         Forecasting horizon
-    initial_window : int or timedelta or pd.DateOffset, optional (default=10)
+    initial_window : int or timedelta or pd.DateOffset, default=10
         Window length of initial training fold. If =0, initial training fold is empty.
-    step_length : int or timedelta or pd.DateOffset, optional (default=1)
+    step_length : int or timedelta or pd.DateOffset, default=1
         Step length between windows
 
     Examples
@@ -1216,7 +1216,7 @@ class SingleWindowSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -1235,7 +1235,7 @@ class SingleWindowSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -1293,9 +1293,9 @@ def temporal_train_test_split(
     ----------
     y : pd.Series
         Target series
-    X : pd.DataFrame, optional (default=None)
+    X : pd.DataFrame, default=None
         Exogenous data
-    test_size : float, int or None, optional (default=None)
+    test_size : float, int or None, default=None
         If float, should be between 0.0 and 1.0 and represent the proportion
         of the dataset to include in the test split. If int, represents the
         relative number of test samples. If None, the value is set to the

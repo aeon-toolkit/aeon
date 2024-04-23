@@ -301,12 +301,12 @@ class BaseForecaster(BaseEstimator):
             For further details:
                 on usage, see forecasting examples/forecasting
                 on specification of formats, examples/datasets
-        X : time series in aeon compatible format, optional (default=None)
+        X : time series in aeon compatible format, default=None
                 Exogeneous time series to fit to
             Should be of same abstract type (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
             there are no restrictions on number of columns (unlike for y).
-        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
+        fh : int, list, np.array or ForecastingHorizon, default=None
             The forecasting horizon encoding the time stamps to forecast at.
             if self.get_tag("requires-fh-in-fit"), must be passed, not optional.
 
@@ -365,10 +365,10 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
+        fh : int, list, np.array or ForecastingHorizon, default=None
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional.
-        X : time series in aeon compatible format, optional (default=None)
+        X : time series in aeon compatible format, default=None
                 Exogeneous time series to fit to
             Should be of same abstract type (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"), X.index must contain fh.index
@@ -443,7 +443,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in aeon compatible format, optional (default=None)
+        X : time series in aeon compatible format, default=None
                 Exogeneous time series to fit to
             Should be of same abstract type (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"),
@@ -506,11 +506,11 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in aeon compatible format, optional (default=None)
+        X : time series in aeon compatible format, default=None
                 Exogeneous time series to fit to
             Should be of same abstract type (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"), must contain fh.index
-        alpha : float or list of float of unique values, optional (default=[0.05, 0.95])
+        alpha : float or list of float of unique values, default=[0.05, 0.95]
             A probability or list of, at which quantile forecasts are computed.
 
         Returns
@@ -582,7 +582,7 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional.
-        X : time series in aeon compatible format, optional (default=None)
+        X : time series in aeon compatible format, default=None
                 Exogeneous time series to fit to
             Should be of same abstract type (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"), must contain fh.index.
@@ -652,12 +652,12 @@ class BaseForecaster(BaseEstimator):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : time series in aeon compatible format, optional (default=None)
+        X : time series in aeon compatible format, default=None
                 Exogeneous time series to fit to
             Should be of same abstract type (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"),
                 X.index must contain fh.index and y.index both
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             if True, computes covariance matrix forecast.
             if False, computes marginal variance forecasts.
 
@@ -813,12 +813,12 @@ class BaseForecaster(BaseEstimator):
                 if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details:
                 See  examples/forecasting, or examples/datasets,
-        X : time series in aeon compatible format, optional (default=None)
+        X : time series in aeon compatible format, default=None
                 Exogeneous time series to fit to
             Should be of same type (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
             there are no restrictions on number of columns (unlike for y)
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -897,15 +897,15 @@ class BaseForecaster(BaseEstimator):
             default = ExpandingWindowSplitter with `initial_window=1` and defaults
                 = individual data points in y/X are added and forecast one-by-one,
                 `initial_window = 1`, `step_length = 1` and `fh = 1`
-        X : time series in aeon compatible format, optional (default=None)
+        X : time series in aeon compatible format, default=None
             Exogeneous time series for updating and forecasting
             Should be of same abstract type (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),
                 X.index must contain y.index and fh.index both
             there are no restrictions on number of columns (unlike for y).
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             Whether model parameters should be updated in each update step.
-        reset_forecaster : bool, optional (default=True)
+        reset_forecaster : bool, default=True
             If True, will not change the state of the forecaster,
                 i.e., update/predict sequence is run with a copy,
                 and cutoff, model parameters, data memory of self do not change
@@ -996,15 +996,15 @@ class BaseForecaster(BaseEstimator):
                     y must have 2 or more columns
                 if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details see  examples/forecasting, or examples/datasets.
-        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
+        fh : int, list, np.array or ForecastingHorizon, default=None
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional.
-        X : time series in aeon compatible format, optional (default=None)
+        X : time series in aeon compatible format, default=None
                 Exogeneous time series for updating and forecasting
             Should be of same abstract type (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),
                 X.index must contain y.index and fh.index both.
-        update_params : bool, optional (default=False)
+        update_params : bool, default=False
 
         Returns
         -------
@@ -1155,7 +1155,7 @@ class BaseForecaster(BaseEstimator):
         X : pd.DataFrame, or 2D np.array, default=None
             Exogeneous time series to score.
             if self.get_tag("X-y-must-have-same-index"), X.index must contain y.index
-        fh : int, list, array-like or ForecastingHorizon, optional (default=None)
+        fh : int, list, array-like or ForecastingHorizon, default=None
             The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -1241,9 +1241,9 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D), optional (default=None)
+        y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D), default=None
             Time series to check.
-        X : pd.DataFrame, or 2D np.array, optional (default=None)
+        X : pd.DataFrame, or 2D np.array, default=None
             Exogeneous time series.
 
         Returns
@@ -1479,7 +1479,7 @@ class BaseForecaster(BaseEstimator):
         ----------
         y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
             Endogenous time series
-        X : pd.DataFrame or 2D np.ndarray, optional (default=None)
+        X : pd.DataFrame or 2D np.ndarray, default=None
             Exogeneous time series
         """
         if y is not None:
@@ -1762,11 +1762,11 @@ class BaseForecaster(BaseEstimator):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
@@ -1790,10 +1790,10 @@ class BaseForecaster(BaseEstimator):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
 
@@ -1829,10 +1829,10 @@ class BaseForecaster(BaseEstimator):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -1901,10 +1901,10 @@ class BaseForecaster(BaseEstimator):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        coverage : float or list, optional (default=0.95)
+        coverage : float or list, default=0.95
            nominal coverage(s) of predictive interval(s)
 
         Returns
@@ -1974,10 +1974,10 @@ class BaseForecaster(BaseEstimator):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        alpha : list of float, optional (default=[0.5])
+        alpha : list of float, default=[0.5]
             A list of probabilities at which quantile forecasts are computed.
 
         Returns
@@ -2049,10 +2049,10 @@ class BaseForecaster(BaseEstimator):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             if True, computes covariance matrix forecast.
             if False, computes marginal variance forecasts.
 
@@ -2141,10 +2141,10 @@ class BaseForecaster(BaseEstimator):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        marginal : bool, optional (default=True)
+        marginal : bool, default=True
             whether returned distribution is marginal by time index
 
         Returns
@@ -2207,16 +2207,16 @@ class BaseForecaster(BaseEstimator):
                     y must have 2 or more columns
                 if self.get_tag("y_input_type")=="both": no restrictions apply
             For further details see  examples/forecasting, or examples/datasets
-        cv : temporal cross-validation generator, optional (default=None)
-        X : time series in aeon compatible format, optional (default=None)
+        cv : temporal cross-validation generator, default=None
+        X : time series in aeon compatible format, default=None
                 Exogeneous time series for updating and forecasting
             Should be of same abstract type (Series, Panel, or Hierarchical) as y
             if self.get_tag("X-y-must-have-same-index"),
                 X.index must contain y.index and fh.index both
             there are no restrictions on number of columns (unlike for y)
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated in each update step
-        reset_forecaster : bool, optional (default=True)
+        reset_forecaster : bool, default=True
             if True, will not change the state of the forecaster,
                 i.e., update/predict sequence is run with a copy,
                 and cutoff, model parameters, data memory of self do not change
