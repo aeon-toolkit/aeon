@@ -214,7 +214,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set:str ="default") -> list[dict]:
+    def get_test_params(cls, parameter_set: str = "default") -> list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
