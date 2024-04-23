@@ -69,12 +69,12 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     def __init__(
         self,
-        distance="dtw",
-        distance_params=None,
-        n_neighbors=1,
-        weights="uniform",
-        n_jobs=1,
-    ):
+        distance: str = "dtw",
+        distance_params: dict = None,
+        n_neighbors: int = 1,
+        weights: str = "uniform",
+        n_jobs: int = 1,
+    ) -> None:
         self.distance = distance
         self.distance_params = distance_params
         self.n_neighbors = n_neighbors
@@ -214,7 +214,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set:str ="default") -> list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
