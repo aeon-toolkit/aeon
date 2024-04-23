@@ -250,7 +250,7 @@ def _get_duration(x, y=None, coerce_to_int=False, unit=None):
     Parameters
     ----------
     x : pd.Index, pd.Timestamp, pd.Period, int
-    y : pd.Timestamp, pd.Period, int, optional (default=None)
+    y : pd.Timestamp, pd.Period, int, default=None
     coerce_to_int : bool
         If True, duration is returned as integer value for given unit
     unit : str
