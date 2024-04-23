@@ -167,17 +167,8 @@ def _calculate_distance_profile(
     """
     d = np.empty(n_t_subs)
     for i in range(n_t_subs):
-        d[i] = (
-            2
-            * q_len
-            * (
-                1
-                - (
-                    (dot_prod[i] - q_len * q_mean * t_mean[i])
-                    / (q_len * q_std * t_std[i])
-                )
-            )
-        )
+        temp = dot_prod[i] - q_len * q_mean * t_mean[i] / (q_len * q_std * t_std[i])
+        d[i] = 2 * q_len * (1 - temp)
 
     d = np.absolute(d)
     d = np.sqrt(d)
