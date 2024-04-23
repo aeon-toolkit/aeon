@@ -52,7 +52,7 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     >>> y = np.array([3, 7, 13, 19, 23, 31, 36, 40, 48, 55, 63])
     >>> m = 4
     >>> mpdist(x, y, m)
-    63.155137784438644
+    0.05663764013361034
     """
     x = np.squeeze(x)
     y = np.squeeze(y)
@@ -167,7 +167,7 @@ def _calculate_distance_profile(
     """
     d = np.empty(n_t_subs)
     for i in range(n_t_subs):
-        temp = dot_prod[i] - q_len * q_mean * t_mean[i] / (q_len * q_std * t_std[i])
+        temp = (dot_prod[i] - q_len * q_mean * t_mean[i]) / (q_len * q_std * t_std[i])
         d[i] = 2 * q_len * (1 - temp)
 
     d = np.absolute(d)
@@ -300,23 +300,23 @@ def mpdist_pairwise_distance(
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[16, 23, 19, 13],[48, 55, 63, 67]])
     >>> mpdist_pairwise_distance(X, m = 3)
-    array([[  0.        , 132.51535514],
-          [132.51535514,   0.        ]])
+    array([[0.        , 1.56786235],
+           [1.56786235, 0.        ]])
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[21, 13, 9]],[[19, 14, 5]], [[17, 11, 6]]])
     >>> mpdist_pairwise_distance(X, y, m = 2)
-    array([[ 7.34846923,  8.16496581,  6.87022561],
-          [13.6381817 , 15.62049935, 13.02305648],
-          [17.8325545 , 20.52640576, 17.08800749]])
+    array([[2.82842712, 2.82842712, 2.82842712],
+           [2.82842712, 2.82842712, 2.82842712],
+           [2.82842712, 2.82842712, 2.82842712]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[22, 18, 12]])
     >>> mpdist_pairwise_distance(X, y_univariate, m = 2)
-    array([[10.19803903],
-           [18.54723699],
-           [24.16609195]])
+    array([[2.82842712],
+           [2.82842712],
+           [2.82842712]])
     """
     if X.ndim == 3 and X.shape[1] == 1:
         X = np.squeeze(X)
