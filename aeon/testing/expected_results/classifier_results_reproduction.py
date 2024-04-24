@@ -152,8 +152,6 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = ElasticEnsemble.create_test_instance(
             parameter_set="results_comparison"
         )
-    elif classifier_name == "ShapeDTW":
-        classifier = ShapeDTW.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "KNeighborsTimeSeriesClassifier":
         classifier = KNeighborsTimeSeriesClassifier.create_test_instance(
             parameter_set="results_comparison"

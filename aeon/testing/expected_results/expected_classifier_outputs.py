@@ -163,20 +163,6 @@ unit_test_proba["ElasticEnsemble"] = np.array(
         [1.0, 0.0],
     ]
 )
-unit_test_proba["ShapeDTW"] = np.array(
-    [
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-    ]
-)
 unit_test_proba["KNeighborsTimeSeriesClassifier"] = np.array(
     [
         [0.0, 1.0],
