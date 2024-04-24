@@ -78,6 +78,16 @@ def check_y_X(
     return y, X
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason=(
+        "check_X in aeon.validation.forecasting.py has been replaced by "
+        "check_series in aeon.validation.series.py, please use check_series "
+        "instead."
+    ),
+    category=FutureWarning,
+)
 def check_X(
     X,
     allow_empty=False,
