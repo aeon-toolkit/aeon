@@ -1,5 +1,7 @@
 """Test functionality of time series plotting functions."""
 
+import re
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -105,13 +107,15 @@ def test_plot_series_multiple_series():
     reason="skip test if required soft dependency not available",
 )
 @pytest.mark.parametrize("series_to_plot", invalid_input_types)
-def test_plot_series_invalid_input_type_raises_error(series_to_plot, valid_data_types):
+def test_plot_series_invalid_input_type_raises_error(series_to_plot):
     """Tests whether plot_series raises error for invalid input types."""
+    series_type = type(series_to_plot)
+
     if not isinstance(series_to_plot, (pd.Series, pd.DataFrame)):
-        with pytest.raises(TypeError):
+        with pytest.raises((TypeError), match=f"found type: {series_type}"):
             _plot_series(series_to_plot)
     else:
-        with pytest.raises(TypeError, match="Series must be univariate"):
+        with pytest.raises(ValueError, match="input must be univariate"):
             _plot_series(series_to_plot)
 
 
@@ -259,11 +263,16 @@ def test_univariate_plots_invalid_input_type_raises_error(
     invalid input type is found. Currently only plot_lags and plot_correlations are
     tested.
     """
-    if isinstance(series_to_plot, np.ndarray):
-        with pytest.raises(TypeError, match="Series cannot be a numpy array"):
+    if not isinstance(series_to_plot, (pd.Series, pd.DataFrame)):
+        series_type = type(series_to_plot)
+        match = (
+            rf"input must be a one of {valid_data_types}, but found type: {series_type}"
+        )
+        with pytest.raises(TypeError, match=re.escape(match)):
             plot_func(series_to_plot)
     else:
-        with pytest.raises(TypeError):
+        match = "input must be univariate, but found 2 variables."
+        with pytest.raises(ValueError, match=match):
             plot_func(series_to_plot)
 
 
