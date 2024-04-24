@@ -18,6 +18,7 @@ def petitjean_barycenter_average(
     precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
     verbose: bool = False,
     random_state: Optional[int] = None,
+    weights: Optional[np.ndarray] = None,
     **kwargs,
 ) -> np.ndarray:
     """Compute the barycenter average of time series using a elastic distance.
@@ -50,6 +51,8 @@ def petitjean_barycenter_average(
         Boolean that controls the verbosity.
     random_state: int or None, default=None
         Random state to use for the barycenter averaging.
+    weights: np.ndarray or None, default=None
+        The weight associated to each sample in the X, default will be 1's.
     **kwargs
         Keyword arguments to pass to the distance metric.
 
@@ -83,12 +86,17 @@ def petitjean_barycenter_average(
         **kwargs,
     )
 
+    if weights is None:
+        weights = np.ones(shape=(len(X),))
+
     cost_prev = np.inf
     if distance == "wdtw" or distance == "wddtw":
         if "g" not in kwargs:
             kwargs["g"] = 0.05
     for i in range(max_iters):
-        barycenter, cost = _ba_one_iter_petitjean(barycenter, _X, distance, **kwargs)
+        barycenter, cost = _ba_one_iter_petitjean(
+            barycenter, _X, distance, weights=weights, **kwargs
+        )
         if abs(cost_prev - cost) < tol:
             break
         elif cost_prev < cost:
@@ -106,6 +114,7 @@ def _ba_one_iter_petitjean(
     barycenter: np.ndarray,
     X: np.ndarray,
     distance: str = "dtw",
+    weights: Optional[np.ndarray] = None,
     window: Union[float, None] = None,
     g: float = 0.0,
     epsilon: Union[float, None] = None,
@@ -146,8 +155,8 @@ def _ba_one_iter_petitjean(
         )
 
         for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
+            alignment[:, k] += curr_ts[:, j] * weights[i]
+            sum[k] += 1 * weights[i]
         cost += curr_cost
 
     return alignment / sum, cost

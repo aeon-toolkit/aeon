@@ -21,6 +21,7 @@ def subgradient_barycenter_average(
     precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
     verbose: bool = False,
     random_state: Optional[int] = None,
+    weights: Optional[np.ndarray] = None,
     **kwargs,
 ) -> np.ndarray:
     """Compute the stochastic subgradient barycenter average of time series.
@@ -65,6 +66,8 @@ def subgradient_barycenter_average(
         Boolean that controls the verbosity.
     random_state: int or None, default=None
         Random state to use for the barycenter averaging.
+    weights: np.ndarray or None, default=None
+        The weight associated to each sample in the X, default will be 1's.
     **kwargs
         Keyword arguments to pass to the distance metric.
 
@@ -100,6 +103,9 @@ def subgradient_barycenter_average(
         random_state,
         **kwargs,
     )
+
+    if weights is None:
+        weights = np.ones(shape=(len(X),))
 
     random_state = check_random_state(random_state)
 
@@ -141,6 +147,7 @@ def _ba_one_iter_subgradient(
     X: np.ndarray,
     shuffled_indices: np.ndarray,
     distance: str = "dtw",
+    weights: Optional[np.ndarray] = None,
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
     current_step_size: float = 0.05,
@@ -190,7 +197,7 @@ def _ba_one_iter_subgradient(
 
         new_ba = np.zeros((X_dims, X_timepoints))
         for j, k in curr_alignment:
-            new_ba[:, k] += barycenter[:, k] - curr_ts[:, j]
+            new_ba[:, k] += (barycenter[:, k] - curr_ts[:, j]) * weights[i]
 
         barycenter -= (2.0 * current_step_size) * new_ba
 
