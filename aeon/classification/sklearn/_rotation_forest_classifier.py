@@ -55,7 +55,7 @@ class RotationForestClassifier(BaseEstimator):
     save_transformed_data : bool, default=False
         Save the data transformed in fit.
 
-        Deprecated and will be removed in v0.8.0. Use fit_predict and fit_predict_proba
+        Deprecated and will be removed in v0.10.0. Use fit_predict and fit_predict_proba
         to generate train estimates instead. transformed_data_ will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.

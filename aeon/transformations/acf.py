@@ -4,6 +4,8 @@ Module :mod:`aeon.transformations` implements auto-correlation
 transformers.
 """
 
+from deprecated.sphinx import deprecated
+
 __maintainer__ = []
 __all__ = ["AutoCorrelationTransformer", "PartialAutoCorrelationTransformer"]
 
@@ -12,6 +14,14 @@ import pandas as pd
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="AutoCorrelationTransformer statsmodels wrapper will be removed in version "
+    "0.10. Please use the BaseSeriesTransformer version in the "
+    "transformations.series module called StatsModelsACF.",
+    category=FutureWarning,
+)
 class AutoCorrelationTransformer(BaseTransformer):
     """Auto-correlation transformer.
 
@@ -142,6 +152,14 @@ class AutoCorrelationTransformer(BaseTransformer):
         return [{}, {"n_lags": 1}]
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="PartialAutoCorrelationTransformer statsmodels wrapper will be removed"
+    "in version 0.10. Please use the BaseSeriesTransformer version in the "
+    "transformations.series module called StatsModelsACF.",
+    category=FutureWarning,
+)
 class PartialAutoCorrelationTransformer(BaseTransformer):
     """Partial auto-correlation transformer.
 
