@@ -66,11 +66,11 @@ class Lag(BaseTransformer):
         "original" - only original indices are retained. Will usually create NA.
         "extend" - both original indices and shifted indices are retained.
             Will usually create NA, possibly many, if shifted/original do not intersect.
-    flatten_transform_index : bool, optional (default=True)
+    flatten_transform_index : bool, default=True
         if True, columns of return DataFrame are flat, by "lagname__variablename"
         if False, columns are MultiIndex (lagname, variablename)
         has no effect if return type is one without column names
-    keep_column_names : bool, optional (default=False)
+    keep_column_names : bool, default=False
         has an effect only if `lags` contains only a single element
         if True, ensures that column names of `transform` output are same as in input,
         i.e., not `lag_x__varname` but `varname`. Overrides `flatten_transform_index`.

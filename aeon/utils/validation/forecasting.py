@@ -49,12 +49,12 @@ def check_y_X(
     Parameters
     ----------
     y : pd.Series
-    X : pd.DataFrame, optional (default=None)
-    allow_empty : bool, optional (default=False)
+    X : pd.DataFrame, default=None
+    allow_empty : bool, default=False
         If True, empty `y` does not raise an error.
-    allow_constant : bool, optional (default=True)
+    allow_constant : bool, default=True
         If True, constant `y` does not raise an error.
-    enforce_index_type : type, optional (default=None)
+    enforce_index_type : type, default=None
         type of time index
 
     Raises
@@ -89,11 +89,11 @@ def check_X(
     Parameters
     ----------
     X : pd.Series, pd.DataFrame, np.ndarray
-    allow_empty : bool, optional (default=False)
+    allow_empty : bool, default=False
         If False, empty `X` raises an error.
-    enforce_index_type : type, optional (default=None)
+    enforce_index_type : type, default=None
         type of time index
-    enforce_univariate : bool, optional (default=False)
+    enforce_univariate : bool, default=False
         If True, multivariate X will raise an error.
 
     Returns
@@ -130,13 +130,13 @@ def check_y(
     Parameters
     ----------
     y : pd.Series
-    allow_empty : bool, optional (default=False)
+    allow_empty : bool, default=False
         If False, empty `y` raises an error.
-    allow_constant : bool, optional (default=True)
+    allow_constant : bool, default=True
         If True, constant `y` does not raise an error.
-    enforce_index_type : type, optional (default=None)
+    enforce_index_type : type, default=None
         type of time index
-    allow_index_names : bool, optional (default=None)
+    allow_index_names : bool, default=None
         If False, names of y.index will be set to None
 
     Returns
@@ -249,7 +249,7 @@ def check_sp(sp, enforce_list=False):
     ----------
     sp : int or [int/float]
         Seasonal periodicity
-    enforce_list : bool, optional (default=False)
+    enforce_list : bool, default=False
         If true, convert sp to list if not list.
 
     Returns
@@ -277,9 +277,9 @@ def check_fh(fh, enforce_relative: bool = False, freq=None):
     ----------
     fh : int, list, np.array, pd.Index or ForecastingHorizon
         Forecasting horizon specifying the time points to predict.
-    enforce_relative : bool, optional (default=False)
+    enforce_relative : bool, default=False
         If True, checks if fh is relative.
-    freq : str, or pd.Index, optional (default=None)
+    freq : str, or pd.Index, default=None
         object carrying frequency information on values
         ignored unless values is without inferrable freq
         Frequency string or pd.Index

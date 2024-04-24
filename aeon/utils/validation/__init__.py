@@ -208,7 +208,7 @@ def check_window_length(
         - If float, the fraction of time points relative to `n_timepoints`.
         - If timedelta, length in corresponding time units
         - If pd.DateOffset, length in corresponding time units following calendar rules
-    n_timepoints: positive int, optional (default=None)
+    n_timepoints: positive int, default=None
         The number of time points to which to apply `window_length` when
         passed as a float (fraction). Will be ignored if `window_length` is
         an integer.
