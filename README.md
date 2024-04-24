@@ -79,7 +79,6 @@ pred = forecaster.predict(fh=[1, 2, 3])  # forecast the next 3 values
 
 ### Classification
 
-#### Note:
 *It's worth mentioning that the classifier used in the example can easily be
 swapped out for a regressor, and the labels for numeric targets. This flexibility
 allowing for seamless adaptation to different tasks and datasets while preserving
