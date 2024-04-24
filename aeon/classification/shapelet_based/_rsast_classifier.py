@@ -3,11 +3,8 @@
 Pipeline classifier using the RSAST transformer and an sklearn classifier.
 """
 
-__maintainer__ = []
+__maintainer__ = ["nirojasva"]
 __all__ = ["RSASTClassifier"]
-
-
-from operator import itemgetter
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
@@ -16,11 +13,14 @@ from sklearn.pipeline import make_pipeline
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.shapelet_based import RSAST
-from aeon.utils.numba.general import z_normalise_series
 
 
 class RSASTClassifier(BaseClassifier):
-    """Classification pipeline using RSAST [1]_ transformer and an sklearn classifier.
+    """RSASTClassifier.
+
+    Classification pipeline using
+    Random Scalable and Accurate Subsequence Transform (RSAST) [1]_ transformer
+    and an sklearn classifier.
 
     Parameters
     ----------
@@ -59,8 +59,8 @@ class RSASTClassifier(BaseClassifier):
     _tags = {
         "capability:multithreading": True,
         "capability:multivariate": False,
-        "algorithm_type": "subsequence",
-        "python_dependencies": ["statsmodels"],
+        "algorithm_type": "shapelet",
+        "python_dependencies": "statsmodels",
     }
 
     def __init__(
@@ -156,46 +156,3 @@ class RSASTClassifier(BaseClassifier):
             for i in range(0, X.shape[0]):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
         return dists
-
-    def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
-        import matplotlib.pyplot as plt
-
-        """Plot the most important features on ts.
-
-        Parameters
-        ----------
-        ts : float[:]
-            The time series
-        feature_importance : float[:]
-            The importance of each feature in the transformed data
-        limit : int, default = 5
-            The maximum number of features to plot
-
-        Returns
-        -------
-        fig : plt.figure
-            The figure
-        """
-        features = zip(self._transformer._kernel_orig, feature_importance)
-        sorted_features = sorted(features, key=itemgetter(1), reverse=True)
-
-        max_ = min(limit, len(sorted_features))
-
-        fig, axes = plt.subplots(
-            1, max_, sharey=True, figsize=(3 * max_, 3), tight_layout=True
-        )
-
-        for f in range(max_):
-            kernel, _ = sorted_features[f]
-            znorm_kernel = z_normalise_series(kernel)
-            d_best = np.inf
-            for i in range(ts.size - kernel.size):
-                s = ts[i : i + kernel.size]
-                s = z_normalise_series(s)
-                d = np.sum((s - znorm_kernel) ** 2)
-                if d < d_best:
-                    d_best = d
-                    start_pos = i
-            axes[f].plot(range(start_pos, start_pos + kernel.size), kernel, linewidth=5)
-            axes[f].plot(range(ts.size), ts, linewidth=2)
-            axes[f].set_title(f"feature: {f+1}")

@@ -34,7 +34,7 @@ def _apply_kernels(X, kernels):
 
 
 class RSAST(BaseCollectionTransformer):
-    """Random Scalable and Accurate Subsequence Transform (SAST).
+    """Random Scalable and Accurate Subsequence Transform (RSAST).
 
     RSAST [1] is based on SAST, it uses a stratified sampling strategy
     for subsequences selection but additionally takes into account certain
@@ -90,8 +90,8 @@ class RSAST(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": False,
-        "algorithm_type": "subsequence",
-        "python_dependencies": ["statsmodels"],
+        "algorithm_type": "shapelet",
+        "python_dependencies": "statsmodels",
     }
 
     def __init__(
