@@ -40,7 +40,7 @@ class TimeSince(BaseTransformer):
         * str: String is converted to datetime or period, depending on the index type, \
             to give the start time.
 
-    to_numeric : string, optional (default=True)
+    to_numeric : string, default=True
         Return the integer number of periods elapsed since `start`; the period
         is defined by the frequency of the data. Converts datetime types to
         pd.Period before calculating time differences.

@@ -155,6 +155,9 @@ def _ba_one_iter_subgradient(
     descriptor: str = "identity",
     reach: int = 30,
     warp_penalty: float = 1.0,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ):
 
     X_size, X_dims, X_timepoints = X.shape
@@ -180,6 +183,9 @@ def _ba_one_iter_subgradient(
             descriptor,
             reach,
             warp_penalty,
+            transformation_precomputed,
+            transformed_x,
+            transformed_y,
         )
 
         new_ba = np.zeros((X_dims, X_timepoints))

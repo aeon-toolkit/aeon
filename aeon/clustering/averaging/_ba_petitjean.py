@@ -116,6 +116,9 @@ def _ba_one_iter_petitjean(
     descriptor: str = "identity",
     reach: int = 30,
     warp_penalty: float = 1.0,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> Tuple[np.ndarray, float]:
     X_size, X_dims, X_timepoints = X.shape
     sum = np.zeros(X_timepoints)
@@ -137,6 +140,9 @@ def _ba_one_iter_petitjean(
             descriptor,
             reach,
             warp_penalty,
+            transformation_precomputed,
+            transformed_x,
+            transformed_y,
         )
 
         for j, k in curr_alignment:

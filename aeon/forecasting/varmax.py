@@ -289,7 +289,7 @@ class VARMAX(_StatsModelsAdapter):
         ----------
         y : array_like
             The observed time-series process :math:`y`, shaped n_obs x k_endog.
-        X : array_like, optional (default=None)
+        X : array_like, default=None
             Array of exogenous regressors, shaped n_obs x k.
 
         Returns
@@ -346,7 +346,7 @@ class VARMAX(_StatsModelsAdapter):
             The forecasters horizon with the steps ahead to to predict.
             Default is one-step ahead forecast,
             i.e. np.array([1])
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables.
 
         Returns

@@ -282,7 +282,7 @@ class UnobservedComponents(_StatsModelsAdapter):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables.
         """
         from statsmodels.tsa.statespace.structural import (
@@ -339,7 +339,7 @@ class UnobservedComponents(_StatsModelsAdapter):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon, default = y.index (in-sample forecast)
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -410,7 +410,7 @@ class UnobservedComponents(_StatsModelsAdapter):
             time-invariant this can be any number. If the model is
             time-varying, then this number must be less than or equal to the
             number of observations.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables.
         measurement_shocks : array_like, optional
             If specified, these are the shocks to the measurement equation,
