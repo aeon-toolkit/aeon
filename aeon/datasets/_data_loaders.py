@@ -347,18 +347,20 @@ def _load_saved_dataset(
     return_type = _alias_datatype_check(return_type)
     if dir_name is None:
         dir_name = name
+    if local_dirname is not None:
+        local_module = os.path.join(local_module, local_dirname)
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
 
         fname = name + "_TEST.ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X_test, y_test, meta_data_test = load_from_tsfile(
             abspath, return_meta_data=True
         )
@@ -491,10 +493,10 @@ def _load_tsc_dataset(
     Parameters
     ----------
     name : string, file name to load from
-    split: None or one of "TRAIN", "TEST", optional (default=None)
+    split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem.
         By default it loads both train and test instances (in a single container).
-    return_X_y: bool, optional (default=True)
+    return_X_y: bool, default=True
         If True, returns (features, target) separately instead of a single
         dataframe with columns for features and the target.
     return_data_type : str, optional, default = None
@@ -1012,14 +1014,30 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
             url = f"https://zenodo.org/record/{id}/files/{name}.zip"
             file_save = f"{local_module}/{local_dirname}/{name}.zip"
             if not os.path.exists(file_save):
+                req = Request(url, method="HEAD")
                 try:
-                    urllib.request.urlretrieve(url, file_save)
-                except Exception:
-                    raise ValueError(
-                        f"Invalid dataset name ={name} is not available on extract path"
-                        f" {extract_path}.\n Nor is it available on "
-                        f"https://forecastingdata.org/ via path {url}",
+                    # Perform the request
+                    response = urlopen(req, timeout=60)
+                    # Check the status code of the response, if 200 incorrect input args
+                    if response.status != 200:
+                        raise ValueError(
+                            "The file does not exist on the server which "
+                            "returned a File Not Found (200)"
+                        )
+                except Exception as e:
+                    raise e
+                try:
+                    _download_and_extract(
+                        url,
+                        extract_path=extract_path,
                     )
+                except zipfile.BadZipFile:
+                    raise ValueError(
+                        f"Invalid dataset name ={name} is  available on extract path ="
+                        f"{extract_path} or https://zenodo.org/"
+                        f" but it is not correctly formatted.",
+                    )
+
             if not os.path.exists(
                 f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
             ):

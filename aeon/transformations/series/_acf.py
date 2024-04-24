@@ -16,9 +16,11 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 class AutoCorrelationTransformer(BaseSeriesTransformer):
     """Auto-correlation transformer.
 
-    The autocorrelation function measures how correlated a timeseries is
+    The autocorrelation function (ACF) measures how correlated a time series is
     with itself at different lags. The AutocorrelationTransformer returns
-    these values as a series for each lag up to the `n_lags` specified.
+    these values as a series for each lag up to the `n_lags` specified. This transformer
+    intentionally uses a simple implementation without use of FFT and makes minimal
+    adjustments to the ACF. It does not adjust for the mean or variance or trend.
 
     Parameters
     ----------
@@ -26,26 +28,16 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         If True, then denominators for autocovariance are n-k, otherwise n.
 
     n_lags : int, default=None
-        Number of lags to return autocorrelation for. If None,
-        statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1).
-
-    See Also
-    --------
-    PartialAutoCorrelationTransformer
-
-    Notes
-    -----
-    Provides wrapper around statsmodels
-    `acf <https://www.statsmodels.org/devel/generated/
-    statsmodels.tsa.stattools.acf.html>`_ function.
+        Number of lags to return autocorrelation for. If None, it sets it to max(1,
+        n_timepoints/4).
 
     Examples
     --------
-    >>> from aeon.transformations.acf import AutoCorrelationTransformer
+    >>> from aeon.transformations.series._acf import AutoCorrelationTransformer
     >>> from aeon.datasets import load_airline
-    >>> y = load_airline()  # doctest: +SKIP
-    >>> transformer = AutoCorrelationTransformer(n_lags=12)  # doctest: +SKIP
-    >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
+    >>> y = load_airline()
+    >>> transformer = AutoCorrelationTransformer(n_lags=12)
+    >>> y_hat = transformer.fit_transform(y)
     """
 
     _tags = {
@@ -79,15 +71,16 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
         """
         # statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1)
         if self.n_lags is None:
-            self._n_lags = min(int(10 * np.log10(X.shape[1])), X.shape[1] - 1)
+            self._n_lags = int(max(1, X.shape[1] / 4))
         else:
-            self._n_lags = self.n_lags
-
+            self._n_lags = int(self.n_lags)
+        if self._n_lags < 1:
+            self._n_lags = 1
         if X.shape[1] - self._n_lags < 3:
             raise ValueError(
                 f"The number of lags is too large for the length of the "
-                f"series, autocorrelation will be calculated "
-                f"{X.shape[1]-self._n_lags} points."
+                f"series, autocorrelation would be calculated with just"
+                f"{X.shape[1]-self._n_lags} observations."
             )
         return self._acf(X, max_lag=self._n_lags)
 
@@ -95,11 +88,13 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
     @njit(cache=True, fastmath=True)
     def _acf(X, max_lag):
         n_channels, length = X.shape
-        X_t = np.zeros((n_channels, max_lag))
-        for i, x in enumerate(X):
+        X_t = np.zeros((n_channels, max_lag), dtype=float)
+
+        for i in range(0, n_channels):
             for lag in range(1, max_lag + 1):
                 lag_length = length - lag
-                x1, x2 = x[:-lag], x[lag:]
+                x1 = X[i][:-lag]
+                x2 = X[i][lag:]
                 s1 = np.sum(x1)
                 s2 = np.sum(x2)
                 m1 = s1 / lag_length
@@ -117,7 +112,6 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
                     X_t[i][lag - 1] = 0
                 else:
                     X_t[i][lag - 1] = np.sum((x1 - m1) * (x2 - m2)) / np.sqrt(v1 * v2)
-
         return X_t
 
     @classmethod

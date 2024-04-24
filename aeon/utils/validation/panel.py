@@ -40,15 +40,15 @@ def check_X(
     ----------
     X : pd.DataFrame or np.array
         Input data
-    enforce_univariate : bool, optional (default=False)
+    enforce_univariate : bool, default=False
         Enforce that X is univariate.
-    enforce_min_cases : int, optional (default=1)
+    enforce_min_cases : int, default=1
         Enforce minimum number of instances.
-    enforce_min_columns : int, optional (default=1)
+    enforce_min_columns : int, default=1
         Enforce minimum number of columns (or time-series variables).
-    coerce_to_numpy : bool, optional (default=False)
+    coerce_to_numpy : bool, default=False
         If True, X will be coerced to a 3-dimensional numpy array.
-    coerce_to_pandas : bool, optional (default=False)
+    coerce_to_pandas : bool, default=False
         If True, X will be coerced to a nested pandas DataFrame.
 
     Returns
@@ -132,9 +132,9 @@ def check_y(y, enforce_min_cases=1, coerce_to_numpy=False):
     Parameters
     ----------
     y : pd.Series or np.array
-    enforce_min_cases : int, optional (default=1)
+    enforce_min_cases : int, default=1
         Enforce minimum number of instances.
-    coerce_to_numpy : bool, optional (default=False)
+    coerce_to_numpy : bool, default=False
         If True, y will be coerced to a numpy array.
 
     Returns
@@ -182,15 +182,15 @@ def check_X_y(
     ----------
     X : pd.DataFrame
     y : pd.Series or np.array
-    enforce_univariate : bool, optional (default=False)
+    enforce_univariate : bool, default=False
         Enforce that X is univariate.
-    enforce_min_cases : int, optional (default=1)
+    enforce_min_cases : int, default=1
         Enforce minimum number of instances.
-    enforce_min_columns : int, optional (default=1)
+    enforce_min_columns : int, default=1
         Enforce minimum number of columns (or time-series variables).
-    coerce_to_numpy : bool, optional (default=False)
+    coerce_to_numpy : bool, default=False
         If True, X will be coerced to a 3-dimensional numpy array.
-    coerce_to_pandas : bool, optional (default=False)
+    coerce_to_pandas : bool, default=False
         If True, X will be coerced to a nested pandas DataFrame.
 
     Returns

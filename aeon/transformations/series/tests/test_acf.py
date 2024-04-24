@@ -5,7 +5,6 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from aeon.transformations.series._acf import AutoCorrelationTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def test_acf():
@@ -25,20 +24,37 @@ def test_acf():
     # Test with axis = 0
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_acf_against_statsmodels():
-    """Test ACF series transformer against statsmodels."""
-    from statsmodels.tsa.stattools import acf
+TEST_DATA = [
+    np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+    np.array([-4.5, -3.5, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5, 4.5]),
+    np.array([1.0, 5.0, 3.0, 4.0, 2.0, 1.0, 3.0, 4.0, 5.0, 2.0]),
+]
+EXPECTED_RESULTS = [
+    np.array([1.0, 1.0, 1.0, 1.0]),
+    np.array([1.0, 1.0, 1.0, 1.0]),
+    np.array([-0.18797908, -0.22454436, -0.70898489, -0.11094004]),
+]
 
-    x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    sm = acf(x, nlags=3, fft=False)
+
+def test_acf_against_expected():
+    """Test ACF series transformer against expected results."""
     acf = AutoCorrelationTransformer(n_lags=4)
-    xt = acf.fit_transform(x)
-    xt = xt.squeeze()
-    assert_array_almost_equal(xt, sm, decimal=5)
+    for i in range(len(TEST_DATA)):
+        xt = acf.fit_transform(TEST_DATA[i])
+        xt = xt.squeeze()
+        assert_array_almost_equal(xt, EXPECTED_RESULTS[i], decimal=5)
+
+
+NORMED_TEST_DATA = [
+    np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+    np.array([-4.5, -3.5, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5, 4.5]),
+    np.array([1.0, 5.0, 3.0, 4.0, 2.0, 1.0, 3.0, 4.0, 5.0, 2.0]),
+]
+NORMED_EXPECTED_RESULTS = [
+    np.array([1.0, 1.0, 1.0, 1.0]),
+    np.array([1.0, 1.0, 1.0, 1.0]),
+    np.array([-0.18797908, -0.22454436, -0.70898489, -0.11094004]),
+]
 
 
 def test_multivariate():

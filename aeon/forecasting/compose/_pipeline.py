@@ -448,7 +448,7 @@ class ForecastingPipeline(_Pipeline):
         ----------
         y : pd.Series, pd.DataFrame
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
         X : pd.DataFrame, required
             Exogenous variables are ignored
@@ -508,7 +508,7 @@ class ForecastingPipeline(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
@@ -543,7 +543,7 @@ class ForecastingPipeline(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -572,12 +572,12 @@ class ForecastingPipeline(_Pipeline):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             if True, computes covariance matrix forecast.
             if False, computes marginal variance forecasts.
 
@@ -607,10 +607,10 @@ class ForecastingPipeline(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        marginal : bool, optional (default=True)
+        marginal : bool, default=True
             whether returned distribution is marginal by time index
 
         Returns
@@ -637,7 +637,7 @@ class ForecastingPipeline(_Pipeline):
         ----------
         y : pd.Series
         X : pd.DataFrame, required
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
 
         Returns
         -------
@@ -935,9 +935,9 @@ class TransformedTargetForecaster(_Pipeline):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -968,7 +968,7 @@ class TransformedTargetForecaster(_Pipeline):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -992,8 +992,8 @@ class TransformedTargetForecaster(_Pipeline):
         Parameters
         ----------
         y : pd.Series
-        X : pd.DataFrame, optional (default=None)
-        update_params : bool, optional (default=True)
+        X : pd.DataFrame, default=None
+        update_params : bool, default=True
 
         Returns
         -------
@@ -1071,7 +1071,7 @@ class TransformedTargetForecaster(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
@@ -1109,7 +1109,7 @@ class TransformedTargetForecaster(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -1242,7 +1242,7 @@ class ForecastX(BaseForecaster):
         ----------
         y : time series in aeon compatible format
             Target time series to which to fit the forecaster
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
         X : time series in aeon compatible format, optional, default=None
             Exogenous time series to which to fit the forecaster
@@ -1344,7 +1344,7 @@ class ForecastX(BaseForecaster):
             Target time series to which to fit the forecaster
         X : time series in aeon compatible format, optional, default=None
             Exogenous time series to which to fit the forecaster
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
 
         Returns
         -------
@@ -1366,10 +1366,10 @@ class ForecastX(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        coverage : float or list, optional (default=0.95)
+        coverage : float or list, default=0.95
            nominal coverage(s) of predictive interval(s)
 
         Returns
@@ -1401,10 +1401,10 @@ class ForecastX(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        alpha : list of float, optional (default=[0.5])
+        alpha : list of float, default=[0.5]
             A list of probabilities at which quantile forecasts are computed.
 
         Returns
@@ -1430,10 +1430,10 @@ class ForecastX(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             if True, computes covariance matrix forecast.
             if False, computes marginal variance forecasts.
 
@@ -1470,10 +1470,10 @@ class ForecastX(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        marginal : bool, optional (default=True)
+        marginal : bool, default=True
             whether returned distribution is marginal by time index
 
         Returns
