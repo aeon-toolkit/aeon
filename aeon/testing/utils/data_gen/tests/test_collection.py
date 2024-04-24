@@ -15,6 +15,8 @@ from aeon.testing.utils.data_gen import (
     make_example_2d_numpy,
     make_example_2d_unequal_length,
     make_example_3d_numpy,
+    make_example_multi_index_dataframe,
+    make_example_multi_index_date_index,
     make_example_nested_dataframe,
     make_example_unequal_length,
     piecewise_poisson,
@@ -226,3 +228,12 @@ def test__make_collection():
     y = np.array([0, 1, 0, 1, 0, 1, 0, 1])
     X = _make_collection(n_cases=4, n_channels=2, n_timepoints=20, y=y)
     assert X.shape == (8, 2, 20)
+
+
+def test_make_multiindex():
+    """Test make multiindex."""
+    x1 = make_example_multi_index_date_index(n_cases=4, n_channels=2, n_timepoints=20)
+    x2 = make_example_multi_index_dataframe(n_cases=4, n_channels=2, n_timepoints=20)
+    assert x1.shape == x2.shape
+    assert isinstance(x1.index, pd.MultiIndex)
+    assert isinstance(x2.index, pd.MultiIndex)

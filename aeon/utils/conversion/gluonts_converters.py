@@ -1,15 +1,11 @@
-from deprecated.sphinx import deprecated
+"""Converter utilities for gluonts data structures."""
 
+import pandas as pd
+
+from aeon.utils.conversion import convert_collection
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-# TODO: move in v0.9.0
-@deprecated(
-    version="0.8.0",
-    reason="convert_from_multiindex_to_listdataset will be moved from datatypes to "
-    "utils.conversion in v0.9.0",
-    category=FutureWarning,
-)
 def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     """
     Output a dataset in ListDataset format compatible with gluonts.
@@ -19,15 +15,9 @@ def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     trainDF: Multiindex dataframe
         Input DF should be multi-index DataFrame.
         Time index must be absolute.
-
     class_val_list: str
         List of classes in case of classification dataset.
         If not available, class_val_list will show instance numbers
-    freq: str, default="1D"
-        Pandas-compatible frequency to be used.
-        Only fixed frequency is supported at the moment.
-    startdate: str, default = "1750-01-01"
-        Custom startdate for ListDataset
 
     Returns
     -------
@@ -41,13 +31,11 @@ def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     import pandas as pd
     from gluonts.dataset.common import ListDataset
 
-    from aeon.datatypes import convert_to
-
     dimension_name = trainDF.columns
     n_channels = len(trainDF.columns)
 
     # Convert to nested_univ format
-    trainDF = convert_to(trainDF, to_type="nested_univ")
+    trainDF = convert_collection(trainDF, output_type="nested_univ")
     trainDF = trainDF.reset_index()
     trainDF = trainDF[dimension_name]
 
@@ -96,3 +84,48 @@ def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
         one_dim_target=one_dim_target,
     )
     return train_ds
+
+
+def convert_gluonts_result_to_multiindex(gluonts_result):
+    """
+
+    Back Convert from Gluonts to aeon.
+
+    Convert the output of Gluonts's prediction to a multiindex
+    dataframe compatible with aeon.
+
+    Parameters
+    ----------
+    gluonts_result: The first element of the tuple resulting
+    from running `make_evaluation_predictions`.
+        For example in Eg:
+        forecast_it, ts_it = make_evaluation_predictions()
+        gluonts_result = forecast_it
+
+    Returns
+    -------
+    A MultiIndex pandas DataFrame.
+    """
+    instance_no = len(gluonts_result)
+    global_ls = []
+    per_instance_ls = []
+    columns = []
+
+    for i in range(instance_no):
+        validation_no = gluonts_result[i].samples.shape[0]
+        period = gluonts_result[i].samples.shape[1]
+        start_date = pd.to_datetime(gluonts_result[i].start_date)
+        freq = gluonts_result[i].freq
+        ts_index = pd.date_range(start=start_date, periods=period, freq=freq)
+        per_instance_ls = [
+            pd.Series(data=gluonts_result[i].samples[j], index=ts_index)
+            for j in range(validation_no)
+        ]
+        global_ls.append(per_instance_ls)
+
+    for k in range(validation_no):
+        columns.append("validation_" + str(k))
+
+    nested_univ = pd.DataFrame(global_ls, columns=columns)
+
+    return convert_collection(nested_univ, output_type="pd-multiindex")

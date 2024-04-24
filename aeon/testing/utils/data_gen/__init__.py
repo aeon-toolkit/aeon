@@ -7,6 +7,7 @@ __all__ = [
     "make_example_nested_dataframe",
     "make_example_long_table",
     "make_example_multi_index_dataframe",
+    "make_example_multi_index_date_index",
     "make_series",
     "make_forecasting_problem",
     "_make_index",
@@ -45,6 +46,7 @@ from aeon.testing.utils.data_gen._collection import (
     make_example_3d_numpy,
     make_example_long_table,
     make_example_multi_index_dataframe,
+    make_example_multi_index_date_index,
     make_example_nested_dataframe,
     make_example_unequal_length,
 )

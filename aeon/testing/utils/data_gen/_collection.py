@@ -396,7 +396,7 @@ def make_example_long_table(
 
 def make_example_multi_index_dataframe(
     n_cases: int = 50, n_channels: int = 3, n_timepoints: int = 20
-):
+) -> pd.DataFrame:
     """Generate example collection as multi-index DataFrame.
 
     Parameters
@@ -410,7 +410,7 @@ def make_example_multi_index_dataframe(
 
     Returns
     -------
-    mi_df : pd.DataFrame
+    pd.DataFrame
         The multi-indexed DataFrame with
         shape (n_cases*n_timepoints, n_column).
     """
@@ -422,6 +422,84 @@ def make_example_multi_index_dataframe(
     mi_df = long_df.set_index(["case_id", "reading_id"]).pivot(columns="dim_id")
     mi_df.columns = [f"var_{i}" for i in range(n_channels)]
     return mi_df
+
+
+def make_example_multi_index_date_index(
+    n_cases: int = 50, n_channels: int = 3, n_timepoints: int = 20, random_seed=42
+) -> pd.DataFrame:
+    def make_example_multi_index_dataframe(
+        n_cases: int = 50, n_channels: int = 3, n_timepoints: int = 20
+    ) -> pd.DataFrame:
+        """Generate example collection as multi-index DataFrame.
+
+        Parameters
+        ----------
+        n_cases : int, default =50
+            Number of instances.
+        n_channels : int, default =3
+            Number of columns (series) in multi-indexed DataFrame.
+        n_timepoints : int, default =20
+            Number of timepoints per instance-column pair.
+
+        Returns
+        -------
+        pd.DataFrame
+            The multi-indexed DataFrame with
+            shape (n_cases*n_timepoints, n_column).
+        """
+
+    def random_datetimes_or_dates(
+        start, end, out_format="datetime", n=10, random_seed=42
+    ):
+        """Generate random pd Datetime in the start to end range.
+
+        unix timestamp is in ns by default.
+        Divide the unix time value by 10**9 to make it seconds
+        (or 24*60*60*10**9 to make it days).
+        The corresponding unit variable is passed to the pd.to_datetime function.
+        Values for the (divide_by, unit) pair to select is defined by the out_format
+        parameter.
+        for 1 -> out_format='datetime'
+        for 2 -> out_format=anything else.
+        """
+        np.random.seed(random_seed)
+        (divide_by, unit) = (
+            (10**9, "s") if out_format == "datetime" else (24 * 60 * 60 * 10**9, "D")
+        )
+
+        start_u = start.value // divide_by
+        end_u = end.value // divide_by
+
+        return pd.to_datetime(np.random.randint(start_u, end_u, n), unit=unit)
+
+    start = pd.to_datetime("1750-01-01")
+    end = pd.to_datetime("2022-07-01")
+    inputDF = np.random.randint(1, 99, size=(n_cases * n_timepoints, n_channels))
+    n_cases = n_cases
+    column_name = []
+    for i in range(n_channels):
+        column_name.append("dim_" + str(i))
+
+    random_start_date = random_datetimes_or_dates(
+        start, end, out_format="out datetime", n=n_cases, random_seed=42
+    )
+
+    level0_idx = [list(np.full(n_timepoints, instance)) for instance in range(n_cases)]
+    level0_idx = np.ravel(level0_idx)
+
+    level1_idx = [
+        list(pd.date_range(random_start_date[instance], periods=n_timepoints, freq="H"))
+        for instance in range(n_cases)
+    ]
+    level1_idx = np.ravel(level1_idx)
+
+    multi_idx = pd.MultiIndex.from_arrays(
+        [level0_idx, level1_idx], names=("instance", "datetime")
+    )
+
+    inputDF_return = pd.DataFrame(inputDF, columns=column_name, index=multi_idx)
+
+    return inputDF_return
 
 
 def _make_collection(
