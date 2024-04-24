@@ -6,6 +6,7 @@ import pytest
 from aeon.testing.utils.data_gen import make_example_3d_numpy
 from aeon.transformations.collection.channel_selection._elbow_class import (
     ElbowClassPairwise,
+    _ClassPrototype,
     _create_distance_matrix,
 )
 
@@ -28,3 +29,11 @@ def test_create_distance_matrix():
     X = np.array([[[1, 2, 3]], [[1, 2, 3]]])
     res = _create_distance_matrix(X, np.array([0, 1]), distance="squared")
     assert res.shape == (1, 1)
+
+
+def test_prototype():
+    """Test function in _ClassPrototype."""
+    p = _ClassPrototype()
+    X, y = make_example_3d_numpy(n_cases=3, n_channels=3, n_timepoints=20, n_labels=3)
+    r = p._create_median_prototype(X, y)
+    assert r.shape == (X.shape[0] * X.shape[1], X.shape[2])

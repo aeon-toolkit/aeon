@@ -186,19 +186,6 @@ class _ClassPrototype:
         channel_median = [np.median(X[y == class_], axis=0) for class_ in classes_]
         return np.vstack(channel_median)
 
-    def _create_median_prototype1(self, X: pd.DataFrame, y: pd.Series):
-        """Create median class prototype for each class."""
-        classes_ = np.unique(y)
-
-        channel_median = []
-        for class_ in classes_:
-            class_idx = np.where(
-                y == class_
-            )  # find the indexes of data point where particular class is located
-            class_median = np.median(X[class_idx], axis=0)
-            channel_median.append(class_median)
-        return np.vstack(channel_median)
-
     def _create_prototype(
         self, X: np.ndarray, y: np.array
     ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.ndarray, np.array]]:
