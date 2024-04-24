@@ -191,3 +191,16 @@ def test_is_pred_interval_proba():
     assert not is_pred_interval_proba(df_wrong_levels)
     assert not is_pred_interval_proba(df_wrong_dtype)
     assert not is_pred_interval_proba(df_wrong_values)
+
+
+def test_check_series_incorrect():
+    """Test check series with non numeric input."""
+    x = np.array([1, 2, 3, 4.0, "FOO"])
+    with pytest.raises(ValueError, match="dtype for np.ndarray must be float or int"):
+        check_series(x)
+    x = pd.Series(x)
+    with pytest.raises(ValueError, match="pd.Series dtype must be numeric"):
+        check_series(x)
+    x = pd.DataFrame(x)
+    with pytest.raises(ValueError, match="pd.DataFrame dtype must be numeric"):
+        check_series(x)

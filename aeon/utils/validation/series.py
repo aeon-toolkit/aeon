@@ -29,7 +29,9 @@ def is_single_series(y):
     """Check if input is a single time series.
 
     Minimal checks that do not check the index characteristics. To check index and
-    throw an error if not correct, use `check_series` instead.
+    throw an error if not correct, use `check_series` instead. A single series must
+    be of type pd.Series, pd.DataFrame or np.ndarray, containing only floats or ints,
+    and having either one or two dimensions.
 
     Parameters
     ----------
@@ -50,6 +52,11 @@ def is_single_series(y):
         return True
     if isinstance(y, np.ndarray):
         if y.ndim > 2:
+            return False
+        if not (
+            issubclass(y.dtype.type, np.integer)
+            or issubclass(y.dtype.type, np.floating)
+        ):
             return False
         return True
     return False
@@ -204,7 +211,7 @@ def _check_is_multivariate(Z, var_name="input"):
 
 
 def check_series(
-    Z,
+    X,
     allow_empty=False,
     enforce_univariate=False,
     enforce_index_type=None,
@@ -215,7 +222,7 @@ def check_series(
 
     Parameters
     ----------
-    Z : pd.Series, pd.DataFrame, np.ndarray, or None
+    X : pd.Series, pd.DataFrame, np.ndarray, or None
         Univariate or multivariate time series.
     allow_empty : bool, default = False
         Allow an empty series to be passed.
@@ -228,7 +235,7 @@ def check_series(
 
     Returns
     -------
-    Z : pd.Series, pd.DataFrame or np.ndarray
+    X : pd.Series, pd.DataFrame or np.ndarray
         Validated time series - a reference to the input Z
 
     Raises
@@ -242,30 +249,43 @@ def check_series(
         ValueError - if Z has length 0
     """
     # Check if pandas series or numpy array
-    if not allow_numpy and isinstance(Z, np.ndarray):
+    if not allow_numpy and isinstance(X, np.ndarray):
         raise TypeError(
             "Series cannot be a numpy array if `allow_numpy` is set to False."
         )
-    if not isinstance(Z, VALID_DATA_TYPES):
+    if not isinstance(X, VALID_DATA_TYPES):
         raise TypeError(
-            f"Series must be a one of {VALID_DATA_TYPES}, but found type: {type(Z)}"
+            f"Series must be a one of {VALID_DATA_TYPES}, but found type: {type(X)}"
         )
-    if enforce_univariate and not is_univariate_series(Z):
+    if enforce_univariate and not is_univariate_series(X):
         raise TypeError("Series must be univariate if enforce_univariate is True")
-    if not allow_empty and len(Z) < 1:
-        raise ValueError("Series cannot be empty if allow_empty is set to False.")
+    if not allow_empty:
+        if len(X) < 1:
+            raise ValueError("Series cannot be empty if allow_empty is set to False.")
+        # check time index if input data is not an np.ndarray
+        if not isinstance(X, np.ndarray):
+            check_time_index(
+                X.index,
+                allow_empty=allow_empty,
+                enforce_index_type=enforce_index_type,
+            )
+        if not allow_index_names and not isinstance(X, np.ndarray):
+            X.index.names = [None for name in X.index.names]
 
-    # check time index if input data is not an np.ndarray
-    if not isinstance(Z, np.ndarray):
-        check_time_index(
-            Z.index,
-            allow_empty=allow_empty,
-            enforce_index_type=enforce_index_type,
-        )
-    if not allow_index_names and not isinstance(Z, np.ndarray):
-        Z.index.names = [None for name in Z.index.names]
-
-    return Z
+        # Check only floats or ints
+        if isinstance(X, np.ndarray):
+            if not (
+                issubclass(X.dtype.type, np.integer)
+                or issubclass(X.dtype.type, np.floating)
+            ):
+                raise ValueError("dtype for np.ndarray must be float or int")
+        elif isinstance(X, pd.Series):
+            if not pd.api.types.is_numeric_dtype(X):
+                raise ValueError("pd.Series dtype must be numeric")
+        elif isinstance(X, pd.DataFrame):
+            if not all(pd.api.types.is_numeric_dtype(X[col]) for col in X.columns):
+                raise ValueError("pd.DataFrame dtype must be numeric")
+    return X
 
 
 def check_time_index(
