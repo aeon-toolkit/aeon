@@ -9,6 +9,7 @@ __all__ = ["FreshPRINCEClassifier"]
 
 
 import numpy as np
+from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
@@ -116,8 +117,8 @@ class FreshPRINCEClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        X_t = self._fit_fp_shared(X, y)
-        self._rotf.fit(X_t, y)
+        self._fit_fresh_prince(X, y)
+
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -154,18 +155,24 @@ class FreshPRINCEClassifier(BaseClassifier):
         return self._rotf.predict_proba(self._tsfresh.transform(X))
 
     def _fit_predict(self, X, y) -> np.ndarray:
-        X_t = self._fit_fp_shared(X, y)
-        return self._rotf.fit_predict(X_t, y)
+        rng = check_random_state(self.random_state)
+        return np.array(
+            [
+                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                for prob in self._fit_predict_proba(X, y)
+            ]
+        )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        X_t = self._fit_fp_shared(X, y)
-        return self._rotf.fit_predict_proba(X_t, y)
+        Xt = self._fit_fresh_prince(X, y, save_rotf_data=True)
+        return self._rotf._get_train_probs(Xt, y)
 
-    def _fit_fp_shared(self, X, y):
+    def _fit_fresh_prince(self, X, y, save_rotf_data=False):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,
+            save_transformed_data=save_rotf_data,
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
@@ -177,7 +184,10 @@ class FreshPRINCEClassifier(BaseClassifier):
             disable_progressbar=self.verbose < 1,
         )
 
-        return self._tsfresh.fit_transform(X, y)
+        X_t = self._tsfresh.fit_transform(X, y)
+        self._rotf.fit(X_t, y)
+
+        return X_t
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
