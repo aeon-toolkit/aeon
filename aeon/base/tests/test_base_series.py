@@ -132,7 +132,7 @@ def test_check_X():
         dummy._check_X(UNIVARIATE["pd.DataFrame"].T, axis=0)
 
     # check invalid inputs and data types
-    with pytest.raises(ValueError, match="Input type of X should be one of"):
+    with pytest.raises(TypeError, match="Series must be a one of"):
         dummy._check_X("String input", axis=1)
 
     invalid_always = np.array(["1", "2", "3", "4", "5"])
