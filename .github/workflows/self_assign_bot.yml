@@ -1,7 +1,6 @@
 name: Self-Assign Bot
 on:
   issue_comment:
-    # triggered when a comment is created on an Issue/PR
     types: [created]
 
 jobs:
@@ -9,29 +8,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check if the comment is on PR or Issue
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PyGithub
         run: |
+          python -m pip install --upgrade pip
+          pip install PyGithub
+      - name: Set env
+        run: |
+          echo "ISSUE_NUMBER=$(jq --raw-output .issue.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          echo "COMMENT_BODY=$(jq --raw-output .comment.body "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
-          # Extract the issue/PR number from the comment payload
-          issue_number=$(jq --raw-output .issue.number "$GITHUB_EVENT_PATH")
-
-          # Get the comment
-          comment_body=$(jq --raw-output .comment.body "$GITHUB_EVENT_PATH")
-
-          # Check if the comment includes the trigger phrase "Aeon-Assign bot"
-          if [[ "$comment_body" == *"Aeon-Assign bot "* ]]; then
-
-            # Extract the username mentioned in the comment
-            mentioned_user=$(echo "$comment_body" | grep -o '@[[:alnum:]]*' | head -1 | sed 's/@//')
-
-            # If a user is mentioned
-            if [[ -n "$mentioned_user" ]]; then
-
-            # Assign the Issue/PR to the user using the GitHub API
-              curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Accept: application/vnd.github.v3+json" \
-                "https://api.github.com/repos/aeon-toolkit/aeon/issues/$issue_number/assignees" \
-                -d "{\"assignees\": [\"$mentioned_user\"]}"
-            fi
-          fi
-        shell: bash
+      - name: Run script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/self_assign.py
