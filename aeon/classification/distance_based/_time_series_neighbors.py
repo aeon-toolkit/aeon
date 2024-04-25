@@ -8,11 +8,12 @@ distances in aeon.distances.
 __maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
 
+from typing import List
+
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
 from aeon.distances import get_distance_function
-from typing import List
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
