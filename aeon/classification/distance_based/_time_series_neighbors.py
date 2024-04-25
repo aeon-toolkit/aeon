@@ -12,6 +12,7 @@ import numpy as np
 
 from aeon.classification.base import BaseClassifier
 from aeon.distances import get_distance_function
+from typing import List
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
@@ -214,7 +215,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> list[dict]:
+    def get_test_params(cls, parameter_set: str = "default") -> List[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
