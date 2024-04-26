@@ -108,7 +108,7 @@ class ElasticEnsemble(BaseClassifier):
         random_state: int = 0,
         verbose: int = 0,
         majority_vote: bool = False,
-    ):
+    ) -> None:
         self.distance_measures = distance_measures
         self.proportion_train_in_param_finding = proportion_train_in_param_finding
         self.proportion_of_param_options = proportion_of_param_options
