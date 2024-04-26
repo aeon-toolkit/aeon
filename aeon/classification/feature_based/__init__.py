@@ -6,7 +6,6 @@ pipelined to a vector classifier.
 
 __all__ = [
     "Catch22Classifier",
-    "MatrixProfileClassifier",
     "SignatureClassifier",
     "SummaryClassifier",
     "TSFreshClassifier",
@@ -15,9 +14,6 @@ __all__ = [
 
 from aeon.classification.feature_based._catch22 import Catch22Classifier
 from aeon.classification.feature_based._fresh_prince import FreshPRINCEClassifier
-from aeon.classification.feature_based._matrix_profile_classifier import (
-    MatrixProfileClassifier,
-)
 from aeon.classification.feature_based._signature_classifier import SignatureClassifier
 from aeon.classification.feature_based._summary import SummaryClassifier
 from aeon.classification.feature_based._tsfresh import TSFreshClassifier

@@ -3,8 +3,13 @@
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import check_is_scitype, convert_to
-from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
+from aeon.datatypes import convert_to
+from aeon.utils.validation import (
+    is_collection,
+    is_hierarchical,
+    is_single_series,
+    validate_input,
+)
 
 
 def _get_index(x):
@@ -339,12 +344,12 @@ def update_data(X, X_new=None):
         if one of X, X_new is None, returns the other; if both are None, returns None
     """
     from aeon.datatypes._convert import convert_to
-    from aeon.datatypes._vectorize import VectorizedDF
+    from aeon.datatypes._vec_df import _VectorizedDF
 
     # if X or X_new is vectorized, unwrap it first
-    if isinstance(X, VectorizedDF):
+    if isinstance(X, _VectorizedDF):
         X = X.X
-    if isinstance(X_new, VectorizedDF):
+    if isinstance(X_new, _VectorizedDF):
         X_new = X_new.X
 
     # we want to ensure that X, X_new are either numpy (1D, 2D, 3D)
@@ -414,18 +419,14 @@ def get_window(obj, window_length=None, lag=None):
     """
     if obj is None or (window_length is None and lag is None):
         return obj
-    valid = is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)
+    valid, metadata = validate_input(obj)
     if not valid:
-        raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
-    # TODO: Still need to extract the "mtype" without check_is_scitype
-    _, _, metadata = check_is_scitype(
-        obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
-    )
+        raise ValueError("obj must be of Series, Collection, or Hierarchical scitype")
     obj_in_mtype = metadata["mtype"]
 
     obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)
 
-    # numpy3D (Panel) or np.npdarray (Series)
+    # numpy3D (Collection) or np.npdarray (Series)
     if isinstance(obj, np.ndarray):
         # if 2D or 3D, we need to subset by last, not first dimension
         # if 1D, we need to subset by first dimension
@@ -449,7 +450,8 @@ def get_window(obj, window_length=None, lag=None):
             obj_subset = obj_subset.swapaxes(1, -1)
         return obj_subset
 
-    # pd.DataFrame(Series), pd-multiindex (Panel) and pd_multiindex_hier (Hierarchical)
+    # pd.DataFrame(Series), pd-multiindex (Collection) and pd_multiindex_hier (
+    # Hierarchical)
     if isinstance(obj, pd.DataFrame):
         cutoff = get_cutoff(obj)
 
@@ -510,13 +512,9 @@ def get_slice(obj, start=None, end=None):
     if (start is None and end is None) or obj is None:
         return obj
 
-    valid = is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)
+    valid, metadata = validate_input(obj)
     if not valid:
         raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
-    # TODO: Still need to extract the "mtype" without check_is_scitype
-    _, _, metadata = check_is_scitype(
-        obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
-    )
     obj_in_mtype = metadata["mtype"]
 
     obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)

@@ -7,7 +7,10 @@ import pandas as pd
 from pandas.api.types import is_numeric_dtype
 from sklearn.utils import check_array, check_consistent_length
 
-from aeon.datatypes import VectorizedDF, check_is_scitype, convert, convert_to
+from aeon.datatypes import convert
+from aeon.datatypes._check import check_is_scitype
+from aeon.datatypes._convert import convert_to
+from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.performance_metrics.base import BaseMetric
 
 
@@ -125,7 +128,7 @@ class BaseForecastingErrorMetric(BaseMetric):
             y_true, y_pred, multioutput, multilevel, **kwargs
         )
 
-        requires_vectorization = isinstance(y_true_inner, VectorizedDF)
+        requires_vectorization = isinstance(y_true_inner, _VectorizedDF)
         if not requires_vectorization:
             # pass to inner function
             out_df = self._evaluate(y_true=y_true_inner, y_pred=y_pred_inner, **kwargs)
@@ -324,9 +327,9 @@ class BaseForecastingErrorMetric(BaseMetric):
         y_pred_orig = y_pred
 
         # unwrap y_true, y_pred, if wrapped in VectorizedDF
-        if isinstance(y_true, VectorizedDF):
+        if isinstance(y_true, _VectorizedDF):
             y_true = y_true.X
-        if isinstance(y_pred, VectorizedDF):
+        if isinstance(y_pred, _VectorizedDF):
             y_pred = y_pred.X
 
         # check row and column indices if y_true vs y_pred
@@ -349,7 +352,7 @@ class BaseForecastingErrorMetric(BaseMetric):
                 "Indices of y_true will be used for y_pred."
             )
             y_pred_orig = y_pred_orig.copy()
-            if isinstance(y_pred_orig, VectorizedDF):
+            if isinstance(y_pred_orig, _VectorizedDF):
                 y_pred_orig.X.index = y_true.index
             else:
                 y_pred_orig.index = y_true.index
@@ -360,7 +363,7 @@ class BaseForecastingErrorMetric(BaseMetric):
                 "Indices of y_true will be used for y_pred."
             )
             y_pred_orig = y_pred_orig.copy()
-            if isinstance(y_pred_orig, VectorizedDF):
+            if isinstance(y_pred_orig, _VectorizedDF):
                 y_pred_orig.X.columns = y_true.columns
             else:
                 y_pred_orig.columns = y_true.columns
@@ -415,7 +418,7 @@ class BaseForecastingErrorMetric(BaseMetric):
             type = metadata["scitype"]
             ignore_index = multilevel == "uniform_average_time"
             if type in ["Panel", "Hierarchical"] and not ignore_index:
-                y_inner = VectorizedDF(y_inner, is_scitype=type)
+                y_inner = _VectorizedDF(y_inner, is_scitype=type)
             return y_inner
 
         y_true = _coerce_to_df(y_true, var_name="y_true")

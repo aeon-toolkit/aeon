@@ -1,12 +1,11 @@
 """Test functions for data input and output."""
 
-__maintainer__ = []
-
-__all__ = []
+__maintainer__ = ["TonyBagnall"]
 
 import os
 import shutil
 import tempfile
+from urllib.error import URLError
 
 import numpy as np
 import pandas as pd
@@ -23,6 +22,7 @@ from aeon.datasets import (
     load_regression,
 )
 from aeon.datasets._data_loaders import (
+    CONNECTION_ERRORS,
     _alias_datatype_check,
     _get_channel_strings,
     _load_data,
@@ -36,7 +36,9 @@ from aeon.testing.test_config import PR_TESTING
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_forecasting_from_repo():
+    """Test load forecasting from repo."""
     name = "FOO"
     with pytest.raises(
         ValueError, match=f"File name {name} is not in the list of " f"valid files"
@@ -58,11 +60,11 @@ def test_load_forecasting_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_classification_from_repo():
+    """Test load classification from repo."""
     name = "FOO"
-    with pytest.raises(
-        ValueError, match=f"dataset name ={name} is not available on extract path"
-    ):
+    with pytest.raises(ValueError):
         load_classification(name)
     name = "SonyAIBORobotSurface1"
     X, y, meta = load_classification(name, return_metadata=True)
@@ -85,7 +87,9 @@ def test_load_classification_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_regression_from_repo():
+    """Test load regression from repo."""
     name = "FOO"
     with pytest.raises(
         ValueError, match=f"File name {name} is not in the list of " f"valid files"
@@ -133,17 +137,19 @@ def test_load_regression_from_repo():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_fails():
+    """Test load fails."""
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/",
     )
     with pytest.raises(ValueError):
-        X, y = load_regression("FOOBAR", extract_path=data_path)
+        load_regression("FOOBAR", extract_path=data_path)
     with pytest.raises(ValueError):
-        X, y = load_classification("FOOBAR", extract_path=data_path)
+        load_classification("FOOBAR", extract_path=data_path)
     with pytest.raises(ValueError):
-        X, y = load_forecasting("FOOBAR", extract_path=data_path)
+        load_forecasting("FOOBAR", extract_path=data_path)
 
 
 def test__alias_datatype_check():
@@ -161,7 +167,9 @@ def test__alias_datatype_check():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test__load_header_info():
+    """Test load header info."""
     path = os.path.join(
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/UnitTest_TRAIN.ts",
@@ -207,6 +215,7 @@ def test__load_header_info():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test__load_data():
     """Test loading after header."""
     path = os.path.join(
@@ -417,6 +426,11 @@ def test_load_classification():
     assert isinstance(y, np.ndarray)
     assert X.shape == (42, 1, 24)
     assert y.shape == (42,)
+    # Try load covid, should work
+    X, y, meta = load_classification("Covid3Month", return_metadata=True)
+
+    with pytest.raises(ValueError, match="You have tried to load a regression problem"):
+        X, y = load_classification("CardanoSentiment")
 
 
 @pytest.mark.skipif(
@@ -466,6 +480,7 @@ def test_load_from_arff():
 
 
 def test__get_channel_strings():
+    """Test get channel string."""
     line = "(2007-01-01 00:00:00,241.97),(2007-01-01 00:01:00,241.75):1"
     channel_strings = _get_channel_strings(line)
     assert len(channel_strings) == 2
@@ -476,6 +491,7 @@ def test__get_channel_strings():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
 def test_get_meta_data():
     """Test the get_dataset_meta_data function."""
     df = get_dataset_meta_data()

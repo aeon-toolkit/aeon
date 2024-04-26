@@ -67,6 +67,8 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
         _check_soft_dependencies("stumpy", severity="error")
         import stumpy
 
+        X = X.squeeze()
+
         self.matrix_profile_ = stumpy.stump(X, self.window_length)
         return self.matrix_profile_[:, 0].astype("float")
 

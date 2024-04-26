@@ -4,6 +4,7 @@ Nearest neighbour classifier that extracts shape features.
 """
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 # Tuning
 from sklearn.model_selection import GridSearchCV, KFold
@@ -26,6 +27,12 @@ from aeon.utils.numba.general import slope_derivative_3d
 __maintainer__ = []
 
 
+# TODO: remove in v0.9.0
+@deprecated(
+    version="0.8.0",
+    reason="ShapeDTW classifier will be removed in v0.9.0.",
+    category=FutureWarning,
+)
 class ShapeDTW(BaseClassifier):
     """
     ShapeDTW classifier.

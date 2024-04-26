@@ -1,17 +1,21 @@
 """Functions to load and collate results from timeseriesclassification.com."""
 
 __all__ = [
+    "estimator_alias",
+    "get_available_estimators",
     "get_estimator_results",
     "get_estimator_results_as_array",
-    "get_available_estimators",
 ]
 __maintainer__ = []
 
 
+from http.client import IncompleteRead, RemoteDisconnected
+from urllib.error import HTTPError, URLError
+
 import numpy as np
 import pandas as pd
 
-from aeon.datasets.tsc_data_lists import univariate as UCR
+from aeon.datasets.tsc_datasets import univariate as UCR
 
 VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 
@@ -65,7 +69,6 @@ NAME_ALIASES = {
         "LITETimeClassifier",
         "LITETime",
     },
-    "MR": {"multirocket", "MultiROCKET", "MultiRocket", "MRClassifier"},
     "MiniROCKET": {"MiniRocket", "MiniROCKETClassifier"},
     "MrSQM": {"mrsqm", "MrSQMClassifier"},
     "MR-Hydra": {
@@ -76,7 +79,12 @@ NAME_ALIASES = {
         "MultiRocketHydraClassifier",
         "MultiRocketHydra",
     },
-    "MultiROCKET": {"MultiRocket", "MultiROCKETClassifier", "MultiROCKETRegressor"},
+    "MR": {
+        "MultiRocket",
+        "MultiROCKETClassifier",
+        "MultiROCKETRegressor",
+        "MultiROCKET",
+    },
     "PF": {"ProximityForest", "ProximityForestV1", "PFV1"},
     "QUANT": {"quant", "QuantileForestClassifier", "QUANTClassifier"},
     "RDST": {"rdst", "RandomDilationShapeletTransform", "RDSTClassifier"},
@@ -113,7 +121,6 @@ NAME_ALIASES = {
         "KNeighborsTimeSeriesClassifier",
         "KNeighborsTimeSeries",
     },
-    "5NN-DTW": {"5NNDTW", "5nn-dtw"},
     "1NN-ED": {
         "1NNED",
         "1nn-ed",
@@ -156,19 +163,31 @@ NAME_ALIASES = {
     "Ridge": {"ridge", "RidgeRegressor"},
     "SingleInceptionTime": {"SIT", "SingleInceptionT", "SingleInceptionTimeRegressor"},
     "XGBoost": {"xgboost", "XGBoostRegressor"},
+    "5NN-DTW": {"5NNDTW", "5nn-dtw"},
 }
+
+CONNECTION_ERRORS = [
+    HTTPError,
+    URLError,
+    RemoteDisconnected,
+    IncompleteRead,
+    ConnectionResetError,
+    TimeoutError,
+]
 
 
 def estimator_alias(name: str) -> str:
-    """Return the standard name for possible aliased classifier.
+    """Return the standard name for possible aliased estimator.
 
     Parameters
     ----------
-        name: str. Name of an estimator
+    name: str
+        Name of an estimator.
 
     Returns
     -------
-        str: standardised name as defined by NAME_ALIASES
+    name: str
+        Standardized name as defined by NAME_ALIASES.
 
     Example
     -------
@@ -182,10 +201,9 @@ def estimator_alias(name: str) -> str:
         if name in NAME_ALIASES[name_key]:
             return name_key
     raise ValueError(
-        f"Unknown estimator name {name}. For a list of valid names and "
-        f"allowed aliases, see NAME_ALIASES in "
-        f"aeon/benchmarking/results_loaders.py. Note that estimator names are case "
-        f"sensitive."
+        f"Unknown estimator name {name}. For a list of valid names and allowed "
+        "aliases, see NAME_ALIASES in aeon/benchmarking/results_loaders.py. Note "
+        "that estimator names are case sensitive."
     )
 
 
@@ -219,10 +237,7 @@ def get_available_estimators(task="classification", return_dataframe=True):
         f"https://timeseriesclassification.com/results/ReferenceResults/"
         f"{t}/estimators.txt"
     )
-    try:
-        data = pd.read_csv(path)
-    except Exception:
-        raise ValueError(f"{path} is unavailable right now, try later")
+    data = pd.read_csv(path)
     if return_dataframe:
         return data
     else:
@@ -238,12 +253,7 @@ def _load_results(
     for cls in estimators:
         alias_cls = estimator_alias(cls)
         url = path + alias_cls + suffix
-        try:
-            data = pd.read_csv(url)
-        except Exception:
-            raise ValueError(
-                f"Cannot connect to {url} website down or results not present"
-            )
+        data = pd.read_csv(url)
         cls_results = {}
         problems = data[probs_names].str.replace(r"_.*", "", regex=True)
         results = data.iloc[:, 1:].to_numpy()
@@ -278,7 +288,7 @@ def get_estimator_results(
         list of estimators to search for.
     datasets : list of str, default = UCR
         list of problem names to search for. Default is to look for the 112 UCR
-        datasets listed in aeon.datasets.tsc_data_lists.
+        datasets listed in aeon.datasets.tsc_datasets.
     default_only : boolean, default = True
         Whether to recover just the default test results, or 30 resamples.
     task : str, default="classification"
@@ -350,7 +360,7 @@ def get_estimator_results_as_array(
         List of estimators to search for.
     datasets : list of str, default = UCR.
         List of problem names to search for. Default is to look for the 112 UCR
-        datasets listed in aeon.datasets.tsc_data_lists.
+        datasets listed in aeon.datasets.tsc_datasets.
     default_only : boolean, default = True
         Whether to recover just the default test results, or 30 resamples. If false,
         values are averaged to get a 2D array.

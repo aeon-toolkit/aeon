@@ -1,15 +1,16 @@
 """Datasets in the UCR/tsml data archives from https://timeseriesclassification.com.
 
-Lists of data available from timeseriesclassification.com. Data is available in .ts
-format, and for some problems, in .arff and .tsv format. For any issues with these
+Collections of data available from timeseriesclassification.com. Data is available in
+.ts format, and for some problems, in .arff and .tsv format. For any issues with these
 data, please see
 https://github.com/time-series-machine-learning/tsml-repo
 
 There are four main distinctions: univariate/multivariate equal/unequal length.
-Array univariate lists the 128 UCR problems, as described in [1].
-Array multivariate lists the 30 UEA problems, as described in [2], plus 3 new additions.
-Array univariate_equal_length lists the 112 UCR archive problems used in [3].
-Array multivariate_equal_length lists the 26 UEA archive problems used in [4].
+Set univariate contains the 128 UCR problems, as described in [1].
+Set multivariate contains the 30 UEA problems, as described in [2], plus 3 new
+additions.
+Set univariate_equal_length contains the 112 UCR archive problems used in [3].
+Set multivariate_equal_length contains the 26 UEA archive problems used in [4].
 
 [1] H.Dau, A. Bagnall, K. Kamgar, C. Yeh, Y. Zhu, S. Gharghabi, C. Ratanamahatana and
 E. Keogh.
@@ -464,3 +465,10 @@ multivariate_unequal_length = {
     "JapaneseVowels",
     "SpokenArabicDigits",
 }
+# TODO: Add the following datasets:
+# 30 new univariate classification problems used in the bake off [5]. Some are new,
+# some are discrete versions of regression problems, some are equal length versions
+# of the current UCR problems and some are no missing versions of the current 128 UCR.
+# All can be loaded from the timeseriesclassification.com archive directly using the
+# function load_classification. This will download all available versions of the
+# problem in one directory. You can then set which version through function arguments.
