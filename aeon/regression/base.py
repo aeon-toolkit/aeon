@@ -29,15 +29,12 @@ from typing import final
 import numpy as np
 import pandas as pd
 
-from deprecated.sphinx import deprecated
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
-from aeon.performance_metrics.forecasting import mean_squared_error
-from aeon.utils.sklearn import is_sklearn_transformer
 
 
 class BaseRegressor(BaseCollectionEstimator, ABC):
