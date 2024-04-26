@@ -71,7 +71,6 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
-    ShapeDTW
 
 Feature-based
 -------------
