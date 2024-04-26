@@ -105,7 +105,7 @@ def subgradient_barycenter_average(
     )
 
     if weights is None:
-        weights = np.ones(shape=(len(X),))
+        weights = np.ones(shape=(len(X),), dtype=np.float64)
 
     random_state = check_random_state(random_state)
 

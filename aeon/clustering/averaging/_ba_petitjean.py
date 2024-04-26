@@ -87,7 +87,7 @@ def petitjean_barycenter_average(
     )
 
     if weights is None:
-        weights = np.ones(shape=(len(X),))
+        weights = np.ones(shape=(len(X),), dtype=np.float64)
 
     cost_prev = np.inf
     if distance == "wdtw" or distance == "wddtw":
