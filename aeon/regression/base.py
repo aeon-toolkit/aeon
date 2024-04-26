@@ -36,8 +36,8 @@ from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
-from aeon.utils.sklearn import is_sklearn_transformer
 from aeon.performance_metrics.forecasting import mean_squared_error
+from aeon.utils.sklearn import is_sklearn_transformer
 
 
 class BaseRegressor(BaseCollectionEstimator, ABC):
