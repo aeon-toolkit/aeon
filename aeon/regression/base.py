@@ -29,16 +29,12 @@ from typing import final
 import numpy as np
 import pandas as pd
 from deprecated.sphinx import deprecated
-from sklearn.metrics import max_error, r2_score
+from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
-from aeon.performance_metrics.forecasting import (
-    mean_absolute_percentage_error,
-    mean_squared_error,
-)
 from aeon.utils.sklearn import is_sklearn_transformer
 
 
@@ -260,7 +256,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return y_pred
 
-    def score(self, X, y, metric="mse") -> float:
+    def score(self, X, y, metric="r2", metric_params=None) -> float:
         """Scores predicted labels against ground truth labels on X.
 
         Parameters
@@ -298,16 +294,22 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         """
         self.check_is_fitted()
         y = self._check_y(y, len(X))
-        if metric == "mse":
-            return mean_squared_error(y, self.predict(X))
-        elif metric == "mape":
-            return mean_absolute_percentage_error(y, self.predict(X))
-        elif metric == "r2":
-            return r2_score(y, self.predict(X))
-        elif metric == "max":
-            return max_error(y, self.predict(X))
+        _metric_params = metric_params
+        if metric_params is None:
+            _metric_params = {}
+        if isinstance(metric, str):
+            __names = get_scorer_names()
+            if metric not in __names:
+                raise ValueError(
+                    """metric name incompatible with `sklearn.get_scorer`. Use
+                                 a valid metric name instead."""
+                )
+            scorer = get_scorer(metric)
+            return scorer._score_func(y, self.predict(X), **_metric_params)
+        elif callable(metric):
+            return metric(y, self.predict(X), **_metric_params)
         else:
-            raise ValueError("Enter a supported scoring metric for regression.")
+            raise ValueError("Enter a valid metric format.")
 
     @abstractmethod
     def _fit(self, X, y):

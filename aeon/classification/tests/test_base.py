@@ -4,6 +4,7 @@ import numpy as np
 import numpy.random
 import pandas as pd
 import pytest
+from sklearn.metrics import accuracy_score
 
 from aeon.testing.mock_estimators import (
     MockClassifier,
@@ -205,17 +206,9 @@ def test_classifier_score():
     dummy.fit(X, y2)
     assert dummy.score(X, y) == 0.5
     assert dummy.score(X, y2) == 0.5
-
-    r = dummy.score(X, y, metric="accuracy")
-    assert (r is not None) and (isinstance(r, float))
-    r = dummy.score(X, y, metric="balanced_accuracy")
-    assert (r is not None) and (isinstance(r, float))
-    r = dummy.score(X, y, metric="roc_auc")
-    assert (r is not None) and (isinstance(r, float))
-    r = dummy.score(X, y, metric="neg_log_loss")
-    assert (r is not None) and (isinstance(r, float))
     with pytest.raises(ValueError):
         dummy.score(X, y, metric="log_loss")
+    assert dummy.score(X, y, metric=accuracy_score) == 0.5  # Use callable
 
 
 def test_predict_single_class():

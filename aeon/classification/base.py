@@ -29,12 +29,7 @@ from typing import final
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import (
-    accuracy_score,
-    balanced_accuracy_score,
-    log_loss,
-    roc_auc_score,
-)
+from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
@@ -339,7 +334,9 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return y_proba
 
-    def score(self, X, y, metric="accuracy") -> float:
+    def score(
+        self, X, y, metric="accuracy", use_proba=False, metric_params=None
+    ) -> float:
         """Scores predicted labels against ground truth labels on X.
 
         Parameters
@@ -377,22 +374,24 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         """
         self.check_is_fitted()
         self._check_y(y, len(X), update_classes=False)
-
-        if metric == "accuracy":
-            return accuracy_score(y, self.predict(X), normalize=True)
-        elif metric == "balanced_accuracy":
-            return balanced_accuracy_score(y, self.predict(X))
-        elif metric == "roc_auc":
-            if len(np.unique(y)) == 2:
-                return roc_auc_score(y, self.predict_proba(X)[:, 1], average=None)
-            else:  # Mulitclass
-                return roc_auc_score(
-                    y, self.predict_proba(X), multi_class="ovr", average="macro"
+        _metric_params = metric_params
+        if metric_params is None:
+            _metric_params = {}
+        if isinstance(metric, str):
+            __names = get_scorer_names()
+            if metric not in __names:
+                raise ValueError(
+                    """metric name incompatible with `sklearn.get_scorer`. Use
+                                 a valid metric name instead."""
                 )
-        elif metric == "neg_log_loss":
-            return log_loss(y, self.predict_proba(X))
+            scorer = get_scorer(metric)
+            if use_proba:
+                return scorer._score_func(y, self.predict_proba(X), **_metric_params)
+            return scorer._score_func(y, self.predict(X), **_metric_params)
+        elif callable(metric):
+            return metric(y, self.predict(X), **_metric_params)
         else:
-            raise ValueError("Enter a supported scoring metric for classification.")
+            raise ValueError("Enter a valid metric format.")
 
     @abstractmethod
     def _fit(self, X, y):
