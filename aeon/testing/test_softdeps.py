@@ -21,39 +21,6 @@ from aeon.utils.validation._dependencies import (
     _check_soft_dependencies,
 )
 
-# list of soft dependencies used
-# excludes estimators, only for soft dependencies used in non-estimator modules
-SOFT_DEPENDENCIES = {
-    # "aeon.benchmarking.evaluation": ["matplotlib"],
-    # "aeon.benchmarking.experiments": ["tsfresh", "esig"],
-    # "aeon.classification.deep_learning": ["tensorflow"],
-    # "aeon.regression.deep_learning": ["tensorflow"],
-    # "aeon.clustering.deep_learning": ["tensorflow"],
-    # "aeon.networks": ["tensorflow"],
-    # "aeon.visualisation": ["matplotlib"],
-}
-
-
-def _is_test(module):
-    module_parts = module.split(".")
-    return any(part in ("tests", "test") for part in module_parts)
-
-
-def _extract_dependency_from_error_msg(msg):
-    """Extract dependency name from error message.
-
-    We raise an user-friendly error if a soft dependency is missing in the
-    `check_soft_dependencies` function. In the error message, the missing
-    dependency is printed in single quotation marks, so we can use that here to
-    extract and return the dependency name.
-    """
-    match = re.search(r"\'(.+?)\'", msg)
-    if match:
-        return match.group(1)
-    else:
-        raise ValueError("No dependency found in error msg.")
-
-
 # collect all modules
 modules = pkgutil.walk_packages(aeon.__path__, aeon.__name__ + ".")
 modules = [x[1] for x in modules]
@@ -72,44 +39,28 @@ def test_module_crawl():
 
 
 @pytest.mark.parametrize("module", modules)
-def test_module_softdeps(module):
-    """Test soft dependency imports in aeon modules."""
-    # We try importing all modules and catch exceptions due to missing dependencies
+def test_module_soft_deps(module):
+    """Test soft dependency imports in aeon modules.
+
+    Imports all modules and catch exceptions due to missing dependencies.
+    """
     try:
         import_module(module)
     except ModuleNotFoundError as e:
-        error_msg = str(e)
+        dependency = "unknown"
+        match = re.search(r"\'(.+?)\'", str(e))
+        if match:
+            dependency = match.group(1)
 
-        # Check if appropriate exception with useful error message is raised as
-        # defined in the `_check_soft_dependencies` function
-        expected_error_msg = (
-            "is a soft dependency and not included in the base aeon installation"
-        )
-        # message is different for deep learning deps tensorflow, tensorflow-proba
-        error_msg_alt = "required for deep learning"
-
-        if expected_error_msg not in error_msg and error_msg_alt not in error_msg:
-            raise RuntimeError(
-                f"The module: {module} seems to require a soft "
-                f"dependency, but does not raise an appropriate error "
-                f"message when the soft dependency is missing. Please "
-                f"use our `_check_soft_dependencies` function to "
-                f"raise a more appropriate error message."
-            ) from e
-
-        # If the error is raised in a module which does depend on a soft dependency,
-        # we ignore and skip it
-        dependencies = SOFT_DEPENDENCIES.get(module, [])
-        if any(dependency in error_msg for dependency in dependencies):
-            return None
-
-        # Otherwise we raise an error
-        dependency = _extract_dependency_from_error_msg(error_msg)
         raise ModuleNotFoundError(
             f"The module: {module} should not require any soft dependencies, "
             f"but tried importing: '{dependency}'. Make sure soft dependencies are "
             f"properly isolated."
         ) from e
+
+
+# TODO test revamp: this can be part a greater check of all estimators probably, dont
+# need to discover all estimators again here
 
 
 def _has_soft_dep(est):
@@ -126,13 +77,6 @@ def _coerce_list_of_str(obj):
         return [obj]
     elif isinstance(obj, list):
         return obj
-
-
-def test__coerce_list_of_str():
-    """Test that _coerce_list_of_str works."""
-    assert _coerce_list_of_str(None) == []
-    assert _coerce_list_of_str("a") == ["a"]
-    assert _coerce_list_of_str(["a"]) == ["a"]
 
 
 def _get_soft_deps(est):
@@ -157,14 +101,6 @@ def _is_in_env(modules):
         return True
     except ModuleNotFoundError:
         return False
-
-
-def soft_deps_installed(estimator):
-    """Return whether soft dependencies of an estimator are installed in env."""
-    softdeps = _get_soft_deps(estimator)
-    if _is_in_env(softdeps):
-        return True
-    return False
 
 
 # all estimators - exclude estimators on the global exclusion list
