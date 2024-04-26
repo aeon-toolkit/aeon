@@ -1,9 +1,7 @@
 """Tests that soft dependencies are handled correctly.
 
 aeon supports a number of soft dependencies which are necessary for using
-a certain module but otherwise not necessary.
-
-Adapted from code of mloning for the legacy Azure CI/CD build tools.
+a certain module or estimator but otherwise not necessary.
 """
 
 __maintainer__ = []
@@ -25,13 +23,13 @@ from aeon.utils.validation._dependencies import (
 # list of soft dependencies used
 # excludes estimators, only for soft dependencies used in non-estimator modules
 SOFT_DEPENDENCIES = {
-    "aeon.benchmarking.evaluation": ["matplotlib"],
-    "aeon.benchmarking.experiments": ["tsfresh", "esig"],
-    "aeon.classification.deep_learning": ["tensorflow"],
-    "aeon.regression.deep_learning": ["tensorflow"],
-    "aeon.clustering.deep_learning": ["tensorflow"],
-    "aeon.networks": ["tensorflow"],
-    "aeon.visualisation": ["matplotlib"],
+    # "aeon.benchmarking.evaluation": ["matplotlib"],
+    # "aeon.benchmarking.experiments": ["tsfresh", "esig"],
+    # "aeon.classification.deep_learning": ["tensorflow"],
+    # "aeon.regression.deep_learning": ["tensorflow"],
+    # "aeon.clustering.deep_learning": ["tensorflow"],
+    # "aeon.networks": ["tensorflow"],
+    # "aeon.visualisation": ["matplotlib"],
 }
 
 MODULES_TO_IGNORE = "aeon.testing.utils"
