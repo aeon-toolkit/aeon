@@ -3,6 +3,8 @@
 Nearest neighbour classifier that extracts shape features.
 """
 
+from typing import Any, List, Union
+
 import numpy as np
 from deprecated.sphinx import deprecated
 
@@ -99,12 +101,12 @@ class ShapeDTW(BaseClassifier):
 
     def __init__(
         self,
-        n_neighbors=1,
-        subsequence_length=30,
-        shape_descriptor_function="raw",
-        shape_descriptor_functions=None,
-        metric_params=None,
-    ):
+        n_neighbors: int = 1,
+        subsequence_length: int = 30,
+        shape_descriptor_function: str = "raw",
+        shape_descriptor_functions: List[str] = None,
+        metric_params: dict = None,
+    ) -> None:
         self.n_neighbors = n_neighbors
         self.subsequence_length = subsequence_length
         self.shape_descriptor_function = shape_descriptor_function
@@ -321,7 +323,7 @@ class ShapeDTW(BaseClassifier):
             result = np.concatenate((result, trans_data[i]), axis=1)
         return result
 
-    def _get_transformer(self, tName):
+    def _get_transformer(self, tName: Union[str, Any]):
         """Extract the appropriate transformer.
 
         Requires self._metric_params, so only call after fit or in fit after these
@@ -374,7 +376,7 @@ class ShapeDTW(BaseClassifier):
         else:
             raise ValueError("Invalid shape descriptor function.")
 
-    def _get_hog_transformer(self, parameters):
+    def _get_hog_transformer(self, parameters: dict):
         num_intervals = parameters.get("num_intervals_hog1d")
         num_bins = parameters.get("num_bins_hog1d")
         scaling_factor = parameters.get("scaling_factor_hog1d")
@@ -405,7 +407,7 @@ class ShapeDTW(BaseClassifier):
             scaling_factor=scaling_factor,
         )
 
-    def _check_metric_params(self, parameters):
+    def _check_metric_params(self, parameters: dict):
         """Check for an invalid metric_params."""
         valid_metric_params = [
             "num_intervals_paa",
