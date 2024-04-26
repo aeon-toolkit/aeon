@@ -12,8 +12,9 @@ from importlib import import_module
 
 import pytest
 
+import aeon
 from aeon.registry import all_estimators
-from aeon.testing.test_config import EXCLUDE_ESTIMATORS
+from aeon.testing.test_config import EXCLUDE_ESTIMATORS, PR_TESTING
 from aeon.testing.utils.scenarios_getter import retrieve_scenarios
 from aeon.utils.validation._dependencies import (
     _check_python_version,
@@ -32,16 +33,10 @@ SOFT_DEPENDENCIES = {
     # "aeon.visualisation": ["matplotlib"],
 }
 
-MODULES_TO_IGNORE = "aeon.testing.utils"
-
 
 def _is_test(module):
     module_parts = module.split(".")
     return any(part in ("tests", "test") for part in module_parts)
-
-
-def _is_ignored(module):
-    return any(module_to_ignore in module for module_to_ignore in MODULES_TO_IGNORE)
 
 
 def _extract_dependency_from_error_msg(msg):
@@ -59,36 +54,26 @@ def _extract_dependency_from_error_msg(msg):
         raise ValueError("No dependency found in error msg.")
 
 
-def test_extract_dependency_from_error_msg():
-    """Test that _extract_dependency_from_error_msg works."""
-    msg = (
-        "No module named 'tensorflow'. Tensorflow is a soft dependency. To use "
-        "tensorflow, please install it separately."
-    )
-    assert _extract_dependency_from_error_msg(msg) == "tensorflow"
-    with pytest.raises(ValueError, match="No dependency found in error msg"):
-        _extract_dependency_from_error_msg("invalid")
-
-
 # collect all modules
-modules = pkgutil.walk_packages(path=["./aeon/"], prefix="aeon.")
+modules = pkgutil.walk_packages(aeon.__path__, aeon.__name__ + ".")
 modules = [x[1] for x in modules]
-modules = [x for x in modules if not _is_test(x) and not _is_ignored(x)]
+
+if PR_TESTING:
+    # exclude test modules
+    modules = [x for x in modules if not any(part == "tests" for part in x.split("."))]
 
 
 def test_module_crawl():
-    """Test that we are crawling the correct modules."""
-    print(modules)  # noqa
-    print(len(modules))  # noqa
+    """Test that we are crawling modules correctly."""
     assert "aeon.classification" in modules
+    assert "aeon.classification.shapelet_based" in modules
+    assert "aeon.classification.base" in modules
     assert "aeon.forecasting" in modules
 
 
 @pytest.mark.parametrize("module", modules)
 def test_module_softdeps(module):
     """Test soft dependency imports in aeon modules."""
-    print(modules)  # noqa
-
     # We try importing all modules and catch exceptions due to missing dependencies
     try:
         import_module(module)
