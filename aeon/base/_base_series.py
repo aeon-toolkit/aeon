@@ -12,7 +12,6 @@ import pandas as pd
 
 from aeon.base._base import BaseEstimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.series import check_series
 
 # allowed input and internal data types for Series
 VALID_INNER_TYPES = [
@@ -100,8 +99,26 @@ class BaseSeriesEstimator(BaseEstimator):
         if axis > 1 or axis < 0:
             raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
 
-        check_series(X)
+        # Checks: check valid dtype
+        if isinstance(X, np.ndarray):
+            if not (
+                issubclass(X.dtype.type, np.integer)
+                or issubclass(X.dtype.type, np.floating)
+            ):
+                raise ValueError("dtype for np.ndarray must be float or int")
+        elif isinstance(X, pd.Series):
+            if not pd.api.types.is_numeric_dtype(X):
+                raise ValueError("pd.Series dtype must be numeric")
+        elif isinstance(X, pd.DataFrame):
+            if not all(pd.api.types.is_numeric_dtype(X[col]) for col in X.columns):
+                raise ValueError("pd.DataFrame dtype must be numeric")
+        else:
+            raise ValueError(
+                f"Input type of X should be one of {VALID_INNER_TYPES}, saw {type(X)}"
+            )
+
         metadata = {}
+
         # check if multivariate
         channel_idx = 0 if axis == 1 else 1
         if X.ndim > 2:
