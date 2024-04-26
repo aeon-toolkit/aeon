@@ -287,7 +287,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             strings arguments, check `sklearn.metrics.get_scorer_names`.
         metric_params : dict, default=None,
             Contains parameters to be passed to the scoring function. If None, no
-            parameters are passed. 
+            parameters are passed.
 
         Returns
         -------
