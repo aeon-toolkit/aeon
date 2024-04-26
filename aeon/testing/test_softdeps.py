@@ -45,10 +45,13 @@ def _is_ignored(module):
 
 
 def _extract_dependency_from_error_msg(msg):
-    # We raise an user-friendly error if a soft dependency is missing in the
-    # `check_soft_dependencies` function. In the error message, the missing
-    # dependency is printed in single quotation marks, so we can use that here to
-    # extract and return the dependency name.
+    """Extract dependency name from error message.
+
+    We raise an user-friendly error if a soft dependency is missing in the
+    `check_soft_dependencies` function. In the error message, the missing
+    dependency is printed in single quotation marks, so we can use that here to
+    extract and return the dependency name.
+    """
     match = re.search(r"\'(.+?)\'", msg)
     if match:
         return match.group(1)
@@ -56,16 +59,15 @@ def _extract_dependency_from_error_msg(msg):
         raise ValueError("No dependency found in error msg.")
 
 
-def test___extract_dependency_from_error_msg():
+def test_extract_dependency_from_error_msg():
     """Test that _extract_dependency_from_error_msg works."""
     msg = (
-        "No module named 'tensorflow'. "
-        "Tensorflow is a soft dependency. "
-        "To use tensorflow, please install it separately."
+        "No module named 'tensorflow'. Tensorflow is a soft dependency. To use "
+        "tensorflow, please install it separately."
     )
     assert _extract_dependency_from_error_msg(msg) == "tensorflow"
     with pytest.raises(ValueError, match="No dependency found in error msg"):
-        _extract_dependency_from_error_msg("No dependency.")
+        _extract_dependency_from_error_msg("invalid")
 
 
 # collect all modules
@@ -74,9 +76,19 @@ modules = [x[1] for x in modules]
 modules = [x for x in modules if not _is_test(x) and not _is_ignored(x)]
 
 
+def test_module_crawl():
+    """Test that we are crawling the correct modules."""
+    print(modules)  # noqa
+    print(len(modules))  # noqa
+    assert "aeon.classification" in modules
+    assert "aeon.forecasting" in modules
+
+
 @pytest.mark.parametrize("module", modules)
 def test_module_softdeps(module):
     """Test soft dependency imports in aeon modules."""
+    print(modules)  # noqa
+
     # We try importing all modules and catch exceptions due to missing dependencies
     try:
         import_module(module)
