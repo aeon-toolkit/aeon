@@ -168,11 +168,17 @@
         "doc",
         "design",
         "example",
+        "ideas",
         "infra",
         "maintenance",
+        "mentoring",
+        "promotion",
+        "question",
+        "research",
+        "review",
         "test",
         "tutorial",
-        "review"
+        "talk"
       ]
     },
     {
@@ -2319,7 +2325,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
       "profile": "https://github.com/AnonymousCodes911",
       "contributions": [
-        "code"
+        "code",
+        "doc"
       ]
     },
     {
@@ -2345,22 +2352,67 @@
       ]
     },
     {
-      "login": "AnonymousCodes911",
-      "name": "Utkarsh Kumar",
-      "avatar_url": "https://avatars.githubusercontent.com/u/67187480?v=4",
-      "profile": "https://github.com/AnonymousCodes911",
-      "contributions": [
-        "code",
-        "doc"
-      ]
-    },
-    {
       "login": "harshithasudhakar",
       "name": "Harshitha Sudhakar",
       "avatar_url": "https://avatars.githubusercontent.com/u/111514477?v=4",
       "profile": "https://github.com/harshithasudhakar",
       "contributions": [
+        "doc",
+        "code"
+      ]
+    },
+    {
+      "login": "tvilight4",
+      "name": "Tvisha Vedant",
+      "avatar_url": "https://avatars.githubusercontent.com/u/122543856?v=4",
+      "profile": "https://github.com/tvilight4",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "vNtzYy",
+      "name": "vNtzYy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/111287448?v=4",
+      "profile": "https://github.com/vNtzYy",
+      "contributions": [
+        "bug"
+      ]
+    },
+    {
+      "login": "wayneadams",
+      "name": "Wayne Adams",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15034841?v=4",
+      "profile": "https://github.com/wayneadams",
+      "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "griegner",
+      "name": "Gabriel Riegner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/54326829?v=4",
+      "profile": "https://github.com/griegner",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "RishavKumarSinha",
+      "name": "Rishav Kumar Sinha",
+      "avatar_url": "https://avatars.githubusercontent.com/u/136772607?s=400&v=4",
+      "profile": "https://github.com/RishavKumarSinha",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "nileenagp",
+      "name": "nileenagp",
+      "avatar_url": "https://avatars.githubusercontent.com/u/48993630?v=4",
+      "profile": "https://github.com/nileenagp",
+      "contributions": [
+        "code"
       ]
     }
   ],

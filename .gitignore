@@ -105,6 +105,9 @@ env.bak/
 venv.bak/
 aeon-dev/
 
+#Pyright
+pyrightconfig.json
+
 # mkdocs documentation
 /site
 

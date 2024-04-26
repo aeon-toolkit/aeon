@@ -7,7 +7,6 @@ transform then builds (by default) a rotation forest classifier on the output.
 __maintainer__ = []
 __all__ = ["ShapeletTransformClassifier"]
 
-import warnings
 
 import numpy as np
 from sklearn.model_selection import cross_val_predict
@@ -59,12 +58,6 @@ class ShapeletTransformClassifier(BaseClassifier):
     contract_max_n_shapelet_samples : int, default=np.inf
         Max number of shapelets to extract when contracting the transform with
         ``transform_limit_in_minutes`` or ``time_limit_in_minutes``.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
-        ``transformed_data_`` will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
@@ -146,7 +139,6 @@ class ShapeletTransformClassifier(BaseClassifier):
         transform_limit_in_minutes=0,
         time_limit_in_minutes=0,
         contract_max_n_shapelet_samples=np.inf,
-        save_transformed_data="deprecated",
         n_jobs=1,
         batch_size=100,
         random_state=None,
@@ -173,16 +165,6 @@ class ShapeletTransformClassifier(BaseClassifier):
         self._transform_limit_in_minutes = 0
         self._classifier_limit_in_minutes = 0
 
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
-        self.transformed_data_ = []
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.8.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
-
         super().__init__()
 
     def _fit(self, X, y):
@@ -205,14 +187,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        b = (
-            False
-            if isinstance(self.save_transformed_data, str)
-            else self.save_transformed_data
-        )
-        self.transformed_data_ = self._fit_stc(X, y)
-        if not b:
-            self.transformed_data_ = []
+        X_t = self._fit_stc_shared(X, y)
+        self._estimator.fit(X_t, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -267,13 +243,15 @@ class ShapeletTransformClassifier(BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        Xt = self._fit_stc(X, y)
+        X_t = self._fit_stc_shared(X, y)
 
         if (isinstance(self.estimator, RotationForestClassifier)) or (
             self.estimator is None
         ):
-            return self._estimator._get_train_probs(Xt, y)
+            return self._estimator.fit_predict_proba(X_t, y)
         else:
+            self._estimator.fit(X_t, y)
+
             m = getattr(self._estimator, "predict_proba", None)
             if not callable(m):
                 raise ValueError("Estimator must have a predict_proba method.")
@@ -293,14 +271,14 @@ class ShapeletTransformClassifier(BaseClassifier):
 
             return cross_val_predict(
                 estimator,
-                X=Xt,
+                X=X_t,
                 y=y,
                 cv=cv_size,
                 method="predict_proba",
                 n_jobs=self._n_jobs,
             )
 
-    def _fit_stc(self, X, y):
+    def _fit_stc_shared(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         if self.time_limit_in_minutes > 0:
@@ -328,9 +306,6 @@ class ShapeletTransformClassifier(BaseClassifier):
             self.random_state,
         )
 
-        if isinstance(self._estimator, RotationForestClassifier):
-            self._estimator.save_transformed_data = self.save_transformed_data
-
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
             self._estimator.n_jobs = self._n_jobs
@@ -339,11 +314,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         if m is not None and self.time_limit_in_minutes > 0:
             self._estimator.time_limit_in_minutes = self._classifier_limit_in_minutes
 
-        Xt = self._transformer.fit_transform(X, y)
-
-        self._estimator.fit(Xt, y)
-
-        return Xt
+        return self._transformer.fit_transform(X, y)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

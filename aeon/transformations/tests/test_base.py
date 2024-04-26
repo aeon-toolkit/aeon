@@ -17,7 +17,6 @@ import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
 
-from aeon.datatypes import mtype_to_scitype
 from aeon.testing.utils.data_gen import get_examples, make_series
 from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
@@ -31,6 +30,7 @@ from aeon.transformations.base import BaseTransformer
 from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import FitInTransform
 from aeon.utils.validation import (
+    abstract_types,
     is_collection,
     is_hierarchical,
     is_single_series,
@@ -39,15 +39,12 @@ from aeon.utils.validation import (
 
 
 def inner_X_types(est):
-    """Return list of types supported by class est, as list of str."""
+    """Return list of abstract types supported by class est, as list of str."""
     if isclass(est):
         X_inner_type = est.get_class_tag("X_inner_type")
     else:
         X_inner_type = est.get_tag("X_inner_type")
-    X_inner_types = mtype_to_scitype(
-        X_inner_type, return_unique=True, coerce_to_list=True
-    )
-    return X_inner_types
+    return abstract_types(X_inner_type)
 
 
 class _DummyOne(BaseTransformer):
@@ -388,7 +385,7 @@ class _DummyFour(BaseTransformer):
     }
 
     def _transform(self, X, y=None):
-        return np.array([0])
+        return np.array([0.0])
 
 
 def test_series_in_primitives_out_supported_fit_in_transform():
@@ -411,9 +408,9 @@ def test_series_in_primitives_out_supported_fit_in_transform():
     assert est.get_tag("output_data_type") == "Primitives"
     scenario = TransformerFitTransformSeriesUnivariate()
     Xt = scenario.run(est, method_sequence=["fit", "transform"])
-    assert is_tabular(Xt), "fit.transform does not return a Table when given a Series"
     # length of Xt should be one, for a single series passed
     assert len(Xt) == 1
+    assert is_tabular(Xt), "fit.transform does not return a Table when given a Series"
 
 
 def test_panel_in_primitives_out_not_supported_fit_in_transform():
@@ -479,7 +476,7 @@ class _DummyFive(BaseTransformer):
     }
 
     def _transform(self, X, y=None):
-        return np.array([0])
+        return np.array([0.0])
 
 
 def test_series_in_primitives_out_not_supported_fit_in_transform():
@@ -613,8 +610,8 @@ def test_numpy_format_outputs():
     bc = BoxCoxTransformer()
 
     u1d = bc.fit_transform(X[0][0])
-    # 2d numpy arrays are (length, channels) while 3d numpy arrays are
-    # (cases, channels, length)
+    # 2d numpy arrays are (n_timepoints, n_channels) while 3d numpy arrays are
+    # (n_cases, n_channels, n_timepoints)
     u2d = bc.fit_transform(X[0].transpose()).transpose()
     u3d = bc.fit_transform(X)
 

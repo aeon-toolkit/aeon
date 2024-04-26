@@ -20,6 +20,8 @@ Convolution-based
 
     Arsenal
     RocketClassifier
+    HydraClassifier
+    MultiRocketHydraClassifier
 
 Deep learning
 -------------
@@ -69,7 +71,6 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
-    ShapeDTW
 
 Feature-based
 -------------
@@ -82,7 +83,6 @@ Feature-based
 
     Catch22Classifier
     FreshPRINCEClassifier
-    MatrixProfileClassifier
     SignatureClassifier
     SummaryClassifier
     TSFreshClassifier

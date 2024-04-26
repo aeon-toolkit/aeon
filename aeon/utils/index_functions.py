@@ -3,8 +3,13 @@
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes import check_is_scitype, convert_to
-from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
+from aeon.utils.conversion import convert_collection, convert_series
+from aeon.utils.validation import (
+    is_collection,
+    is_hierarchical,
+    is_single_series,
+    validate_input,
+)
 
 
 def _get_index(x):
@@ -24,11 +29,11 @@ def get_time_index(X):
 
     Parameters
     ----------
-    X : pd.DataFrame, pd.Series, np.ndarray, or VectorizedDF
-    in one of the following aeon mtype specifications for Series, Panel, Hierarchical:
-    pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, nested_univ, pd_multiindex_hier
-    assumes all time series have equal length and equal index set
-    will *not* work for list-of-df, pd-wide, pd-long, numpy2D
+    X : pd.DataFrame, pd.Series, np.ndarray
+        in one of the following data container types pd.DataFrame, pd.Series,
+        np.ndarray, pd-multiindex, nested_univ, pd_multiindex_hier
+        assumes all time series have equal length and equal index set
+        will *not* work for list-of-df, pd-wide, pd-long, numpy2D or np-list.
 
     Returns
     -------
@@ -76,8 +81,8 @@ def get_index_for_series(obj, cutoff=0):
     Parameters
     ----------
     obj : aeon data container
-        must be of one of the following mtypes:
-            pd.Series, pd.DataFrame, np.ndarray, of Series scitype
+        must be of one of the following single series data structures:
+            pd.Series, pd.DataFrame, np.ndarray
     cutoff : int, or pd.datetime, optional, default=0
         current cutoff, used to offset index if obj is np.ndarray
 
@@ -91,20 +96,6 @@ def get_index_for_series(obj, cutoff=0):
     return pd.RangeIndex(cutoff, cutoff + obj.shape[0])
 
 
-GET_CUTOFF_SUPPORTED_TYPES = [
-    "pd.DataFrame",
-    "pd.Series",
-    "np.ndarray",
-    "pd-multiindex",
-    "numpy3D",
-    "nested_univ",
-    "df-list",
-    "pd_multiindex_hier",
-    "np.ndarray",
-    "numpy3D",
-]
-
-
 def _get_cutoff_from_index(idx, return_index=False, reverse_order=False):
     """Get cutoff = latest time point of pandas index.
 
@@ -114,7 +105,7 @@ def _get_cutoff_from_index(idx, return_index=False, reverse_order=False):
     Parameters
     ----------
     obj : pd.Index, possibly MultiIndex, with last level assumed timelike or integer,
-        e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier mtypes
+        e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier types
     return_index : bool, optional, default=False
         whether a pd.Index object should be returned (True)
             or a pandas compatible index element (False)
@@ -175,10 +166,8 @@ def get_cutoff(
     cutoff=0,
     return_index=False,
     reverse_order=False,
-    check_input=False,
-    convert_input=True,
 ):
-    """Get cutoff = latest time point of time series or time series panel.
+    """Get the latest time point of time series or collection of time series.
 
     Assumptions on obj are not checked, these should be validated separately.
     Function may return unexpected results without prior validation.
@@ -186,36 +175,30 @@ def get_cutoff(
     Parameters
     ----------
     obj : aeon compatible time series data container or pandas.Index
-        if aeon time series, must be of Series, Panel, or Hierarchical scitype
-        all mtypes are supported via conversion to internally supported types
-        to avoid conversions, pass data in one of GET_CUTOFF_SUPPORTED_TYPES
-        if pandas.Index, it is assumed that last level is time-like or integer,
-        e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier mtypes
-    cutoff : int, optional, default=0
-        current cutoff, used to offset index if obj is np.ndarray
-    return_index : bool, optional, default=False
-        whether a pd.Index object should be returned (True)
-            or a pandas compatible index element (False)
+        if aeon time series, must be of Series, Collection, or Hierarchical abstract
+        type. if ``pandas.Index``, it is assumed that last level is time-like or integer
+        e.g., as in the pd.DataFrame, pd-multiindex, or pd_multiindex_hier internal
+        types.
+    cutoff : int, default=0
+        Current cutoff, used to offset index if obj is np.ndarray
+    return_index : bool, default=False
+        Whether a pd.Index object should be returned (True) or a pandas compatible
+        index element (False).
         note: return_index=True may set freq attribute of time types to None
-            return_index=False will typically preserve freq attribute
-    reverse_order : bool, optional, default=False
-        if False, returns largest time index. If True, returns smallest time index
-    check_input : bool, optional, default=False
-        whether to check input for validity, i.e., is it one of the scitypes
-    convert_input : bool, optional, default=True
-        whether to convert the input (True), or skip conversion (False)
-        if skipped, function assumes that inputs are one of GET_CUTOFF_SUPPORTED_TYPES
+            return_index=False will typically preserve freq attribute.
+    reverse_order : bool, default=False
+        if False, returns largest time index. If True, returns smallest time index.
 
     Returns
     -------
     cutoff_index : pandas compatible index element (if return_index=False)
-        pd.Index of length 1 (if return_index=True)
+        pd.Index of length 1 (if return_index=True).
 
     Raises
     ------
-    ValueError, TypeError, if check_input or convert_input are True
+    ValueError, TypeError, if check_input or convert_input are True.
     """
-    # deal with VectorizedDF
+    # deal with legacy method of wrapping a Broadcaster
     if hasattr(obj, "X"):
         obj = obj.X
 
@@ -223,13 +206,10 @@ def get_cutoff(
         return _get_cutoff_from_index(
             idx=obj, return_index=return_index, reverse_order=reverse_order
         )
-
-    if check_input:
-        if not (is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)):
-            raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
-
-    if convert_input:
-        obj = convert_to(obj, GET_CUTOFF_SUPPORTED_TYPES)
+    if not (is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)):
+        raise ValueError(
+            "obj must be of Series, Collection, or Hierarchical abstract type"
+        )
 
     if cutoff is None:
         cutoff = 0
@@ -246,7 +226,7 @@ def get_cutoff(
     if len(obj) == 0:
         return cutoff
 
-    # numpy3D (Panel) or np.npdarray (Series)
+    # numpy3D (Collection) or np.npdarray (Series)
     if isinstance(obj, np.ndarray):
         if obj.ndim == 3:
             cutoff_ind = obj.shape[-1] + cutoff - 1
@@ -280,7 +260,7 @@ def get_cutoff(
     if isinstance(obj, pd.Series):
         return sub_idx(obj.index, ix, return_index)
 
-    # nested_univ (Panel) or pd.DataFrame(Series)
+    # nested_univ (Collection) or pd.DataFrame(Series)
     if isinstance(obj, pd.DataFrame) and not isinstance(obj.index, pd.MultiIndex):
         objcols = [x for x in obj.columns if obj.dtypes[x] == "object"]
         # pd.DataFrame
@@ -293,7 +273,7 @@ def get_cutoff(
             ]
             return agg(idxx)
 
-    # pd-multiindex (Panel) and pd_multiindex_hier (Hierarchical)
+    # pd-multiindex (Collection) and pd_multiindex_hier (Hierarchical)
     if isinstance(obj, pd.DataFrame) and isinstance(obj.index, pd.MultiIndex):
         idx = obj.index
         series_idx = [
@@ -302,34 +282,34 @@ def get_cutoff(
         cutoffs = [sub_idx(x, ix, return_index) for x in series_idx]
         return agg(cutoffs)
 
-    # df-list (Panel)
+    # df-list (Collection)
     if isinstance(obj, list):
         idxs = [sub_idx(x.index, ix, return_index) for x in obj]
         return agg(idxs)
 
 
-UPDATE_DATA_INTERNAL_MTYPES = [
+SUPPORTED_SERIES = [
     "pd.DataFrame",
-    "pd.Series",
     "np.ndarray",
+]
+SUPPORTED_COLLECTIONS = [
     "pd-multiindex",
     "numpy3D",
-    "pd_multiindex_hier",
 ]
 
 
 def update_data(X, X_new=None):
     """Update time series container with another one.
 
-    Coerces X, X_new to one of the assumed mtypes, if not already of that type.
+    Converts X, X_new to one of the valid internal types, if not one already.
 
     Parameters
     ----------
-    X : None, or aeon data container, in one of the following mtype formats
+    X : None, or aeon data container, in one of the following internal type formats
         pd.DataFrame, pd.Series, np.ndarray, pd-multiindex, numpy3D,
-        pd_multiindex_hier. If not of that format, coerced.
-    X_new : None, or aeon data container, should be same mtype as X,
-        or convert to same format when converting to format list via convert_to
+        pd_multiindex_hier. If not of that format, converted.
+    X_new : None, or aeon data container, should be same type as X,
+        or convert to same format when converting X
 
     Returns
     -------
@@ -338,20 +318,11 @@ def update_data(X, X_new=None):
         numpy based containers will always be interpreted as having new row index
         if one of X, X_new is None, returns the other; if both are None, returns None
     """
-    from aeon.datatypes._convert import convert_to
-    from aeon.datatypes._vectorize import VectorizedDF
-
-    # if X or X_new is vectorized, unwrap it first
-    if isinstance(X, VectorizedDF):
+    # Temporary measure to deal with legacy method of wrapping a Broadcaster
+    if hasattr(X, "X"):
         X = X.X
-    if isinstance(X_new, VectorizedDF):
+    if hasattr(X_new, "X"):
         X_new = X_new.X
-
-    # we want to ensure that X, X_new are either numpy (1D, 2D, 3D)
-    # or in one of the long pandas formats
-    X = convert_to(X, to_type=UPDATE_DATA_INTERNAL_MTYPES)
-    X_new = convert_to(X_new, to_type=UPDATE_DATA_INTERNAL_MTYPES)
-
     # we only need to modify X if X_new is not None
     if X_new is None:
         return X
@@ -359,6 +330,13 @@ def update_data(X, X_new=None):
     # if X is None, but X_new is not, return N_new
     if X is None:
         return X_new
+
+    # we want to ensure that X, X_new are either numpy (1D, 2D, 3D)
+    # or in one of the long pandas formats if they are collections
+    if is_collection(X):
+        X = convert_collection(X, output_type="numpy3D")
+    if is_collection(X_new):
+        X_new = convert_collection(X_new, output_type="numpy3D")
 
     # update X with the new rows in X_new
     #  if X is np.ndarray, we assume all rows are new
@@ -374,29 +352,35 @@ def update_data(X, X_new=None):
         return X_new.combine_first(X)
 
 
-GET_WINDOW_SUPPORTED_MTYPES = [
-    "pd.DataFrame",
-    "pd-multiindex",
-    "pd_multiindex_hier",
-    "np.ndarray",
-    "numpy3D",
-]
+def _convert(obj, abstract_type, input_type):
+    reconvert = False
+    if abstract_type == "Series":
+        obj = convert_series(obj, SUPPORTED_SERIES)
+        if input_type == "pd.Series":
+            reconvert = True
+    elif abstract_type == "Panel":
+        if input_type not in SUPPORTED_COLLECTIONS:
+            obj = convert_collection(obj, "pd-multiindex")
+            reconvert = True
+    return obj, reconvert
 
 
 def get_window(obj, window_length=None, lag=None):
     """Slice obj to the time index window with given length and lag.
 
-    Returns time series or time series panel with time indices
-        strictly greater than cutoff - lag - window_length, and
-        equal or less than cutoff - lag.
+    Returns time series or time series collection with time indices strictly greater
+    than cutoff - lag - window_length, and equal or less than cutoff - lag.
     Cutoff if of obj, as determined by get_cutoff.
+    This function does not work with pd.Series, hence the conversion to pd.DataFrame.
+    It also does not work with unequal length collections of series.
 
     Parameters
     ----------
     obj : aeon compatible time series data container or None
-        if not None, must be of Series, Panel, or Hierarchical scitype
-        all mtypes are supported via conversion to internally supported types
-        to avoid conversions, pass data in one of GET_WINDOW_SUPPORTED_MTYPES
+        if not None, must be of Series, Collection, or Hierarchical internal types.
+        all valid internal types are supported via conversion to internally supported
+        types to avoid conversions, pass data in one of SUPPORTED_SERIES or
+        SUPPORTED_COLLECTION
     window_length : int or timedelta, optional, default=-inf
         must be int if obj is int indexed, timedelta if datetime indexed
         length of the window to slice to. Default = window of infinite size
@@ -414,18 +398,14 @@ def get_window(obj, window_length=None, lag=None):
     """
     if obj is None or (window_length is None and lag is None):
         return obj
-    valid = is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)
+    valid, metadata = validate_input(obj)
     if not valid:
-        raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
-    # TODO: Still need to extract the "mtype" without check_is_scitype
-    _, _, metadata = check_is_scitype(
-        obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
-    )
-    obj_in_mtype = metadata["mtype"]
+        raise ValueError("obj must be of Series, Collection, or Hierarchical type")
+    input_type = metadata["mtype"]
+    abstract_type = metadata["scitype"]
+    obj, reconvert = _convert(obj, abstract_type, input_type)
 
-    obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)
-
-    # numpy3D (Panel) or np.npdarray (Series)
+    # numpy3D (Collection) or np.npdarray (Series)
     if isinstance(obj, np.ndarray):
         # if 2D or 3D, we need to subset by last, not first dimension
         # if 1D, we need to subset by first dimension
@@ -449,7 +429,8 @@ def get_window(obj, window_length=None, lag=None):
             obj_subset = obj_subset.swapaxes(1, -1)
         return obj_subset
 
-    # pd.DataFrame(Series), pd-multiindex (Panel) and pd_multiindex_hier (Hierarchical)
+    # pd.DataFrame(Series), pd-multiindex (Collection) and pd_multiindex_hier (
+    # Hierarchical)
     if isinstance(obj, pd.DataFrame):
         cutoff = get_cutoff(obj)
 
@@ -472,27 +453,30 @@ def get_window(obj, window_length=None, lag=None):
                 win_select = win_select & (time_indices > win_start_excl)
 
         obj_subset = obj.iloc[win_select]
+        if reconvert:
+            if abstract_type == "Series" and input_type == "pd.Series":
+                obj_subset = convert_series(obj_subset, input_type)
+            elif abstract_type == "Panel":
+                obj_subset = convert_collection(obj_subset, input_type)
 
-        return convert_to(obj_subset, obj_in_mtype)
+        return obj_subset
 
     raise ValueError(
-        "bug in get_window, unreachable condition, ifs should be exhaustive"
+        "passed get_window an object that is not of type np.ndarray or pd.DataFrame"
     )
 
 
 def get_slice(obj, start=None, end=None):
     """Slice obj with start (inclusive) and end (exclusive) indices.
 
-    Returns time series or time series panel with time indices
-        strictly greater and equal to start index and less than
-        end index.
+    Returns time series or time series collection with time indices strictly greater
+    and equal to start index and less than end index.
 
     Parameters
     ----------
     obj : aeon compatible time series data container or None
-        if not None, must be of Series, Panel, or Hierarchical scitype
-        all mtypes are supported via conversion to internally supported types
-        to avoid conversions, pass data in one of GET_WINDOW_SUPPORTED_MTYPES
+        if not None, must be of Series, Collection, or Hierarchical type
+        in one of SUPPORTED_SERIES or SUPPORTED_COLLECTION.
     start : int or timestamp, optional, default = None
         must be int if obj is int indexed, timestamp if datetime indexed
         Inclusive start of slice. Default = None.
@@ -510,18 +494,14 @@ def get_slice(obj, start=None, end=None):
     if (start is None and end is None) or obj is None:
         return obj
 
-    valid = is_hierarchical(obj) or is_collection(obj) or is_single_series(obj)
+    valid, metadata = validate_input(obj)
     if not valid:
-        raise ValueError("obj must be of Series, Panel, or Hierarchical scitype")
-    # TODO: Still need to extract the "mtype" without check_is_scitype
-    _, _, metadata = check_is_scitype(
-        obj, scitype=["Series", "Panel", "Hierarchical"], return_metadata=True
-    )
-    obj_in_mtype = metadata["mtype"]
+        raise ValueError("obj must be of Series, Collection or Hierarchical type")
+    input_type = metadata["mtype"]
+    abstract_type = metadata["scitype"]
+    obj, reconvert = _convert(obj, abstract_type, input_type)
 
-    obj = convert_to(obj, GET_WINDOW_SUPPORTED_MTYPES)
-
-    # numpy3D (Panel) or np.npdarray (Series)
+    # numpy3D (Collection) or np.npdarray (Series)
     # Assumes the index is integer so will be exclusive by default
     if isinstance(obj, np.ndarray):
         # if 2D or 3D, we need to subset by last, not first dimension
@@ -542,7 +522,8 @@ def get_slice(obj, start=None, end=None):
             obj_subset = obj_subset.swapaxes(1, -1)
         return obj_subset
 
-    # pd.DataFrame(Series), pd-multiindex (Panel) and pd_multiindex_hier (Hierarchical)
+    # pd.DataFrame(Series), pd-multiindex (Collection) and pd_multiindex_hier (
+    # Hierarchical)
     # Assumes the index is pd.Timestamp or pd.Period and ensures the end is
     # exclusive with slice_select
     if isinstance(obj, pd.DataFrame):
@@ -559,8 +540,9 @@ def get_slice(obj, start=None, end=None):
             slice_select = time_indices >= start
 
         obj_subset = obj.iloc[slice_select]
-        return convert_to(obj_subset, obj_in_mtype)
-
-    raise ValueError(
-        "bug in get_slice, unreachable condition, ifs should be exhaustive"
-    )
+        if reconvert:
+            if abstract_type == "Series" and input_type == "pd.Series":
+                obj_subset = convert_series(obj_subset, input_type)
+            elif abstract_type == "Panel":
+                obj_subset = convert_collection(obj_subset, input_type)
+        return obj_subset

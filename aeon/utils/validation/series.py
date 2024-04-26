@@ -1,6 +1,5 @@
 """Functions for checking input data."""
 
-__maintainer__ = []
 __all__ = [
     "check_series",
     "check_time_index",
@@ -9,6 +8,7 @@ __all__ = [
     "is_hierarchical",
     "is_single_series",
 ]
+__maintainer__ = ["TonyBagnall"]
 
 from typing import Union
 
@@ -44,6 +44,8 @@ def is_single_series(y):
         return True
     if isinstance(y, pd.DataFrame):
         if "object" in y.dtypes.values:
+            return False
+        if y.index.nlevels > 1:
             return False
         return True
     if isinstance(y, np.ndarray):
@@ -313,9 +315,9 @@ def check_time_index(
     ----------
     index : pd.Index or np.array
         Time index
-    allow_empty : bool, optional (default=False)
+    allow_empty : bool, default=False
         If False, empty `index` raises an error.
-    enforce_index_type : type, optional (default=None)
+    enforce_index_type : type, default=None
         type of time index
     var_name : str, default = "input" - variable name printed in error messages
 
@@ -512,7 +514,7 @@ def is_pdmultiindex_hierarchical(y):
         True if y is pd multindex hierarchical.
 
     """
-    if not isinstance(y, pd.DataFrame) and not isinstance(y.index, pd.MultiIndex):
+    if not isinstance(y, pd.DataFrame) or not isinstance(y.index, pd.MultiIndex):
         return False
     if not y.columns.is_unique:
         return False

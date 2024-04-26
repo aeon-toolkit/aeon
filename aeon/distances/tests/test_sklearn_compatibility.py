@@ -1,3 +1,5 @@
+"""Tests for compatibility with sklearn."""
+
 import pytest
 from numpy.testing import assert_almost_equal
 from sklearn.cluster import DBSCAN

@@ -15,7 +15,7 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- ensure interface compatibility by aeon.testing.estimator_checks.check_estimator
 - once complete: use as a local library, or contribute to aeon via PR
 - more details:
     https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
@@ -56,9 +56,9 @@ class MyTransformer(BaseTransformer):
     ----------
     parama : int
         descriptive explanation of parama
-    paramb : string, optional (default='default')
+    paramb : string, default='default'
         descriptive explanation of paramb
-    paramc : boolean, optional (default= whether paramb is not the default)
+    paramc : boolean, default= whether paramb is not the default
         descriptive explanation of paramc
     and so on
     est : aeon.estimator, BaseEstimator descendant
@@ -365,7 +365,7 @@ class MyTransformer(BaseTransformer):
         X : Series or Panel of mtype X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of mtype y_inner_type, optional (default=None)
+        y : Series or Panel of mtype y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns

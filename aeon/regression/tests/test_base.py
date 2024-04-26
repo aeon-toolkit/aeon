@@ -6,8 +6,8 @@ import pytest
 from sklearn.metrics import r2_score
 
 from aeon.datasets import load_covid_3month
-from aeon.regression._dummy import DummyRegressor
 from aeon.regression.base import BaseRegressor
+from aeon.regression.dummy import DummyRegressor
 from aeon.testing.utils.data_gen._collection import (
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,

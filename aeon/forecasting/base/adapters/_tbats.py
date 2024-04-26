@@ -84,9 +84,9 @@ class _TbatsAdapter(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables (ignored)
 
         Returns
@@ -110,9 +110,9 @@ class _TbatsAdapter(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables (ignored)
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -253,7 +253,7 @@ class _TbatsAdapter(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon, default = y.index (in-sample forecast)
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Ignored, passed for interface compatibility
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

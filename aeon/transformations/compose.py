@@ -140,7 +140,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
     _tags = {
         # we let all X inputs through to be handled by first transformer
         "X_inner_type": ALL_TIME_SERIES_TYPES,
-        "univariate-only": False,
+        "capability:multivariate": True,
     }
 
     # no further default tag values - these are set dynamically below
@@ -329,7 +329,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of type y_inner_type, optional (default=None)
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -422,7 +422,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     transformer_list : list of (string, transformer) tuples
         List of transformer objects to be applied to the data. The first
         half of each tuple is the name of the transformer.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         Number of jobs to run in parallel.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend`
         context.
@@ -430,7 +430,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     transformer_weights : dict, optional
         Multiplicative weights for features per transformer.
         Keys are transformer names, values the weights.
-    flatten_transform_index : bool, optional (default=True)
+    flatten_transform_index : bool, default=True
         if True, columns of return DataFrame are flat, by "transformer__variablename"
         if False, columns are MultiIndex (transformer, variablename)
         has no effect if return type is one without column names
@@ -441,7 +441,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         "output_data_type": "Series",
         "transform_labels": "None",
         "instancewise": False,  # depends on components
-        "univariate-only": False,  # depends on components
+        "capability:multivariate": True,  # depends on components
         "capability:missing_values": False,  # depends on components
         "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_type": "None",
@@ -497,7 +497,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
         self._anytagis_then_set("skip-inverse-transform", True, False, ests)
         # self._anytagis_then_set("capability:inverse_transform", False, True, ests)
         self._anytagis_then_set("capability:missing_values", False, True, ests)
-        self._anytagis_then_set("univariate-only", True, False, ests)
+        self._anytagis_then_set("capability:multivariate", False, True, ests)
 
     @property
     def _transformer_list(self):
@@ -729,7 +729,7 @@ class FitInTransform(BaseTransformer):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of type y_inner_type, optional (default=None)
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -857,7 +857,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
     # tags will largely be copied from selected_transformer
     _tags = {
         "fit_is_empty": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "X_inner_type": [
             "dask_panel",
             "pd-multiindex",
@@ -1067,7 +1067,7 @@ class InvertTransform(_DelegatedTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": ["pd.DataFrame", "pd.Series"],
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
         "capability:inverse_transform": True,
     }
@@ -1192,7 +1192,7 @@ class Id(BaseTransformer):
 
     _tags = {
         "capability:inverse_transform": True,  # can the transformer inverse transform?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "X_inner_type": ALL_TIME_SERIES_TYPES,
         "y_inner_type": "None",
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
@@ -1321,7 +1321,7 @@ class OptionalPassthrough(_DelegatedTransformer):
         "instancewise": True,
         "X_inner_type": ALL_TIME_SERIES_TYPES,
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
         "capability:inverse_transform": True,
     }
@@ -1426,7 +1426,7 @@ class ColumnwiseTransformer(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
     }
 
@@ -1685,7 +1685,7 @@ class YtoX(BaseTransformer):
     _tags = {
         "transform-returns-same-time-index": True,
         "skip-inverse-transform": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "y_input_type": "both",
@@ -1729,7 +1729,7 @@ class YtoX(BaseTransformer):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of type y_inner_type, optional (default=None)
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns

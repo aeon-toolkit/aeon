@@ -12,16 +12,6 @@ forecasting, classification and clustering.</p>
 - Interfaces with other time series packages to provide a single framework for algorithm
 comparison.
 
-```{admonition} GSoC 2024
-`aeon` is participating in Google Summer of Code 2024 under the NumFOCUS umbrella. If
-you are interested in participating, please see our [GSoC 2024 project page](https://github.com/aeon-toolkit/aeon-admin/blob/main/gsoc/gsoc-2024-projects.md).
-
-Feel free to ask questions on the dedicated [GitHub discussion](https://github.com/aeon-toolkit/aeon/discussions/1121)
-or our [Slack channel](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA).
-If you are interested in contributing, click on the "Contributing to aeon" link in the
-sidebar for a contribution guide.
-```
-
 ::::{grid} 1 2 2 2
 :gutter: 3
 
@@ -280,6 +270,7 @@ code_of_conduct.md
 :hidden:
 
 glossary.md
+estimator_overview.md
 changelog.md
 papers_using_aeon.md
 ```
