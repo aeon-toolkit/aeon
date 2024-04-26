@@ -28,7 +28,6 @@ from typing import final
 
 import numpy as np
 import pandas as pd
-
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
