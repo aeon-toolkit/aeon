@@ -393,6 +393,8 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
                 return scorer._score_func(y, self.predict_proba(X), **_metric_params)
             return scorer._score_func(y, self.predict(X), **_metric_params)
         elif callable(metric):
+            if use_proba:
+                return metric(y, self.predict_proba(X), **_metric_params)
             return metric(y, self.predict(X), **_metric_params)
         else:
             raise ValueError("Enter a valid metric format.")
