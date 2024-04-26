@@ -282,10 +282,12 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         y : np.ndarray
             1D np.array of float, of shape ``(n_cases)`` - regression targets
             (ground truth) for fitting indices corresponding to instance indices in X.
-        metric : str, default="accuracy",
-            Defines the scoring metric to test the fit of the model. Supported arguments
-            are "mse", "mape", "r2" and "max" which compute mean squared error, mean
-            absolute percentage error, r2 score and max error respectively.
+        metric : Union[str, callable], default="accuracy",
+            Defines the scoring metric to test the fit of the model. For supported
+            strings arguments, check `sklearn.metrics.get_scorer_names`.
+        metric_params : dict, default=None,
+            Contains parameters to be passed to the scoring function. If None, no
+            parameters are passed. 
 
         Returns
         -------
