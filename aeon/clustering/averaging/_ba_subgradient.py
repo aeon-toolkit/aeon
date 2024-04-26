@@ -123,6 +123,7 @@ def subgradient_barycenter_average(
             _X,
             shuffled_indices,
             distance,
+            weights,
             initial_step_size,
             final_step_size,
             current_step_size,
