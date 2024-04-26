@@ -34,7 +34,8 @@ class GroupNormalization(tf.keras.layers.Layer):
     to number of channels), then this operation becomes
     identical to Instance Normalization.
 
-    Args:
+    Parameters
+    ----------
         groups: Integer, the number of groups for Group Normalization.
             Can be in the range [1, N] where N is the input dimension.
             The input dimension must be divisible by the number of groups.
@@ -51,14 +52,6 @@ class GroupNormalization(tf.keras.layers.Layer):
         gamma_regularizer: Optional regularizer for the gamma weight.
         beta_constraint: Optional constraint for the beta weight.
         gamma_constraint: Optional constraint for the gamma weight.
-
-    Input shape:
-        Arbitrary. Use the keyword argument `input_shape`
-        (tuple of integers, does not include the samples axis)
-        when using this layer as the first layer in a model.
-
-    Output shape:
-        Same shape as input.
 
     Notes
     -----
@@ -298,7 +291,8 @@ class InstanceNormalization(GroupNormalization):
     wide range of small batch sizes, if learning rate is adjusted linearly
     with batch sizes.
 
-    Arguments
+    Parameters
+    ----------
         axis: Integer, the axis that should be normalized.
         epsilon: Small float added to variance to avoid dividing by zero.
         center: If True, add offset of `beta` to normalized tensor.
@@ -311,14 +305,6 @@ class InstanceNormalization(GroupNormalization):
         gamma_regularizer: Optional regularizer for the gamma weight.
         beta_constraint: Optional constraint for the beta weight.
         gamma_constraint: Optional constraint for the gamma weight.
-
-    Input shape
-        Arbitrary. Use the keyword argument `input_shape`
-        (tuple of integers, does not include the samples axis)
-        when using this layer as the first layer in a model.
-
-    Output shape
-        Same shape as input.
 
     References
     ----------
