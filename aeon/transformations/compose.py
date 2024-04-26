@@ -329,7 +329,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of type y_inner_type, optional (default=None)
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -422,7 +422,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     transformer_list : list of (string, transformer) tuples
         List of transformer objects to be applied to the data. The first
         half of each tuple is the name of the transformer.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         Number of jobs to run in parallel.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend`
         context.
@@ -430,7 +430,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     transformer_weights : dict, optional
         Multiplicative weights for features per transformer.
         Keys are transformer names, values the weights.
-    flatten_transform_index : bool, optional (default=True)
+    flatten_transform_index : bool, default=True
         if True, columns of return DataFrame are flat, by "transformer__variablename"
         if False, columns are MultiIndex (transformer, variablename)
         has no effect if return type is one without column names
@@ -729,7 +729,7 @@ class FitInTransform(BaseTransformer):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of type y_inner_type, optional (default=None)
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -1729,7 +1729,7 @@ class YtoX(BaseTransformer):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of type y_inner_type, optional (default=None)
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
