@@ -6,6 +6,8 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
+from aeon.distances._utils import reshape_pairwise_to_multiple
+
 
 def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     r"""Matrix Profile Distance.
@@ -318,17 +320,15 @@ def mpdist_pairwise_distance(
            [2.82842712],
            [2.82842712]])
     """
-    if X.ndim == 3 and X.shape[1] == 1:
-        X = np.squeeze(X)
-
     if m == 0:
         m = int(X.shape[1] / 4)
 
     if y is None:
+        if X.ndim == 3 and X.shape[1] == 1:
+            X = np.squeeze(X)
         return _mpdist_pairwise_distance_single(X, m)
 
-    if y.ndim == 3 and y.shape[1] == 1:
-        y = np.squeeze(y)
+    X, y = reshape_pairwise_to_multiple(X, y)
 
     return _mpdist_pairwise_distance(X, y, m)
 
@@ -349,11 +349,7 @@ def _mpdist_pairwise_distance(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], m: int
 ) -> np.ndarray:
     n_cases = len(x)
-
-    if y.ndim == 1:
-        m_cases = 1
-    else:
-        m_cases = len(y)
+    m_cases = len(y)
 
     distances = np.zeros((n_cases, m_cases))
 
