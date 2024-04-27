@@ -303,15 +303,19 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             __names = get_scorer_names()
             if metric not in __names:
                 raise ValueError(
-                    """metric name incompatible with `sklearn.get_scorer`. Use
-                                 a valid metric name instead."""
+                    f"Metric {metric} is incompatible with `sklearn.metrics.get_scorer`"
+                    "function. Valid list of metrics can be obtained using "
+                    "the `sklearn.metrics.get_scorer_names` function."
                 )
             scorer = get_scorer(metric)
             return scorer._score_func(y, self.predict(X), **_metric_params)
         elif callable(metric):
             return metric(y, self.predict(X), **_metric_params)
         else:
-            raise ValueError("Enter a valid metric format.")
+            raise ValueError(
+                "The metric parameter should be either a string or a callable"
+                f", but got {metric} of type {type(metric)}"
+            )
 
     @abstractmethod
     def _fit(self, X, y):
