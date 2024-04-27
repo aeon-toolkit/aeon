@@ -17,7 +17,6 @@ import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
 
-from aeon.datatypes import mtype_to_scitype
 from aeon.testing.utils.data_gen import get_examples, make_series
 from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
@@ -31,6 +30,7 @@ from aeon.transformations.base import BaseTransformer
 from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import FitInTransform
 from aeon.utils.validation import (
+    abstract_types,
     is_collection,
     is_hierarchical,
     is_single_series,
@@ -39,15 +39,12 @@ from aeon.utils.validation import (
 
 
 def inner_X_types(est):
-    """Return list of types supported by class est, as list of str."""
+    """Return list of abstract types supported by class est, as list of str."""
     if isclass(est):
         X_inner_type = est.get_class_tag("X_inner_type")
     else:
         X_inner_type = est.get_tag("X_inner_type")
-    X_inner_types = mtype_to_scitype(
-        X_inner_type, return_unique=True, coerce_to_list=True
-    )
-    return X_inner_types
+    return abstract_types(X_inner_type)
 
 
 class _DummyOne(BaseTransformer):

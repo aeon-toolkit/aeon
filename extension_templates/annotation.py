@@ -41,11 +41,11 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
 
     Parameters
     ----------
-    fmt : str {"dense", "sparse"}, optional (default="dense")
+    fmt : str {"dense", "sparse"}, default="dense"
         annotation output format:
         * If "sparse", a sub-series of labels for only the outliers in X is returned,
         * If "dense", a series of labels for all values in X is returned.
-    labels : str {"indicator", "score"}, optional (default="indicator")
+    labels : str {"indicator", "score"}, default="indicator"
         annotation output labels:
         * If "indicator", returned values are boolean, indicating whether a value is an
         outlier,
@@ -53,9 +53,9 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
 
     parama : int
         descriptive explanation of parama
-    paramb : string, optional (default='default')
+    paramb : string, default='default'
         descriptive explanation of paramb
-    paramc : boolean, optional (default= whether paramb is not the default)
+    paramc : boolean, default= whether paramb is not the default
         descriptive explanation of paramc
     and so on
 

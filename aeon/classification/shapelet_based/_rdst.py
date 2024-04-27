@@ -4,7 +4,7 @@ A Random Dilated Shapelet Transform classifier pipeline that simply performs a r
 shapelet dilated transform and build (by default) a ridge classifier on the output.
 """
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 __all__ = ["RDSTClassifier"]
 
 import numpy as np

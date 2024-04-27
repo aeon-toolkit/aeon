@@ -506,3 +506,21 @@ def test_get_meta_data():
     assert df.shape == (2, 3)
     with pytest.raises(ValueError):
         df = get_dataset_meta_data(url="FOOBAR")
+
+
+def test__load_saved_dataset():
+    """Test parameter settings for loading a saved dataset."""
+    name = "UnitTest"
+    local_dirname = "data"
+    X, y = _load_saved_dataset(name)
+    X2, y = _load_saved_dataset(name, local_dirname=local_dirname)
+    X3, y = _load_saved_dataset(name, dir_name="UnitTest", local_dirname=local_dirname)
+    X4, y = _load_saved_dataset(
+        name, dir_name="UnitTest", split="Train", local_dirname=local_dirname
+    )
+    X5, y = _load_saved_dataset(name, dir_name="UnitTest", split="Train")
+
+    assert np.array_equal(X, X2)
+    assert np.array_equal(X, X3)
+    assert np.array_equal(X4, X5)
+    assert not np.array_equal(X, X4)

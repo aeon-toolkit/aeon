@@ -21,7 +21,7 @@ class WindowSummarizer(BaseTransformer):
 
     Parameters
     ----------
-    n_jobs : int, optional (default=-1)
+    n_jobs : int, default=-1
         The number of jobs to run in parallel for applying the window functions.
         ``-1`` means using all processors.
     target_cols : list of str, optional (default = None)
@@ -606,7 +606,7 @@ class SummaryTransformer(BaseTransformer):
     quantiles : str, list, tuple or None, default=(0.1, 0.25, 0.5, 0.75, 0.9)
         Optional list of series quantiles to calculate. If None, no quantiles
         are calculated, and summary_function must be non-None.
-    flatten_transform_index : bool, optional (default=True)
+    flatten_transform_index : bool, default=True
         if True, columns of return DataFrame are flat, by "variablename__feature"
         if False, columns are MultiIndex (variablename__feature)
         has no effect if return type is one without column names
@@ -830,7 +830,7 @@ class FittedParamExtractor(BaseTransformer):
         An aeon estimator to extract features from.
     param_names : str
         Name of parameters to extract from the forecaster.
-    n_jobs : int, optional (default=None)
+    n_jobs : int, default=None
         Number of jobs to run in parallel.
         None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.

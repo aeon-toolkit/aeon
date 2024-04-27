@@ -14,7 +14,7 @@ from aeon.distances._alignment_paths import (
 )
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import _univariate_squared_distance
-from aeon.distances._utils import _convert_to_list
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -67,7 +67,6 @@ def msm_distance(
     approach adopts the adaptation
     described in [2]_ for computing the pointwise MSM distance over channels.
     MSM satisfies triangular inequality and is a metric.
-
 
     Parameters
     ----------
@@ -421,15 +420,18 @@ def msm_pairwise_distance(
            [10.,  0., 14.],
            [17., 14.,  0.]])
     """
-    _X = _convert_to_list(X, "X")
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
 
     if y is None:
         # To self
-        return _msm_pairwise_distance(_X, window, independent, c, itakura_max_slope)
+        return _msm_pairwise_distance(
+            _X, window, independent, c, itakura_max_slope, unequal_length
+        )
 
-    _y = _convert_to_list(y, "y")
+    _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
     return _msm_from_multiple_to_multiple_distance(
-        _X, _y, window, independent, c, itakura_max_slope
+        _X, _y, window, independent, c, itakura_max_slope, unequal_length
     )
 
 
@@ -440,21 +442,22 @@ def _msm_pairwise_distance(
     independent: bool,
     c: float,
     itakura_max_slope: Optional[float],
+    unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    if window == 1:
-        max_shape = max([x.shape[-1] for x in X])
-        bounding_matrix: np.ndarray = create_bounding_matrix(
-            max_shape, max_shape, window, itakura_max_slope
+    if not unequal_length:
+        n_timepoints = X[0].shape[1]
+        bounding_matrix = create_bounding_matrix(
+            n_timepoints, n_timepoints, window, itakura_max_slope
         )
     for i in range(n_cases):
         for j in range(i + 1, n_cases):
             x1, x2 = X[i], X[j]
-            if window != 1:
+            if unequal_length:
                 bounding_matrix = create_bounding_matrix(
-                    x1.shape[-1], x2.shape[-1], window, itakura_max_slope
+                    x1.shape[1], x2.shape[1], window, itakura_max_slope
                 )
             distances[i, j] = _msm_distance(x1, x2, bounding_matrix, independent, c)
             distances[j, i] = distances[i, j]
@@ -470,28 +473,28 @@ def _msm_from_multiple_to_multiple_distance(
     independent: bool,
     c: float,
     itakura_max_slope: Optional[float],
+    unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    if window == 1:
-        max_shape = max([_x.shape[-1] for _x in x])
-        bounding_matrix: np.ndarray = create_bounding_matrix(
-            max_shape, max_shape, window, itakura_max_slope
+    if not unequal_length:
+        bounding_matrix = create_bounding_matrix(
+            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
         )
     for i in range(n_cases):
         for j in range(m_cases):
             x1, y1 = x[i], y[j]
-            if window != 1:
+            if unequal_length:
                 bounding_matrix = create_bounding_matrix(
-                    x1.shape[-1], y1.shape[-1], window, itakura_max_slope
+                    x1.shape[1], y1.shape[1], window, itakura_max_slope
                 )
             distances[i, j] = _msm_distance(x1, y1, bounding_matrix, independent, c)
     return distances
 
 
-@njit(cache=True)
+@njit(cache=True, fastmath=True)
 def msm_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
