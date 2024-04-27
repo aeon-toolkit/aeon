@@ -4,7 +4,7 @@ A transformer that selects a subset of channels/dimensions for time series
 classification using a scoring system with an elbow point method.
 """
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
@@ -13,7 +13,6 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 from scipy.stats import median_abs_deviation
 from sklearn.preprocessing import LabelEncoder
 
@@ -42,7 +41,7 @@ def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
     return best_dims
 
 
-def create_distance_matrix(
+def _create_distance_matrix(
     prototype: Union[pd.DataFrame, np.ndarray],
     class_vals: np.array,
     distance: str = "euclidean",
@@ -52,7 +51,8 @@ def create_distance_matrix(
     Parameters
     ----------
     prototype : pd.DataFrame or np.ndarray
-        A multivatiate time series representation for entire dataset.
+        A multivariate time series representation for a prototype of each class
+        value, shape (n_classes,n_channels,n_timepoints).
     class_vals : np.array
         Class values.
     distance : str, default="euclidean"
@@ -100,7 +100,7 @@ def create_distance_matrix(
     return distance_frame
 
 
-class ClassPrototype:
+class _ClassPrototype:
     """
     Representation for each class from the dataset.
 
@@ -127,7 +127,6 @@ class ClassPrototype:
     Time Series Classification." AALTD, ECML-PKDD, Springer, 2021
     ..[2]: Bhaskar Dhariyal et al. "Scalable Classifier-Agnostic Channel Selection
     for Multivariate Time Series Classification", DAMI, ECML, Springer, 2023
-
     """
 
     def __init__(
@@ -159,7 +158,7 @@ class ClassPrototype:
 
         return np.mean(class_X, axis=0)
 
-    def create_mad_prototype(self, X: np.ndarray, y: np.array) -> np.array:
+    def _create_mad_prototype(self, X: np.ndarray, y: np.array) -> np.array:
         """Create mad class prototype for each class."""
         classes_ = np.unique(y)
 
@@ -175,32 +174,19 @@ class ClassPrototype:
 
         return np.vstack(channel_median)
 
-    def create_mean_prototype(self, X: np.ndarray, y: np.array):
+    def _create_mean_prototype(self, X: np.ndarray, y: np.array):
         """Create mean class prototype for each class."""
         classes_ = np.unique(y)
         channel_mean = [np.mean(X[y == class_], axis=0) for class_ in classes_]
         return np.vstack(channel_mean)
 
-    def create_median_prototype(self, X: np.ndarray, y: np.array):
+    def _create_median_prototype(self, X: np.ndarray, y: np.array):
         """Create mean class prototype for each class."""
         classes_ = np.unique(y)
         channel_median = [np.median(X[y == class_], axis=0) for class_ in classes_]
         return np.vstack(channel_median)
 
-    def create_median_prototype1(self, X: pd.DataFrame, y: pd.Series):
-        """Create median class prototype for each class."""
-        classes_ = np.unique(y)
-
-        channel_median = []
-        for class_ in classes_:
-            class_idx = np.where(
-                y == class_
-            )  # find the indexes of data point where particular class is located
-            class_median = np.median(X[class_idx], axis=0)
-            channel_median.append(class_median)
-        return np.vstack(channel_median)
-
-    def create_prototype(
+    def _create_prototype(
         self, X: np.ndarray, y: np.array
     ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.ndarray, np.array]]:
         """Create the class prototype for each class."""
@@ -208,9 +194,9 @@ class ClassPrototype:
         y_ind = le.fit_transform(y)
 
         prototype_funcs = {
-            "mean": self.create_mean_prototype,
-            "median": self.create_median_prototype,
-            "mad": self.create_mad_prototype,
+            "mean": self._create_mean_prototype,
+            "median": self._create_median_prototype,
+            "mad": self._create_mad_prototype,
         }
         prototypes = []
         for channel in range(X.shape[1]):  # iterating over channels
@@ -226,13 +212,6 @@ class ClassPrototype:
         return (prototypes, le.classes_)
 
 
-# TODO: remove in v0.9.0
-@deprecated(
-    version="0.8.0",
-    reason="ElbowClassSum will be moved to the new channel_selection package in "
-    "transformations.collection in v0.9.0.",
-    category=FutureWarning,
-)
 class ElbowClassSum(BaseCollectionTransformer):
     """Elbow Class Sum (ECS) transformer to select a subset of channels/variables.
 
@@ -297,8 +276,6 @@ class ElbowClassSum(BaseCollectionTransformer):
 
     _tags = {
         "capability:multivariate": True,
-        "skip-inverse-transform": True,
-        "y_inner_type": "numpy1D",
         "requires_y": True,
     }
 
@@ -320,22 +297,22 @@ class ElbowClassSum(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X: pandas DataFrame or np.ndarray
-            The training input samples.
-        y: array-like or list
+        X: np.ndarray
+            The training input samples shape (n_cases, n_channels, n_timepoints).
+        y: np.ndarray
             The class values for X.
 
         Returns
         -------
         self : reference to self.
         """
-        cp = ClassPrototype(
+        cp = _ClassPrototype(
             prototype_type=self.prototype_type,
             mean_centering=self.mean_center,
         )
-        self.prototype, labels = cp.create_prototype(X.copy(), y)
+        self.prototype, labels = cp._create_prototype(X.copy(), y)
 
-        self.distance_frame = create_distance_matrix(
+        self.distance_frame = _create_distance_matrix(
             self.prototype.copy(), labels, distance=self.distance
         )
         self.channels_selected_idx = []
@@ -354,26 +331,17 @@ class ElbowClassSum(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : pandas DataFrame or np.ndarray
+        X : np.ndarray
             The input data to transform.
 
         Returns
         -------
-        output : pandas DataFrame
+        np.ndarray
             X with a subset of channels
         """
-        if not self._is_fitted:
-            raise RuntimeError("fit() must be called before transform()")
         return X[:, self.channels_selected_idx]
 
 
-# TODO: remove in v0.9.0
-@deprecated(
-    version="0.8.0",
-    reason="ElbowClassPairwise will be moved to the new channel_selection package in "
-    "transformations.collection in v0.9.0.",
-    category=FutureWarning,
-)
 class ElbowClassPairwise(BaseCollectionTransformer):
     """Elbow Class Pairwise (ECP) transformer to select a subset of channels.
 
@@ -387,15 +355,13 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
     Parameters
     ----------
-    distance : str
+    distance : str, default  = "euclidean"
         Distance metric to use for creating the class prototype.
-        Default: 'euclidean'
-    prototype_type : str
+    prototype_type : str, default = "mad"
         Type of class prototype to use for representing a class.
-        Default: 'mean', Options: ['mean', 'median', 'mad']
-    mean_center : bool
+        Options: ['mean', 'median', 'mad'].
+    mean_center : bool, default = False
         If True, mean centering is applied to the class prototype.
-        Default: False, Options: [True, False]
 
 
     Attributes
@@ -432,7 +398,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
     >>> y = np.array([1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2])
     >>> cs = ElbowClassPairwise()
     >>> cs.fit(X, y)
-    ElbowClassPairwise(...)
+    ElbowClassPairwise()
     >>> Xt = cs.transform(X)
     """
 
@@ -469,13 +435,13 @@ class ElbowClassPairwise(BaseCollectionTransformer):
         -------
         self : reference to self.
         """
-        cp = ClassPrototype(
+        cp = _ClassPrototype(
             prototype_type=self.prototype_type, mean_centering=self.mean_center
         )
-        self.prototype, labels = cp.create_prototype(
+        self.prototype, labels = cp._create_prototype(
             X.copy(), y
         )  # Centroid created here
-        self.distance_frame = create_distance_matrix(
+        self.distance_frame = _create_distance_matrix(
             self.prototype.copy(), labels, self.distance
         )  # Distance matrix created here
 
@@ -497,16 +463,14 @@ class ElbowClassPairwise(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : pandas DataFrame or np.ndarray
+        X : np.ndarray
             The input data to transform.
 
         Returns
         -------
-        output : pandas DataFrame
+        np.ndarray
             X with a subset of channels
         """
-        if not self._is_fitted:
-            raise RuntimeError("fit() must be called before transform()")
         return X[:, self.channels_selected_idx]
 
     def _rank(self) -> List[int]:

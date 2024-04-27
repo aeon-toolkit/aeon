@@ -112,6 +112,9 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
         -------
         self
         """
+        if self.random_state is not None:
+            np.random.seed(self.random_state)
+
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8

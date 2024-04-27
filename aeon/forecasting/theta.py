@@ -86,9 +86,9 @@ class ThetaForecaster(ExponentialSmoothing):
     initial_level : float, optional
         The alpha value of the simple exponential smoothing, if the value is
         set then this will be used, otherwise it will be estimated from the data.
-    deseasonalize : bool, optional (default=True)
+    deseasonalize : bool, default=True
         If True, data is seasonally adjusted.
-    sp : int, optional (default=1)
+    sp : int, default=1
         The number of observations that constitute a seasonal period for a
         multiplicative deseasonaliser, which is used if seasonality is detected in the
         training data. Ignored if a deseasonaliser transformer is provided.
@@ -152,9 +152,9 @@ class ThetaForecaster(ExponentialSmoothing):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -192,7 +192,7 @@ class ThetaForecaster(ExponentialSmoothing):
             The forecasters horizon with the steps ahead to to predict.
             Default is
             one-step ahead forecast, i.e. np.array([1]).
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -242,9 +242,9 @@ class ThetaForecaster(ExponentialSmoothing):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        alpha : list of float, optional (default=[0.5])
+        alpha : list of float, default=[0.5]
             A list of probabilities at which quantile forecasts are computed.
 
         Returns
