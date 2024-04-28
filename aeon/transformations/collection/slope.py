@@ -1,7 +1,7 @@
 """Slope transformer."""
 
 __all__ = ["SlopeTransformer"]
-__author__ = ["mloning"]
+__maintainer__ = []
 
 import math
 
@@ -15,8 +15,8 @@ class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
     """Piecewise slope transformation.
 
     Class to perform a slope transformation on a collection of time series.
-    Numpy array of shape (n_instances, n_channels, series_length) is
-    transformed to numpy array of shape (n_instances, n_channels, n_intervals).
+    Numpy array of shape (n_cases, n_channels, n_timepoints) is
+    transformed to numpy array of shape (n_cases, n_channels, n_intervals).
     The new feature is the slope over that interval found using a
     total least squares regression (note that total least squares is different
     from ordinary least squares regression.)
@@ -42,7 +42,7 @@ class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
 
     def __init__(self, n_intervals=8):
         self.n_intervals = n_intervals
-        super(SlopeTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -51,18 +51,18 @@ class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
         collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
         collection of time series to transform
         """
         # Get information about the dataframe
-        n_cases, n_channels, series_length = X.shape
-        self._check_parameters(series_length)
+        n_cases, n_channels, n_timepoints = X.shape
+        self._check_parameters(n_timepoints)
         full_data = []
         for i in range(n_cases):
             case_data = []

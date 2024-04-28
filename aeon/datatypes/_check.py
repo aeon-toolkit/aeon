@@ -14,7 +14,7 @@ mtype(obj, as_scitype: str = None)
     infer the mtype of obj, considering it as as_scitype
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = [
     "check_is_mtype",
@@ -44,7 +44,7 @@ check_dict.update(check_dict_Proba)
 
 def _check_scitype_valid(scitype: str = None):
     """Check validity of scitype."""
-    valid_scitypes = list(set([x[1] for x in check_dict.keys()]))
+    valid_scitypes = list({x[1] for x in check_dict.keys()})
 
     if not isinstance(scitype, str):
         raise TypeError(f"scitype should be a str but found {type(scitype)}")
@@ -135,12 +135,12 @@ def check_is_mtype(
             "is_empty": bool, True iff one or more of the series in the panel are empty
             "is_one_series": bool, True iff there is only one series in the panel
             "has_nans": bool, True iff the panel contains NaN values
-            "n_instances": int, number of instances in the panel
+            "n_cases": int, number of instances in the panel
         For scitype "Table":
             "is_univariate": bool, True iff table has one variable
             "is_empty": bool, True iff table has no variables or no instances
             "has_nans": bool, True iff the panel contains NaN values
-            "n_instances": int, number of instances/rows in the table
+            "n_cases": int, number of instances/rows in the table
 
     Raises
     ------
@@ -378,7 +378,7 @@ def check_is_scitype(
             "is_empty": bool, True iff one or more of the series in the panel are empty
             "is_one_series": bool, True iff there is only one series in the panel
             "has_nans": bool, True iff the panel contains NaN values
-            "n_instances": int, number of instances in the panel
+            "n_cases": int, number of instances in the panel
         For scitype "Table":
             "is_univariate": bool, True iff table has one variable
             "is_empty": bool, True iff table has no variables or no instances

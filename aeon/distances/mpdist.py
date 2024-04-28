@@ -1,4 +1,5 @@
 """Matrix Profile Distances."""
+
 import numpy as np
 
 
@@ -159,7 +160,7 @@ def _stomp_ab(ts1, ts2, m):
     return mp, ip
 
 
-def mpdist(ts1, ts2, m=0):
+def mpdist(ts1: np.ndarray, ts2: np.ndarray, m: int = 0):
     """
     Matrix profile distance.
 
@@ -189,10 +190,9 @@ def mpdist(ts1, ts2, m=0):
 
     if m == 0:
         if len1 > len2:
-            m = len1 / 4
+            m = int(len1 / 4)
         else:
-            m = len2 / 4
-    m = int(m)
+            m = int(len2 / 4)
     threshold = 0.05
     mp_ab, ip_ab = _stomp_ab(ts1, ts2, m)  # compute the AB matrix profile
     mp_ba, ip_ba = _stomp_ab(ts2, ts1, m)  # compute the BA matrix profile

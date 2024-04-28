@@ -1,9 +1,12 @@
-__author__ = ["chrisholder", "tonybagnall"]
+__maintainer__ = []
+
+from typing import List, Optional, Union
 
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
 
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -69,24 +72,26 @@ def _univariate_squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     return distance
 
 
-@njit(cache=True, fastmath=True)
-def squared_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray:
+def squared_pairwise_distance(
+    X: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+) -> np.ndarray:
     """Compute the squared pairwise distance between a set of time series.
 
     Parameters
     ----------
-    x : np.ndarray
-        First time series, either univariate, shape ``(n_timepoints,)``, or
-        multivariate, shape ``(n_channels, n_timepoints)``.
-    y : np.ndarray
-        Second time series, either univariate, shape ``(n_timepoints,)``, or
-        multivariate, shape ``(n_channels, n_timepoints)``.
+    X : np.ndarray or List of np.ndarray
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
+    y : np.ndarray or List of np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the squared pairwise distance between the instances of X is
         calculated.
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         squared pairwise matrix between the instances of X.
 
     Raises
@@ -113,32 +118,37 @@ def squared_pairwise_distance(X: np.ndarray, y: np.ndarray = None) -> np.ndarray
            [ 48., 147., 300.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> squared_pairwise_distance(X, y_univariate)
     array([[300.],
            [147.],
            [ 48.]])
 
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> squared_pairwise_distance(X)
+    array([[  0.,  27., 147.],
+           [ 27.,   0.,  64.],
+           [147.,  64.,   0.]])
     """
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, _ = _convert_to_list(X, "X", multivariate_conversion)
+
     if y is None:
         # To self
-        if X.ndim == 3:
-            return _squared_pairwise_distance(X)
-        elif X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _squared_pairwise_distance(_X)
-        raise ValueError("X must be 2D or 3D array")
-    _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _squared_from_multiple_to_multiple_distance(_x, _y)
+        return _squared_pairwise_distance(_X)
+
+    _y, _ = _convert_to_list(y, "y", multivariate_conversion)
+    return _squared_from_multiple_to_multiple_distance(_X, _y)
 
 
 @njit(cache=True, fastmath=True)
-def _squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
+def _squared_pairwise_distance(X: NumbaList[np.ndarray]) -> np.ndarray:
+    n_cases = len(X)
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
             distances[i, j] = squared_distance(X[i], X[j])
             distances[j, i] = distances[i, j]
 
@@ -147,13 +157,13 @@ def _squared_pairwise_distance(X: np.ndarray) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def _squared_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray
+    x: NumbaList[np.ndarray], y: NumbaList[np.ndarray]
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
+    n_cases = len(x)
+    m_cases = len(y)
+    distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_instances):
-        for j in range(m_instances):
+    for i in range(n_cases):
+        for j in range(m_cases):
             distances[i, j] = squared_distance(x[i], y[j])
     return distances

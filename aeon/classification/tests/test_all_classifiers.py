@@ -1,6 +1,6 @@
 """Unit tests for classifier/regressor input output."""
 
-__author__ = ["mloning", "TonyBagnall", "fkiraly"]
+__maintainer__ = []
 
 import inspect
 
@@ -15,7 +15,7 @@ from aeon.testing.expected_results.expected_classifier_outputs import (
 from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.testing.utils.scenarios_classification import ClassifierFitPredict
-from aeon.utils.validation.collection import get_n_cases
+from aeon.utils.validation import get_n_cases
 
 
 class ClassifierFixtureGenerator(BaseFixtureGenerator):
@@ -118,31 +118,39 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
     def test_contracted_classifier(self, estimator_class):
         """Test classifiers that can be contracted."""
         if estimator_class.get_class_tag(tag_name="capability:contractable") is True:
-            # if we have a train_estimate parameter set use it, else use default
+            # if we have a contracting parameter set use it, else use default
             estimator_instance = estimator_class.create_test_instance(
                 parameter_set="contracting"
             )
 
-            # The "capability:contractable" has not been fully implemented yet.
-            # Most uses currently have a time_limit_in_minutes parameter, but we won't
-            # fail those that don't.
             default_params = inspect.signature(estimator_class.__init__).parameters
-            if default_params.get(
-                "time_limit_in_minutes", None
-            ) is not None and default_params.get(
-                "time_limit_in_minutes", None
-            ).default not in (
+
+            # check that the classifier has a time_limit_in_minutes parameter
+            if default_params.get("time_limit_in_minutes", None) is None:
+                raise ValueError(
+                    f"Classifier {estimator_class} which sets "
+                    "capability:contractable=True must have a time_limit_in_minutes "
+                    "parameter."
+                )
+
+            # check that the default value is to turn off contracting
+            if default_params.get("time_limit_in_minutes", None).default not in (
                 0,
                 -1,
                 None,
             ):
-                return None
+                raise ValueError(
+                    "time_limit_in_minutes parameter must have a default value of 0, "
+                    "-1 or None, disabling contracting by default."
+                )
 
             # too short of a contract time can lead to test failures
-            if vars(estimator_instance).get("time_limit_in_minutes", None) < 5:
+            if vars(estimator_instance).get("time_limit_in_minutes", None) < 0.5:
                 raise ValueError(
                     "Test parameters for test_contracted_classifier must set "
-                    "time_limit_in_minutes to 5 or more."
+                    "time_limit_in_minutes to 0.5 or more. It is recommended to make "
+                    "this larger and add an alternative stopping mechanism "
+                    "(i.e. max ensemble members)."
                 )
 
             scenario = ClassifierFitPredict()
@@ -172,23 +180,29 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
                 parameter_set="train_estimate"
             )
 
-            # The "capability:train_estimate" has not been fully implemented yet.
-            # Most uses currently have the below method, but we won't fail those that
-            # don't.
-            if not hasattr(estimator_instance, "_get_train_probs"):
-                return None
+            if (
+                "_fit_predict" not in estimator_class.__dict__
+                or "_fit_predict_proba" not in estimator_class.__dict__
+            ):
+                raise ValueError(
+                    f"Classifier {estimator_class} has capability:train_estimate=True "
+                    "and must override the _fit_predict and _fit_predict_proba methods."
+                )
 
-            # fit classifier
             scenario = ClassifierFitPredict()
-            scenario.run(estimator_instance, method_sequence=["fit"])
-
             n_classes = scenario.get_tag("n_classes")
             X_train = scenario.args["fit"]["X"]
             y_train = scenario.args["fit"]["y"]
             X_train_len = get_n_cases(X_train)
 
+            # check the predictions are valid
+            train_preds = estimator_instance.fit_predict(X_train, y_train)
+            assert isinstance(train_preds, np.ndarray)
+            assert train_preds.shape == (X_train_len,)
+            assert np.all(np.isin(np.unique(train_preds), np.unique(y_train)))
+
             # check the probabilities are valid
-            train_proba = estimator_instance._get_train_probs(X_train, y_train)
+            train_proba = estimator_instance.fit_predict_proba(X_train, y_train)
             assert isinstance(train_proba, np.ndarray)
             assert train_proba.shape == (X_train_len, n_classes)
             np.testing.assert_almost_equal(train_proba.sum(axis=1), 1, decimal=4)
@@ -218,13 +232,16 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
 
     def test_does_not_override_final_methods(self, estimator_class):
         """Test does not override final methods."""
-        if "fit" in estimator_class.__dict__:
-            raise ValueError(f"Classifier {estimator_class} overrides the method fit")
-        if "predict" in estimator_class.__dict__:
-            raise ValueError(
-                f"Classifier {estimator_class} overrides the method " f"predict"
-            )
-        if "predict_proba" in estimator_class.__dict__:
-            raise ValueError(
-                f"Classifier {estimator_class} overrides the method " f"predict_proba"
-            )
+        final_methods = [
+            "fit",
+            "predict",
+            "predict_proba",
+            "fit_predict",
+            "fit_predict_proba",
+        ]
+        for method in final_methods:
+            if method in estimator_class.__dict__:
+                raise ValueError(
+                    f"Classifier {estimator_class} overrides the method {method}. "
+                    f"Override _{method} instead."
+                )

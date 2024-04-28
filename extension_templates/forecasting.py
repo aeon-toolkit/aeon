@@ -15,7 +15,7 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- ensure interface compatibility by aeon.testing.estimator_checks.check_estimator
 - once complete: use as a local library, or contribute to aeon via PR
 - more details:
     https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
@@ -35,10 +35,11 @@ Optional implements:
 Testing - implement if aeon forecaster (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
+
 # todo: write an informative docstring for the file or module, remove the above
 
 # todo: uncomment the following line, enter authors' GitHub IDs
-# __author__ = [authorGitHubID, anotherAuthorGitHubID]
+# __maintainer__ = []
 
 
 from aeon.forecasting.base import BaseForecaster
@@ -55,9 +56,9 @@ class MyForecaster(BaseForecaster):
     ----------
     parama : int
         descriptive explanation of parama
-    paramb : string, optional (default='default')
+    paramb : string, default='default'
         descriptive explanation of paramb
-    paramc : boolean, optional (default= whether paramb is not the default)
+    paramc : boolean, default= whether paramb is not the default
         descriptive explanation of paramc
     and so on
     est : aeon.estimator, BaseEstimator descendant
@@ -148,7 +149,7 @@ class MyForecaster(BaseForecaster):
         # raises exception at construction if local python veresion is incompatible
         #
         # soft dependency requirement
-        "python_dependencies": None
+        "python_dependencies": None,
         # valid values: str or list of str
         # raises exception at construction if modules at strings cannot be imported
     }
@@ -167,7 +168,7 @@ class MyForecaster(BaseForecaster):
         self.paramc = paramc
 
         # todo: change "MyForecaster" to the name of the class
-        super(MyForecaster, self).__init__()
+        super().__init__()
 
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc
@@ -208,11 +209,11 @@ class MyForecaster(BaseForecaster):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X :  aeon time series object, optional (default=None)
+        X :  aeon time series object, default=None
             guaranteed to be of an mtype in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
@@ -250,10 +251,10 @@ class MyForecaster(BaseForecaster):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : aeon time series object, optional (default=None)
+        X : aeon time series object, default=None
             guaranteed to be of an mtype in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
 
@@ -295,10 +296,10 @@ class MyForecaster(BaseForecaster):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        X :  aeon time series object, optional (default=None)
+        X :  aeon time series object, default=None
             guaranteed to be of an mtype in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -350,7 +351,7 @@ class MyForecaster(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X :  aeon time series object, optional (default=None)
+        X :  aeon time series object, default=None
             guaranteed to be of an mtype in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
@@ -393,7 +394,7 @@ class MyForecaster(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X :  aeon time series object, optional (default=None)
+        X :  aeon time series object, default=None
             guaranteed to be of an mtype in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -433,13 +434,13 @@ class MyForecaster(BaseForecaster):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X :  aeon time series object, optional (default=None)
+        X :  aeon time series object, default=None
             guaranteed to be of an mtype in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             if True, computes covariance matrix forecast.
             if False, computes marginal variance forecasts.
 
@@ -482,12 +483,12 @@ class MyForecaster(BaseForecaster):
         fh : int, list, np.array or ForecastingHorizon (not optional)
             The forecasting horizon encoding the time stamps to forecast at.
             if has not been passed in fit, must be passed, not optional
-        X : aeon time series object, optional (default=None)
+        X : aeon time series object, default=None
                 Exogeneous time series for the forecast
             Should be of same scitype (Series, Panel, or Hierarchical) as y in fit
             if self.get_tag("X-y-must-have-same-index"),
                 X.index must contain fh.index and y.index both
-        marginal : bool, optional (default=True)
+        marginal : bool, default=True
             whether returned distribution is marginal by time index
 
         Returns
@@ -504,9 +505,6 @@ class MyForecaster(BaseForecaster):
                 i-th (event dim 1) distribution is forecast for i-th entry of fh
                 j-th (event dim 1) index is j-th variable, order as y in `fit`/`update`
         """
-        # import tensorflow_probability as tfp
-        # tensorflow probability import should happen inside this function
-        #
         # implement here
         # implementing the marginal=False case is optional and can be omitted
 

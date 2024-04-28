@@ -1,4 +1,5 @@
 """Rocket test code."""
+
 import numpy as np
 import pytest
 
@@ -102,6 +103,7 @@ def test_rocket_on_multivariate(transform):
 
 
 def test_normalise_rocket():
+    """Test normalization with Rocket."""
     arr = np.random.random(size=(10, 1, 100))
     rocket = Rocket(num_kernels=200, normalise=True)
     trans = rocket.fit_transform(arr)

@@ -1,6 +1,6 @@
 """Time binning for turning series equally spaced."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import warnings
 
@@ -40,21 +40,11 @@ class TimeBinAggregate(BaseTransformer):
         "bin_end" = transformed pd.DataFrame will be indexed by bin starts
         "bin_mid" = transformed pd.DataFrame will be indexed by bin midpoints
         "bin" = transformed pd.DataFrame will have `bins` as `IntervalIndex`
-
-    Example
-    -------
-    from aeon.datatypes import get_examples
-    from aeon.transformations.binning import TimeBinAggregate
-
-    bins = [0, 2, 4]
-    X = get_examples("pd.DataFrame")[0]
-
-    t = TimeBinAggregate([-1, 2, 10])
     """
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "input_data_type": "Series",
         # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
@@ -91,7 +81,7 @@ class TimeBinAggregate(BaseTransformer):
                 )
             self._aggfunc = self.aggfunc
 
-        super(TimeBinAggregate, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

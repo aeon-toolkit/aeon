@@ -18,7 +18,7 @@ tests in this module:
     test_eq_dunder       - tests __eq__ dunder to compare parameter definition
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = [
     "test_get_class_tags",
@@ -275,7 +275,7 @@ def test_components():
     assert set(non_comp_comps.keys()) == set()
 
     assert isinstance(comp_comps, dict)
-    assert set(comp_comps.keys()) == set(["foo_"])
+    assert set(comp_comps.keys()) == {"foo_"}
     assert comp_comps["foo_"] is composite.foo_
     assert comp_comps["foo_"] is not composite.foo
 
@@ -314,11 +314,11 @@ def test_get_fitted_params():
     comp_f_params_shallow = composite.get_fitted_params(deep=False)
 
     assert isinstance(non_comp_f_params, dict)
-    assert set(non_comp_f_params.keys()) == set(["foo"])
+    assert set(non_comp_f_params.keys()) == {"foo"}
 
     assert isinstance(comp_f_params, dict)
-    assert set(comp_f_params) == set(["foo", "foo__foo"])
-    assert set(comp_f_params_shallow) == set(["foo"])
+    assert set(comp_f_params) == {"foo", "foo__foo"}
+    assert set(comp_f_params_shallow) == {"foo"}
     assert comp_f_params["foo"] is composite.foo_
     assert comp_f_params["foo"] is not composite.foo
     assert comp_f_params_shallow["foo"] is composite.foo_

@@ -2,7 +2,7 @@
 
 import warnings
 
-__author__ = ["ermshaua", "patrickzib"]
+__maintainer__ = []
 __all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
 
 from queue import PriorityQueue
@@ -210,7 +210,7 @@ class ClaSPSegmenter(BaseSegmenter):
         self.period_length = int(period_length)
         self.n_cps = n_cps
         self.exclusion_radius = exclusion_radius
-        super(ClaSPSegmenter, self).__init__(n_segments=n_cps + 1, axis=1)
+        super().__init__(n_segments=n_cps + 1, axis=1)
 
     def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.
@@ -225,6 +225,7 @@ class ClaSPSegmenter(BaseSegmenter):
         list
             List of change points found in X.
         """
+        X = X.squeeze()
         if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
             warnings.warn(
                 "Period-Length is larger than size of the time series", stacklevel=1

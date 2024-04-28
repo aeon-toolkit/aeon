@@ -3,7 +3,7 @@
 Interval based CIF classifier extracting catch22 features from random intervals.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["CanonicalIntervalForestClassifier"]
 
 import numpy as np
@@ -96,9 +96,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_preds and
-        _get_train_probs.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -115,7 +112,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of dimensions per case in the training set.
@@ -131,10 +128,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         The collections of estimators trained in fit.
     intervals_ : list of shape (n_estimators) of TransformerMixin
         Stores the interval extraction transformer for all estimators.
-    transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances_ ,total_intervals * att_subsample_size)
-        The transformed dataset for all classifiers. Only saved when
-        save_transformed_data is true.
 
     See Also
     --------
@@ -156,7 +149,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import CanonicalIntervalForestClassifier
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = CanonicalIntervalForestClassifier(n_estimators=10, random_state=0)
@@ -185,7 +178,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
         use_pycatch22=False,
-        save_transformed_data=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -206,7 +198,7 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             row_slope,
         ]
 
-        super(CanonicalIntervalForestClassifier, self).__init__(
+        super().__init__(
             base_estimator=base_estimator,
             n_estimators=n_estimators,
             interval_selection_method="random",
@@ -219,11 +211,25 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             replace_nan=replace_nan,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
-            save_transformed_data=save_transformed_data,
             random_state=random_state,
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        return super()._predict_proba(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
+
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        return super()._fit_predict_proba(X, y)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -261,13 +267,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
                 "contract_max_n_estimators": 2,
                 "n_intervals": 2,
                 "att_subsample_size": 2,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "n_intervals": 2,
-                "att_subsample_size": 2,
-                "save_transformed_data": True,
             }
         else:
             return {"n_estimators": 2, "n_intervals": 2, "att_subsample_size": 2}

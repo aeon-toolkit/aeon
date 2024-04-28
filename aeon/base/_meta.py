@@ -1,9 +1,11 @@
 """Implements meta estimator for estimators composed of other estimators."""
 
-__author__ = ["mloning, fkiraly"]
+__maintainer__ = []
 __all__ = ["_HeterogenousMetaEstimator"]
 
 from inspect import isclass
+
+from sklearn import clone
 
 from aeon.base import BaseEstimator
 
@@ -106,7 +108,7 @@ class _HeterogenousMetaEstimator:
             for name, estimator in estimators:
                 if hasattr(estimator, "get_params"):
                     for key, value in getattr(estimator, method)(**deepkw).items():
-                        out["%s__%s" % (name, key)] = value
+                        out[f"{name}__{key}"] = value
         return out
 
     def _set_params(self, attr, **params):
@@ -137,18 +139,17 @@ class _HeterogenousMetaEstimator:
 
     def _check_names(self, names):
         if len(set(names)) != len(names):
-            raise ValueError("Names provided are not unique: {0!r}".format(list(names)))
+            raise ValueError(f"Names provided are not unique: {list(names)!r}")
         invalid_names = [name for name in names if "__" in name]
         if invalid_names:
             raise ValueError(
-                "Estimator names must not contain __: got "
-                "{0!r}".format(invalid_names)
+                "Estimator names must not contain __: got " "{!r}".format(invalid_names)
             )
         invalid_names = set(names).intersection(self.get_params(deep=False))
         if invalid_names:
             raise ValueError(
                 "Estimator names conflict with constructor "
-                "arguments: {0!r}".format(sorted(invalid_names))
+                "arguments: {!r}".format(sorted(invalid_names))
             )
 
     def _subset_dict_keys(self, dict_to_subset, keys, prefix=None):
@@ -186,7 +187,7 @@ class _HeterogenousMetaEstimator:
         if prefix is not None:
             keys = [f"{prefix}__{key}" for key in keys]
         keys_in_both = set(keys).intersection(dict_to_subset.keys())
-        subsetted_dict = dict((rem_prefix(k), dict_to_subset[k]) for k in keys_in_both)
+        subsetted_dict = {rem_prefix(k): dict_to_subset[k] for k in keys_in_both}
         return subsetted_dict
 
     @staticmethod
@@ -367,7 +368,9 @@ class _HeterogenousMetaEstimator:
         """
         ests = self._get_estimator_list(estimators)
         if clone_ests:
-            ests = [e.clone() for e in ests]
+            ests = [
+                e.clone() if isinstance(e, BaseEstimator) else clone(e) for e in ests
+            ]
         unique_names = self._get_estimator_names(estimators, make_unique=True)
         est_tuples = list(zip(unique_names, ests))
         return est_tuples

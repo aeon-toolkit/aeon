@@ -1,7 +1,7 @@
 """Time series interpolator/re-sampler."""
 
 __all__ = ["TSInterpolator"]
-__author__ = ["mloning", "TonyBagnall"]
+__maintainer__ = []
 
 import numpy as np
 
@@ -55,14 +55,14 @@ class TSInterpolator(BaseCollectionTransformer):
             raise ValueError("resizing length must be integer and > 0")
 
         self.length = length
-        super(TSInterpolator, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Take series in each cell, train linear interpolation and samples n.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, series_length) or
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or
             list size [n_cases] of 2D nump arrays, case i has shape (n_channels,
             length_i). Collection of time series to transform
         y : ignored argument for interface compatibility

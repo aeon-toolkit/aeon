@@ -1,15 +1,68 @@
 """Implements transformations to deseasonalize a timeseries."""
 
-__author__ = ["mloning", "eyalshafran", "aiwalter"]
+__maintainer__ = []
 __all__ = ["Deseasonalizer", "ConditionalDeseasonalizer", "STLTransformer"]
+
+from warnings import warn
 
 import numpy as np
 import pandas as pd
 
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.datetime import _get_duration, _get_freq
-from aeon.utils.seasonality import autocorrelation_seasonality_test
-from aeon.utils.validation.forecasting import check_sp
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+from aeon.utils.validation.forecasting import check_sp, check_y
+
+
+def autocorrelation_seasonality_test(y, sp):
+    """Seasonality test used in M4 competition.
+
+    Parameters
+    ----------
+    sp : int
+        Seasonal periodicity
+
+    Returns
+    -------
+    is_seasonal : bool
+        Test result
+
+    References
+    ----------
+    .. [1]  https://github.com/Mcompetitions/M4-methods/blob/master
+    /Benchmarks%20and%20Evaluation.R
+    """
+    _check_soft_dependencies("statsmodels")
+    from statsmodels.tsa.stattools import acf
+
+    y = check_y(y)
+    sp = check_sp(sp)
+
+    y = np.asarray(y)
+    n_timepoints = len(y)
+
+    if sp == 1:
+        return False
+
+    if n_timepoints < 3 * sp:
+        warn(
+            "Did not perform seasonality test, as `y`` is too short for the "
+            "given `sp`, returned: False"
+        )
+        return False
+
+    else:
+        coefs = acf(y, nlags=sp, fft=False)  # acf coefficients
+        coef = coefs[sp]  # coefficient to check
+
+        tcrit = 1.645  # 90% confidence level
+        limits = (
+            tcrit
+            / np.sqrt(n_timepoints)
+            * np.sqrt(np.cumsum(np.append(1, 2 * coefs[1:] ** 2)))
+        )
+        limit = limits[sp - 1]  # zero-based indexing
+        return np.abs(coef) > limit
 
 
 class Deseasonalizer(BaseTransformer):
@@ -71,7 +124,7 @@ class Deseasonalizer(BaseTransformer):
         "fit_is_empty": False,
         "capability:inverse_transform": True,
         "transform-returns-same-time-index": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "python_dependencies": "statsmodels",
     }
 
@@ -85,7 +138,7 @@ class Deseasonalizer(BaseTransformer):
         self.model = model
         self._X = None
         self.seasonal_ = None
-        super(Deseasonalizer, self).__init__()
+        super().__init__()
 
     def _align_seasonal(self, X):
         """Align seasonal components with X's time index."""
@@ -291,7 +344,7 @@ class ConditionalDeseasonalizer(Deseasonalizer):
     def __init__(self, seasonality_test=None, sp=1, model="additive"):
         self.seasonality_test = seasonality_test
         self.is_seasonal_ = None
-        super(ConditionalDeseasonalizer, self).__init__(sp=sp, model=model)
+        super().__init__(sp=sp, model=model)
 
     def _check_condition(self, y):
         """Check if y meets condition."""
@@ -456,7 +509,7 @@ class STLTransformer(BaseTransformer):
         "X_inner_type": "pd.Series",
         "y_inner_type": "pd.Series",
         "transform-returns-same-time-index": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": False,
         "python_dependencies": "statsmodels",
     }
@@ -494,7 +547,7 @@ class STLTransformer(BaseTransformer):
         self.low_pass_jump = low_pass_jump
         self.return_components = return_components
         self._X = None
-        super(STLTransformer, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.

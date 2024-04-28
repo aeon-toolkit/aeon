@@ -1,8 +1,7 @@
 """Fourier features for time series with long/complex seasonality."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 import warnings
-from distutils.log import warn
 from typing import List, Optional, Union
 
 import numpy as np
@@ -77,7 +76,7 @@ class FourierFeatures(BaseTransformer):
         # what is the abstract type of y: None (not needed), Primitives, Series, Panel
         "instancewise": True,
         "capability:inverse_transform": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
         "requires_y": False,  # does y need to be passed in fit?
@@ -125,7 +124,7 @@ class FourierFeatures(BaseTransformer):
                 "needs to be lower from the corresponding element of the sp_list"
             )
 
-        super(FourierFeatures, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -175,9 +174,10 @@ class FourierFeatures(BaseTransformer):
             if self.freq_ is None:
                 ValueError("X has no known frequency and none is supplied")
             if self.freq_ == time_index.freq and self.freq_ != self.freq:
-                warn(
+                warnings.warn(
                     f"Using frequency from index: {time_index.freq}, which \
-                     does not match the frequency given:{self.freq}."
+                     does not match the frequency given:{self.freq}.",
+                    stacklevel=2,
                 )
             time_index = time_index.to_period(self.freq_)
         # this is used to make sure that time t is calculated with reference to

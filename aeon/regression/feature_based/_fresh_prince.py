@@ -4,15 +4,16 @@ Pipeline regressor using the full set of TSFresh features and a RotationForestRe
 regressor.
 """
 
-__author__ = ["MatthewMiddlehurst", "DavidGuijo-Rubio"]
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["FreshPRINCERegressor"]
+
+import warnings
 
 import numpy as np
 
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
 from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
-from aeon.utils.validation.panel import check_X_y
 
 
 class FreshPRINCERegressor(BaseRegressor):
@@ -30,6 +31,11 @@ class FreshPRINCERegressor(BaseRegressor):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestRegressor ensemble.
+    save_transformed_data : bool, default="deprecated"
+        Save the data transformed in fit.
+
+        Deprecated and will be removed in v0.8.0. Use fit_predict
+        to generate train estimates instead. transformed_data_ will also be removed.
     verbose : int, default=0
         Level of output printed to the console (for information only)
     n_jobs : int, default=1
@@ -75,7 +81,7 @@ class FreshPRINCERegressor(BaseRegressor):
         self,
         default_fc_parameters="comprehensive",
         n_estimators=200,
-        save_transformed_data=False,
+        save_transformed_data="deprecated",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -84,30 +90,38 @@ class FreshPRINCERegressor(BaseRegressor):
         self.default_fc_parameters = default_fc_parameters
         self.n_estimators = n_estimators
 
-        self.save_transformed_data = save_transformed_data
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.chunksize = chunksize
         self.random_state = random_state
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
-        self.transformed_data_ = []
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
 
         self._rotf = None
         self._tsfresh = None
 
-        super(FreshPRINCERegressor, self).__init__()
+        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.10.0
+        self.transformed_data_ = []
+        self.save_transformed_data = save_transformed_data
+        if save_transformed_data != "deprecated":
+            warnings.warn(
+                "the save_transformed_data parameter is deprecated and will be"
+                "removed in v0.10.0. transformed_data_ will also be removed.",
+                stacklevel=2,
+            )
+
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit a pipeline on cases (X,y), where y is the target variable.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -120,11 +134,43 @@ class FreshPRINCERegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        # TODO remove in v0.10.0
+        b = (
+            False
+            if isinstance(self.save_transformed_data, str)
+            else self.save_transformed_data
+        )
+        self.transformed_data_ = self._fit_fp_shared(X, y)
+        self._rotf.fit(self.transformed_data_, y)
+        if not b:
+            self.transformed_data_ = []
+
+        return self
+
+    def _predict(self, X) -> np.ndarray:
+        """Predict class values of n instances in X.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_cases]
+            Predicted output values.
+        """
+        return self._rotf.predict(self._tsfresh.transform(X))
+
+    def _fit_predict(self, X, y):
+        X_t = self._fit_fp_shared(X, y)
+        return self._rotf.fit_predict(X_t, y)
+
+    def _fit_fp_shared(self, X, y):
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._rotf = RotationForestRegressor(
             n_estimators=self.n_estimators,
-            save_transformed_data=self.save_transformed_data,
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
@@ -136,50 +182,7 @@ class FreshPRINCERegressor(BaseRegressor):
             disable_progressbar=self.verbose < 1,
         )
 
-        X_t = self._tsfresh.fit_transform(X, y)
-        self._rotf.fit(X_t, y)
-
-        if self.save_transformed_data:
-            self.transformed_data_ = X_t
-
-        return self
-
-    def _predict(self, X) -> np.ndarray:
-        """Predict class values of n instances in X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-            The data to make predictions for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_instances]
-            Predicted output values.
-        """
-        return self._rotf.predict(self._tsfresh.transform(X))
-
-    def _get_train_preds(self, X, y) -> np.ndarray:
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True)
-
-        n_instances, n_dims, series_length = X.shape
-
-        if (
-            n_instances != self.n_instances_
-            or n_dims != self.n_dims_
-            or series_length != self.series_length_
-        ):
-            raise ValueError(
-                "n_instances, n_dims, series_length mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
-
-        if not self.save_transformed_data:
-            raise ValueError("Currently only works with saved transform data from fit.")
-
-        return self._rotf._get_train_preds(self.transformed_data_, y)
+        return self._tsfresh.fit_transform(X, y)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -210,12 +213,6 @@ class FreshPRINCERegressor(BaseRegressor):
             return {
                 "n_estimators": 10,
                 "default_fc_parameters": "minimal",
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "default_fc_parameters": "minimal",
-                "save_transformed_data": True,
             }
         else:
             return {

@@ -4,11 +4,12 @@ Hidden Markov Model with Poisson emissions.
 Please see the original library
 (https://github.com/hmmlearn/hmmlearn/blob/main/lib/hmmlearn/hmm.py)
 """
+
 from typing import Dict
 
 from aeon.annotation.hmm_learn import BaseHMMLearn
 
-__author__ = ["klam-data", "pyyim", "mgorlin"]
+__maintainer__ = []
 __all__ = ["PoissonHMM"]
 
 
@@ -68,7 +69,7 @@ class PoissonHMM(BaseHMMLearn):
     Examples
     --------
     >>> from aeon.annotation.hmm_learn import PoissonHMM # doctest: +SKIP
-    >>> from aeon.annotation.datagen import piecewise_poisson # doctest: +SKIP
+    >>> from from aeon.testing.utils.data_gen import piecewise_poisson # doctest: +SKIP
     >>> data = piecewise_poisson( # doctest: +SKIP
     ...    lambdas=[1, 2, 3], lengths=[2, 4, 8], random_state=7
     ...    ).reshape((-1, 1))
@@ -111,7 +112,7 @@ class PoissonHMM(BaseHMMLearn):
         self.params = params
         self.init_params = init_params
         self.implementation = implementation
-        super(PoissonHMM, self).__init__()
+        super().__init__()
 
     def _fit(self, X, Y=None):
         """Create a new instance of wrapped hmmlearn estimator.
@@ -144,7 +145,7 @@ class PoissonHMM(BaseHMMLearn):
             self.init_params,
             self.implementation,
         )
-        return super(PoissonHMM, self)._fit(X, Y)
+        return super()._fit(X, Y)
 
     @classmethod
     def get_test_params(cls, parameter_set: str = "default") -> Dict:

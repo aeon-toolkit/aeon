@@ -1,4 +1,5 @@
 """WEASEL test code."""
+
 import numpy as np
 
 from aeon.classification.dictionary_based._weasel import WEASEL

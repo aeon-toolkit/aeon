@@ -1,5 +1,6 @@
 """Class to iteratively apply differences to a time series."""
-__author__ = ["RNKuhns", "fkiraly"]
+
+__maintainer__ = []
 __all__ = ["Differencer"]
 
 from typing import Union
@@ -8,8 +9,8 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import check_array
 
-from aeon.datatypes._utilities import get_cutoff, update_data
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.index_functions import get_cutoff, update_data
 from aeon.utils.validation import is_int
 
 
@@ -225,7 +226,7 @@ class Differencer(BaseTransformer):
         "y_inner_type": "None",
         "fit_is_empty": False,
         "transform-returns-same-time-index": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": True,
     }
 
@@ -239,7 +240,7 @@ class Differencer(BaseTransformer):
         self._X = None
         self._lags = _check_lags(self.lags)
         self._cumulative_lags = None
-        super(Differencer, self).__init__()
+        super().__init__()
 
         # if the na_handling is "fill_zero" or "keep_na"
         #   then the returned indices are same to the passed indices

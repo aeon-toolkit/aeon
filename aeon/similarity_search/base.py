@@ -1,6 +1,6 @@
 """Base class for similarity search."""
 
-__author__ = ["baraline"]
+__maintainer__ = []
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
@@ -50,7 +50,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
     Attributes
     ----------
-    _X : array, shape (n_instances, n_channels, n_timepoints)
+    _X : array, shape (n_cases, n_channels, n_timepoints)
         The input time series stored during the fit method.
     distance_profile_function : function
         The function used to compute the distance profile affected
@@ -82,7 +82,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         self.normalize = normalize
         self.store_distance_profile = store_distance_profile
         self.speed_up = speed_up
-        super(BaseSimiliaritySearch, self).__init__()
+        super().__init__()
 
     @final
     def fit(self, X, y=None):
@@ -91,7 +91,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Parameters
         ----------
-        X : array, shape (n_instances, n_channels, n_timepoints)
+        X : array, shape (n_cases, n_channels, n_timepoints)
             Input array to used as database for the similarity search
         y : optional
             Not used.
@@ -109,7 +109,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         if not isinstance(X, np.ndarray) or X.ndim != 3:
             raise TypeError(
                 "Error, only supports 3D numpy of shape "
-                "(n_instances, n_channels, n_timepoints)."
+                "(n_cases, n_channels, n_timepoints)."
             )
         # Get distance function
         self.distance_profile_function = self._get_distance_profile_function()
@@ -174,7 +174,7 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         """
         query_dim, query_length = self._check_query_format(q)
-        n_instances, _, n_timepoints = self._X.shape
+        n_cases, _, n_timepoints = self._X.shape
         mask = self._apply_q_index_mask(
             q_index, query_dim, query_length, exclusion_factor=exclusion_factor
         )
@@ -228,13 +228,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
 
         Returns
         -------
-        mask : array, shape=(n_instances, n_timepoints - query_length + 1)
+        mask : array, shape=(n_cases, n_timepoints - query_length + 1)
             Boolean array which indicates the candidates that should be evaluated in the
             similarity search.
 
         """
-        n_instances, _, n_timepoints = self._X.shape
-        mask = np.ones((n_instances, n_timepoints - query_length + 1), dtype=bool)
+        n_cases, _, n_timepoints = self._X.shape
+        mask = np.ones((n_cases, n_timepoints - query_length + 1), dtype=bool)
 
         if q_index is not None:
             if isinstance(q_index, Iterable):
@@ -351,13 +351,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         None.
 
         """
-        n_instances, n_channels, n_timepoints = self._X.shape
+        n_cases, n_channels, n_timepoints = self._X.shape
         search_space_size = n_timepoints - query_length + 1
 
-        means = np.zeros((n_instances, n_channels, search_space_size))
-        stds = np.zeros((n_instances, n_channels, search_space_size))
+        means = np.zeros((n_cases, n_channels, search_space_size))
+        stds = np.zeros((n_cases, n_channels, search_space_size))
 
-        for i in range(n_instances):
+        for i in range(n_cases):
             _mean, _std = sliding_mean_std_one_series(self._X[i], query_length, 1)
             stds[i] = _std
             means[i] = _mean
@@ -373,13 +373,13 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         ----------
         q :  array, shape (n_channels, query_length)
             Input query used for similarity search.
-         mask : array, shape=(n_instances, n_timepoints - query_length + 1)
+         mask : array, shape=(n_cases, n_timepoints - query_length + 1)
              Boolean array which indicates the candidates that should be evaluated in
              the similarity search.
 
         Returns
         -------
-        distance_profile : array, shape=(n_instances, n_timepoints - query_length + 1)
+        distance_profile : array, shape=(n_cases, n_timepoints - query_length + 1)
             The distance profiles between the input time series and the query.
 
         """
@@ -422,12 +422,10 @@ class BaseSimiliaritySearch(BaseEstimator, ABC):
         return distance_profile
 
     @abstractmethod
-    def _fit(self, X, y):
-        ...
+    def _fit(self, X, y): ...
 
     @abstractmethod
-    def _predict(self, distance_profile, exclusion_size=None):
-        ...
+    def _predict(self, distance_profile, exclusion_size=None): ...
 
 
 _SIM_SEARCH_SPEED_UP_DICT = {

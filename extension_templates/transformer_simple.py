@@ -20,7 +20,7 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- ensure interface compatibility by aeon.testing.estimator_checks.check_estimator
 - once complete: use as a local library, or contribute to aeon via PR
 - more details:
     https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
@@ -32,10 +32,11 @@ Mandatory implements:
 Testing - implement if aeon transformer (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 """
+
 # todo: write an informative docstring for the file or module, remove the above
 
 # todo: uncomment the following line, enter authors' GitHub IDs
-# __author__ = [authorGitHubID, anotherAuthorGitHubID]
+# __maintainer__ = []
 
 # todo: add any necessary aeon external imports here
 
@@ -55,9 +56,9 @@ class MyTransformer(BaseTransformer):
     ----------
     parama : int
         descriptive explanation of parama
-    paramb : string, optional (default='default')
+    paramb : string, default='default'
         descriptive explanation of paramb
-    paramc : boolean, optional (default= whether paramb is not the default)
+    paramc : boolean, default= whether paramb is not the default
         descriptive explanation of paramc
     and so on
     """
@@ -180,7 +181,7 @@ class MyTransformer(BaseTransformer):
         self.paramc = paramc
 
         # todo: change "MyTransformer" to the name of the class
-        super(MyTransformer, self).__init__()
+        super().__init__()
 
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc

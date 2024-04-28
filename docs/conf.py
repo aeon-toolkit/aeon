@@ -132,8 +132,8 @@ remove_from_toctrees = ["api_reference/auto_generated/*"]
 # the corresponding warning that this override happens.
 suppress_warnings = ["myst.mathjax"]
 
-# Recommended by sphinx_design when using the MyST Parser
-myst_enable_extensions = ["colon_fence", "html_image"]
+# "colon_fence" and "html_image" recommended by sphinx_design when using the MyST Parser
+myst_enable_extensions = ["colon_fence", "html_image", "attrs_inline"]
 
 myst_heading_anchors = 4
 
@@ -171,7 +171,7 @@ def linkcode_resolve(domain, info):
         filename = "aeon/%s#L%d-L%d" % find_source()
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
-    return "https://github.com/aeon-toolkit/aeon/blob/%s/%s" % (
+    return "https://github.com/aeon-toolkit/aeon/blob/{}/{}".format(
         github_tag,
         filename,
     )
@@ -262,7 +262,9 @@ html_favicon = "images/logo/aeon-favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_css_files = ["css/custom.css"]
+html_css_files = [
+    "css/custom.css",
+]
 
 html_show_sourcelink = False
 
@@ -288,7 +290,13 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, "aeon.tex", "aeon Documentation", "aeon developers", "manual"),
+    (
+        master_doc,
+        "aeon.tex",
+        "aeon Documentation",
+        "aeon developers",
+        "manual",
+    ),
 ]
 
 # -- Options for manual page output ------------------------------------------
@@ -313,6 +321,83 @@ texinfo_documents = [
         "Miscellaneous",
     ),
 ]
+
+
+def _make_estimator_overview(app):
+    """Make estimator overview table."""
+    import pandas as pd
+
+    from aeon.registry import all_estimators
+
+    def _does_not_start_with_underscore(input_string):
+        return not input_string.startswith("_")
+
+    # Columns for the output table
+    COLNAMES = ["Estimator name", "Module", "Method family"]
+    capabilities_to_include = [
+        "multivariate",
+        "unequal_length",
+        "missing_values",
+    ]
+
+    for capability_name in capabilities_to_include:
+        _str = capability_name.replace("_", " ")
+        COLNAMES.append(f"Supports {_str}")
+
+    data = {k: [] for k in COLNAMES}
+
+    for estimator_name, estimator_class in all_estimators():
+        algorithm_type = "::".join(str(estimator_class).split(".")[1:-2])
+        # fetch tags
+        tag_dict = estimator_class.get_class_tags()
+
+        # includes part of class string
+        modpath = str(estimator_class)[8:-2]
+        path_parts = modpath.split(".")
+        # joins strings excluding starting with '_'
+        clean_path = ".".join(list(filter(_does_not_start_with_underscore, path_parts)))
+        # adds html link reference
+        estimator_name_as_link = str(
+            '<a href="api_reference/auto_generated/'
+            + clean_path
+            + '.html">'
+            + estimator_name
+            + "</a>"
+        )
+        algorithm_type = algorithm_type.split("::")
+        data["Estimator name"].append(estimator_name_as_link)
+        data["Module"].append(algorithm_type[0])
+        if len(algorithm_type) > 1:
+            data["Method family"].append("/".join(algorithm_type[1:]))
+        else:
+            data["Method family"].append("N/A")
+        for capability_name in capabilities_to_include:
+            _val = tag_dict.get(f"capability:{capability_name}")
+            _str = capability_name.replace("_", " ")
+
+            # For case where tag is not included output as not supported.
+            if not _val or _val is None:
+                data[f"Supports {_str}"].append("\u274C")
+            else:
+                data[f"Supports {_str}"].append("\u2705")
+
+    df = pd.DataFrame.from_dict(data).sort_values(
+        by=["Module", "Method family", "Estimator name"]
+    )
+    df_str = df.to_markdown(index=False, tablefmt="github")
+    with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
+        file.write(df_str)
+
+
+def setup(app):
+    """Set up sphinx builder.
+
+    Parameters
+    ----------
+    app : Sphinx application object
+    """
+    app.connect("builder-inited", _make_estimator_overview)
+
 
 # -- Extension configuration -------------------------------------------------
 

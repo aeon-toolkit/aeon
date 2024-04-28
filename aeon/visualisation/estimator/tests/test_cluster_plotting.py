@@ -1,9 +1,10 @@
 """Test cluster plotting."""
+
 import numpy as np
 import pytest
 
 from aeon.clustering import TimeSeriesKMeans
-from aeon.testing.utils.collection import make_3d_test_data
+from aeon.testing.utils.data_gen import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_cluster_algorithm
 
@@ -19,7 +20,7 @@ def test_plot_cluster_algorithm():
 
     matplotlib.use("Agg")
 
-    data = make_3d_test_data()
+    data = make_example_3d_numpy()
     kmeans = TimeSeriesKMeans(n_clusters=2, distance="euclidean", max_iter=5)
     kmeans.fit(data[0])
 

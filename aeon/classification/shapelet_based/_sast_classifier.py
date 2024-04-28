@@ -3,7 +3,7 @@
 Pipeline classifier using the SAST transformer and an sklearn classifier.
 """
 
-__author__ = ["MichaelMbouopda"]
+__maintainer__ = []
 __all__ = ["SASTClassifier"]
 
 from operator import itemgetter
@@ -73,7 +73,7 @@ class SASTClassifier(BaseClassifier):
         classifier=None,
         n_jobs=-1,
     ):
-        super(SASTClassifier, self).__init__()
+        super().__init__()
         self.length_list = length_list
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
@@ -87,7 +87,7 @@ class SASTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
         y: array-like or list
             The class values for X.
@@ -107,9 +107,11 @@ class SASTClassifier(BaseClassifier):
         )
 
         self._classifier = _clone_estimator(
-            RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
-            if self.classifier is None
-            else self.classifier,
+            (
+                RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+                if self.classifier is None
+                else self.classifier
+            ),
             self.seed,
         )
 
@@ -124,7 +126,7 @@ class SASTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
         Return
@@ -139,12 +141,12 @@ class SASTClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, n_channels, n_timepoints)
+        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
         Return
         ------
-        dists : np.ndarray shape (n_time_series, n_timepoints)
+        dists : np.ndarray shape (n_cases, n_timepoints)
             Predicted class probabilities.
         """
         m = getattr(self._classifier, "predict_proba", None)

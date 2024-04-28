@@ -4,14 +4,8 @@ Abstract base class for the Keras neural network classifiers.
 The reason for this class between BaseClassifier and deep_learning classifiers is
 because we can generalise tags, _predict and _predict_proba
 """
-__author__ = [
-    "James-Large",
-    "ABostrom",
-    "TonyBagnall",
-    "aurunmpegasus",
-    "achieveordie",
-    "hadifawaz1999",
-]
+
+__maintainer__ = []
 __all__ = ["BaseDeepClassifier"]
 
 from abc import ABC, abstractmethod
@@ -51,6 +45,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         "non-deterministic": True,
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
+        "python_version": "<3.12",
     }
 
     def __init__(
@@ -59,12 +54,13 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         random_state=None,
         last_file_name="last_model",
     ):
-        super(BaseDeepClassifier, self).__init__()
-
         self.batch_size = batch_size
         self.random_state = random_state
         self.last_file_name = last_file_name
+
         self.model_ = None
+
+        super().__init__()
 
     @abstractmethod
     def build_model(self, input_shape, n_classes):
@@ -111,13 +107,13 @@ class BaseDeepClassifier(BaseClassifier, ABC):
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_instances, n_channels, series_length)
+        X : an np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             The training input samples. input_checks : boolean
             Whether to check the X parameter
 
         Returns
         -------
-        output : array of shape = [n_instances, n_classes] of probabilities
+        output : array of shape = [n_cases, n_classes] of probabilities
         """
         # Transpose to work correctly with keras
         X = X.transpose((0, 2, 1))
@@ -145,7 +141,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         installed_version = sklearn.__version__
         # Compare the installed version with the target version
         # categories='auto' to get rid of FutureWarning
-        if version.parse(installed_version) < version.parse("1.1"):
+        if version.parse(installed_version) < version.parse("1.2"):
             self.onehot_encoder = OneHotEncoder(sparse=False)
         else:
             self.onehot_encoder = OneHotEncoder(sparse_output=False)
@@ -164,4 +160,4 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         -------
         None
         """
-        self.model_.save(file_path + self.last_file_name + ".hdf5")
+        self.model_.save(file_path + self.last_file_name + ".keras")

@@ -1,4 +1,5 @@
 """Tests for deep_equals utility."""
+
 from copy import deepcopy
 
 import numpy as np
@@ -12,7 +13,7 @@ from aeon.testing.utils.deep_equals import deep_equals
 EXAMPLES = [
     42,
     [],
-    ((((())))),
+    (()),
     [([([([()])])])],
     np.array([2, 3, 4]),
     np.array([2, 4, 5]),

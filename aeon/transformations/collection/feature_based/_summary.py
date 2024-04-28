@@ -1,6 +1,6 @@
 """Summary feature transformer."""
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["SevenNumberSummaryTransformer"]
 
 import numpy as np
@@ -34,9 +34,9 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer  # noqa
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=10,
-    ...                           random_state=0)
+    ...                           random_state=0, return_y=False)
     >>> tnf = SevenNumberSummaryTransformer()
     >>> tnf.fit(X)
     SevenNumberSummaryTransformer(...)
@@ -46,7 +46,7 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "input_data_type": "Collection",
+        "X_inner_type": ["np-list", "numpy3D"],
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "capability:unequal_length": True,
@@ -59,16 +59,16 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
     ):
         self.summary_stats = summary_stats
 
-        super(SevenNumberSummaryTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
-        n_instances = len(X)
+        n_cases = len(X)
         n_channels, _ = X[0].shape
 
         functions = self._get_functions()
 
-        Xt = np.zeros((n_instances, 7 * n_channels))
-        for i in range(n_instances):
+        Xt = np.zeros((n_cases, 7 * n_channels))
+        for i in range(n_cases):
             for n, f in enumerate(functions):
                 idx = n * n_channels
                 if isinstance(f, float):

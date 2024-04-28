@@ -1,4 +1,5 @@
 """Tests for _HeterogenousMetaEstimator."""
+
 import pytest
 
 from aeon.base._meta import _HeterogenousMetaEstimator
@@ -7,6 +8,7 @@ from aeon.classification.compose._channel_ensemble import ChannelEnsembleClassif
 
 
 def test_hetero_meta():
+    """Test _HeterogenousMetaEstimator."""
     h = _HeterogenousMetaEstimator()
     assert h.is_composite()
     with pytest.raises(ValueError, match="Names provided are not unique"):

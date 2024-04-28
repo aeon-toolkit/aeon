@@ -1,6 +1,6 @@
 """Implemenents Box-Cox and Log Transformations."""
 
-__author__ = ["mloning", "aiwalter", "fkiraly"]
+__maintainer__ = []
 __all__ = ["BoxCoxTransformer", "LogTransformer"]
 
 import numpy as np
@@ -125,7 +125,7 @@ class BoxCoxTransformer(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": False,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "capability:inverse_transform": True,
     }
 
@@ -134,7 +134,7 @@ class BoxCoxTransformer(BaseTransformer):
         self.method = method
         self.lambda_ = None
         self.sp = sp
-        super(BoxCoxTransformer, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """
@@ -256,14 +256,14 @@ class LogTransformer(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": True,
     }
 
     def __init__(self, offset=0, scale=1):
         self.offset = offset
         self.scale = scale
-        super(LogTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

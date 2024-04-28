@@ -1,11 +1,10 @@
 """Auto-Encoder using Fully Convolutional Network (FCN)."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 
 import numpy as np
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class AEFCNNetwork(BaseDeepNetwork):
@@ -36,8 +35,6 @@ class AEFCNNetwork(BaseDeepNetwork):
         Activation used after the convolution.
     use_bias : bool or list of bool, default = True
         Whether or not ot use bias in convolution.
-    random_state : int, default = 0
-        Seed to any needed random actions.
 
     Notes
     -----
@@ -59,8 +56,6 @@ class AEFCNNetwork(BaseDeepNetwork):
     }
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
-
     def __init__(
         self,
         latent_space_dim=128,
@@ -73,11 +68,7 @@ class AEFCNNetwork(BaseDeepNetwork):
         padding="same",
         activation="relu",
         use_bias=True,
-        random_state=0,
     ):
-        super(AEFCNNetwork, self).__init__()
-        _check_soft_dependencies("tensorflow")
-
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
         self.n_layers = n_layers
@@ -88,7 +79,8 @@ class AEFCNNetwork(BaseDeepNetwork):
         self.strides = strides
         self.dilation_rate = dilation_rate
         self.use_bias = use_bias
-        self.random_state = random_state
+
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -109,36 +101,43 @@ class AEFCNNetwork(BaseDeepNetwork):
         self._kernel_size_ = [8, 5, 3] if self.kernel_size is None else self.kernel_size
 
         if isinstance(self._n_filters_, list):
+            assert len(self._n_filters_) == self.n_layers
             self._n_filters = self._n_filters_
         else:
             self._n_filters = [self._n_filters_] * self.n_layers
 
         if isinstance(self._kernel_size_, list):
+            assert len(self._kernel_size_) == self.n_layers
             self._kernel_size = self._kernel_size_
         else:
             self._kernel_size = [self._kernel_size_] * self.n_layers
 
         if isinstance(self.dilation_rate, list):
+            assert len(self.dilation_rate) == self.n_layers
             self._dilation_rate = self.dilation_rate
         else:
             self._dilation_rate = [self.dilation_rate] * self.n_layers
 
         if isinstance(self.strides, list):
+            assert len(self.strides) == self.n_layers
             self._strides = self.strides
         else:
             self._strides = [self.strides] * self.n_layers
 
         if isinstance(self.padding, list):
+            assert len(self.padding) == self.n_layers
             self._padding = self.padding
         else:
             self._padding = [self.padding] * self.n_layers
 
         if isinstance(self.activation, list):
+            assert len(self.activation) == self.n_layers
             self._activation = self.activation
         else:
             self._activation = [self.activation] * self.n_layers
 
         if isinstance(self.use_bias, list):
+            assert len(self.use_bias) == self.n_layers
             self._use_bias = self.use_bias
         else:
             self._use_bias = [self.use_bias] * self.n_layers

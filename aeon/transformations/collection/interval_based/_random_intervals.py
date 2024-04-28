@@ -3,7 +3,7 @@
 A transformer for the extraction of features on randomly selected intervals.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["RandomIntervals"]
 
 import numpy as np
@@ -74,9 +74,9 @@ class RandomIntervals(BaseCollectionTransformer):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
     n_timepoints_ : int
         The length of each series.
@@ -95,9 +95,9 @@ class RandomIntervals(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.interval_based import RandomIntervals
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=8,
-    ...                           random_state=0)
+    ...                           return_y=False, random_state=0)
     >>> tnf = RandomIntervals(n_intervals=2, random_state=0)
     >>> tnf.fit(X)
     RandomIntervals(...)
@@ -134,7 +134,7 @@ class RandomIntervals(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(RandomIntervals, self).__init__()
+        super().__init__()
 
     transformer_feature_skip = ["transform_features_", "_transform_features"]
 
@@ -252,7 +252,7 @@ class RandomIntervals(BaseCollectionTransformer):
         self.intervals_ = []
         self._transform_features = None
 
-        self.n_instances_, self.n_dims_, self.n_timepoints_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._min_interval_length = self.min_interval_length
         if self.min_interval_length < 3:
@@ -311,7 +311,7 @@ class RandomIntervals(BaseCollectionTransformer):
     def _generate_interval(self, X, y, seed, transform):
         rng = check_random_state(seed)
 
-        dim = rng.randint(self.n_dims_)
+        dim = rng.randint(self.n_channels_)
 
         if rng.random() < 0.5:
             interval_start = (
@@ -351,7 +351,7 @@ class RandomIntervals(BaseCollectionTransformer):
         while interval_length / dilation < self._min_interval_length:
             dilation -= 1
 
-        Xt = np.empty((self.n_instances_, 0)) if transform else None
+        Xt = np.empty((self.n_cases_, 0)) if transform else None
         intervals = []
 
         for feature in self._features:

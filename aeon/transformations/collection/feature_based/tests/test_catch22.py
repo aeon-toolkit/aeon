@@ -11,7 +11,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 def test_catch22_on_basic_motions():
     """Test of Catch22 on basic motions data."""
-
     # the test currently fails when numba is disabled. See issue #622
     import os
 

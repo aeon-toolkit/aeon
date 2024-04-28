@@ -1,5 +1,6 @@
 """Extract calendar features from datetimeindex."""
-__author__ = ["danbartl", "KishManani"]
+
+__maintainer__ = []
 __all__ = ["DateTimeFeatures"]
 
 import warnings
@@ -38,7 +39,7 @@ class DateTimeFeatures(BaseTransformer):
 
     Parameters
     ----------
-    ts_freq : str, optional (default="day")
+    ts_freq : str, default="day"
         Restricts selection of items to those with a frequency lower than
         the frequency of the time series given by ts_freq.
         E.g. if monthly data is provided and ts_freq = ("M"), it does not make
@@ -60,14 +61,14 @@ class DateTimeFeatures(BaseTransformer):
         * T - minute
         * S - second
         * L - millisecond
-    feature_scope: str, optional (default="minimal")
+    feature_scope: str, default="minimal"
         Specify how many calendar features you want to be returned.
         E.g., rarely used features like week of quarter will only be returned
         with feature_scope =  "comprehensive".
         * "minimal"
         * "efficient"
         * "comprehensive"
-    manual_selection: str, optional (default=None)
+    manual_selection: str, default=None
         Manual selection of dummys. Notation is child of parent for precise notation.
         Will ignore specified feature_scope, but will still check with warning against
         a specified ts_freq.
@@ -121,7 +122,7 @@ class DateTimeFeatures(BaseTransformer):
             "pd_multiindex_hier",
         ],
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": True,
         "transform-returns-same-time-index": True,
         "enforce_index_type": [pd.DatetimeIndex, pd.PeriodIndex],
@@ -142,7 +143,7 @@ class DateTimeFeatures(BaseTransformer):
         self.dummies = _prep_dummies(_RAW_DUMMIES)
         self.keep_original_columns = keep_original_columns
 
-        super(DateTimeFeatures, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -337,9 +338,9 @@ def _prep_dummies(DUMMIES):
     DUMMIES["fourier"] = DUMMIES["child"] + "_in_" + DUMMIES["parent"]
     DUMMIES["dummy"] = DUMMIES["child"] + "_of_" + DUMMIES["parent"]
     DUMMIES.loc[DUMMIES["dummy"] == "year_of_year", "dummy"] = "year"
-    DUMMIES.loc[
-        DUMMIES["dummy_func"] == "is_weekend", ["dummy", "fourier"]
-    ] = "is_weekend"
+    DUMMIES.loc[DUMMIES["dummy_func"] == "is_weekend", ["dummy", "fourier"]] = (
+        "is_weekend"
+    )
 
     DUMMIES["child"] = (
         DUMMIES["child"].astype("category").cat.reorder_categories(date_order)

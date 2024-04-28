@@ -1,6 +1,6 @@
 """Tests for DummySimilaritySearch."""
 
-__author__ = ["baraline"]
+__maintainer__ = []
 
 
 import numpy as np
@@ -14,6 +14,7 @@ DATATYPES = ["int64", "float64"]
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_DummySimilaritySearch(dtype):
+    """Test the functionality of DummySimilaritySearch."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )

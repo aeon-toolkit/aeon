@@ -1,7 +1,8 @@
 """A transformer to compute the time elapsed since a reference time."""
+
 from __future__ import annotations
 
-__author__ = ["KishManani"]
+__maintainer__ = []
 
 import datetime
 import warnings
@@ -39,7 +40,7 @@ class TimeSince(BaseTransformer):
         * str: String is converted to datetime or period, depending on the index type, \
             to give the start time.
 
-    to_numeric : string, optional (default=True)
+    to_numeric : string, default=True
         Return the integer number of periods elapsed since `start`; the period
         is defined by the frequency of the data. Converts datetime types to
         pd.Period before calculating time differences.
@@ -108,7 +109,7 @@ class TimeSince(BaseTransformer):
         self.freq = freq
         self.keep_original_columns = keep_original_columns
         self.positive_only = positive_only
-        super(TimeSince, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.

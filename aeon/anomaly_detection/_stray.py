@@ -9,7 +9,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from aeon.transformations.base import BaseTransformer
 
-__author__ = ["KatieBuc"]
+__maintainer__ = []
 __all__ = ["STRAY"]
 
 
@@ -27,22 +27,22 @@ class STRAY(BaseTransformer):
 
     Parameters
     ----------
-    alpha : float, optional (default=0.01)
+    alpha : float, default=0.01
         Threshold for determining the cutoff for outliers. Observations are
         considered outliers if they fall in the (1 - alpha) tail of
         the distribution of the nearest-neighbor distances between exemplars.
-    k : int, optional (default=10)
+    k : int, default=10
         Number of neighbours considered.
     knn_algorithm : str {"auto", "ball_tree", "kd_tree", "brute"}, optional
         (default="brute")
         Algorithm used to compute the nearest neighbors, from
         sklearn.neighbors.NearestNeighbors
-    p : float, optional (default=0.5)
+    p : float, default=0.5
         Proportion of possible candidates for outliers. This defines the starting point
         for the bottom up searching algorithm.
-    size_threshold : int, optional (default=50)
+    size_threshold : int, default=50
         Sample size to calculate an emperical threshold.
-    outlier_tail : str {"min", "max"}, optional (default="max")
+    outlier_tail : str {"min", "max"}, default="max"
         Direction of the outlier tail.
 
     Attributes
@@ -98,7 +98,7 @@ class STRAY(BaseTransformer):
         self.p = p
         self.size_threshold = size_threshold
         self.outlier_tail = outlier_tail
-        super(STRAY, self).__init__()
+        super().__init__()
 
     def _find_threshold(self, outlier_score: npt.ArrayLike, n: int) -> npt.ArrayLike:
         """Find Outlier Threshold.

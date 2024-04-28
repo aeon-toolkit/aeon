@@ -1,5 +1,6 @@
 """Deep Learning Auto-Encoder using FCN Network."""
-__author__ = ["hadifawaz1999"]
+
+__maintainer__ = []
 __all__ = ["AEFCNClusterer"]
 
 import gc
@@ -11,7 +12,6 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEFCNNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class AEFCNClusterer(BaseDeepClusterer):
@@ -51,8 +51,13 @@ class AEFCNClusterer(BaseDeepClusterer):
         The number of samples per gradient update.
     use_mini_batch_size : bool, default = True,
         Whether or not to use the mini batch size formula.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose : boolean, default = False
         Whether to output extra information.
     loss : string, default="mean_squared_error"
@@ -103,12 +108,6 @@ class AEFCNClusterer(BaseDeepClusterer):
     AEFCNClusterer(...)
     """
 
-    _tags = {
-        "python_dependencies": "tensorflow",
-        "capability:multivariate": True,
-        "algorithm_type": "deeplearning",
-    }
-
     def __init__(
         self,
         n_clusters,
@@ -127,7 +126,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         n_epochs=2000,
         batch_size=32,
         use_mini_batch_size=False,
-        random_state=0,
+        random_state=None,
         verbose=False,
         loss="mse",
         optimizer="Adam",
@@ -138,19 +137,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         last_file_name="last_file",
         callbacks=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super(AEFCNClusterer, self).__init__(
-            n_clusters=n_clusters,
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
-            batch_size=batch_size,
-            last_file_name=last_file_name,
-        )
-        self.n_clusters = n_clusters
-        self.clustering_algorithm = clustering_algorithm
-        self.clustering_params = clustering_params
-        self.batch_size = batch_size
-        self.last_file_name = last_file_name
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
         self.n_layers = n_layers
@@ -173,6 +159,14 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.best_file_name = best_file_name
         self.random_state = random_state
 
+        super().__init__(
+            n_clusters=n_clusters,
+            clustering_algorithm=clustering_algorithm,
+            clustering_params=clustering_params,
+            batch_size=batch_size,
+            last_file_name=last_file_name,
+        )
+
         self._network = AEFCNNetwork(
             latent_space_dim=self.latent_space_dim,
             temporal_latent_space=self.temporal_latent_space,
@@ -184,7 +178,6 @@ class AEFCNClusterer(BaseDeepClusterer):
             padding=self.padding,
             activation=self.activation,
             use_bias=self.use_bias,
-            random_state=self.random_state,
         )
 
     def build_model(self, input_shape, **kwargs):
@@ -205,10 +198,12 @@ class AEFCNClusterer(BaseDeepClusterer):
         -------
         output : a compiled Keras Model.
         """
+        import numpy as np
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
-
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         encoder, decoder = self._network.build_network(input_shape, **kwargs)
 
         input_layer = tf.keras.layers.Input(input_shape, name="input layer")
@@ -233,7 +228,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (d), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases (n), n_channels (d), n_timepoints (m))
             The training input samples.
 
         Returns
@@ -244,8 +239,6 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        check_random_state(self.random_state)
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
@@ -268,7 +261,7 @@ class AEFCNClusterer(BaseDeepClusterer):
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -288,10 +281,10 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".hdf5")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 
@@ -335,6 +328,8 @@ class AEFCNClusterer(BaseDeepClusterer):
             "batch_size": 4,
             "use_bias": False,
             "n_layers": 1,
+            "n_filters": 5,
+            "kernel_size": 3,
             "padding": "same",
             "strides": 1,
             "clustering_params": {
@@ -345,6 +340,4 @@ class AEFCNClusterer(BaseDeepClusterer):
             },
         }
 
-        test_params = [param1]
-
-        return test_params
+        return [param1]

@@ -1,6 +1,6 @@
 """Implements forecaster for applying different univariates by column."""
 
-__author__ = ["GuzalBulatova", "mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = ["ColumnEnsembleForecaster"]
 
 import numpy as np
@@ -99,7 +99,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
 
     def __init__(self, forecasters):
         self.forecasters = forecasters
-        super(ColumnEnsembleForecaster, self).__init__(forecasters=forecasters)
+        super().__init__(forecasters=forecasters)
 
         # set requires-fh-in-fit depending on forecasters
         if isinstance(forecasters, BaseForecaster):
@@ -170,9 +170,9 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
         ----------
         y : pd.DataFrame
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
 
         Returns
@@ -259,10 +259,10 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -289,7 +289,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
@@ -330,7 +330,7 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -365,12 +365,12 @@ class ColumnEnsembleForecaster(_HeterogenousEnsembleForecaster):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             if True, computes covariance matrix forecast.
             if False, computes marginal variance forecasts.
 

@@ -1,6 +1,6 @@
 """Unit tests of EnsembleForecaster functionality."""
 
-__author__ = ["GuzalBulatova", "RNKuhns"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -10,7 +10,7 @@ from aeon.forecasting.compose import EnsembleForecaster
 from aeon.forecasting.compose._ensemble import VALID_AGG_FUNCS
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.testing.utils.forecasting import make_forecasting_problem
+from aeon.testing.utils.data_gen import make_forecasting_problem
 
 
 @pytest.mark.parametrize(

@@ -1,4 +1,5 @@
 """MiniRocketMultivariateVariable test code."""
+
 import numpy as np
 import pytest
 from sklearn.linear_model import RidgeClassifierCV
@@ -94,6 +95,7 @@ def test__np_list_transposed2D_array_and_len_list(data):
 
 
 def test__fit_dilations():
+    """Test for fitting the dilations."""
     dilations, features_per_dilation = _fit_dilations(32, 168, 6)
     assert np.array_equal(dilations, np.array([1, 3]))
     assert np.array_equal(features_per_dilation, np.array([1, 1]))
@@ -105,6 +107,7 @@ def test__fit_dilations():
 
 
 def test_wrong_input():
+    """Test for parsing a wrong input."""
     arr = np.random.random(size=(10, 1, 8))
     mini = MiniRocket()
     with pytest.raises(ValueError, match="n_timepoints must be >= 9"):

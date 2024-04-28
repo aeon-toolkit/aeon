@@ -1,6 +1,6 @@
 """Implements adaptor for applying Scikit-learn-like transformers to time series."""
 
-__author__ = ["mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = ["TabularToSeriesAdaptor"]
 
 import numpy as np
@@ -92,7 +92,7 @@ class TabularToSeriesAdaptor(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "np.ndarray",
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "transform-returns-same-time-index": True,
         "fit_is_empty": False,
     }
@@ -102,7 +102,7 @@ class TabularToSeriesAdaptor(BaseTransformer):
         self.transformer_ = clone(self.transformer)
         self.fit_in_transform = fit_in_transform
 
-        super(TabularToSeriesAdaptor, self).__init__()
+        super().__init__()
 
         if hasattr(transformer, "inverse_transform"):
             self.set_tags(**{"capability:inverse_transform": True})
@@ -267,7 +267,7 @@ class PandasTransformAdaptor(BaseTransformer):
         "instancewise": True,
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "transform-returns-same-time-index": False,
         "fit_is_empty": False,
         "capability:inverse_transform": False,
@@ -289,7 +289,7 @@ class PandasTransformAdaptor(BaseTransformer):
                 f'but found "{apply_to}"'
             )
 
-        super(PandasTransformAdaptor, self).__init__()
+        super().__init__()
 
         if apply_to in ["all", "all_subset"]:
             self.set_tags(**{"remember_data": True})

@@ -1,8 +1,8 @@
 """Tests for PCATransformer."""
 
-__author__ = ["aiwalter"]
+__maintainer__ = []
 
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import make_series
 from aeon.transformations.pca import PCATransformer
 from aeon.utils.validation._dependencies import _check_python_version
 
@@ -10,7 +10,7 @@ from aeon.utils.validation._dependencies import _check_python_version
 def test_pca():
     """Test PCA transformer."""
     if _check_python_version(PCATransformer, severity="none"):
-        X = _make_series(n_columns=3, return_numpy=False)
+        X = make_series(n_columns=3, return_numpy=False)
         transformer = PCATransformer(n_components=2)
         Xt = transformer.fit_transform(X)
         # test that the shape is correct

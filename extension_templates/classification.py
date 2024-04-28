@@ -30,6 +30,7 @@ Testing - implement if aeon classifier (not needed locally):
     get default parameters for test instance(s) - get_test_params()
 
 """
+
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
@@ -105,7 +106,7 @@ class MyTimeSeriesClassifier(BaseClassifier):
         self.param_c = param_c
 
         # todo: change "MyTimeSeriesClassifier" to the name of the class
-        super(MyTimeSeriesClassifier, self).__init__()
+        super().__init__()
 
     # todo: implement this abstract function
     def _fit(self, X, y):
@@ -120,8 +121,8 @@ class MyTimeSeriesClassifier(BaseClassifier):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_type")
             if self.get_tag("X_inner_type") = "numpy3D":
-                3D np.ndarray of shape = [n_instances, n_channels, series_length]
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
+                3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        y : 1D np.array of int, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -148,13 +149,13 @@ class MyTimeSeriesClassifier(BaseClassifier):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_type")
             if self.get_tag("X_inner_type") = "numpy3D":
-                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+                3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             if self.get_tag("X_inner_type") = "np-list":
-                list of 2D np.ndarray of shape = (n_instances,)
+                list of 2D np.ndarray of shape = (n_cases,)
 
         Returns
         -------
-        y : 1D np.array of int, of shape [n_instances] - predicted class labels
+        y : 1D np.array of int, of shape [n_cases] - predicted class labels
             indices correspond to instance indices in X
         """
 
@@ -177,13 +178,13 @@ class MyTimeSeriesClassifier(BaseClassifier):
         ----------
         X : guaranteed to be of a type in self.get_tag("X_inner_type")
             if self.get_tag("X_inner_type") = "numpy3D":
-                3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+                3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             if self.get_tag("X_inner_type") = "np-list":
-                list of 2D np.ndarray of shape = (n_instances,)
+                list of 2D np.ndarray of shape = (n_cases,)
 
         Returns
         -------
-        y : 2D array of shape [n_instances, n_classes] - predicted class probabilities
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
             1st dimension indices correspond to instance indices in X
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j

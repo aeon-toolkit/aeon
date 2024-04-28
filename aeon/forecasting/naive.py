@@ -1,16 +1,8 @@
 """Implements simple forecasts based on naive assumptions."""
 
+__maintainer__ = []
 __all__ = ["NaiveForecaster", "NaiveVariance"]
-__author__ = [
-    "mloning",
-    "piyush1729",
-    "sri1419",
-    "Flix6x",
-    "aiwalter",
-    "IlyasMoutawwakil",
-    "fkiraly",
-    "bethrice44",
-]
+
 
 import math
 from warnings import warn
@@ -19,11 +11,11 @@ import numpy as np
 import pandas as pd
 from scipy.stats import norm
 
-from aeon.datatypes._convert import convert, convert_to
-from aeon.datatypes._utilities import get_slice
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA, BaseForecaster
+from aeon.utils.conversion import convert_series
+from aeon.utils.index_functions import get_slice
 from aeon.utils.validation import check_window_length
 from aeon.utils.validation.forecasting import check_sp
 
@@ -114,7 +106,7 @@ class NaiveForecaster(_BaseWindowForecaster):
     }
 
     def __init__(self, strategy="last", window_length=None, sp=1):
-        super(NaiveForecaster, self).__init__()
+        super().__init__()
         self.strategy = strategy
         self.sp = sp
         self.window_length = window_length
@@ -326,10 +318,10 @@ class NaiveForecaster(_BaseWindowForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         """
-        y_pred = super(NaiveForecaster, self)._predict(fh=fh, X=X)
+        y_pred = super()._predict(fh=fh, X=X)
 
         # test_predict_time_index_in_sample_full[ForecastingPipeline-0-int-int-True]
         #   causes a pd.DataFrame to appear as y_pred, which upsets the next lines
@@ -355,9 +347,9 @@ class NaiveForecaster(_BaseWindowForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
-        alpha : float or list of float, optional (default=0.5)
+        alpha : float or list of float, default=0.5
             A probability or list of, at which quantile forecasts are computed.
 
         Returns
@@ -370,7 +362,8 @@ class NaiveForecaster(_BaseWindowForecaster):
                 at quantile probability in second-level col index, for each row index.
         """
         y_pred = self.predict(fh)
-        y_pred = convert(y_pred, from_type=self._y_mtype_last_seen, to_type="pd.Series")
+
+        y_pred = convert_series(y_pred, output_type="pd.Series")
 
         pred_var = self.predict_var(fh)
         z_scores = norm.ppf(alpha)
@@ -399,9 +392,9 @@ class NaiveForecaster(_BaseWindowForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             If True, return the covariance matrix.
             If False, return the marginal variance.
 
@@ -418,7 +411,7 @@ class NaiveForecaster(_BaseWindowForecaster):
         .. [1] https://otexts.com/fpp3/prediction-intervals.html#benchmark-methods
         """
         y = self._y
-        y = convert_to(y, "pd.Series")
+        y = convert_series(y, "pd.Series")
         T = len(y)
         sp = self.sp
 
@@ -486,9 +479,9 @@ class NaiveForecaster(_BaseWindowForecaster):
         # Formulas from:
         # https://otexts.com/fpp3/prediction-intervals.html (Table 5.2)
         partial_se_formulas = {
-            "last": lambda h: np.sqrt(h)
-            if sp == 1
-            else np.sqrt(np.floor((h - 1) / sp) + 1),
+            "last": lambda h: (
+                np.sqrt(h) if sp == 1 else np.sqrt(np.floor((h - 1) / sp) + 1)
+            ),
             "mean": lambda h: np.repeat(np.sqrt(1 + (1 / window_length)), len(h)),
             "drift": lambda h: np.sqrt(h * (1 + (h / (T - 1)))),
         }
@@ -594,7 +587,7 @@ class NaiveVariance(BaseForecaster):
         self.forecaster = forecaster
         self.initial_window = initial_window
         self.verbose = verbose
-        super(NaiveVariance, self).__init__()
+        super().__init__()
 
         tags_to_clone = [
             "requires-fh-in-fit",
@@ -643,9 +636,9 @@ class NaiveVariance(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        alpha : float or list of float, optional (default=0.5)
+        alpha : float or list of float, default=0.5
             A probability or list of, at which quantile forecasts are computed.
 
         Returns
@@ -658,7 +651,7 @@ class NaiveVariance(BaseForecaster):
                 at quantile probability in second-level col index, for each row index.
         """
         y_pred = self.predict(fh, X)
-        y_pred = convert(y_pred, from_type=self._y_mtype_last_seen, to_type="pd.Series")
+        y_pred = convert_series(y_pred, output_type="pd.Series")
         pred_var = self.predict_var(fh, X)
         pred_var = pred_var[pred_var.columns[0]]
         pred_var.index = y_pred.index
@@ -685,9 +678,9 @@ class NaiveVariance(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             If True, return the covariance matrix.
             If False, return the marginal variance.
 
@@ -761,7 +754,7 @@ class NaiveVariance(BaseForecaster):
             [i,j]-th entry is signed residual of forecasting y.loc[j] from y.loc[:i],
             using a clone of the forecaster passed through the forecaster arg
         """
-        y = convert_to(y, "pd.Series")
+        y = convert_series(y, "pd.Series")
 
         y_index = y.index[initial_window:]
         residuals_matrix = pd.DataFrame(columns=y_index, index=y_index, dtype="float")

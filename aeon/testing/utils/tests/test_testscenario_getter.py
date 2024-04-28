@@ -1,4 +1,6 @@
-__author__ = ["fkiraly"]
+"""Test suite for retrieving scenarios."""
+
+__maintainer__ = []
 __all__ = []
 
 import numpy as np

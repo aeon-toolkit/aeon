@@ -13,7 +13,7 @@ from aeon.performance_metrics.forecasting.probabilistic import (
     EmpiricalCoverage,
     PinballLoss,
 )
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import make_series
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -29,13 +29,13 @@ interval_metrics = [
 all_metrics = quantile_metrics + interval_metrics
 
 
-y_uni = _make_series(n_columns=1)
+y_uni = make_series(n_columns=1)
 y_train_uni, y_test_uni = temporal_train_test_split(y_uni)
 fh_uni = np.arange(len(y_test_uni)) + 1
 f_uni = NaiveVariance(NaiveForecaster())
 f_uni.fit(y_train_uni)
 
-y_multi = _make_series(n_columns=3)
+y_multi = make_series(n_columns=3)
 y_train_multi, y_test_multi = temporal_train_test_split(y_multi)
 fh_multi = np.arange(len(y_test_multi)) + 1
 f_multi = NaiveVariance(NaiveForecaster())

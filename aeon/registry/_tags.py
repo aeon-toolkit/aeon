@@ -40,7 +40,7 @@ check_tag_is_valid(tag_name, tag_value) - checks whether tag_value is valid for 
 
 """
 
-__author__ = ["fkiraly", "victordremov", "TonyBagnall"]
+__maintainer__ = []
 
 import pandas as pd
 
@@ -221,7 +221,15 @@ ESTIMATOR_TAG_REGISTER = [
             "segmenter",
         ],
         "bool",
-        "can the estimator classify time series with 2 or more variables?",
+        "can the estimator deal with series with two or more channels?",
+    ),
+    (
+        "capability:univariate",
+        [
+            "segmenter",
+        ],
+        "bool",
+        "can the estimator deal with single series input?",
     ),
     (
         "capability:unequal_length",

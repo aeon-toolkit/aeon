@@ -1,6 +1,6 @@
 """aeon window forecaster base class."""
 
-__author__ = ["@mloning", "@big-o", "fkiraly"]
+__maintainer__ = []
 __all__ = ["_BaseWindowForecaster"]
 
 import numpy as np
@@ -15,7 +15,7 @@ class _BaseWindowForecaster(BaseForecaster):
     """Base class for forecasters that use sliding windows."""
 
     def __init__(self, window_length=None):
-        super(_BaseWindowForecaster, self).__init__()
+        super().__init__()
         self.window_length = window_length
         self.window_length_ = None
 

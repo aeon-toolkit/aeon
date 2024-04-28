@@ -12,7 +12,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from aeon.transformations.base import BaseTransformer
 
-__author__ = ["KatieBuc"]
+__maintainer__ = []
 __all__ = ["DOBIN"]
 
 
@@ -91,7 +91,7 @@ class DOBIN(BaseTransformer):
     ):
         self.frac = frac
         self.k = k
-        super(DOBIN, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.

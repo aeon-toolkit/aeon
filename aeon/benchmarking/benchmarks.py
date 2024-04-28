@@ -2,6 +2,7 @@
 
 Wraps kotsu benchmarking package.
 """
+
 from typing import Callable, Optional, Union
 from warnings import warn
 
@@ -37,7 +38,7 @@ class BaseBenchmark:
         ----------
         estimator : BaseEstimator object
             Estimator to add to the benchmark.
-        estimator_id : str, optional (default=None)
+        estimator_id : str, default=None
             Identifier for estimator. If none given then uses estimator's class name.
 
         """

@@ -1,6 +1,6 @@
 """Implements FunctionTransformer, a class to create custom transformers."""
 
-__author__ = ["BoukePostma"]
+__maintainer__ = []
 __all__ = ["FunctionTransformer"]
 
 import numpy as np
@@ -102,7 +102,7 @@ class FunctionTransformer(BaseTransformer):
         self.kw_args = kw_args
         self.inv_kw_args = inv_kw_args
         self.X_type = X_type
-        super(FunctionTransformer, self).__init__()
+        super().__init__()
 
         if X_type is not None:
             self.set_tags(X_inner_type=X_type)

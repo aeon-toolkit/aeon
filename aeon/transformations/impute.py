@@ -1,6 +1,6 @@
 """Transformer to impute missing values in series."""
 
-__author__ = ["aiwalter"]
+__maintainer__ = []
 __all__ = ["Imputer"]
 
 
@@ -90,7 +90,7 @@ class Imputer(BaseTransformer):
         "capability:missing_values": True,
         "skip-inverse-transform": True,
         "capability:inverse_transform": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:missing_values:removes": True,
         "remember_data": False,
     }
@@ -109,7 +109,7 @@ class Imputer(BaseTransformer):
 
         self.forecaster = forecaster
         self.random_state = random_state
-        super(Imputer, self).__init__()
+        super().__init__()
 
         # these methods require self._X remembered in _fit and _update
         if method in ["drift", "forecaster", "random"]:
@@ -280,9 +280,11 @@ class Imputer(BaseTransformer):
                 # fill NaN before fitting with ffill and backfill (heuristic)
                 self._forecaster.fit(
                     y=self._X[col].ffill().bfill().fillna(self.value),
-                    X=self._y[col].ffill().bfill().fillna(self.value)
-                    if self._y is not None
-                    else None,
+                    X=(
+                        self._y[col].ffill().bfill().fillna(self.value)
+                        if self._y is not None
+                        else None
+                    ),
                 )
 
                 # replace missing values with predicted values

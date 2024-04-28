@@ -1,6 +1,6 @@
 """Clear sky transformer for solar time-series."""
 
-__author__ = ["ciaran-g"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -75,7 +75,7 @@ class ClearSky(BaseTransformer):
         "transform_labels": "None",
         "instancewise": True,  # is this an instance-wise transform?
         "capability:inverse_transform": True,  # can the transformer inverse transform?
-        "univariate-only": True,  # can the transformer handle multivariate X?
+        "capability:multivariate": False,  # can the transformer handle multivariate X?
         "X_inner_type": [
             "pd.Series",
         ],
@@ -113,7 +113,7 @@ class ClearSky(BaseTransformer):
         self.n_jobs = n_jobs
         self.backend = backend
 
-        super(ClearSky, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.

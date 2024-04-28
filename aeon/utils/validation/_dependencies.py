@@ -1,6 +1,6 @@
 """Utility to check soft dependency imports, and raise warnings or errors."""
 
-__author__ = ["fkiraly", "mloning"]
+__maintainer__ = ["TonyBagnall"]
 
 import io
 import sys
@@ -206,13 +206,11 @@ def _check_dl_dependencies(msg=None, severity="error"):
     """
     if not isinstance(msg, str):
         msg = (
-            "tensorflow and tensorflow-probability are required for "
-            "deep learning and probabilistic functionality in `aeon`. "
-            "To install these dependencies, run: `pip install aeon[dl]`"
+            "tensorflow is required for deep learning in `aeon`. "
+            "To install this dependency, run: `pip install aeon[dl]`"
         )
     try:
         import_module("tensorflow")
-        import_module("tensorflow_probability")
         return True
     except ModuleNotFoundError as e:
         if severity == "error":
@@ -272,7 +270,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
     # python sys version, e.g., "3.8.12"
     sys_version = sys.version.split(" ")[0]
 
-    if sys_version in est_specifier:
+    if est_specifier.contains(sys_version, prereleases=True):
         return True
     # now we know that est_version is not compatible with sys_version
 

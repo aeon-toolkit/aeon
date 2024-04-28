@@ -26,7 +26,7 @@ ValueError and TypeError, if requested conversion is not possible
                             (depending on conversion logic)
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["convert_dict"]
 
@@ -112,9 +112,9 @@ def convert_interval_to_quantiles(obj: pd.DataFrame, store=None) -> pd.DataFrame
     return convert_pred_interval_to_quantiles(y_pred=obj)
 
 
-convert_dict[
-    ("pred_interval", "pred_quantiles", "Proba")
-] = convert_interval_to_quantiles
+convert_dict[("pred_interval", "pred_quantiles", "Proba")] = (
+    convert_interval_to_quantiles
+)
 
 
 def convert_pred_quantiles_to_interval(y_pred, inplace=False):
@@ -173,6 +173,6 @@ def convert_quantiles_to_interval(obj: pd.DataFrame, store=None) -> pd.DataFrame
     return convert_pred_quantiles_to_interval(y_pred=obj)
 
 
-convert_dict[
-    ("pred_quantiles", "pred_interval", "Proba")
-] = convert_quantiles_to_interval
+convert_dict[("pred_quantiles", "pred_interval", "Proba")] = (
+    convert_quantiles_to_interval
+)

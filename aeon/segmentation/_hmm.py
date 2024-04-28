@@ -5,6 +5,7 @@ Implements a basic Hidden Markov Model (HMM) as a segmentor.
 To read more about the algorithm, check out the `HMM wikipedia page
 <https://en.wikipedia.org/wiki/Hidden_Markov_model>`_.
 """
+
 import warnings
 from typing import Tuple
 
@@ -13,7 +14,7 @@ from scipy.stats import norm
 
 from aeon.segmentation.base import BaseSegmenter
 
-__author__ = ["miraep8"]
+__maintainer__ = []
 __all__ = ["HMMSegmenter"]
 
 
@@ -113,7 +114,7 @@ class HMMSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.annotation.hmm import HMM
+    >>> from aeon.segmentation import HMMSegmenter
     >>> from scipy.stats import norm
     >>> from numpy import asarray
     >>> # define the emission probs for our HMM model:
@@ -121,7 +122,7 @@ class HMMSegmenter(BaseSegmenter):
     >>> sd = [.25 for i in centers]
     >>> emi_funcs = [(norm.pdf, {'loc': mean,
     ...  'scale': sd[ind]}) for ind, mean in enumerate(centers)]
-    >>> hmm = HMM(emi_funcs, asarray([[0.25,0.75], [0.666, 0.333]]))
+    >>> hmm = HMMSegmenter(emi_funcs, asarray([[0.25,0.75], [0.666, 0.333]]))
     >>> # generate synthetic data (or of course use your own!)
     >>> obs = asarray([3.7,3.2,3.4,3.6,-5.1,-5.2,-4.9])
     >>> hmm.fit_predict(obs)
@@ -143,7 +144,7 @@ class HMMSegmenter(BaseSegmenter):
         self.emission_funcs = emission_funcs
         self.transition_prob_mat = transition_prob_mat
         self._validate_init()
-        super(HMMSegmenter, self).__init__()
+        super().__init__()
 
     def _validate_init(self):
         """Verify the parameters passed to init.
@@ -362,6 +363,7 @@ class HMMSegmenter(BaseSegmenter):
         annotated_x : array-like, shape = [num_observations]
             Array of predicted class labels, same size as input.
         """
+        X = X.squeeze()
         self.num_states = len(self.emission_funcs)
         self.states = list(range(self.num_states))
         self.num_obs = len(X)

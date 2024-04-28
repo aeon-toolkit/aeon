@@ -1,13 +1,14 @@
 """Test extraction of features across (shifted) windows."""
-__author__ = ["danbartl"]
+
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline, load_longley
-from aeon.datatypes import get_examples
 from aeon.forecasting.model_selection import temporal_train_test_split
+from aeon.testing.utils.data_gen import get_examples
 from aeon.transformations.summarize import WindowSummarizer
 
 
@@ -26,9 +27,9 @@ def check_eval(test_input, expected):
 
 # Load data that will be the basis of tests
 y = load_airline()
-y_pd = get_examples(mtype="pd.DataFrame", as_scitype="Series")[0]
-y_series = get_examples(mtype="pd.Series", as_scitype="Series")[0]
-y_multi = get_examples(mtype="pd-multiindex", as_scitype="Panel")[0]
+y_pd = get_examples("pd.DataFrame")[0]
+y_series = get_examples("pd.Series")[0]
+y_multi = get_examples("pd-multiindex")[0]
 # y Train will be univariate data set
 y_train, y_test = temporal_train_test_split(y)
 

@@ -3,7 +3,7 @@
 Used in the forecasting module to test composites and pipelines.
 """
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 __all__ = ["MockForecaster", "MockUnivariateForecasterLogger"]
 
@@ -158,7 +158,7 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
 
     def __init__(self, prediction_constant: float = 10):
         self.prediction_constant = prediction_constant
-        super(MockUnivariateForecasterLogger, self).__init__()
+        super().__init__()
 
     @_method_logger
     def _fit(self, y, X=None, fh=None):
@@ -178,11 +178,11 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
@@ -207,10 +207,10 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -247,9 +247,9 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -276,7 +276,7 @@ class MockUnivariateForecasterLogger(BaseForecaster, _MockEstimatorMixin):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -337,7 +337,7 @@ class MockForecaster(BaseForecaster):
 
     def __init__(self, prediction_constant: float = 10):
         self.prediction_constant = prediction_constant
-        super(MockForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit forecaster to training data.
@@ -356,11 +356,11 @@ class MockForecaster(BaseForecaster):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
@@ -384,10 +384,10 @@ class MockForecaster(BaseForecaster):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -425,9 +425,9 @@ class MockForecaster(BaseForecaster):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -453,7 +453,7 @@ class MockForecaster(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.

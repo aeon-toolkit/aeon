@@ -1,4 +1,5 @@
 """Time Series Segmentation."""
+
 __all__ = [
     "BaseSegmenter",
     "ClaSPSegmenter",

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.segmentation import ClaSPSegmenter
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_series_with_profiles
 
@@ -20,7 +20,7 @@ def test_plot_series_with_profiles():
 
     matplotlib.use("Agg")
 
-    series = _make_series()
+    series = make_series()
     clasp = ClaSPSegmenter()
     clasp.fit_predict(series)
 

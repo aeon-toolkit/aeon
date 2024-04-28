@@ -1,6 +1,6 @@
 """Implements AutoARIMA model from statsforecast by Nixtla."""
 
-__author__ = ["FedericoGarza"]
+__maintainer__ = []
 __all__ = ["StatsForecastAutoARIMA"]
 
 
@@ -231,7 +231,7 @@ class StatsForecastAutoARIMA(_StatsForecastAdapter):
         self.blambda = blambda
         self.biasadj = biasadj
         self.parallel = parallel
-        super(StatsForecastAutoARIMA, self).__init__()
+        super().__init__()
 
     def _instantiate_model(self):
         # import inside method to avoid hard dependency

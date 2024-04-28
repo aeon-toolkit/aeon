@@ -18,7 +18,7 @@ State:
     fitted state flag       - check_is_fitted()
 """
 
-__author__ = ["satya-pattnaik ", "fkiraly"]
+__maintainer__ = []
 __all__ = ["BaseSeriesAnnotator"]
 
 from aeon.base import BaseEstimator
@@ -31,11 +31,11 @@ class BaseSeriesAnnotator(BaseEstimator):
 
     Parameters
     ----------
-    fmt : str {"dense", "sparse"}, optional (default="dense")
+    fmt : str {"dense", "sparse"}, default="dense"
         annotation output format:
         * If "sparse", a sub-series of labels for only the outliers in X is returned,
         * If "dense", a series of labels for all values in X is returned.
-    labels : str {"indicator", "score"}, optional (default="indicator")
+    labels : str {"indicator", "score"}, default="indicator"
         annotation output labels:
         * If "indicator", returned values are boolean, indicating whether a value is an
         outlier,
@@ -66,7 +66,7 @@ class BaseSeriesAnnotator(BaseEstimator):
         self._X = None
         self._Y = None
 
-        super(BaseSeriesAnnotator, self).__init__()
+        super().__init__()
 
     def fit(self, X, Y=None):
         """Fit to training data.
@@ -210,7 +210,7 @@ class BaseSeriesAnnotator(BaseEstimator):
         ----------
         X : pd.DataFrame, pd.Series or np.ndarray
             Data to be transformed
-        Y : pd.Series or np.ndarray, optional (default=None)
+        Y : pd.Series or np.ndarray, default=None
             Target values of data to be predicted.
 
         Returns

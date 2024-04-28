@@ -1,6 +1,6 @@
 """Tests for hierarchical reconcilers."""
 
-__author__ = ["ciaran-g"]
+__maintainer__ = []
 
 import numpy as np
 import pytest
@@ -9,7 +9,7 @@ from pandas.testing import assert_frame_equal
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.testing.test_config import PR_TESTING
-from aeon.testing.utils.hierarchical import _bottom_hier_datagen
+from aeon.testing.utils.data_gen import _bottom_hier_datagen
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.hierarchical.reconcile import Reconciler
 from aeon.utils.validation._dependencies import _check_soft_dependencies

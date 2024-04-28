@@ -1,4 +1,6 @@
-__author__ = ["fkiraly"]
+"""Making test scenarios."""
+
+__maintainer__ = []
 __all__ = []
 
 

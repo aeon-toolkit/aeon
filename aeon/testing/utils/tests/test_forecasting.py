@@ -1,10 +1,12 @@
-__author__ = ["mloning"]
+"""Test for making forecasting problems."""
+
+__maintainer__ = []
 __all__ = []
 
 import pandas as pd
 import pytest
 
-from aeon.testing.utils.forecasting import make_forecasting_problem
+from aeon.testing.utils.data_gen import make_forecasting_problem
 
 
 @pytest.mark.parametrize("n_timepoints", [3, 5])

@@ -5,7 +5,7 @@ For that purpose, inherit from this estimator and then override only the methods
     that are not delegated.
 """
 
-__author__ = ["miraep8"]
+__maintainer__ = []
 __all__ = ["_DelegatedTransformer"]
 
 from aeon.transformations.base import BaseTransformer
@@ -87,7 +87,7 @@ class _DelegatedTransformer(BaseTransformer):
 
         Explicitly, with examples:
             if `X` is `Series` (e.g., `pd.DataFrame`) and `transform-output` is `Series`
-                then the return is a single `Series` of the same mtype
+                then the return is a single `Series` of the same type
                 Example: detrending a single series
             if `X` is `Panel` (e.g., `pd-multiindex`) and `transform-output` is `Series`
                 then the return is `Panel` with same number of instances as `X`
@@ -124,7 +124,7 @@ class _DelegatedTransformer(BaseTransformer):
         Returns
         -------
         inverse transformed version of X
-            of the same type as X, and conforming to mtype format specifications
+            of the same type as X, and conforming to type format specifications
         """
         estimator = self._get_delegate()
         return estimator.inverse_transform(X=X, y=y)

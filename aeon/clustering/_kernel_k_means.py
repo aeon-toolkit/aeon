@@ -1,4 +1,5 @@
 """Time series kernel kmeans."""
+
 from typing import Dict, Union
 
 import numpy as np
@@ -43,7 +44,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         convergence.
     verbose: bool, default=False
         Verbosity mode.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         The number of jobs to run in parallel for GAK cross-similarity matrix
         computations.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
@@ -55,7 +56,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
     Attributes
     ----------
-    labels_: np.ndarray (1d array of shape (n_instance,))
+    labels_: np.ndarray (1d array of shape (n_case,))
         Labels that is the index each time series belongs to.
     inertia_: float
         Sum of squared distances of samples to their closest cluster center, weighted by
@@ -68,6 +69,19 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
         Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
         .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
+
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesKernelKMeans
+    >>> from aeon.datasets import load_basic_motions
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
+    >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
+    >>> # Example of KernelKMeans Clustering
+    >>> kkm = TimeSeriesKernelKMeans(n_clusters=3, kernel='rbf')  # doctest: +SKIP
+    >>> kkm.fit(X_train)  # doctest: +SKIP
+    TimeSeriesKernelKMeans(kernel='rbf', n_clusters=3)
+    >>> preds = kkm.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
@@ -103,15 +117,15 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         self._tslearn_kernel_k_means = None
 
-        super(TimeSeriesKernelKMeans, self).__init__(n_clusters=n_clusters)
+        super().__init__(n_clusters=n_clusters)
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
 
         Parameters
         ----------
-        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints)
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
@@ -150,14 +164,14 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         Parameters
         ----------
-        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints)
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns
         -------
-        np.ndarray (1d array of shape (n_instances,))
+        np.ndarray (1d array of shape (n_cases,))
             Index of the cluster each time series in X belongs to.
         """
         _X = X.swapaxes(1, 2)

@@ -1,6 +1,6 @@
 """Rocket transformer."""
 
-__author__ = ["angus924"]
+__maintainer__ = []
 __all__ = ["Rocket"]
 
 import numpy as np
@@ -14,13 +14,14 @@ class Rocket(BaseCollectionTransformer):
     """RandOm Convolutional KErnel Transform (ROCKET).
 
     A kernel (or convolution) is a subseries used to create features that can be used
-    in machine learning tasks. ROCKET [1]_  generates a large number of random
+    in machine learning tasks. ROCKET [1]_ generates a large number of random
     convolutional kernels in the fit method. The length and dilation of each kernel
-    are also randomly generated. The kernels are use in the transform stage to
+    are also randomly generated. The kernels are used in the transform stage to
     generate a new set of features. A kernel is used to create an activation map for
     each series by running it across a time series, including random length and
     dilation. It transforms the time series with two features per kernel. The first
-    feature is global max pooling and the second is proportion of positive values.
+    feature is global max pooling and the second is proportion of positive values
+    (or PPV).
 
 
     Parameters
@@ -30,9 +31,10 @@ class Rocket(BaseCollectionTransformer):
     normalise : bool, default True
        Whether or not to normalise the input time series per instance.
     n_jobs : int, default=1
-       The number of jobs to run in parallel for `transform`. ``-1`` means use all
+       The number of jobs to run in parallel for `transform`. ``-1`` means using all
        processors.
     random_state : None or int, optional, default = None
+        Seed for random number generation.
 
     See Also
     --------
@@ -66,12 +68,18 @@ class Rocket(BaseCollectionTransformer):
         "algorithm_type": "convolution",
     }
 
-    def __init__(self, num_kernels=10_000, normalise=True, n_jobs=1, random_state=None):
+    def __init__(
+        self,
+        num_kernels=10_000,
+        normalise=True,
+        n_jobs=1,
+        random_state=None,
+    ):
         self.num_kernels = num_kernels
         self.normalise = normalise
         self.n_jobs = n_jobs
         self.random_state = random_state
-        super(Rocket, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Generate random kernels adjusted to time series shape.
@@ -81,7 +89,7 @@ class Rocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_instances, n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
 
@@ -105,13 +113,13 @@ class Rocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        np.ndarray [n_instances, num_kernels], transformed features
+        np.ndarray [n_cases, num_kernels], transformed features
         """
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
@@ -289,14 +297,12 @@ def _apply_kernels(X, kernels):
         channel_indices,
     ) = kernels
 
-    n_instances, n_channels, _ = X.shape
+    n_cases, n_channels, _ = X.shape
     num_kernels = len(lengths)
 
-    _X = np.zeros(
-        (n_instances, num_kernels * 2), dtype=np.float32
-    )  # 2 features per kernel
+    _X = np.zeros((n_cases, num_kernels * 2), dtype=np.float32)  # 2 features per kernel
 
-    for i in prange(n_instances):
+    for i in prange(n_cases):
         a1 = 0  # for weights
         a2 = 0  # for channel_indices
         a3 = 0  # for features

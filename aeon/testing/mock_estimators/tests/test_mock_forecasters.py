@@ -1,6 +1,6 @@
 """Tests for Mock Forecasters."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 from copy import deepcopy
 
@@ -42,7 +42,7 @@ def test_mixin(base):
 
     class _DummyClass(base, _MockEstimatorMixin):
         def __init__(self):
-            super(_DummyClass, self).__init__()
+            super().__init__()
 
         def _fit(self):
             """Empty method, here for testing purposes."""
@@ -103,7 +103,7 @@ def test_method_logger():
 
     class _DummyClass(_MockEstimatorMixin):
         def __init__(self) -> None:
-            super(_DummyClass, self).__init__()
+            super().__init__()
 
         @_method_logger
         def _method1(self, positional_param, optional_param="test_optional"):

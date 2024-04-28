@@ -1,5 +1,6 @@
 """Tests the VAR model."""
-__author__ = ["thayeylolu", "AurumnPegasus"]
+
+__maintainer__ = []
 import numpy as np
 import pandas as pd
 import pytest

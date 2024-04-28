@@ -26,7 +26,7 @@ ValueError and TypeError, if requested conversion is not possible
                             (depending on conversion logic)
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["convert_dict"]
 
@@ -92,9 +92,9 @@ def convert_df_to_2Dnp_as_Table(obj: pd.DataFrame, store=None) -> np.ndarray:
     return obj.to_numpy()
 
 
-convert_dict[
-    ("pd_DataFrame_Table", "numpy_Table", "Table")
-] = convert_df_to_2Dnp_as_Table
+convert_dict[("pd_DataFrame_Table", "numpy_Table", "Table")] = (
+    convert_df_to_2Dnp_as_Table
+)
 
 
 def convert_df_to_1Dnp_as_Table(obj: pd.DataFrame, store=None) -> np.ndarray:
@@ -123,9 +123,9 @@ def convert_2Dnp_to_df_as_Table(obj: np.ndarray, store=None) -> pd.DataFrame:
     return res
 
 
-convert_dict[
-    ("numpy_Table", "pd_DataFrame_Table", "Table")
-] = convert_2Dnp_to_df_as_Table
+convert_dict[("numpy_Table", "pd_DataFrame_Table", "Table")] = (
+    convert_2Dnp_to_df_as_Table
+)
 
 
 def convert_1Dnp_to_df_as_Table(obj: np.ndarray, store=None) -> pd.DataFrame:
@@ -165,9 +165,9 @@ def convert_s_to_df_as_table(obj: pd.Series, store=None) -> pd.DataFrame:
     return res
 
 
-convert_dict[
-    ("pd_Series_Table", "pd_DataFrame_Table", "Table")
-] = convert_s_to_df_as_table
+convert_dict[("pd_Series_Table", "pd_DataFrame_Table", "Table")] = (
+    convert_s_to_df_as_table
+)
 
 
 def convert_df_to_s_as_table(obj: pd.DataFrame, store=None) -> pd.Series:
@@ -186,9 +186,9 @@ def convert_df_to_s_as_table(obj: pd.DataFrame, store=None) -> pd.Series:
     return y
 
 
-convert_dict[
-    ("pd_DataFrame_Table", "pd_Series_Table", "Table")
-] = convert_df_to_s_as_table
+convert_dict[("pd_DataFrame_Table", "pd_Series_Table", "Table")] = (
+    convert_df_to_s_as_table
+)
 
 
 def convert_list_of_dict_to_df_as_table(obj: list, store=None) -> pd.DataFrame:
@@ -210,9 +210,9 @@ def convert_list_of_dict_to_df_as_table(obj: list, store=None) -> pd.DataFrame:
     return res
 
 
-convert_dict[
-    ("list_of_dict", "pd_DataFrame_Table", "Table")
-] = convert_list_of_dict_to_df_as_table
+convert_dict[("list_of_dict", "pd_DataFrame_Table", "Table")] = (
+    convert_list_of_dict_to_df_as_table
+)
 
 
 def convert_df_to_list_of_dict_as_table(obj: pd.DataFrame, store=None) -> list:
@@ -227,9 +227,9 @@ def convert_df_to_list_of_dict_as_table(obj: pd.DataFrame, store=None) -> list:
     return ret_dict
 
 
-convert_dict[
-    ("pd_DataFrame_Table", "list_of_dict", "Table")
-] = convert_df_to_list_of_dict_as_table
+convert_dict[("pd_DataFrame_Table", "list_of_dict", "Table")] = (
+    convert_df_to_list_of_dict_as_table
+)
 
 
 _extend_conversions(

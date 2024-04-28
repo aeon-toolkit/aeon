@@ -5,8 +5,10 @@ The class can take callables or uses string references to utilise the numba base
 distances in aeon.distances.
 """
 
-__author__ = ["TonyBagnall", "GuiArcencio"]
+__maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
+
+from typing import List
 
 import numpy as np
 
@@ -69,12 +71,12 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     def __init__(
         self,
-        distance="dtw",
-        distance_params=None,
-        n_neighbors=1,
-        weights="uniform",
-        n_jobs=1,
-    ):
+        distance: str = "dtw",
+        distance_params: dict = None,
+        n_neighbors: int = 1,
+        weights: str = "uniform",
+        n_jobs: int = 1,
+    ) -> None:
         self.distance = distance
         self.distance_params = distance_params
         self.n_neighbors = n_neighbors
@@ -91,7 +93,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             )
         self.weights = weights
 
-        super(KNeighborsTimeSeriesClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the model using X as training data and y as target values.
@@ -204,8 +206,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         if self.weights == "distance":
             ws = distances[closest_idx]
-            ws = ws**2
-
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)
         elif self.weights == "uniform":
@@ -216,7 +216,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> List[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

@@ -26,7 +26,7 @@ ValueError and TypeError, if requested conversion is not possible
                             (depending on conversion logic)
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["convert_dict"]
 
@@ -185,9 +185,9 @@ if _check_soft_dependencies("xarray", severity="none"):
         columns = obj.indexes[obj.dims[1]] if len(obj.dims) == 2 else None
         return pd.DataFrame(obj.values, index=index, columns=columns)
 
-    convert_dict[
-        ("xr.DataArray", "pd.DataFrame", "Series")
-    ] = convert_xrdataarray_to_Mvs_as_Series
+    convert_dict[("xr.DataArray", "pd.DataFrame", "Series")] = (
+        convert_xrdataarray_to_Mvs_as_Series
+    )
 
     def convert_Mvs_to_xrdatarray_as_Series(
         obj: pd.DataFrame, store=None
@@ -202,9 +202,9 @@ if _check_soft_dependencies("xarray", severity="none"):
             )
         return result
 
-    convert_dict[
-        ("pd.DataFrame", "xr.DataArray", "Series")
-    ] = convert_Mvs_to_xrdatarray_as_Series
+    convert_dict[("pd.DataFrame", "xr.DataArray", "Series")] = (
+        convert_Mvs_to_xrdatarray_as_Series
+    )
 
     _extend_conversions(
         "xr.DataArray", "pd.DataFrame", convert_dict, mtype_universe=TYPE_LIST_SERIES
@@ -212,7 +212,7 @@ if _check_soft_dependencies("xarray", severity="none"):
 
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import (
+    from aeon.utils.conversion.dask_converters import (
         convert_dask_to_pandas,
         convert_pandas_to_dask,
     )
@@ -220,16 +220,16 @@ if _check_soft_dependencies("dask", severity="none"):
     def convert_dask_to_mvs_as_series(obj, store=None):
         return convert_dask_to_pandas(obj)
 
-    convert_dict[
-        ("dask_series", "pd.DataFrame", "Series")
-    ] = convert_dask_to_mvs_as_series
+    convert_dict[("dask_series", "pd.DataFrame", "Series")] = (
+        convert_dask_to_mvs_as_series
+    )
 
     def convert_mvs_to_dask_as_series(obj, store=None):
         return convert_pandas_to_dask(obj)
 
-    convert_dict[
-        ("pd.DataFrame", "dask_series", "Series")
-    ] = convert_mvs_to_dask_as_series
+    convert_dict[("pd.DataFrame", "dask_series", "Series")] = (
+        convert_mvs_to_dask_as_series
+    )
 
     _extend_conversions(
         "dask_series", "pd.DataFrame", convert_dict, mtype_universe=TYPE_LIST_SERIES

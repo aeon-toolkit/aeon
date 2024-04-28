@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeon"
-version = "0.6.0"
+version = "0.8.1"
 description = "A toolkit for conducting machine learning tasks with time series data"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
@@ -32,64 +32,73 @@ classifiers = [
     "Programming Language :: Python",
     "Topic :: Software Development",
     "Topic :: Scientific/Engineering",
+    "Development Status :: 5 - Production/Stable",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX",
     "Operating System :: Unix",
     "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.8,<3.12"
+requires-python = ">=3.8,<3.13"
 dependencies = [
-    "attrs>=19.2.0", # see #282
     "deprecated>=1.2.13",
-    "numba>=0.55",
+    "numba>=0.55,<0.60.0",
     "numpy>=1.21.0,<1.27.0",
     "packaging>=20.0",
     "pandas>=1.5.3,<2.3.0",
     "scikit-learn>=1.0.0,<1.5.0",
-    "scipy>=1.2.0,<2.0.0",
+    "scipy>=1.2.0,<1.13.0",
+    "typing-extensions>=4.6.0",
 ]
 
 [project.optional-dependencies]
 all_extras = [
     "cloudpickle",
-    "dask",
     "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
     "filterpy>=1.4.5",
+    "gluonts>=0.12.4",
     "h5py",
     "hmmlearn>=0.2.7",
-    "gluonts>=0.12.4",
+    "imbalanced-learn",
     "keras-self-attention",
     "kotsu>=0.3.1",
     "matplotlib>=3.3.2",
-    "mne",
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
+    "pydot>=2.0.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
     "statsforecast>=0.5.2",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow<2.16.0",
-    "tensorflow-probability",
+    "tensorflow>=2.12; python_version < '3.12' and python_version >= '3.9'",
+    "tensorflow-addons; python_version < '3.12' and python_version >= '3.9'",
+    "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
-    "mlflow<2.4.0", # see https://github.com/mlflow/mlflow/issues/8629
-    "imbalanced-learn",
+
+    # for some reason, a heirarchical dask test fails on some Python versions with the
+    # later versions of pyarrow and dask
+    "dask[dataframe]<2024.3.0; python_version < '3.11'",
+    "pyarrow<12; python_version < '3.12'",
+    "pyarrow-hotfix; python_version < '3.12'",
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow<2.16.0",
-    "tensorflow-probability",
+    "tensorflow>=2.12; python_version < '3.12' and python_version >= '3.9'",
+    "tensorflow-addons; python_version < '3.12' and python_version >= '3.9'",
 ]
 unstable_extras = [
+    "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
     "pycatch22<=0.4.3",  # known to fail installation on some setups
-    "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
+    "pyfftw>=0.12.0; python_version < '3.12'",  # requires fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
 ]
 dev = [
     "backoff",
@@ -99,19 +108,16 @@ dev = [
     "pytest-cov",
     "pytest-randomly",
     "pytest-timeout",
-    "pytest-xdist",
+    "pytest-xdist[psutil]",
     "pytest-rerunfailures",
     "wheel",
-    "boto3",  # mlflow related
-    "botocore",  # mlflow related
-    "moto",  # mlflow related
 ]
 binder = [
     "notebook",
     "jupyterlab",
 ]
 docs = [
-    "sphinx<8.0.0",
+    "sphinx<7.4.0",
     "sphinx-design",
     "sphinx-version-warning",
     "sphinx_issues",
@@ -163,6 +169,12 @@ ignore = [
     "docs/examples/**",
 ]
 
+[tool.ruff.lint]
+select = ["D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
 [tool.pytest.ini_options]
 # ignore certain folders and pytest warnings
 testpaths = "aeon"
@@ -171,7 +183,8 @@ addopts = '''
     --durations 20
     --timeout 600
     --showlocals
-    --numprocesses auto
+    --numprocesses logical
+    --dist worksteal
     --reruns 2
     --only-rerun "crashed while running"
 '''

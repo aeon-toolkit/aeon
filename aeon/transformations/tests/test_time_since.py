@@ -1,13 +1,13 @@
 """Tests for TimeSince transformer."""
 
-__author__ = ["KishManani"]
+__maintainer__ = []
 
 
 import pandas as pd
 import pytest
 from pandas.testing import assert_frame_equal
 
-from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.data_gen import _make_hierarchical
 from aeon.transformations.time_since import TimeSince
 
 
@@ -55,7 +55,7 @@ def df_period_monthly_idx():
 
 @pytest.fixture()
 def df_datetime_daily_idx_panel():
-    """Create panel data of two time series using pd-multiindex mtype."""
+    """Create pd-multiindex data."""
     return _make_hierarchical(hierarchy_levels=(2,), min_timepoints=3, max_timepoints=3)
 
 

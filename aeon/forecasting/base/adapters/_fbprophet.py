@@ -1,6 +1,6 @@
 """Implements adapter for Facebook prophet to be used in aeon framework."""
 
-__author__ = ["mloning", "aiwalter", "fkiraly"]
+__maintainer__ = []
 __all__ = ["_ProphetAdapter"]
 
 import os
@@ -56,9 +56,9 @@ class _ProphetAdapter(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -220,7 +220,7 @@ class _ProphetAdapter(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon, default = y.index (in-sample forecast)
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -344,7 +344,7 @@ def _merge_X(df, X):
     return df, X
 
 
-class _suppress_stdout_stderr(object):
+class _suppress_stdout_stderr:
     """Context manager for doing  a "deep suppression" of stdout and stderr.
 
     A context manager for doing a "deep suppression" of stdout and stderr in

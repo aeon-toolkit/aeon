@@ -8,13 +8,12 @@ from aeon.datatypes._series_as_panel import (
     convert_Panel_to_Series,
     convert_Series_to_Panel,
 )
-from aeon.testing.utils.collection import make_3d_test_data
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import make_example_3d_numpy, make_series
 
 
 def test_convert_numpy_series_to_collection():
     """Test output format of series-to-panel for numpy type input."""
-    X_series = _make_series(n_columns=2, return_numpy=True)
+    X_series = make_series(n_columns=2, return_numpy=True)
     n_time, n_var = X_series.shape
 
     X_collection = convert_Series_to_Panel(X_series)
@@ -26,7 +25,7 @@ def test_convert_numpy_series_to_collection():
 
 def test_convert_numpy_collection_to_series():
     """Test output format of panel-to-series for numpy type input."""
-    X_collection, _ = make_3d_test_data(n_cases=1, n_channels=2)
+    X_collection, _ = make_example_3d_numpy(n_cases=1, n_channels=2)
     _, n_var, n_time = X_collection.shape
 
     X_series = convert_Panel_to_Series(X_collection)
@@ -38,7 +37,7 @@ def test_convert_numpy_collection_to_series():
 
 def test_convert_df_series_to_collection():
     """Test output format of series-to-panel for dataframe type input."""
-    X_series = _make_series(n_columns=2, return_numpy=False)
+    X_series = make_series(n_columns=2, return_numpy=False)
     X_collection = convert_Series_to_Panel(X_series)
 
     assert isinstance(X_collection, list)
@@ -48,7 +47,7 @@ def test_convert_df_series_to_collection():
 
 def test_convert_df_collection_to_series():
     """Test output format of collection-to-series for dataframe type input."""
-    X_collection, _ = make_3d_test_data(n_cases=1, n_channels=2, n_labels=1)
+    X_collection, _ = make_example_3d_numpy(n_cases=1, n_channels=2, n_labels=1)
     X_collection = from_3d_numpy_to_multi_index(X_collection)
     X_series = convert_Panel_to_Series(X_collection)
 

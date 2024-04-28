@@ -3,7 +3,7 @@
 Contains TestScenario concrete children to run in tests for transformers.
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["scenarios_transformers"]
 
@@ -13,15 +13,18 @@ from inspect import isclass
 
 import numpy as np
 import pandas as pd
+from sklearn.utils import check_random_state
 
 from aeon.base import BaseObject
-from aeon.datatypes import mtype_to_scitype
-from aeon.testing.utils.collection import _make_classification_y, _make_collection_X
-from aeon.testing.utils.estimator_checks import _make_primitives, _make_tabular_X
-from aeon.testing.utils.forecasting import _make_series
-from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.data_gen import (
+    _make_classification_y,
+    _make_collection_X,
+    _make_hierarchical,
+    make_series,
+)
 from aeon.testing.utils.scenarios import TestScenario
 from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.utils.validation import abstract_types
 
 # random seed for generating data to keep scenarios exactly reproducible
 RAND_SEED = 42
@@ -29,6 +32,24 @@ RAND_SEED2 = 84
 
 # typical length of time series
 N_T = 10
+
+
+def _make_primitives(n_columns=1, random_state=None):
+    """Generate one or more primitives, for checking inverse-transform."""
+    rng = check_random_state(random_state)
+    if n_columns == 1:
+        return rng.rand()
+    return rng.rand(size=(n_columns,))
+
+
+def _make_tabular_X(n_cases=20, n_columns=1, return_numpy=True, random_state=None):
+    """Generate tabular X, for checking inverse-transform."""
+    rng = check_random_state(random_state)
+    X = rng.rand(n_cases, n_columns)
+    if return_numpy:
+        return X
+    else:
+        return pd.DataFrame(X)
 
 
 def _is_child_of(obj, class_or_tuple):
@@ -88,9 +109,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
 
         # the case that we would need to vectorize with y, skip
         X_inner_type = get_tag(obj, "X_inner_type")
-        X_inner_abstract_types = mtype_to_scitype(
-            X_inner_type, return_unique=True, coerce_to_list=True
-        )
+        X_inner_abstract_types = abstract_types(X_inner_type)
         # we require vectorization from of a Series trafo to Panel data ...
         if X_type == "Panel" and "Panel" not in X_inner_abstract_types:
             # ... but y is passed and y is not ignored internally ...
@@ -101,9 +120,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
         # ensure scenario y matches type of inner y
         y_inner_type = get_tag(obj, "y_inner_type")
         if y_inner_type not in [None, "None"]:
-            y_inner_abstract_types = mtype_to_scitype(
-                y_inner_type, return_unique=True, coerce_to_list=True
-            )
+            y_inner_abstract_types = abstract_types(y_inner_type)
             if y_type not in y_inner_abstract_types:
                 return False
 
@@ -159,13 +176,13 @@ class TransformerTestScenario(TestScenario, BaseObject):
             if s2p:
                 args = {"X": _make_primitives(random_state=RAND_SEED)}
             elif s2s:
-                args = {"X": _make_series(n_timepoints=N_T, random_state=RAND_SEED)}
+                args = {"X": make_series(n_timepoints=N_T, random_state=RAND_SEED)}
             elif p2t:
-                args = {"X": _make_tabular_X(n_instances=7, random_state=RAND_SEED)}
+                args = {"X": _make_tabular_X(n_cases=7, nrandom_state=RAND_SEED)}
             elif p2p:
                 args = {
                     "X": _make_collection_X(
-                        n_instances=7, n_timepoints=N_T, random_state=RAND_SEED
+                        n_cases=7, n_timepoints=N_T, random_state=RAND_SEED
                     )
                 }
             else:
@@ -184,9 +201,9 @@ class TransformerTestScenario(TestScenario, BaseObject):
         return args
 
 
-X_series = _make_series(n_timepoints=N_T, random_state=RAND_SEED)
+X_series = make_series(n_timepoints=N_T, random_state=RAND_SEED)
 X_panel = _make_collection_X(
-    n_instances=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
+    n_cases=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
 )
 
 
@@ -202,9 +219,9 @@ class TransformerFitTransformSeriesUnivariate(TransformerTestScenario):
     }
 
     args = {
-        "fit": {"X": _make_series(n_timepoints=N_T + 1, random_state=RAND_SEED)},
-        "transform": {"X": _make_series(n_timepoints=N_T + 1, random_state=RAND_SEED2)},
-        # "inverse_transform": {"X": _make_series(n_timepoints=N_T)},
+        "fit": {"X": make_series(n_timepoints=N_T + 1, random_state=RAND_SEED)},
+        "transform": {"X": make_series(n_timepoints=N_T + 1, random_state=RAND_SEED2)},
+        # "inverse_transform": {"X": make_series(n_timepoints=N_T)},
     }
     default_method_sequence = ["fit", "transform"]
 
@@ -221,10 +238,10 @@ class TransformerFitTransformSeriesMultivariate(TransformerTestScenario):
 
     args = {
         "fit": {
-            "X": _make_series(n_columns=2, n_timepoints=N_T, random_state=RAND_SEED),
+            "X": make_series(n_columns=2, n_timepoints=N_T, random_state=RAND_SEED),
         },
         "transform": {
-            "X": _make_series(n_columns=2, n_timepoints=N_T, random_state=RAND_SEED)
+            "X": make_series(n_columns=2, n_timepoints=N_T, random_state=RAND_SEED)
         },
     }
     default_method_sequence = ["fit", "transform"]
@@ -243,20 +260,20 @@ class TransformerFitTransformSeriesUnivariateWithY(TransformerTestScenario):
 
     args = {
         "fit": {
-            "X": _make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
-            "y": _make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
+            "X": make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
+            "y": make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
         },
         "transform": {
-            "X": _make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
-            "y": _make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
+            "X": make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
+            "y": make_series(n_columns=1, n_timepoints=N_T, random_state=RAND_SEED),
         },
     }
     default_method_sequence = ["fit", "transform"]
 
 
-y3 = _make_classification_y(n_instances=9, n_classes=3)
+y3 = _make_classification_y(n_cases=9, n_classes=3)
 X_np = _make_collection_X(
-    n_instances=9,
+    n_cases=9,
     n_channels=1,
     n_timepoints=N_T,
     all_positive=True,
@@ -264,7 +281,7 @@ X_np = _make_collection_X(
     random_state=RAND_SEED,
 )
 X_test_np = _make_collection_X(
-    n_instances=9,
+    n_cases=9,
     n_channels=1,
     n_timepoints=N_T,
     all_positive=True,
@@ -306,12 +323,12 @@ class TransformerFitTransformPanelUnivariate(TransformerTestScenario):
     args = {
         "fit": {
             "X": _make_collection_X(
-                n_instances=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
+                n_cases=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
             )
         },
         "transform": {
             "X": _make_collection_X(
-                n_instances=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
+                n_cases=7, n_channels=1, n_timepoints=N_T, random_state=RAND_SEED
             )
         },
     }
@@ -331,12 +348,12 @@ class TransformerFitTransformPanelMultivariate(TransformerTestScenario):
     args = {
         "fit": {
             "X": _make_collection_X(
-                n_instances=7, n_channels=2, n_timepoints=N_T, random_state=RAND_SEED
+                n_cases=7, n_channels=2, n_timepoints=N_T, random_state=RAND_SEED
             )
         },
         "transform": {
             "X": _make_collection_X(
-                n_instances=7, n_channels=2, n_timepoints=N_T, random_state=RAND_SEED
+                n_cases=7, n_channels=2, n_timepoints=N_T, random_state=RAND_SEED
             )
         },
     }
@@ -357,23 +374,23 @@ class TransformerFitTransformPanelUnivariateWithClassY(TransformerTestScenario):
     args = {
         "fit": {
             "X": _make_collection_X(
-                n_instances=7,
+                n_cases=7,
                 n_channels=1,
                 n_timepoints=N_T + 1,
                 all_positive=True,
                 random_state=RAND_SEED,
             ),
-            "y": _make_classification_y(n_instances=7, n_classes=2),
+            "y": _make_classification_y(n_cases=7, n_classes=2),
         },
         "transform": {
             "X": _make_collection_X(
-                n_instances=7,
+                n_cases=7,
                 n_channels=1,
                 n_timepoints=N_T + 1,
                 all_positive=True,
                 random_state=RAND_SEED,
             ),
-            "y": _make_classification_y(n_instances=7, n_classes=2),
+            "y": _make_classification_y(n_cases=7, n_classes=2),
         },
     }
     default_method_sequence = ["fit", "transform"]
@@ -392,11 +409,11 @@ class TransformerFitTransformPanelUnivariateWithClassYOnlyFit(TransformerTestSce
 
     args = {
         "fit": {
-            "X": _make_collection_X(n_instances=7, n_channels=1, n_timepoints=N_T),
-            "y": _make_classification_y(n_instances=7, n_classes=2),
+            "X": _make_collection_X(n_cases=7, n_channels=1, n_timepoints=N_T),
+            "y": _make_classification_y(n_cases=7, n_classes=2),
         },
         "transform": {
-            "X": _make_collection_X(n_instances=7, n_channels=1, n_timepoints=N_T)
+            "X": _make_collection_X(n_cases=7, n_channels=1, n_timepoints=N_T)
         },
     }
     default_method_sequence = ["fit", "transform"]

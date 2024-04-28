@@ -1,12 +1,12 @@
 """Unit tests of FitInTransform functionality."""
 
-__author__ = ["aiwalter"]
+__maintainer__ = []
 __all__ = []
 
 from pandas.testing import assert_series_equal
 
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.testing.utils.forecasting import make_forecasting_problem
+from aeon.testing.utils.data_gen import make_forecasting_problem
 from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import FitInTransform
 

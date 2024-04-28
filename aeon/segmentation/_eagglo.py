@@ -9,7 +9,7 @@ from numba import njit
 
 from aeon.segmentation.base import BaseSegmenter
 
-__author__ = ["KatieBuc", "patrickzib"]
+__maintainer__ = []
 __all__ = ["EAggloSegmenter"]
 
 
@@ -72,7 +72,7 @@ class EAggloSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.annotation.datagen import piecewise_normal_multivariate
+    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> from aeon.segmentation import EAggloSegmenter
     >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
     ... random_state = 10)
@@ -82,7 +82,7 @@ class EAggloSegmenter(BaseSegmenter):
     """
 
     _tags = {
-        "X_inner_type": "DataFrame",  # One of VALID_INNER_TYPES
+        "X_inner_type": "pd.DataFrame",  # One of VALID_INNER_TYPES
         "capability:multivariate": True,
         "fit_is_empty": False,
         "returns_dense": False,
@@ -97,7 +97,7 @@ class EAggloSegmenter(BaseSegmenter):
         self.member = member
         self.alpha = alpha
         self.penalty = penalty
-        super(EAggloSegmenter, self).__init__(axis=0, n_segments=None)
+        super().__init__(axis=0, n_segments=None)
 
     def _fit(self, X, y=None):
         """Find optimally clustered segments.

@@ -1,18 +1,17 @@
 """Function to compute and plot critical difference diagrams."""
 
-__author__ = ["SveaMeyer13", "dguijo", "TonyBagnall"]
+__maintainer__ = []
 
 __all__ = [
     "plot_critical_difference",
 ]
 
 import math
-import warnings
 
 import numpy as np
-from scipy.stats import distributions, find_repeats, rankdata, wilcoxon
+from scipy.stats import rankdata
 
-from aeon.benchmarking.utils import get_qalpha
+from aeon.performance_metrics.stats import check_friedman, nemenyi_test, wilcoxon_test
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -121,11 +120,11 @@ def plot_critical_difference(
 
     Returns
     -------
-        fig : matplotlib.figure
-            Figure created.
-        p_values : np.ndarray (optional)
-            if return_p_values is True, returns a (n_estimators, n_estimators) matrix of
-            unadjusted p values for the pairwise Wilcoxon sign rank test.
+    fig : matplotlib.figure.Figure
+    ax : matplotlib.axes.Axes
+    p_values : np.ndarray (optional)
+        if return_p_values is True, returns a (n_estimators, n_estimators) matrix of
+        unadjusted p values for the pairwise Wilcoxon sign rank test.
 
     References
     ----------
@@ -156,16 +155,22 @@ def plot_critical_difference(
 
     import matplotlib.pyplot as plt
 
+    if isinstance(scores, list):
+        scores = np.array(scores)
+
     n_datasets, n_estimators = scores.shape
     if isinstance(test, str):
         test = test.lower()
     if isinstance(correction, str):
         correction = correction.lower()
-    if return_p_values and test == "nemenyi":
+
+    p_values = None
+    if return_p_values and test != "wilcoxon":
         raise ValueError(
-            "Cannot return p values for the Nemenyi test, since it does "
+            f"Cannot return p values for the {test}, since it does "
             "not calculate p-values."
         )
+
     # Step 1: rank data: in case of ties average ranks are assigned
     if lower_better:  # low is good -> rank 1
         ranks = rankdata(scores, axis=1)
@@ -176,7 +181,8 @@ def plot_critical_difference(
     ordered_avg_ranks = ranks.mean(axis=0)
     # Sort labels and ranks
     ordered_labels_ranks = np.array(
-        [(l, float(r)) for r, l in sorted(zip(ordered_avg_ranks, labels))], dtype=object
+        [(labels, float(r)) for r, labels in sorted(zip(ordered_avg_ranks, labels))],
+        dtype=object,
     )
     ordered_labels = np.array([la for la, _ in ordered_labels_ranks], dtype=str)
     ordered_avg_ranks = np.array([r for _, r in ordered_labels_ranks], dtype=np.float32)
@@ -193,11 +199,12 @@ def plot_critical_difference(
     else:
         colours = ["#000000"] * len(ordered_labels)
     # Step 3 : check whether Friedman test is significant
-    p_value_friedman = _check_friedman(ranks)
+    p_value_friedman = check_friedman(ranks)
     # Step 4: If Friedman test is significant find cliques
     if p_value_friedman < alpha:
         if test == "nemenyi":
-            cliques = _nemenyi_test(ordered_avg_ranks, n_datasets, alpha)
+            cliques = nemenyi_test(ordered_avg_ranks, n_datasets, alpha)
+            cliques = _build_cliques(cliques)
         elif test == "wilcoxon":
             if correction == "bonferroni":
                 adjusted_alpha = alpha / (n_estimators * (n_estimators - 1) / 2)
@@ -207,7 +214,7 @@ def plot_critical_difference(
                 adjusted_alpha = alpha
             else:
                 raise ValueError("correction available are None, Bonferroni and Holm.")
-            p_values = _wilcoxon_test(ordered_scores, ordered_labels, lower_better)
+            p_values = wilcoxon_test(ordered_scores, ordered_labels, lower_better)
             cliques = _build_cliques(p_values > adjusted_alpha)
         else:
             raise ValueError("tests available are only nemenyi and wilcoxon.")
@@ -430,7 +437,6 @@ def plot_critical_difference(
     start = cline + 0.2
     side = -0.02 if reverse else 0.02
     height = 0.1
-    i = 1
     for clq in cliques:
         positions = np.where(np.array(clq) == 1)[0]
         min_idx = np.array(positions).min()
@@ -443,129 +449,11 @@ def plot_critical_difference(
             linewidth=linewidth_sign,
         )
         start += height
+
     if return_p_values:
-        return fig, p_values
+        return fig, ax, p_values
     else:
-        return fig
-
-
-def _check_friedman(ranks):
-    """
-    Check whether Friedman test is significant.
-
-    Parameters
-    ----------
-    ranks : np.array
-      Rank of estimators on datasets, shape (n_estimators, n_datasets).
-
-    Returns
-    -------
-    float
-      p-value of the test.
-    """
-    n_datasets, n_estimators = ranks.shape
-
-    if n_estimators < 3:
-        raise ValueError(
-            "At least 3 sets of measurements must be given for Friedmann test, "
-            f"got {n_estimators}."
-        )
-
-    # calculate c to correct chisq for ties:
-    ties = 0
-    for i in range(n_datasets):
-        replist, repnum = find_repeats(ranks[i])
-        for t in repnum:
-            ties += t * (t * t - 1)
-    c = 1 - ties / (n_estimators * (n_estimators * n_estimators - 1) * n_datasets)
-
-    ssbn = np.sum(ranks.sum(axis=0) ** 2)
-    chisq = (
-        12.0 / (n_estimators * n_datasets * (n_estimators + 1)) * ssbn
-        - 3 * n_datasets * (n_estimators + 1)
-    ) / c
-    p_value = distributions.chi2.sf(chisq, n_estimators - 1)
-    return p_value
-
-
-def _nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
-    """
-    Find cliques using post hoc Nemenyi test.
-
-    Parameters
-    ----------
-    ordered_avg_ranks : np.array
-        Average ranks of estimators.
-    n_datasets : int
-        Mumber of datasets.
-    alpha : float
-        alpha level for Nemenyi test.
-
-    Returns
-    -------
-    list of lists
-        List of cliques. A clique is a group of estimators within which there is no
-        significant difference.
-    """
-    n_estimators = len(ordered_avg_ranks)
-    qalpha = get_qalpha(alpha)
-    # calculate critical difference with Nemenyi
-    cd = qalpha[n_estimators] * np.sqrt(
-        n_estimators * (n_estimators + 1) / (6 * n_datasets)
-    )
-    # compute statistically similar cliques
-    cliques = np.tile(ordered_avg_ranks, (n_estimators, 1)) - np.tile(
-        np.vstack(ordered_avg_ranks.T), (1, n_estimators)
-    )
-    cliques[cliques < 0] = np.inf
-    cliques = cliques < cd
-
-    cliques = _build_cliques(cliques)
-
-    return cliques
-
-
-def _wilcoxon_test(results, labels, lower_better=False):
-    """
-    Perform Wilcoxon test.
-
-    Parameters
-    ----------
-    results: np.array
-      results of estimators on datasets
-
-    lower_better : bool, default = False
-        Indicates whether smaller is better for the results in scores. For example,
-        if errors are passed instead of accuracies, set ``lower_better`` to ``True``.
-
-    Returns
-    -------
-    np.array
-        p-values of Wilcoxon sign rank test.
-    """
-    n_estimators = results.shape[1]
-
-    p_values = np.eye(n_estimators)
-
-    for i in range(n_estimators - 1):
-        for j in range(i + 1, n_estimators):
-            # if the difference is zero, the p-value is 1
-            if np.all(results[:, i] == results[:, j]):
-                p_values[i, j] = 1
-                # raise warning
-                warnings.warn(
-                    f"Estimators {labels[i]} and {labels[j]} have the same performance"
-                    "on all datasets. This may cause problems when forming cliques.",
-                    stacklevel=2,
-                )
-            else:
-                p_values[i, j] = wilcoxon(
-                    results[:, i],
-                    results[:, j],
-                    zero_method="wilcox",
-                    alternative="less" if lower_better else "greater",
-                )[1]
-    return p_values
+        return fig, ax
 
 
 def _build_cliques(pairwise_matrix):

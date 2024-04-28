@@ -1,4 +1,5 @@
 """Tests for time series k-medoids."""
+
 import numpy as np
 from sklearn import metrics
 from sklearn.utils import check_random_state
@@ -217,6 +218,7 @@ def _get_model_centres(data, distance, method="pam", distance_params=None):
 
 
 def test_custom_distance_params():
+    """Test kmedoids custom distance parameters."""
     X_train, y_train = load_basic_motions(split="train")
 
     num_test_values = 10

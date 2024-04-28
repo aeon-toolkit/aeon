@@ -1,6 +1,6 @@
 """Configurable time series ensembles."""
 
-__author__ = ["mloning", "AyushmaanSeth", "fkiraly"]
+__maintainer__ = []
 __all__ = ["WeightedEnsembleClassifier"]
 
 
@@ -32,9 +32,8 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
     Parameters
     ----------
-    classifiers : dict or None, default=None
-        Parameters for the ShapeletTransformClassifier module. If None, uses the
-        default parameters with a 2 hour transform contract.
+    classifiers : list of tuples (str, classifier) of aeon classifiers
+        Classifiers to apply to the input series.
     weights : float, or iterable of float, optional, default=None
         if float, ensemble weight for classifier i will be train score to this power
         if iterable of float, must be equal length as classifiers
@@ -138,7 +137,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         else:
             self._metric = metric
 
-        super(WeightedEnsembleClassifier, self).__init__()
+        super().__init__()
 
         # set property tags based on tags of components
         ests = self.classifiers_
@@ -158,8 +157,8 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        y : 1D np.array of int, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -203,12 +202,12 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         dists = np.zeros((X.shape[0], self.n_classes_))

@@ -1,6 +1,6 @@
 """Tests for naive Euclidean distance profile."""
 
-__author__ = ["baraline"]
+__maintainer__ = []
 
 import numpy as np
 import pytest
@@ -20,6 +20,7 @@ DISTANCES = ["euclidean", "dtw", "lcss"]
 @pytest.mark.parametrize("dtype", DATATYPES)
 @pytest.mark.parametrize("distance_str", DISTANCES)
 def test_naive_distance(dtype, distance_str):
+    """Test naive distance."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -43,6 +44,7 @@ def test_naive_distance(dtype, distance_str):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_naive_euclidean_constant_case(dtype):
+    """Test naive distance profile calculation."""
     # Test constant case
     X = np.ones((2, 1, 10), dtype=dtype)
     q = np.zeros((1, 3), dtype=dtype)
@@ -56,6 +58,7 @@ def test_naive_euclidean_constant_case(dtype):
 
 
 def test_non_alteration_of_inputs_naive_euclidean():
+    """Test if input is altered during naive distance profile."""
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
     X_copy = np.copy(X)
     q = np.asarray([[3, 4, 5]])
@@ -70,6 +73,7 @@ def test_non_alteration_of_inputs_naive_euclidean():
 @pytest.mark.parametrize("dtype", DATATYPES)
 @pytest.mark.parametrize("distance_str", DISTANCES)
 def test_normalized_naive_distance(dtype, distance_str):
+    """Test normalised naive distance."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -112,6 +116,7 @@ def test_normalized_naive_distance(dtype, distance_str):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_normalized_naive_euclidean_constant_case(dtype):
+    """Test normalised naive distance profile."""
     # Test constant case
     X = np.ones((2, 2, 10), dtype=dtype)
     q = np.zeros((2, 3), dtype=dtype)
@@ -139,6 +144,7 @@ def test_normalized_naive_euclidean_constant_case(dtype):
 
 
 def test_non_alteration_of_inputs_normalized_naive_euclidean():
+    """Test if input is altered during normalised naive distance profile."""
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
     X_copy = np.copy(X)
     q = np.asarray([[3, 4, 5]])

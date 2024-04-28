@@ -2,6 +2,7 @@
 
 Used in tests for the classifier base class.
 """
+
 import numpy as np
 
 from aeon.classification import BaseClassifier

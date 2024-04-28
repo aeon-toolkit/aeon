@@ -1,6 +1,6 @@
 """Utility to determine type identifier of estimator, based on base class type."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 from inspect import isclass
 
@@ -47,8 +47,16 @@ def get_identifiers(obj, force_single_identifier=True, coerce_to_list=False):
     if len(identifiers) > 1 and "estimator" in identifiers:
         identifiers = list(set(identifiers).difference(["estimator"]))
 
+    if len(identifiers) > 1 and "series-estimator" in identifiers:
+        identifiers = list(set(identifiers).difference(["series-estimator"]))
+    if len(identifiers) > 1 and "collection-estimator" in identifiers:
+        identifiers = list(set(identifiers).difference(["collection-estimator"]))
+    if len(identifiers) > 1 and "collection-estimator" in identifiers:
+        identifiers = list(set(identifiers).difference(["series-estimator"]))
     # remove transformer if collection-transformer is present
     if len(identifiers) > 1 and "collection-transformer" in identifiers:
+        identifiers = list(set(identifiers).difference(["transformer"]))
+    if len(identifiers) > 1 and "series-transformer" in identifiers:
         identifiers = list(set(identifiers).difference(["transformer"]))
 
     if force_single_identifier:

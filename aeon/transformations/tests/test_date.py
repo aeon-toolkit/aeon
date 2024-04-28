@@ -6,7 +6,7 @@ from pandas.testing import assert_frame_equal
 
 from aeon.datasets import load_airline, load_longley
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.testing.utils.hierarchical import _make_hierarchical
+from aeon.testing.utils.data_gen import _make_hierarchical
 from aeon.transformations.date import DateTimeFeatures
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
@@ -100,7 +100,7 @@ def df_datetime_daily_idx():
 
 @pytest.fixture()
 def df_panel():
-    """Create panel data of two time series using pd-multiindex mtype."""
+    """Create hierarchical data."""
     return _make_hierarchical(hierarchy_levels=(2,), min_timepoints=3, max_timepoints=3)
 
 

@@ -1,6 +1,6 @@
 """LITETime classifier."""
 
-__author__ = ["hadifawaz1999"]
+__maintainer__ = []
 __all__ = ["LITETimeClassifier"]
 
 import gc
@@ -14,7 +14,6 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import LITENetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class LITETimeClassifier(BaseClassifier):
@@ -28,7 +27,7 @@ class LITETimeClassifier(BaseClassifier):
         the number of LITE models used for the
         Ensemble in order to create
         LITETime.
-    nb_filters : int or list of int32, default = 32
+    n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
     kernel_size : int or list of int, default = 40
@@ -69,8 +68,13 @@ class LITETimeClassifier(BaseClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state : int, default = 0
-        seed to any needed random actions.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
     optimizer : keras optimizer, default = Adam
@@ -81,7 +85,7 @@ class LITETimeClassifier(BaseClassifier):
     Notes
     -----
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
+    tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
 
     Adapted from the implementation from Ismail-Fawaz et. al
@@ -109,7 +113,7 @@ class LITETimeClassifier(BaseClassifier):
     def __init__(
         self,
         n_classifiers=5,
-        nb_filters=32,
+        n_filters=32,
         kernel_size=40,
         strides=1,
         activation="relu",
@@ -132,7 +136,7 @@ class LITETimeClassifier(BaseClassifier):
 
         self.strides = strides
         self.activation = activation
-        self.nb_filters = nb_filters
+        self.n_filters = n_filters
 
         self.kernel_size = kernel_size
         self.batch_size = batch_size
@@ -155,17 +159,17 @@ class LITETimeClassifier(BaseClassifier):
 
         self.classifers_ = []
 
-        super(LITETimeClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the ensemble of IndividualLITEClassifier models.
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data class labels.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints)
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------
@@ -176,7 +180,7 @@ class LITETimeClassifier(BaseClassifier):
 
         for n in range(0, self.n_classifiers):
             cls = IndividualLITEClassifier(
-                nb_filters=self.nb_filters,
+                n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
@@ -204,12 +208,12 @@ class LITETimeClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances (n)), the predicted labels
+        Y : np.ndarray of shape = (n_cases (n)), the predicted labels
 
         """
         rng = check_random_state(self.random_state)
@@ -225,12 +229,12 @@ class LITETimeClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_instances (n), n_channels (c), n_timepoints (m))
+        X : np.ndarray of shape = (n_cases (n), n_channels (c), n_timepoints (m))
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances (n), n_classes (c)), the predicted probs
+        Y : np.ndarray of shape = (n_cases (n), n_classes (c)), the predicted probs
 
         """
         probs = np.zeros((X.shape[0], self.n_classes_))
@@ -281,7 +285,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-        nb_filters : int or list of int32, default = 32
+        n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
     kernel_size : int or list of int, default = 40
@@ -322,8 +326,13 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state : int, default = 0
-        seed to any needed random actions.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
     optimizer : keras optimizer, default = Adam
@@ -353,7 +362,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        nb_filters=32,
+        n_filters=32,
         kernel_size=40,
         strides=1,
         activation="relu",
@@ -372,15 +381,12 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         metrics=None,
         optimizer=None,
     ):
-        _check_soft_dependencies("tensorflow")
-        super(IndividualLITEClassifier, self).__init__(last_file_name=last_file_name)
         # predefined
-        self.nb_filters = nb_filters
+        self.n_filters = n_filters
         self.strides = strides
         self.activation = activation
 
         self.kernel_size = kernel_size
-        self.batch_size = batch_size
         self.n_epochs = n_epochs
 
         self.file_path = file_path
@@ -388,18 +394,22 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
 
         self.callbacks = callbacks
-        self.random_state = random_state
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
 
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+            last_file_name=last_file_name,
+        )
+
         self._network = LITENetwork(
-            nb_filters=self.nb_filters,
+            n_filters=self.n_filters,
             kernel_size=self.kernel_size,
             strides=self.strides,
             activation=self.activation,
@@ -421,8 +431,12 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(n_classes, activation="softmax")(
@@ -430,8 +444,6 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        tf.random.set_seed(self.random_state)
 
         if self.metrics is None:
             metrics = ["accuracy"]
@@ -456,11 +468,12 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        X : array-like of shape = (n_instances, n_channels, n_timepoints)
-            The training input samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-        y : array-like, shape = (n_instances)
-            The training data class labels.
+        X : np.ndarray
+            The training input samples of,
+            shape (n_cases, n_channels, n_timepoints).
+            If a 2D array-like is passed, n_channels is assumed to be 1.
+        y : np.ndarray
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------
@@ -495,7 +508,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -515,10 +528,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".hdf5")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 

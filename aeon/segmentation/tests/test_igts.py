@@ -48,7 +48,7 @@ def test_InformationGainSegmenter(multivariate_mean_shift):
     assert np.array_equal(
         pred,
         np.array(
-            [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3], dtype=np.int32
+            [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3], dtype=int
         ),
     )
     assert igts.change_points_ == [0, 5, 10, 15, 20]

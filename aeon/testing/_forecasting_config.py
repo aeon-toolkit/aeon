@@ -1,15 +1,17 @@
-__author__ = ["mloning"]
+"""Small testing config for Time Series Forecasting."""
+
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
 
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import make_series
 
 # We here define the parameter values for unit testing.
 TEST_CUTOFFS_INT_LIST = [[21], [3, 7]]
 TEST_CUTOFFS_INT_ARR = [np.array([21, 22]), np.array([3, 10])]
 # The following timestamps correspond
-# to the above integers for `_make_series(all_positive=True)`
+# to the above integers for `make_series(all_positive=True)`
 TEST_CUTOFFS_TIMESTAMP = [
     pd.to_datetime(["2000-01-23"]),
     pd.to_datetime(["2000-01-04", "2000-01-08"]),
@@ -67,7 +69,7 @@ TEST_FHS_TIMEDELTA = [*TEST_OOS_FHS_TIMEDELTA, *TEST_INS_FHS_TIMEDELTA]
 
 TEST_SPS = [3]
 TEST_ALPHAS = [0.1]
-TEST_YS = [_make_series(all_positive=True)]
+TEST_YS = [make_series(all_positive=True)]
 TEST_N_ITERS = [1]
 
 # We currently support the following combinations of index and forecasting horizon types

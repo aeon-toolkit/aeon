@@ -1,28 +1,29 @@
 """RandomSegmenter class, randomly segments a series."""
 
-
 import random
+
+import numpy as np
 
 from aeon.segmentation.base import BaseSegmenter
 
 
 class RandomSegmenter(BaseSegmenter):
-    """Dummy Segmenter.
+    """Random Segmenter.
 
     Randomly segments a time series.
     """
 
     _tags = {
-        "X_inner_type": "ndarray",
         "capability:missing_values": True,
         "capability:multivariate": True,
         "fit_is_empty": False,
+        "returns_dense": True,
     }
 
     def __init__(self, random_state=None, n_segments=2):
         self.random_state = random_state
         self.breakpoints_ = []
-        super(RandomSegmenter, self).__init__(n_segments=n_segments, axis=1)
+        super().__init__(n_segments=n_segments, axis=1)
 
     def _fit(self, X, y=None):
         """Fit the dummy segmenter.
@@ -30,7 +31,7 @@ class RandomSegmenter(BaseSegmenter):
         Parameters
         ----------
         X : 2D np.ndarray
-            Time series of shape `(n_channels, series_length)`
+            Time series of shape `(n_channels, n_timepoints)`
         y : np.ndarray or None, default = None
 
         Returns
@@ -48,4 +49,4 @@ class RandomSegmenter(BaseSegmenter):
 
     def _predict(self, X):
         """Generate breakpoints."""
-        return self.breakpoints_
+        return np.array(self.breakpoints_)

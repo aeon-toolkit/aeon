@@ -1,4 +1,5 @@
 """Time series kshapes."""
+
 from typing import Union
 
 import numpy as np
@@ -38,13 +39,26 @@ class TimeSeriesKShapes(BaseClusterer):
 
     Attributes
     ----------
-    labels_: np.ndarray (1d array of shape (n_instances,))
+    labels_: np.ndarray (1d array of shape (n_cases,))
         Labels that is the index each time series belongs to.
     inertia_: float
         Sum of squared distances of samples to their closest cluster centre, weighted by
         the sample weights if provided.
     n_iter_: int
         Number of iterations run.
+
+    Examples
+    --------
+    >>> from aeon.clustering import TimeSeriesKShapes
+    >>> from aeon.datasets import load_basic_motions
+    >>> # Load data
+    >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
+    >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
+    >>> # Example of KShapes clustering
+    >>> ks = TimeSeriesKShapes(n_clusters=3, random_state=1)  # doctest: +SKIP
+    >>> ks.fit(X_train)  # doctest: +SKIP
+    TimeSeriesKShapes(n_clusters=3, random_state=1)
+    >>> preds = ks.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
@@ -76,15 +90,15 @@ class TimeSeriesKShapes(BaseClusterer):
 
         self._tslearn_k_shapes = None
 
-        super(TimeSeriesKShapes, self).__init__(n_clusters=n_clusters)
+        super().__init__(n_clusters=n_clusters)
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
 
         Parameters
         ----------
-        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints)
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
@@ -119,14 +133,14 @@ class TimeSeriesKShapes(BaseClusterer):
 
         Parameters
         ----------
-        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints)
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns
         -------
-        np.ndarray (1d array of shape (n_instances,))
+        np.ndarray (1d array of shape (n_cases,))
             Index of the cluster each time series in X belongs to.
         """
         _X = X.swapaxes(1, 2)

@@ -1,6 +1,6 @@
 """Matrix profile transformer."""
 
-__author__ = ["Claudia Rincon Sanchez"]
+__maintainer__ = []
 
 import numpy as np
 
@@ -210,14 +210,14 @@ class MatrixProfile(BaseCollectionTransformer):
 
     def __init__(self, m=10):
         self.m = m  # subsequence length
-        super(MatrixProfile, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Return the matrix profile for each single time series of the dataset.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -228,6 +228,6 @@ class MatrixProfile(BaseCollectionTransformer):
         # Input checks
         import pandas as pd
 
-        n_instances = len(X)
-        Xt = pd.DataFrame([_stomp_self(X[i], self.m) for i in range(n_instances)])
+        n_cases = len(X)
+        Xt = pd.DataFrame([_stomp_self(X[i], self.m) for i in range(n_cases)])
         return Xt

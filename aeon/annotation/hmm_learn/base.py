@@ -13,7 +13,7 @@ import pandas as pd
 
 from aeon.annotation.base import BaseSeriesAnnotator
 
-__author__ = ["miraep8"]
+__maintainer__ = []
 __all__ = ["BaseHMMLearn"]
 
 
@@ -28,7 +28,7 @@ class BaseHMMLearn(BaseSeriesAnnotator):
     _hmm_estimator = None
 
     def __init__(self):
-        super(BaseHMMLearn, self).__init__()
+        super().__init__()
 
     @staticmethod
     def _fix_input(X):

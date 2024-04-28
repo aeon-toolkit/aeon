@@ -14,16 +14,19 @@ concurrency:
 
 jobs:
   pre-commit:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout main
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - uses: tj-actions/changed-files@v42.0.0
+      - name: Get changed files
+        uses: tj-actions/changed-files@v44.3.0
         id: changed-files
 
       - name: List changed files
@@ -31,18 +34,15 @@ jobs:
 
       - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
         name: Full pre-commit
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
       - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
         name: Local pre-commit
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
 
-      - name: Check for missing init files
-        run: build_tools/fail_on_missing_init_files.sh
-        shell: bash
-
       - if: ${{ failure() && github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
-        uses: pre-commit-ci/lite-action@v1.0.1
+        name: Push pre-commit fixes
+        uses: pre-commit-ci/lite-action@v1.0.2

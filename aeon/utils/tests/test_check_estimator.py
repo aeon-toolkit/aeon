@@ -1,14 +1,14 @@
 """Tests for check_estimator."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pytest
 
-from aeon.testing.mock_estimators import MockClassifier, MockForecaster
+from aeon.testing.estimator_checks import check_estimator
+from aeon.testing.mock_estimators import MockClassifier, MockSegmenter
 from aeon.transformations.exponent import ExponentTransformer
-from aeon.utils.estimator_checks import check_estimator
 
-EXAMPLE_CLASSES = [MockClassifier, MockForecaster]
+EXAMPLE_CLASSES = [MockClassifier, MockSegmenter]
 
 
 @pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)
@@ -53,6 +53,6 @@ def test_check_estimator_subset_tests():
         tests_to_run=tests_to_run,
         tests_to_exclude=tests_to_exclude,
     )
-    results_tests = set(x.split("[")[0] for x in results.keys())
+    results_tests = {x.split("[")[0] for x in results.keys()}
 
     assert results_tests == expected_tests

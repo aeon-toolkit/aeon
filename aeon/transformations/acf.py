@@ -4,7 +4,7 @@ Module :mod:`aeon.transformations` implements auto-correlation
 transformers.
 """
 
-__author__ = ["afzal442"]
+__maintainer__ = []
 __all__ = ["AutoCorrelationTransformer", "PartialAutoCorrelationTransformer"]
 
 import pandas as pd
@@ -71,7 +71,7 @@ class AutoCorrelationTransformer(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "pd.Series",
         "y_inner_type": "None",
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": True,
         "python_dependencies": "statsmodels",
     }
@@ -87,7 +87,7 @@ class AutoCorrelationTransformer(BaseTransformer):
         self.n_lags = n_lags
         self.fft = fft
         self.missing = missing
-        super(AutoCorrelationTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -203,7 +203,7 @@ class PartialAutoCorrelationTransformer(BaseTransformer):
         "instancewise": True,
         "X_inner_type": "pd.Series",
         "y_inner_type": "None",
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": True,
         "python_dependencies": "statsmodels",
     }
@@ -215,7 +215,7 @@ class PartialAutoCorrelationTransformer(BaseTransformer):
     ):
         self.n_lags = n_lags
         self.method = method
-        super(PartialAutoCorrelationTransformer, self).__init__()
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

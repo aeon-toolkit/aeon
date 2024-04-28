@@ -1,9 +1,7 @@
 """Implements reconciled forecasters for hierarchical data."""
 
+__maintainer__ = []
 __all__ = ["ReconcilerForecaster"]
-__author__ = [
-    "ciaran-g",
-]
 
 
 from warnings import warn
@@ -63,7 +61,7 @@ class ReconcilerForecaster(BaseForecaster):
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.reconcile import ReconcilerForecaster
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.testing.utils.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -108,7 +106,7 @@ class ReconcilerForecaster(BaseForecaster):
         self.forecaster = forecaster
         self.method = method
 
-        super(ReconcilerForecaster, self).__init__()
+        super().__init__()
 
     def _add_totals(self, y):
         """Add total levels to y, using Aggregate."""
@@ -123,7 +121,7 @@ class ReconcilerForecaster(BaseForecaster):
         ----------
         y : pd.DataFrame
             Time series to which to fit the forecaster.
-        fh : ForecastingHorizon or None, optional (default=None)
+        fh : ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
         X : pd.DataFrame, default=None
             Exogenous variables for the base forecaster
@@ -191,9 +189,9 @@ class ReconcilerForecaster(BaseForecaster):
 
         Parameters
         ----------
-        fh : ForecastingHorizon or None, optional (default=None)
+        fh : ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             Exogeneous time series for the forecast
 
         Returns
@@ -242,7 +240,7 @@ class ReconcilerForecaster(BaseForecaster):
             Time series to which to fit the forecaster.
         X : pd.DataFrame, default=None
             Exogenous variables based to the base forecaster
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -295,10 +293,10 @@ class ReconcilerForecaster(BaseForecaster):
 
         Parameters
         ----------
-        shrink:  bool, optional (default=False)
+        shrink:  bool, default=False
             Shrink the off diagonal elements of the sample covariance matrix.
             according to the method in [2]_
-        diag_only: bool, optional (default=False)
+        diag_only: bool, default=False
             Remove the off-diagonal elements of the sample covariance matrix.
 
         Returns
@@ -339,7 +337,7 @@ class ReconcilerForecaster(BaseForecaster):
             # higherorder var (only diags)
             resid_corseries = resid**2
             hovar_mat = (resid_corseries.transpose().dot(resid_corseries)) - scale_hovar
-            hovar_mat = (nobs / ((nobs - 1)) ** 3) * hovar_mat
+            hovar_mat = (nobs / (nobs - 1) ** 3) * hovar_mat
 
             # set diagonals to zero
             for i in resid.columns:

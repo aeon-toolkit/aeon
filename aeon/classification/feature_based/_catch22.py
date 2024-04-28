@@ -3,7 +3,7 @@
 Pipeline classifier using the Catch22 transformer and an estimator.
 """
 
-__author__ = ["MatthewMiddlehurst", "RavenRudi", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["Catch22Classifier"]
 
 import numpy as np
@@ -97,7 +97,7 @@ class Catch22Classifier(BaseClassifier):
     --------
     >>> from aeon.classification.feature_based import Catch22Classifier
     >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from aeon.datasets import make_example_3d_numpy
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = Catch22Classifier(
@@ -141,7 +141,7 @@ class Catch22Classifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        super(Catch22Classifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit Catch22Classifier to training data.
@@ -149,11 +149,11 @@ class Catch22Classifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+                of shape (n_cases, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
+                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
                 n_timepoints_i is length of series i
-        y : 1D np.array, of shape [n_instances] - class labels for fitting
+        y : 1D np.array, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -172,9 +172,11 @@ class Catch22Classifier(BaseClassifier):
         )
 
         self._estimator = _clone_estimator(
-            RandomForestClassifier(n_estimators=200)
-            if self.estimator is None
-            else self.estimator,
+            (
+                RandomForestClassifier(n_estimators=200)
+                if self.estimator is None
+                else self.estimator
+            ),
             self.random_state,
         )
 
@@ -193,14 +195,14 @@ class Catch22Classifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+                of shape (n_cases, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
+                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
                 n_timepoints_i is length of series i
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         return self._estimator.predict(self._transformer.transform(X))
@@ -211,14 +213,14 @@ class Catch22Classifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_instances, n_channels, n_timepoints)
+                of shape (n_cases, n_channels, n_timepoints)
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_instances], 2D np.array (n_channels, n_timepoints_i), where
+                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
                 n_timepoints_i is length of series i
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         m = getattr(self._estimator, "predict_proba", None)

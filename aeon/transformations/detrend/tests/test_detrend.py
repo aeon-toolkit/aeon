@@ -1,4 +1,5 @@
 """Test detrenders."""
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -8,7 +9,7 @@ from aeon.forecasting.tests.test_trend import get_expected_polynomial_coefs
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.transformations.detrend import Detrender
 
-__author__ = ["mloning", "KishManani"]
+__maintainer__ = []
 __all__ = []
 
 

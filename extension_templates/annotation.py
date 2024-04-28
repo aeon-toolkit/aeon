@@ -13,7 +13,7 @@ How to use this implementation template to implement a new estimator:
 - you can add more private methods, but do not override BaseEstimator's private methods
     an easy way to be safe is to prefix your methods with "_custom"
 - change docstrings for functions and the file
-- ensure interface compatibility by aeon.utils.estimator_checks.check_estimator
+- ensure interface compatibility by aeon.testing.estimator_checks.check_estimator
 - once complete: use as a local library, or contribute to aeon via PR
 - more details:
     https://www.aeon-toolkit.org/en/stable/developer_guide/add_estimators.html
@@ -41,11 +41,11 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
 
     Parameters
     ----------
-    fmt : str {"dense", "sparse"}, optional (default="dense")
+    fmt : str {"dense", "sparse"}, default="dense"
         annotation output format:
         * If "sparse", a sub-series of labels for only the outliers in X is returned,
         * If "dense", a series of labels for all values in X is returned.
-    labels : str {"indicator", "score"}, optional (default="indicator")
+    labels : str {"indicator", "score"}, default="indicator"
         annotation output labels:
         * If "indicator", returned values are boolean, indicating whether a value is an
         outlier,
@@ -53,9 +53,9 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
 
     parama : int
         descriptive explanation of parama
-    paramb : string, optional (default='default')
+    paramb : string, default='default'
         descriptive explanation of paramb
-    paramc : boolean, optional (default= whether paramb is not the default)
+    paramc : boolean, default= whether paramb is not the default
         descriptive explanation of paramc
     and so on
 
@@ -89,7 +89,7 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
         self.paramc = paramc
 
         # todo: change "MySeriesAnnotator" to the name of the class
-        super(MySeriesAnnotator, self).__init__(fmt=fmt, labels=labels)
+        super().__init__(fmt=fmt, labels=labels)
 
         # todo: optional, parameter checking logic (if applicable) should happen here
         # if writes derived values to self, should *not* overwrite self.parama etc
@@ -123,6 +123,7 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
             training data to fit model to, time series
         Y : pd.Series, optional
             ground truth annotations for training if annotator is supervised
+
         Returns
         -------
         self : returns a reference to self
@@ -167,6 +168,7 @@ class MySeriesAnnotator(BaseSeriesAnnotator):
             training data to update model with, time series
         Y : pd.Series, optional
             ground truth annotations for training if annotator is supervised
+
         Returns
         -------
         self : returns a reference to self

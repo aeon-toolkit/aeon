@@ -1,5 +1,6 @@
 """Tests the ARDL model."""
-__author__ = ["kcc-lion"]
+
+__maintainer__ = []
 
 import pytest
 from numpy.testing import assert_allclose

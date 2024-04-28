@@ -5,8 +5,8 @@ __all__ = [
 
 import numpy as np
 
+from aeon.utils.conversion import convert_collection
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.collection import convert_collection
 
 
 def plot_series_collection(X, y=None):

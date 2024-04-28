@@ -1,4 +1,5 @@
 """Unit tests for regressors deep learning base class functionality."""
+
 import gc
 import os
 import time
@@ -6,10 +7,10 @@ import time
 import pytest
 
 from aeon.regression.deep_learning.base import BaseDeepRegressor
-from aeon.testing.utils.collection import make_2d_test_data
+from aeon.testing.utils.data_gen import make_example_2d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-__author__ = ["achieveordie", "hadifawaz1999"]
+__maintainer__ = []
 
 
 class _DummyDeepRegressor(BaseDeepRegressor):
@@ -17,7 +18,7 @@ class _DummyDeepRegressor(BaseDeepRegressor):
 
     def __init__(self, last_file_name):
         self.last_file_name = last_file_name
-        super(_DummyDeepRegressor, self).__init__(last_file_name=last_file_name)
+        super().__init__(last_file_name=last_file_name)
 
     def build_model(self, input_shape):
         import tensorflow as tf
@@ -54,6 +55,7 @@ class _DummyDeepRegressor(BaseDeepRegressor):
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_regressor():
+    """Test for DummyRegressor."""
     last_file_name = str(time.time_ns())
 
     # create a dummy regressor
@@ -61,7 +63,7 @@ def test_dummy_deep_regressor():
 
     # generate random data
 
-    X, y = make_2d_test_data()
+    X, y = make_example_2d_numpy()
 
     # test fit function on random data
     dummy_deep_rg.fit(X=X, y=y)
@@ -70,7 +72,7 @@ def test_dummy_deep_regressor():
 
     dummy_deep_rg.save_last_model_to_file()
 
-    os.remove("./" + last_file_name + ".hdf5")
+    os.remove("./" + last_file_name + ".keras")
 
     # test summary of model
 

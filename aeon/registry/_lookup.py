@@ -10,16 +10,7 @@ all_tags(estimator_identifiers)
     lookup and filtering of estimator tags
 """
 
-__author__ = [
-    "fkiraly",
-    "mloning",
-    "katiebuc",
-    "miraep8",
-    "xloem",
-    "MatthewMiddlehurst",
-]
-# all_estimators is also based on the sklearn utility of the same name
-
+__maintainer__ = []
 
 import inspect
 import pkgutil
@@ -60,39 +51,41 @@ def all_estimators(
     Not included are: the base classes themselves, classes defined in test
     modules.
 
+    Based on the sklearn utility of the same name.
+
     Parameters
     ----------
-    estimator_types: str, list of str, optional (default=None)
+    estimator_types: str, list of str, default=None
         Which kind of estimators should be returned.
         if None, no filter is applied and all estimators are returned.
         if str or list of str, string identifiers define types specified in search
                 only estimators that are of (at least) one of the types are returned
             possible str values are entries of registry.BASE_CLASS_REGISTER (first col)
                 for instance 'classifier', 'regressor', 'transformer', 'forecaster'
-    return_names: bool, optional (default=True)
+    return_names: bool, default=True
         if True, estimator class name is included in the all_estimators()
             return in the order: name, estimator class, optional tags, either as
             a tuple or as pandas.DataFrame columns
         if False, estimator class name is removed from the all_estimators()
             return.
-    filter_tags: dict of (str or list of str), optional (default=None)
+    filter_tags: dict of (str or list of str), default=None
         For a list of valid tag strings, use the registry.all_tags utility.
         subsets the returned estimators as follows:
             each key/value pair is statement in "and"/conjunction
                 key is tag name to sub-set on
                 value str or list of string are tag values
                 condition is "key must be equal to value, or in set(value)"
-    exclude_estimators: str, list of str, optional (default=None)
+    exclude_estimators: str, list of str, default=None
         Names of estimators to exclude.
-    exclude_estimator_types: str, list of str, optional (default=None)
+    exclude_estimator_types: str, list of str, default=None
         Names of estimator types to exclude i.e. "collection_transformer" when you are
         looking for "transformer" classes
-    as_dataframe: bool, optional (default=False)
+    as_dataframe: bool, default=False
         if True, all_estimators will return a pandas.DataFrame with named
             columns for all of the attributes being returned.
         if False, all_estimators will return a list (either a list of
             estimators or a list of tuples, see Returns)
-    return_tags: str or list of str, optional (default=None)
+    return_tags: str or list of str, default=None
         Names of tags to fetch and return each estimator's value of.
         For a list of valid tag strings, use the registry.all_tags utility.
         if str or list of str,
@@ -146,7 +139,18 @@ def all_estimators(
     import sys
     import warnings
 
-    MODULES_TO_IGNORE = ("tests", "setup", "contrib", "benchmarking", "utils", "all")
+    MODULES_TO_IGNORE = (
+        "tests",
+        "setup",
+        "benchmarking",
+        "utils",
+        "all",
+        "testing",
+        "datasets",
+        "registry",
+        "datatypes",
+        "visualisation",
+    )
 
     all_est = []
     ROOT = str(Path(__file__).parent.parent)  # aeon package root directory
@@ -434,13 +438,13 @@ def all_tags(
 
     Parameters
     ----------
-    estimator_types: string, list of string, optional (default=None)
+    estimator_types: string, list of string, default=None
         Which kind of estimators should be returned.
         - If None, no filter is applied and all estimators are returned.
         - Possible values are 'classifier', 'regressor', 'transformer' and
         'forecaster' to get estimators only of these specific types, or a list of
         these to get the estimators that fit at least one of the types.
-    as_dataframe: bool, optional (default=False)
+    as_dataframe: bool, default=False
                 if False, return is as described below;
                 if True, return is converted into a pandas.DataFrame for pretty
                 display

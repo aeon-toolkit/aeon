@@ -1,6 +1,6 @@
 """Implements feature selection algorithms."""
 
-__author__ = ["aiwalter"]
+__maintainer__ = []
 __all__ = ["FeatureSelection"]
 
 import math
@@ -79,7 +79,7 @@ class FeatureSelection(BaseTransformer):
         "fit_is_empty": False,
         "transform-returns-same-time-index": True,
         "skip-inverse-transform": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
     }
 
     def __init__(
@@ -96,7 +96,7 @@ class FeatureSelection(BaseTransformer):
         self.random_state = random_state
         self.columns = columns
 
-        super(FeatureSelection, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.

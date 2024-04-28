@@ -1,5 +1,6 @@
 """Test YtoX."""
-__author__ = ["aiwalter", "fkiraly"]
+
+__maintainer__ = []
 
 from numpy.testing import assert_array_equal
 

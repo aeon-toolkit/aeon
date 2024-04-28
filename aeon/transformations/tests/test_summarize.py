@@ -1,12 +1,13 @@
 """Test functionality of summary transformer."""
-__author__ = ["RNKuhns"]
+
+__maintainer__ = []
 import re
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.testing.utils.series import _make_series
+from aeon.testing.utils.data_gen import make_series
 from aeon.transformations.summarize import ALLOWED_SUM_FUNCS, SummaryTransformer
 
 # Test individual summary functions + lists and tuples of all summary functions
@@ -25,8 +26,8 @@ incorrect_sum_funcs_to_test = [
 incorrect_quantiles_to_test = [25, "0.25", "median", [0.25, 1.25], [0.25, "median"]]
 
 # Test functionality on pd.Series and pd.DataFrame (uni- and multi-variate) input
-y1 = _make_series(n_timepoints=75)
-y2 = _make_series(n_timepoints=75)
+y1 = make_series(n_timepoints=75)
+y2 = make_series(n_timepoints=75)
 y1.name, y2.name = "y1", "y2"
 y_df_uni = pd.DataFrame(y1)
 y_df_multi = pd.concat([y1, y2], axis=1)

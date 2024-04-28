@@ -1,4 +1,5 @@
 """Signature based panel transformations."""
+
 __all__ = [
     "SignatureTransformer",
 ]

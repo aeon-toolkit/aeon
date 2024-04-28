@@ -1,3 +1,5 @@
+"""Tests for CLARANS."""
+
 import numpy as np
 from sklearn import metrics
 from sklearn.utils import check_random_state

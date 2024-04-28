@@ -4,7 +4,7 @@ Code based partially on NaiveVariance by ilyasmoutawwakil.
 """
 
 __all__ = ["ConformalIntervals"]
-__author__ = ["fkiraly", "bethrice44"]
+__maintainer__ = []
 
 from math import floor
 from warnings import warn
@@ -14,9 +14,9 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import clone
 
-from aeon.datatypes import convert, convert_to
-from aeon.datatypes._utilities import get_slice
 from aeon.forecasting.base import BaseForecaster
+from aeon.utils.conversion import convert_series
+from aeon.utils.index_functions import get_slice
 
 
 class ConformalIntervals(BaseForecaster):
@@ -53,7 +53,7 @@ class ConformalIntervals(BaseForecaster):
             Caveat: this does not give frequentist but conformal predictive intervals
         "conformal": as in Stankeviciute et al, but with H=1,
             i.e., no Bonferroni correction under number of indices in the horizon
-    initial_window : float, int or None, optional (default=max(10, 0.1*len(y)))
+    initial_window : float, int or None, default=max(10, 0.1*len(y))
         Defines the size of the initial training window
         If float, should be between 0.0 and 1.0 and represent the proportion
         of the dataset to include for the initial window for the train split.
@@ -126,7 +126,7 @@ class ConformalIntervals(BaseForecaster):
         self.n_jobs = n_jobs
         self.forecasters_ = []
 
-        super(ConformalIntervals, self).__init__()
+        super().__init__()
 
         tags_to_clone = [
             "requires-fh-in-fit",
@@ -188,7 +188,7 @@ class ConformalIntervals(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -249,7 +249,7 @@ class ConformalIntervals(BaseForecaster):
             pred_int.loc[fh_ind] = pred_int_row
 
         y_pred = self.predict(fh=fh, X=X)
-        y_pred = convert(y_pred, from_type=self._y_mtype_last_seen, to_type="pd.Series")
+        y_pred = convert_series(y_pred, output_type="pd.Series")
         y_pred.index = fh_absolute.to_pandas()
 
         for col in cols:
@@ -271,10 +271,10 @@ class ConformalIntervals(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        alpha : list of float, optional (default=[0.5])
+        alpha : list of float, default=[0.5]
             A list of probabilities at which quantile forecasts are computed.
 
         Returns
@@ -311,15 +311,13 @@ class ConformalIntervals(BaseForecaster):
             and (initial_window <= 0 or initial_window >= 1)
         ):
             raise ValueError(
-                "initial_window={0} should be either positive and smaller"
-                " than the number of samples {1} or a float in the "
+                "initial_window={} should be either positive and smaller"
+                " than the number of samples {} or a float in the "
                 "(0, 1) range".format(initial_window, n_samples)
             )
 
         if initial_window is not None and initial_window_type not in ("i", "f"):
-            raise ValueError(
-                "Invalid value for initial_window: {}".format(initial_window)
-            )
+            raise ValueError(f"Invalid value for initial_window: {initial_window}")
 
         if initial_window_type == "f":
             n_initial_window = int(floor(initial_window * n_samples))
@@ -341,7 +339,7 @@ class ConformalIntervals(BaseForecaster):
             aeon compatible exogeneous time series to use in forecasts
         forecaster : aeon compatible forecaster
             forecaster to use in computing the sliding residuals
-        initial_window : float, int or None, optional (default=max(10, 0.1*len(y)))
+        initial_window : float, int or None, default=max(10, 0.1*len(y))
             Defines the size of the initial training window
             If float, should be between 0.0 and 1.0 and represent the proportion
             of the dataset to include for the initial window for the train split.
@@ -355,6 +353,7 @@ class ConformalIntervals(BaseForecaster):
         update : bool
             Whether residuals_matrix has been calculated previously and just
             needs extending. Default = False
+
         Returns
         -------
         residuals_matrix : pd.DataFrame, row and column index = y.index[initial_window:]
@@ -363,7 +362,7 @@ class ConformalIntervals(BaseForecaster):
             if sample_frac is passed this will have NaN values for 1 - sample_frac
             fraction of the matrix
         """
-        y = convert_to(y, "pd.Series")
+        y = convert_series(y, "pd.Series")
 
         n_initial_window = self._parse_initial_window(y, initial_window=initial_window)
 
@@ -379,9 +378,9 @@ class ConformalIntervals(BaseForecaster):
                 overlapping_index = pd.Index(
                     self.residuals_matrix_.index.intersection(full_y_index)
                 ).sort_values()
-                residuals_matrix.loc[
-                    overlapping_index, overlapping_index
-                ] = self.residuals_matrix_.loc[overlapping_index, overlapping_index]
+                residuals_matrix.loc[overlapping_index, overlapping_index] = (
+                    self.residuals_matrix_.loc[overlapping_index, overlapping_index]
+                )
             else:
                 overlapping_index = None
             y_index = remaining_y_index

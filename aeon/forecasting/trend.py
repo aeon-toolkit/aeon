@@ -1,6 +1,6 @@
 """Implements trend based forecasters."""
 
-__author__ = ["tensorflow-as-tf", "mloning", "aiwalter", "fkiraly"]
+__maintainer__ = []
 __all__ = ["TrendForecaster", "PolynomialTrendForecaster", "STLForecaster"]
 
 import pandas as pd
@@ -67,7 +67,7 @@ class TrendForecaster(BaseForecaster):
     def __init__(self, regressor=None):
         # for default regressor, set fit_intercept=True
         self.regressor = regressor
-        super(TrendForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -78,7 +78,7 @@ class TrendForecaster(BaseForecaster):
             Target time series with which to fit the forecaster.
         X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -205,7 +205,7 @@ class PolynomialTrendForecaster(BaseForecaster):
         self.degree = degree
         self.with_intercept = with_intercept
         self.regressor_ = self.regressor
-        super(PolynomialTrendForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -464,7 +464,7 @@ class STLForecaster(BaseForecaster):
         self.forecaster_trend = forecaster_trend
         self.forecaster_seasonal = forecaster_seasonal
         self.forecaster_resid = forecaster_resid
-        super(STLForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit forecaster to training data.
@@ -473,9 +473,9 @@ class STLForecaster(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
+        fh : int, list, np.array or ForecastingHorizon, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
 
         Returns
         -------
@@ -533,7 +533,7 @@ class STLForecaster(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
                 Exogenous time series
 
         Returns
@@ -554,9 +554,9 @@ class STLForecaster(BaseForecaster):
         ----------
         y : pd.Series, pd.DataFrame, or np.array
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogeneous data
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns

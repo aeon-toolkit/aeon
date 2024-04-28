@@ -1,6 +1,6 @@
 """Implements grid search functionality to tune forecasters."""
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = ["ForecastingGridSearchCV", "ForecastingRandomizedSearchCV"]
 
 from collections.abc import Sequence
@@ -9,11 +9,11 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import ParameterGrid, ParameterSampler, check_cv
 
-from aeon.datatypes import mtype_to_scitype
 from aeon.exceptions import NotFittedError
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.forecasting.model_evaluation import evaluate
-from aeon.utils.validation.forecasting import check_scoring
+from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
+from aeon.utils.validation import abstract_types
 
 
 class BaseGridSearch(_DelegatedForecaster):
@@ -52,7 +52,7 @@ class BaseGridSearch(_DelegatedForecaster):
         self.return_n_best_forecasters = return_n_best_forecasters
         self.update_behaviour = update_behaviour
         self.error_score = error_score
-        super(BaseGridSearch, self).__init__()
+        super().__init__()
         tags_to_clone = [
             "requires-fh-in-fit",
             "capability:pred_int",
@@ -90,12 +90,12 @@ class BaseGridSearch(_DelegatedForecaster):
         tagval = self.get_tag(tagname)
         if not isinstance(tagval, list):
             tagval = [tagval]
-        scitypes = mtype_to_scitype(tagval, return_unique=True)
-        if "Series" not in scitypes:
+        abs_types = abstract_types(tagval)
+        if "Series" not in abs_types:
             tagval = tagval + ["pd.DataFrame"]
-        if "Panel" not in scitypes:
+        if "Panel" not in abs_types:
             tagval = tagval + ["pd-multiindex"]
-        if "Hierarchical" not in scitypes:
+        if "Hierarchical" not in abs_types:
             tagval = tagval + ["pd_multiindex_hier"]
         self.set_tags(**{tagname: tagval})
 
@@ -129,9 +129,9 @@ class BaseGridSearch(_DelegatedForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -139,9 +139,13 @@ class BaseGridSearch(_DelegatedForecaster):
         self : returns an instance of self.
         """
         cv = check_cv(self.cv)
-
-        scoring = check_scoring(self.scoring)
-        scoring_name = f"test_{scoring.name}"
+        if self.scoring is None:
+            scoring = mean_absolute_percentage_error
+        else:
+            scoring = self.scoring
+        if not callable(scoring):
+            raise TypeError("`scoring` must be a callable object")
+        scoring_name = f"test_{scoring.__name__}"
 
         def _fit_and_score(params):
             # Clone forecaster.
@@ -183,8 +187,8 @@ class BaseGridSearch(_DelegatedForecaster):
                 n_candidates = len(candidate_params)
                 n_splits = cv.get_n_splits(y)
                 print(  # noqa
-                    "Fitting {0} folds for each of {1} candidates,"
-                    " totalling {2} fits".format(
+                    "Fitting {} folds for each of {} candidates,"
+                    " totalling {} fits".format(
                         n_splits, n_candidates, n_candidates * n_splits
                     )
                 )
@@ -208,7 +212,7 @@ class BaseGridSearch(_DelegatedForecaster):
 
         # Rank results, according to whether greater is better for the given scoring.
         results[f"rank_{scoring_name}"] = results.loc[:, f"mean_{scoring_name}"].rank(
-            ascending=scoring.get_tag("lower_is_better")
+            ascending=True
         )
 
         self.cv_results_ = results
@@ -231,9 +235,7 @@ class BaseGridSearch(_DelegatedForecaster):
             self.best_forecaster_.fit(y, X, fh)
 
         # Sort values according to rank
-        results = results.sort_values(
-            by=f"rank_{scoring_name}", ascending=scoring.get_tag("lower_is_better")
-        )
+        results = results.sort_values(by=f"rank_{scoring_name}", ascending=True)
         # Select n best forecaster
         self.n_best_forecasters_ = []
         self.n_best_scores_ = []
@@ -264,10 +266,10 @@ class BaseGridSearch(_DelegatedForecaster):
             if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
             if self.get_tag("y_input_type")=="both": no restrictions apply
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -325,27 +327,27 @@ class ForecastingGridSearchCV(BaseGridSearch):
         "no_update" = neither tuning parameters nor inner estimator are updated
     param_grid : dict or list of dictionaries
         Model tuning parameters of the forecaster to evaluate
-    scoring: function, optional (default=None)
+    scoring: function, default=None
         Function to score models for evaluation of optimal parameters. If None,
-        then MeanAbsolutePercentageError() is used.
-    n_jobs: int, optional (default=None)
+        then mean_absolute_percentage_error is used.
+    n_jobs: int, default=None
         Number of jobs to run in parallel if backend either "loky",
         "multiprocessing" or "threading".
         None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.
-    refit: bool, optional (default=True)
+    refit: bool, default=True
         True = refit the forecaster with the best parameters on the entire data in fit
         False = best forecaster remains fitted on the last fold in cv
-    verbose: int, optional (default=0)
+    verbose: int, default=0
     return_n_best_forecasters: int, default=1
         In case the n best forecaster should be returned, this value can be set
         and the n best forecasters will be assigned to n_best_forecasters_
-    pre_dispatch: str, optional (default='2*n_jobs').
+    pre_dispatch: str, default='2*n_jobs'
         Controls the number of jobs that get dispatched during parallel execution when
         using the "loky", "threading", or "multiprocessing" backend.
-    error_score: numeric value or the str 'raise', optional (default=np.nan)
+    error_score: numeric value or the str 'raise', default=np.nan
         The test score returned when a forecaster fails to be fitted.
-    return_train_score: bool, optional (default=False)
+    return_train_score: bool, default=False
     backend : {"dask", "loky", "multiprocessing", "threading"}, by default "loky".
         Runs parallel evaluate if specified and `strategy` is set as "refit".
         - "loky", "multiprocessing" and "threading": uses `joblib` Parallel loops
@@ -354,7 +356,7 @@ class ForecastingGridSearchCV(BaseGridSearch):
         "threading" is unlikely to see speed ups due to the GIL and the serialization
         backend (`cloudpickle`) for "dask" and "loky" is generally more robust than the
         standard `pickle` library used in "multiprocessing".
-    pre_dispatch: str, optional (default='2*n_jobs').
+    pre_dispatch: str, default='2*n_jobs'
         Controls the number of jobs that get dispatched during parallel execution when
         using the "loky", "threading", or "multiprocessing" backend.
     error_score : "raise" or numeric, default=np.nan
@@ -464,7 +466,7 @@ class ForecastingGridSearchCV(BaseGridSearch):
         update_behaviour="full_refit",
         error_score=np.nan,
     ):
-        super(ForecastingGridSearchCV, self).__init__(
+        super().__init__(
             forecaster=forecaster,
             scoring=scoring,
             n_jobs=n_jobs,
@@ -492,15 +494,15 @@ class ForecastingGridSearchCV(BaseGridSearch):
 
                 if isinstance(v, str) or not isinstance(v, (np.ndarray, Sequence)):
                     raise ValueError(
-                        "Parameter grid for parameter ({0}) needs to"
-                        " be a list or numpy array, but got ({1})."
+                        "Parameter grid for parameter ({}) needs to"
+                        " be a list or numpy array, but got ({})."
                         " Single values need to be wrapped in a list"
                         " with one element.".format(name, type(v))
                     )
 
                 if len(v) == 0:
                     raise ValueError(
-                        "Parameter values for parameter ({0}) need "
+                        "Parameter values for parameter ({}) need "
                         "to be a non-empty sequence.".format(name)
                     )
 
@@ -526,19 +528,19 @@ class ForecastingGridSearchCV(BaseGridSearch):
         from aeon.forecasting.model_selection._split import SingleWindowSplitter
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.forecasting.trend import PolynomialTrendForecaster
-        from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
+        from aeon.performance_metrics.forecasting import mean_absolute_error
 
         params = {
             "forecaster": NaiveForecaster(strategy="mean"),
             "cv": SingleWindowSplitter(fh=1),
             "param_grid": {"window_length": [2, 5]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
+            "scoring": mean_absolute_error,
         }
         params2 = {
             "forecaster": PolynomialTrendForecaster(),
             "cv": SingleWindowSplitter(fh=1),
             "param_grid": {"degree": [1, 2]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
+            "scoring": mean_absolute_error,
             "update_behaviour": "inner_only",
         }
         return [params, params2]
@@ -587,22 +589,22 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
     n_iter : int, default=10
         Number of parameter settings that are sampled. n_iter trades
         off runtime vs quality of the solution.
-    scoring: function, optional (default=None)
+    scoring: function, default=None
         Function to score models for evaluation of optimal parameters. If None,
-        then MeanAbsolutePercentageError() is used.
-    n_jobs: int, optional (default=None)
+        then mean_absolute_percentage_error is used.
+    n_jobs: int, default=None
         Number of jobs to run in parallel if backend either "loky",
         "multiprocessing" or "threading".
         None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.
-    refit: bool, optional (default=True)
+    refit: bool, default=True
         True = refit the forecaster with the best parameters on the entire data in fit
         False = best forecaster remains fitted on the last fold in cv
-    verbose: int, optional (default=0)
+    verbose: int, default=0
     return_n_best_forecasters: int, default=1
         In case the n best forecaster should be returned, this value can be set
         and the n best forecasters will be assigned to n_best_forecasters_
-    pre_dispatch: str, optional (default='2*n_jobs').
+    pre_dispatch: str, default='2*n_jobs'
         Controls the number of jobs that get dispatched during parallel execution when
         using the "loky", "threading", or "multiprocessing" backend.
     random_state : int, RandomState instance or None, default=None
@@ -659,7 +661,7 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
         update_behaviour="full_refit",
         error_score=np.nan,
     ):
-        super(ForecastingRandomizedSearchCV, self).__init__(
+        super().__init__(
             forecaster=forecaster,
             scoring=scoring,
             strategy=strategy,
@@ -702,20 +704,17 @@ class ForecastingRandomizedSearchCV(BaseGridSearch):
         from aeon.forecasting.model_selection._split import SingleWindowSplitter
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.forecasting.trend import PolynomialTrendForecaster
-        from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
 
         params = {
             "forecaster": NaiveForecaster(strategy="mean"),
             "cv": SingleWindowSplitter(fh=1),
             "param_distributions": {"window_length": [2, 5]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
         }
 
         params2 = {
             "forecaster": PolynomialTrendForecaster(),
             "cv": SingleWindowSplitter(fh=1),
             "param_distributions": {"degree": [1, 2]},
-            "scoring": MeanAbsolutePercentageError(symmetric=True),
             "update_behaviour": "inner_only",
         }
 

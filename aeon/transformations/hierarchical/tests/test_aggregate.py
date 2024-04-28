@@ -1,10 +1,10 @@
 """Tests for hierarchical aggregator."""
 
-__author__ = ["ciaran-g"]
+__maintainer__ = []
 
 import pytest
 
-from aeon.testing.utils.hierarchical import _bottom_hier_datagen
+from aeon.testing.utils.data_gen import _bottom_hier_datagen
 from aeon.transformations.hierarchical.aggregate import Aggregator
 
 
