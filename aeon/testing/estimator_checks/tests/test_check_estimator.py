@@ -1,14 +1,14 @@
 """Tests for check_estimator."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 
 import pytest
 
-from aeon.testing.estimator_checks import check_estimator
-from aeon.testing.mock_estimators import MockClassifier, MockSegmenter
+from aeon.testing.estimator_checks.estimator_checks import check_estimator
+from aeon.testing.mock_estimators import MockClassifier, MockSegmenter, MockForecaster
 from aeon.transformations.exponent import ExponentTransformer
 
-EXAMPLE_CLASSES = [MockClassifier, MockSegmenter]
+EXAMPLE_CLASSES = [MockClassifier, MockForecaster, MockSegmenter]
 
 
 @pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)
@@ -27,9 +27,7 @@ def test_check_estimator_passed(estimator_class):
 def test_check_estimator_does_not_raise(estimator_class):
     """Test that check_estimator does not raise exceptions on examples we know pass."""
     estimator_instance = estimator_class.create_test_instance()
-
     check_estimator(estimator_class, raise_exceptions=True, verbose=False)
-
     check_estimator(estimator_instance, raise_exceptions=True, verbose=False)
 
 
