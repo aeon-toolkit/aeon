@@ -236,7 +236,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         y : np.ndarray
             1D np.array of float, of shape ``(n_cases)`` - regression targets
             (ground truth) for fitting indices corresponding to instance indices in X.
-        metric : Union[str, callable], default="accuracy",
+        metric : Union[str, callable], default="r2",
             Defines the scoring metric to test the fit of the model. For supported
             strings arguments, check `sklearn.metrics.get_scorer_names`.
         metric_params : dict, default=None,
