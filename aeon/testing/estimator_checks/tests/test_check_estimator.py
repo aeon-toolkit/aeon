@@ -4,8 +4,8 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import pytest
 
-from aeon.testing.estimator_checks.estimator_checks import check_estimator
-from aeon.testing.mock_estimators import MockClassifier, MockSegmenter, MockForecaster
+from aeon.testing.estimator_checks import check_estimator
+from aeon.testing.mock_estimators import MockClassifier, MockForecaster, MockSegmenter
 from aeon.transformations.exponent import ExponentTransformer
 
 EXAMPLE_CLASSES = [MockClassifier, MockForecaster, MockSegmenter]
