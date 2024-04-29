@@ -124,7 +124,7 @@ class RISTRegressor(BaseRIST, BaseRegressor):
             n_jobs=n_jobs,
         )
 
-        self.set_tags(**{"python_dependencies": d})
+        self.set_tags(**{"python_dependencies": d if len(d) > 1 else d[0]})
 
     _tags = {
         "capability:multivariate": True,
