@@ -40,8 +40,8 @@ class MrSQMClassifier(BaseClassifier):
         serialised (no pickling).
     custom_config : dict, default=None
         Customized parameters for the symbolic transformation.
-    random_state : int or None, default=None
-        Random seed for classifier.
+    random_state : int, default=None
+        If `int`, random_state is the seed used by the random number generator;
     sfa_norm : bool, default=True
         Time series normalisation (standardisation).
 
