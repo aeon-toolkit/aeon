@@ -1,6 +1,11 @@
-"""Types for typing functions signatures."""
+"""Types for typing functions signatures.
 
-# The following was taken from the tensorflow_addons deprecated package
+The following was taken from the tensorflow_addons deprecated package.
+
+package: https://www.tensorflow.org/addons
+version: 0.23.0
+file: https://github.com/tensorflow/addons/blob/master/tensorflow_addons/utils/types.py
+"""
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
