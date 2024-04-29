@@ -1,6 +1,6 @@
 """Encoder Classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepNetwork
 from aeon.utils.networks import tensorflow_addons as types
