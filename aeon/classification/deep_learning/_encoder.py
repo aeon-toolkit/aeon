@@ -255,7 +255,9 @@ class EncoderClassifier(BaseDeepClassifier):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
+                # custom_objects={"InstanceNormalization" : InstanceNormalization}
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
