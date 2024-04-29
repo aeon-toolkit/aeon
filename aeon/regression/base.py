@@ -28,14 +28,12 @@ from typing import final
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.performance_metrics.forecasting import mean_squared_error
-from aeon.utils.sklearn import is_sklearn_transformer
 
 
 class BaseRegressor(BaseCollectionEstimator, ABC):
@@ -75,50 +73,6 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         self._estimator_type = "regressor"
 
         super().__init__()
-
-    # TODO: remove in v0.9.0
-    @deprecated(
-        version="0.8.0",
-        reason="The BaseRegressor __rmul__ (*) functionality will be removed "
-        "in v0.9.0.",
-        category=FutureWarning,
-    )
-    def __rmul__(self, other):
-        """Magic * method, return concatenated RegressorPipeline, transformers on left.
-
-        Overloaded multiplication operation for regressors. Implemented for `other`
-        being a transformer, otherwise returns `NotImplemented`.
-
-        Parameters
-        ----------
-        other: `aeon` transformer, must inherit from BaseTransformer
-            otherwise, `NotImplemented` is returned
-
-        Returns
-        -------
-        RegressorPipeline object, concatenation of `other` (first) with `self` (last).
-        """
-        from aeon.regression.compose import RegressorPipeline
-        from aeon.transformations.adapt import TabularToSeriesAdaptor
-        from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.compose import TransformerPipeline
-
-        # behaviour is implemented only if other inherits from BaseTransformer
-        #  in that case, distinctions arise from whether self or other is a pipeline
-        if isinstance(other, BaseTransformer):
-            # RegressorPipeline already has the dunder method defined
-            if isinstance(self, RegressorPipeline):
-                return other * self
-            # if other is a TransformerPipeline but self is not, first unwrap it
-            elif isinstance(other, TransformerPipeline):
-                return RegressorPipeline(regressor=self, transformers=other.steps)
-            # if neither self nor other are a pipeline, construct a RegressorPipeline
-            else:
-                return RegressorPipeline(regressor=self, transformers=[other])
-        elif is_sklearn_transformer(other):
-            return TabularToSeriesAdaptor(other) * self
-        else:
-            return NotImplemented
 
     @final
     def fit(self, X, y) -> BaseCollectionEstimator:

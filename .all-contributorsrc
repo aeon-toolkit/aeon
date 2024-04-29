@@ -2396,6 +2396,24 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "RishavKumarSinha",
+      "name": "Rishav Kumar Sinha",
+      "avatar_url": "https://avatars.githubusercontent.com/u/136772607?s=400&v=4",
+      "profile": "https://github.com/RishavKumarSinha",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "nileenagp",
+      "name": "nileenagp",
+      "avatar_url": "https://avatars.githubusercontent.com/u/48993630?v=4",
+      "profile": "https://github.com/nileenagp",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
