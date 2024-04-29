@@ -152,10 +152,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
     ):
         self.acf_lag = acf_lag
         self.acf_min_values = acf_min_values
-
         self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
@@ -186,6 +183,9 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pyfftw:
+            self.set_tags(**{"python_dependencies": "pyfftw"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)

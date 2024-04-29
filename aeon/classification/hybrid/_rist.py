@@ -121,8 +121,6 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         if use_pyfftw:
             d.append("pyfftw")
 
-        self.set_tags(**{"python_dependencies": d})
-
         super().__init__(
             n_intervals=n_intervals,
             n_shapelets=n_shapelets,
@@ -133,6 +131,8 @@ class RISTClassifier(BaseRIST, BaseClassifier):
             random_state=random_state,
             n_jobs=n_jobs,
         )
+
+        self.set_tags(**{"python_dependencies": d})
 
     _tags = {
         "capability:multivariate": True,
