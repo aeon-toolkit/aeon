@@ -17,9 +17,8 @@ class BaseChannelSelector(BaseCollectionTransformer):
 
     Attributes
     ----------
-        channels_selected_ : list
-            List of channels selected in fit.
-
+    channels_selected_ : list[int]
+        List of channels selected in fit.
     """
 
     def __init__(
