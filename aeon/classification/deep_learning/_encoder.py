@@ -83,7 +83,7 @@ class EncoderClassifier(BaseDeepClassifier):
     """
 
     _tags = {
-        "python_dependencies": "tensorflow",
+        "python_dependencies": ["tensorflow", "typeguard"],
     }
 
     def __init__(

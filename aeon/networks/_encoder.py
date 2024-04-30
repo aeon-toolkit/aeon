@@ -47,7 +47,7 @@ class EncoderNetwork(BaseDeepNetwork):
 
     """
 
-    _tags = {"python_dependencies": "tensorflow"}
+    _tags = {"python_dependencies": ["tensorflow", "typeguard"]}
 
     def __init__(
         self,
@@ -146,7 +146,7 @@ class EncoderNetwork(BaseDeepNetwork):
         return input_layer, flatten_layer
 
 
-if _check_soft_dependencies("tensorflow", severity="none"):
+if _check_soft_dependencies(["tensorflow", "typeguard"], severity="none"):
     import logging
 
     import tensorflow as tf

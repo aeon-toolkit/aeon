@@ -81,6 +81,7 @@ all_extras = [
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
+    "typeguard",
     "xarray",
 
     # for some reason, a heirarchical dask test fails on some Python versions with the
@@ -92,6 +93,7 @@ all_extras = [
 dl = [
     "keras-self-attention",
     "tensorflow>=2.12; python_version >= '3.9'",
+    "typeguard",
 ]
 unstable_extras = [
     "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
