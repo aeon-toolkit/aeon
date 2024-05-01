@@ -243,7 +243,7 @@ class ElbowClassSum(BaseChannelSelector):
     distance_frame : DataFrame
         Distance matrix for each class pair.
         ``shape = [n_channels, n_class_pairs]``
-    channels_selected_idx : list
+    channels_selected_ : list
         List of selected channels.
     rank: list
         Rank of channels based on the distance between class prototypes.
