@@ -51,8 +51,8 @@ def test_check_estimator_subset_tests():
     results = check_estimator(
         ExponentTransformer,
         verbose=False,
-        tests_to_run=tests_to_run,
-        tests_to_exclude=tests_to_exclude,
+        checks_to_run=tests_to_run,
+        checks_to_exclude=tests_to_exclude,
     )
     results_tests = {x.split("[")[0] for x in results.keys()}
 
