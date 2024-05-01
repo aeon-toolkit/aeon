@@ -51,13 +51,11 @@ from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search.base import BaseSimiliaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 from aeon.transformations.series import BaseSeriesTransformer
 
 BASE_CLASS_REGISTER = [
     ("object", BaseObject, "object"),
     ("estimator", BaseEstimator, "estimator = object with fit"),
-    ("channel-selector", BaseChannelSelector, "channel selector"),
     ("classifier", BaseClassifier, "classifier"),
     ("collection-estimator", BaseCollectionEstimator, "collection estimator"),
     ("collection-transformer", BaseCollectionTransformer, "collection transformer"),
