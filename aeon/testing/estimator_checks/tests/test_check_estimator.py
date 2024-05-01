@@ -5,43 +5,46 @@ __maintainer__ = ["MatthewMiddlehurst"]
 import pytest
 
 from aeon.testing.estimator_checks import check_estimator
-from aeon.testing.mock_estimators import MockClassifier, MockForecaster, MockSegmenter
+from aeon.testing.mock_estimators import (
+    MockClassifier,
+    MockClassifierMultiTestParams,
+    MockForecaster,
+    MockMultivariateSeriesTransformer,
+)
 from aeon.transformations.exponent import ExponentTransformer
 
-EXAMPLE_CLASSES = [MockClassifier, MockForecaster, MockSegmenter]
+EXAMPLE_CLASSES = [
+    MockClassifier,
+    MockForecaster,
+    MockMultivariateSeriesTransformer,
+    MockClassifierMultiTestParams,
+]
 
 
 @pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)
 def test_check_estimator_passed(estimator_class):
     """Test that check_estimator returns only passed tests for examples we know pass."""
-    estimator_instance = estimator_class.create_test_instance()
+    estimator = estimator_class.create_test_instance()
 
     result_class = check_estimator(estimator_class, verbose=False)
     assert all(x == "PASSED" for x in result_class.values())
 
-    result_instance = check_estimator(estimator_instance, verbose=False)
+    result_instance = check_estimator(estimator, verbose=False)
     assert all(x == "PASSED" for x in result_instance.values())
 
-
-@pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)
-def test_check_estimator_does_not_raise(estimator_class):
-    """Test that check_estimator does not raise exceptions on examples we know pass."""
-    estimator_instance = estimator_class.create_test_instance()
+    # test that no exceptions are raised
     check_estimator(estimator_class, raise_exceptions=True, verbose=False)
-    check_estimator(estimator_instance, raise_exceptions=True, verbose=False)
+    check_estimator(estimator, raise_exceptions=True, verbose=False)
 
 
 def test_check_estimator_subset_tests():
     """Test that subsetting by tests_to_run and tests_to_exclude works as intended."""
     tests_to_run = [
-        "test_get_params",
-        "test_set_params",
-        "test_clone",
-        "test_repr",
-        "test_capability_inverse_tag_is_correct",
-        "test_remember_data_tag_is_correct",
+        "check_get_params",
+        "check_set_params",
+        "check_clone",
     ]
-    tests_to_exclude = ["test_repr", "test_remember_data_tag_is_correct"]
+    tests_to_exclude = ["check_set_params"]
 
     expected_tests = set(tests_to_run).difference(tests_to_exclude)
 

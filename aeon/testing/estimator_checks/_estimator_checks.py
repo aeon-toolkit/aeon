@@ -7,21 +7,27 @@ __all__ = [
 ]
 
 import re
+import warnings
 from functools import partial, wraps
 from inspect import isclass
-from typing import Type, List, Callable, Union
+from typing import Callable, List, Type, Union
 
 from sklearn import config_context
 from sklearn.utils._testing import SkipTest
 
 from aeon.base import BaseEstimator
 from aeon.testing.estimator_checks._yield_estimator_checks import _yield_all_aeon_checks
+from aeon.testing.test_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
+from aeon.utils.validation._dependencies import (
+    _check_estimator_deps,
+    _check_soft_dependencies,
+)
 
-from aeon.testing.test_config import EXCLUDED_TESTS
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-
-def parametrize_with_checks(estimators: List[Union[BaseEstimator, Type[BaseEstimator]]]) -> Callable:
+def parametrize_with_checks(
+    estimators: List[Union[BaseEstimator, Type[BaseEstimator]]],
+    use_first_parameter_set: bool = False,
+) -> Callable:
     """Pytest specific decorator for parametrizing aeon estimator checks.
 
     The `id` of each check is set to be a pprint version of the estimator
@@ -37,6 +43,9 @@ def parametrize_with_checks(estimators: List[Union[BaseEstimator, Type[BaseEstim
     estimators : list of aeon aseEstimator instances or classesB
         Estimators to generated checks for. If item is a class, an instance will
         be created using BaseEstimator.create_test_instance().
+    use_first_parameter_set : bool, default=False
+        If True, only the first parameter set from get_test_params will be used if a
+        class is passed.
 
     Returns
     -------
@@ -63,7 +72,7 @@ def parametrize_with_checks(estimators: List[Union[BaseEstimator, Type[BaseEstim
         for est in estimators:
             if isclass(est):
                 if issubclass(est, BaseEstimator):
-                    est = est.create_test_instance()
+                    est = est.create_test_instance(return_first=use_first_parameter_set)
                 else:
                     raise TypeError(
                         f"Passed class {est} is not a subclass of BaseEstimator."
@@ -73,10 +82,12 @@ def parametrize_with_checks(estimators: List[Union[BaseEstimator, Type[BaseEstim
                     f"Passed object {est} is not an instance of BaseEstimator."
                 )
 
-            name = type(est).__name__
-            for check in _yield_all_aeon_checks(est):
-                check = partial(check, name)
-                yield _check_if_xfail(est, check)
+            if not isinstance(est, list):
+                est = [est]
+
+            for check in _yield_all_aeon_checks():
+                for e in est:
+                    yield _check_if_xfail(e, check)
 
     return pytest.mark.parametrize(
         "estimator, check",
@@ -87,12 +98,13 @@ def parametrize_with_checks(estimators: List[Union[BaseEstimator, Type[BaseEstim
 
 def check_estimator(
     estimator: Union[BaseEstimator, Type[BaseEstimator]],
-    raise_exceptions=False,
-    tests_to_run=None,
-    fixtures_to_run=None,
-    tests_to_exclude=None,
-    fixtures_to_exclude=None,
-    verbose=True,
+    raise_exceptions: bool = False,
+    use_first_parameter_set: bool = False,
+    checks_to_run: List[str] = None,
+    checks_to_exclude: List[str] = None,
+    full_checks_to_run: List[str] = None,
+    full_checks_to_exclude: List[str] = None,
+    verbose: bool = True,
 ):
     """Check if estimator adheres to scikit-learn conventions.
 
@@ -146,7 +158,7 @@ def check_estimator(
     tests_to_run : str or list of str, optional. Default = run all tests.
         Names (test/function name string) of tests to run.
         sub-sets tests that are run to the tests given here.
-    fixtures_to_run : str or list of str, optional. Default = run all tests.
+    full_checks_to_run : str or list of str, optional. Default = run all tests.
         pytest test-fixture combination codes, which test-fixture combinations to run.
         sub-sets tests and fixtures to run to the list given here.
         If both tests_to_run and fixtures_to_run are provided, runs the *union*,
@@ -156,7 +168,7 @@ def check_estimator(
         whether to print out informative summary of tests run.
     tests_to_exclude : str or list of str, names of tests to exclude. default = None
         removes tests that should not be run, after subsetting via tests_to_run.
-    fixtures_to_exclude : str or list of str, fixtures to exclude. default = None
+    full_checks_to_exclude : str or list of str, fixtures to exclude. default = None
         removes test-fixture combinations that should not be run.
         This is done after subsetting via fixtures_to_run.
 
@@ -196,29 +208,38 @@ def check_estimator(
 
     Running one specific test-fixture-combination for ExponentTransformer
     >>> check_estimator(
-    ...    ExponentTransformer, fixtures_to_run="test_clone[ExponentTransformer-1]"
+    ...    ExponentTransformer, full_checks_to_run="test_clone[ExponentTransformer-1]"
     ... )
     All tests PASSED!
     {'test_clone[ExponentTransformer-1]': 'PASSED'}
     """
+    warnings.warn(
+        "check_estimator is currently being reworked and does not cover"
+        "the whole testing suite. For full coverage, use check_estimator_legacy.",
+        UserWarning,
+        stacklevel=1,
+    )
+
+    _check_estimator_deps(estimator)
+
     def checks_generator():
         est = estimator
         if isclass(est):
             if issubclass(est, BaseEstimator):
-                est = est.create_test_instance()
+                est = est.create_test_instance(return_first=use_first_parameter_set)
             else:
                 raise TypeError(
                     f"Passed class {est} is not a subclass of BaseEstimator."
                 )
         elif not isinstance(est, BaseEstimator):
-            raise TypeError(
-                f"Passed object {est} is not an instance of BaseEstimator."
-            )
+            raise TypeError(f"Passed object {est} is not an instance of BaseEstimator.")
 
-        name = type(est).__name__
-        for check in _yield_all_aeon_checks(est):
-            check = partial(check, name)
-            yield _check_if_skip(est, check)
+        if not isinstance(est, list):
+            est = [est]
+
+        for check in _yield_all_aeon_checks():
+            for e in est:
+                yield _check_if_skip(e, check)
 
     passed = 0
     skipped = 0
@@ -226,6 +247,18 @@ def check_estimator(
     results = {}
     for est, check in checks_generator():
         name = _get_check_estimator_ids(check)
+        if isclass(estimator):
+            name += f"[{_get_check_estimator_ids(est)}]"
+
+        if checks_to_run is not None and name.split("[")[0] not in checks_to_run:
+            continue
+        if checks_to_exclude is not None and name.split("[")[0] in checks_to_exclude:
+            continue
+        if full_checks_to_run is not None and name not in full_checks_to_run:
+            continue
+        if full_checks_to_exclude is not None and name in full_checks_to_exclude:
+            continue
+
         try:
             check(est)
             if verbose:
@@ -246,10 +279,12 @@ def check_estimator(
             failed += 1
 
     if verbose:
-        print(
+        print(  # noqa T001
             f"Tests run: {passed + skipped + failed}, Passed: {passed}, "
             f"Failed: {failed}, Skipped: {skipped}"
         )
+
+    return results
 
 
 def _check_if_xfail(estimator, check):
@@ -267,7 +302,9 @@ def _check_if_skip(estimator, check):
     """Check if a check should be skipped by raising a SkipTest exception."""
     skip, reason = _should_be_skipped(estimator, check)
     if skip:
-        check_name = check.func.__name__ if isinstance(check, partial) else check.__name__
+        check_name = (
+            check.func.__name__ if isinstance(check, partial) else check.__name__
+        )
 
         @wraps(check)
         def wrapped(*args, **kwargs):
@@ -280,7 +317,19 @@ def _check_if_skip(estimator, check):
 
 
 def _should_be_skipped(estimator, check):
-    return check.__name__ in EXCLUDED_TESTS.get(estimator.__name__, [])
+    est_name = estimator.__class__.__name__
+
+    # check estimator dependencies
+    if not _check_estimator_deps(estimator, severity=None):
+        return True, "Incompatible dependencies or Python version"
+
+    # check aeon exclude lists
+    if est_name in EXCLUDE_ESTIMATORS:
+        return True, "In aeon estimator exclude list"
+    elif check.__name__ in EXCLUDED_TESTS.get(est_name, []):
+        return True, "In aeon test exclude list for estimator"
+
+    return False, ""
 
 
 def _get_check_estimator_ids(obj):
@@ -313,11 +362,11 @@ def _get_check_estimator_ids(obj):
         if not obj.keywords:
             return obj.func.__name__
 
-        kwstring = ",".join(["{}={}".format(k, v) for k, v in obj.keywords.items()])
-        return "{}({})".format(obj.func.__name__, kwstring)
+        kwstring = ",".join([f"{k}={v}" for k, v in obj.keywords.items()])
+        return f"{obj.func.__name__}({kwstring})"
     elif hasattr(obj, "get_params"):
         with config_context(print_changed_only=True):
             s = re.sub(r"\s", "", str(obj))
             return re.sub(r"<function[^)]*>", "func", s)
     else:
-        raise ValueError("Unexpected object: {}".format(obj))
+        raise ValueError(f"Unexpected object: {obj}")
