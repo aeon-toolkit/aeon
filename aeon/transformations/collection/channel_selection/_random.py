@@ -29,11 +29,13 @@ class RandomChannelSelector(BaseChannelSelector):
     }
 
     def __init__(self, p=0.4):
+        if p <= 0:
+            raise ValueError("Proportion to select cannot be zero or negative")
         self.p = p
         super().__init__()
 
     def _fit(self, X, y):
         """Randomly select channels to retain."""
         to_select = math.ceil(self.p * len(X))
-        self.channels_selected_ = random.sample(X[0].shape[1], to_select)
+        self.channels_selected_ = random.sample(list(range(X[0].shape[0])), to_select)
         return self
