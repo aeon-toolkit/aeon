@@ -3,8 +3,6 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RegressorPipeline"]
 
-from deprecated.sphinx import deprecated
-
 from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.regression.base import BaseRegressor
 
@@ -59,7 +57,7 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
     >>> pipeline = RegressorPipeline(
-    ...     DummyRegressor(), [AutocorrelationFunctionTransformer(n_lags=10)]
+    ...     [AutocorrelationFunctionTransformer(n_lags=10)], DummyRegressor(),
     ... )
     >>> pipeline.fit(X_train, y_train)
     RegressorPipeline(regressor=DummyRegressor(),
@@ -71,15 +69,7 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
         "X_inner_type": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
     }
 
-    # TODO: remove in v0.9.0
-    @deprecated(
-        version="0.8.0",
-        reason="The position of the regressor and transformers argument for "
-        "RegressionPipeline __init__ will be swapped in v0.9.0. Use "
-        "keyword arguments to avoid breakage.",
-        category=FutureWarning,
-    )
-    def __init__(self, regressor, transformers):
+    def __init__(self, transformers, regressor):
         self.regressor = regressor
 
         super().__init__(transformers=transformers, _estimator=regressor)
