@@ -35,7 +35,7 @@ trigger_phrases = [
 trigger_pattern = "|".join(trigger_phrases)
 
 # Check if the comment includes the trigger phrase
-if re.search(trigger_pattern, comment_body, re.IGNORECASE):
+if comment_body.startswith("@aeon-actions-bot") and re.search(trigger_pattern, comment_body, re.IGNORECASE):
     # Extract the username mentioned in the comment
     mentioned_user_match = re.search(
         r"@([a-zA-Z0-9](?:-?[a-zA-Z0-9]){0,38})", comment_body
