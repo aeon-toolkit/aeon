@@ -63,7 +63,6 @@ all_extras = [
     "filterpy>=1.4.5",
     "gluonts>=0.12.4",
     "h5py",
-    "hmmlearn>=0.2.7",
     "imbalanced-learn",
     "keras-self-attention",
     "kotsu>=0.3.1",
