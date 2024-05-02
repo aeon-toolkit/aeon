@@ -140,10 +140,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     ):
         self.acf_lag = acf_lag
         self.acf_min_values = acf_min_values
-
         self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
 
         interval_features = [
             PeriodogramTransformer(use_pyfftw=use_pyfftw, pad_with="mean"),
@@ -168,6 +165,9 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pyfftw:
+            self.set_tags(**{"python_dependencies": "pyfftw"})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
