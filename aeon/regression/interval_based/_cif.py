@@ -164,8 +164,6 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         parallel_backend=None,
     ):
         self.use_pycatch22 = use_pycatch22
-        if use_pycatch22:
-            self.set_tags(**{"python_dependencies": "pycatch22"})
 
         interval_features = [
             Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
@@ -191,6 +189,9 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pycatch22:
+            self.set_tags(**{"python_dependencies": "pycatch22"})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

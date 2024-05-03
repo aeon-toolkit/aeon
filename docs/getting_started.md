@@ -290,29 +290,6 @@ After calling `fit`, the `labels_` attribute contains the cluster labels for
 each time series. The `predict` method can be used to predict the cluster labels for
 new data.
 
-## Time Series Annotation
-
-Annotation encompasses a range of time series tasks, including segmentation and anomaly
-detection. The package is still in early development, so major changes are expected
-as time goes on.
-
-```{code-block} python
->>> from aeon.annotation.adapters import PyODAnnotator
->>> from aeon.datasets import load_airline
->>> from pyod.models.iforest import IForest
->>> y = load_airline()
->>> pyod_model = IForest()
->>> annotator = PyODAnnotator(pyod_model)
->>> annotator.fit(y)
->>> annotated_series = annotator.predict(y)
->>> annotated_series.head()
-1949-01    1
-1949-02    0
-1949-03    0
-1949-04    0
-1949-05    0
-Freq: M, dtype: int32
-```
 
 ## Transformers for Time Series Data
 
