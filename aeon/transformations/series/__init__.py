@@ -1,7 +1,7 @@
 """Series transformations."""
 
 __all__ = [
-    "AutoCorrelationTransformer",
+    "AutoCorrelationSeriesTransformer",
     "BaseSeriesTransformer",
     "MatrixProfileSeriesTransformer",
     "StatsModelsACF",
@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 from aeon.transformations.series._acf import (
-    AutoCorrelationTransformer,
+    AutoCorrelationSeriesTransformer,
     StatsModelsACF,
     StatsModelsPACF,
 )

@@ -19,7 +19,7 @@ from aeon.transformations.base import BaseTransformer
     version="0.9.0",
     reason="AutoCorrelationTransformer statsmodels wrapper will be removed in version "
     "0.10. Please use the BaseSeriesTransformer version in the "
-    "transformations.series module called StatsModelsACF.",
+    "transformations.series module called StatsModelsACF for a wrapper version.",
     category=FutureWarning,
 )
 class AutoCorrelationTransformer(BaseTransformer):
@@ -66,10 +66,10 @@ class AutoCorrelationTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.acf import AutoCorrelationTransformer
+    >>> from aeon.transformations.acf import AutoCorrelationSeriesTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()  # doctest: +SKIP
-    >>> transformer = AutoCorrelationTransformer(n_lags=12)  # doctest: +SKIP
+    >>> transformer = AutoCorrelationSeriesTransformer(n_lags=12)  # doctest: +SKIP
     >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
     """
 
@@ -195,7 +195,7 @@ class PartialAutoCorrelationTransformer(BaseTransformer):
 
     See Also
     --------
-    AutoCorrelationTransformer
+    AutoCorrelationSeriesTransformer
 
     Notes
     -----

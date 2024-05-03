@@ -13,7 +13,7 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class AutoCorrelationTransformer(BaseSeriesTransformer):
+class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
     """Auto-correlation transformer.
 
     The autocorrelation function (ACF) measures how correlated a time series is
@@ -33,10 +33,10 @@ class AutoCorrelationTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series._acf import AutoCorrelationTransformer
+    >>> from aeon.transformations.series._acf import AutoCorrelationSeriesTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> transformer = AutoCorrelationTransformer(n_lags=12)
+    >>> transformer = AutoCorrelationSeriesTransformer(n_lags=12)
     >>> y_hat = transformer.fit_transform(y)
     """
 
@@ -296,7 +296,7 @@ class StatsModelsPACF(BaseSeriesTransformer):
 
     See Also
     --------
-    AutoCorrelationTransformer
+    AutoCorrelationSeriesTransformer
 
     Notes
     -----
