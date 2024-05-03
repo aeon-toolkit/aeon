@@ -55,7 +55,7 @@ to open source. We list projects by time series task
 
 [Transformation](#transformation)
 1. Improve ROCKET family of transformers
-2. Implement channel selection wrapper
+2. Implement channel selection algorithms
 
 [Visualisation](#visualisation)
 1. Explainable AI with the shapelet transform (Southampton intern project).
@@ -668,7 +668,7 @@ Data Mining and Knowledge Discovery, 36(5), pp.1623-1646.
 kernels for fast and accurate time series classification. Data Mining and Knowledge
 Discovery, pp.1-27.
 
-#### 2. Implement channel selection wrapper
+#### 2. Implement channel selection algorithms
 
 Related issues:
 [#1270](https://github.com/aeon-toolkit/aeon/issues/1270)
