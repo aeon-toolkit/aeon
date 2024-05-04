@@ -1,1 +1,0 @@
-"""Annotator tests."""

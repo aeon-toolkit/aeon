@@ -32,7 +32,6 @@ __maintainer__ = []
 
 import pandas as pd
 
-from aeon.annotation.base import BaseSeriesAnnotator
 from aeon.base import (
     BaseCollectionEstimator,
     BaseEstimator,
@@ -66,7 +65,6 @@ BASE_CLASS_REGISTER = [
     ("network", BaseDeepNetwork, "deep learning network"),
     ("regressor", BaseRegressor, "regressor"),
     ("segmenter", BaseSegmenter, "segmenter"),
-    ("series-annotator", BaseSeriesAnnotator, "annotator"),
     ("series-estimator", BaseSeriesEstimator, "single series estimator"),
     ("series-transformer", BaseSeriesTransformer, "single series transformer"),
     ("splitter", BaseSplitter, "splitter"),

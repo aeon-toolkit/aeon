@@ -28,12 +28,12 @@ from typing import final
 
 import numpy as np
 import pandas as pd
+from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
-from aeon.performance_metrics.forecasting import mean_squared_error
 
 
 class BaseRegressor(BaseCollectionEstimator, ABC):
@@ -210,7 +210,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return y_pred
 
-    def score(self, X, y) -> float:
+    def score(self, X, y, metric="r2", metric_params=None) -> float:
         """Scores predicted labels against ground truth labels on X.
 
         Parameters
@@ -236,6 +236,12 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         y : np.ndarray
             1D np.array of float, of shape ``(n_cases)`` - regression targets
             (ground truth) for fitting indices corresponding to instance indices in X.
+        metric : Union[str, callable], default="r2",
+            Defines the scoring metric to test the fit of the model. For supported
+            strings arguments, check `sklearn.metrics.get_scorer_names`.
+        metric_params : dict, default=None,
+            Contains parameters to be passed to the scoring function. If None, no
+            parameters are passed.
 
         Returns
         -------
@@ -244,7 +250,26 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         """
         self.check_is_fitted()
         y = self._check_y(y, len(X))
-        return mean_squared_error(y, self.predict(X))
+        _metric_params = metric_params
+        if metric_params is None:
+            _metric_params = {}
+        if isinstance(metric, str):
+            __names = get_scorer_names()
+            if metric not in __names:
+                raise ValueError(
+                    f"Metric {metric} is incompatible with `sklearn.metrics.get_scorer`"
+                    "function. Valid list of metrics can be obtained using "
+                    "the `sklearn.metrics.get_scorer_names` function."
+                )
+            scorer = get_scorer(metric)
+            return scorer._score_func(y, self.predict(X), **_metric_params)
+        elif callable(metric):
+            return metric(y, self.predict(X), **_metric_params)
+        else:
+            raise ValueError(
+                "The metric parameter should be either a string or a callable"
+                f", but got {metric} of type {type(metric)}"
+            )
 
     @abstractmethod
     def _fit(self, X, y):
