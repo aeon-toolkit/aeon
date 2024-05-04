@@ -66,7 +66,7 @@ class AutoCorrelationTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.acf import AutoCorrelationSeriesTransformer
+    >>> from aeon.transformations.acf import AutoCorrelationTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()  # doctest: +SKIP
     >>> transformer = AutoCorrelationSeriesTransformer(n_lags=12)  # doctest: +SKIP
