@@ -126,7 +126,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         self.method = method
         self.lambda_ = None
         self.sp = sp
-        super().__init__(axis=0)
+        super().__init__()
 
     def _fit(self, X, y=None):
         """
@@ -137,7 +137,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         Parameters
         ----------
         X : np.ndarray
-            2D data to be transformed, shape (n_timepoints, 1)
+            Time series to be transformed
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
@@ -145,6 +145,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         -------
         self: a fitted instance of the estimator
         """
+        X = X.squeeze()
         if self.method == "guerrero":
             self.lambda_ = _guerrero(X, self.sp, self.bounds)
         else:
@@ -159,8 +160,8 @@ class BoxCoxTransformer(BaseSeriesTransformer):
 
         Parameters
         ----------
-        X : 2D np.ndarray (n x 1)
-            Data to be transformed
+        X : np.ndarray
+            Time series to be transformed
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
@@ -169,6 +170,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         Xt : 2D np.ndarray
             transformed version of X
         """
+        X = X.squeeze()
         Xt = boxcox(X, self.lambda_)
         return Xt
 
@@ -179,8 +181,8 @@ class BoxCoxTransformer(BaseSeriesTransformer):
 
         Parameters
         ----------
-        X : 2D np.ndarray (n x 1)
-            Data to be transformed
+        X : np.ndarray
+            Time series to be transformed
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
