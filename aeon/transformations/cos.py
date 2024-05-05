@@ -1,6 +1,7 @@
 """Implements cosine transformation."""
 
 import numpy as np
+from sphinx.deprecation import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
@@ -8,6 +9,13 @@ __maintainer__ = []
 __all__ = ["CosineTransformer"]
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="CosineTransformer scikit wrapper will be removed in version 0.10. Please "
+    "just use scikit learn.",
+    category=FutureWarning,
+)
 class CosineTransformer(BaseTransformer):
     """Cosine transformation.
 

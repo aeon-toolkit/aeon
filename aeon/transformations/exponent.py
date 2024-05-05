@@ -7,6 +7,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from sphinx.deprecation import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
@@ -185,6 +186,12 @@ class ExponentTransformer(BaseTransformer):
         return [{"power": 2.5, "offset": 1}, {"power": 0}]
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="SqrtTransformer will be removed in version 0.10.",
+    category=FutureWarning,
+)
 class SqrtTransformer(ExponentTransformer):
     """Apply element-sise square root transformation to a time series.
 
@@ -225,14 +232,6 @@ class SqrtTransformer(ExponentTransformer):
     -----
     For an input series `Z` the square root transformation is defined as
     :math:`(Z + offset)^{0.5}`.
-
-    Examples
-    --------
-    >>> from aeon.transformations.exponent import SqrtTransformer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = SqrtTransformer()
-    >>> y_transform = transformer.fit_transform(y)
     """
 
     def __init__(self, offset="auto"):
