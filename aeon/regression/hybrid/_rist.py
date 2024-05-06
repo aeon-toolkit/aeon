@@ -113,8 +113,6 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         if use_pyfftw:
             d.append("pyfftw")
 
-        self.set_tags(**{"python_dependencies": d})
-
         super().__init__(
             n_intervals=n_intervals,
             n_shapelets=n_shapelets,
@@ -125,6 +123,8 @@ class RISTRegressor(BaseRIST, BaseRegressor):
             random_state=random_state,
             n_jobs=n_jobs,
         )
+
+        self.set_tags(**{"python_dependencies": d if len(d) > 1 else d[0]})
 
     _tags = {
         "capability:multivariate": True,
