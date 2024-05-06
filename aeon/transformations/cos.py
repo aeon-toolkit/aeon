@@ -1,7 +1,7 @@
 """Implements cosine transformation."""
 
 import numpy as np
-from sphinx.deprecation import deprecated
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 

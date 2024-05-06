@@ -11,9 +11,9 @@ __all__ = [
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from scipy.stats import norm
 from sklearn.utils import check_random_state
-from sphinx.deprecation import deprecated
 
 from aeon.transformations.base import BaseTransformer
 

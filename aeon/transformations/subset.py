@@ -3,8 +3,8 @@
 __maintainer__ = []
 
 import pandas as pd
+from deprecated.sphinx import deprecated
 from pandas.api.types import is_integer_dtype
-from sphinx.deprecation import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
