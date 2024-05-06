@@ -5,12 +5,14 @@ hide-toc: true
 <h1 style="text-align: center;">Welcome to <b>aeon</b></h1>
 
 `aeon` is a scikit-learn compatible toolkit for time series tasks such as
-forecasting, classification and clustering.</p>
+forecasting, classification, regression, clustering and anomaly detection.</p>
 
 - Provides a broad library of time series algorithms, including the latest advances.
 - Efficient implementation of time series algorithms using numba.
 - Interfaces with other time series packages to provide a single framework for algorithm
 comparison.
+
+Please visit our [GitHub repository](https://github.com/aeon-toolkit/aeon).
 
 ::::{grid} 1 2 2 2
 :gutter: 3

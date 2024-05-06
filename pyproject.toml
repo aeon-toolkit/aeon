@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aeon"
 version = "0.8.1"
-description = "A toolkit for conducting machine learning tasks with time series data"
+description = "A toolkit for machine learning from time series"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
 ]
@@ -63,7 +63,6 @@ all_extras = [
     "filterpy>=1.4.5",
     "gluonts>=0.12.4",
     "h5py",
-    "hmmlearn>=0.2.7",
     "imbalanced-learn",
     "keras-self-attention",
     "kotsu>=0.3.1",

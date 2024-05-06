@@ -36,6 +36,7 @@ to open source. We list projects by time series task
 2. EEG classification with aeon-neuro (Listed for GSoC 2024)
 3. Improved Proximity Forest for classification (listed for GSoC 2024)
 4. Improved HIVE-COTE implementation.
+5. Compare distance based classification.
 
 [Forecasting](#forecasting)
 1. Machine Learning for Time Series Forecasting (listed in GSoC 2024)
@@ -54,6 +55,7 @@ to open source. We list projects by time series task
 
 [Transformation](#transformation)
 1. Improve ROCKET family of transformers
+2. Implement channel selection algorithms
 
 [Visualisation](#visualisation)
 1. Explainable AI with the shapelet transform (Southampton intern project).
@@ -70,6 +72,15 @@ to open source. We list projects by time series task
 #### 1. Optimizing the Shapelet Transform for Classification and Similarity Search (listed for GSoC 2024)
 
 Mentors : Antoine Guillaume ({user}`baraline`) and Tony Bagnall ({user}`TonyBagnall`)
+
+##### Related Issues
+[#186](https://github.com/aeon-toolkit/aeon/issues/186)
+[#324](https://github.com/aeon-toolkit/aeon/issues/324)
+[#894](https://github.com/aeon-toolkit/aeon/issues/894)
+[#973](https://github.com/aeon-toolkit/aeon/issues/973)
+[#1184](https://github.com/aeon-toolkit/aeon/issues/1184)
+[#1322](https://github.com/aeon-toolkit/aeon/issues/1322)
+
 
 ##### Description
 
@@ -140,6 +151,13 @@ International Publishing.
 
 Mentors: Tony Bagnall ({user}`TonyBagnall`) and Aiden Rushbrooke
 
+##### Related Issues
+[#18](https://github.com/aeon-toolkit/aeon-neuro/issues/18)
+[#19](https://github.com/aeon-toolkit/aeon-neuro/issues/19)
+[#24](https://github.com/aeon-toolkit/aeon-neuro/issues/24)
+
+
+
 ##### Description
 
 EEG (Electroencephalogram) data are high dimensional time series that are used in
@@ -179,6 +197,11 @@ Time Series Classification of Electroencephalography Data, IWANN 2023.
 
 Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`) and Tony Bagnall
 ({user}`TonyBagnall`)
+
+##### Related Issues
+[#159](https://github.com/aeon-toolkit/aeon/issues/159)
+[#428](https://github.com/aeon-toolkit/aeon/issues/428)
+
 
 ##### Description
 
@@ -241,6 +264,9 @@ preprint arXiv:2304.05800.
 Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`) and Tony Bagnall
 ({user}`TonyBagnall`)
 
+##### Related Issues
+[#663](https://github.com/aeon-toolkit/aeon/issues/663)
+
 ##### Description
 
 The Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) [1,2,3]
@@ -276,12 +302,38 @@ alternative structures. This can easily develop into a research project.
 experimental evaluation of recent time series classification algorithms. arXiv preprint
 arXiv:2304.13029.
 
+#### 5. Compare distance based classification and regression
+
+Mentors: Chris Holder ({user}`cholder`) and Tony Bagnall
+({user}`TonyBagnall`)
+
+##### Related Issues
+[#423](https://github.com/aeon-toolkit/aeon/issues/423)
+[#424](https://github.com/aeon-toolkit/aeon/issues/424)
+[#425](https://github.com/aeon-toolkit/aeon/issues/425)
+[#426](https://github.com/aeon-toolkit/aeon/issues/426)
+[#427](https://github.com/aeon-toolkit/aeon/issues/427)
+[#488](https://github.com/aeon-toolkit/aeon/issues/488)
+
+##### Description
+Distance based algorithms are popular for time series classification and regression.
+However, the evaluation of distance functions for classification have not
+comprehensively covered all possible uses. For example, there has not been a proper
+bake off for using elastic distance with support vector machines or with tuning
+distance functions and classifiers in combination. This project will combine
+implementing alternative distance functions and comparing performance on the UCR
+datasets.
+
 
 ### Forecasting
 
 #### 1. Machine Learning for Time Series Forecasting (listed in GSoC 2024)
 
 Mentors: Tony Bagnall ({user}`TonyBagnall`) and Matthew Middlehurst (@MatthewMiddlehurst).
+
+##### Related Issues
+[#265](https://github.com/aeon-toolkit/aeon/issues/265)
+
 
 ##### Description
 
@@ -546,6 +598,12 @@ pp.92-109.
 
 Mentors: Ali Ismail-Fawaz ({user}`hadifawaz1999`) and Matthew Middlehurst
 ({user}`MatthewMiddlehurst`)
+[#208](https://github.com/aeon-toolkit/aeon/issues/208)
+[#214](https://github.com/aeon-toolkit/aeon/issues/214)
+[#313](https://github.com/aeon-toolkit/aeon/issues/313)
+[#1126](https://github.com/aeon-toolkit/aeon/issues/1126)
+[#1248](https://github.com/aeon-toolkit/aeon/issues/1248)
+
 
 ##### Description
 
@@ -609,6 +667,59 @@ Data Mining and Knowledge Discovery, 36(5), pp.1623-1646.
 4. Dempster, A., Schmidt, D.F. and Webb, G.I., 2023. Hydra: Competing convolutional
 kernels for fast and accurate time series classification. Data Mining and Knowledge
 Discovery, pp.1-27.
+
+#### 2. Implement channel selection algorithms
+
+Related issues:
+[#1270](https://github.com/aeon-toolkit/aeon/issues/1270)
+[#1467](https://github.com/aeon-toolkit/aeon/issues/1467)
+
+Channel selection in this context is the process of reducing the number of channels
+in a collection of time series for classification, clustering or regression. This
+project looks at filter based approaches to speed up multivariate time series
+classification (MTSC) of high dimensional series. Standard approaches for
+classifying high dimensional data are to
+employ a filter to select a subset of attributes or to transform the data into a lower
+dimensional feature space using, for example, principal component analysis. Our
+focus is on dimensionality reduction through filtering. For MTSC, filtering is
+generally accepted to be selecting the most important dimensions to use before
+training the classifier. Dimension selection can, on average, either increase, not
+change or decrease the accuracy of classification. The first case implies that the
+higher dimensionality is confounding the classifier’s discriminatory power. In the
+second case it is often still desirable to filter due to improved training time. In
+the third case, filtering may still be desirable, depending on the trade-off between
+performance (e.g. accuracy) and efficiency (e.g. train time): a small reduction in
+accuracy may be acceptable if build time reduces by an order of magnitude. We
+address the task of how best to select a subset of dimensions for high dimensional
+data so that we can speed up and possibly improve HC2 on high dimensional
+MTSC problems.
+Detecting the best subset of dimensions is not a straightforward problem,
+since the number of combinations to consider increases exponentially with the
+number of dimensions. Selection is also made more complex by the fact that
+the objective function used to assess a set of features may not generalise well
+to unseen data. Furthermore, since the primary reason for filtering the dimensions
+is improving the efficiency of the classifier, dimension selection strategies
+themselves need to be fast.
+
+Currently we have the channel selection algorithms describe in [1,2] in aeon. It would
+be great to include those in [3] and further work. This project will involve
+experimental evaluation in addition to implementing
+algorithms. We can co-ordinate the experiments with the candidate through our HPC
+facilities.
+
+1. Implement a channel selection wrapper for the aeon toolkit (see [#1270](https://github.com/aeon-toolkit/aeon/issues/1270))
+2. Explore alternative ways of selecting channels after scoring (e.g. forward selection)
+3. Use a fast classifier that can find train estimates through e.g. bagging and avoid the cross validation
+4. Research, implement and evaluate alternative channel selection algorithms
+
+##### References
+[1] Dhariyal, B. et al. Fast Channel Selection for Scalable Multivariate Time
+Series Classification. AALTD, ECML-PKDD, Springer, 2021
+[2] Dhariyal, B. et al. Scalable Classifier-Agnostic Channel Selection
+    for Multivariate Time Series Classification", DAMI, 2023
+[3] Ruiz, A.P., Bagnall, A. Dimension Selection Strategies for Multivariate
+   Time Series Classification with HIVE-COTEv2.0. AALTD,ECML-PKDD 2022.
+   (https://doi.org/10.1007/978-3-031-24378-3_9)
 
 ### Visualisation
 
