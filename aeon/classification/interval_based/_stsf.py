@@ -141,8 +141,6 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
         parallel_backend=None,
     ):
         self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
 
         series_transformers = [
             None,
@@ -177,6 +175,9 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pyfftw:
+            self.set_tags(**{"python_dependencies": "pyfftw"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)

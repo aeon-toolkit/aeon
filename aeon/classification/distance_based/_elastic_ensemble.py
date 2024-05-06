@@ -50,7 +50,7 @@ class ElasticEnsemble(BaseClassifier):
       The number of jobs to run in parallel for both `fit` and `predict`.
       ``-1`` means using all processors.
     random_state : int, default=0
-      The random seed.
+        If `int`, random_state is the seed used by the random number generator;
     verbose : int, default=0
       If ``>0``, then prints out debug information.
     majority_vote: boolean, default = False

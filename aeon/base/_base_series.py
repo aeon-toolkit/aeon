@@ -16,7 +16,6 @@ from aeon.utils.validation._dependencies import _check_estimator_deps
 # allowed input and internal data types for Series
 VALID_INNER_TYPES = [
     "np.ndarray",
-    "pd.Series",
     "pd.DataFrame",
 ]
 VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
@@ -38,7 +37,7 @@ class BaseSeriesEstimator(BaseEstimator):
             np.ndarray, shape ``(m,)``, ``(m, 1)`` or ``(1, m)`` depending on axis.
             This is converted to a 2D np.ndarray internally.
             pd.DataFrame, shape ``(m, 1)`` or ``(1, m)`` depending on axis.
-            pd.Series, shape ``(m,)``.
+            pd.Series, shape ``(m,)`` is converted to a pd.DataFrame.
         Multivariate series:
             np.ndarray array, shape ``(m, d)`` or ``(d, m)`` depending on axis.
             pd.DataFrame ``(m, d)`` or ``(d, m)`` depending on axis.
@@ -199,30 +198,12 @@ class BaseSeriesEstimator(BaseEstimator):
         if input not in inner_names:
             if inner_names[0] == "ndarray":
                 X = X.to_numpy()
-            elif inner_names[0] == "Series":
-                if self.get_tag("capability:multivariate"):
-                    raise ValueError(
-                        "Cannot convert to pd.Series for multivariate capable "
-                        "estimators"
-                    )
-                if X.ndim > 1:
-                    n_channels = X.shape[0] if axis == 1 else X.shape[1]
-                    if n_channels > 1:
-                        raise ValueError(
-                            "Cannot convert to pd.Series for multivariate data. Found "
-                            f"{n_channels} channels"
-                        )
-
-                X = X.squeeze()
-                X = pd.Series(X)
             elif inner_names[0] == "DataFrame":
                 # converting a 1d array will create a 2d array in axis 0 format
                 transpose = False
                 if X.ndim == 1 and axis == 1:
                     transpose = True
-
                 X = pd.DataFrame(X)
-
                 if transpose:
                     X = X.T
             else:
@@ -271,38 +252,3 @@ class BaseSeriesEstimator(BaseEstimator):
             self.metadata_ = meta
 
         return self._convert_X(X, axis)
-
-    def _postprocess_series(self, Xt, axis):
-        """Postprocess data Xt to revert to original shape.
-
-        Parameters
-        ----------
-        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
-            A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-            Intended for algorithms which have another series as output.
-        axis: int or None
-            The time point axis of the input series if it is 2D. If ``axis==0``, it is
-            assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
-            the time series are in rows, i.e. the shape of the data is
-            ``(n_channels, n_timepoints)``.
-            If None, the default class axis is used.
-
-        Returns
-        -------
-        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
-            New time series input reshaped to match the original input.
-        """
-        if axis is None:
-            axis = self.axis
-
-        # If a univariate only transformer, return a univariate series
-        if not self.get_tag("capability:multivariate"):
-            Xt = Xt.squeeze()
-
-        # return with input axis
-        if Xt.ndim == 1 or axis == self.axis:
-            return Xt
-        else:
-            return Xt.T
