@@ -12,6 +12,7 @@ if [ "$1" = true ]; then
     "examples/benchmarking/reference_results.ipynb"
     "examples/benchmarking/bakeoff_results.ipynb"
     "examples/benchmarking/regression.ipynb"
+    "examples/clustering/partitional_clustering.ipynb"
   )
 fi
 
