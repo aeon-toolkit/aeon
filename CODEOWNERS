@@ -26,10 +26,16 @@ aeon/pipeline/ @aiwalter
 aeon/regression/ @MatthewMiddlehurst @TonyBagnall @dguijo
 aeon/regression/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall @dguijo
 
+aeon/segmentation/ @TonyBagnall
+
+aeon/similarity_search/ @baraline
+
 aeon/transformations/collection/ @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/collection/dictionary_based/ @patrickzib @MatthewMiddlehurst
 aeon/transformations/collection/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
 aeon/transformations/collection/shapelet_based/dilated_shapelet_transform.py @baraline
+
+aeon/transformations/series/ @TonyBagnall
 
 aeon/transformations/ @aiwalter
 aeon/transformations/augmenter.py @MrPr3ntice @iljamaurer
@@ -39,9 +45,10 @@ aeon/transformations/scaledlogit.py @ltsaprounis
 aeon/transformations/theta.py @GuzalBulatova
 aeon/transformations/time_since.py @KishManani
 
-aeon/similarity_search/ @baraline
-
 aeon/utils/numba/ @baraline @MatthewMiddlehurst
+
+.github/ @aeon-toolkit/aeon-infrastructure-workgroup
+build_tools/ @aeon-toolkit/aeon-infrastructure-workgroup
 
 docs/get_involved/code_of_conduct.rst @aeon-toolkit/aeon-code-of-conduct-committee
 docs/get_involved/governance.rst @aeon-toolkit/aeon-core-developers
