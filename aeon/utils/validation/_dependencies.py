@@ -270,7 +270,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
     # python sys version, e.g., "3.8.12"
     sys_version = sys.version.split(" ")[0]
 
-    if sys_version in est_specifier:
+    if est_specifier.contains(sys_version, prereleases=True):
         return True
     # now we know that est_version is not compatible with sys_version
 

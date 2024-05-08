@@ -208,9 +208,6 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         if use_pyfftw:
             d.append("pyfftw")
 
-        if d:
-            self.set_tags(**{"python_dependencies": d})
-
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
         else:
@@ -250,6 +247,9 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if d:
+            self.set_tags(**{"python_dependencies": d})
 
     def _fit(self, X, y):
         return super()._fit(X, y)
