@@ -12,6 +12,16 @@ if [ "$1" = true ]; then
     "examples/benchmarking/reference_results.ipynb"
     "examples/benchmarking/bakeoff_results.ipynb"
     "examples/benchmarking/regression.ipynb"
+    "examples/clustering/partitional_clustering.ipynb"
+    "examples/classification/hybrid.ipynb"
+    "examples/classification/deep_learning.ipynb"
+    "examples/classification/dictionary_based.ipynb"
+    "examples/classification/distance_based.ipynb"
+    "examples/classification/feature_based.ipynb"
+    "examples/classification/interval_based.ipynb"
+    "examples/classification/shapelet_based.ipynb"
+    "examples/classification/convolution_based.ipynb"
+
   )
 fi
 

@@ -20,7 +20,7 @@ PR_TESTING = False
 if os.environ.get("CICD_RUNNING") == "1":
     import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 
-EXCLUDE_ESTIMATORS = ["SklearnRegressorPipeline"]  # To be deprecated in 0.9.0
+EXCLUDE_ESTIMATORS = []
 
 # the test currently fails when numba is disabled. See issue #622
 if os.environ.get("NUMBA_DISABLE_JIT") == "1":
