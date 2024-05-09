@@ -29,7 +29,6 @@ aeon/forecasting/structural.py @juanitorduz
 aeon/networks/ @hadifawaz1999
 
 aeon/performance_metrics/forecasting/_functions.py @aiwalter
-aeon/performance_metrics/annotation/ @lmmentel
 
 aeon/pipeline/ @aiwalter
 
