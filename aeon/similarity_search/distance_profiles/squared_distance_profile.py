@@ -1,6 +1,6 @@
 """Optimized distance profile for euclidean distance."""
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 
 
 import numpy as np
@@ -83,7 +83,7 @@ def normalized_squared_distance_profile(
         for each channel.
 
     """
-    query_length = X.shape[2] - X_means.shape[2] + 1
+    query_length = q.shape[1]
     QX = np.asarray([fft_sliding_dot_product(X[i], q) for i in range(len(X))])
     return _normalized_squared_distance_profile(
         QX, mask, X_means, X_stds, q_means, q_stds, query_length

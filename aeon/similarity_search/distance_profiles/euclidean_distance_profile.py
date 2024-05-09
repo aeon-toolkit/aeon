@@ -1,6 +1,6 @@
 """Optimized distance profile for euclidean distance."""
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 
 
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (

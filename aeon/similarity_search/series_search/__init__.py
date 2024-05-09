@@ -1,0 +1,1 @@
+"""Series search module."""

@@ -1,25 +1,34 @@
 """Dummy similarity seach estimator."""
 
-__maintainer__ = []
-__all__ = ["DummySimilaritySearch"]
+__maintainer__ = ["baraline"]
 
 
-from aeon.similarity_search.base import BaseSimiliaritySearch
+from aeon.similarity_search.query_search import BaseQuerySearch
 
 
-class DummySimilaritySearch(BaseSimiliaritySearch):
+class DummyQuerySearch(BaseQuerySearch):
     """
-    DummySimilaritySearch for testing of the BaseSimiliaritySearch class.
+    DummySimilaritySearch for testing of the BaseQuerySearch class.
 
     Parameters
     ----------
-    distance : str, default ="euclidean"
-        Name of the distance function to use.
-    normalize : bool, default = False
+    distance : str, default="euclidean"
+        Name of the distance function to use. A list of valid strings can be found in
+        the documentation for :func:`aeon.distances.get_distance_function`.
+        If a callable is passed it must either be a python function or numba function
+        with nopython=True, that takes two 1d numpy arrays as input and returns a float.
+    distance_args : dict, default=None
+        Optional keyword arguments for the distance function.
+    normalize : bool, default=False
         Whether the distance function should be z-normalized.
-    store_distance_profile : bool, default = =False.
+    store_distance_profiles : bool, default=False.
         Whether to store the computed distance profile in the attribute
-        "_distance_profile" after calling the predict method.
+        "distance_profiles_" after calling the predict method.
+    speed_up : str, default='fastest'
+        Which speed up technique to use with for the selected distance
+        function. By default, the fastest algorithm is used. A list of available
+        algorithm for each distance can be obtained by calling the
+        `get_speedup_function_names`function.
 
     Attributes
     ----------
@@ -32,43 +41,16 @@ class DummySimilaritySearch(BaseSimiliaritySearch):
 
     Examples
     --------
-    >>> from aeon.similarity_search._dummy import DummySimilaritySearch
+    >>> from aeon.similarity_search.query_search import DummyQuerySearch
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = DummySimilaritySearch()
+    >>> clf = DummyQuerySearch()
     >>> clf.fit(X_train, y_train)
-    DummySimilaritySearch(...)
+    DummyQuerySearch(...)
     >>> q = X_test[0, :, 5:15]
     >>> y_pred = clf.predict(q)
     """
-
-    def __init__(
-        self, distance="euclidean", normalize=False, store_distance_profile=False
-    ):
-        super().__init__(
-            distance=distance,
-            normalize=normalize,
-            store_distance_profile=store_distance_profile,
-        )
-
-    def _fit(self, X, y):
-        """
-        Private fit method, does nothing more than the base class.
-
-        Parameters
-        ----------
-        X : array, shape (n_cases, n_channels, n_timepoints)
-            Input array to used as database for the similarity search
-        y : optional
-            Not used.
-
-        Returns
-        -------
-        self
-
-        """
-        return self
 
     def _predict(self, distance_profile, exclusion_size=None):
         """

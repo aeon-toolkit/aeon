@@ -90,10 +90,12 @@ def normalized_naive_distance_profile(
     mask : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
-    X_means : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
-        Means of each subsequences of X of size query_length
-    X_stds : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
-        Stds of each subsequences of X of size query_length
+    X_means : list, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+        Means of each subsequences of X of size query_length. Should be a numba
+        TypedList for unequal length support.
+    X_stds : list, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+        Stds of each subsequences of X of size query_length. Should be a numba
+        TypedList for unequal length support.
     q_means : array, shape (n_channels)
         Means of the query q
     q_stds : array, shape (n_channels)
@@ -187,8 +189,8 @@ def _normalized_naive_distance_profile(
                             i_channel,
                             i_candidate : i_candidate + query_length,
                         ],
-                        X_means[i_instance, i_channel, i_candidate],
-                        X_stds[i_instance, i_channel, i_candidate],
+                        X_means[i_instance][i_channel, i_candidate],
+                        X_stds[i_instance][i_channel, i_candidate],
                     )
                     distance_profile[i_instance, i_channel, i_candidate] = (
                         numba_distance_function(q[i_channel], _C)
