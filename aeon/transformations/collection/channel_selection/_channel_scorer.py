@@ -9,7 +9,7 @@ from aeon.transformations.collection.channel_selection.base import BaseChannelSe
 
 
 class ChannelScorer(BaseChannelSelector):
-    """Channel scorer wrapper for channel selection.
+    """Channel scorer channel selection using a single channel classifier wrapper.
 
     ChannelScorer uses a time series classifier to score each channel using an
     estimate of accuracy on the training data, then selects a proportion of the top
@@ -86,6 +86,7 @@ class ChannelScorer(BaseChannelSelector):
         self.channels_selected_ = sorted_indices[:n_keep]
         return self
 
+    @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
@@ -100,6 +101,6 @@ class ChannelScorer(BaseChannelSelector):
         dict
             Dictionary of testing parameters.
         """
-        from aeon.classification.base import DummyClassifier
+        from aeon.classification import DummyClassifier
 
         return {"classifier": DummyClassifier(), "proportion": 0.4}
