@@ -25,7 +25,8 @@ cv = SlidingWindowSplitter(start_with_window=True, window_length=1, fh=1)
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency for OnlineEnsembleForecaster not "
+    "available",
 )
 def test_weights_for_airline_averaging():
     """Test weights."""

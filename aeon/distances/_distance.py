@@ -44,6 +44,7 @@ from aeon.distances._lcss import (
 )
 from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
 from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
+from aeon.distances._mpdist import mpdist
 from aeon.distances._msm import (
     msm_alignment_path,
     msm_cost_matrix,
@@ -77,7 +78,6 @@ from aeon.distances._wdtw import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
-from aeon.distances.mpdist import mpdist
 
 
 class DistanceKwargs(TypedDict, total=False):

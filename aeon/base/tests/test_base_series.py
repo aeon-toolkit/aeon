@@ -43,9 +43,13 @@ MULTIVARIATE_MISSING["pd.DataFrame"].iloc[
 ] = np.NAN
 
 
-VALID_TYPES = [
+VALID_INPUT_TYPES = [
     "np.ndarray",
     "pd.Series",
+    "pd.DataFrame",
+]
+VALID_INNER_TYPES = [
+    "np.ndarray",
     "pd.DataFrame",
 ]
 
@@ -153,7 +157,7 @@ def test_check_X():
         dummy._check_X(collection, axis=0)
 
 
-@pytest.mark.parametrize("input_type", VALID_TYPES)
+@pytest.mark.parametrize("input_type", VALID_INPUT_TYPES)
 def test_convert_X_ndarray_inner(input_type):
     """Test _convert_X on with np.ndarray inner type."""
     dummy = BaseSeriesEstimator(axis=1)
@@ -187,40 +191,7 @@ def test_convert_X_ndarray_inner(input_type):
         assert_equal(X2, X3)
 
 
-@pytest.mark.parametrize("input_type", VALID_TYPES)
-def test_convert_X_series_inner(input_type):
-    """Test _convert_X on with pd.Series inner type."""
-    dummy = BaseSeriesEstimator(axis=1)
-    dummy.set_tags(**{"X_inner_type": "pd.Series"})
-    # test univariate
-    X = UNIVARIATE[input_type]
-
-    X2 = dummy._convert_X(X, axis=1)
-    assert type(X2).__name__ == "Series"
-    assert X2.shape == (20,)
-    assert X.shape[-1] == X2.shape[0]
-
-    X3 = dummy._convert_X(X.T, axis=0)
-    assert type(X3).__name__ == "Series"
-    assert X3.shape == (20,)
-    assert X2.equals(X3)
-
-    # test multivariate, should raise error as pd.Series cannot be multivariate
-    if input_type != "pd.Series":
-        X = MULTIVARIATE[input_type]
-
-        with pytest.raises(ValueError, match="multivariate data. Found 5 channels"):
-            dummy._convert_X(X, axis=1)
-
-        dummy.set_tags(**{"capability:multivariate": True})
-
-        with pytest.raises(ValueError, match="for multivariate capable estimators"):
-            dummy._convert_X(X, axis=1)
-        with pytest.raises(ValueError, match="for multivariate capable estimators"):
-            dummy._convert_X(X.T, axis=0)
-
-
-@pytest.mark.parametrize("input_type", VALID_TYPES)
+@pytest.mark.parametrize("input_type", VALID_INPUT_TYPES)
 def test_convert_X_dataframe_inner(input_type):
     """Test _convert_X on with pd.DataFrame inner type."""
     dummy = BaseSeriesEstimator(axis=1)
@@ -268,8 +239,8 @@ def test_convert_X_invalid():
         dummy._convert_X(UNIVARIATE["np.ndarray"], axis=1)
 
 
-@pytest.mark.parametrize("input_type", VALID_TYPES)
-@pytest.mark.parametrize("inner_type", VALID_TYPES)
+@pytest.mark.parametrize("input_type", VALID_INPUT_TYPES)
+@pytest.mark.parametrize("inner_type", VALID_INNER_TYPES)
 def test_preprocess_series(input_type, inner_type):
     """Test _preprocess_series for different input and inner types."""
     dummy = BaseSeriesEstimator(axis=1)
@@ -318,57 +289,6 @@ def test_preprocess_series(input_type, inner_type):
 
         with pytest.raises(ValueError, match="Cannot convert to pd.Series"):
             dummy._preprocess_series(X, axis=1, store_metadata=True)
-
-
-@pytest.mark.parametrize("returned_type", VALID_TYPES)
-def test_postprocess_series(returned_type):
-    """Test data reformatted correctly by _postprocess_series."""
-    dummy = BaseSeriesEstimator(axis=1)
-    # test univariate
-    Xu = UNIVARIATE[returned_type]
-
-    X2 = dummy._postprocess_series(Xu, axis=1)
-    assert X2.ndim == 1
-    assert X2.shape == (20,)
-
-    X3 = dummy._postprocess_series(Xu.T, axis=0)
-    assert X2.shape == X3.shape
-
-    # test multivariate and 2d, excludes pd.Series input type as it is 1D only
-    if returned_type != "pd.Series":
-        Xu = Xu.reshape((1, -1)) if returned_type == "np.ndarray" else Xu
-        Xm = MULTIVARIATE[returned_type]
-
-        X2 = dummy._postprocess_series(Xu, axis=1)
-        assert X2.ndim == 1
-        assert X2.shape == (20,)
-
-        X3 = dummy._postprocess_series(Xu.T, axis=0)
-        assert X2.shape == X3.shape
-
-        X2 = dummy._postprocess_series(Xm, axis=1)
-        assert X2.ndim == 2
-        assert X2.shape == (5, 20)
-
-        X3 = dummy._postprocess_series(Xm.T, axis=0)
-        assert X2.shape == X3.shape
-
-        # multivariate capable estimator
-        dummy.set_tags(**{"capability:multivariate": True})
-
-        X2 = dummy._postprocess_series(Xu, axis=1)
-        assert X2.ndim == 2
-        assert X2.shape == (1, 20)
-
-        X3 = dummy._postprocess_series(Xu.T, axis=0)
-        assert X2.shape == X3.shape
-
-        X2 = dummy._postprocess_series(Xm, axis=1)
-        assert X2.ndim == 2
-        assert X2.shape == (5, 20)
-
-        X3 = dummy._postprocess_series(Xm.T, axis=0)
-        assert X2.shape == X3.shape
 
 
 def test_axis():
