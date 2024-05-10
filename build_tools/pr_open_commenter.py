@@ -20,10 +20,9 @@ pr = repo.get_pull(number=pr_number)
 if "[bot]" in pr.user.login:
     sys.exit(0)
 
-title_labels = os.getenv("TITLE_LABELS")[1:-1].split(",")
-print(title_labels)  # noqa
-title_labels_new = os.getenv("TITLE_LABELS_NEW")[1:-1].split(",")
-content_labels = os.getenv("CONTENT_LABELS")[1:-1].split(",")
+title_labels = os.getenv("TITLE_LABELS")[1:-1].replace("'", "").split(",")
+title_labels_new = os.getenv("TITLE_LABELS_NEW")[1:-1].replace("'", "").split(",")
+content_labels = os.getenv("CONTENT_LABELS")[1:-1].replace("'", "").split(",")
 content_labels_status = os.getenv("CONTENT_LABELS_STATUS")
 
 replacement_labels = [
