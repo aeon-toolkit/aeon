@@ -19,9 +19,9 @@ Convolution-based
     :template: class.rst
 
     Arsenal
-    RocketClassifier
     HydraClassifier
     MultiRocketHydraClassifier
+    RocketClassifier
 
 Deep learning
 -------------
@@ -33,13 +33,15 @@ Deep learning
     :template: class.rst
 
     CNNClassifier
+    EncoderClassifier
     FCNClassifier
-    MLPClassifier
     InceptionTimeClassifier
     IndividualInceptionClassifier
-    TapNetClassifier
-    EncoderClassifier
+    IndividualLITEClassifier
     LITETimeClassifier
+    MLPClassifier
+    ResNetClassifier
+    TapNetClassifier
 
 Dictionary-based
 ----------------
@@ -111,10 +113,13 @@ Interval-based
 
     CanonicalIntervalForestClassifier
     DrCIFClassifier
+    IntervalForestClassifier
+    RandomIntervalClassifier
     RandomIntervalSpectralEnsembleClassifier
+    RDSTClassifier
+    SupervisedIntervalClassifier
     SupervisedTimeSeriesForest
     TimeSeriesForestClassifier
-    RandomIntervalClassifier
     QUANTClassifier
 
 Shapelet-based
@@ -130,6 +135,7 @@ Shapelet-based
     MrSQMClassifier
     RDSTClassifier
     SASTClassifier
+    LearningShapeletClassifier
 
 sklearn
 -------
