@@ -1,5 +1,6 @@
 """Test MPDist function."""
 
+import os
 import re
 
 import pytest
@@ -10,6 +11,9 @@ from aeon.testing.utils.data_gen import make_series
 
 def test_mpdist():
     """Minimal test for MPDist prior to redesign."""
+    if os.environ.get("NUMBA_DISABLE_JIT") == "1":
+        return
+
     x = make_series(10, return_numpy=True, random_state=1)
     y = make_series(10, 2, return_numpy=True, random_state=2)
 

@@ -23,6 +23,7 @@ github_checks:
 
 # paths to ignore
 ignore:
+  - "*/tests/"
   - ".github/"
   - ".binder/"
   - "aeon/testing/expected_results/"
