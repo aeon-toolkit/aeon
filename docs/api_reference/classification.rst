@@ -57,10 +57,10 @@ Dictionary-based
     IndividualBOSS
     IndividualTDE
     MUSE
+    REDCOMETS
     TemporalDictionaryEnsemble
     WEASEL
     WEASEL_V2
-    REDCOMETS
 
 Distance-based
 --------------
@@ -114,13 +114,13 @@ Interval-based
     CanonicalIntervalForestClassifier
     DrCIFClassifier
     IntervalForestClassifier
+    QUANTClassifier
     RandomIntervalClassifier
     RandomIntervalSpectralEnsembleClassifier
     RDSTClassifier
     SupervisedIntervalClassifier
     SupervisedTimeSeriesForest
     TimeSeriesForestClassifier
-    QUANTClassifier
 
 Shapelet-based
 --------------
@@ -131,11 +131,11 @@ Shapelet-based
     :toctree: auto_generated/
     :template: class.rst
 
-    ShapeletTransformClassifier
+    LearningShapeletClassifier
     MrSQMClassifier
     RDSTClassifier
     SASTClassifier
-    LearningShapeletClassifier
+    ShapeletTransformClassifier
 
 sklearn
 -------
