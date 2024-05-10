@@ -1,4 +1,5 @@
-name: Self-Assign Bot
+name: Issue Comment Posted
+
 on:
   issue_comment:
     types: [created]
@@ -20,11 +21,6 @@ jobs:
 
       - name: Install PyGithub
         run: pip install -Uq PyGithub
-
-      - name: Set env
-        run: |
-          echo "ISSUE_NUMBER=$(jq --raw-output .issue.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
-          echo "COMMENT_BODY=$(jq --raw-output .comment.body "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
       - name: Create app token
         uses: actions/create-github-app-token@v1
