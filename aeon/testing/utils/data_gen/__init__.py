@@ -27,7 +27,6 @@ __all__ = [
     "_make_fh",
     "_assert_correct_columns",
     "_assert_correct_pred_time_index",
-    "make_annotation_problem",
     "_get_n_columns",
     "get_examples",
     "make_example_2d_unequal_length",
@@ -54,7 +53,6 @@ from aeon.testing.utils.data_gen._series import (
     make_series,
 )
 from aeon.testing.utils.data_gen._test_examples import get_examples
-from aeon.testing.utils.data_gen.annotation import make_annotation_problem
 from aeon.testing.utils.data_gen.forecasting import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,
