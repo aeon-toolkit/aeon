@@ -1,0 +1,40 @@
+name: Self-Assign Bot
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  self-assign:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: build_tools
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install PyGithub
+        run: pip install -Uq PyGithub
+
+      - name: Set env
+        run: |
+          echo "ISSUE_NUMBER=$(jq --raw-output .issue.number "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          echo "COMMENT_BODY=$(jq --raw-output .comment.body "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+
+      - name: Create app token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Assign issue
+        run: python build_tools/issue_assign.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

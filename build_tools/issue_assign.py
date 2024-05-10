@@ -6,10 +6,14 @@ phrase(as defined) and a mentioned user.
 If it does, it assigns the issue/PR to the mentioned user.
 """
 
+import json
 import os
 import re
 
 from github import Github
+
+context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
+print(context_dict)  # noqa
 
 # Initialize a Github instance:
 g = Github(os.getenv("GITHUB_TOKEN"))

@@ -31,5 +31,5 @@ jobs:
           comment-updates: true
           tag-committer: true
           stale-branch-label: "stale branch"
-          compare-branches: 'info'
+          compare-branches: "info"
           pr-check: true
