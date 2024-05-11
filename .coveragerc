@@ -9,4 +9,3 @@ exclude_lines =
 branch = True
 source = aeon
 parallel = True
-omit = */tests/*
