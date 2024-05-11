@@ -27,12 +27,16 @@ def test_mpdist():
     ):
         mpdist(x, y)
 
-    # Test for ValueError if ts2 is not a 1D array
     with pytest.raises(
         ValueError,
         match=re.escape("subseries length must be less than or equal to the length"),
     ):
         mpdist(x, y, m=11)
+    with pytest.raises(
+        ValueError,
+        match=re.escape("subseries length must be greater than 0 or zero"),
+    ):
+        mpdist(x, y, m=-1)
 
     y = make_series(10, 1, return_numpy=True, random_state=2)
 
