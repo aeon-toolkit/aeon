@@ -12,27 +12,31 @@ from aeon.distances._utils import reshape_pairwise_to_multiple
 def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     r"""Matrix Profile Distance.
 
-    MPdist is a recently introduced distance measure which considers
-    two time series to be similar if they share many similar subsequences,
-    2regardless of the order of matching subsequences. MPdist combines the
-    results of an AB-join and a BA-join, then identifies the kth smallest
-    value as the reported distance. It's important to note that MPdist is
-    a measure, not a metric. As a result, it doesn't adhere to the triangular
-    inequality.
+    MPdist [2]_ is a distance measure based on the matrix profile [1]_. Given a
+    window length $m$, the matrix profile between two series $x$ and $y$, denoted
+    $P_{xy}$, is a new time series where each point $i$ stores the Euclidean distance
+    between `x[i:i+m]` and the nearest neighbour window to x[i:i+m]` in $y$ . MPdist
+    is found by concatenating $P_{xy}$ and $P_{yx}$, sorting the distances
+    into ascending order then taking the $k^{th}$ smallest as the distance. $k$ is
+    set to 5% of the sum of the lengths of the two time series.
+
+    This function supports unequal length series. We recommend using MPDist with
+    normalised series, otherwise the distance may be dominated by differences in scale.
 
     Parameters
     ----------
     x : np.ndarray
-        First time series, univariate, shape ``(n_timepoints,)``
+        First time series, univariate, shape ``(n_timepoints,)``.
     y : np.ndarray
-        Second time series, univariate, shape ``(n_timepoints,)``
+        Second time series, univariate, shape ``(n_timepoints,)``.
     m : int (default = 0)
-        Length of the subsequence
+        Length of the sliding window. If 0, it is set to 1/4 of the length of the
+        shortest time series.
 
     Returns
     -------
     float
-        Matrix Profile distance between x and y
+        Matrix Profile distance between x and y.
 
     Raises
     ------
@@ -43,8 +47,11 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     ----------
     .. [1] S. Gharghabi, S. Imani, A. Bagnall, A. Darvishzadeh and E. Keogh,
     "Matrix Profile XII: MPdist: A Novel Time Series Distance Measure to Allow
-    Data Mining in More Challenging Scenarios," 2018 IEEE International Conference
-    on Data Mining (ICDM), Singapore, 2018.
+    Data Mining in More Challenging Scenarios", 2018 IEEE International Conference
+    on Data Mining (ICDM), 2018.
+    .. [2] S. Gharghabi, S. Imani, A. Bagnall, A. Darvishzadeh and E. Keogh
+    "An ultra-fast time series distancemeasure to allow data mining inmore complex
+    real-world deployments", Data Mining and Knowledge Discovery, 34(5), 2020.
 
     Examples
     --------
@@ -56,9 +63,18 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     >>> mpdist(x, y, m)
     0.05663764013361034
     """
+    if m < 0:
+        raise ValueError(
+            "subseries length must be greater than 0 or zero to default "
+            "to 1/4 of the length of the shortest time series"
+        )
     x = np.squeeze(x)
     y = np.squeeze(y)
-
+    if m > len(x) or m > len(y):
+        raise ValueError(
+            "subseries length must be less than or equal to the length "
+            "of both time series"
+        )
     if x.ndim == 1 and y.ndim == 1:
         return _mpdist(x, y, m)
 
@@ -69,6 +85,11 @@ def _mpdist(x: np.ndarray, y: np.ndarray, m: int) -> float:
     threshold = 0.05
     len_x = len(x)
     len_y = len(y)
+    if m == 0:
+        if len_x > len_y:
+            m = int(len_x / 4)
+        else:
+            m = int(len_y / 4)
 
     first_dot_prod_ab = _sliding_dot_products(y[0:m], x, m, len_x)
     dot_prod_ab = _sliding_dot_products(x[0:m], y, m, len_y)
@@ -212,11 +233,6 @@ def _stomp_ab(
     """
     len_x = len(x)
     len_y = len(y)
-    if m == 0:
-        if len_x > len_y:
-            m = int(len_x / 4)
-        else:
-            m = int(len_y / 4)
 
     # Number of subsequences
     subs_x = len_x - m + 1
