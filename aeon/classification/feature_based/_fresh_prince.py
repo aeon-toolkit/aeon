@@ -62,6 +62,12 @@ class FreshPRINCEClassifier(BaseClassifier):
         scalable hypothesis tests (tsfresh-a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
+    .. [2] Middlehurst, M., Bagnall, A. "The FreshPRINCE: A Simple Transformation 
+        Based Pipeline Time Series Classifier." In: El Yacoubi, M., Granger, E., 
+        Yuen, P.C., Pal, U., Vincent, N. (eds) Pattern Recognition and Artificial 
+        Intelligence. ICPRAI 2022. Lecture Notes in Computer Science, vol 13364. 
+        Springer, Cham. (2022).
+        https://link.springer.com/chapter/10.1007/978-3-031-09282-4_13
     """
 
     _tags = {
