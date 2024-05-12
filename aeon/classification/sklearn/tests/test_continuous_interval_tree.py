@@ -2,10 +2,10 @@
 
 import numpy as np
 import pytest
+from sklearn.exceptions import NotFittedError
 
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.classification.sklearn._continuous_interval_tree import _TreeNode
-from aeon.exceptions import NotFittedError
 from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
 
 

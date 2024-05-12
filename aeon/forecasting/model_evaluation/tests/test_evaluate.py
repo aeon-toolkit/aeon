@@ -14,10 +14,10 @@ __all__ = [
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.exceptions import FitFailedWarning
 from sklearn.linear_model import LinearRegression
 
 from aeon.datasets import load_airline, load_longley
-from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.compose._reduce import DirectReductionForecaster
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.model_evaluation import evaluate
