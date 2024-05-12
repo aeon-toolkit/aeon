@@ -117,7 +117,7 @@ Interval-based
     QUANTClassifier
     RandomIntervalClassifier
     RandomIntervalSpectralEnsembleClassifier
-    RDSTClassifier
+    RSTSF
     SupervisedIntervalClassifier
     SupervisedTimeSeriesForest
     TimeSeriesForestClassifier
