@@ -10,16 +10,19 @@ from sklearn.utils.estimator_checks import check_get_params_invariance
 
 from aeon.base import BaseEstimator, BaseObject
 from aeon.testing.test_config import VALID_ESTIMATOR_BASE_TYPES, VALID_ESTIMATOR_TAGS
+from aeon.testing.testing_data import get_data_types_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _get_args, _list_required_methods
 from aeon.transformations.base import BaseTransformer
 
 
-def _yield_all_aeon_checks():
-    yield from _yield_estimator_checks()
+def _yield_all_aeon_checks(estimator):
+    datatypes = get_data_types_for_estimator(estimator)
+
+    yield from _yield_estimator_checks(datatypes)
 
 
-def _yield_estimator_checks():
+def _yield_estimator_checks(datatypes):
     # no data needed
     yield check_create_test_instance
     yield check_create_test_instances_and_names
@@ -39,6 +42,8 @@ def _yield_estimator_checks():
     # x
 
     # should test all data types
+    for datatype in datatypes:
+        pass
 
 
 def check_create_test_instance(estimator):

@@ -85,8 +85,8 @@ def parametrize_with_checks(
             if not isinstance(est, list):
                 est = [est]
 
-            for check in _yield_all_aeon_checks():
-                for e in est:
+            for e in est:
+                for check in _yield_all_aeon_checks(e):
                     yield _check_if_xfail(e, check)
 
     return pytest.mark.parametrize(
@@ -158,8 +158,8 @@ def check_estimator(
         if not isinstance(est, list):
             est = [est]
 
-        for check in _yield_all_aeon_checks():
-            for e in est:
+        for e in est:
+            for check in _yield_all_aeon_checks(e):
                 yield _check_if_skip(e, check)
 
     passed = 0
