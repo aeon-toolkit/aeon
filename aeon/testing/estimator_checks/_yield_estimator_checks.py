@@ -4,6 +4,8 @@ from inspect import getfullargspec, signature
 
 import joblib
 import numpy as np
+import pytest
+from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_get_params_invariance
 
 from aeon.base import BaseEstimator, BaseObject
@@ -18,6 +20,7 @@ def _yield_all_aeon_checks():
 
 
 def _yield_estimator_checks():
+    # no data needed
     yield check_create_test_instance
     yield check_create_test_instances_and_names
     yield check_estimator_tags
@@ -31,6 +34,11 @@ def _yield_estimator_checks():
     yield check_constructor
     yield check_valid_estimator_class_tags
     yield check_valid_estimator_tags
+
+    # data type irrelevant
+    # x
+
+    # should test all data types
 
 
 def check_create_test_instance(estimator):
@@ -360,23 +368,24 @@ def check_valid_estimator_tags(estimator):
         assert tag in VALID_ESTIMATOR_TAGS
 
 
-# def check_raises_not_fitted_error(estimator):
-#     """Check exception raised for non-fit method calls to unfitted estimators.
-#
-#     Tries to run all methods in NON_STATE_CHANGING_METHODS with valid scenario,
-#     but before fit has been called on the estimator.
-#
-#     This should raise a NotFittedError if correctly caught,
-#     normally by a self.check_is_fitted() call in the method's boilerplate.
-#
-#     Raises
-#     ------
-#     Exception if NotFittedError is not raised by non-state changing method
-#     """
-#     # call methods without prior fitting and check that they raise NotFittedError
-#     with pytest.raises(NotFittedError, match=r"has not been fitted"):
-#         scenario.run(estimator_instance, method_sequence=[method_nsc])
-#
+def check_raises_not_fitted_error(estimator):
+    """Check exception raised for non-fit method calls to unfitted estimators.
+
+    Tries to run all methods in NON_STATE_CHANGING_METHODS with valid scenario,
+    but before fit has been called on the estimator.
+
+    This should raise a NotFittedError if correctly caught,
+    normally by a self.check_is_fitted() call in the method's boilerplate.
+
+    Raises
+    ------
+    Exception if NotFittedError is not raised by non-state changing method
+    """
+    # call methods without prior fitting and check that they raise NotFittedError
+    with pytest.raises(NotFittedError, match=r"has not been fitted"):
+        scenario.run(estimator_instance, method_sequence=[method_nsc])
+
+
 # def check_non_state_changing_method(estimator):
 #     """Check that non-state-changing methods behave as per interface contract.
 #

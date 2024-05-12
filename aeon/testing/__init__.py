@@ -6,5 +6,8 @@ __all__ = [
     "check_estimator_legacy",
 ]
 
-from aeon.testing.estimator_checks import check_estimator, parametrize_with_checks, \
-    check_estimator_legacy
+from aeon.testing.estimator_checks import (
+    check_estimator,
+    check_estimator_legacy,
+    parametrize_with_checks,
+)

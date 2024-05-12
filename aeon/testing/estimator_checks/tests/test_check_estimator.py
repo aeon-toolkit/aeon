@@ -4,6 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import pytest
 
+from aeon.testing import parametrize_with_checks
 from aeon.testing.estimator_checks import check_estimator
 from aeon.testing.mock_estimators import (
     MockClassifier,
@@ -19,6 +20,18 @@ EXAMPLE_CLASSES = [
     MockMultivariateSeriesTransformer,
     MockClassifierMultiTestParams,
 ]
+
+
+@parametrize_with_checks(EXAMPLE_CLASSES)
+def test_parametrize_with_checks_classes(estimator, check):
+    """Test parametrize_with_checks with class input."""
+    check(estimator)
+
+
+@parametrize_with_checks([c.create_test_instance() for c in EXAMPLE_CLASSES])
+def test_parametrize_with_checks_instances(estimator, check):
+    """Test parametrize_with_checks with estimator instance input."""
+    check(estimator)
 
 
 @pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)
