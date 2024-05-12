@@ -188,9 +188,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         if use_pyfftw:
             d.append("pyfftw")
 
-        if d:
-            self.set_tags(**{"python_dependencies": d})
-
         series_transformers = [
             None,
             FunctionTransformer(func=first_order_differences_3d, validate=False),
@@ -225,6 +222,9 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if d:
+            self.set_tags(**{"python_dependencies": d})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

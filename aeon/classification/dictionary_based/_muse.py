@@ -77,7 +77,9 @@ class MUSE(BaseClassifier):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     random_state : int or None, default=None
-        Seed for random.
+        If `int`, random_state is the seed used by the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------

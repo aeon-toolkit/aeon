@@ -315,9 +315,9 @@ def check_time_index(
     ----------
     index : pd.Index or np.array
         Time index
-    allow_empty : bool, optional (default=False)
+    allow_empty : bool, default=False
         If False, empty `index` raises an error.
-    enforce_index_type : type, optional (default=None)
+    enforce_index_type : type, default=None
         type of time index
     var_name : str, default = "input" - variable name printed in error messages
 

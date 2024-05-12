@@ -3,8 +3,6 @@
 # Only users with write access to the repository will be automatically added as
 # reviewers and contacted.
 
-aeon/annotation/ @lmmentel
-aeon/annotation/clasp.py @patrickzib @ermshaua
 
 aeon/benchmarking/ @TonyBagnall @MatthewMiddlehurst @hadifawaz1999 @dguijo
 
@@ -31,7 +29,6 @@ aeon/forecasting/structural.py @juanitorduz
 aeon/networks/ @hadifawaz1999
 
 aeon/performance_metrics/forecasting/_functions.py @aiwalter
-aeon/performance_metrics/annotation/ @lmmentel
 
 aeon/pipeline/ @aiwalter
 

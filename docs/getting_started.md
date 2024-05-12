@@ -20,8 +20,6 @@ are used to predict a categorical target class.
 instance are used to predict a continuous target value.
 - {term}`Time series clustering` where the goal is to discover groups consisting of
 instances with similar time series.
-- {term}`Time series annotation` which is focused on outlier detection, anomaly
-detection, change point detection and segmentation.
 - {term}`Time series similarity search` where the goal is to evaluate the similarity
 between a time series against a collection of other time series.
 
@@ -82,7 +80,7 @@ We commonly refer to the number of observations for a time series as `n_timepoin
 Dimensions may also be referred to as variables.
 
 Different parts of `aeon` work with single series or collections of series. The
-`forecasting` and `annotation` modules will commonly use single series input, while
+`forecasting` module will commonly use single series input, while
 `classification`, `regression` and `clustering` modules will use collections of time
 series. Collections of time series may also be referred to a Panels. Collections of
 time series will often be accompanied by an array of target variables.
@@ -290,29 +288,6 @@ After calling `fit`, the `labels_` attribute contains the cluster labels for
 each time series. The `predict` method can be used to predict the cluster labels for
 new data.
 
-## Time Series Annotation
-
-Annotation encompasses a range of time series tasks, including segmentation and anomaly
-detection. The package is still in early development, so major changes are expected
-as time goes on.
-
-```{code-block} python
->>> from aeon.annotation.adapters import PyODAnnotator
->>> from aeon.datasets import load_airline
->>> from pyod.models.iforest import IForest
->>> y = load_airline()
->>> pyod_model = IForest()
->>> annotator = PyODAnnotator(pyod_model)
->>> annotator.fit(y)
->>> annotated_series = annotator.predict(y)
->>> annotated_series.head()
-1949-01    1
-1949-02    0
-1949-03    0
-1949-04    0
-1949-05    0
-Freq: M, dtype: int32
-```
 
 ## Transformers for Time Series Data
 

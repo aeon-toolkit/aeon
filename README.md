@@ -13,10 +13,16 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest `aeon` release is `v0.8.0`. You can view the full changelog
+The latest `aeon` release is `v0.8.1`. You can view the full changelog
 [here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
+
+The following modules are still considered experimental, and the [deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html)
+does not apply:
+
+`anomaly_detection`, `benchmarking`, `segmentation`, `similarity_search`,
+`testing`, `transformations/series`, `visualisation`
 
 | Overview      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 |---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -78,6 +84,11 @@ pred = forecaster.predict(fh=[1, 2, 3])  # forecast the next 3 values
 ```
 
 ### Classification
+
+*It's worth mentioning that the classifier used in the example can easily be
+swapped out for a regressor, and the labels for numeric targets. This flexibility
+allowing for seamless adaptation to different tasks and datasets while preserving
+API consistency.*
 
 ```python
 import numpy as np

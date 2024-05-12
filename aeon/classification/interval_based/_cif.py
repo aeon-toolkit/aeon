@@ -183,8 +183,6 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
         parallel_backend=None,
     ):
         self.use_pycatch22 = use_pycatch22
-        if use_pycatch22:
-            self.set_tags(**{"python_dependencies": "pycatch22"})
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
@@ -215,6 +213,9 @@ class CanonicalIntervalForestClassifier(BaseIntervalForest, BaseClassifier):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pycatch22:
+            self.set_tags(**{"python_dependencies": "pycatch22"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)
