@@ -7,7 +7,7 @@ transform then builds (by default) a rotation forest classifier on the output.
 __maintainer__ = []
 __all__ = ["ShapeletTransformClassifier"]
 
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 from sklearn.model_selection import cross_val_predict
@@ -318,7 +318,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         return self._transformer.fit_transform(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

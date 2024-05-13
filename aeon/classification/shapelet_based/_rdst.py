@@ -7,7 +7,7 @@ shapelet dilated transform and build (by default) a ridge classifier on the outp
 __maintainer__ = ["baraline"]
 __all__ = ["RDSTClassifier"]
 
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
@@ -250,7 +250,7 @@ class RDSTClassifier(BaseClassifier):
             return dists
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

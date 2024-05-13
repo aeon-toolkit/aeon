@@ -6,7 +6,7 @@ Learning shapelet classifier that simply wraps the LearningShapelet class from t
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["LearningShapeletClassifier"]
 
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 
@@ -185,7 +185,7 @@ class LearningShapeletClassifier(BaseClassifier):
     #     return self.clf_.locate(_X_transformed)
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
