@@ -2414,6 +2414,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "jasonmokk",
+      "name": "Jason Mok",
+      "avatar_url": "https://avatars.githubusercontent.com/u/106209849?v=4",
+      "profile": "https://github.com/jasonmokk",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
