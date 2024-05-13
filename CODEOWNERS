@@ -38,12 +38,9 @@ aeon/transformations/collection/shapelet_based/dilated_shapelet_transform.py @ba
 aeon/transformations/series/ @TonyBagnall
 
 aeon/transformations/ @aiwalter
-aeon/transformations/augmenter.py @MrPr3ntice @iljamaurer
 aeon/transformations/clasp.py @patrickzib @ermshaua
-aeon/transformations/kalman_filter.py @NoaBenAmi
 aeon/transformations/scaledlogit.py @ltsaprounis
 aeon/transformations/theta.py @GuzalBulatova
-aeon/transformations/time_since.py @KishManani
 
 aeon/utils/numba/ @baraline @MatthewMiddlehurst
 
