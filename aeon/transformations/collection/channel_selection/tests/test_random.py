@@ -27,5 +27,7 @@ def test_random_channel_selector():
     r = RandomChannelSelector(p=1.0)
     X2 = r.fit_transform(X)
     assert X2.shape == X.shape
-    with pytest.raises(ValueError, match="Proportion to select cannot be zero."):
+    with pytest.raises(
+        ValueError, match="Proportion of channels to select should be in the range."
+    ):
         RandomChannelSelector(p=0)
