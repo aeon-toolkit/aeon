@@ -3,6 +3,8 @@
 __maintainer__ = []
 __all__ = ["MrSQMClassifier"]
 
+from typing import Union
+
 import numpy as np
 
 from aeon.classification import BaseClassifier
@@ -73,15 +75,15 @@ class MrSQMClassifier(BaseClassifier):
 
     def __init__(
         self,
-        strat="RS",
-        features_per_rep=500,
-        selection_per_rep=2000,
-        nsax=0,
-        nsfa=5,
-        sfa_norm=True,
-        custom_config=None,
-        random_state=None,
-    ):
+        strat: str = "RS",
+        features_per_rep: int = 500,
+        selection_per_rep: int = 2000,
+        nsax: int = 0,
+        nsfa: int = 5,
+        sfa_norm: bool = True,
+        custom_config: Union[dict, None] = None,
+        random_state: Union[int, None] = None,
+    ) -> None:
         self.strat = strat
         self.features_per_rep = features_per_rep
         self.selection_per_rep = selection_per_rep
@@ -124,7 +126,7 @@ class MrSQMClassifier(BaseClassifier):
         return self.clf_.predict_proba(X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
