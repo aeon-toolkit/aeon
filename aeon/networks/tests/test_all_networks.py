@@ -2,18 +2,11 @@
 
 import inspect
 
-import pytest
-
 from aeon import networks
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __maintainer__ = []
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow", "tensorflow_addons"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
 def test_all_networks_functionality():
     """Test the functionality of all networks."""
     network_classes = [
