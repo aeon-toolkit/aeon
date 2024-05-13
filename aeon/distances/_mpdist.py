@@ -63,33 +63,35 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     >>> mpdist(x, y, m)
     0.05663764013361034
     """
+    x = np.squeeze(x)
+    y = np.squeeze(y)
+    if x.ndim != 1 or y.ndim != 1:
+        raise ValueError("x and y must be a 1D array of shape (n_timepoints,)")
+    len_x = len(x)
+    len_y = len(y)
+
     if m < 0:
         raise ValueError(
             "subseries length must be greater than 0 or zero to default "
             "to 1/4 of the length of the shortest time series"
         )
-    x = np.squeeze(x)
-    y = np.squeeze(y)
-    if m > len(x) or m > len(y):
+    elif m == 0:
+        if len_x > len_y:
+            m = int(len_x / 4)
+        else:
+            m = int(len_y / 4)
+    if m > len_x or m > len_y:
         raise ValueError(
             "subseries length must be less than or equal to the length "
             "of both time series"
         )
-    if x.ndim == 1 and y.ndim == 1:
-        return _mpdist(x, y, m)
-
-    raise ValueError("x and y must be a 1D array of shape (n_timepoints,)")
+    return _mpdist(x, y, m)
 
 
 def _mpdist(x: np.ndarray, y: np.ndarray, m: int) -> float:
     threshold = 0.05
     len_x = len(x)
     len_y = len(y)
-    if m == 0:
-        if len_x > len_y:
-            m = int(len_x / 4)
-        else:
-            m = int(len_y / 4)
 
     first_dot_prod_ab = _sliding_dot_products(y[0:m], x, m, len_x)
     dot_prod_ab = _sliding_dot_products(x[0:m], y, m, len_y)
