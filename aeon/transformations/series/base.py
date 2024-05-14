@@ -333,9 +333,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
             New time series input reshaped to match the original input.
         """
-        if axis is None:
-            axis = self.axis
-
         # If a univariate only transformer, return a univariate series
         if not self.get_tag("capability:multivariate"):
             Xt = Xt.squeeze()
