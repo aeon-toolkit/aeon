@@ -173,9 +173,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         inverse transformed version of X
             of the same type as X
         """
-        if self.get_tag("skip-inverse-transform"):
-            return X
-
         if not self.get_tag("capability:inverse_transform"):
             raise NotImplementedError(
                 f"{type(self)} does not implement inverse_transform"

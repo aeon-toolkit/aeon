@@ -192,7 +192,7 @@ class BaseCollectionTransformer(
         inverse transformed version of X
             of the same type as X
         """
-        if self.get_tag("skip-inverse-transform"):
+        if self.get_tag("skip-inverse-transform", raise_error=False):
             return X
 
         if not self.get_tag("capability:inverse_transform"):

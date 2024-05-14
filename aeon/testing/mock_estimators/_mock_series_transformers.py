@@ -33,7 +33,7 @@ class MockUnivariateSeriesTransformer(BaseSeriesTransformer):
 
         Parameters
         ----------
-        X : np.ndarray, shape = (n_channels, n_timepoints)
+        X : np.ndarray, shape = (1, n_timepoints)
             2D time series to be transformed
         y : ignored argument for interface compatibility
 
@@ -41,9 +41,10 @@ class MockUnivariateSeriesTransformer(BaseSeriesTransformer):
         -------
         self
         """
-        self.n_features_ = X.shape[0]
+        X = X.squeeze()
+        self.n_timepoints_ = len(X)
         rng = np.random.RandomState(seed=self.random_state)
-        self.random_values_ = rng.random(self.n_features_)
+        self.random_values_ = rng.random(self.n_timepoints_)
         return self
 
     def _transform(self, X: np.ndarray, y=None) -> np.ndarray:
@@ -51,19 +52,17 @@ class MockUnivariateSeriesTransformer(BaseSeriesTransformer):
 
         Parameters
         ----------
-        X : np.ndarray, shape = (n_channels, n_timepoints)
+        X : np.ndarray, shape = (1, n_timepoints)
             2D time series to be transformed
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        np.ndarray, shape = (n_channels, n_timepoints)
+        np.ndarray, shape = (n_timepoints,)
             2D transformed version of X
         """
-        X_new = np.zeros_like(X)
-        for i in range(self.n_features_):
-            X_new[i] = X[i] + (self.constant + self.random_values_[i])
-        return X_new
+        X = X.squeeze()
+        return X + (self.constant + self.random_values_)
 
     def _inverse_transform(self, X: np.ndarray, y=None) -> np.ndarray:
         """Inverse transform X by substracting the constant and random value.
@@ -79,10 +78,7 @@ class MockUnivariateSeriesTransformer(BaseSeriesTransformer):
         np.ndarray, shape = (n_channels, n_timepoints)
             2D inverse transformed version of X
         """
-        X_new = np.zeros_like(X)
-        for i in range(self.n_features_):
-            X_new[i] = X[i] - (self.constant + self.random_values_[i])
-        return X_new
+        return X - (self.constant + self.random_values_)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
