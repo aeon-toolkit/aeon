@@ -12,9 +12,10 @@ from abc import ABCMeta, abstractmethod
 from typing import final
 
 from aeon.base import BaseSeriesEstimator
+from aeon.transformations.base import BaseTransformer
 
 
-class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
+class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCMeta):
     """Transformer base class for collections."""
 
     # tag values specific to SeriesTransformers
@@ -67,8 +68,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
         # reset estimator at the start of fit
         self.reset()
-        if axis is None:  # If none given, assume it is correct.
-            axis = self.axis
         X = self._preprocess_series(X, axis=axis, store_metadata=True)
         if y is not None:
             self._check_y(y)
@@ -108,7 +107,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         X = self._preprocess_series(
             X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
         )
-        return self._transform(X)
+        Xt = self._transform(X)
+        return self._postprocess_series(Xt, axis=axis)
 
     @final
     def fit_transform(self, X, y=None, axis=1):
@@ -145,7 +145,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         X = self._preprocess_series(X, axis=axis, store_metadata=True)
         Xt = self._fit_transform(X=X, y=y)
         self._is_fitted = True
-        return Xt
+        return self._postprocess_series(Xt, axis=axis)
 
     @final
     def inverse_transform(self, X, y=None, axis=1):
@@ -187,7 +187,32 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         X = self._preprocess_series(
             X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
         )
-        return self._inverse_transform(X=X, y=y)
+        Xt = self._inverse_transform(X=X, y=y)
+        return self._postprocess_series(Xt, axis=axis)
+
+    @final
+    def update(self, X, y=None, update_params=True, axis=None):
+        """Update transformer with X, optionally y.
+
+        Parameters
+        ----------
+        X : data to update of valid series type.
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
+        update_params : bool, default=True
+            whether the model is updated. Yes if true, if false, simply skips call.
+            argument exists for compatibility with forecasting module.
+        axis : int, default=None
+            axis along which to update. If None, uses self.axis.
+
+        Returns
+        -------
+        self : a fitted instance of the estimator
+        """
+        # check whether is fitted
+        self.check_is_fitted()
+        X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
+        return self._update(X=X, y=y, update_params=update_params)
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -268,3 +293,59 @@ class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
         raise NotImplementedError(
             f"{self.__class__.__name__} does not support inverse_transform"
         )
+
+    def _update(self, X, y=None):
+        # standard behaviour: no update takes place, new data is ignored
+        return self
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class.
+        """
+        return {}
+
+    def _postprocess_series(self, Xt, axis):
+        """Postprocess data Xt to revert to original shape.
+
+        Parameters
+        ----------
+        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            Intended for algorithms which have another series as output.
+        axis: int
+            The axids of time in the series.
+            If  ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
+            If None, the default class axis is used.
+
+        Returns
+        -------
+        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
+            New time series input reshaped to match the original input.
+        """
+        if axis is None:
+            axis = self.axis
+
+        # If a univariate only transformer, return a univariate series
+        if not self.get_tag("capability:multivariate"):
+            Xt = Xt.squeeze()
+
+        # return with input axis
+        if Xt.ndim == 1 or axis == self.axis:
+            return Xt
+        else:
+            return Xt.T

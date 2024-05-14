@@ -9,6 +9,7 @@ __all__ = ["ElasticEnsemble"]
 import math
 import time
 from itertools import product
+from typing import List, Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -99,15 +100,15 @@ class ElasticEnsemble(BaseClassifier):
 
     def __init__(
         self,
-        distance_measures="all",
-        proportion_of_param_options=1.0,
-        proportion_train_in_param_finding=1.0,
-        proportion_train_for_test=1.0,
-        n_jobs=1,
-        random_state=0,
-        verbose=0,
-        majority_vote=False,
-    ):
+        distance_measures: Union[str, List[str]] = "all",
+        proportion_of_param_options: float = 1.0,
+        proportion_train_in_param_finding: float = 1.0,
+        proportion_train_for_test: float = 1.0,
+        n_jobs: int = 1,
+        random_state: int = 0,
+        verbose: int = 0,
+        majority_vote: bool = False,
+    ) -> None:
         self.distance_measures = distance_measures
         self.proportion_train_in_param_finding = proportion_train_in_param_finding
         self.proportion_of_param_options = proportion_of_param_options
@@ -396,7 +397,7 @@ class ElasticEnsemble(BaseClassifier):
         preds = np.asarray([self.classes_[x] for x in idx])
         return preds
 
-    def get_metric_params(self):
+    def get_metric_params(self) -> dict:
         """Return the parameters for the distance metrics used."""
         return {
             self._distance_measures[dm]: str(self.estimators_[dm]._distance_params)
@@ -404,8 +405,8 @@ class ElasticEnsemble(BaseClassifier):
         }
 
     @staticmethod
-    def _get_100_param_options(distance_measure, train_x=None):
-        def get_inclusive(min_val, max_val, num_vals):
+    def _get_100_param_options(distance_measure: str, train_x=None):
+        def get_inclusive(min_val: float, max_val: float, num_vals: float):
             inc = (max_val - min_val) / (num_vals - 1)
             return np.arange(min_val, max_val + inc / 2, inc)
 
@@ -472,7 +473,7 @@ class ElasticEnsemble(BaseClassifier):
             )
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

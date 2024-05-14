@@ -21,7 +21,7 @@ Our webpage and documentation is available at https://aeon-toolkit.org.
 The following modules are still considered experimental, and the [deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html)
 does not apply:
 
-`annotation`, `anomaly_detection`, `benchmarking`, `segmentation`, `similarity_search`,
+`anomaly_detection`, `benchmarking`, `segmentation`, `similarity_search`,
 `testing`, `transformations/series`, `visualisation`
 
 | Overview      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
