@@ -24,7 +24,7 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
     >>> from aeon.testing.mock_estimators import MockUnivariateSeriesTransformer
     >>> import numpy as np
     >>> X = np.random.rand(4, 1, 10)
-    >>> transformer = MockSeriesTransformer()
+    >>> transformer = MockUnivariateSeriesTransformer()
     >>> broadcaster = SeriesToCollectionBroadcaster(transformer)
     >>> X_t = broadcaster.fit_transform(X)
     """
