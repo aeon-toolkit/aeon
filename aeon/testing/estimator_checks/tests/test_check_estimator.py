@@ -11,12 +11,14 @@ from aeon.testing.mock_estimators import (
     MockClassifierMultiTestParams,
     MockForecaster,
     MockMultivariateSeriesTransformer,
+    MockSegmenter,
 )
 from aeon.transformations.exponent import ExponentTransformer
 
 EXAMPLE_CLASSES = [
     MockClassifier,
-    MockForecaster,
+    MockSegmenter,
+    MockAnomalyDetector,
     MockMultivariateSeriesTransformer,
     MockClassifierMultiTestParams,
 ]
