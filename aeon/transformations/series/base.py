@@ -12,10 +12,9 @@ from abc import ABCMeta, abstractmethod
 from typing import final
 
 from aeon.base import BaseSeriesEstimator
-from aeon.transformations.base import BaseTransformer
 
 
-class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCMeta):
+class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
     """Transformer base class for collections."""
 
     # tag values specific to SeriesTransformers

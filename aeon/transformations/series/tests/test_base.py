@@ -20,7 +20,7 @@ MULTIVARIATE_SERIES = [
 @pytest.mark.parametrize("transformer", ALL_TRANSFORMERS)
 @pytest.mark.parametrize("series", MULTIVARIATE_SERIES)
 def test_fit_transform_multivariate(transformer, series):
-    """Test fit then transform equivalent to fit_transform with setting axis."""
+    """Test fit then transform equivalent to fit_transform without setting axis."""
     transformer.fit(series)
     x2 = transformer.transform(series)
     x3 = transformer.fit_transform(series)
@@ -31,9 +31,12 @@ def test_fit_transform_multivariate(transformer, series):
 @pytest.mark.parametrize("transformer", ALL_TRANSFORMERS)
 @pytest.mark.parametrize("series", MULTIVARIATE_SERIES)
 def test_axis(transformer, series):
-    """Test axis."""
+    """Test setting axis."""
     transformer.fit(series, axis=1)
     x2 = transformer.transform(series, axis=1)
+    assert series.shape == x2.shape
+    transformer.fit(series, axis=0)
+    x2 = transformer.transform(series, axis=0)
     assert series.shape == x2.shape
 
 
