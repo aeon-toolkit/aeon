@@ -42,10 +42,10 @@ class ChannelScorer(BaseChannelSelector):
     ):
         if proportion <= 0 or proportion > 1:
             raise ValueError("proportion must be in the range 0-1")
-        if not None and not isinstance(classifier, BaseClassifier):
+        if classifier is not None and not isinstance(classifier, BaseClassifier):
             raise ValueError(
                 "parameter classifier must be None or an instance of a  "
-                "base classifier to ChannelScorer. In None, "
+                "base classifier to ChannelScorer. If None, "
                 "a RocketClassifier is used"
             )
 
@@ -78,7 +78,7 @@ class ChannelScorer(BaseChannelSelector):
         scores = np.zeros(n_channels)
         # Evaluate each channel with the classifier
         for i in range(n_channels):
-            preds = self.classifier.fit_predict(X[:, i, :], y)
+            preds = self.classifier_.fit_predict(X[:, i, :], y)
             scores[i] = accuracy_score(y, preds)
         # Select the top n_keep channels
         sorted_indices = np.argsort(-scores)
