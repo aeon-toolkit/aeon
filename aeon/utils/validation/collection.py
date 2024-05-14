@@ -178,25 +178,24 @@ def get_type(X):
         elif X.ndim == 2:
             return "numpy2D"
         else:
-            raise ValueError(
-                f"ERROR np.ndarray must be 2D or 3D but found " f"{X.ndim}"
-            )
+            raise ValueError(f"np.ndarray must be 2D or 3D but found {X.ndim} channels")
     elif isinstance(X, list):  # np-list or df-list
         if isinstance(X[0], np.ndarray):  # if one a numpy they must all be 2D numpy
             for a in X:
                 if not (isinstance(a, np.ndarray) and a.ndim == 2):
                     raise TypeError(
-                        f"ERROR nnp-list must contain 2D np.ndarray but found {a.ndim}"
+                        f"np-list must contain 2D np.ndarray but found "
+                        f"{type(a)} with {a.ndim}"
                     )
             return "np-list"
         elif isinstance(X[0], pd.DataFrame):
             for a in X:
                 if not isinstance(a, pd.DataFrame):
-                    raise TypeError("ERROR df-list must only contain pd.DataFrame")
+                    raise TypeError("df-list must only contain pd.DataFrame")
             return "df-list"
         else:
             raise TypeError(
-                f"ERROR passed a list containing {type(X[0])}, "
+                f"passed a list containing {type(X[0])}, "
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
@@ -207,13 +206,13 @@ def get_type(X):
         elif _is_pd_wide(X):
             return "pd-wide"
         raise TypeError(
-            "ERROR unknown pd.DataFrame, contains non float values, "
+            "unknown pd.DataFrame, contains non float values, "
             "not hierarchical nor is it nested pd.Series"
         )
     #    if isinstance(X, dask.dataframe.core.DataFrame):
     #        return "dask_panel"
     raise TypeError(
-        f"ERROR passed input of type {type(X)}, must be of type "
+        f"passed input of type {type(X)}, must be of type "
         f"np.ndarray, pd.DataFrame or list of np.ndarray/pd.DataFrame"
     )
 

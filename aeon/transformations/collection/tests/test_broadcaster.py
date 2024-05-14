@@ -6,6 +6,7 @@ import pytest
 from numpy.testing import assert_array_almost_equal
 
 from aeon.testing.mock_estimators._mock_series_transformers import (
+    MockMultivariateSeriesTransformer,
     MockSeriesTransformerNoFit,
     MockUnivariateSeriesTransformer,
 )
@@ -40,37 +41,47 @@ def test_broadcaster_tag_inheritance():
             assert post_constructor_tags[key] == mock_tags[key]
 
 
-@pytest.mark.parametrize(
-    "data_gen",
-    [
-        make_example_3d_numpy,
-        make_example_unequal_length,
-    ],
-)
-def test_broadcaster_methods(data_gen):
+df = [make_example_3d_numpy, make_example_unequal_length]
+
+
+@pytest.mark.parametrize("data_gen", df)
+def test_broadcaster_methods_univariate(data_gen):
     """Test the broadcaster fit, transform and inverse transform method."""
-    X, y = data_gen()
+    X, y = data_gen(n_channels=1)
     constant = 1
     broadcaster = SeriesToCollectionBroadcaster(
         MockUnivariateSeriesTransformer(constant=constant)
     )
-    broadcaster.fit(X, y)
-    Xt = broadcaster.transform(X)
+    Xt = broadcaster.fit_transform(X)
+    assert len(Xt) == len(X)
     assert hasattr(broadcaster, "single_transformers_") and len(
         broadcaster.single_transformers_
     ) == len(X)
+    # Inversion will not work for list of 1D arrays, they must be 2D
+    X2 = broadcaster.inverse_transform(Xt)
+    for i in range(len(X)):
+        assert len(Xt[i]) == len(X[i])
+        assert_array_almost_equal(X[i], X2[i])
 
+
+@pytest.mark.parametrize("data_gen", df)
+def test_broadcaster_methods_multivariate(data_gen):
+    """Test the broadcaster fit, transform and inverse transform method."""
+    X, y = data_gen(n_channels=3)
+    constant = 1
+    broadcaster = SeriesToCollectionBroadcaster(
+        MockMultivariateSeriesTransformer(constant=constant)
+    )
+    Xt = broadcaster.fit_transform(X)
+    assert len(Xt) == len(X)
+    assert hasattr(broadcaster, "single_transformers_") and len(
+        broadcaster.single_transformers_
+    ) == len(X)
+    # Inversion will not work for list of 1D arrays, they must be 2D
+    X2 = broadcaster.inverse_transform(Xt)
     for i in range(len(X)):
-        for j in range(broadcaster.single_transformers_[i].n_timepoints_):
-            assert_array_almost_equal(
-                Xt[i][j],
-                X[i][j]
-                + constant
-                + broadcaster.single_transformers_[i].random_values_[j],
-            )
-    Xit = broadcaster.inverse_transform(Xt)
-    for i in range(len(X)):
-        assert_array_almost_equal(Xit[i], X[i], decimal=5)
+        assert len(Xt[i]) == len(X[i])
+        assert_array_almost_equal(X[i], X2[i])
 
 
 @pytest.mark.parametrize(

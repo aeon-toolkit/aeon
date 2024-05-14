@@ -3,6 +3,8 @@
 __maintainer__ = ["baraline"]
 __all__ = ["SeriesToCollectionBroadcaster"]
 
+import numpy as np
+
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import get_n_cases
@@ -101,6 +103,10 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
         else:
             for i in range(n_cases):
                 Xt.append(self.single_transformers_[i]._transform(X[i]))
+        # Need to make it a valid collection
+        for i in range(n_cases):
+            if isinstance(Xt[i], np.ndarray) and Xt[i].ndim == 1:
+                Xt[i] = Xt[i].reshape(1, -11)
         return Xt
 
     def _inverse_transform(self, X, y=None):
