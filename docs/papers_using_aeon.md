@@ -1,14 +1,16 @@
 # Papers using Aeon
 
 This is a list of papers that use `aeon`. If you have a paper that uses `aeon`,
-please add it to this list by sending a pull request. Please include a hyperlink to
+please add it to this list by making a pull request. Please include a hyperlink to
 the paper and a link to the code in your personal GitHub or other repository.
 
 ## Classification
 
-- Middlehurst, M. and Schäfer, P. and  Bagnall, A. (2023). Bake off redux: a review
-  and experimental evaluation of recent time series classification algorithms. ArXiv.
-  [Paper](https://arxiv.org/abs/2304.13029) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/tsc_bakeoff/tsc_bakeoff_2023.html)
+- Middlehurst, M. and Schäfer, P. and  Bagnall, A. (2024). Bake off redux: a review
+  and experimental evaluation of recent time series classification algorithms.
+  Data Mining and Knowledge Discovery, online first, open access.
+  [Paper](https://link.springer.com/article/10.1007/s10618-024-01022-1) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/tsc_bakeoff/tsc_bakeoff_2023.html)
+
 
 ## Clustering
 
@@ -16,7 +18,6 @@ the paper and a link to the code in your personal GitHub or other repository.
   distance functions for time series clustering. Knowledge and Information Systems,
   66(2), pp.765-809.
   [Paper](https://link.springer.com/article/10.1007/s10115-023-01952-0) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/distance_based_clustering/distance_based_clustering.html)
-
 - Holder, C., Guijo-Rubio, D. and Bagnall, A., 2023, September. Clustering time series
   with k-medoids based algorithms. In International Workshop on Advanced Analytics and
   Learning on Temporal Data (pp. 39-55).
