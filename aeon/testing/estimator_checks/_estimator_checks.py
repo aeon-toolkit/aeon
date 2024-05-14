@@ -16,12 +16,31 @@ from sklearn import config_context
 from sklearn.utils._testing import SkipTest
 
 from aeon.base import BaseEstimator
+from aeon.forecasting.base import BaseForecaster
+from aeon.testing.estimator_checks._legacy._legacy_estimator_checks import (
+    check_estimator_legacy,
+)
 from aeon.testing.estimator_checks._yield_estimator_checks import _yield_all_aeon_checks
 from aeon.testing.test_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
+from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.series import BaseSeriesTransformer
 from aeon.utils.validation._dependencies import (
     _check_estimator_deps,
     _check_soft_dependencies,
 )
+
+
+def _is_legacy_estimator(estimator):
+    if isinstance(estimator, BaseForecaster) or (
+        isinstance(estimator, BaseTransformer)
+        and not (
+            isinstance(estimator, BaseSeriesTransformer)
+            or isinstance(estimator, BaseCollectionTransformer)
+        )
+    ):
+        return True
+    return False
 
 
 def parametrize_with_checks(
@@ -70,6 +89,9 @@ def parametrize_with_checks(
 
     def checks_generator():
         for est in estimators:
+            if _is_legacy_estimator(est):
+                continue
+
             if isclass(est):
                 if issubclass(est, BaseEstimator):
                     est = est.create_test_instance(return_first=use_first_parameter_set)
@@ -143,6 +165,17 @@ def check_estimator(
 
     _check_estimator_deps(estimator)
 
+    if _is_legacy_estimator(estimator):
+        return check_estimator_legacy(
+            estimator,
+            raise_exceptions=raise_exceptions,
+            tests_to_run=checks_to_run,
+            tests_to_exclude=checks_to_exclude,
+            fixtures_to_run=full_checks_to_run,
+            fixtures_to_exclude=full_checks_to_exclude,
+            verbose=verbose,
+        )
+
     def checks_generator():
         est = estimator
         if isclass(est):
@@ -212,7 +245,7 @@ def _check_if_xfail(estimator, check):
     """Check if a check should be xfailed."""
     import pytest
 
-    skip, reason = _should_be_skipped(estimator, check)
+    skip, reason, _ = _should_be_skipped(estimator, check)
     if skip:
         return pytest.param(estimator, check, marks=pytest.mark.xfail(reason=reason))
 
@@ -221,16 +254,13 @@ def _check_if_xfail(estimator, check):
 
 def _check_if_skip(estimator, check):
     """Check if a check should be skipped by raising a SkipTest exception."""
-    skip, reason = _should_be_skipped(estimator, check)
+    skip, reason, name = _should_be_skipped(estimator, check)
     if skip:
-        check_name = (
-            check.func.__name__ if isinstance(check, partial) else check.__name__
-        )
 
         @wraps(check)
         def wrapped(*args, **kwargs):
             raise SkipTest(
-                f"Skipping {check_name} for {estimator.__class__.__name__}: {reason}"
+                f"Skipping {name} for {estimator.__class__.__name__}: {reason}"
             )
 
         return estimator, wrapped
@@ -244,13 +274,15 @@ def _should_be_skipped(estimator, check):
     if not _check_estimator_deps(estimator, severity=None):
         return True, "Incompatible dependencies or Python version"
 
+    check_name = check.func.__name__ if isinstance(check, partial) else check.__name__
+
     # check aeon exclude lists
     if est_name in EXCLUDE_ESTIMATORS:
         return True, "In aeon estimator exclude list"
-    elif check.__name__ in EXCLUDED_TESTS.get(est_name, []):
+    elif check_name in EXCLUDED_TESTS.get(est_name, []):
         return True, "In aeon test exclude list for estimator"
 
-    return False, ""
+    return False, "", check_name
 
 
 def _get_check_estimator_ids(obj):

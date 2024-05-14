@@ -9,10 +9,10 @@ from aeon.testing.utils.data_gen import (
 data_rng = np.random.RandomState(42)
 
 X_collection, y_collection = make_example_3d_numpy(
-    n_cases=10, n_timepoints=20, random_state=data_rng
+    n_cases=10, n_timepoints=20, random_state=data_rng.randint(np.iinfo(np.int32).max)
 )
 X_collection2, y_collection2 = make_example_3d_numpy(
-    n_cases=5, n_timepoints=20, random_state=data_rng
+    n_cases=5, n_timepoints=20, random_state=data_rng.randint(np.iinfo(np.int32).max)
 )
 y_collection_r = y_collection.astype(np.float32) + data_rng.uniform(
     size=y_collection.shape
@@ -22,10 +22,16 @@ y_collection2_r = y_collection2.astype(np.float32) + data_rng.uniform(
 )
 
 X_collection_mv, y_collection_mv = make_example_3d_numpy(
-    n_cases=10, n_channels=2, n_timepoints=20, random_state=data_rng
+    n_cases=10,
+    n_channels=2,
+    n_timepoints=20,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
 )
-X_collection_mv2, y_collection_mv2, _ = make_example_3d_numpy(
-    n_cases=5, n_channels=2, n_timepoints=20, random_state=data_rng
+X_collection_mv2, y_collection_mv2 = make_example_3d_numpy(
+    n_cases=5,
+    n_channels=2,
+    n_timepoints=20,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
 )
 y_collection_mv_r = y_collection.astype(np.float32) + data_rng.uniform(
     size=y_collection.shape
@@ -35,10 +41,16 @@ y_collection_mv2_r = y_collection2.astype(np.float32) + data_rng.uniform(
 )
 
 X_collection_ul, y_collection_ul = make_example_unequal_length(
-    n_cases=10, max_n_timepoints=20, min_n_timepoints=10, random_state=data_rng
+    n_cases=10,
+    max_n_timepoints=20,
+    min_n_timepoints=10,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
 )
 X_collection_ul2, y_collection_ul2 = make_example_unequal_length(
-    n_cases=5, max_n_timepoints=20, min_n_timepoints=10, random_state=data_rng
+    n_cases=5,
+    max_n_timepoints=20,
+    min_n_timepoints=10,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
 )
 y_collection_ul_r = y_collection.astype(np.float32) + data_rng.uniform(
     size=y_collection.shape
@@ -48,10 +60,10 @@ y_collection_ul2_r = y_collection2.astype(np.float32) + data_rng.uniform(
 )
 
 X_collection_mi, y_collection_mi = make_example_3d_numpy(
-    n_cases=10, n_timepoints=20, random_state=data_rng
+    n_cases=10, n_timepoints=20, random_state=data_rng.randint(np.iinfo(np.int32).max)
 )
 X_collection_mi2, y_collection_mi2 = make_example_3d_numpy(
-    n_cases=5, n_timepoints=20, random_state=data_rng
+    n_cases=5, n_timepoints=20, random_state=data_rng.randint(np.iinfo(np.int32).max)
 )
 y_collection_mi_r = y_collection.astype(np.float32) + data_rng.uniform(
     size=y_collection.shape
@@ -114,10 +126,16 @@ def get_data_types_for_estimator(estimator):
     estimator : BaseEstimator instance or class
         Estimator instance or class to check for valid input data types.
     """
-    univariate = estimator.get_tag("capability:univariate", True)
-    multivariate = estimator.get_tag("capability:multivariate", False)
-    unequal_length = estimator.get_tag("capability:unequal_length", False)
-    missing_values = estimator.get_tag("capability:missing_values", False)
+    univariate = estimator.get_tag("capability:univariate", True, raise_error=False)
+    multivariate = estimator.get_tag(
+        "capability:multivariate", False, raise_error=False
+    )
+    unequal_length = estimator.get_tag(
+        "capability:unequal_length", False, raise_error=False
+    )
+    missing_values = estimator.get_tag(
+        "capability:missing_values", False, raise_error=False
+    )
     datatypes = []
 
     if isinstance(estimator, BaseCollectionEstimator):

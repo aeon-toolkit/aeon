@@ -4,6 +4,8 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import pytest
 
+from aeon.clustering import TimeSeriesKMeans
+from aeon.similarity_search._dummy import DummySimilaritySearch
 from aeon.testing import parametrize_with_checks
 from aeon.testing.estimator_checks import check_estimator
 from aeon.testing.mock_estimators import (
@@ -11,16 +13,28 @@ from aeon.testing.mock_estimators import (
     MockClassifierMultiTestParams,
     MockForecaster,
     MockMultivariateSeriesTransformer,
+    MockRegressor,
     MockSegmenter,
 )
+from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector
+from aeon.transformations.collection import TimeSeriesScaler
 from aeon.transformations.exponent import ExponentTransformer
 
 EXAMPLE_CLASSES = [
     MockClassifier,
+    MockRegressor,
+    TimeSeriesKMeans,
     MockSegmenter,
     MockAnomalyDetector,
+    # DummySimilaritySearch,
     MockMultivariateSeriesTransformer,
+    TimeSeriesScaler,
     MockClassifierMultiTestParams,
+]
+
+EXAMPLE_CLASSES_LEGACY = EXAMPLE_CLASSES + [
+    MockForecaster,
+    ExponentTransformer,
 ]
 
 
@@ -36,7 +50,7 @@ def test_parametrize_with_checks_instances(estimator, check):
     check(estimator)
 
 
-@pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)
+@pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES_LEGACY)
 def test_check_estimator_passed(estimator_class):
     """Test that check_estimator returns only passed tests for examples we know pass."""
     estimator = estimator_class.create_test_instance()
@@ -64,7 +78,7 @@ def test_check_estimator_subset_tests():
     expected_tests = set(tests_to_run).difference(tests_to_exclude)
 
     results = check_estimator(
-        ExponentTransformer,
+        MockClassifier,
         verbose=False,
         checks_to_run=tests_to_run,
         checks_to_exclude=tests_to_exclude,

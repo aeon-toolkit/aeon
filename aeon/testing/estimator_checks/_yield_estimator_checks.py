@@ -7,9 +7,14 @@ import numpy as np
 import pytest
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_get_params_invariance
+from toolz.curried import partial
 
 from aeon.base import BaseEstimator, BaseObject
-from aeon.testing.test_config import VALID_ESTIMATOR_BASE_TYPES, VALID_ESTIMATOR_TAGS
+from aeon.testing.test_config import (
+    NON_STATE_CHANGING_METHODS,
+    VALID_ESTIMATOR_BASE_TYPES,
+    VALID_ESTIMATOR_TAGS,
+)
 from aeon.testing.testing_data import get_data_types_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _get_args, _list_required_methods
@@ -39,7 +44,7 @@ def _yield_estimator_checks(datatypes):
     yield check_valid_estimator_tags
 
     # data type irrelevant
-    # x
+    yield partial(check_raises_not_fitted_error, datatypes=datatypes[0])
 
     # should test all data types
     for datatype in datatypes:
@@ -373,7 +378,7 @@ def check_valid_estimator_tags(estimator):
         assert tag in VALID_ESTIMATOR_TAGS
 
 
-def check_raises_not_fitted_error(estimator):
+def check_raises_not_fitted_error(estimator, datatypes):
     """Check exception raised for non-fit method calls to unfitted estimators.
 
     Tries to run all methods in NON_STATE_CHANGING_METHODS with valid scenario,
@@ -387,8 +392,9 @@ def check_raises_not_fitted_error(estimator):
     Exception if NotFittedError is not raised by non-state changing method
     """
     # call methods without prior fitting and check that they raise NotFittedError
-    with pytest.raises(NotFittedError, match=r"has not been fitted"):
-        scenario.run(estimator_instance, method_sequence=[method_nsc])
+    for method_nsc in NON_STATE_CHANGING_METHODS:
+        with pytest.raises(NotFittedError, match=r"has not been fitted"):
+            getattr(estimator, method_nsc)(*datatypes)
 
 
 # def check_non_state_changing_method(estimator):
