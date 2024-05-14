@@ -132,9 +132,9 @@ class MockMultivariateSeriesTransformer(BaseSeriesTransformer):
         -------
         self
         """
-        self.n_features_ = X.shape[0]
+        self.n_channels_ = X.shape[0]
         rng = np.random.RandomState(seed=self.random_state)
-        self.random_values_ = rng.random(self.n_features_)
+        self.random_values_ = rng.random(self.n_channels_)
         return self
 
     def _transform(self, X: np.ndarray, y=None) -> np.ndarray:
@@ -152,7 +152,7 @@ class MockMultivariateSeriesTransformer(BaseSeriesTransformer):
             2D transformed version of X
         """
         X_new = np.zeros_like(X)
-        for i in range(self.n_features_):
+        for i in range(self.n_channels_):
             X_new[i] = X[i] + (self.constant + self.random_values_[i])
         return X_new
 
@@ -171,7 +171,7 @@ class MockMultivariateSeriesTransformer(BaseSeriesTransformer):
             2D inverse transformed version of X
         """
         X_new = np.zeros_like(X)
-        for i in range(self.n_features_):
+        for i in range(self.n_channels_):
             X_new[i] = X[i] - (self.constant + self.random_values_[i])
         return X_new
 

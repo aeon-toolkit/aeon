@@ -61,7 +61,7 @@ def test_broadcaster_methods(data_gen):
     ) == len(X)
 
     for i in range(len(X)):
-        for j in range(broadcaster.single_transformers_[i].n_features_):
+        for j in range(broadcaster.single_transformers_[i].n_timepoints_):
             assert_array_almost_equal(
                 Xt[i][j],
                 X[i][j]
