@@ -36,8 +36,8 @@ the paper and a link to the code in your personal GitHub or other repository.
 
 ## Prototyping
 
-- Ismail-Fawaz, A. and Ismail Fawaz, H. and Petitjean, F. and Devanne, M. and Weber, J. and Berretti, S. and Webb, GI. and Forestier, G. 2023 December "ShapeDBA: Generating Effective Time Series Prototypes Using ShapeDTW Barycenter Averaging." ECML/PKDD Workshop on Advanced Analytics and Learning on Temporal Data. [Paper](https://doi.org/10.1007/978-3-031-49896-1_9)
+- Ismail-Fawaz, A. and Ismail Fawaz, H. and Petitjean, F. and Devanne, M. and Weber, J. and Berretti, S. and Webb, GI. and Forestier, G. 2023 December "ShapeDBA: Generating Effective Time Series Prototypes Using ShapeDTW Barycenter Averaging." ECML/PKDD Workshop on Advanced Analytics and Learning on Temporal Data. [Paper](https://doi.org/10.1007/978-3-031-49896-1_9) [code](https://github.com/MSD-IRIMAS/ShapeDBA)
 
 ## Generation Evaluation
 
-- Ismail-Fawaz, A. and Devanne, M. and Berretti, S. and Weber, J. and Forestier, G. 2024 May "Establishing a Unified Evaluation Framework for Human Motion Generation: A Comparative Analysis of Metrics" [Paper](https://arxiv.org/abs/2405.07680)
+- Ismail-Fawaz, A. and Devanne, M. and Berretti, S. and Weber, J. and Forestier, G. 2024 May "Establishing a Unified Evaluation Framework for Human Motion Generation: A Comparative Analysis of Metrics" [Paper](https://arxiv.org/abs/2405.07680) [code](https://github.com/MSD-IRIMAS/Evaluating-HMG)
