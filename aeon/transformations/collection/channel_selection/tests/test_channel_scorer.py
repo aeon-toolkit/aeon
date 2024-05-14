@@ -26,4 +26,4 @@ def test_channel_scorer():
     with pytest.raises(
         ValueError, match="parameter classifier must be None or an instance of"
     ):
-        ChannelScorer(classifier="FOOBAR", proportion=-1)
+        ChannelScorer(classifier="FOOBAR", proportion=0.5)
