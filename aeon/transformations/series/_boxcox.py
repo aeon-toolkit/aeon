@@ -1,20 +1,18 @@
-"""Implemenents Box-Cox and Log Transformations."""
+"""Box-Cox and Log Transformations."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["BoxCoxTransformer", "LogTransformer"]
 
 import numpy as np
-from deprecated.sphinx import deprecated
 from scipy import optimize, special, stats
 from scipy.special import boxcox, inv_boxcox
 from scipy.stats import boxcox_llf, distributions, variation
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import is_int
 
 
 # copy-pasted from scipy 1.7.3 since it moved in 1.8.0 and broke this estimator
-# find a suitable replacement
 def _calc_uniform_order_statistic_medians(n):
     """Approximations of uniform order statistic medians.
 
@@ -41,14 +39,7 @@ def _calc_uniform_order_statistic_medians(n):
     return v
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="BoxCoxTransformer will be removed in version 0.10 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class BoxCoxTransformer(BaseTransformer):
+class BoxCoxTransformer(BaseSeriesTransformer):
     r"""Box-Cox power transform.
 
     Box-Cox transformation is a power transformation that is used to
@@ -124,14 +115,7 @@ class BoxCoxTransformer(BaseTransformer):
     """
 
     _tags = {
-        "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
-        "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "np.ndarray",
-        "y_inner_type": "None",
-        "transform-returns-same-time-index": True,
         "fit_is_empty": False,
         "capability:multivariate": False,
         "capability:inverse_transform": True,
@@ -152,8 +136,8 @@ class BoxCoxTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : 2D np.ndarray (n x 1)
-            Data to be transformed
+        X : np.ndarray
+            Time series to be transformed
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
@@ -161,11 +145,11 @@ class BoxCoxTransformer(BaseTransformer):
         -------
         self: a fitted instance of the estimator
         """
-        X = X.flatten()
-        if self.method != "guerrero":
-            self.lambda_ = _boxcox_normmax(X, bounds=self.bounds, method=self.method)
-        else:
+        X = X.squeeze()
+        if self.method == "guerrero":
             self.lambda_ = _guerrero(X, self.sp, self.bounds)
+        else:
+            self.lambda_ = _boxcox_normmax(X, bounds=self.bounds, method=self.method)
 
         return self
 
@@ -176,8 +160,8 @@ class BoxCoxTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : 2D np.ndarray (n x 1)
-            Data to be transformed
+        X : np.ndarray
+            Time series to be transformed
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
@@ -186,9 +170,8 @@ class BoxCoxTransformer(BaseTransformer):
         Xt : 2D np.ndarray
             transformed version of X
         """
-        X_shape = X.shape
-        Xt = boxcox(X.flatten(), self.lambda_)
-        Xt = Xt.reshape(X_shape)
+        X = X.squeeze()
+        Xt = boxcox(X, self.lambda_)
         return Xt
 
     def _inverse_transform(self, X, y=None):
@@ -198,8 +181,8 @@ class BoxCoxTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : 2D np.ndarray (n x 1)
-            Data to be transformed
+        X : np.ndarray
+            Time series to be transformed
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
@@ -208,20 +191,11 @@ class BoxCoxTransformer(BaseTransformer):
         Xt : 2D np.ndarray
             inverse transformed version of X
         """
-        X_shape = X.shape
-        Xt = inv_boxcox(X.flatten(), self.lambda_)
-        Xt = Xt.reshape(X_shape)
+        Xt = inv_boxcox(X, self.lambda_)
         return Xt
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="LogTransformer will be removed in version 0.10 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class LogTransformer(BaseTransformer):
+class LogTransformer(BaseSeriesTransformer):
     """Natural logarithm transformation.
 
     The Natural logarithm transformation can be used to make the data more normally
@@ -262,14 +236,8 @@ class LogTransformer(BaseTransformer):
     """
 
     _tags = {
-        "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
-        "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": True,
         "X_inner_type": "np.ndarray",
         "y_inner_type": "None",
-        "transform-returns-same-time-index": True,
         "fit_is_empty": True,
         "capability:multivariate": True,
         "capability:inverse_transform": True,
@@ -319,9 +287,7 @@ class LogTransformer(BaseTransformer):
         Xt : 2D np.ndarray
             inverse transformed version of X
         """
-        offset = self.offset
-        scale = self.scale
-        Xt = (np.exp(X) / scale) - offset
+        Xt = (np.exp(X) / self.scale) - self.offset
         return Xt
 
 
@@ -346,7 +312,6 @@ def _make_boxcox_optimizer(bounds=None, brack=(-2.0, 2.0)):
     return optimizer
 
 
-# TODO replace with scipy version once PR for adding bounds is merged
 def _boxcox_normmax(x, bounds=None, brack=(-2.0, 2.0), method="pearsonr"):
     optimizer = _make_boxcox_optimizer(bounds, brack)
 
@@ -389,7 +354,7 @@ def _guerrero(x, sp, bounds=None):
     Parameters
     ----------
     x : ndarray
-        Input array. Must be 1-dimensional.
+        1D time series.
     sp : integer
         Seasonal periodicity value. Must be an integer >= 2.
     bounds : {None, (float, float)}, optional
