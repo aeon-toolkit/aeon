@@ -33,3 +33,11 @@ the paper and a link to the code in your personal GitHub or other repository.
   In International Workshop on Advanced Analytics and Learning on Temporal Data
   (pp. 113-126).
   [Paper](https://link.springer.com/chapter/10.1007/978-3-031-49896-1_8) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/rist_pipeline/rist_pipeline.html)
+
+## Prototyping
+
+- Ismail-Fawaz, A. and Ismail Fawaz, H. and Petitjean, F. and Devanne, M. and Weber, J. and Berretti, S. and Webb, GI. and Forestier, G. 2023 December "ShapeDBA: Generating Effective Time Series Prototypes Using ShapeDTW Barycenter Averaging." ECML/PKDD Workshop on Advanced Analytics and Learning on Temporal Data. [Paper](https://doi.org/10.1007/978-3-031-49896-1_9)
+
+## Generation Evaluation
+
+- Ismail-Fawaz, A. and Devanne, M. and Berretti, S. and Weber, J. and Forestier, G. 2024 May "Establishing a Unified Evaluation Framework for Human Motion Generation: A Comparative Analysis of Metrics" [Paper](https://arxiv.org/abs/2405.07680)
