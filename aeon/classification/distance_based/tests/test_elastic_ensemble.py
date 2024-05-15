@@ -6,17 +6,22 @@ import pytest
 from aeon.classification.distance_based import ElasticEnsemble
 
 DISTANCE = [
-    "lcss",
     "dtw",
+    "ddtw",
     "wdtw",
+    "wddtw",
+    "lcss",
     "erp",
     "msm",
     "euclidean",
     "twe",
 ]
+
 PARAS = {
     "dtw": {"window"},
+    "ddtw": {"window"},
     "wdtw": {"g"},
+    "wddtw": {"g"},
     "lcss": {"epsilon", "window"},
     "erp": {"g", "window"},
     "msm": {"c"},
