@@ -42,7 +42,7 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
 
     def __init__(self, transformers, _estimator):
         self.transformers = transformers
-        self._estimator_end = _estimator
+        self._estimator = _estimator
 
         self._steps = (
             [t for t in transformers]
