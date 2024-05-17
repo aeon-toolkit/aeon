@@ -59,7 +59,7 @@ class DOBIN(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.dobin import DOBIN
+    >>> from aeon.transformations.series._dobin import DOBIN
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> import numpy as np
     >>> import pandas as pd
@@ -68,7 +68,7 @@ class DOBIN(BaseSeriesTransformer):
     >>> scaler = MinMaxScaler()
     >>> X = scaler.fit_transform(X)
     >>> model = DOBIN()
-    >>> X_outlier = model.fit_transform(pd.DataFrame(X))
+    >>> X_outlier = model.fit_transform(pd.DataFrame(X), axis=0)
     >>> X_outlier.head()
             DB0       DB1       DB2       DB3
     0  1.151965  0.116488  0.286064  0.288140
