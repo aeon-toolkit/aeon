@@ -96,8 +96,8 @@ def test_load_regression_from_repo():
     ):
         load_regression(name)
     name = "FloodModeling1"
-    name2 = "ParkingBirmingham"
-    name3 = "AcousticContaminationMadrid"
+    name2 = "FloodModeling2"
+    name3 = "FloodModeling3"
     with tempfile.TemporaryDirectory() as tmp:
         X, y, meta = load_regression(name, extract_path=tmp, return_metadata=True)
         assert isinstance(X, np.ndarray)
