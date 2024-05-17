@@ -466,7 +466,7 @@ multivariate_unequal_length = {
     "SpokenArabicDigits",
 }
 
-# 128 UCR univariate time series classification problems [1]
+# 158 tsml time series classification problems [1]
 tsc_zenodo = {
     "ACSF1": 11184893,
     "Adiac": 11179788,
@@ -596,6 +596,36 @@ tsc_zenodo = {
     "Worms": 11198402,
     "WormsTwoClass": 11198406,
     "Yoga": 11198408,
+    "ArticularyWordRecognition": 11204924,
+    "AtrialFibrillation": 11206175,
+    "BasicMotions": 11206179,
+    "CharacterTrajectories": 11206183,
+    "Cricket": 11206185,
+    "DuckDuckGeese": 11206189,
+    "EigenWorms": 11206196,
+    "Epilepsy": 11206204,
+    "EthanolConcentration": 11206212,
+    "ERing": 11206210,
+    "FaceDetection": 11206216,
+    "FingerMovements": 11206220,
+    "HandMovementDirection": 11206224,
+    "Handwriting": 11206227,
+    "Heartbeat": 11206229,
+    "InsectWingbeat": 11206234,
+    "JapaneseVowels": 11206237,
+    "Libras": 11206239,
+    "LSST": 11206243,
+    "MotorImagery": 11206246,
+    "NATOPS": 11206248,
+    "PenDigits": 11206259,
+    "PEMS-SF": 11206252,
+    "PhonemeSpectra": 11206261,
+    "RacketSports": 11206263,
+    "SelfRegulationSCP1": 11206265,
+    "SelfRegulationSCP2": 11206269,
+    "SpokenArabicDigits": 11206274,
+    "StandWalkJump": 11206278,
+    "UWaveGestureLibrary": 11206282,
 }
 
 
