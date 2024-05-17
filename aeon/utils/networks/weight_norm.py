@@ -2,9 +2,6 @@ import logging
 import tensorflow as tf
 from typeguard import typechecked
 
-__all__ = ["WeightNormalization"]
-
-
 @tf.keras.utils.register_keras_serializable(package="addons")
 class WeightNormalization(tf.keras.layers.Wrapper):
     """Wrapper function that performs weight normalization.
