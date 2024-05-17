@@ -7,24 +7,13 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.forecasting.model_selection import SlidingWindowSplitter
-from aeon.transformations.base import BaseTransformer
 
 
-# TODO: remove v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="The HampelFilter transformer will be removed in v0.10.0 and will be "
-    "replaced by an anomaly detector with ",
-    category=FutureWarning,
-)
-class HampelFilter(BaseTransformer):
+class HampelFilter(BaseAnomalyDetector):
     """Use HampelFilter to detect outliers based on a sliding window.
-
-    Correction of outliers is recommended by means of the aeon.Imputer,
-    so both can be tuned separately.
 
     Parameters
     ----------
@@ -35,9 +24,6 @@ class HampelFilter(BaseTransformer):
     k : float, optional
         A constant scale factor which is dependent on the distribution,
         for Gaussian it is approximately 1.4826, by default 1.4826
-    return_bool : bool, optional
-        If True, outliers are filled with True and non-outliers with False.
-        Else, outliers are filled with np.nan.
 
     Notes
     -----
@@ -59,26 +45,19 @@ class HampelFilter(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": ["pd.DataFrame", "pd.Series"],
-        "y_inner_type": "None",
-        "fit_is_empty": True,
         "capability:missing_values": True,
-        "skip-inverse-transform": True,
         "capability:multivariate": True,
     }
 
-    def __init__(self, window_length=10, n_sigma=3, k=1.4826, return_bool=False):
+    def __init__(self, window_length=10, n_sigma=3, k=1.4826):
         self.window_length = window_length
         self.n_sigma = n_sigma
         self.k = k
-        self.return_bool = return_bool
-        super().__init__()
+        super().__init__(axis=0)
 
-    def _transform(self, X, y=None):
+    def _predict(self, X, y=None):
         """Transform X and return a transformed version.
 
         private _transform containing the core logic, called from transform
@@ -100,15 +79,15 @@ class HampelFilter(BaseTransformer):
         # multivariate
         if isinstance(Z, pd.DataFrame):
             for col in Z:
-                Z[col] = self._transform_series(Z[col])
+                Z[col] = self._predict_outliers(Z[col])
         # univariate
         else:
-            Z = self._transform_series(Z)
+            Z = self._predict_outliers(Z)
 
         Xt = Z
         return Xt
 
-    def _transform_series(self, Z):
+    def _predict_outliers(self, Z):
         """Logic internal to the algorithm for transforming the input series.
 
         Parameters
@@ -142,8 +121,7 @@ class HampelFilter(BaseTransformer):
         )
 
         # data post-processing
-        if self.return_bool:
-            Z = Z.apply(lambda x: bool(np.isnan(x)))
+        Z = Z.apply(lambda x: bool(np.isnan(x)))
 
         return Z
 
