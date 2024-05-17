@@ -12,6 +12,7 @@ __all__ = [
     "AEFCNNetwork",
     "AEResNetNetwork",
     "LITENetwork",
+    "DCNNEncoderNetwork",
 ]
 from aeon.networks._ae_fcn import AEFCNNetwork
 from aeon.networks._ae_resnet import AEResNetNetwork
@@ -24,3 +25,4 @@ from aeon.networks._mlp import MLPNetwork
 from aeon.networks._resnet import ResNetNetwork
 from aeon.networks._tapnet import TapNetNetwork
 from aeon.networks.base import BaseDeepNetwork
+from aeon.networks._dcnn import DCNNEncoderNetwork
