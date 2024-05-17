@@ -466,7 +466,7 @@ multivariate_unequal_length = {
     "SpokenArabicDigits",
 }
 
-# 158 tsml time series classification problems [1]
+# 158 tsml time series classification problems
 tsc_zenodo = {
     "ACSF1": 11184893,
     "Adiac": 11179788,
