@@ -15,6 +15,7 @@ def elastic_barycenter_average(
     tol: float = 1e-5,
     init_barycenter: Union[np.ndarray, str] = "mean",
     method: str = "petitjean",
+    weights: np.ndarray = None,
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
     precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
@@ -72,6 +73,9 @@ def elastic_barycenter_average(
     method: str, default='petitjean'
         The method to use for the barycenter averaging. Valid strings are:
         ['petitjean', 'subgradient'].
+    weights: np.ndarray of shape (n_cases,), default=None
+        The weights associated to each time series instance, if None a weight
+        of 1 will be associated to each instance.
     precomputed_medoids_pairwise_distance: np.ndarray (of shape (len(X), len(X)),
                 default=None
         Precomputed medoids pairwise.
