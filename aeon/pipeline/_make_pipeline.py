@@ -1,8 +1,17 @@
 """Pipeline making utility."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
+
+from sklearn.base import ClassifierMixin, ClusterMixin, RegressorMixin, TransformerMixin
+
 from aeon.classification import BaseClassifier
 from aeon.classification.compose import ClassifierPipeline
+from aeon.clustering import BaseClusterer
+from aeon.clustering.compose import ClustererPipeline
+from aeon.regression import BaseRegressor
+from aeon.regression.compose import RegressorPipeline
+from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.compose import CollectionTransformerPipeline
 
 
 def make_pipeline(*steps):
@@ -49,11 +58,44 @@ def make_pipeline(*steps):
     >>> type(pipe).__name__
     'TransformerPipeline'
     """
-    if isinstance(steps[-1], BaseClassifier):
-        pipe = ClassifierPipeline(list(steps[:-1]), steps[-1])
+    if len(steps) == 1 and isinstance(steps[0], list):
+        steps = steps[0]
+
+    # Classifiers
+    if (
+        getattr(steps[-1], "_estimator_type", None) == "classifier"
+        or isinstance(steps[-1], ClassifierMixin)
+        or isinstance(steps[-1], BaseClassifier)
+    ):
+        return ClassifierPipeline(list(steps[:-1]), steps[-1])
+    # Regressors
+    elif (
+        getattr(steps[-1], "_estimator_type", None) == "regressor"
+        or isinstance(steps[-1], RegressorMixin)
+        or isinstance(steps[-1], BaseRegressor)
+    ):
+        return RegressorPipeline(list(steps[:-1]), steps[-1])
+    # Clusterers
+    elif (
+        getattr(steps[-1], "_estimator_type", None) == "clusterer"
+        or isinstance(steps[-1], ClusterMixin)
+        or isinstance(steps[-1], BaseClusterer)
+    ):
+        return ClustererPipeline(list(steps[:-1]), steps[-1])
+    # Collection transformers
+    elif (
+        getattr(steps[0], "_estimator_type", None) == "transformer"
+        or isinstance(steps[0], TransformerMixin)
+        or isinstance(steps[0], BaseCollectionTransformer)
+    ) and (
+        getattr(steps[-1], "_estimator_type", None) == "transformer"
+        or isinstance(steps[-1], TransformerMixin)
+        or isinstance(steps[-1], BaseCollectionTransformer)
+    ):
+        return CollectionTransformerPipeline(list(steps))
     else:
         pipe = steps[0]
         for i in range(1, len(steps)):
             pipe = pipe * steps[i]
 
-    return pipe
+        return pipe

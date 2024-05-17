@@ -42,14 +42,15 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
 
     def __init__(self, transformers, _estimator):
         self.transformers = transformers
-        self._estimator = _estimator
+        self._estimator_end = _estimator
 
         self._steps = (
             [t for t in transformers]
             if isinstance(transformers, list)
             else [transformers]
         )
-        self._steps.append(_estimator)
+        if _estimator is not None:
+            self._steps.append(_estimator)
         self._steps = self._check_estimators(
             self._steps,
             attr_name="_steps",
@@ -165,10 +166,6 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         Returns
         -------
         self : reference to self.
-
-        State change
-        ------------
-        creates fitted model (attributes ending in "_")
         """
         self.steps_ = self._check_estimators(
             self._steps, attr_name="steps_", cls_type=SklearnBaseEstimator
@@ -222,3 +219,37 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
             Xt = self.steps_[i][1].transform(X=Xt)
         # predict
         return self.steps_[-1][1].predict_proba(X=Xt)
+
+    def _fit_transform(self, X, y=None) -> np.ndarray:
+        """Fit and transform sequences in X.
+
+        Parameters
+        ----------
+        X : data of type self.get_tag("X_inner_type")
+
+        Returns
+        -------
+        Xt : transformed data
+        """
+        # transform
+        Xt = X
+        for i in range(len(self.steps_)):
+            Xt = self.steps_[i][1].fit_transform(X=Xt)
+        return Xt
+
+    def _transform(self, X, y=None) -> np.ndarray:
+        """Transform sequences in X.
+
+        Parameters
+        ----------
+        X : data of type self.get_tag("X_inner_type")
+
+        Returns
+        -------
+        Xt : transformed data
+        """
+        # transform
+        Xt = X
+        for i in range(len(self.steps_)):
+            Xt = self.steps_[i][1].transform(X=Xt)
+        return Xt
