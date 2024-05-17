@@ -16,9 +16,11 @@ ALL_ANOMALY_DETECTORS = all_estimators(
 
 labels = np.zeros(15)
 labels[np.random.choice(15, 5)] = 1
-uv_series = make_series(n_timepoints=15, return_numpy=True)
+uv_series = make_series(n_timepoints=15, return_numpy=True, random_state=0)
 uv_series[labels == 1] += 1
-mv_series = make_series(n_timepoints=15, n_columns=2, return_numpy=True).T
+mv_series = make_series(
+    n_timepoints=15, n_columns=2, return_numpy=True, random_state=0
+).T
 mv_series[:, labels == 1] += 1
 
 
