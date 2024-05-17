@@ -4,7 +4,7 @@ from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils import COLLECTIONS_DATA_TYPES
 
 
-class Id(BaseCollectionTransformer):
+class CollectionId(BaseCollectionTransformer):
     """Identity transformer, returns data unchanged in transform/inverse_transform."""
 
     _tags = {

@@ -6,7 +6,7 @@ __all__ = ["CollectionTransformerPipeline"]
 
 from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.compose import Id
+from aeon.transformations.collection.compose import CollectionId
 
 
 class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransformer):
@@ -56,7 +56,7 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
     ...     CollectionTransformerPipeline)
     >>> X, y = load_unit_test(split="train")
     >>> pipeline = CollectionTransformerPipeline(
-    ...     TSInterpolator(length=10), SevenNumberSummaryTransformer()
+    ...     [TSInterpolator(length=10), SevenNumberSummaryTransformer()]
     ... )
     >>> pipeline.fit(X, y)
     CollectionTransformerPipeline(...)
@@ -69,9 +69,9 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
 
     def __init__(self, transformers):
         if not isinstance(transformers, list):
-            transformers = [Id(), transformers]
+            transformers = [CollectionId(), transformers]
         elif len(transformers) < 2:
-            transformers = [Id(), transformers[0]]
+            transformers = [CollectionId(), transformers[0]]
 
         super().__init__(transformers=transformers, _estimator=None)
 
