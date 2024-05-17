@@ -5,7 +5,7 @@ __maintainer__ = []
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
 
-from aeon.transformations.dobin import DOBIN
+from aeon.transformations.series._dobin import DOBIN
 
 
 def test_fit_default():
