@@ -5,6 +5,7 @@ __maintainer__ = ["baraline"]
 from abc import ABC, abstractmethod
 from typing import final
 
+from numba import set_num_threads
 from numba.typed import List
 
 from aeon.base import BaseCollectionEstimator
@@ -17,6 +18,13 @@ class BaseSimiliaritySearch(BaseCollectionEstimator, ABC):
 
     Parameters
     ----------
+    distance : str, default="euclidean"
+        Name of the distance function to use. A list of valid strings can be found in
+        the documentation for :func:`aeon.distances.get_distance_function`.
+        If a callable is passed it must either be a python function or numba function
+        with nopython=True, that takes two 1d numpy arrays as input and returns a float.
+    distance_args : dict, default=None
+        Optional keyword arguments for the distance function.
     normalize : bool, default=False
         Whether the distance function should be z-normalized.
     store_distance_profiles : bool, default=False.
@@ -88,6 +96,13 @@ class BaseSimiliaritySearch(BaseCollectionEstimator, ABC):
 
         """
         X = self._preprocess_collection(X)
+        # Store minimum number of n_timepoints for unequal length collections
+        self.min_timepoints_ = min([X[i].shape[-1] for i in range(len(X))])
+        self.n_channels_ = X[0].shape[0]
+        self.n_cases_ = len(X)
+        if self.metadata_["unequal_length"]:
+            X = List(X)
+        set_num_threads(self._n_jobs)
         self.X_ = X
         self._fit(X, y)
         return self

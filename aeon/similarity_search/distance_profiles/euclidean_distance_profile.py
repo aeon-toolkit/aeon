@@ -30,13 +30,16 @@ def euclidean_distance_profile(X, q, mask):
 
     Returns
     -------
-    distance_profile : np.ndarray
+    distance_profiles : np.ndarray
         shape (n_cases, n_channels, n_timepoints - query_length + 1)
         The distance profile between q and the input time series X independently
         for each channel.
 
     """
-    return squared_distance_profile(X, q, mask) ** 0.5
+    distance_profiles = squared_distance_profile(X, q, mask)
+    for i in range(len(distance_profiles)):
+        distance_profiles[i] = distance_profiles[i] ** 0.5
+    return distance_profiles
 
 
 def normalized_euclidean_distance_profile(
@@ -75,15 +78,15 @@ def normalized_euclidean_distance_profile(
 
     Returns
     -------
-    distance_profile : np.ndarray
+    distance_profiles : np.ndarray
         shape (n_cases, n_channels, n_timepoints - query_length + 1).
         The distance profile between q and the input time series X independently
         for each channel.
 
     """
-    return (
-        normalized_squared_distance_profile(
-            X, q, mask, X_means, X_stds, q_means, q_stds
-        )
-        ** 0.5
+    distance_profiles = normalized_squared_distance_profile(
+        X, q, mask, X_means, X_stds, q_means, q_stds
     )
+    for i in range(len(distance_profiles)):
+        distance_profiles[i] = distance_profiles[i] ** 0.5
+    return distance_profiles

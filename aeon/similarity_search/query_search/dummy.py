@@ -2,6 +2,7 @@
 
 __maintainer__ = ["baraline"]
 
+import numpy as np
 
 from aeon.similarity_search.query_search import BaseQuerySearch
 
@@ -71,6 +72,14 @@ class DummyQuerySearch(BaseQuerySearch):
             An array containing the index of the best match between q and _X.
 
         """
-        search_size = distance_profile.shape[-1]
-        _id_best = distance_profile.argmin(axis=None)
-        return [(_id_best // search_size, _id_best % search_size)]
+        id_timestamps = np.concatenate(
+            [np.arange(distance_profile[i].shape[0]) for i in range(self.n_cases_)]
+        )
+        id_samples = np.concatenate(
+            [[i] * distance_profile[i].shape[0] for i in range(self.n_cases_)]
+        )
+        # Could use agmin(axis=None) but we need to support unequal length
+        distance_profile = np.concatenate(distance_profile)
+        id_best = distance_profile.argmin()
+
+        return (id_samples[id_best], id_timestamps[id_best])

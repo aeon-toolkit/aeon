@@ -8,6 +8,7 @@ from typing import final
 
 import numpy as np
 from numba.core.registry import CPUDispatcher
+from numba.typed import List
 
 from aeon.distances import get_distance_function
 from aeon.similarity_search.base import BaseSimiliaritySearch
@@ -183,8 +184,6 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
         """
         query_dim, query_length = self._check_query_format(q, axis)
 
-        n_cases, _, n_timepoints = self.X_.shape
-
         mask = self._init_q_index_mask(
             q_index,
             query_dim,
@@ -250,9 +249,18 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
             similarity search.
 
         """
-        n_cases, _, n_timepoints = self.X_.shape
-        mask = np.ones((n_cases, n_timepoints - query_length + 1), dtype=bool)
-
+        if self.metadata_["unequal_length"]:
+            mask = np.ones(
+                (self.n_cases_, self.min_timepoints_ - query_length + 1),
+                dtype=bool,
+            )
+        else:
+            mask = List(
+                [
+                    np.ones(self.X_[i].shape[1] - query_length + 1, dtype=bool)
+                    for i in range(self.n_cases_)
+                ]
+            )
         if q_index is not None:
             if isinstance(q_index, Iterable):
                 if len(q_index) != 2:
@@ -274,13 +282,13 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
                 )
 
             i_instance, i_timestamp = q_index
-            profile_length = n_timepoints - query_length + 1
+            profile_length = self.X_[i_instance].shape[1] - query_length + 1
             exclusion_LB = max(0, int(i_timestamp - query_length // exclusion_factor))
             exclusion_UB = min(
                 profile_length,
                 int(i_timestamp + query_length // exclusion_factor),
             )
-            mask[i_instance, exclusion_LB:exclusion_UB] = False
+            mask[i_instance][exclusion_LB:exclusion_UB] = False
 
         return mask
 
@@ -296,19 +304,19 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
             )
 
         query_dim, query_length = q.shape
-        if query_length >= self.X_.shape[-1]:
+        if query_length >= self.min_timepoints_:
             raise ValueError(
                 "The length of the query should be inferior or equal to the length of "
                 "data (X) provided during fit, but got {} for q and {} for X".format(
-                    query_length, self.X_.shape[-1]
+                    query_length, self.min_timepoints_
                 )
             )
 
-        if query_dim != self.X_.shape[1]:
+        if query_dim != self.n_channels_:
             raise ValueError(
                 "The number of feature should be the same for the query q and the data "
                 "(X) provided during fit, but got {} for q and {} for X".format(
-                    query_dim, self.X_.shape[1]
+                    query_dim, self.n_channels_
                 )
             )
         return query_dim, query_length
@@ -374,13 +382,13 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
 
         Returns
         -------
-        distance_profile : array, shape=(n_cases, n_timepoints - query_length + 1)
+        distance_profiles : array, shape=(n_cases, n_timepoints - query_length + 1)
             The distance profiles between the input time series and the query.
 
         """
         if self.speed_up_ is None:
             if self.normalize:
-                distance_profile = self.distance_profile_function_(
+                distance_profiles = self.distance_profile_function_(
                     self.X_,
                     q,
                     mask,
@@ -392,7 +400,7 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
                     distance_args=self.distance_args,
                 )
             else:
-                distance_profile = self.distance_profile_function_(
+                distance_profiles = self.distance_profile_function_(
                     self.X_,
                     q,
                     mask,
@@ -401,7 +409,7 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
                 )
         else:
             if self.normalize:
-                distance_profile = self.distance_profile_function_(
+                distance_profiles = self.distance_profile_function_(
                     self.X_,
                     q,
                     mask,
@@ -411,10 +419,15 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
                     self.q_stds_,
                 )
             else:
-                distance_profile = self.distance_profile_function_(self.X_, q, mask)
+                distance_profiles = self.distance_profile_function_(self.X_, q, mask)
         # For now, deal with the multidimensional case as "dependent", so we sum.
-        distance_profile = distance_profile.sum(axis=1)
-        return distance_profile
+        if self.metadata_["unequal_length"]:
+            distance_profiles = List(
+                [distance_profiles[i].sum(axis=0) for i in range(self.n_cases_)]
+            )
+        else:
+            distance_profiles = distance_profiles.sum(axis=1)
+        return distance_profiles
 
     @classmethod
     def get_speedup_function_names(self):

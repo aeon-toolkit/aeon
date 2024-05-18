@@ -51,13 +51,13 @@ class TopKQuerySearch(BaseQuerySearch):
 
     Examples
     --------
-    >>> from aeon.similarity_search import TopKSimilaritySearch
+    >>> from aeon.similarity_search.query_search import TopKQuerySearch
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = TopKSimilaritySearch(k=1)
+    >>> clf = TopKQuerySearch(k=1)
     >>> clf.fit(X_train, y_train)
-    TopKSimilaritySearch(...)
+    TopKQuerySearch(...)
     >>> q = X_test[0, :, 5:15]
     >>> y_pred = clf.predict(q)
 
@@ -93,7 +93,7 @@ class TopKQuerySearch(BaseQuerySearch):
             n_jobs=n_jobs,
         )
 
-    def _predict(self, distance_profile, exclusion_size=None):
+    def _predict(self, distance_profiles, exclusion_size=None):
         """
         Private predict method for TopKSimilaritySearch.
 
@@ -101,7 +101,7 @@ class TopKQuerySearch(BaseQuerySearch):
 
         Parameters
         ----------
-        distance_profile : array, shape (n_cases, n_timepoints - query_length + 1)
+        distance_profiles : array, shape (n_cases, n_timepoints - query_length + 1)
             Precomputed distance profile.
         exclusion_size : int, optional
             The size of the exclusion zone used to prevent returning as top k candidates
@@ -118,11 +118,18 @@ class TopKQuerySearch(BaseQuerySearch):
             An array containing the indexes of the best k matches between q and _X.
 
         """
-        search_size = distance_profile.shape[-1]
-        _argsort = distance_profile.argsort(axis=None)
+        id_timestamps = np.concatenate(
+            [np.arange(distance_profiles[i].shape[0]) for i in range(self.n_cases_)]
+        )
+        id_samples = np.concatenate(
+            [[i] * distance_profiles[i].shape[0] for i in range(self.n_cases_)]
+        )
+        distance_profiles = np.concatenate(distance_profiles)
+
+        _argsort = distance_profiles.argsort()
         _argsort = np.asarray(
             [
-                [_argsort[i] // search_size, _argsort[i] % search_size]
+                [id_samples[_argsort[i]], id_timestamps[_argsort[i]]]
                 for i in range(len(_argsort))
             ],
             dtype=int,
