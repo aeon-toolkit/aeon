@@ -102,9 +102,9 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> t1 = ExponentTransformer(power=2)
-    >>> t2 = ExponentTransformer(power=0.5)
+    >>> from aeon.testing.mock_estimators import MockTransformer
+    >>> t1 = MockTransformer(power=2)
+    >>> t2 = MockTransformer(power=0.5)
 
         Example 1, option A: construct without strings (unique names are generated for
         the two components t1 and t2)
