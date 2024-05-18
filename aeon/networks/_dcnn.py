@@ -1,3 +1,7 @@
+"""Encoder using Dilated Convolutional Nerual Networks (DCNN)."""
+
+__maintainer__ = []
+
 import tensorflow as tf
 
 from aeon.networks.base import BaseDeepNetwork
@@ -31,7 +35,8 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
     ----------
     .. [1] Network originally defined in:
     @article{franceschi2019unsupervised,
-      title={Unsupervised scalable representation learning for multivariate time series},
+      title={Unsupervised scalable representation learning for multivariate time
+        series},
       author={Franceschi, Jean-Yves and Dieuleveut, Aymeric and Jaggi, Martin},
       journal={Advances in neural information processing systems},
       volume={32},
@@ -82,6 +87,7 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
         -------
         encoder : a keras Model.
         """
+
         def DCNNLayer(inputs, num_filters, dilation_rate):
             _add = tf.keras.layers.Conv1D(num_filters, kernel_size=1)(inputs)
             x = WeightNormalization(
@@ -102,8 +108,9 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
                     padding="causal",
                 )
             )(x)
-            return tf.keras.layers.Add([x, _add])
-        
+            output = tf.keras.layers.Add()([x, _add])
+            return output
+
         input_layer = tf.keras.layers.Input(input_shape)
 
         x = input_layer

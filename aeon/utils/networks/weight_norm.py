@@ -1,6 +1,8 @@
 import logging
+
 import tensorflow as tf
 from typeguard import typechecked
+
 
 @tf.keras.utils.register_keras_serializable(package="addons")
 class WeightNormalization(tf.keras.layers.Wrapper):
@@ -12,7 +14,9 @@ class WeightNormalization(tf.keras.layers.Wrapper):
     Args:
       layer: A `tf.keras.layers.Layer` instance.
       data_init: If `True` use data dependent variable initialization.
-    Raises:
+
+    Raises
+    ------
       ValueError: If not initialized with a `Layer` instance.
       ValueError: If `Layer` does not contain a `kernel` of weights.
       NotImplementedError: If `data_init` is True and running graph execution.
