@@ -5,8 +5,7 @@ __maintainer__ = []
 import pytest
 
 from aeon.testing.estimator_checks import check_estimator
-from aeon.testing.mock_estimators import MockClassifier, MockSegmenter
-from aeon.transformations.exponent import ExponentTransformer
+from aeon.testing.mock_estimators import MockClassifier, MockSegmenter, MockTransformer
 
 EXAMPLE_CLASSES = [MockClassifier, MockSegmenter]
 
@@ -48,7 +47,7 @@ def test_check_estimator_subset_tests():
     expected_tests = set(tests_to_run).difference(tests_to_exclude)
 
     results = check_estimator(
-        ExponentTransformer,
+        MockTransformer,
         verbose=False,
         tests_to_run=tests_to_run,
         tests_to_exclude=tests_to_exclude,

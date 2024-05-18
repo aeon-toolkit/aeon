@@ -239,9 +239,9 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
 
         from aeon.forecasting.compose._reduce import DirectReductionForecaster
         from aeon.forecasting.naive import NaiveForecaster
+        from aeon.testing.mock_estimators import MockTransformer
         from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.detrend import Detrender
-        from aeon.transformations.exponent import ExponentTransformer
 
         # StandardScaler does not skip fit, NaiveForecaster is not probabilistic
         STEPS1 = [
@@ -252,7 +252,7 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
 
         # ARIMA has probabilistic methods, ExponentTransformer skips fit
         STEPS2 = [
-            ("transformer", ExponentTransformer()),
+            ("transformer", MockTransformer()),
             ("forecaster", DirectReductionForecaster.create_test_instance()),
         ]
         params2 = {"steps": STEPS2}
@@ -1682,32 +1682,30 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         from aeon.forecasting.naive import NaiveForecaster
-        from aeon.transformations.boxcox import BoxCoxTransformer
-        from aeon.transformations.exponent import ExponentTransformer
+        from aeon.testing.mock_estimators import MockTransformer
 
         # transformers mixed with-without fit, ForecastingPipeline
         # steps are (str, estimator)
         params1 = {
             "estimator": ForecastingPipeline(
                 [
-                    ("foo", BoxCoxTransformer()),
-                    ("bar", ExponentTransformer(3)),
+                    ("bar", MockTransformer(3)),
                     ("foobar", NaiveForecaster()),
                 ]
             ),
-            "permutation": ["bar", "foo", "foobar"],
+            "permutation": ["foo", "foobar"],
         }
 
         # transformers have no fit, TransformedTargetForecaster
         # steps are only estimator
         params2 = {
             "estimator": TransformedTargetForecaster(
-                [ExponentTransformer(0.5), NaiveForecaster(), ExponentTransformer(3)]
+                [MockTransformer(0.5), NaiveForecaster(), MockTransformer(3)]
             ),
             "permutation": [
                 "NaiveForecaster",
-                "ExponentTransformer_1",
-                "ExponentTransformer_2",
+                "MockTransformer_1",
+                "MockTransformer_2",
             ],
         }
 
