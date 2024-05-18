@@ -2,8 +2,6 @@
 
 __maintainer__ = []
 
-import tensorflow as tf
-
 from aeon.networks.base import BaseDeepNetwork
 
 
@@ -27,6 +25,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
         Number of units in each GRU layer, by default None.
         If None, default to [100, 50, 50].
     """
+
     def __init__(
         self,
         latent_space_dim=128,
@@ -74,6 +73,8 @@ class AEDRNNNetwork(BaseDeepNetwork):
         decoder : tf.keras.Model
             The decoder model.
         """
+        import tensorflow as tf
+
         def dilate_input(tensor, dilation_rate):
             return tensor[:, ::dilation_rate, :]
 
