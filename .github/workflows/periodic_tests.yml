@@ -83,7 +83,7 @@ jobs:
           # Save cache with the current date (ENV set in numba_cache action)
           key: numba-run-notebook-examples-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
 
-  test-nosoftdeps:
+  test-no-soft-deps:
     runs-on: ubuntu-20.04
 
     steps:
@@ -98,7 +98,7 @@ jobs:
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
         with:
-          cache_name: "test-nosoftdeps"
+          cache_name: "test-no-soft-deps"
           runner_os: ${{ runner.os }}
           python_version: "3.10"
           restore_cache: "false"
@@ -114,57 +114,14 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: |
-          python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
-          python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
-          python -m pytest --pyargs aeon.testing.test_softdeps
+        run: python -m pytest
 
       - name: Save new cache
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-test-nosoftdeps-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
-
-  test-nosoftdeps-full:
-    runs-on: ubuntu-20.04
-
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Use numba cache to set env variables but not restore cache
-        uses: ./.github/actions/numba_cache
-        with:
-          cache_name: "test-nosoftdeps-full"
-          runner_os: ${{ runner.os }}
-          python_version: "3.10"
-          restore_cache: "false"
-
-      - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 30
-          max_attempts: 3
-          command: python -m pip install .[dev]
-
-      - name: Show dependencies
-        run: python -m pip list
-
-      - name: Run tests
-        run: python -m pytest -k 'not TestAll'
-
-      - name: Save new cache
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ github.workspace }}/.numba_cache
-          # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-test-nosoftdeps-full-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
+          key: numba-test-no-soft-deps-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
 
   pytest:
     runs-on: ${{ matrix.os }}

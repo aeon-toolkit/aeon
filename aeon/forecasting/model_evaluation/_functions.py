@@ -9,8 +9,8 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from sklearn.exceptions import FitFailedWarning
 
-from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.utils.conversion import convert_collection, convert_series

@@ -15,11 +15,11 @@ import pandas as pd
 from joblib import Parallel, delayed
 from sklearn.base import BaseEstimator
 from sklearn.decomposition import PCA
+from sklearn.exceptions import NotFittedError
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.exceptions import NotFittedError
 from aeon.utils.validation import check_n_jobs
 
 
