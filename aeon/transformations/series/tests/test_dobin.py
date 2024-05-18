@@ -87,7 +87,7 @@ def test_fit_default():
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X)
     model = DOBIN()
-    fitted_model = model.fit(X)
+    fitted_model = model.fit(X, axis=0)
     coords_actual = fitted_model._coords
     basis_actual = fitted_model._basis
 
@@ -142,7 +142,7 @@ def test_fit_median_standardization():
     scaler = RobustScaler()
     X = scaler.fit_transform(X)
     model = DOBIN(k=3)
-    fitted_model = model.fit(X)
+    fitted_model = model.fit(X, axis=0)
     coords_actual = fitted_model._coords
     basis_actual = fitted_model._basis
 
@@ -173,7 +173,7 @@ def test_pca_reduction():
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X)
     model = DOBIN(k=2, frac=0.5)
-    fitted_model = model.fit(X)
+    fitted_model = model.fit(X, axis=0)
     X_actual = fitted_model._X_pca
 
     assert np.allclose(abs(X_expected), abs(X_actual), rtol=0.001)
@@ -206,7 +206,7 @@ def test_zero_variance():
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X)
     model = DOBIN(k=1, frac=0.5)
-    fitted_model = model.fit(X)
+    fitted_model = model.fit(X, axis=0)
     coords_actual = fitted_model._coords
     basis_actual = fitted_model._basis
 
