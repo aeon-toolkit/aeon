@@ -14,8 +14,6 @@ class AEDRNNNetwork(BaseDeepNetwork):
         Dimensionality of the latent space.
     n_layers : int, default = 3
         Number of GRU layers in the encoder.
-    n_stacked : int, default = 3
-        Number of times to stack the dilation rates.
     dilation_rate : List[int], default = None
         List of dilation rates for each layer, by default None.
         If None, default = powers of 2 up to `n_stacked`.
@@ -30,7 +28,6 @@ class AEDRNNNetwork(BaseDeepNetwork):
         self,
         latent_space_dim=128,
         n_layers=3,
-        n_stacked=3,
         dilation_rate=None,
         activation="relu",
         n_units=None,
@@ -44,10 +41,10 @@ class AEDRNNNetwork(BaseDeepNetwork):
         self.dilation_rate = dilation_rate
 
         if self.dilation_rate is None:
-            self.dilation_rate = [2**i for i in range(n_stacked)]
+            self.dilation_rate = [2**i for i in range(n_layers)]
         else:
             assert isinstance(self.dilation_rate, list)
-            assert len(self.dilation_rate) == n_stacked
+            assert len(self.dilation_rate) == n_layers
 
         if self.n_units is None:
             assert self.n_layers == 3
