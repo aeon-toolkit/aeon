@@ -7,9 +7,9 @@ from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
+from sklearn.exceptions import NotFittedError
 from sklearn.model_selection import ParameterGrid, ParameterSampler, check_cv
 
-from aeon.exceptions import NotFittedError
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.forecasting.model_evaluation import evaluate
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error

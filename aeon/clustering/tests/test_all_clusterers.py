@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.registry import all_estimators
-from aeon.testing.test_softdeps import soft_deps_installed
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 ALL_CLUSTERERS = all_estimators("clusterer", return_names=False)
 
@@ -12,7 +12,9 @@ ALL_CLUSTERERS = all_estimators("clusterer", return_names=False)
 @pytest.mark.parametrize("clst", ALL_CLUSTERERS)
 def test_clusterer_tags_consistent(clst):
     """Test all estimators capability tags reflect their capabilities."""
-    if not soft_deps_installed(clst):
+    if not _check_soft_dependencies(
+        clst.get_class_tag("python_dependencies", []), severity="none"
+    ):
         return
 
     # Test the tag X_inner_type is consistent with capability:unequal_length
