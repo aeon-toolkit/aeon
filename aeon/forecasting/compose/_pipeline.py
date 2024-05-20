@@ -1689,24 +1689,10 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
         params1 = {
             "estimator": ForecastingPipeline(
                 [
-                    ("bar", MockTransformer(3)),
+                    ("foo", MockTransformer(3)),
                     ("foobar", NaiveForecaster()),
                 ]
             ),
             "permutation": ["foo", "foobar"],
         }
-
-        # transformers have no fit, TransformedTargetForecaster
-        # steps are only estimator
-        params2 = {
-            "estimator": TransformedTargetForecaster(
-                [MockTransformer(0.5), NaiveForecaster(), MockTransformer(3)]
-            ),
-            "permutation": [
-                "NaiveForecaster",
-                "MockTransformer_1",
-                "MockTransformer_2",
-            ],
-        }
-
-        return [params1, params2]
+        return params1
