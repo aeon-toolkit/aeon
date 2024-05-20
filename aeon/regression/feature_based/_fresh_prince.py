@@ -34,7 +34,7 @@ class FreshPRINCERegressor(BaseRegressor):
     save_transformed_data : bool, default="deprecated"
         Save the data transformed in fit.
 
-        Deprecated and will be removed in v0.8.0. Use fit_predict
+        Deprecated and will be removed in v0.10.0. Use fit_predict
         to generate train estimates instead. transformed_data_ will also be removed.
     verbose : int, default=0
         Level of output printed to the console (for information only)

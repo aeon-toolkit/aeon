@@ -4,13 +4,13 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from aeon.transformations.series._acf import AutoCorrelationTransformer
+from aeon.transformations.series._acf import AutoCorrelationSeriesTransformer
 
 
 def test_acf():
     """Test ACF series transformer returned size."""
     n_lags = 3
-    acf = AutoCorrelationTransformer(n_lags=n_lags)
+    acf = AutoCorrelationSeriesTransformer(n_lags=n_lags)
     # Output format, should return an array length n_timepoints-lags for univariate
     # and multivariate time series
     x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -38,7 +38,7 @@ EXPECTED_RESULTS = [
 
 def test_acf_against_expected():
     """Test ACF series transformer against expected results."""
-    acf = AutoCorrelationTransformer(n_lags=4)
+    acf = AutoCorrelationSeriesTransformer(n_lags=4)
     for i in range(len(TEST_DATA)):
         xt = acf.fit_transform(TEST_DATA[i])
         xt = xt.squeeze()
@@ -63,7 +63,7 @@ def test_multivariate():
     x2 = np.array([10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
     x3 = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
     n_lags = 3
-    acf = AutoCorrelationTransformer(n_lags=n_lags)
+    acf = AutoCorrelationSeriesTransformer(n_lags=n_lags)
     y1 = acf.fit_transform(x1)
     y2 = acf.fit_transform(x2)
     y3 = acf.fit_transform(x3)
