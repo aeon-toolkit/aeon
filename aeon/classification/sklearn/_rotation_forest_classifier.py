@@ -20,7 +20,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.exceptions import NotFittedError
 from aeon.utils.validation import check_n_jobs
 
 
@@ -192,6 +191,8 @@ class RotationForestClassifier(BaseEstimator):
             Predicted probabilities using the ordering in classes_.
         """
         if not self._is_fitted:
+            from sklearn.exceptions import NotFittedError
+
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
                 f"been fitted yet; please call `fit` first."
