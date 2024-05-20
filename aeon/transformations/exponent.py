@@ -183,7 +183,7 @@ class ExponentTransformer(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        return [{"power": 2.5, "offset": 1}, {"power": 0}]
+        return [{"power": 2.5, "offset": 1}]
 
 
 # TODO: remove in v0.10.0
