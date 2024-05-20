@@ -40,7 +40,8 @@ class ElasticEnsemble(BaseClassifier):
     ----------
     distance_measures : str or list of str, default="all"
       A list of strings identifying which distance measures to include. Valid values
-      are one or more of: euclidean, dtw, wdtw, ddtw, dwdtw, lcss, erp, msm, twe, all
+      are one or more of: ``euclidean``, ``dtw``, ``wdtw``, ``ddtw``, ``wddtw``,
+      ``lcss``, ``erp``, ``msm``, ``twe``, all
     proportion_of_param_options : float, default=1
       The proportion of the parameter grid space to search optional.
     proportion_train_in_param_finding : float, default=1
