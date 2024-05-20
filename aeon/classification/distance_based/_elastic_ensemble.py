@@ -66,11 +66,11 @@ class ElasticEnsemble(BaseClassifier):
     constituent_build_times_ : array of float
         build time for each member of the ensemble.
 
-    Notes
-    -----
+    References
+    ----------
     .. [1] Jason Lines and Anthony Bagnall,
           "Time Series Classification with Ensembles of Elastic Distance Measures",
-              Data Mining and Knowledge Discovery, 29(3), 2015.
+          Data Mining and Knowledge Discovery, 29(3), 2015.
     https://link.springer.com/article/10.1007/s10618-014-0361-2
 
     Examples
@@ -132,7 +132,7 @@ class ElasticEnsemble(BaseClassifier):
             or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
             The training input samples.
 
-        y : array-like, shape = (n_cases) The class labels.
+        y : array-like, shape = (n_cases,) The class labels.
 
         Returns
         -------
@@ -398,7 +398,13 @@ class ElasticEnsemble(BaseClassifier):
         return preds
 
     def get_metric_params(self) -> dict:
-        """Return the parameters for the distance metrics used."""
+        """Return the parameters for the distance metrics used.
+
+        Returns
+        -------
+        params : dict
+            The distance measures and the list of their parameter values.
+        """
         return {
             self._distance_measures[dm]: str(self.estimators_[dm]._distance_params)
             for dm in range(len(self.estimators_))
@@ -406,6 +412,17 @@ class ElasticEnsemble(BaseClassifier):
 
     @staticmethod
     def _get_100_param_options(distance_measure: str, train_x=None):
+        """Generate 100 parameter values for each classifier.
+
+        Parameters
+        ----------
+        distance_measure : str, the name of the distance measure.
+
+        train_x : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
+            The training input samples.
+        """
+
         def get_inclusive(min_val: float, max_val: float, num_vals: float):
             inc = (max_val - min_val) / (num_vals - 1)
             return np.arange(min_val, max_val + inc / 2, inc)
