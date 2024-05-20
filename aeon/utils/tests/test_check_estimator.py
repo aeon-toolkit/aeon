@@ -5,7 +5,7 @@ __maintainer__ = []
 import pytest
 
 from aeon.testing.estimator_checks import check_estimator
-from aeon.testing.mock_estimators import MockClassifier, MockSegmenter, MockTransformer
+from aeon.testing.mock_estimators import MockClassifier, MockSegmenter
 
 EXAMPLE_CLASSES = [MockClassifier, MockSegmenter]
 
@@ -39,15 +39,13 @@ def test_check_estimator_subset_tests():
         "test_set_params",
         "test_clone",
         "test_repr",
-        "test_capability_inverse_tag_is_correct",
-        "test_remember_data_tag_is_correct",
     ]
-    tests_to_exclude = ["test_repr", "test_remember_data_tag_is_correct"]
+    tests_to_exclude = ["test_repr", "test_clone"]
 
     expected_tests = set(tests_to_run).difference(tests_to_exclude)
 
     results = check_estimator(
-        MockTransformer,
+        MockClassifier,
         verbose=False,
         tests_to_run=tests_to_run,
         tests_to_exclude=tests_to_exclude,

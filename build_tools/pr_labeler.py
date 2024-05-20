@@ -15,7 +15,7 @@ from github import Github
 context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
 
 repo = context_dict["repository"]
-g = Github(sys.argv[1])
+g = Github(os.getenv("GITHUB_TOKEN"))
 repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
