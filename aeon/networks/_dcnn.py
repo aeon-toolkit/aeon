@@ -93,7 +93,6 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
                 kernel_regularizer="l2",
                 activation=activation,
             )(inputs)
-            x = tf.keras.layers.LeakyReLU()(x)
             x = tf.keras.layers.Conv1D(
                 num_filters,
                 kernel_size=self.kernel_size,
@@ -102,7 +101,6 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
                 kernel_regularizer="l2",
                 activation=activation,
             )(x)
-            x = tf.keras.layers.LeakyReLU()(x)
             output = tf.keras.layers.Add()([x, _add])
             return output
 
