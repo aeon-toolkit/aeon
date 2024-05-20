@@ -5,8 +5,6 @@ __maintainer__ = []
 import tensorflow as tf
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.utils.networks import WeightNormalization
-
 
 class DCNNEncoderNetwork(BaseDeepNetwork):
     """Establish the network structure for a DCNN-Encoder.
@@ -16,8 +14,6 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
 
     Parameters
     ----------
-    loss_function: object
-        Objective function to be used for weight optimization.
     latent_space_dim: int, default=128
         Dimension of the encoder's latent space.
     num_layers: int, default=4
@@ -28,8 +24,6 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
         Number of filters used in convolution layers.
     dilation_rate: list, default=None
         The dilation rate for convolution.
-    activation: object, default=LeakyReLU
-        A Tensorflow activation function.
 
     References
     ----------
@@ -46,23 +40,19 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
 
     def __init__(
         self,
-        loss_function,
         latent_space_dim=128,
         num_layers=4,
         kernel_size=3,
         num_filters=None,
         dilation_rate=None,
-        activation=tf.keras.layers.LeakyReLU,
     ):
         super().__init__()
 
         self.latent_space_dim = latent_space_dim
         self.kernel_size = kernel_size
         self.num_filters = num_filters
-        self.loss_functions = loss_function
         self.model_depth = num_layers
         self.dilation_rate = dilation_rate
-        self.activation = activation
 
         if self.num_filters is None:
             self.num_filters = [32 * i for i in range(1, self.model_depth + 1)]
@@ -90,24 +80,22 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
 
         def DCNNLayer(inputs, num_filters, dilation_rate):
             _add = tf.keras.layers.Conv1D(num_filters, kernel_size=1)(inputs)
-            x = WeightNormalization(
-                tf.keras.layers.Conv1D(
+            x = tf.keras.layers.Conv1D(
                     num_filters,
                     kernel_size=self.kernel_size,
                     dilation_rate=dilation_rate,
-                    activation=self.activation,
                     padding="causal",
-                )
-            )(inputs)
-            x = WeightNormalization(
-                tf.keras.layers.Conv1D(
+                    kernel_regularizer="l2",
+                )(inputs)
+            x = tf.keras.layers.LeakyReLU()(x)
+            x = tf.keras.layers.Conv1D(
                     num_filters,
                     kernel_size=self.kernel_size,
                     dilation_rate=dilation_rate,
-                    activation=self.activation,
                     padding="causal",
-                )
+                    kernel_regularizer="l2",
             )(x)
+            x = tf.keras.layers.LeakyReLU()(x)
             output = tf.keras.layers.Add()([x, _add])
             return output
 
@@ -115,7 +103,7 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
 
         x = input_layer
         for i in range(0, self.model_depth):
-            x = DCNNLayer(x, self.num_filters, self.dilation_rate[i])
+            x = DCNNLayer(x, self.num_filters[i], self.dilation_rate[i])
         x = tf.keras.layers.GlobalMaxPool1D()(x)
         output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
 
