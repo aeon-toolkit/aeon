@@ -1,21 +1,17 @@
 """Test MPDist function."""
 
-import os
 import re
 
+import numpy as np
 import pytest
 
 from aeon.distances._mpdist import mpdist
-from aeon.testing.utils.data_gen import make_series
 
 
 def test_mpdist():
     """Minimal test for MPDist prior to redesign."""
-    if os.environ.get("NUMBA_DISABLE_JIT") == "1":
-        return
-
-    x = make_series(10, return_numpy=True, random_state=1)
-    y = make_series(10, 2, return_numpy=True, random_state=2)
+    x = np.random.randn(1, 10)
+    y = np.random.randn(2, 10)
 
     # Test for ValueError if ts1 is not a 1D array
     with pytest.raises(
@@ -30,8 +26,17 @@ def test_mpdist():
         match=re.escape("x and y must be a 1D array of shape (n_timepoints,)"),
     ):
         mpdist(x, y)
-
-    y = make_series(10, 1, return_numpy=True, random_state=2)
+    y = np.random.randn(1, 10)
+    with pytest.raises(
+        ValueError,
+        match=re.escape("subseries length must be less than or equal to the length"),
+    ):
+        mpdist(x, y, m=11)
+    with pytest.raises(
+        ValueError,
+        match=re.escape("subseries length must be greater than 0 or zero"),
+    ):
+        mpdist(x, y, m=-1)
 
     # Test MPDist function with valid inputs
     d = mpdist(x, y)
