@@ -20,7 +20,10 @@ def test_all_networks_functionality():
         ):
             continue
 
-        my_network = network_classes[i]()
+        try:
+            my_network = network_classes[i]()
+        except ModuleNotFoundError:
+            continue
 
         input_layer, output_layer = my_network.build_network(input_shape=input_shape)
 
