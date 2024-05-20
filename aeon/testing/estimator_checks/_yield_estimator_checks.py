@@ -1,5 +1,6 @@
 import numbers
 import types
+from functools import partial
 from inspect import getfullargspec, signature
 
 import joblib
@@ -7,7 +8,6 @@ import numpy as np
 import pytest
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_get_params_invariance
-from toolz.curried import partial
 
 from aeon.base import BaseEstimator, BaseObject
 from aeon.testing.test_config import (
