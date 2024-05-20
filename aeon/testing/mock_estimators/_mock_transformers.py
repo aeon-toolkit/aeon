@@ -13,10 +13,6 @@ class MockTransformer(BaseTransformer):
     ----------
     power : int or float
         User supplied power.
-
-    offset : int or float, or iterable.
-        User supplied offset value.
-        Scalar or 1D iterable with as many values as X columns in transform.
     """
 
     _tags = {
@@ -50,4 +46,4 @@ class MockTransformer(BaseTransformer):
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator."""
-        return {"power": 2.5, "offset": 1}
+        return {"power": 2.5}
