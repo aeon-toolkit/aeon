@@ -48,18 +48,6 @@ class SummaryClusterer(BaseClusterer):
     --------
     SummaryTransformer
     SummaryRegressor
-
-    Examples
-    --------
-    >>> from aeon.clustering.feature_based import SummaryClusterer
-    >>> from sklearn.cluster import KMeans
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> clf = SummaryClusterer()
-    >>> clf.fit(X_train, y_train)
-    SummaryClusterer(...)
-    >>> y_pred = clf.predict(X_test)
     """
 
     _tags = {

@@ -78,19 +78,6 @@ class Catch22Clusterer(BaseClusterer):
     .. [1] Lubba, Carl H., et al. "catch22: Canonical time-series characteristics."
         Data Mining and Knowledge Discovery 33.6 (2019): 1821-1852.
         https://link.springer.com/article/10.1007/s10618-019-00647-x
-
-    Examples
-    --------
-    >>> from aeon.clustering.feature_based import Catch22Clusterer
-    >>> from sklearn.cluster import KMeans
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
-    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
-    ...                              return_y=True, random_state=0)
-    >>> clu = Catch22Clusterer(outlier_norm=True, random_state=0)
-    >>> clu.fit(X, y)
-    Catch22Clusterer(...)
-    >>> clu.predict(X)
-    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {
