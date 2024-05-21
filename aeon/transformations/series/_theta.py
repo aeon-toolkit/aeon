@@ -1,25 +1,15 @@
-"""Implements Theta-lines transformation for use with Theta forecasting."""
-
 __maintainer__ = []
-__all__ = ["ThetaLinesTransformer"]
+__all__ = ["ThetaTransformer"]
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="DOBIN will be removed in version 0.10 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class ThetaLinesTransformer(BaseTransformer):
+class ThetaTransformer(BaseSeriesTransformer):
     """Decompose the original data into two or more Theta-lines.
 
     Implementation of decomposition for Theta-method [1]_ as described in [2]_.
@@ -55,17 +45,18 @@ class ThetaLinesTransformer(BaseTransformer):
     .. [2] E.Spiliotis et al., "Generalizing the Theta method for
        automatic forecasting ", European Journal of Operational
        Research, vol. 284, pp. 550-558, 2020.
+
+    Examples
+    --------
+    >>> from aeon.transformations.series._theta import ThetaTransformer
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> transformer = ThetaTransformer([0, 0.25, 0.5, 0.75])
+    >>> y_thetas = transformer.fit_transform(y)
     """
 
     _tags = {
-        "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
-        "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_type": ["pd.DataFrame", "pd.Series"],
-        "y_inner_type": "None",
-        "transform-returns-same-time-index": True,
+        "X_inner_type": ["pd.DataFrame"],
         "capability:multivariate": False,
         "fit_is_empty": True,
     }
@@ -81,18 +72,19 @@ class ThetaLinesTransformer(BaseTransformer):
 
         Parameters
         ----------
-        X : pd.Series or pd.DataFrame
+        X : pd.DataFrame
             Data to be transformed
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
 
         Returns
         -------
-        theta_lines: pd.Series or pd.DataFrame
+        theta_lines: pd.Series
             Transformed series
             pd.Series, with single Theta-line, if self.theta is float
             pd.DataFrame of shape: [len(X), len(self.theta)], if self.theta is tuple
         """
+        X = X.squeeze()
         theta = _check_theta(self.theta)
 
         forecaster = PolynomialTrendForecaster()
