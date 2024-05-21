@@ -6,17 +6,22 @@ import pytest
 from aeon.classification.distance_based import ElasticEnsemble
 
 DISTANCE = [
-    "lcss",
     "dtw",
+    "ddtw",
     "wdtw",
+    "wddtw",
+    "lcss",
     "erp",
     "msm",
     "euclidean",
     "twe",
 ]
+
 PARAS = {
     "dtw": {"window"},
+    "ddtw": {"window"},
     "wdtw": {"g"},
+    "wddtw": {"g"},
     "lcss": {"epsilon", "window"},
     "erp": {"g", "window"},
     "msm": {"c"},
@@ -75,3 +80,13 @@ def test_proportion_train_in_param_finding():
     ee.get_metric_params()
     with pytest.raises(NotImplementedError, match="EE does not currently support:"):
         ElasticEnsemble._get_100_param_options("FOO")
+
+
+def test_all_distance_measures():
+    """Test the 'all' option of the distance_measures parameter."""
+    X = np.random.random(size=(10, 1, 10))
+    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    ee = ElasticEnsemble(distance_measures="all", proportion_train_in_param_finding=0.2)
+    ee.fit(X, y)
+    distances = list(ee.get_metric_params())
+    assert len(distances) == 9
