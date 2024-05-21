@@ -97,7 +97,7 @@ univariate2015 = {
     "SmallKitchenAppliances",
     "SonyAIBORobotSurface1",
     "SonyAIBORobotSurface2",
-    "StarlightCurves",
+    "StarLightCurves",
     "Strawberry",
     "SwedishLeaf",
     "Symbols",
