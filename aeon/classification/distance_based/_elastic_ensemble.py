@@ -41,7 +41,8 @@ class ElasticEnsemble(BaseClassifier):
     distance_measures : str or list of str, default="all"
       A list of strings identifying which distance measures to include. Valid values
       are one or more of: ``euclidean``, ``dtw``, ``wdtw``, ``ddtw``, ``wddtw``,
-      ``lcss``, ``erp``, ``msm``, ``twe``, all
+      ``lcss``, ``erp``, ``msm``, ``twe``. The default value ``all`` means that all
+      the previously listed distances are used.
     proportion_of_param_options : float, default=1
       The proportion of the parameter grid space to search optional.
     proportion_train_in_param_finding : float, default=1
@@ -69,10 +70,9 @@ class ElasticEnsemble(BaseClassifier):
 
     References
     ----------
-    .. [1] Jason Lines and Anthony Bagnall,
-          "Time Series Classification with Ensembles of Elastic Distance Measures",
-          Data Mining and Knowledge Discovery, 29(3), 2015.
-    https://link.springer.com/article/10.1007/s10618-014-0361-2
+    .. [1] Jason Lines and Anthony Bagnall, "Time Series Classification with Ensembles
+        of Elastic Distance Measures", Data Mining and Knowledge Discovery, 29(3), 2015.
+        https://link.springer.com/article/10.1007/s10618-014-0361-2
 
     Examples
     --------
