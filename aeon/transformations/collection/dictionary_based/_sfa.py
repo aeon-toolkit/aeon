@@ -307,6 +307,28 @@ class SFA(BaseCollectionTransformer):
 
         return bags
 
+    def transform_mft(self, X):
+        """Transform data using the Fourier transform.
+
+        Parameters
+        ----------
+        X : 3d numpy array, input time series.
+
+        Returns
+        -------
+        Array of Fourier coefficients
+        """
+        # X = X.squeeze(1)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
+            transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+                delayed(self._mft)(X[i, :]) for i in range(X.shape[0])
+            )
+
+        words = np.array(list(zip(*transform))[0])
+        return words
+
     def _transform_case(self, X, supplied_dft=None):
         if supplied_dft is None:
             dfts = self._mft(X)
@@ -401,6 +423,18 @@ class SFA(BaseCollectionTransformer):
             bag,
             words if self.save_words else [],
         ]
+
+    def get_words(self):
+        """Return the words generated for each series.
+
+        Returns
+        -------
+        Array of words
+        """
+        words = np.squeeze(self.words)
+        return np.array(
+            [_get_chars(word, self.word_length, self.alphabet_size) for word in words]
+        )
 
     def _binning(self, X, y=None):
         num_windows_per_inst = math.ceil(self.series_length / self.window_size)
@@ -1085,3 +1119,19 @@ class SFA(BaseCollectionTransformer):
         # small window size for testing
         params = {"window_size": 4}
         return params
+
+
+@njit(cache=True, fastmath=True)
+def _get_chars(word, word_length, alphabet_size):
+    chars = np.zeros(word_length, dtype=np.uint32)
+    letter_bits = int(np.log2(alphabet_size))
+    mask = (1 << letter_bits) - 1
+    for i in range(word_length):
+        # Extract the last bits
+        char = word & mask
+        chars[-i - 1] = char
+
+        # Right shift by to move to the next group of bits
+        word >>= letter_bits
+
+    return chars

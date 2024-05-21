@@ -15,8 +15,9 @@ from joblib import Parallel, delayed, parallel_backend
 
 from aeon.distances._dft_sfa_mindist import dft_sfa_mindist
 from aeon.distances._paa_sax_mindist import paa_sax_mindist
-from aeon.distances._sax_mindist import sax_mindist
-from aeon.distances._sfa_mindist import sfa_mindist
+
+# from aeon.distances._sax_mindist import sax_mindist
+# from aeon.distances._sfa_mindist import sfa_mindist
 from aeon.transformations.collection.dictionary_based import SAX, SFAFast
 
 dataset_names_full = [
@@ -195,8 +196,14 @@ def load_from_ucr_tsv_to_dataframe_plain(full_file_path_and_name):
 DATA_PATH = "/Users/bzcschae/workspace/UCRArchive_2018/"
 server = False
 
-n_segments = 16
+n_segments = 4
 alphabet_size = 8
+
+if n_segments * np.log2(alphabet_size) > 64:
+    raise ValueError(
+        "The combination of n_segments and alphabet_size is too large"
+        "for the current implementation of SFA"
+    )
 
 if os.path.exists(DATA_PATH):
     parallel_jobs = 8
@@ -364,4 +371,4 @@ if __name__ == "__main__":
             "Dataset",
             "TLB",
         ],
-    ).to_csv(f"tlb_{n_segments}_{alphabet_size}-28-02-24.csv", index=None)
+    ).to_csv(f"logs/tlb_all_ucr_{n_segments}_{alphabet_size}-28-02-24.csv", index=None)
