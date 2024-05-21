@@ -1,24 +1,14 @@
-"""Fourier features for time series with long/complex seasonality."""
-
 __maintainer__ = []
 import warnings
 from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="FourierFeatures will be removed in version 0.10 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class FourierFeatures(BaseTransformer):
+class FourierSeriesFeatures(BaseSeriesTransformer):
     r"""Fourier Features for time series seasonality.
 
     Fourier Series terms can be used as explanatory variables for the cases of multiple
@@ -65,40 +55,21 @@ class FourierFeatures(BaseTransformer):
         practice, 3rd edition, OTexts: Melbourne, Australia. OTexts.com/fpp3.
         Accessed on August 14th 2022.
     .. [3] https://pkg.robjhyndman.com/forecast/reference/fourier.html
+
+    Examples
+    --------
+    >>> from aeon.transformations.series._fourier import FourierFeatures
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> transformer = FourierFeatures(sp_list=[12], fourier_terms_list=[4])
+    >>> y_hat = transformer.fit_transform(y)
     """
 
     _tags = {
-        "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
-        "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "transform_labels": "None",
-        # what is the abstract type of y: None (not needed), Primitives, Series, Panel
-        "instancewise": True,
-        "capability:inverse_transform": False,
         "capability:multivariate": True,
         "X_inner_type": "pd.DataFrame",
-        "y_inner_type": "None",
-        "requires_y": False,  # does y need to be passed in fit?
-        "enforce_index_type": [
-            pd.PeriodIndex,
-            pd.DatetimeIndex,
-        ],  # index type that needs to be enforced
-        # in X/y
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
-        "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
-        "transform-returns-same-time-index": True,
-        # does transform return have the same time index as input X
-        "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "capability:unequal_length": False,
-        # can the transformer handle unequal length time series (if passed Panel)?
-        "capability:unequal_length:removes": False,
-        # is transform result always guaranteed to be equal length (and series)?
-        #   not relevant for transformers that return Primitives in transform-output
-        "capability:missing_values": False,  # can estimator handle missing data?
-        "capability:missing_values:removes": False,
-        # is transform result always guaranteed to contain no missing values?
-        "python_version": None,  # PEP 440 python version specifier to limit versions
+        "fit_is_empty": False,
+        "capability:multivariate": True,
     }
 
     def __init__(
@@ -124,7 +95,7 @@ class FourierFeatures(BaseTransformer):
                 "needs to be lower from the corresponding element of the sp_list"
             )
 
-        super().__init__()
+        super().__init__(axis=0)
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -133,11 +104,8 @@ class FourierFeatures(BaseTransformer):
 
         Parameters
         ----------
-        X: data structure of type X_inner_type
-            If X_inner_type is list, _fit must support all types in it
-            Data to fit transform to.
-        y : data structure of type y_inner_type, default=None
-            Additional data, e.g., labels for transformation.
+        X: pd.DataFrame
+        y : None
         freq : str, optional, default = None
             Only used when X has a pd.DatetimeIndex without a specified frequency.
             Specifies the frequency of the index of your data. The string should
@@ -190,15 +158,10 @@ class FourierFeatures(BaseTransformer):
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
 
-        private _transform containing core logic, called from transform
-
         Parameters
         ----------
-        X: data structure of type X_inner_type
-            If X_inner_type is list, _transform must support all types in it
-            Data to be transformed.
-        y : data structure of type y_inner_type, default=None
-            Additional data, e.g., labels for transformation.
+        X: pd.DataFrame
+        y : default=None
 
         Returns
         -------
