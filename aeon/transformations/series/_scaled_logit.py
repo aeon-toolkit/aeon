@@ -7,19 +7,11 @@ from copy import deepcopy
 from warnings import warn
 
 import numpy as np
-from deprecated.sphinx import deprecated
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="ScaledLogitTransformer will be removed in version 0.10 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class ScaledLogitTransformer(BaseTransformer):
+class ScaledLogitTransformer(BaseSeriesTransformer):
     r"""Scaled logit transform or Log transform.
 
     If both lower_bound and upper_bound are not None, a scaled logit transform is
@@ -83,12 +75,12 @@ class ScaledLogitTransformer(BaseTransformer):
     --------
     >>> import numpy as np
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.scaledlogit import ScaledLogitTransformer
+    >>> from aeon.transformations.scaledlogit import BaseSeriesTransformer
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> y = load_airline()
     >>> fcaster = TransformedTargetForecaster([
-    ...     ("scaled_logit", ScaledLogitTransformer(0, 650)),
+    ...     ("scaled_logit", BaseSeriesTransformer(0, 650)),
     ...     ("poly", PolynomialTrendForecaster(degree=2))
     ... ])
     >>> fcaster.fit(y)
@@ -97,25 +89,17 @@ class ScaledLogitTransformer(BaseTransformer):
     """
 
     _tags = {
-        "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
-        "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "np.ndarray",
-        "y_inner_type": "None",
-        "transform-returns-same-time-index": True,
         "fit_is_empty": True,
         "capability:multivariate": True,
         "capability:inverse_transform": True,
-        "skip-inverse-transform": False,
     }
 
     def __init__(self, lower_bound=None, upper_bound=None):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
-        super().__init__()
+        super().__init__(axis=0)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -125,9 +109,7 @@ class ScaledLogitTransformer(BaseTransformer):
         Parameters
         ----------
         X : 2D np.ndarray
-            Data to be transformed
-        y : data structure of type y_inner_type, default=None
-            Ignored argument for interface compatibility
+        y : Ignored argument for interface compatibility
 
         Returns
         -------

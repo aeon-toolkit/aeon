@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.transformations.scaledlogit import ScaledLogitTransformer
+from aeon.transformations.series._scaled_logit import ScaledLogitTransformer
 
 TEST_SERIES = np.array([30, 40, 60])
 
@@ -22,7 +22,7 @@ TEST_SERIES = np.array([30, 40, 60])
         (None, None, TEST_SERIES),
     ],
 )
-def test_scaledlogit_transform(lower, upper, output):
+def test_scaled_logit_transform(lower, upper, output):
     """Test that we get the right output."""
     transformer = ScaledLogitTransformer(lower, upper)
     y_transformed = transformer.fit_transform(TEST_SERIES)
@@ -47,7 +47,7 @@ def test_scaledlogit_transform(lower, upper, output):
         ),
     ],
 )
-def test_scaledlogit_bound_errors(lower, upper, message):
+def test_scaled_logit_bound_errors(lower, upper, message):
     """Tests all exceptions."""
     y = load_airline()
     with pytest.warns(RuntimeWarning):
