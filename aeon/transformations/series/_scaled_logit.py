@@ -63,6 +63,10 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     | a log transform of the form:
     |   :math:`- log(b - x)`
 
+    | The transform is independent of the axis, so the data can be shape
+    | `` (n_timepoints, n_channels)`` (axis == 0) or
+    |  ``(n_channels, n_timepoints)`` (axis ==1)
+
     References
     ----------
     .. [1] Hyndsight - Forecasting within limits:
@@ -99,7 +103,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
-        super().__init__(axis=0)
+        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -109,6 +113,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         Parameters
         ----------
         X : 2D np.ndarray
+            Time series of shape (n_timepoints, n_channels)
         y : Ignored argument for interface compatibility
 
         Returns
@@ -149,8 +154,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         ----------
         X : 2D np.ndarray
             Data to be inverse transformed
-        y : data of y_inner_type, default=None
-            Ignored argument for interface compatibility
+        y : Ignored argument for interface compatibility
 
         Returns
         -------
