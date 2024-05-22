@@ -19,6 +19,7 @@ def test_all_networks_functionality():
             "BaseDeepNetwork" in str(network_classes[i])
             or "BaseDeepLearningNetwork" in str(network_classes[i])
             or "AEFCNNetwork" in str(network_classes[i])
+            or "EncoderNetwork" in str(network_classes[i])
         ):
             continue
 

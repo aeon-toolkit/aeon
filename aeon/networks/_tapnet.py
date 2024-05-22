@@ -78,7 +78,7 @@ class TapNetNetwork(BaseDeepLearningNetwork):
         self.rp_params = rp_params
 
         super().__init__(
-            python_version=["tensorflow", "keras_self_attention"],
+            soft_dependencies=["tensorflow", "keras_self_attention"],
         )
 
     @staticmethod
