@@ -7,18 +7,10 @@ from copy import deepcopy
 from warnings import warn
 
 import numpy as np
-from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="ScaledLogitSeriesTransformer will be removed in version 0.10 and replaced "
-    "with a BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
 class ScaledLogitTransformer(BaseTransformer):
     r"""Scaled logit transform or Log transform.
 
@@ -83,12 +75,12 @@ class ScaledLogitTransformer(BaseTransformer):
     --------
     >>> import numpy as np
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.scaledlogit import ScaledLogitSeriesTransformer
+    >>> from aeon.transformations.scaledlogit import ScaledLogitTransformer
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> y = load_airline()
     >>> fcaster = TransformedTargetForecaster([
-    ...     ("scaled_logit", ScaledLogitSeriesTransformer(0, 650)),
+    ...     ("scaled_logit", ScaledLogitTransformer(0, 650)),
     ...     ("poly", PolynomialTrendForecaster(degree=2))
     ... ])
     >>> fcaster.fit(y)
@@ -135,14 +127,14 @@ class ScaledLogitTransformer(BaseTransformer):
         """
         if self.upper_bound is not None and np.any(X >= self.upper_bound):
             warn(
-                "X in ScaledLogitSeriesTransformer should not have values "
+                "X in ScaledLogitTransformer should not have values "
                 "greater than upper_bound",
                 RuntimeWarning,
             )
 
         if self.lower_bound is not None and np.any(X <= self.lower_bound):
             warn(
-                "X in ScaledLogitSeriesTransformer should not have values "
+                "X in ScaledLogitTransformer should not have values "
                 "lower than lower_bound",
                 RuntimeWarning,
             )

@@ -75,12 +75,12 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     --------
     >>> import numpy as np
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.scaledlogit import ScaledLogitSeriesTransformer
+    >>> import aeon.transformations.series._scaled_logit as sl
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> y = load_airline()
     >>> fcaster = TransformedTargetForecaster([
-    ...     ("scaled_logit", ScaledLogitSeriesTransformer(0, 650)),
+    ...     ("scaled_logit", sl.ScaledLogitSeriesTransformer(0, 650)),
     ...     ("poly", PolynomialTrendForecaster(degree=2))
     ... ])
     >>> fcaster.fit(y)
