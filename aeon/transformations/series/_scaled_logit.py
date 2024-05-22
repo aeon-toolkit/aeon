@@ -1,7 +1,7 @@
 """Implements the scaled logit transformation."""
 
 __maintainer__ = []
-__all__ = ["ScaledLogitTransformer"]
+__all__ = ["ScaledLogitSeriesTransformer"]
 
 from copy import deepcopy
 from warnings import warn
@@ -11,7 +11,7 @@ import numpy as np
 from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-class ScaledLogitTransformer(BaseSeriesTransformer):
+class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     r"""Scaled logit transform or Log transform.
 
     If both lower_bound and upper_bound are not None, a scaled logit transform is
@@ -75,12 +75,12 @@ class ScaledLogitTransformer(BaseSeriesTransformer):
     --------
     >>> import numpy as np
     >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.scaledlogit import BaseSeriesTransformer
+    >>> from aeon.transformations.scaledlogit import ScaledLogitSeriesTransformer
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> y = load_airline()
     >>> fcaster = TransformedTargetForecaster([
-    ...     ("scaled_logit", BaseSeriesTransformer(0, 650)),
+    ...     ("scaled_logit", ScaledLogitSeriesTransformer(0, 650)),
     ...     ("poly", PolynomialTrendForecaster(degree=2))
     ... ])
     >>> fcaster.fit(y)
@@ -117,14 +117,14 @@ class ScaledLogitTransformer(BaseSeriesTransformer):
         """
         if self.upper_bound is not None and np.any(X >= self.upper_bound):
             warn(
-                "X in ScaledLogitTransformer should not have values "
+                "X in ScaledLogitSeriesTransformer should not have values "
                 "greater than upper_bound",
                 RuntimeWarning,
             )
 
         if self.lower_bound is not None and np.any(X <= self.lower_bound):
             warn(
-                "X in ScaledLogitTransformer should not have values "
+                "X in ScaledLogitSeriesTransformer should not have values "
                 "lower than lower_bound",
                 RuntimeWarning,
             )
