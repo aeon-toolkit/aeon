@@ -7,6 +7,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.utils import check_array
 
 from aeon.transformations.base import BaseTransformer
@@ -168,6 +169,12 @@ def _inverse_diff(X, lags, X_diff_seq=None):
         return X_diff_last
 
 
+# TODO: remove v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="The Differencer class will be removed in C0.10.0, see issue #1534",
+    category=FutureWarning,
+)
 class Differencer(BaseTransformer):
     """Apply iterative differences to a timeseries.
 

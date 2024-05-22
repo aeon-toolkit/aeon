@@ -5,26 +5,18 @@ import warnings
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from deprecated.sphinx import deprecated
 from pandas.api.types import is_numeric_dtype
 from scipy.linalg import null_space
 from sklearn.decomposition import PCA
 from sklearn.neighbors import NearestNeighbors
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 __maintainer__ = []
-__all__ = ["DOBIN"]
+__all__ = ["Dobin"]
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="DOBIN will be removed in version 0.10 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class DOBIN(BaseTransformer):
+class Dobin(BaseSeriesTransformer):
     """Distance based Outlier BasIs using Neighbors (DOBIN).
 
     DOBIN is a pre-processing algorithm that constructs a set of basis
@@ -67,7 +59,7 @@ class DOBIN(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.dobin import DOBIN
+    >>> from aeon.transformations.series._dobin import Dobin
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> import numpy as np
     >>> import pandas as pd
@@ -75,8 +67,8 @@ class DOBIN(BaseTransformer):
     >>> _, X = load_uschange()
     >>> scaler = MinMaxScaler()
     >>> X = scaler.fit_transform(X)
-    >>> model = DOBIN()
-    >>> X_outlier = model.fit_transform(pd.DataFrame(X))
+    >>> model = Dobin()
+    >>> X_outlier = model.fit_transform(X, axis=0)
     >>> X_outlier.head()
             DB0       DB1       DB2       DB3
     0  1.151965  0.116488  0.286064  0.288140
@@ -88,8 +80,8 @@ class DOBIN(BaseTransformer):
 
     _tags = {
         "X_inner_type": "pd.DataFrame",
+        "capability:multivariate": True,
         "fit_is_empty": False,
-        "skip-inverse-transform": True,
     }
 
     def __init__(
@@ -99,7 +91,7 @@ class DOBIN(BaseTransformer):
     ):
         self.frac = frac
         self.k = k
-        super().__init__()
+        super().__init__(axis=0)
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -208,7 +200,7 @@ class DOBIN(BaseTransformer):
         # fit again if indices not seen, but don't store anything
         if not X.index.equals(self._X.index):
             X_full = X.combine_first(self._X)
-            new_dobin = DOBIN(
+            new_dobin = Dobin(
                 frac=self.frac,
                 k=self.k,
             ).fit(X_full)
