@@ -44,6 +44,8 @@ EXCLUDED_TESTS = {
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],
+    # Test fails, see https://github.com/aeon-toolkit/aeon/issues/1067
+    # "MockUnivariateForecasterLogger": ["test_non_state_changing_method_contract"],
     # has a keras fail, unknown reason
     # "LearningShapeletClassifier": ["test_fit_deterministic"],
 }
