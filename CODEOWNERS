@@ -38,7 +38,7 @@ aeon/transformations/collection/shapelet_based/dilated_shapelet_transform.py @ba
 aeon/transformations/series/ @TonyBagnall
 
 aeon/transformations/ @aiwalter
-aeon/transformations/clasp.py @patrickzib @ermshaua
+aeon/transformations/clasp.py @patrickzib
 aeon/transformations/scaledlogit.py @ltsaprounis
 aeon/transformations/theta.py @GuzalBulatova
 
@@ -47,5 +47,5 @@ aeon/utils/numba/ @baraline @MatthewMiddlehurst
 .github/ @aeon-toolkit/aeon-infrastructure-workgroup
 build_tools/ @aeon-toolkit/aeon-infrastructure-workgroup
 
-docs/get_involved/code_of_conduct.rst @aeon-toolkit/aeon-code-of-conduct-committee
+docs/get_involved/code_of_conduct.rst @aeon-toolkit/aeon-code-of-conduct-workgroup
 docs/get_involved/governance.rst @aeon-toolkit/aeon-core-developers
