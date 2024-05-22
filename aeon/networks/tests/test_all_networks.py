@@ -15,8 +15,10 @@ def test_all_networks_functionality():
     input_shape = (100, 2)
 
     for i in range(len(network_classes)):
-        if "BaseDeepNetwork" in str(network_classes[i]) or "AEFCNNetwork" in str(
-            network_classes[i]
+        if (
+            "BaseDeepNetwork" in str(network_classes[i])
+            or "BaseDeepLearningNetwork" in str(network_classes[i])
+            or "AEFCNNetwork" in str(network_classes[i])
         ):
             continue
 
