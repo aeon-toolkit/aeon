@@ -275,7 +275,7 @@ def get_estimator_results(
     default_only=True,
     task="classification",
     measure="accuracy",
-    path="https://timeseriesclassification.com/results/ReferenceResults",
+    path="http://timeseriesclassification.com/results/ReferenceResults",
 ):
     """Look for results for given estimators for a list of datasets.
 
@@ -346,7 +346,7 @@ def get_estimator_results_as_array(
     task="Classification",
     measure="accuracy",
     include_missing=False,
-    path="https://timeseriesclassification.com/results/ReferenceResults",
+    path="http://timeseriesclassification.com/results/ReferenceResults",
 ):
     """Look for results for given estimators for a list of datasets.
 
