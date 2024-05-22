@@ -7,7 +7,7 @@ shapelet dilated transform and build (by default) a ridge classifier on the outp
 __maintainer__ = ["baraline"]
 __all__ = ["RDSTClassifier"]
 
-from typing import List, Union
+from typing import List, Type, Union
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
@@ -135,7 +135,7 @@ class RDSTClassifier(BaseClassifier):
         estimator=None,
         save_transformed_data: bool = False,
         n_jobs: int = 1,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: Union[int, Type[np.random.RandomState], None] = None,
     ) -> None:
         self.max_shapelets = max_shapelets
         self.shapelet_lengths = shapelet_lengths
