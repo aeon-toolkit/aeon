@@ -44,13 +44,8 @@ EXCLUDED_TESTS = {
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],
-    # test fails several variants of inversion, see
-    # https://github.com/aeon-toolkit/aeon/issues/700
-    "Differencer": ["test_transform_inverse_transform_equivalent"],
-    # Test fails, see https://github.com/aeon-toolkit/aeon/issues/1067
-    "MockUnivariateForecasterLogger": ["test_non_state_changing_method_contract"],
     # has a keras fail, unknown reason
-    "LearningShapeletClassifier": ["test_fit_deterministic"],
+    # "LearningShapeletClassifier": ["test_fit_deterministic"],
 }
 
 # We use estimator tags in addition to class hierarchies to further distinguish
