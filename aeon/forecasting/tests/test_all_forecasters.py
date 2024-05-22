@@ -5,8 +5,8 @@ __maintainer__ = []
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.exceptions import NotFittedError
 
-from aeon.exceptions import NotFittedError
 from aeon.forecasting.base._delegate import _DelegatedForecaster
 from aeon.forecasting.model_selection import (
     ExpandingWindowSplitter,

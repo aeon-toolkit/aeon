@@ -15,9 +15,8 @@ import numpy as np
 from numba import njit
 from sklearn import preprocessing
 from sklearn.base import BaseEstimator
+from sklearn.exceptions import NotFittedError
 from sklearn.utils import check_random_state
-
-from aeon.exceptions import NotFittedError
 
 
 class ContinuousIntervalTree(BaseEstimator):

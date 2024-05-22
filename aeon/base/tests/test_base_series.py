@@ -264,7 +264,7 @@ def test_preprocess_series(input_type, inner_type):
     assert not dummy.metadata_["missing_values"]
 
     # test multivariate, excludes pd.Series input type as it cannot be multivariate
-    if input_type != "pd.Series" and inner_type != "pd.Series":
+    if input_type != "pd.Series":
         dummy.set_tags(**{"capability:multivariate": True})
         X = MULTIVARIATE[input_type]
 
@@ -283,12 +283,6 @@ def test_preprocess_series(input_type, inner_type):
         assert dummy.metadata_["multivariate"]
         assert dummy.metadata_["n_channels"] == 5
         assert not dummy.metadata_["missing_values"]
-    elif input_type != "pd.Series":
-        dummy.set_tags(**{"capability:multivariate": True})
-        X = MULTIVARIATE[input_type]
-
-        with pytest.raises(ValueError, match="Cannot convert to pd.Series"):
-            dummy._preprocess_series(X, axis=1, store_metadata=True)
 
 
 def test_axis():

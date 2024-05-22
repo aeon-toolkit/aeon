@@ -139,7 +139,14 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "X_inner_type",
-        ["forecaster", "classifier", "regressor", "transformer", "clusterer"],
+        [
+            "forecaster",
+            "classifier",
+            "regressor",
+            "transformer",
+            "clusterer",
+            "anomaly-detector",
+        ],
         (
             "list",
             [

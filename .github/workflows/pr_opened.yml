@@ -37,11 +37,17 @@ jobs:
 
       - name: Label pull request
         id: label-pr
-        run: python build_tools/pr_labeler.py ${{ steps.app-token.outputs.token }}
+        run: python build_tools/pr_labeler.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
       - name: Write pull request comment
-        run: python build_tools/pr_open_commenter.py ${{ steps.app-token.outputs.token }} ${{ steps.label-pr.outputs.title-labels }} ${{ steps.label-pr.outputs.title-labels-new }} ${{ steps.label-pr.outputs.content-labels }} ${{ steps.label-pr.outputs.content-labels-status }}
+        run: python build_tools/pr_open_commenter.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          TITLE_LABELS: ${{ steps.label-pr.outputs.title-labels }}
+          TITLE_LABELS_NEW: ${{ steps.label-pr.outputs.title-labels-new }}
+          CONTENT_LABELS: ${{ steps.label-pr.outputs.content-labels }}
+          CONTENT_LABELS_STATUS: ${{ steps.label-pr.outputs.content-labels-status }}
