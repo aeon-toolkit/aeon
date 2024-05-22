@@ -22,9 +22,9 @@ if os.environ.get("CICD_RUNNING") == "1":
 
 EXCLUDE_ESTIMATORS = []
 
-# the test currently fails when numba is disabled. See issue #622
-if os.environ.get("NUMBA_DISABLE_JIT") == "1":
-    EXCLUDE_ESTIMATORS.append("StatsForecastAutoARIMA")
+# the test currently fails when numba is disabled. See issue #622 and #625
+# if os.environ.get("NUMBA_DISABLE_JIT") == "1":
+#    EXCLUDE_ESTIMATORS.append("StatsForecastAutoARIMA")
 
 EXCLUDED_TESTS = {
     # Early classifiers (EC) intentionally retain information from previous predict
