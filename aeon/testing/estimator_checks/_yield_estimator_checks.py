@@ -15,7 +15,7 @@ from aeon.testing.test_config import (
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
 )
-from aeon.testing.testing_data import get_data_types_for_estimator
+from aeon.testing.testing_data import TEST_DATA_DICT, get_data_types_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _get_args, _list_required_methods
 from aeon.transformations.base import BaseTransformer
@@ -392,9 +392,11 @@ def check_raises_not_fitted_error(estimator, datatypes):
     Exception if NotFittedError is not raised by non-state changing method
     """
     # call methods without prior fitting and check that they raise NotFittedError
+    print(datatypes)
     for method_nsc in NON_STATE_CHANGING_METHODS:
-        with pytest.raises(NotFittedError, match=r"has not been fitted"):
-            getattr(estimator, method_nsc)(*datatypes)
+        if hasattr(estimator, method_nsc):
+            with pytest.raises(NotFittedError, match=r"has not been fitted"):
+                getattr(estimator, method_nsc)(TEST_DATA_DICT[datatypes])
 
 
 # def check_non_state_changing_method(estimator):

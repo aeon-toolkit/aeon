@@ -4,6 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import pytest
 
+from aeon.base import BaseEstimator
 from aeon.clustering import TimeSeriesKMeans
 from aeon.similarity_search._dummy import DummySimilaritySearch
 from aeon.testing import parametrize_with_checks
@@ -38,15 +39,21 @@ EXAMPLE_CLASSES_LEGACY = EXAMPLE_CLASSES + [
 ]
 
 
-@parametrize_with_checks(EXAMPLE_CLASSES)
+@parametrize_with_checks(EXAMPLE_CLASSES, use_first_parameter_set=True)
 def test_parametrize_with_checks_classes(estimator, check):
     """Test parametrize_with_checks with class input."""
+    assert isinstance(estimator, BaseEstimator)
+    assert callable(check)
     check(estimator)
 
 
-@parametrize_with_checks([c.create_test_instance() for c in EXAMPLE_CLASSES])
+@parametrize_with_checks(
+    [c.create_test_instance() for c in EXAMPLE_CLASSES], use_first_parameter_set=True
+)
 def test_parametrize_with_checks_instances(estimator, check):
     """Test parametrize_with_checks with estimator instance input."""
+    assert isinstance(estimator, BaseEstimator)
+    assert callable(check)
     check(estimator)
 
 
