@@ -122,6 +122,7 @@ def elastic_barycenter_average(
             init_barycenter=init_barycenter,
             initial_step_size=initial_step_size,
             final_step_size=final_step_size,
+            weights=weights,
             precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
             verbose=verbose,
             random_state=random_state,

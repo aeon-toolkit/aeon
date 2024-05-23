@@ -18,6 +18,7 @@ def subgradient_barycenter_average(
     init_barycenter: Union[np.ndarray, str] = "mean",
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
+    weights: Optional[np.ndarray] = None,
     precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
     verbose: bool = False,
     random_state: Optional[int] = None,
@@ -58,6 +59,9 @@ def subgradient_barycenter_average(
     final_step_size : float (default: 0.005)
         Final step size for the subgradient descent algorithm.
         Default value is suggested by [2]_.
+    weights: Optional[np.ndarray] of shape (n_cases,), default=None
+        The weights associated to each time series instance, if None a weight
+        of 1 will be associated to each instance.
     precomputed_medoids_pairwise_distance: np.ndarray (of shape (len(X), len(X)),
                 default=None
         Precomputed medoids pairwise.
@@ -92,6 +96,9 @@ def subgradient_barycenter_average(
     else:
         raise ValueError("X must be a 2D or 3D array")
 
+    if weights is None:
+        weights = np.ones((len(_X)))
+    
     barycenter = _get_init_barycenter(
         _X,
         init_barycenter,
@@ -120,6 +127,7 @@ def subgradient_barycenter_average(
             initial_step_size,
             final_step_size,
             current_step_size,
+            weights,
             i,
             **kwargs,
         )
@@ -144,6 +152,7 @@ def _ba_one_iter_subgradient(
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
     current_step_size: float = 0.05,
+    weights: Optional[np.ndarray] = None,
     iteration: int = 0,
     window: Union[float, None] = None,
     g: float = 0.0,
@@ -158,7 +167,7 @@ def _ba_one_iter_subgradient(
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
-):
+    ):
 
     X_size, X_dims, X_timepoints = X.shape
     cost = 0.0
@@ -190,10 +199,11 @@ def _ba_one_iter_subgradient(
 
         new_ba = np.zeros((X_dims, X_timepoints))
         for j, k in curr_alignment:
-            new_ba[:, k] += barycenter[:, k] - curr_ts[:, j]
+            new_ba[:, k] += (barycenter[:, k] - curr_ts[:, j]) * weights[i]
 
         barycenter -= (2.0 * current_step_size) * new_ba
 
         current_step_size -= step_size_reduction
-        cost = curr_cost
+        cost = curr_cost * weights[i]
+        print(weights[i])
     return barycenter, cost, current_step_size
