@@ -176,10 +176,12 @@ def _ba_one_iter_subgradient(
     if iteration == 0:
         step_size_reduction = (initial_step_size - final_step_size) / X_size
 
+    barycenter_copy = np.copy(barycenter)
+
     for i in shuffled_indices:
         curr_ts = X[i]
         curr_alignment, curr_cost = _get_alignment_path(
-            barycenter,
+            barycenter_copy,
             X[i],
             distance,
             window,
@@ -196,8 +198,6 @@ def _ba_one_iter_subgradient(
             transformed_x,
             transformed_y,
         )
-        
-        barycenter_copy = np.copy(barycenter)
 
         new_ba = np.zeros((X_dims, X_timepoints))
         for j, k in curr_alignment:
