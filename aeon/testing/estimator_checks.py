@@ -79,13 +79,6 @@ def check_estimator(
 
     {'test_clone[MockTransformer-0]': 'PASSED',
     'test_clone[MockTransformer-1]': 'PASSED'}
-
-    Running one specific test-fixture-combination for MockTransformer
-    >>> check_estimator(
-    ...    MockTransformer, fixtures_to_run="test_clone[MockTransformer-1]"
-    ... )
-    All tests PASSED!
-    {'test_clone[MockTransformer-1]': 'PASSED'}
     """
     from aeon.base import BaseEstimator
     from aeon.classification.early_classification.tests.test_all_early_classifiers import (  # noqa E501
