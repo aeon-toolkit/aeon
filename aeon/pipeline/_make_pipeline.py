@@ -50,13 +50,6 @@ def make_pipeline(*steps):
     >>> pipe = make_pipeline(ExponentTransformer(), Catch22Classifier())
     >>> type(pipe).__name__
     'ClassifierPipeline'
-
-    Example 3: transformer pipeline
-    >>> from aeon.pipeline import make_pipeline
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> pipe = make_pipeline(ExponentTransformer(), ExponentTransformer())
-    >>> type(pipe).__name__
-    'TransformerPipeline'
     """
     if len(steps) == 1 and isinstance(steps[0], list):
         steps = steps[0]
