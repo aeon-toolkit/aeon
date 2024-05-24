@@ -97,7 +97,7 @@ def subgradient_barycenter_average(
         raise ValueError("X must be a 2D or 3D array")
 
     if weights is None:
-        weights = np.ones((len(_X)))
+        weights = np.ones(len(_X))
     
     barycenter = _get_init_barycenter(
         _X,
@@ -167,7 +167,7 @@ def _ba_one_iter_subgradient(
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
-    ):
+):
 
     X_size, X_dims, X_timepoints = X.shape
     cost = 0.0
@@ -201,7 +201,7 @@ def _ba_one_iter_subgradient(
 
         new_ba = np.zeros((X_dims, X_timepoints))
         for j, k in curr_alignment:
-            new_ba[:, k] += (barycenter_copy[:, k] - curr_ts[:, j])
+            new_ba[:, k] += barycenter_copy[:, k] - curr_ts[:, j]
 
         barycenter_copy -= (2.0 * current_step_size) * new_ba * weights[i]
 
