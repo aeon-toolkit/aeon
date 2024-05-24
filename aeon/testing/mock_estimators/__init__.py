@@ -16,6 +16,7 @@ __all__ = [
     "MockSeriesTransformerNoFit",
     "MockUnivariateSeriesTransformer",
     "MockTransformer",
+    "MockCollectionTransformer",
 ]
 
 from aeon.testing.mock_estimators._mock_classifiers import (
@@ -24,6 +25,9 @@ from aeon.testing.mock_estimators._mock_classifiers import (
     MockClassifierPredictProba,
 )
 from aeon.testing.mock_estimators._mock_clusterers import MockDeepClusterer
+from aeon.testing.mock_estimators._mock_collection_transformers import (
+    MockCollectionTransformer,
+)
 from aeon.testing.mock_estimators._mock_forecasters import (
     MockForecaster,
     MockUnivariateForecasterLogger,
