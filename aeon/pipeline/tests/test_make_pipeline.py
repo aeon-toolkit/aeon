@@ -9,15 +9,11 @@ from sklearn.preprocessing import StandardScaler
 from aeon.base import BaseEstimator
 from aeon.classification import DummyClassifier
 from aeon.clustering import TimeSeriesKMeans
-from aeon.forecasting.base import BaseForecaster
-from aeon.forecasting.naive import NaiveForecaster
 from aeon.pipeline import make_pipeline
 from aeon.regression import DummyRegressor
-from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
-from aeon.transformations.base import BaseTransformer
+from aeon.testing.utils.data_gen import make_example_3d_numpy
 from aeon.transformations.collection import PaddingTransformer, Tabularizer
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
-from aeon.transformations.exponent import ExponentTransformer
 
 
 @pytest.mark.parametrize(
@@ -42,33 +38,6 @@ def test_make_pipeline(pipeline):
 
     if hasattr(est, "predict"):
         o = est.predict(X)
-    else:
-        o = est.transform(X)
-
-    assert isinstance(est, BaseEstimator)
-    assert isinstance(o, np.ndarray)
-
-
-@pytest.mark.parametrize(
-    "pipeline",
-    [
-        [ExponentTransformer(), NaiveForecaster()],
-        [ExponentTransformer(), ExponentTransformer(power=3)],
-    ],
-)
-def test_make_pipeline_legacy(pipeline):
-    """Test that make_pipeline works for some legacy interfaces."""
-    assert isinstance(pipeline[-1], BaseTransformer) or isinstance(
-        pipeline[-1], BaseForecaster
-    )
-
-    X, y = make_example_2d_numpy()
-
-    est = make_pipeline(pipeline)
-    est.fit(X, y)
-
-    if hasattr(est, "predict"):
-        o = est.predict([0, 1, 2, 3])
     else:
         o = est.transform(X)
 

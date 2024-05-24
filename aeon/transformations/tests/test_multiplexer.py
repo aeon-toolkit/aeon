@@ -3,7 +3,6 @@
 __maintainer__ = []
 
 import numpy as np
-import pytest
 from numpy.testing import assert_array_equal
 from sklearn.base import clone
 
@@ -105,42 +104,3 @@ def test_multiplex_transformer_in_grid():
         NaiveForecaster(strategy="mean"), transformer_tuples, cv, y
     )
     assert gscv_best_name == best_name
-
-
-def test_multiplex_or_dunder():
-    """Test that the MultiplexTransforemer magic "|" dunder works.
-
-    A MultiplexTransformer can be created by using the "|" dunder method on
-    either transformer or MultiplexTransformer objects. Here we test that it performs
-    as expected on all the use cases, and raises the expected error in some others.
-    """
-    # test a simple | example with two transformers:
-    multiplex_two_transformers = ExponentTransformer(2) | ExponentTransformer(3)
-    assert isinstance(multiplex_two_transformers, MultiplexTransformer)
-    assert len(multiplex_two_transformers.transformers) == 2
-    # now test that | also works on two MultiplexTransformers:
-    multiplex_one = MultiplexTransformer(
-        [("exp_2", ExponentTransformer(2)), ("exp_3", ExponentTransformer(3))]
-    )
-    multiplex_two = MultiplexTransformer(
-        [("exp_4", ExponentTransformer(4)), ("exp_5", ExponentTransformer(5))]
-    )
-
-    multiplex_two_multiplex = multiplex_one | multiplex_two
-    assert isinstance(multiplex_two_multiplex, MultiplexTransformer)
-    assert len(multiplex_two_multiplex.transformers) == 4
-    # last we will check 3 transformers with the same name - should check both that
-    # MultiplexTransformer | transformer works, and that ensure_unique_names works
-    multiplex_same_name_three_test = (
-        ExponentTransformer(2) | ExponentTransformer(3) | ExponentTransformer(4)
-    )
-    assert isinstance(multiplex_same_name_three_test, MultiplexTransformer)
-    assert len(multiplex_same_name_three_test._transformers) == 3
-    transformer_param_names = multiplex_same_name_three_test._get_estimator_names(
-        multiplex_same_name_three_test._transformers
-    )
-    assert len(set(transformer_param_names)) == 3
-
-    # test we get a ValueError if we try to | with anything else:
-    with pytest.raises(TypeError):
-        multiplex_one | "this shouldn't work"
