@@ -630,29 +630,6 @@ class FitInTransform(BaseTransformer):
         fitted on the inverse_transform data. This is required to have a non-
         state changing transform() method of FitInTransform.
 
-    Examples
-    --------
-    >>> from aeon.datasets import load_longley
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.forecasting.base import ForecastingHorizon
-    >>> from aeon.forecasting.compose import ForecastingPipeline
-    >>> from aeon.forecasting.model_selection import temporal_train_test_split
-    >>> from aeon.transformations.compose import FitInTransform
-    >>> from aeon.transformations.impute import Imputer
-    >>> y, X = load_longley()
-    >>> y_train, y_test, X_train, X_test = temporal_train_test_split(y, X)
-    >>> fh = ForecastingHorizon(y_test.index, is_relative=False)
-    >>> # we want to fit the Imputer only on the predict (=transform) data.
-    >>> # note that NaiveForecaster cant use X data, this is just a show case.
-    >>> pipe = ForecastingPipeline(
-    ...     steps=[
-    ...         ("imputer", FitInTransform(Imputer(method="mean"))),
-    ...         ("forecaster", NaiveForecaster()),
-    ...     ]
-    ... )
-    >>> pipe.fit(y_train, X_train)
-    ForecastingPipeline(...)
-    >>> y_pred = pipe.predict(fh=fh, X=X_test)
     """
 
     def __init__(self, transformer, skip_inverse_transform=True):
