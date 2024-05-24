@@ -98,7 +98,7 @@ def subgradient_barycenter_average(
 
     if weights is None:
         weights = np.ones(len(_X))
-    
+
     barycenter = _get_init_barycenter(
         _X,
         init_barycenter,

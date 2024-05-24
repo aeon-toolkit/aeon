@@ -77,7 +77,7 @@ def petitjean_barycenter_average(
         _X = X.reshape((X.shape[0], 1, X.shape[1]))
     else:
         raise ValueError("X must be a 2D or 3D array")
-    
+
     if weights is None:
         weights = np.ones(len(_X))
 
@@ -96,11 +96,7 @@ def petitjean_barycenter_average(
             kwargs["g"] = 0.05
     for i in range(max_iters):
         barycenter, cost = _ba_one_iter_petitjean(
-            barycenter, 
-            _X, 
-            distance, 
-            weights, 
-            **kwargs
+            barycenter, _X, distance, weights, **kwargs
         )
         if abs(cost_prev - cost) < tol:
             break
