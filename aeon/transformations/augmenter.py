@@ -37,7 +37,7 @@ class _AugmenterTags:
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="WhiteNoiseAugmenter will be removed in version 0.10.0.",
+    reason="WhiteNoiseAugmenter will be removed in version 0.10.",
     category=FutureWarning,
 )
 class WhiteNoiseAugmenter(_AugmenterTags, BaseTransformer):
@@ -89,7 +89,7 @@ class WhiteNoiseAugmenter(_AugmenterTags, BaseTransformer):
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="ReverseAugmenter will be removed in version 0.10.0.",
+    reason="ReverseAugmenter will be removed in version 0.10.",
     category=FutureWarning,
 )
 class ReverseAugmenter(_AugmenterTags, BaseTransformer):
@@ -129,7 +129,7 @@ class ReverseAugmenter(_AugmenterTags, BaseTransformer):
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="InvertAugmenter will be removed in version 0.10.0.",
+    reason="InvertAugmenter will be removed in version 0.10.",
     category=FutureWarning,
 )
 class InvertAugmenter(_AugmenterTags, BaseTransformer):
@@ -162,7 +162,7 @@ class InvertAugmenter(_AugmenterTags, BaseTransformer):
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="RandomSamplesAugmenter will be removed in version 0.10.0.",
+    reason="RandomSamplesAugmenter will be removed in version 0.10.",
     category=FutureWarning,
 )
 class RandomSamplesAugmenter(_AugmenterTags, BaseTransformer):

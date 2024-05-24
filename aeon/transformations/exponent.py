@@ -189,7 +189,7 @@ class ExponentTransformer(BaseTransformer):
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="SqrtTransformer will be removed in version 0.10.0.",
+    reason="SqrtTransformer will be removed in version 0.10.",
     category=FutureWarning,
 )
 class SqrtTransformer(ExponentTransformer):

@@ -12,7 +12,7 @@ from aeon.transformations.base import BaseTransformer
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="IndexSubset will be removed in version 0.10.0.",
+    reason="IndexSubset will be removed in version 0.10.",
     category=FutureWarning,
 )
 class IndexSubset(BaseTransformer):
@@ -118,7 +118,7 @@ class IndexSubset(BaseTransformer):
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="ColumnSelect will be removed in version 0.10.0.",
+    reason="ColumnSelect will be removed in version 0.10.",
     category=FutureWarning,
 )
 class ColumnSelect(BaseTransformer):

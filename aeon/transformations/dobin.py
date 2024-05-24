@@ -20,7 +20,7 @@ __all__ = ["DOBIN"]
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="DOBIN will be removed in version 0.10.0 and replaced with a "
+    reason="DOBIN will be removed in version 0.10 and replaced with a "
     "BaseSeriesTransformer version in the transformations.series module.",
     category=FutureWarning,
 )
