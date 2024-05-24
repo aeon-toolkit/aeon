@@ -101,9 +101,10 @@ class Lag(BaseTransformer):
     >>> from aeon.datasets import load_airline
     >>> from aeon.transformations.impute import Imputer
     >>> from aeon.transformations.lag import Lag
+    >>> from sklearn.pipeline import make_pipeline
     >>> X = load_airline()
     >>>
-    >>> t = Lag([2, 4, -1]) * Imputer("nearest")
+    >>> t = make_pipeline(Lag([2, 4, -1]),Imputer("nearest"))
     >>> Xt = t.fit_transform(X)
     """
 
@@ -380,9 +381,10 @@ class ReducerTransform(BaseTransformer):
     >>> from aeon.datasets import load_airline
     >>> from aeon.transformations.impute import Imputer
     >>> from aeon.transformations.lag import Lag
+    >>> from sklearn.pipeline import make_pipeline
     >>> X = load_airline()
     >>>
-    >>> t = Lag([2, 4, -1]) * Imputer("nearest")
+    >>> t = make_pipeline(Lag([2, 4, -1]),Imputer("nearest"))
     >>> Xt = t.fit_transform(X)
     """
 
