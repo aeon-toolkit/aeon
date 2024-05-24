@@ -61,10 +61,10 @@ class ClearSkyTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.clear_sky import ClearSky  # doctest: +SKIP
+    >>> from aeon.transformations.series import ClearSkyTransformer  # doctest: +SKIP
     >>> from aeon.datasets import load_solar  # doctest: +SKIP
     >>> y = load_solar()  # doctest: +SKIP
-    >>> transformer = ClearSky()  # doctest: +SKIP
+    >>> transformer = ClearSkyTransformer()  # doctest: +SKIP
     >>> # takes ~1min
     >>> y_trafo = transformer.fit_transform(y)  # doctest: +SKIP
     """
