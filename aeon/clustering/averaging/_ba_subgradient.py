@@ -196,14 +196,15 @@ def _ba_one_iter_subgradient(
             transformed_x,
             transformed_y,
         )
+        
+        barycenter_copy = np.copy(barycenter)
 
         new_ba = np.zeros((X_dims, X_timepoints))
         for j, k in curr_alignment:
-            new_ba[:, k] += (barycenter[:, k] - curr_ts[:, j]) * weights[i]
+            new_ba[:, k] += (barycenter_copy[:, k] - curr_ts[:, j])
 
-        barycenter -= (2.0 * current_step_size) * new_ba
+        barycenter_copy -= (2.0 * current_step_size) * new_ba * weights[i]
 
         current_step_size -= step_size_reduction
         cost = curr_cost * weights[i]
-        print(weights[i])
-    return barycenter, cost, current_step_size
+    return barycenter_copy, cost, current_step_size
