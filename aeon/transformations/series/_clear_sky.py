@@ -4,21 +4,13 @@ __maintainer__ = []
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 from joblib import Parallel, delayed
 from scipy.stats import vonmises
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="ClearSky will be removed in version 0.10.0 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class ClearSky(BaseTransformer):
+class ClearSkyTransformer(BaseSeriesTransformer):
     """Clear sky transformer for solar data.
 
     This is a transformation which converts a time series from it's original
@@ -121,7 +113,7 @@ class ClearSky(BaseTransformer):
         self.n_jobs = n_jobs
         self.backend = backend
 
-        super().__init__()
+        super().__init__(axis=0)
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
