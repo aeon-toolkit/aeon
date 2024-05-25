@@ -313,3 +313,61 @@ def test_incorrect_input():
         ),
     ):
         elastic_barycenter_average(X, method="Not a real method")
+
+
+def test_ba_weights():
+    """Test weight parameter."""
+    X_train_uni = make_example_3d_numpy(4, 1, 10, random_state=1, return_y=False)
+    ones_weights = np.ones(10)
+    np.random.seed(1)
+    random_weights = np.random.rand(10)
+
+    ba_no_weight_uni = elastic_barycenter_average(X_train_uni)
+    ssg_ba_no_weight_uni = elastic_barycenter_average(X_train_uni, method="subgradient")
+
+    ba_weights_ones_uni = elastic_barycenter_average(X_train_uni, weights=ones_weights)
+
+    ssg_ba_weights_ones_uni = elastic_barycenter_average(
+        X_train_uni, weights=ones_weights, method="subgradient"
+    )
+
+    ba_weights_random_uni = elastic_barycenter_average(
+        X_train_uni, weights=random_weights
+    )
+
+    ssg_ba_weights_random_uni = elastic_barycenter_average(
+        X_train_uni, weights=random_weights, method="subgradient"
+    )
+
+    assert np.array_equal(ba_no_weight_uni, ba_weights_ones_uni)
+    assert np.array_equal(ssg_ba_no_weight_uni, ssg_ba_weights_ones_uni)
+    assert not np.array_equal(ba_no_weight_uni, ba_weights_random_uni)
+    assert not np.array_equal(ssg_ba_no_weight_uni, ssg_ba_weights_random_uni)
+
+    X_train_multi = make_example_3d_numpy(4, 4, 10, random_state=1, return_y=False)
+    ba_no_wigtht_uni = elastic_barycenter_average(X_train_multi)
+    ssg_ba_no_weight_multi = elastic_barycenter_average(
+        X_train_multi,
+        method="subgradient",
+    )
+
+    ba_weights_ones_multi = elastic_barycenter_average(
+        X_train_multi, weights=ones_weights
+    )
+
+    ssg_ba_weights_ones_multi = elastic_barycenter_average(
+        X_train_multi, weights=ones_weights, method="subgradient"
+    )
+
+    ba_weights_random_multi = elastic_barycenter_average(
+        X_train_multi, weights=random_weights
+    )
+
+    ssg_ba_weights_random_multi = elastic_barycenter_average(
+        X_train_multi, weights=random_weights, method="subgradient"
+    )
+
+    assert np.array_equal(ba_no_wigtht_uni, ba_weights_ones_multi)
+    assert np.array_equal(ssg_ba_no_weight_multi, ssg_ba_weights_ones_multi)
+    assert not np.array_equal(ba_no_wigtht_uni, ba_weights_random_multi)
+    assert not np.array_equal(ssg_ba_no_weight_multi, ssg_ba_weights_random_multi)
