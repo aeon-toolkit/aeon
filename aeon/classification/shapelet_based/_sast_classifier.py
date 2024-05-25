@@ -67,12 +67,12 @@ class SASTClassifier(BaseClassifier):
     def __init__(
         self,
         length_list=None,
-        stride=1,
-        nb_inst_per_class=1,
-        seed=None,
+        stride: int = 1,
+        nb_inst_per_class: int = 1,
+        seed: int = None,
         classifier=None,
-        n_jobs=-1,
-    ):
+        n_jobs: int = -1,
+    ) -> None:
         super().__init__()
         self.length_list = length_list
         self.stride = stride
@@ -159,7 +159,7 @@ class SASTClassifier(BaseClassifier):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
         return dists
 
-    def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
+    def plot_most_important_feature_on_ts(self, ts, feature_importance, limit: int = 5):
         """Plot the most important features on ts.
 
         Parameters
