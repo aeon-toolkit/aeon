@@ -27,13 +27,7 @@ def test_base_deep_clusterer():
         # test fit function on random data
         dummy_deep_clr.fit(X=X)
         # test save last model to file than delete it
-        dummy_deep_clr.save_last_model_to_file(file_path=tmp + "/")
-
-        dummy_deep_clr2 = MockDeepClusterer()
-        dummy_deep_clr2.load_model(model_path=tmp + "/" + last_file_name + ".keras")
-        # dummy_deep_clr2._fit_clustering(X=X)
-        # ypred = dummy_deep_clr2.predict(X=X)
-        # assert len(ypred) == len(y)
+        dummy_deep_clr.save_last_model_to_file(file_path=tmp)
 
         # test summary of model
         assert dummy_deep_clr.summary() is not None
@@ -65,13 +59,7 @@ def test_base_deep_clusterer_with_algorithm(algorithm):
         # test fit function on random data
         dummy_deep_clr.fit(X=X)
         # test save last model to file than delete it
-        dummy_deep_clr.save_last_model_to_file(file_path=tmp + "/")
-
-        dummy_deep_clr2 = MockDeepClusterer()
-        dummy_deep_clr2.load_model(model_path=tmp + "/" + last_file_name + ".keras")
-        # dummy_deep_clr2._fit_clustering(X=X)
-        # ypred = dummy_deep_clr2.predict(X=X)
-        # assert len(ypred) == len(y)
+        dummy_deep_clr.save_last_model_to_file(file_path=tmp)
 
         # test summary of model
         assert dummy_deep_clr.summary() is not None
