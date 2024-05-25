@@ -86,24 +86,47 @@ class MERLIN(BaseAnomalyDetector):
         r = 2 * np.sqrt(self.min_length)
         distances = np.full(len(lengths), -1.0)
         indicies = np.full(len(lengths), -1)
+
+        it = 0
         while distances[0] < 0:
+            if it > 500:
+                indicies[0] = np.nan
+                distances[0] = 2 * np.sqrt(self.min_length)
+                break
+
             indicies[0], distances[0] = self._drag(X, lengths[0], r)
             r = r * 0.5
+            it += 1
 
         for i in range(1, min(5, len(lengths))):
             r = distances[i - 1] * 0.99
+
+            it = 0
             while distances[i] < 0:
+                if it > 500:
+                    indicies[i] = np.nan
+                    distances[i] = 2 * np.sqrt(lengths[i])
+                    break
+
                 indicies[i], distances[i] = self._drag(X, lengths[i], r)
                 r = r * 0.99
+                it += 1
 
         for i in range(min(5, len(lengths)), len(lengths)):
             m = mean(distances[i - 5 : i])
             s = std(distances[i - 5 : i])
             r = m - 2 * s
-            indicies[i], distances[i] = self._drag(X, lengths[i], r)
+
+            it = 0
             while distances[i] < 0:
+                if it > 500:
+                    indicies[i] = np.nan
+                    distances[i] = 2 * np.sqrt(lengths[i])
+                    break
+
                 indicies[i], distances[i] = self._drag(X, lengths[i], r)
                 r = r - s
+                it += 1
 
         if np.all(distances == -1):
             raise ValueError("No discord found in the series.")
@@ -169,7 +192,7 @@ class MERLIN(BaseAnomalyDetector):
                 all_inf = False
 
         if all_inf:
-            return np.nan, np.nan
+            return -1, -1
 
         d_max = int(np.argmax(np.array(D)))
         return C[d_max], np.sqrt(D[d_max])
