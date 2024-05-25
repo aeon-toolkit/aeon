@@ -1,7 +1,7 @@
 """Unit tests for classifiers deep learning base class functionality."""
 
 import gc
-import os
+import tempfile
 import time
 
 import pytest
@@ -59,36 +59,35 @@ class _DummyDeepClassifier(BaseDeepClassifier):
 )
 def test_dummy_deep_classifier():
     """Test dummy deep classifier."""
-    import numpy as np
+    with tempfile.TemporaryDirectory() as tmp:
+        import numpy as np
 
-    last_file_name = str(time.time_ns())
+        last_file_name = str(time.time_ns())
 
-    # create a dummy deep classifier
-    dummy_deep_clf = _DummyDeepClassifier(last_file_name=last_file_name)
+        # create a dummy deep classifier
+        dummy_deep_clf = _DummyDeepClassifier(last_file_name=last_file_name)
 
-    # generate random data
-    X, y = make_example_2d_numpy()
+        # generate random data
+        X, y = make_example_2d_numpy()
 
-    # test fit function on random data
-    dummy_deep_clf.fit(X=X, y=y)
+        # test fit function on random data
+        dummy_deep_clf.fit(X=X, y=y)
 
-    # test save last model to file than delete it
-    dummy_deep_clf.save_last_model_to_file()
+        # test save last model to file than delete it
+        dummy_deep_clf.save_last_model_to_file(file_path=tmp)
 
-    # create a new dummy deep classifier
-    dummy_deep_clf2 = _DummyDeepClassifier()
+        # create a new dummy deep classifier
+        dummy_deep_clf2 = _DummyDeepClassifier()
 
-    # load without fitting
-    dummy_deep_clf2.load_model(
-        model_path="./" + last_file_name + ".keras", classes=np.unique(y)
-    )
+        # load without fitting
+        dummy_deep_clf2.load_model(
+            model_path=tmp + last_file_name + ".keras", classes=np.unique(y)
+        )
 
-    # predict
-    ypred = dummy_deep_clf2.predict(X=X)
+        # predict
+        ypred = dummy_deep_clf2.predict(X=X)
 
-    assert len(ypred) == len(y)
+        assert len(ypred) == len(y)
 
-    os.remove("./" + last_file_name + ".keras")
-
-    # test summary of model
-    assert dummy_deep_clf.summary() is not None
+        # test summary of model
+        assert dummy_deep_clf.summary() is not None
