@@ -39,7 +39,7 @@ class DummyClusterer(BaseClusterer):
     >>> X = np.array([[1, 2], [3, 4], [5, 6]])
     >>> clusterer = DummyClusterer(strategy="uniform", n_clusters=2)
     >>> clusterer._fit(X)
-    DummyClusterer(strategy='uniform', n_clusters=2)
+    DummyClusterer(n_clusters=2, strategy='uniform')
     >>> clusterer.labels_
     array([0, 1, 0])
     >>> clusterer._predict(X)
