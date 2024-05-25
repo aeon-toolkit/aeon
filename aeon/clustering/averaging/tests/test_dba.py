@@ -317,26 +317,31 @@ def test_incorrect_input():
 
 def test_ba_weights():
     """Test weight parameter."""
-    X_train_uni = make_example_3d_numpy(4, 1, 10, random_state=1, return_y=False)
-    ones_weights = np.ones(10)
+    num_cases = 4
+    X_train_uni = make_example_3d_numpy(
+        num_cases, 1, 10, random_state=1, return_y=False
+    )
+    ones_weights = np.ones(num_cases)
     np.random.seed(1)
-    random_weights = np.random.rand(10)
+    random_weights = np.random.rand(num_cases)
 
-    ba_no_weight_uni = elastic_barycenter_average(X_train_uni)
-    ssg_ba_no_weight_uni = elastic_barycenter_average(X_train_uni, method="subgradient")
+    ba_no_weight_uni = elastic_barycenter_average(X_train_uni, random_state=1)
+    ssg_ba_no_weight_uni = elastic_barycenter_average(
+        X_train_uni, method="subgradient", random_state=1
+    )
 
-    ba_weights_ones_uni = elastic_barycenter_average(X_train_uni, weights=ones_weights)
-
+    ba_weights_ones_uni = elastic_barycenter_average(
+        X_train_uni, weights=ones_weights, random_state=1
+    )
     ssg_ba_weights_ones_uni = elastic_barycenter_average(
-        X_train_uni, weights=ones_weights, method="subgradient"
+        X_train_uni, weights=ones_weights, method="subgradient", random_state=1
     )
 
     ba_weights_random_uni = elastic_barycenter_average(
-        X_train_uni, weights=random_weights
+        X_train_uni, weights=random_weights, random_state=1
     )
-
     ssg_ba_weights_random_uni = elastic_barycenter_average(
-        X_train_uni, weights=random_weights, method="subgradient"
+        X_train_uni, weights=random_weights, method="subgradient", random_state=1
     )
 
     assert np.array_equal(ba_no_weight_uni, ba_weights_ones_uni)
@@ -344,27 +349,26 @@ def test_ba_weights():
     assert not np.array_equal(ba_no_weight_uni, ba_weights_random_uni)
     assert not np.array_equal(ssg_ba_no_weight_uni, ssg_ba_weights_random_uni)
 
-    X_train_multi = make_example_3d_numpy(4, 4, 10, random_state=1, return_y=False)
-    ba_no_wigtht_uni = elastic_barycenter_average(X_train_multi)
+    X_train_multi = make_example_3d_numpy(
+        num_cases, 4, 10, random_state=1, return_y=False
+    )
+
+    ba_no_wigtht_uni = elastic_barycenter_average(X_train_multi, random_state=1)
     ssg_ba_no_weight_multi = elastic_barycenter_average(
-        X_train_multi,
-        method="subgradient",
+        X_train_multi, method="subgradient", random_state=1
     )
-
     ba_weights_ones_multi = elastic_barycenter_average(
-        X_train_multi, weights=ones_weights
+        X_train_multi, weights=ones_weights, random_state=1
     )
-
     ssg_ba_weights_ones_multi = elastic_barycenter_average(
-        X_train_multi, weights=ones_weights, method="subgradient"
+        X_train_multi, weights=ones_weights, method="subgradient", random_state=1
     )
 
     ba_weights_random_multi = elastic_barycenter_average(
-        X_train_multi, weights=random_weights
+        X_train_multi, weights=random_weights, random_state=1
     )
-
     ssg_ba_weights_random_multi = elastic_barycenter_average(
-        X_train_multi, weights=random_weights, method="subgradient"
+        X_train_multi, weights=random_weights, method="subgradient", random_state=1
     )
 
     assert np.array_equal(ba_no_wigtht_uni, ba_weights_ones_multi)
