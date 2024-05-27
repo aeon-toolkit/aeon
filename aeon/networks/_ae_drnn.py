@@ -40,19 +40,6 @@ class AEDRNNNetwork(BaseDeepNetwork):
         self.n_layers = n_layers
         self.dilation_rate = dilation_rate
 
-        if self.dilation_rate is None:
-            self.dilation_rate = [2**i for i in range(n_layers)]
-        else:
-            assert isinstance(self.dilation_rate, list)
-            assert len(self.dilation_rate) == n_layers
-
-        if self.n_units is None:
-            assert self.n_layers == 3
-            self.n_units = [100, 50, 50]
-        else:
-            assert isinstance(self.n_units, list)
-            assert len(n_units) == self.n_layers
-
     def build_network(self, input_shape, **kwargs):
         """Build the encoder and decoder networks.
 
@@ -72,20 +59,23 @@ class AEDRNNNetwork(BaseDeepNetwork):
         """
         import tensorflow as tf
 
-        def dilate_input(tensor, dilation_rate):
-            return tensor[:, ::dilation_rate, :]
+        if self.dilation_rate is None:
+            self.dilation_rate = [2**i for i in range(self.n_layers)]
+        else:
+            assert isinstance(self.dilation_rate, list)
+            assert len(self.dilation_rate) == self.n_layers
 
-        def BidirectionalGRULayer(input, nunits, activation):
-            output, forward, backward = tf.keras.layers.Bidirectional(
-                tf.keras.layers.GRU(
-                    nunits,
-                    activation=activation,
-                    return_sequences=True,
-                    return_state=True,
-                )
-            )(input)
-            final = tf.keras.layers.Concatenate()([forward, backward])
-            return final, output
+        if self.n_units is None:
+            assert self.n_layers == 3
+            self.n_units = [100, 50, 50]
+        else:
+            assert isinstance(self.n_units, list)
+            assert len(self.n_units) == self.n_layers
+
+        if isinstance(self.activation, str):
+            self.activation = [self.activation for _ in range(self.n_layers)]
+        elif isinstance(self.activation, list):
+            assert len(self.activation) == self.n_layers
 
         encoder_input_layer = tf.keras.layers.Input(input_shape)
         x = encoder_input_layer
@@ -93,15 +83,17 @@ class AEDRNNNetwork(BaseDeepNetwork):
         _finals = []
 
         for i in range(self.n_layers - 1):
-            final, output = BidirectionalGRULayer(
-                x, self.n_units[i], activation=self.activation
+            final, output = self.BidirectionalGRULayer(
+                x,
+                self.n_units[i],
+                activation=self.activation[i],
             )
             x = tf.keras.layers.Lambda(
-                dilate_input, arguments={"dilation_rate": self.dilation_rate[i]}
+                self.dilate_input, arguments={"dilation_rate": self.dilation_rate[i]}
             )(output)
             _finals.append(final)
 
-        final, output = BidirectionalGRULayer(
+        final, output = self.BidirectionalGRULayer(
             x, self.n_units[-1], activation=self.activation
         )
         _finals.append(final)
@@ -134,3 +126,20 @@ class AEDRNNNetwork(BaseDeepNetwork):
         )
 
         return encoder, decoder
+
+    def dilate_input(self, tensor, dilation_rate):
+        return tensor[:, ::dilation_rate, :]
+
+    def BidirectionalGRULayer(self, input, nunits, activation):
+        import tensorflow as tf
+
+        output, forward, backward = tf.keras.layers.Bidirectional(
+            tf.keras.layers.GRU(
+                nunits,
+                activation=activation,
+                return_sequences=True,
+                return_state=True,
+            )
+        )(input)
+        final = tf.keras.layers.Concatenate()([forward, backward])
+        return final, output
