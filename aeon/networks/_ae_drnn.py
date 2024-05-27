@@ -19,6 +19,8 @@ class AEDRNNNetwork(BaseDeepNetwork):
         If None, default = powers of 2 up to `n_stacked`.
     activation : str, default="relu"
         Activation function to use in the GRU layers.
+    decoder_activation : str, default=None
+        Activation function of the single GRU layer in the decoder.
     n_units : List[int], default="None"
         Number of units in each GRU layer, by default None.
         If None, default to [100, 50, 50].
@@ -30,6 +32,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
         n_layers=3,
         dilation_rate=None,
         activation="relu",
+        decoder_activation=None,
         n_units=None,
     ):
         super().__init__()
@@ -37,6 +40,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
         self.latent_space_dim = latent_space_dim
         self.n_units = n_units
         self.activation = activation
+        self.decoder_activation = decoder_activation
         self.n_layers = n_layers
         self.dilation_rate = dilation_rate
 
@@ -58,6 +62,12 @@ class AEDRNNNetwork(BaseDeepNetwork):
             The decoder model.
         """
         import tensorflow as tf
+
+        if self.decoder_activation is None:
+            self.decoder_activation = self.activation
+        
+        if isinstance(self.decoder_activation, list):
+            self.decoder_activation = self.activation[0]
 
         if self.dilation_rate is None:
             self.dilation_rate = [2**i for i in range(self.n_layers)]
@@ -93,7 +103,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
             )(output)
             _finals.append(final)
 
-        final, output = self._bidir_gru(x, self.n_units[-1], activation=self.activation)
+        final, output = self._bidir_gru(x, self.n_units[-1], activation=self.activation[-1])
         _finals.append(final)
         _output = tf.keras.layers.Concatenate()(_finals)
 
@@ -112,7 +122,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
 
         decoder_gru_units = sum(self.n_units) * 2
         decoder_gru = tf.keras.layers.GRU(
-            decoder_gru_units, return_sequences=True, activation=self.activation
+            decoder_gru_units, return_sequences=True, activation=self.decoder_activation,
         )(expanded_latent_space)
 
         decoder_output_layer = tf.keras.layers.TimeDistributed(
