@@ -2,8 +2,6 @@
 
 __maintainer__ = []
 
-import tensorflow as tf
-
 from aeon.networks.base import BaseDeepNetwork
 
 
@@ -82,6 +80,7 @@ class DCNNEncoderNetwork(BaseDeepNetwork):
         -------
         encoder : a keras Model.
         """
+        import tensorflow as tf
 
         def DCNNLayer(inputs, num_filters, dilation_rate, activation):
             _add = tf.keras.layers.Conv1D(num_filters, kernel_size=1)(inputs)
