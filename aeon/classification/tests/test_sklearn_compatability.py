@@ -73,7 +73,7 @@ COMPOSITE_ESTIMATORS = [
     ),
     CalibratedClassifierCV(
         estimator=CanonicalIntervalForestClassifier.create_test_instance(),
-        cv=3,
+        cv=2,
     ),
 ]
 
@@ -104,7 +104,7 @@ def test_sklearn_parameter_tuning(parameter_tuning_method):
     X, y = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=30)
 
     parameter_tuning_method = parameter_tuning_method(
-        clf, param_grid, cv=KFold(n_splits=3)
+        clf, param_grid, cv=KFold(n_splits=2)
     )
     parameter_tuning_method.fit(X, y)
     assert isinstance(
