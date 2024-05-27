@@ -65,7 +65,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
 
         if self.decoder_activation is None:
             self.decoder_activation = self.activation
-        
+
         if isinstance(self.decoder_activation, list):
             self.decoder_activation = self.activation[0]
 
@@ -103,7 +103,9 @@ class AEDRNNNetwork(BaseDeepNetwork):
             )(output)
             _finals.append(final)
 
-        final, output = self._bidir_gru(x, self.n_units[-1], activation=self.activation[-1])
+        final, output = self._bidir_gru(
+            x, self.n_units[-1], activation=self.activation[-1]
+        )
         _finals.append(final)
         _output = tf.keras.layers.Concatenate()(_finals)
 
@@ -122,7 +124,9 @@ class AEDRNNNetwork(BaseDeepNetwork):
 
         decoder_gru_units = sum(self.n_units) * 2
         decoder_gru = tf.keras.layers.GRU(
-            decoder_gru_units, return_sequences=True, activation=self.decoder_activation,
+            decoder_gru_units,
+            return_sequences=True,
+            activation=self.decoder_activation,
         )(expanded_latent_space)
 
         decoder_output_layer = tf.keras.layers.TimeDistributed(
