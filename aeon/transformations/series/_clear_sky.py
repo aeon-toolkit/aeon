@@ -70,30 +70,14 @@ class ClearSkyTransformer(BaseSeriesTransformer):
     """
 
     _tags = {
-        "input_data_type": "Series",
-        "output_data_type": "Series",
-        "transform_labels": "None",
-        "instancewise": True,  # is this an instance-wise transform?
-        "capability:inverse_transform": True,  # can the transformer inverse transform?
-        "capability:multivariate": False,  # can the transformer handle multivariate X?
-        "X_inner_type": [
-            "pd.Series",
-        ],
-        "y_inner_type": "None",
-        "requires_y": False,  # does y need to be passed in fit?
-        "enforce_index_type": [
-            pd.DatetimeIndex,
-            pd.PeriodIndex,
-        ],  # index type that needs to be enforced in X/y
-        "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
-        "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
+        "X_inner_type": "pd.Series",
+        "enforce_index_type": [pd.DatetimeIndex, pd.PeriodIndex],
         "transform-returns-same-time-index": True,
-        "skip-inverse-transform": False,  # is inverse-transform skipped when called?
-        "capability:unequal_length": False,
-        "capability:unequal_length:removes": True,  # ?
-        "capability:missing_values": False,
+        "skip-inverse-transform": False,
+        "capability:inverse_transform": True,
+        "capability:multivariate": False,
+        "capability:missing_values": True,
         "capability:missing_values:removes": True,
-        "python_version": None,  # PEP 440 python version specifier to limit versions
         "python_dependencies": "statsmodels",
     }
 
