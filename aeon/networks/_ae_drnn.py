@@ -83,17 +83,17 @@ class AEDRNNNetwork(BaseDeepNetwork):
         _finals = []
 
         for i in range(self.n_layers - 1):
-            final, output = self.BidirectionalGRULayer(
+            final, output = self._bidir_gru(
                 x,
                 self.n_units[i],
                 activation=self.activation[i],
             )
             x = tf.keras.layers.Lambda(
-                self.dilate_input, arguments={"dilation_rate": self.dilation_rate[i]}
+                self._dilate_input, arguments={"dilation_rate": self.dilation_rate[i]}
             )(output)
             _finals.append(final)
 
-        final, output = self.BidirectionalGRULayer(
+        final, output = self._bidir_gru(
             x, self.n_units[-1], activation=self.activation
         )
         _finals.append(final)
@@ -127,10 +127,10 @@ class AEDRNNNetwork(BaseDeepNetwork):
 
         return encoder, decoder
 
-    def dilate_input(self, tensor, dilation_rate):
+    def _dilate_input(self, tensor, dilation_rate):
         return tensor[:, ::dilation_rate, :]
 
-    def BidirectionalGRULayer(self, input, nunits, activation):
+    def _bidir_gru(self, input, nunits, activation):
         import tensorflow as tf
 
         output, forward, backward = tf.keras.layers.Bidirectional(
