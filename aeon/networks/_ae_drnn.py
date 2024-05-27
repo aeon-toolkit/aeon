@@ -93,9 +93,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
             )(output)
             _finals.append(final)
 
-        final, output = self._bidir_gru(
-            x, self.n_units[-1], activation=self.activation
-        )
+        final, output = self._bidir_gru(x, self.n_units[-1], activation=self.activation)
         _finals.append(final)
         _output = tf.keras.layers.Concatenate()(_finals)
 
