@@ -10,6 +10,7 @@ __all__ = ["FreshPRINCERegressor"]
 import warnings
 
 import numpy as np
+from sklearn.tree import DecisionTreeRegressor
 
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
@@ -31,6 +32,12 @@ class FreshPRINCERegressor(BaseRegressor):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestRegressor ensemble.
+    base_estimator : BaseEstimator or None, default="None"
+        Base estimator for the ensemble. By default, uses the sklearn
+        `DecisionTreeRegressor` using MSE as a splitting measure.
+    pca_solver : str, default="auto"
+        Solver to use for the PCA ``svd_solver`` parameter in rotation forest. See the
+        scikit-learn PCA implementation for options.
     save_transformed_data : bool, default="deprecated"
         Save the data transformed in fit.
 
@@ -81,6 +88,8 @@ class FreshPRINCERegressor(BaseRegressor):
         self,
         default_fc_parameters="comprehensive",
         n_estimators=200,
+        base_estimator=None,
+        pca_solver="randomized",
         save_transformed_data="deprecated",
         verbose=0,
         n_jobs=1,
@@ -89,6 +98,8 @@ class FreshPRINCERegressor(BaseRegressor):
     ):
         self.default_fc_parameters = default_fc_parameters
         self.n_estimators = n_estimators
+        self.base_estimator = base_estimator
+        self.pca_solver = pca_solver
 
         self.verbose = verbose
         self.n_jobs = n_jobs
@@ -171,6 +182,8 @@ class FreshPRINCERegressor(BaseRegressor):
 
         self._rotf = RotationForestRegressor(
             n_estimators=self.n_estimators,
+            base_estimator=self.base_estimator,
+            pca_solver=self.pca_solver,
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
@@ -212,6 +225,8 @@ class FreshPRINCERegressor(BaseRegressor):
         if parameter_set == "results_comparison":
             return {
                 "n_estimators": 10,
+                "base_estimator": DecisionTreeRegressor(max_depth=3),
+                "pca_solver": "randomized",
                 "default_fc_parameters": "minimal",
             }
         else:
