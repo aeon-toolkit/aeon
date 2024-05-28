@@ -89,7 +89,7 @@ class FreshPRINCERegressor(BaseRegressor):
         default_fc_parameters="comprehensive",
         n_estimators=200,
         base_estimator=None,
-        pca_solver="randomized",
+        pca_solver="auto",
         save_transformed_data="deprecated",
         verbose=0,
         n_jobs=1,

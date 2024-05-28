@@ -232,7 +232,7 @@ class FreshPRINCEClassifier(BaseClassifier):
                 "base_estimator": DecisionTreeClassifier(
                     criterion="entropy", max_depth=3
                 ),
-                "pca_solver": "randomized",
+                "pca_solver": "full",
                 "default_fc_parameters": "minimal",
             }
         else:
