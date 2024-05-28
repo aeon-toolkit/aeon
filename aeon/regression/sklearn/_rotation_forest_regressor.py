@@ -48,6 +48,9 @@ class RotationForestRegressor(BaseEstimator):
     base_estimator : BaseEstimator or None, default="None"
         Base estimator for the ensemble. By default, uses the sklearn
         `DecisionTreeRegressor` using MSE as a splitting measure.
+    pca_solver : str, default="auto"
+        Solver to use for the PCA ``svd_solver`` parameter. See the scikit-learn PCA
+        implementation for options.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
         Default of `0` means ``n_estimators`` is used.
@@ -105,6 +108,7 @@ class RotationForestRegressor(BaseEstimator):
         max_group=3,
         remove_proportion=0.5,
         base_estimator=None,
+        pca_solver="auto",
         time_limit_in_minutes=0.0,
         contract_max_n_estimators=500,
         save_transformed_data="deprecated",
@@ -116,6 +120,7 @@ class RotationForestRegressor(BaseEstimator):
         self.max_group = max_group
         self.remove_proportion = remove_proportion
         self.base_estimator = base_estimator
+        self.pca_solver = pca_solver
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
@@ -258,6 +263,7 @@ class RotationForestRegressor(BaseEstimator):
         start_time = time.time()
         train_time = 0
 
+        self._base_estimator = self.base_estimator
         if self.base_estimator is None:
             self._base_estimator = DecisionTreeRegressor(criterion="squared_error")
 
@@ -344,7 +350,7 @@ class RotationForestRegressor(BaseEstimator):
                 with np.errstate(divide="ignore", invalid="ignore"):
                     # differences between os occasionally. seems to happen when there
                     # are low amounts of cases in the fit
-                    pca = PCA(random_state=rng).fit(X_t)
+                    pca = PCA(random_state=rng, svd_solver=self.pca_solver).fit(X_t)
 
                 if not np.isnan(pca.explained_variance_ratio_).all():
                     break

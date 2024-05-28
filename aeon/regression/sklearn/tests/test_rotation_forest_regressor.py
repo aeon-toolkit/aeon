@@ -2,6 +2,7 @@
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
+from sklearn.tree import DecisionTreeRegressor
 
 from aeon.datasets import load_covid_3month
 from aeon.regression.sklearn import RotationForestRegressor
@@ -14,26 +15,28 @@ def test_rotf_output():
 
     rotf = RotationForestRegressor(
         n_estimators=10,
+        base_estimator=DecisionTreeRegressor(max_depth=3),
+        pca_solver="randomized",
         random_state=0,
     )
     rotf.fit(X_train, y_train)
 
     expected = [
-        0.02942543,
-        0.02087061,
-        0.01973804,
-        0.06120395,
-        0.06659284,
-        0.01891775,
-        0.04199085,
-        0.01,
-        0.03088715,
-        0.05546291,
-        0.01987163,
-        0.03721117,
-        0.0172066,
-        0.02747714,
-        0.01639872,
+        0.02694297,
+        0.02694297,
+        0.01997832,
+        0.04276962,
+        0.09027588,
+        0.02706564,
+        0.02553648,
+        0.04075808,
+        0.02900289,
+        0.04248546,
+        0.02694297,
+        0.03667328,
+        0.0235855,
+        0.03444119,
+        0.0235855,
     ]
 
     np.testing.assert_array_almost_equal(expected, rotf.predict(X_test[:15]), decimal=4)
