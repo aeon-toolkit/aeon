@@ -81,6 +81,7 @@ def test_convert_df_list(input_data):
 
 
 def test_resolve_equal_length_inner_type():
+    """Test the resolution of inner type for equal length collections."""
     test = ["numpy3D"]
     X = resolve_equal_length_inner_type(test)
     assert X == "numpy3D"
@@ -93,6 +94,7 @@ def test_resolve_equal_length_inner_type():
 
 
 def test_resolve_unequal_length_inner_type():
+    """Test the resolution of inner type for unequal length collections."""
     test = ["np-list"]
     X = resolve_unequal_length_inner_type(test)
     assert X == "np-list"
@@ -142,6 +144,7 @@ def test_is_unequal_length(data):
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_has_missing(data):
+    """Test if missing values are correctly identified."""
     assert not has_missing(EQUAL_LENGTH_UNIVARIATE[data])
     X = np.random.random(size=(10, 2, 20))
     X[5][1][12] = np.NAN
@@ -150,6 +153,7 @@ def test_has_missing(data):
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_is_univariate(data):
+    """Test if univariate series are correctly identified."""
     assert is_univariate(EQUAL_LENGTH_UNIVARIATE[data])
     if data in EQUAL_LENGTH_MULTIVARIATE.keys():
         assert not is_univariate(EQUAL_LENGTH_MULTIVARIATE[data])
@@ -168,6 +172,7 @@ NUMPY3D = [
 
 @pytest.mark.parametrize("function", NUMPY3D)
 def test_numpy3D_error(function):
+    """Test input type error for numpy3D."""
     X = np.random.random(size=(10, 20))
     with pytest.raises(TypeError, match="Input should be 3-dimensional NumPy array"):
         function(X)

@@ -98,7 +98,7 @@ class ScaledLogitTransformer(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": True,
         "skip-inverse-transform": False,
     }

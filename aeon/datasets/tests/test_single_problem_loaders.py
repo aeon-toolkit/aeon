@@ -99,6 +99,7 @@ def test_basic_load_tsf_to_dataframe():
 
 
 def test_load_solar():
+    """Test function to load solar data."""
     solar = load_solar(api_version=None)
     assert type(solar) is pd.Series
     assert solar.shape == (289,)

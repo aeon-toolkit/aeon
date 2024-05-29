@@ -213,7 +213,7 @@ def foo_pairwise_distance(
         if X.ndim == 2:
             X = X.reshape((X.shape[0], 1, X.shape[1]))
         if X.ndim != 3:
-            raise ValueError("x and y must be 2D or 3D arrays")
+            raise ValueError("x and y must be 1D, 2D, or 3D arrays")
     else:
         X, y = reshape_pairwise_to_multiple(X, y)
     # NOW FIND AND RETURN PAIRWISE DISTANCE. If y is none, only calculate one

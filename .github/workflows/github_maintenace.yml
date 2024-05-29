@@ -1,0 +1,35 @@
+name: GitHub Maintenance
+
+on:
+  schedule:
+    # every Monday at 01:00 AM UTC
+    - cron:  "0 1 * * 1"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: write
+
+jobs:
+  stale_branches:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Create app token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Stale Branches
+        uses: crs-k/stale-branches@v4.1.0
+        with:
+          repo-token: ${{ steps.app-token.outputs.token }}
+          days-before-stale: 140
+          days-before-delete: 9999  # todo take down to 175
+          comment-updates: true
+          tag-committer: true
+          stale-branch-label: "stale"
+          compare-branches: 'info'
+          pr-check: true

@@ -100,7 +100,8 @@ def test_write_to_tsfile_unequal_length(problem_name):
         assert np.array_equal(y, newy)
 
 
-def test_write_data_to_tsfile():
+def test_write_data_to_tsfile_invalid():
+    """Test function to check the handling of invalid inputs by write_to_tsfile."""
     with pytest.raises(TypeError, match="Wrong input data type"):
         write_to_tsfile("A string", "path")
     with pytest.raises(TypeError, match="Data provided must be a ndarray or a list"):
@@ -141,7 +142,8 @@ def test_write_dataframe_to_ts(tsfile_writer):
         pd.testing.assert_series_equal(y, y2)
 
 
-def test__write_header():
+def test_write_header():
+    """Test _write_header."""
     with tempfile.TemporaryDirectory() as tmp:
         problem_name = "header.csv"
         with pytest.raises(
@@ -159,6 +161,7 @@ def test__write_header():
 
 
 def test_write_to_arff_file():
+    """Test function to check writing into an ARFF file and loading from it."""
     X, y = make_example_3d_numpy()
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -174,6 +177,7 @@ def test_write_to_arff_file():
 
 
 def test_write_results_to_uea_format():
+    """Test function to check writing results into UEA format."""
     with tempfile.TemporaryDirectory() as tmp:
         y_true = np.array([0, 1, 1, 0, 0])
         y_pred = np.array([0, 1, 1, 0])

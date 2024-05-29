@@ -37,6 +37,8 @@ Deep learning
     InceptionTimeRegressor
     IndividualInceptionRegressor
     ResNetRegressor
+    LITETimeRegressor
+    IndividualLITERegressor
 
 Distance-based
 --------------

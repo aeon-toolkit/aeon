@@ -45,17 +45,12 @@ import pandas as pd
 from scipy.stats import norm
 
 from aeon.base import BaseEstimator
-from aeon.datatypes import (
-    VectorizedDF,
-    check_is_scitype,
-    convert_to,
-    mtype_to_scitype,
-    scitype_to_mtype,
-)
+from aeon.datatypes import convert_to
+from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_cutoff, update_data
-from aeon.utils.validation import is_collection, is_hierarchical, is_single_series
+from aeon.utils.validation import abstract_types, validate_input
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index
@@ -337,7 +332,7 @@ class BaseForecaster(BaseEstimator):
 
         # checks and conversions complete, pass to inner fit
         #####################################################
-        vectorization_needed = isinstance(y_inner, VectorizedDF)
+        vectorization_needed = isinstance(y_inner, _VectorizedDF)
         self._is_vectorized = vectorization_needed
         # we call the ordinary _fit if no looping/vectorization needed
         if not vectorization_needed:
@@ -401,7 +396,8 @@ class BaseForecaster(BaseEstimator):
             # otherwise we call the vectorized version of predict
             y_pred = self._vectorize("predict", X=X_inner, fh=fh)
 
-        # convert to output mtype, identical with last y mtype seen
+        # convert to output type, identical with last y type seen
+
         y_out = convert_to(
             y_pred,
             self._y_mtype_last_seen,
@@ -477,7 +473,7 @@ class BaseForecaster(BaseEstimator):
         fh = self._check_fh(fh)
 
         # apply fit and then predict
-        vectorization_needed = isinstance(y_inner, VectorizedDF)
+        vectorization_needed = isinstance(y_inner, _VectorizedDF)
         self._is_vectorized = vectorization_needed
         # we call the ordinary _fit if no looping/vectorization needed
         if not vectorization_needed:
@@ -1320,25 +1316,13 @@ class BaseForecaster(BaseEstimator):
         # retrieve supported mtypes
         y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
         X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
-        y_inner_abstract_type = mtype_to_scitype(y_inner_type, return_unique=True)
-        X_inner_abstract_type = mtype_to_scitype(X_inner_type, return_unique=True)
-
-        ALLOWED_ABSTRACT_TYPES = ["Series", "Panel", "Hierarchical"]
-        FORBIDDEN_TYPES = ["numpy2D", "pd-wide"]
-
-        for abs in ALLOWED_ABSTRACT_TYPES:
-            types = set(scitype_to_mtype(abs))
-            types = list(types.difference(FORBIDDEN_TYPES))
+        y_inner_abstract_type = abstract_types(y_inner_type)
+        X_inner_abstract_type = abstract_types(X_inner_type)
 
         # checking y
         if y is not None:
-            if is_hierarchical(y):
-                y_type = "Hierarchical"
-            elif is_collection(y):
-                y_type = "Panel"
-            elif is_single_series(y):
-                y_type = "Series"
-            else:
+            valid, y_metadata = validate_input(y)
+            if not valid:
                 raise TypeError(
                     "y must be in an aeon compatible format, "
                     "of abstract type Series, Panel or Hierarchical, for instance a "
@@ -1350,11 +1334,6 @@ class BaseForecaster(BaseEstimator):
                     "where mtype is the string of the type specification you want for "
                     "y. Possible mtype specification strings are as follows. "
                 )
-            # TODO: Still need to extract the correct "scitype and "mtype" of y,
-            #  is_univariate and _check_missing without check_is_scitype
-            _, _, y_metadata = check_is_scitype(
-                y, scitype=ALLOWED_ABSTRACT_TYPES, return_metadata=True, var_name="y"
-            )
 
             y_type = y_metadata["scitype"]
             self._y_mtype_last_seen = y_metadata["mtype"]
@@ -1383,31 +1362,20 @@ class BaseForecaster(BaseEstimator):
 
         # checking X
         if X is not None:
-            # checking y
-            if X is not None:
-                if is_hierarchical(X):
-                    X_type = "Hierarchical"
-                elif is_collection(X):
-                    X_type = "Panel"
-                elif is_single_series(X):
-                    X_type = "Series"
-                else:
-                    raise TypeError(
-                        "y must be in an aeon compatible format, "
-                        "of abstract type Series, Panel or Hierarchical, for instance a"
-                        "pandas.DataFrame with aeon compatible time indices, or with "
-                        "MultiIndex and last(-1) level an aeon compatible time index."
-                        "For further details see  examples/forecasting, or "
-                        "examples/datasets. If you think y is already in an aeon "
-                        "supported input format, run aeon.datatypes.check_raise(y, "
-                        "mtype) to diagnose the error, where mtype is the string of "
-                        "the type specification you want for y. "
-                        "Possible mtype specification strings are as follows. "
-                    )
-            # TODO: Still need to extract the "scitype" of y without check_is_scitype
-            _, _, X_metadata = check_is_scitype(
-                X, scitype=ALLOWED_ABSTRACT_TYPES, return_metadata=True, var_name="X"
-            )
+            valid, X_metadata = validate_input(X)
+            if not valid:
+                raise TypeError(
+                    "y must be in an aeon compatible format, "
+                    "of abstract type Series, Panel or Hierarchical, for instance a"
+                    "pandas.DataFrame with aeon compatible time indices, or with "
+                    "MultiIndex and last(-1) level an aeon compatible time index."
+                    "For further details see  examples/forecasting, or "
+                    "examples/datasets. If you think y is already in an aeon "
+                    "supported input format, run aeon.datatypes.check_raise(y, "
+                    "mtype) to diagnose the error, where mtype is the string of "
+                    "the type specification you want for y. "
+                    "Possible mtype specification strings are as follows. "
+                )
             X_type = X_metadata["scitype"]
             X_requires_vectorization = X_type not in X_inner_abstract_type
             requires_vectorization = requires_vectorization or X_requires_vectorization
@@ -1444,6 +1412,7 @@ class BaseForecaster(BaseEstimator):
 
         if not requires_vectorization:
             # converts y, skips conversion if already of right type
+
             y_inner = convert_to(
                 y,
                 to_type=y_inner_type,
@@ -1463,7 +1432,7 @@ class BaseForecaster(BaseEstimator):
                 y_inner_abstract_type, smaller_equal_than=y_type
             )
             if y is not None:
-                y_inner = VectorizedDF(
+                y_inner = _VectorizedDF(
                     X=y,
                     iterate_as=iterate_as,
                     is_scitype=y_type,
@@ -1472,7 +1441,7 @@ class BaseForecaster(BaseEstimator):
             else:
                 y_inner = None
             if X is not None:
-                X_inner = VectorizedDF(X=X, iterate_as=iterate_as, is_scitype=X_type)
+                X_inner = _VectorizedDF(X=X, iterate_as=iterate_as, is_scitype=X_type)
             else:
                 X_inner = None
 
@@ -1517,7 +1486,7 @@ class BaseForecaster(BaseEstimator):
         """
         if y is not None:
             # unwrap y if VectorizedDF
-            if isinstance(y, VectorizedDF):
+            if isinstance(y, _VectorizedDF):
                 y = y.X_multiindex
             # if _y does not exist yet, initialize it with y
             if not hasattr(self, "_y") or self._y is None or not self.is_fitted:
@@ -1530,7 +1499,7 @@ class BaseForecaster(BaseEstimator):
 
         if X is not None:
             # unwrap X if VectorizedDF
-            if isinstance(X, VectorizedDF):
+            if isinstance(X, _VectorizedDF):
                 X = X.X_multiindex
             # if _X does not exist yet, initialize it with X
             if not hasattr(self, "_X") or self._X is None or not self.is_fitted:
@@ -1601,7 +1570,7 @@ class BaseForecaster(BaseEstimator):
         y : aeon compatible time series data container
             must be of one of the following mtypes:
                 pd.Series, pd.DataFrame, np.ndarray, of Series abstract type
-                pd.multiindex, numpy3D, nested_univ, df-list, of Panel abstract type
+                pd.multiindex, numpy3D, nested_univ, of Panel abstract type
                 pd_multiindex_hier, of Hierarchical abstract type
 
         Notes
@@ -2275,9 +2244,9 @@ class BaseForecaster(BaseEstimator):
         y_first_index = get_cutoff(y, return_index=True, reverse_order=True)
         self_copy._set_cutoff(_shift(y_first_index, by=-1, return_index=True))
 
-        if isinstance(y, VectorizedDF):
+        if isinstance(y, _VectorizedDF):
             y = y.X
-        if isinstance(X, VectorizedDF):
+        if isinstance(X, _VectorizedDF):
             X = X.X
 
         # iterate over data

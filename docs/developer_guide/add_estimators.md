@@ -95,7 +95,7 @@ This can be used for manual debugging in a notebook environment. Example of runn
 full test suite for `NaiveForecaster`:
 
 ```{code-block} powershell
-from aeon.utils.estimator_checks import check_estimator
+from aeon.testing.estimator_checks import check_estimator
 from aeon.forecasting.naive import NaiveForecaster
 check_estimator(NaiveForecaster)
 ```
