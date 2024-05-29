@@ -64,7 +64,7 @@ class TSFreshClusterer(BaseClusterer):
 
     Examples
     --------
-    >>> import numpy as
+    >>> import numpy as np
     >>> from sklearn.cluster import KMeans
     >>> from aeon.clustering.feature_based import TSFreshClusterer
     >>> X = np.random.random(size=(10,2,20))

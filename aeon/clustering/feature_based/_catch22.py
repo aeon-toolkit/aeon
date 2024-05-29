@@ -81,7 +81,7 @@ class Catch22Clusterer(BaseClusterer):
 
     Examples
     --------
-    >>> import numpy as
+    >>> import numpy as np
     >>> from sklearn.cluster import KMeans
     >>> from aeon.clustering.feature_based import Catch22Clusterer
     >>> X = np.random.random(size=(10,2,20))
