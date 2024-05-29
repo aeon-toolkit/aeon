@@ -392,7 +392,6 @@ def check_raises_not_fitted_error(estimator, datatypes):
     Exception if NotFittedError is not raised by non-state changing method
     """
     # call methods without prior fitting and check that they raise NotFittedError
-    print(datatypes)
     for method_nsc in NON_STATE_CHANGING_METHODS:
         if hasattr(estimator, method_nsc):
             with pytest.raises(NotFittedError, match=r"has not been fitted"):

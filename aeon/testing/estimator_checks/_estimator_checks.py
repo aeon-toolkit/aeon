@@ -32,14 +32,24 @@ from aeon.utils.validation._dependencies import (
 
 
 def _is_legacy_estimator(estimator):
-    if isinstance(estimator, BaseForecaster) or (
-        isinstance(estimator, BaseTransformer)
-        and not (
-            isinstance(estimator, BaseSeriesTransformer)
-            or isinstance(estimator, BaseCollectionTransformer)
-        )
-    ):
-        return True
+    if isclass(estimator):
+        if issubclass(estimator, BaseForecaster) or (
+            issubclass(estimator, BaseTransformer)
+            and not (
+                issubclass(estimator, BaseSeriesTransformer)
+                or issubclass(estimator, BaseCollectionTransformer)
+            )
+        ):
+            return True
+    else:
+        if isinstance(estimator, BaseForecaster) or (
+            isinstance(estimator, BaseTransformer)
+            and not (
+                isinstance(estimator, BaseSeriesTransformer)
+                or isinstance(estimator, BaseCollectionTransformer)
+            )
+        ):
+            return True
     return False
 
 
