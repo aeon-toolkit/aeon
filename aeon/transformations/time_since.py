@@ -10,12 +10,20 @@ from string import digits
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from pandas.api.types import is_any_real_numeric_dtype
 from pandas.tseries.frequencies import get_period_alias
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="TimeSince will be removed in version 0.10 and may be replaced with a "
+    "BaseSeriesTransformer version in the transformations.series module.",
+    category=FutureWarning,
+)
 class TimeSince(BaseTransformer):
     """Get Element-wise time elapsed between the timeindex and a reference start time.
 

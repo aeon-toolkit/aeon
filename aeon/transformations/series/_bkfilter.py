@@ -10,20 +10,12 @@ __all__ = ["BKFilter"]
 
 
 import numpy as np
-import pandas as pd
-from deprecated.sphinx import deprecated
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="BKFilter will be removed in version 0.10 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class BKFilter(BaseTransformer):
+class BKFilter(BaseSeriesTransformer):
     """Filter a times series using the Baxter-King filter.
 
     This is a wrapper around statsmodels' bkfilter function
@@ -59,23 +51,24 @@ class BKFilter(BaseTransformer):
     Baxter, M. and R. G. King. "Measuring Business Cycles: Approximate
         Band-Pass Filters for Economic Time Series." *Review of Economics and
         Statistics*, 1999, 81(4), 575-593.
+
+    Examples
+    --------
+    >>> from aeon.transformations.bkfilter import BKFilter # doctest: +SKIP
+    >>> import pandas as pd # doctest: +SKIP
+    >>> import statsmodels.api as sm # doctest: +SKIP
+    >>> dta = sm.datasets.macrodata.load_pandas().data # doctest: +SKIP
+    >>> index = pd.date_range(start='1959Q1', end='2009Q4', freq='Q') # doctest: +SKIP
+    >>> dta.set_index(index, inplace=True) # doctest: +SKIP
+    >>> bk = BKFilter(6, 24, 12) # doctest: +SKIP
+    >>> cycles = bk.fit_transform(X=dta[['realinv']]) # doctest: +SKIP
     """
 
     _tags = {
-        "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
-        "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": True,
         "capability:multivariate": True,
         "X_inner_type": "np.ndarray",
-        "y_inner_type": "None",
-        "enforce_index_type": [pd.RangeIndex],
         "fit_is_empty": True,
-        "transform-returns-same-time-index": False,
         "capability:unequal_length": True,
-        "capability:missing_values": False,
-        "remember_data": False,
         "python_dependencies": "statsmodels",
     }
 
@@ -88,7 +81,7 @@ class BKFilter(BaseTransformer):
         self.low = low
         self.high = high
         self.K = K
-        super().__init__()
+        super().__init__(axis=0)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -104,6 +97,7 @@ class BKFilter(BaseTransformer):
         -------
         transformed cyclical version of X
         """
+        _check_soft_dependencies("statsmodels", severity="error")
         from scipy.signal import fftconvolve
         from statsmodels.tools.validation import PandasWrapper, array_like
 
