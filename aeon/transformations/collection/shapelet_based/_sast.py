@@ -58,8 +58,8 @@ class SAST(BaseCollectionTransformer):
         Number of threads to use for the transform.
         The available cpu count is used if this value is less than 1
 
-    Reference
-    ---------
+    References
+    ----------
     .. [1] Mbouopda, Michael Franklin, and Engelbert Mephu Nguifo.
     "Scalable and accurate subsequence transform for time series classification."
     Pattern Recognition 147 (2023): 110121.
@@ -114,8 +114,8 @@ class SAST(BaseCollectionTransformer):
         y: array-like or list
             The class values for X.
 
-        Return
-        ------
+        Returns
+        -------
         self : SAST
             This transformer
 
@@ -181,8 +181,8 @@ class SAST(BaseCollectionTransformer):
         y: array-like or list
             Ignored argument, interface compatibility
 
-        Return
-        ------
+        Returns
+        -------
         X_transformed: np.ndarray shape (n_cases, n_timepoints),
             The transformed data
         """
