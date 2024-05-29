@@ -78,6 +78,17 @@ class Catch22Clusterer(BaseClusterer):
     .. [1] Lubba, Carl H., et al. "catch22: Canonical time-series characteristics."
         Data Mining and Knowledge Discovery 33.6 (2019): 1821-1852.
         https://link.springer.com/article/10.1007/s10618-019-00647-x
+
+    Examples
+    --------
+    >>> import numpy as
+    >>> from sklearn.cluster import KMeans
+    >>> from aeon.clustering.feature_based import Catch22Clusterer
+    >>> X = np.random.random(size=(10,2,20))
+    >>> clst= Catch22Clusterer(estimator=KMeans(n_clusters=2)
+    >>> clst.fit(X)
+    Catch22Clusterer(...)
+    >>> preds = clst.predict(X)
     """
 
     _tags = {
@@ -113,17 +124,19 @@ class Catch22Clusterer(BaseClusterer):
         super().__init__()
 
     def _fit(self, X, y=None):
-        """Fit Catch22Clusterer to data.
+        """Fit a pipeline on cases X.
 
         Parameters
         ----------
-        X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_cases, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
-        y : 1D np.array, of shape [n_cases] - class labels for fitting
-            indices correspond to instance indices in X
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            The training data.
+        y : array-like, shape = [n_cases]
+            Ignored. The class labels.
+
+        Returns
+        -------
+        self :
+            Reference to self.
 
         Returns
         -------
@@ -155,15 +168,12 @@ class Catch22Clusterer(BaseClusterer):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
+        """Predict class values of n instances in X.
 
         Parameters
         ----------
-        X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_cases, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            The data to make predictions for.
 
         Returns
         -------
@@ -171,6 +181,23 @@ class Catch22Clusterer(BaseClusterer):
             Predicted class labels.
         """
         return self._estimator.predict(self._transformer.transform(X))
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predict class values of n instances in X.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
+            1st dimension indices correspond to instance indices in X
+            2nd dimension indices correspond to possible labels (integers)
+            (i, j)-th entry is predictive probability that i-th instance is of class j
+        """
+        return self._estimator.predict_proba(self._transformer.transform(X))
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

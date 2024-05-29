@@ -61,6 +61,17 @@ class TSFreshClusterer(BaseClusterer):
         scalable hypothesis tests (tsfresh–a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
+
+    Examples
+    --------
+    >>> import numpy as
+    >>> from sklearn.cluster import KMeans
+    >>> from aeon.clustering.feature_based import TSFreshClusterer
+    >>> X = np.random.random(size=(10,2,20))
+    >>> clst= TSFreshClusterer(estimator=KMeans(n_clusters=2)  # doctest: +SKIP
+    >>> clst.fit(X)  # doctest: +SKIP
+    TSFreshClusterer(...)
+    >>> preds = clst.predict(X)  # doctest: +SKIP
     """
 
     _tags = {
@@ -102,7 +113,7 @@ class TSFreshClusterer(BaseClusterer):
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
         y : array-like, shape = [n_cases]
-            The class labels.
+            Ignored. The class labels.
 
         Returns
         -------
@@ -167,6 +178,23 @@ class TSFreshClusterer(BaseClusterer):
             Predicted class labels.
         """
         return self._estimator.predict(self._transformer.transform(X))
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predict class values of n instances in X.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
+            1st dimension indices correspond to instance indices in X
+            2nd dimension indices correspond to possible labels (integers)
+            (i, j)-th entry is predictive probability that i-th instance is of class j
+        """
+        return self._estimator.predict_proba(self._transformer.transform(X))
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

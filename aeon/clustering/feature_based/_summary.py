@@ -48,6 +48,17 @@ class SummaryClusterer(BaseClusterer):
     --------
     SummaryTransformer
     SummaryRegressor
+
+    Examples
+    --------
+    >>> import numpy as
+    >>> from sklearn.cluster import KMeans
+    >>> from aeon.clustering.feature_based import SummaryClusterer
+    >>> X = np.random.random(size=(10,2,20))
+    >>> clst= SummaryClusterer(estimator=KMeans(n_clusters=2)
+    >>> clst.fit(X)
+    SummaryClusterer(...)
+    >>> preds = clst.predict(X)
     """
 
     _tags = {
@@ -83,7 +94,7 @@ class SummaryClusterer(BaseClusterer):
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
         y : array-like, shape = [n_cases]
-            The class labels.
+            Ignored. The class labels.
 
         Returns
         -------
@@ -137,3 +148,20 @@ class SummaryClusterer(BaseClusterer):
             X_t = X_t.to_numpy().reshape((-1, self._transform_atts))
 
         return self._estimator.predict(X_t)
+
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predict class values of n instances in X.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
+            1st dimension indices correspond to instance indices in X
+            2nd dimension indices correspond to possible labels (integers)
+            (i, j)-th entry is predictive probability that i-th instance is of class j
+        """
+        return self._estimator.predict_proba(self._transformer.transform(X))
