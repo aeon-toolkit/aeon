@@ -34,6 +34,7 @@ from aeon.datasets.dataset_collections import (
     get_downloaded_tsc_tsr_datasets,
     get_downloaded_tsf_datasets,
 )
+from aeon.datasets.tsc_datasets import tsc_zenodo
 from aeon.datasets.tser_datasets import tser_monash, tser_soton
 from aeon.utils.conversion import convert_collection
 
@@ -347,18 +348,20 @@ def _load_saved_dataset(
     return_type = _alias_datatype_check(return_type)
     if dir_name is None:
         dir_name = name
+    if local_dirname is not None:
+        local_module = os.path.join(local_module, local_dirname)
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
 
         fname = name + "_TEST.ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X_test, y_test, meta_data_test = load_from_tsfile(
             abspath, return_meta_data=True
         )
@@ -491,10 +494,10 @@ def _load_tsc_dataset(
     Parameters
     ----------
     name : string, file name to load from
-    split: None or one of "TRAIN", "TEST", optional (default=None)
+    split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem.
         By default it loads both train and test instances (in a single container).
-    return_X_y: bool, optional (default=True)
+    return_X_y: bool, default=True
         If True, returns (features, target) separately instead of a single
         dataframe with columns for features and the target.
     return_data_type : str, optional, default = None
@@ -1012,14 +1015,30 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
             url = f"https://zenodo.org/record/{id}/files/{name}.zip"
             file_save = f"{local_module}/{local_dirname}/{name}.zip"
             if not os.path.exists(file_save):
+                req = Request(url, method="HEAD")
                 try:
-                    urllib.request.urlretrieve(url, file_save)
-                except Exception:
-                    raise ValueError(
-                        f"Invalid dataset name ={name} is not available on extract path"
-                        f" {extract_path}.\n Nor is it available on "
-                        f"https://forecastingdata.org/ via path {url}",
+                    # Perform the request
+                    response = urlopen(req, timeout=60)
+                    # Check the status code of the response, if 200 incorrect input args
+                    if response.status != 200:
+                        raise ValueError(
+                            "The file does not exist on the server which "
+                            "returned a File Not Found (200)"
+                        )
+                except Exception as e:
+                    raise e
+                try:
+                    _download_and_extract(
+                        url,
+                        extract_path=extract_path,
                     )
+                except zipfile.BadZipFile:
+                    raise ValueError(
+                        f"Invalid dataset name ={name} is  available on extract path ="
+                        f"{extract_path} or https://zenodo.org/"
+                        f" but it is not correctly formatted.",
+                    )
+
             if not os.path.exists(
                 f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
             ):
@@ -1158,7 +1177,7 @@ def load_regression(
                 # Check the status code of the response
                 if response.status != 200:
                     try_monash = True
-            except HTTPError:
+            except (URLError, HTTPError):
                 # If there is an HTTP it might mean the file does not exist
                 try_monash = True
             else:
@@ -1326,30 +1345,48 @@ def load_classification(
             url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
             # Test if file exists to generate more informative error
             req = Request(url, method="HEAD")
-            msg = (
+            try_zenodo = False
+            error_str = (
                 f"Invalid dataset name ={name} that is not available on extract path "
                 f"={extract_path}. Nor is it available on "
-                f"https://timeseriesclassification.com/."
+                f"https://timeseriesclassification.com/ or zenodo."
             )
             try:
                 # Perform the request
                 response = urlopen(req, timeout=60)
                 # Check the status code of the response, if 200 incorrect input args
                 if response.status != 200:
-                    raise ValueError(msg)
-            except Exception as e:
-                raise e
-            try:
-                _download_and_extract(
-                    url,
-                    extract_path=extract_path,
-                )
-            except zipfile.BadZipFile:
-                raise ValueError(
-                    f"Invalid dataset name ={name} is  available on extract path ="
-                    f"{extract_path} or https://timeseriesclassification.com/ but it "
-                    f"is not correctly formatted.",
-                )
+                    try_zenodo = True
+            except (URLError, HTTPError):
+                # If there is an HTTP it might mean the file does not exist
+                try_zenodo = True
+            else:
+                try:
+                    _download_and_extract(
+                        url,
+                        extract_path=extract_path,
+                    )
+                except zipfile.BadZipFile:
+                    try_zenodo = True
+            if try_zenodo:
+                # Try on ZENODO
+                if name in tsc_zenodo.keys():
+                    id = tsc_zenodo[name]
+                    url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
+                    url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
+                    full_path = os.path.join(path, name)
+                    if not os.path.exists(full_path):
+                        os.makedirs(full_path)
+                    train_save = f"{full_path}/{name}_TRAIN.ts"
+                    test_save = f"{full_path}/{name}_TEST.ts"
+                    try:
+                        urlretrieve(url_train, train_save)
+                        urlretrieve(url_test, test_save)
+                    except Exception:
+                        raise ValueError(error_str)
+                else:
+                    raise ValueError(error_str)
+
     # Test for discrete version (first suffix _disc), always use that if it exists
     dir_name = name
     # If there exists a version with _discr, load that

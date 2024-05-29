@@ -4,6 +4,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from pandas.api.types import is_numeric_dtype
 from sklearn.utils import check_array, check_consistent_length
 
@@ -14,6 +15,15 @@ from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.performance_metrics.base import BaseMetric
 
 
+# TODO: remove v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="BaseForecastingErrorMetric and remaining subclasses of it will be removed "
+    "in version 0.10.0. Functionality for pinball loss and related functions is "
+    "available in scikit-learn and we are no longer supporting the functor "
+    "model for metrics.",
+    category=FutureWarning,
+)
 class BaseForecastingErrorMetric(BaseMetric):
     """Base class for defining forecasting error metrics in aeon.
 
@@ -437,6 +447,15 @@ class BaseForecastingErrorMetric(BaseMetric):
         return y_true, y_pred, multioutput, multilevel, kwargs
 
 
+# TODO: remove v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="_BaseProbaForecastingErrorMetric  will be removed "
+    "in version 0.10.0. Functionality for pinball loss and related functions is "
+    "available in scikit-learn and we are no longer supporting the functor "
+    "model for metrics.",
+    category=FutureWarning,
+)
 class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
     """Base class for probabilistic forecasting error metrics in aeon.
 
@@ -796,6 +815,15 @@ class _BaseProbaForecastingErrorMetric(BaseForecastingErrorMetric):
         return out
 
 
+# TODO: remove v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="PinballLoss will be removed "
+    "in version 0.10.0. Functionality for pinball loss and related functions is "
+    "available in scikit-learn and we are no longer supporting the functor "
+    "model for metrics.",
+    category=FutureWarning,
+)
 class PinballLoss(_BaseProbaForecastingErrorMetric):
     """Evaluate the pinball loss at all quantiles given in data.
 
@@ -880,6 +908,15 @@ class PinballLoss(_BaseProbaForecastingErrorMetric):
         return [params1, params2]
 
 
+# TODO: remove v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="EmpiricalCoverage will be removed "
+    "in version 0.10.0. Functionality for pinball loss and related functions is "
+    "available in scikit-learn and we are no longer supporting the functor "
+    "model for metrics.",
+    category=FutureWarning,
+)
 class EmpiricalCoverage(_BaseProbaForecastingErrorMetric):
     """Evaluate the pinball loss at all quantiles given in data.
 
@@ -947,6 +984,15 @@ class EmpiricalCoverage(_BaseProbaForecastingErrorMetric):
         return [params1]
 
 
+# TODO: remove v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="ConstraintViolation will be removed "
+    "in version 0.10.0. Functionality for pinball loss and related functions is "
+    "available in scikit-learn and we are no longer supporting the functor "
+    "model for metrics.",
+    category=FutureWarning,
+)
 class ConstraintViolation(_BaseProbaForecastingErrorMetric):
     """Evaluate the pinball loss at all quantiles given in data.
 

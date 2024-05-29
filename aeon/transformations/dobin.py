@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
+from deprecated.sphinx import deprecated
 from pandas.api.types import is_numeric_dtype
 from scipy.linalg import null_space
 from sklearn.decomposition import PCA
@@ -16,6 +17,13 @@ __maintainer__ = []
 __all__ = ["DOBIN"]
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="DOBIN will be removed in version 0.10 and replaced with a "
+    "BaseSeriesTransformer version in the transformations.series module.",
+    category=FutureWarning,
+)
 class DOBIN(BaseTransformer):
     """Distance based Outlier BasIs using Neighbors (DOBIN).
 

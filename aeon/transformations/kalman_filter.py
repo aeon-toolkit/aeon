@@ -14,6 +14,7 @@ __all__ = [
 from warnings import warn
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
@@ -106,6 +107,12 @@ def _init_matrix(matrices, transform_func, default_val):
     return default_val if matrices is None else transform_func(matrices)
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="BaseKalmanFilter will be removed in version 0.10.",
+    category=FutureWarning,
+)
 class BaseKalmanFilter:
     """Kalman Filter is used for denoising data, or inferring the hidden state of data.
 
@@ -148,29 +155,29 @@ class BaseKalmanFilter:
     ----------
     state_dim : int
         System state feature dimension
-    state_transition : np.ndarray, optional (default=None)
+    state_transition : np.ndarray, default=None
         of shape (state_dim, state_dim) or (time_steps, state_dim, state_dim).
         State transition matrix, also referred to as F, is a matrix
         which describes the way the underlying series moves
         through successive time periods.
-    process_noise : np.ndarray, optional (default=None)
+    process_noise : np.ndarray, default=None
         of shape (state_dim, state_dim) or (time_steps, state_dim, state_dim).
         Process noise matrix, also referred to as Q,
         the uncertainty of the dynamic model.
-    measurement_noise : np.ndarray, optional (default=None)
+    measurement_noise : np.ndarray, default=None
         of shape (measurement_dim, measurement_dim) or
         (time_steps, measurement_dim, measurement_dim).
         Measurement noise matrix, also referred to as R,
         represents the uncertainty of the measurements.
-    measurement_function : np.ndarray, optional (default=None)
+    measurement_function : np.ndarray, default=None
         of shape (measurement_dim, state_dim) or
         (time_steps, measurement_dim, state_dim).
         Measurement equation matrix, also referred to as H, adjusts
         dimensions of measurements to match dimensions of state.
-    initial_state : np.ndarray, optional (default=None)
+    initial_state : np.ndarray, default=None
         of shape (state_dim,).
         Initial estimated system state, also referred to as x0.
-    initial_state_covariance : np.ndarray, optional (default=None)
+    initial_state_covariance : np.ndarray, default=None
         of shape (state_dim, state_dim).
         Initial estimated system state covariance, also referred to as P0.
 
@@ -294,7 +301,7 @@ class BaseKalmanFilter:
             The value of corresponding attribute.
         matrix_shape : tuple
             The supposed shape of a single matrix.
-        time_steps : int, optional (default=None)
+        time_steps : int, default=None
         """
         _validate_param_shape(
             param_name=param_name,
@@ -305,6 +312,12 @@ class BaseKalmanFilter:
         setattr(self, attr_name, value)
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="KalmanFilterTransformer will be removed in version 0.10.",
+    category=FutureWarning,
+)
 class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
     """Kalman Filter Transformer.
 
@@ -325,42 +338,42 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
     ----------
     state_dim : int
         System state feature dimension.
-    state_transition : np.ndarray, optional (default=None)
+    state_transition : np.ndarray, default=None
         of shape (state_dim, state_dim) or (time_steps, state_dim, state_dim).
         State transition matrix, also referred to as `F`, is a matrix
         which describes the way the underlying series moves
         through successive time periods.
-    process_noise : np.ndarray, optional (default=None)
+    process_noise : np.ndarray, default=None
         of shape (state_dim, state_dim) or (time_steps, state_dim, state_dim).
         Process noise matrix, also referred to as `Q`,
         the uncertainty of the dynamic model.
-    measurement_noise : np.ndarray, optional (default=None)
+    measurement_noise : np.ndarray, default=None
         of shape (measurement_dim, measurement_dim) or
         (time_steps, measurement_dim, measurement_dim).
         Measurement noise matrix, also referred to as `R`,
         represents the uncertainty of the measurements.
-    measurement_function : np.ndarray, optional (default=None)
+    measurement_function : np.ndarray, default=None
         of shape (measurement_dim, state_dim) or
         (time_steps, measurement_dim, state_dim).
         Measurement equation matrix, also referred to as `H`, adjusts
         dimensions of measurements to match dimensions of state.
-    initial_state : np.ndarray, optional (default=None)
+    initial_state : np.ndarray, default=None
         of shape (state_dim,).
         Initial estimated system state, also referred to as `X0`.
-    initial_state_covariance : np.ndarray, optional (default=None)
+    initial_state_covariance : np.ndarray, default=None
         of shape (state_dim, state_dim).
         Initial estimated system state covariance, also referred to as `P0`.
-    control_transition : np.ndarray, optional (default=None)
+    control_transition : np.ndarray, default=None
         of shape (state_dim, control_variable_dim) or
         (time_steps, state_dim, control_variable_dim).
         Control transition matrix, also referred to as `G`.
         `control_variable_dim` is the dimension of `control variable`,
         also referred to as `u`.
         `control variable` is an optional parameter for `fit` and `transform` functions.
-    denoising : bool, optional (default=False).
+    denoising : bool, default=False
         This parameter affects `transform`. If False, then `transform` will be inferring
         hidden state. If True, uses `FilterPy` `rts_smoother` for denoising.
-    estimate_matrices : str or list of str, optional (default=None).
+    estimate_matrices : str or list of str, default=None
         Subset of [`state_transition`, `measurement_function`,
         `process_noise`, `measurement_noise`, `initial_state`,
         `initial_state_covariance`]
@@ -568,7 +581,7 @@ class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
             of shape (time_steps, measurement_dim).
             Data (measurements) to be transformed.
             Missing values must be represented as np.NaN or np.nan.
-        y : np.ndarray, optional (default=None).
+        y : np.ndarray, default=None
             of shape (control_variable_dim,) or (time_steps, control_variable_dim).
             `control variable`, also referred to as `u`.
             if 2D, must be same length as X.

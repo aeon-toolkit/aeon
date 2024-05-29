@@ -44,7 +44,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         convergence.
     verbose: bool, default=False
         Verbosity mode.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         The number of jobs to run in parallel for GAK cross-similarity matrix
         computations.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.

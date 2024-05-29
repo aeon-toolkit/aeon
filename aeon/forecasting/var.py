@@ -34,12 +34,12 @@ class VAR(_StatsModelsAdapter):
         "ctt" - constant, linear and quadratic trend
         "n" - co constant, no trend
         Note that these are prepended to the columns of the dataset.
-    missing: str, optional (default='none')
+    missing: str, default='none'
         A string specifying if data is missing
-    freq: str, tuple, datetime.timedelta, DateOffset or None, optional (default=None)
+    freq: str, tuple, datetime.timedelta, DateOffset or None, default=None
         A frequency specification for either `dates` or the row labels from
         the endog / exog data.
-    dates: array_like, optional (default=None)
+    dates: array_like, default=None
         An array like object containing dates.
     ic: One of {'aic', 'fpe', 'hqic', 'bic', None} (default=None)
         Information criterion to use for VAR order selection.
@@ -114,9 +114,9 @@ class VAR(_StatsModelsAdapter):
         ----------
         y : pd.DataFrame
             Target time series to which to fit the forecaster.
-        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
+        fh : int, list, np.array or ForecastingHorizon, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
 
         Returns
         -------
@@ -146,7 +146,7 @@ class VAR(_StatsModelsAdapter):
             The forecasters horizon with the steps ahead to to predict.
             Default is one-step ahead forecast,
             i.e. np.array([1])
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
 
         Returns
@@ -207,7 +207,7 @@ class VAR(_StatsModelsAdapter):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
