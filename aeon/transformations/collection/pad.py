@@ -36,8 +36,8 @@ class PaddingTransformer(BaseCollectionTransformer):
         each time series. Supported statistic strings are "mean", "median", "max",
         "min".
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.transformations.collection import PaddingTransformer
     >>> import numpy as np
     >>> X = []

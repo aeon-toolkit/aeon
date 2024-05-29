@@ -64,11 +64,11 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     n_iter_: int
         Number of iterations run.
 
-    Reference
-    ---------
-        .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
-        Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
-        .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
+    References
+    ----------
+    .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
+           Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
+    .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
 
     Examples
     --------

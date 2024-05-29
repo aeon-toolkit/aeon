@@ -1,23 +1,15 @@
 """sklearn PCA applied as transformation."""
 
-__maintainer__ = []
-__all__ = ["PCATransformer"]
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["PCASeriesTransformer"]
 
 import pandas as pd
-from deprecated.sphinx import deprecated
 from sklearn.decomposition import PCA
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="PCATransformer will be removed in version 0.10 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class PCATransformer(BaseTransformer):
+class PCASeriesTransformer(BaseSeriesTransformer):
     """Principal Components Analysis applied as transformer.
 
     Provides a simple wrapper around ``sklearn.decomposition.PCA``.
@@ -91,20 +83,30 @@ class PCATransformer(BaseTransformer):
     ----------
     pca_ : sklearn.decomposition.PCA
         The fitted PCA object
+
+    Examples
+    --------
+    >>> # skip DOCTEST if Python < 3.8
+    >>> import sys, pytest
+    >>> if sys.version_info < (3, 8):
+    ...     pytest.skip("PCATransformer requires Python >= 3.8")
+    >>>
+    >>> from aeon.transformations.series._pca import PCASeriesTransformer
+    >>> from aeon.datasets import load_longley
+    >>> _, X = load_longley()
+    >>> transformer = PCASeriesTransformer(n_components=2)
+    >>> X_hat = transformer.fit_transform(X)
+
+    References
+    ----------
+    # noqa: E501
+    .. [1] https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
     """
 
     _tags = {
-        "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
-        "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": False,  # is this an instance-wise transform?
         "X_inner_type": "pd.DataFrame",
-        "y_inner_type": "None",
         "capability:multivariate": True,
         "fit_is_empty": False,
-        "capability:missing_values": False,
-        "python_version": ">=3.8",
     }
 
     def __init__(
@@ -128,7 +130,7 @@ class PCATransformer(BaseTransformer):
         self.power_iteration_normalizer = power_iteration_normalizer
         self.iterated_power = iterated_power
         self.random_state = random_state
-        super().__init__()
+        super().__init__(axis=0)
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -137,9 +139,7 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X: data structure of type X_inner_type
-            if X_inner_type is list, _fit must support all types in it
-            Data to fit transform to
+        X: pd.DataFrame
         y : Ignored
 
         Returns
@@ -158,7 +158,6 @@ class PCATransformer(BaseTransformer):
             random_state=self.random_state,
         )
         self.pca_.fit(X=X)
-
         return self
 
     def _transform(self, X, y=None):
@@ -168,9 +167,7 @@ class PCATransformer(BaseTransformer):
 
         Parameters
         ----------
-        X: data structure of type X_inner_type
-            if X_inner_type is list, _transform must support all types in it
-            Data to be transformed
+        X: pd.DataFrame
         y : Ignored
 
         Returns
