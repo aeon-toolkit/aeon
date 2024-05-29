@@ -29,10 +29,10 @@ from aeon.datatypes._panel._convert import (
     from_numpy3d_to_dflist,
 )
 from aeon.testing.utils.data_gen import (
+    make_example_3d_unequal_length,
     make_example_long_table,
     make_example_multi_index_dataframe,
     make_example_nested_dataframe,
-    make_example_unequal_length,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -415,7 +415,7 @@ def test_from_nested_to_nplist(n_cases, n_channels, n_timepoints):
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_from_nplist_to_nested(n_cases, n_channels, n_timepoints):
     """Test from_nplist_to_nested for correctness."""
-    np_list, _ = make_example_unequal_length(
+    np_list, _ = make_example_3d_unequal_length(
         n_cases, n_channels, n_timepoints, n_timepoints
     )
     nested = from_nplist_to_nested(np_list)

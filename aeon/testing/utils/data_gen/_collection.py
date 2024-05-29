@@ -4,7 +4,6 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from sklearn.utils.validation import check_random_state
 
 from aeon.utils.conversion import convert_collection
 

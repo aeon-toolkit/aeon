@@ -16,7 +16,7 @@ from aeon.testing.utils.data_gen import (
     make_example_2d_numpy,
     make_example_2d_unequal_length,
     make_example_3d_numpy,
-    make_example_unequal_length,
+    make_example_3d_unequal_length,
     make_series,
 )
 
@@ -247,7 +247,7 @@ def test_pairwise_distance(dist):
         # Test collection of unequal length univariate time series in the shape
         # (n_cases, n_channels, n_timepoints)
         _validate_pairwise_result(
-            make_example_unequal_length(5, 1, random_state=1, return_y=False),
+            make_example_3d_unequal_length(5, 1, random_state=1, return_y=False),
             dist["name"],
             dist["distance"],
             dist["pairwise_distance"],
@@ -256,7 +256,7 @@ def test_pairwise_distance(dist):
         # Test collection of unequal length multivariate time series in the shape
         # (n_cases, n_channels, n_timepoints)
         _validate_pairwise_result(
-            make_example_unequal_length(5, 5, random_state=1, return_y=False),
+            make_example_3d_unequal_length(5, 5, random_state=1, return_y=False),
             dist["name"],
             dist["distance"],
             dist["pairwise_distance"],
@@ -341,8 +341,8 @@ def test_multiple_to_multiple_distances(dist):
         # Test passing two collections of unequal length univariate time series of shape
         # (n_cases, 1, n_timepoints) and (n_cases, 1, m_timepoints)
         _validate_multiple_to_multiple_result(
-            make_example_unequal_length(5, 1, random_state=1, return_y=False),
-            make_example_unequal_length(10, 1, random_state=2, return_y=False),
+            make_example_3d_unequal_length(5, 1, random_state=1, return_y=False),
+            make_example_3d_unequal_length(10, 1, random_state=2, return_y=False),
             dist["name"],
             dist["distance"],
             dist["pairwise_distance"],
@@ -352,8 +352,8 @@ def test_multiple_to_multiple_distances(dist):
         # shape (n_cases, n_channels, m_timepoints) and (n_cases, n_channels,
         # n_timepoints)
         _validate_multiple_to_multiple_result(
-            make_example_unequal_length(5, 5, random_state=1, return_y=False),
-            make_example_unequal_length(10, 5, random_state=2, return_y=False),
+            make_example_3d_unequal_length(5, 5, random_state=1, return_y=False),
+            make_example_3d_unequal_length(10, 5, random_state=2, return_y=False),
             dist["name"],
             dist["distance"],
             dist["pairwise_distance"],
@@ -464,7 +464,7 @@ def test_single_to_multiple_distances(dist):
         # (n_cases, 1, m_timepoints)
         _validate_single_to_multiple_result(
             make_series(5, return_numpy=True, random_state=1),
-            make_example_unequal_length(5, 1, random_state=2, return_y=False),
+            make_example_3d_unequal_length(5, 1, random_state=2, return_y=False),
             dist["name"],
             dist["distance"],
             dist["pairwise_distance"],
@@ -475,7 +475,7 @@ def test_single_to_multiple_distances(dist):
         # (n_cases, 1, m_timepoints)
         _validate_single_to_multiple_result(
             make_series(5, 1, return_numpy=True, random_state=1),
-            make_example_unequal_length(5, 1, random_state=2, return_y=False),
+            make_example_3d_unequal_length(5, 1, random_state=2, return_y=False),
             dist["name"],
             dist["distance"],
             dist["pairwise_distance"],

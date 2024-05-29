@@ -5,12 +5,12 @@ import pytest
 
 from aeon.testing.utils.data_gen import (
     make_example_3d_numpy,
-    make_example_unequal_length,
+    make_example_3d_unequal_length,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_collection_by_class, plot_series_collection
 
-data_to_test = [make_example_3d_numpy(), make_example_unequal_length()]
+data_to_test = [make_example_3d_numpy(), make_example_3d_unequal_length()]
 
 
 @pytest.mark.skipif(

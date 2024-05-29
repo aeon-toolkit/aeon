@@ -8,15 +8,11 @@ import pytest
 from numpy import array_equal
 
 from aeon.testing.utils.data_gen import (
-    _make_classification_y,
-    _make_collection,
-    _make_nested_from_array,
-    _make_regression_y,
     make_example_2d_numpy,
     make_example_2d_unequal_length,
     make_example_3d_numpy,
+    make_example_3d_unequal_length,
     make_example_nested_dataframe,
-    make_example_unequal_length,
     piecewise_poisson,
 )
 
@@ -112,7 +108,7 @@ def test_make_unequal_length_data(
     n_cases, n_channels, n_timepoints, n_classes, regression
 ):
     """Test data of right format."""
-    X, y = make_example_unequal_length(
+    X, y = make_example_3d_unequal_length(
         n_cases=n_cases,
         n_channels=n_channels,
         n_labels=n_classes,
@@ -128,7 +124,7 @@ def test_make_unequal_length_data(
         assert y.dtype == np.float32
     else:
         assert len(np.unique(y)) == n_classes
-    X = make_example_unequal_length(
+    X = make_example_3d_unequal_length(
         n_cases=n_cases,
         n_channels=n_channels,
         n_labels=n_classes,
@@ -203,26 +199,3 @@ def test_make_example_nested_dataframe(
         return_y=False,
     )
     assert isinstance(X, pd.DataFrame)
-
-
-def test_uncovered():
-    """Test data gen cases we dont need to do for all combos."""
-    X, y = make_example_2d_numpy(n_cases=4, n_labels=5)
-    assert np.unique(y).size == 4
-    y = _make_regression_y(return_numpy=True)
-    assert isinstance(y, np.ndarray)
-    y = _make_regression_y(return_numpy=False)
-    assert isinstance(y, pd.Series)
-    with pytest.raises(ValueError, match="n_cases must be bigger than n_classes"):
-        y = _make_classification_y(n_cases=4, n_classes=5)
-    x = _make_nested_from_array(make_example_3d_numpy(n_channels=2), 2)
-    assert isinstance(x, pd.DataFrame)
-
-
-def test__make_collection():
-    """Test make collection."""
-    X = _make_collection(n_cases=4, n_channels=2, n_timepoints=20)
-    assert X.shape == (4, 2, 20)
-    y = np.array([0, 1, 0, 1, 0, 1, 0, 1])
-    X = _make_collection(n_cases=4, n_channels=2, n_timepoints=20, y=y)
-    assert X.shape == (8, 2, 20)
