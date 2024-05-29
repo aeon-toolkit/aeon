@@ -53,8 +53,8 @@ def plot_boxplot_median(
     fig : matplotlib.figure.Figure
     ax : matplotlib.axes.Axes
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.visualisation import plot_boxplot_median
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
