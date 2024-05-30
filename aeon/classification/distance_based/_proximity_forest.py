@@ -5,6 +5,22 @@ from aeon.classification.base import BaseClassifier
 # from aeon.distances import distance
 
 
+class Node:
+
+    def __init__(
+        self,
+        node_id,
+        _is_leaf,
+        label,
+        splitter=None,
+    ):
+        self.node_id = node_id
+        self._is_leaf = _is_leaf
+        self.label = label
+        self.splitter = splitter
+        self.children = {}
+
+
 class ProximityTree(BaseClassifier):
 
     def __init__(
@@ -73,7 +89,7 @@ class ProximityTree(BaseClassifier):
 
         return random_params
 
-    def get_candidate_splitter(self, X, y, parameterized_distances):
+    def get_candidate_splitter(self, X, y):
         """Generate candidate splitter.
 
         Takes a time series dataset and a set of parameterized
@@ -105,6 +121,7 @@ class ProximityTree(BaseClassifier):
 
         # Create a list with first element exemplars and second element a
         # random parameterized distance measure
+        parameterized_distances = self.get_parameter_value(X)
         n = np.random.randint(0, 9)
         dist = list(parameterized_distances.keys())[n]
         splitter = [exemplars, {dist: parameterized_distances[dist]}]
@@ -150,7 +167,7 @@ class ProximityTree(BaseClassifier):
 
         Parameters
         ----------
-        y : 1d array like
+        y : 1d array
             array of class labels at parent
         y_subs : list of 1d array like
             list of array of class labels, one array per child
@@ -162,7 +179,8 @@ class ProximityTree(BaseClassifier):
             higher score means better gain,
             i.e. a better split
         """
-        y = np.array(y)
+        if y.ndim != 1:
+            raise ValueError()
         # find number of instances overall
         parent_n_instances = y.shape[0]
         # if parent has no instances then is pure
@@ -188,8 +206,48 @@ class ProximityTree(BaseClassifier):
                 score -= child_score
         return score
 
-    def _fit(self, X, y):
+    def _build_tree(self, X, y, depth, node_id, parent_target_value=None):
+
+        # If the data reaching the node is empty
+        if len(X) == 0:
+            leaf_label = parent_target_value
+            leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
+
+        # Target value in current node
+        initial_target_value = self._find_trget_value(X, y)
+
+        # If max depth is reached
+        if (self.max_depth is not None) & (depth >= self.max_depth):
+            leaf_label = initial_target_value
+            leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
+
+        # Pure node
+        if len(np.unique(y)) == 1:
+            leaf_label = initial_target_value
+            leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
+            return leaf
+
+        # Find the best splitter
+        # splitter = self.get_best_splitter(X, y, self.n_splitters)
+
+        # node = Node(node_id=node_id, _is_leaf=False, splitter=splitter)
+
+    def _find_target_value(self, y):
+        """Get the class label of highest frequency."""
+        unique, counts = np.unique(y, return_counts=True)
+        # Find the index of the maximum count
+        max_index = np.argmax(counts)
+        mode_value = unique[max_index]
+        # mode_count = counts[max_index]
+        return mode_value
+
+    def get_best_splitter(self, X, y, n_splitters):
         pass
+
+    def _fit(self, X, y):
+        self.root = self._build_tree(
+            X, y, depth=0, node_id="0", parent_target_value=None
+        )
 
     def _predict(self, X):
         pass
