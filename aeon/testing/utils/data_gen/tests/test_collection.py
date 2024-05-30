@@ -180,7 +180,8 @@ def test_make_example_nested_dataframe(
         n_cases=n_cases,
         n_labels=n_classes,
         n_channels=n_channels,
-        n_timepoints=n_timepoints,
+        min_n_timepoints=n_timepoints,
+        max_n_timepoints=n_timepoints,
         regression_target=regression,
     )
 
@@ -194,7 +195,8 @@ def test_make_example_nested_dataframe(
         n_cases=n_cases,
         n_labels=n_classes,
         n_channels=n_channels,
-        n_timepoints=n_timepoints,
+        min_n_timepoints=n_timepoints,
+        max_n_timepoints=n_timepoints,
         regression_target=regression,
         return_y=False,
     )

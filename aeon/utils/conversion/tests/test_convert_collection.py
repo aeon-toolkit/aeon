@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.testing.utils.data_gen import make_example_nested_dataframe
-from aeon.testing.utils.data_gen._collection import (
+from aeon.testing.testing_data import (
     EQUAL_LENGTH_MULTIVARIATE,
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
+from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.conversion._convert_collection import (
     _from_nested_univ_to_numpy2d,
