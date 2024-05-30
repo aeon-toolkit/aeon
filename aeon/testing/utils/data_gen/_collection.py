@@ -393,7 +393,7 @@ def make_example_dataframe_list(
             label = i
         x = x * (label + 1)
 
-        X.append(pd.DataFrame(x))
+        X.append(pd.DataFrame(x, index=range(n_timepoints), columns=range(n_channels)))
         y[i] = label
 
     if regression_target:
@@ -463,7 +463,7 @@ def make_example_2d_dataframe(
         random_state=random_state,
         return_y=True,
     )
-    X = pd.DataFrame(X)
+    X = pd.DataFrame(X, index=range(n_cases), columns=range(n_timepoints))
 
     if return_y:
         return X, y
