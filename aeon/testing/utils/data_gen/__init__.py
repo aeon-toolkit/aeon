@@ -4,11 +4,13 @@ __all__ = [
     # collections
     "make_example_3d_numpy",
     "make_example_2d_numpy",
-    "make_example_3d_unequal_length",
-    "make_example_2d_unequal_length",
+    "make_example_3d_numpy_list",
+    "make_example_2d_numpy_list",
+    "make_example_dataframe_list",
+    "make_example_2d_dataframe",
     "make_example_nested_dataframe",
-    "make_example_long_table",
     "make_example_multi_index_dataframe",
+    # other
     "make_series",
     "make_forecasting_problem",
     "_make_index",
@@ -29,10 +31,12 @@ __all__ = [
 
 
 from aeon.testing.utils.data_gen._collection import (
+    make_example_2d_dataframe,
     make_example_2d_numpy,
-    make_example_2d_unequal_length,
+    make_example_2d_numpy_list,
     make_example_3d_numpy,
-    make_example_3d_unequal_length,
+    make_example_3d_numpy_list,
+    make_example_dataframe_list,
     make_example_long_table,
     make_example_multi_index_dataframe,
     make_example_nested_dataframe,

@@ -39,7 +39,9 @@ def test_nested_univ_is_equal():
     }
     X = pd.DataFrame(data)
     assert not _nested_univ_is_equal(X)
-    X, _ = make_example_nested_dataframe(n_cases=10, n_channels=1, n_timepoints=20)
+    X, _ = make_example_nested_dataframe(
+        n_cases=10, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
+    )
     assert _nested_univ_is_equal(X)
 
 

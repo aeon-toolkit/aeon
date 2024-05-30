@@ -199,7 +199,7 @@ def get_type(X):
                 f"ERROR passed a list containing {type(X[0])}, "
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
-    elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
+    elif isinstance(X, pd.DataFrame):  # Nested univariate, hierarchical or pd-wide
         if is_nested_univ_dataframe(X):
             return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
@@ -210,8 +210,6 @@ def get_type(X):
             "ERROR unknown pd.DataFrame, contains non float values, "
             "not hierarchical nor is it nested pd.Series"
         )
-    #    if isinstance(X, dask.dataframe.core.DataFrame):
-    #        return "dask_panel"
     raise TypeError(
         f"ERROR passed input of type {type(X)}, must be of type "
         f"np.ndarray, pd.DataFrame or list of np.ndarray/pd.DataFrame"

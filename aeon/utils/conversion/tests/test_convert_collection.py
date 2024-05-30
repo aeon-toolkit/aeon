@@ -209,7 +209,9 @@ def test__nested_univ_is_equal():
     }
     X = pd.DataFrame(data)
     assert not _nested_univ_is_equal(X)
-    X, _ = make_example_nested_dataframe(n_cases=10, n_channels=1, n_timepoints=20)
+    X, _ = make_example_nested_dataframe(
+        n_cases=10, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
+    )
     assert _nested_univ_is_equal(X)
 
 
@@ -233,10 +235,14 @@ def test_from_nested():
         TypeError, match="Cannot convert unequal length series to numpy2D"
     ):
         _from_nested_univ_to_numpy2d(X)
-    X, _ = make_example_nested_dataframe(n_cases=10, n_channels=1, n_timepoints=20)
+    X, _ = make_example_nested_dataframe(
+        n_cases=10, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
+    )
     result = _from_nested_univ_to_numpy2d(X)
     assert result.shape == (10, 20)
-    X, _ = make_example_nested_dataframe(n_cases=10, n_channels=2, n_timepoints=20)
+    X, _ = make_example_nested_dataframe(
+        n_cases=10, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
+    )
     with pytest.raises(
         TypeError, match="Cannot convert multivariate nested into numpy2D"
     ):

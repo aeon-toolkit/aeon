@@ -3,7 +3,7 @@ import numpy as np
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.testing.utils.data_gen import (
     make_example_3d_numpy,
-    make_example_3d_unequal_length,
+    make_example_3d_numpy_list,
 )
 
 data_rng = np.random.RandomState(42)
@@ -40,13 +40,13 @@ y_collection_mv2_r = y_collection2.astype(np.float32) + data_rng.uniform(
     size=y_collection2.shape
 )
 
-X_collection_ul, y_collection_ul = make_example_3d_unequal_length(
+X_collection_ul, y_collection_ul = make_example_3d_numpy_list(
     n_cases=10,
     max_n_timepoints=20,
     min_n_timepoints=10,
     random_state=data_rng.randint(np.iinfo(np.int32).max),
 )
-X_collection_ul2, y_collection_ul2 = make_example_3d_unequal_length(
+X_collection_ul2, y_collection_ul2 = make_example_3d_numpy_list(
     n_cases=5,
     max_n_timepoints=20,
     min_n_timepoints=10,
@@ -78,11 +78,16 @@ TEST_DATA_DICT = {
     "MultivariateCollection": {"train": X_collection_mv, "test": X_collection_mv2},
     "UnequalLengthCollection": {"train": X_collection_ul, "test": X_collection_ul2},
     "MissingValuesCollection": {"train": X_collection_mi, "test": X_collection_mi2},
-    "UnivariateSeries": None,
-    "MultivariateSeries": None,
-    "MissingValuesSeries": None,
 }
 TEST_LABEL_DICT = {
+    "Classification": {
+        "train": y_collection,
+        "test": y_collection2,
+    },
+    "Regression": {
+        "train": y_collection_r,
+        "test": y_collection2_r,
+    },
     "UnivariateCollectionClassification": {
         "train": y_collection,
         "test": y_collection2,
@@ -117,9 +122,6 @@ TEST_LABEL_DICT = {
     },
 }
 
-np_list = []
-for _ in range(10):
-    np_list.append(np.random.random(size=(1, 20)))
 df_list = []
 for _ in range(10):
     df_list.append(pd.DataFrame(np.random.random(size=(20, 1))))
@@ -129,18 +131,22 @@ multiindex = make_example_multi_index_dataframe(
 )
 
 EQUAL_LENGTH_UNIVARIATE = {
-    "numpy3D": np.random.random(size=(10, 1, 20)),
-    "np-list": np_list,
-    "df-list": df_list,
+    "numpy3D": X_collection,
     "numpy2D": np.zeros(shape=(10, 20)),
+    "np-list": make_example_3d_numpy_list(
+        n_cases=10,
+        max_n_timepoints=20,
+        min_n_timepoints=20,
+        random_state=data_rng.randint(np.iinfo(np.int32).max),
+        return_y=False,
+    ),
+    "df-list": df_list,
     "pd-wide": pd.DataFrame(np.zeros(shape=(10, 20))),
     "nested_univ": nested,
     "pd-multiindex": multiindex,
 }
 
-np_list_uneq = []
-for i in range(10):
-    np_list_uneq.append(np.random.random(size=(1, 20 + i)))
+
 df_list_uneq = []
 for i in range(10):
     df_list_uneq.append(pd.DataFrame(np.random.random(size=(20 + i, 1))))
@@ -152,10 +158,11 @@ for i in range(0, 10):
 nested_univ_uneq["channel0"] = instance_list
 
 UNEQUAL_LENGTH_UNIVARIATE = {
-    "np-list": np_list_uneq,
+    "np-list": X_collection_ul,
     "df-list": df_list_uneq,
     "nested_univ": nested_univ_uneq,
 }
+
 np_list_multi = []
 for _ in range(10):
     np_list_multi.append(np.random.random(size=(2, 20)))
@@ -176,11 +183,24 @@ nested_univ_multi["channel1"] = instance_list
 
 
 EQUAL_LENGTH_MULTIVARIATE = {
-    "numpy3D": np.random.random(size=(10, 2, 20)),
+    "numpy3D": X_collection_mv,
     "np-list": np_list_multi,
     "df-list": df_list_multi,
     "nested_univ": nested_univ_multi,
     "pd-multiindex": multi,
+}
+
+UNEQUAL_LENGTH_MULTIVARIATE = {
+    "np-list": make_example_3d_numpy_list(
+        n_cases=10,
+        n_channels=2,
+        max_n_timepoints=20,
+        min_n_timepoints=10,
+        random_state=data_rng.randint(np.iinfo(np.int32).max),
+        return_y=False,
+    ),
+    "df-list": None,
+    "nested_univ": None,
 }
 
 
@@ -191,6 +211,11 @@ def get_data_types_for_estimator(estimator):
     ----------
     estimator : BaseEstimator instance or class
         Estimator instance or class to check for valid input data types.
+
+    Returns
+    -------
+    datatypes : list of str
+        List of valid data types for the estimator usable in TEST_DATA_DICT.
     """
     univariate = estimator.get_tag("capability:univariate", True, raise_error=False)
     multivariate = estimator.get_tag(

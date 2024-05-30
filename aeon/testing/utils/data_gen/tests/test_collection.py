@@ -9,9 +9,9 @@ from numpy import array_equal
 
 from aeon.testing.utils.data_gen import (
     make_example_2d_numpy,
-    make_example_2d_unequal_length,
+    make_example_2d_numpy_list,
     make_example_3d_numpy,
-    make_example_3d_unequal_length,
+    make_example_3d_numpy_list,
     make_example_nested_dataframe,
     piecewise_poisson,
 )
@@ -108,7 +108,7 @@ def test_make_unequal_length_data(
     n_cases, n_channels, n_timepoints, n_classes, regression
 ):
     """Test data of right format."""
-    X, y = make_example_3d_unequal_length(
+    X, y = make_example_3d_numpy_list(
         n_cases=n_cases,
         n_channels=n_channels,
         n_labels=n_classes,
@@ -124,7 +124,7 @@ def test_make_unequal_length_data(
         assert y.dtype == np.float32
     else:
         assert len(np.unique(y)) == n_classes
-    X = make_example_3d_unequal_length(
+    X = make_example_3d_numpy_list(
         n_cases=n_cases,
         n_channels=n_channels,
         n_labels=n_classes,
@@ -142,7 +142,7 @@ def test_make_unequal_length_data(
 @pytest.mark.parametrize("regression", [True, False])
 def test_make_2d_unequal_length_data(n_cases, n_timepoints, n_classes, regression):
     """Test data of right format."""
-    X, y = make_example_2d_unequal_length(
+    X, y = make_example_2d_numpy_list(
         n_cases=n_cases,
         min_n_timepoints=n_timepoints - 1,
         max_n_timepoints=n_timepoints + 1,
@@ -156,7 +156,7 @@ def test_make_2d_unequal_length_data(n_cases, n_timepoints, n_classes, regressio
         assert y.dtype == np.float32
     else:
         assert len(np.unique(y)) == n_classes
-    X = make_example_2d_unequal_length(
+    X = make_example_2d_numpy_list(
         n_cases=n_cases,
         min_n_timepoints=n_timepoints - 1,
         max_n_timepoints=n_timepoints + 1,
