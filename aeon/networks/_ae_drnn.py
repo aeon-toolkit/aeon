@@ -72,7 +72,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
         if self.dilation_rate is None:
             self._dilation_rate = [2**i for i in range(self.n_layers)]
         elif isinstance(self.dilation_rate, int):
-            self._dilate_input = [self.dilation_rate]
+            self._dilate_input = [self.dilation_rate for _ in range(self.num_layers)]
         else:
             self._dilation_rate = self.dilation_rate
             assert isinstance(self.dilation_rate, list)
