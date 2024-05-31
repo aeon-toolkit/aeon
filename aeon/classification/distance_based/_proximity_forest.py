@@ -31,7 +31,7 @@ class ProximityTree(BaseClassifier):
         n_jobs: int = 1,
         verbose: int = 0,
     ) -> None:
-        self.n_splitter = n_splitters
+        self.n_splitters = n_splitters
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.random_state = random_state
