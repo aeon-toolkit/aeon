@@ -72,7 +72,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
         if self.dilation_rate is None:
             self._dilation_rate = [2**i for i in range(self.n_layers)]
         elif isinstance(self.dilation_rate, int):
-            self._dilate_input = [self.dilation_rate for _ in range(self.num_layers)]
+            self._dilate_input = [self.dilation_rate for _ in range(self.n_layers)]
         else:
             self._dilation_rate = self.dilation_rate
             assert isinstance(self.dilation_rate, list)
@@ -80,7 +80,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
 
         if self.n_units is None:
             assert self.n_layers == 3
-            self.n_units = [100, 50, 50]
+            self._n_units = [100, 50, 50]
         else:
             self._n_units = self.n_units
             assert isinstance(self.n_units, list)
@@ -109,7 +109,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
             _finals.append(final)
 
         final, output = self._bidir_gru(
-            x, self.n_units[-1], activation=self._activation[-1]
+            x, self._n_units[-1], activation=self._activation[-1]
         )
         _finals.append(final)
         _output = tf.keras.layers.Concatenate()(_finals)
