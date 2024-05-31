@@ -1,8 +1,7 @@
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
-
-# from aeon.distances import distance
+from aeon.distances import distance
 
 
 class Node:
@@ -128,11 +127,6 @@ class ProximityTree(BaseClassifier):
 
         return splitter
 
-    def _is_leaf(self, y):
-        if len(np.unique(y)) > 1:
-            return False
-        return True
-
     def gini(self, y):
         """Get gini score at a specific node.
 
@@ -214,7 +208,7 @@ class ProximityTree(BaseClassifier):
             leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
 
         # Target value in current node
-        initial_target_value = self._find_trget_value(X, y)
+        initial_target_value = self._find_target_value(X, y)
 
         # If max depth is reached
         if (self.max_depth is not None) & (depth >= self.max_depth):
@@ -228,11 +222,11 @@ class ProximityTree(BaseClassifier):
             return leaf
 
         # Find the best splitter
-        # splitter = self.get_best_splitter(X, y, self.n_splitters)
+        # splitter = self.get_best_splitter(self, X, y, self.n_splitters)
 
         # node = Node(node_id=node_id, _is_leaf=False, splitter=splitter)
 
-    def _find_target_value(self, y):
+    def _find_target_value(y):
         """Get the class label of highest frequency."""
         unique, counts = np.unique(y, return_counts=True)
         # Find the index of the maximum count
@@ -241,8 +235,34 @@ class ProximityTree(BaseClassifier):
         # mode_count = counts[max_index]
         return mode_value
 
-    def get_best_splitter(self, X, y, n_splitters):
-        pass
+    def get_best_splitter(self, X, y):
+        max_gain = float("-inf")
+        best_splitter = None
+        for _ in range(self.n_splitters):
+            splitter = self.get_candidate_splitter(X, y)
+            labels = list(splitter[0].keys())
+            measure = list(splitter[1].keys())[0]
+            y_subs = [[] for k in range(len(labels))]
+            for j in range(X.shape[0]):
+                min_dist = float("inf")
+                sub = None
+                for k in range(len(labels)):
+                    dist = distance(
+                        X[j],
+                        splitter[0][labels[k]],
+                        metric=measure,
+                        kwargs=splitter[1][measure],
+                    )
+                    if dist < min_dist:
+                        min_dist = dist
+                        sub = k
+                y_subs[sub].append(y[j])
+            y_subs = [np.array(ele) for ele in y_subs]
+            gini_index = self.gini_gain(y, y_subs)
+            if gini_index > max_gain:
+                max_gain = gini_index
+                best_splitter = splitter
+        return best_splitter
 
     def _fit(self, X, y):
         self.root = self._build_tree(
