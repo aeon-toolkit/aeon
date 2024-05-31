@@ -72,26 +72,30 @@ class DCNNNetwork(BaseDeepNetwork):
         import tensorflow as tf
 
         if self.num_filters is None:
-            self.num_filters = [32 * i for i in range(1, self.num_layers + 1)]
+            self._num_filters = [32 * i for i in range(1, self.num_layers + 1)]
         elif isinstance(self.num_filters, list):
+            self._num_filters = self.num_filters
             assert len(self.num_filters) == self.num_layers
 
         if self.dilation_rate is None:
-            self.dilation_rate = [
+            self._dilation_rate = [
                 2**layer_num for layer_num in range(1, self.num_layers + 1)
             ]
         else:
+            self._dilation_rate = self.dilation_rate
             assert isinstance(self.dilation_rate, list)
             assert len(self.dilation_rate) == self.num_layers
 
         if isinstance(self.kernel_size, int):
             self.kernel_size = [self.kernel_size for _ in range(self.num_layers)]
         elif isinstance(self.kernel_size, list):
+            self._kernel_size = self.kernel_size
             assert len(self.kernel_size) == self.num_layers
 
         if isinstance(self.activation, str):
             self.activation = [self.activation for _ in range(self.num_layers)]
-        elif isinstance(self.kernel_size, list):
+        elif isinstance(self.activation, list):
+            self._activation = self.activation
             assert len(self.activation) == self.num_layers
 
         input_layer = tf.keras.layers.Input(input_shape)
@@ -100,10 +104,10 @@ class DCNNNetwork(BaseDeepNetwork):
         for i in range(0, self.num_layers):
             x = self._dcnn_layer(
                 x,
-                self.num_filters[i],
-                self.dilation_rate[i],
-                _activation=self.activation[i],
-                _kernel_size=self.kernel_size[i],
+                self._num_filters[i],
+                self._dilation_rate[i],
+                _activation=self._activation[i],
+                _kernel_size=self._kernel_size[i],
             )
         x = tf.keras.layers.GlobalMaxPool1D()(x)
         output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
