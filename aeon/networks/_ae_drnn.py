@@ -64,14 +64,15 @@ class AEDRNNNetwork(BaseDeepNetwork):
         import tensorflow as tf
 
         if self.decoder_activation is None:
-            self.decoder_activation = self.activation
+            self._decoder_activation = self.activation
 
         if isinstance(self.decoder_activation, list):
-            self.decoder_activation = self.activation[0]
+            self._decoder_activation = self.activation[0]
 
         if self.dilation_rate is None:
-            self.dilation_rate = [2**i for i in range(self.n_layers)]
+            self._dilation_rate = [2**i for i in range(self.n_layers)]
         else:
+            self._dilation_rate = self.dilation_rate
             assert isinstance(self.dilation_rate, list)
             assert len(self.dilation_rate) == self.n_layers
 
@@ -79,12 +80,14 @@ class AEDRNNNetwork(BaseDeepNetwork):
             assert self.n_layers == 3
             self.n_units = [100, 50, 50]
         else:
+            self._n_units = self.n_units
             assert isinstance(self.n_units, list)
             assert len(self.n_units) == self.n_layers
 
         if isinstance(self.activation, str):
-            self.activation = [self.activation for _ in range(self.n_layers)]
+            self._activation = [self.activation for _ in range(self.n_layers)]
         elif isinstance(self.activation, list):
+            self._activation = self.activation
             assert len(self.activation) == self.n_layers
 
         encoder_input_layer = tf.keras.layers.Input(input_shape)
@@ -95,16 +98,16 @@ class AEDRNNNetwork(BaseDeepNetwork):
         for i in range(self.n_layers - 1):
             final, output = self._bidir_gru(
                 x,
-                self.n_units[i],
-                activation=self.activation[i],
+                self._n_units[i],
+                activation=self._activation[i],
             )
             x = tf.keras.layers.Lambda(
-                self._dilate_input, arguments={"dilation_rate": self.dilation_rate[i]}
+                self._dilate_input, arguments={"dilation_rate": self._dilation_rate[i]}
             )(output)
             _finals.append(final)
 
         final, output = self._bidir_gru(
-            x, self.n_units[-1], activation=self.activation[-1]
+            x, self.n_units[-1], activation=self._activation[-1]
         )
         _finals.append(final)
         _output = tf.keras.layers.Concatenate()(_finals)
@@ -122,11 +125,11 @@ class AEDRNNNetwork(BaseDeepNetwork):
             decoder_input_layer
         )
 
-        decoder_gru_units = sum(self.n_units) * 2
+        decoder_gru_units = sum(self._n_units) * 2
         decoder_gru = tf.keras.layers.GRU(
             decoder_gru_units,
             return_sequences=True,
-            activation=self.decoder_activation,
+            activation=self._decoder_activation,
         )(expanded_latent_space)
 
         decoder_output_layer = tf.keras.layers.TimeDistributed(
