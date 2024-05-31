@@ -549,8 +549,8 @@ def convert_collection(X, output_type):
         X is list but not of np.ndarray or pd.DataFrame
         X is a pd.DataFrame of non float primitives
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.conversion import convert_collection
     >>> from aeon.utils.validation import get_type
     >>> X=convert_collection(np.zeros(shape=(10, 3, 20)), "np-list")
@@ -573,8 +573,8 @@ def convert_collection(X, output_type):
 def resolve_equal_length_inner_type(inner_types: Sequence[str]) -> str:
     """Hierarchy of preference for internal supported types for equal length.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     inner_types: Sequence[str]
         The inner types to be resolved to a single type.
     """
@@ -601,8 +601,8 @@ def resolve_equal_length_inner_type(inner_types: Sequence[str]) -> str:
 def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
     """Hierarchy of preference for internal supported types for unequal length.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     inner_types: Sequence[str]
         The inner types to be resolved to a single type.
     """
