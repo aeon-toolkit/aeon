@@ -64,6 +64,7 @@ def make_example_3d_numpy(
     >>> print(labels)
     [0 1]
     >>> get_type(data)
+    'numpy3D'
     """
     rng = np.random.RandomState(random_state)
     X = n_labels * rng.uniform(size=(n_cases, n_channels, n_timepoints))
@@ -78,6 +79,7 @@ def make_example_3d_numpy(
     if regression_target:
         y = y.astype(np.float32)
         y += rng.uniform(size=y.shape)
+
     if return_y:
         return X, y
     return X
@@ -121,6 +123,7 @@ def make_example_2d_numpy(
     Examples
     --------
     >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
+    >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_2d_numpy(
     ...     n_cases=2,
     ...     n_timepoints=6,
@@ -132,6 +135,8 @@ def make_example_2d_numpy(
      [2.         3.567092   3.85465104 1.53376608 3.16690015 2.11557968]]
     >>> print(labels)
     [0 1]
+    >>> get_type(data)
+    'numpy2D'
     """
     rng = np.random.RandomState(random_state)
     X = n_labels * rng.uniform(size=(n_cases, n_timepoints))
@@ -146,6 +151,7 @@ def make_example_2d_numpy(
     if regression_target:
         y = y.astype(np.float32)
         y += rng.uniform(size=y.shape)
+
     if return_y:
         return X, y
     return X
@@ -195,6 +201,7 @@ def make_example_3d_numpy_list(
     Examples
     --------
     >>> from aeon.testing.utils.data_gen import make_example_3d_numpy_list
+    >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_3d_numpy_list(
     ...     n_cases=2,
     ...     n_channels=2,
@@ -204,13 +211,13 @@ def make_example_3d_numpy_list(
     ...     random_state=0,
     ... )
     >>> print(data)
-    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
-      [0.87517442 1.783546   1.92732552 0.76688304 1.58345008 1.05778984]]
-    <BLANKLINE>
-     [[2.         3.70238655 0.28414423 0.3485172  0.08087359 3.33047938]
-      [3.112627   3.48004859 3.91447337 3.19663426 1.84591745 3.12211671]]]
+    [array([[0.        , 1.6885315 , 1.71589124, 1.69450348],
+           [1.24712739, 0.76876341, 0.59506921, 0.11342595]]), array([[2.        , 3.16690015, 2.11557968, 2.27217824],
+           [3.70238655, 0.28414423, 0.3485172 , 0.08087359]])]
     >>> print(labels)
     [0 1]
+    >>> get_type(data)
+    'np-list'
     """
     rng = np.random.RandomState(random_state)
     X = []
@@ -278,6 +285,7 @@ def make_example_2d_numpy_list(
     Examples
     --------
     >>> from aeon.testing.utils.data_gen import make_example_2d_numpy_list
+    >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_2d_numpy_list(
     ...     n_cases=2,
     ...     min_n_timepoints=4,
@@ -286,11 +294,7 @@ def make_example_2d_numpy_list(
     ...     random_state=0,
     ... )
     >>> print(data)
-    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
-      [0.87517442 1.783546   1.92732552 0.76688304 1.58345008 1.05778984]]
-    <BLANKLINE>
-     [[2.         3.70238655 0.28414423 0.3485172  0.08087359 3.33047938]
-      [3.112627   3.48004859 3.91447337 3.19663426 1.84591745 3.12211671]]]
+    [array([0.        , 1.6885315 , 1.71589124, 1.69450348]), array([2.        , 1.19013843, 0.22685191, 1.09062518, 1.91066047])]
     >>> print(labels)
     [0 1]
     """
@@ -363,6 +367,7 @@ def make_example_dataframe_list(
     Examples
     --------
     >>> from aeon.testing.utils.data_gen import make_example_dataframe_list
+    >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_dataframe_list(
     ...     n_cases=2,
     ...     n_channels=2,
@@ -372,13 +377,19 @@ def make_example_dataframe_list(
     ...     random_state=0,
     ... )
     >>> print(data)
-    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
-      [0.87517442 1.783546   1.92732552 0.76688304 1.58345008 1.05778984]]
-    <BLANKLINE>
-     [[2.         3.70238655 0.28414423 0.3485172  0.08087359 3.33047938]
-      [3.112627   3.48004859 3.91447337 3.19663426 1.84591745 3.12211671]]]
+    [          0         1
+    0  0.000000  1.688531
+    1  1.715891  1.694503
+    2  1.247127  0.768763
+    3  0.595069  0.113426,           0         1
+    0  2.000000  3.166900
+    1  2.115580  2.272178
+    2  3.702387  0.284144
+    3  0.348517  0.080874]
     >>> print(labels)
     [0 1]
+    >>> get_type(data)
+    'df-list'
     """
     rng = np.random.RandomState(random_state)
     X = []
@@ -442,18 +453,22 @@ def make_example_2d_dataframe(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
-    >>> data, labels = make_example_2d_numpy(
+    >>> from aeon.testing.utils.data_gen import make_example_2d_dataframe
+    >>> from aeon.utils.validation.collection import get_type
+    >>> data, labels = make_example_2d_dataframe(
     ...     n_cases=2,
     ...     n_timepoints=6,
     ...     n_labels=2,
     ...     random_state=0,
     ... )
     >>> print(data)
-    [[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
-     [2.         3.567092   3.85465104 1.53376608 3.16690015 2.11557968]]
+         0         1         2         3        4         5
+    0  0.0  1.430379  1.205527  1.089766  0.84731  1.291788
+    1  2.0  3.567092  3.854651  1.533766  3.16690  2.115580
     >>> print(labels)
     [0 1]
+    >>> get_type(data)
+    'pd-wide'
     """
     X, y = make_example_2d_numpy(
         n_cases=n_cases,
@@ -514,12 +529,28 @@ def make_example_nested_dataframe(
     Examples
     --------
     >>> from aeon.testing.utils.data_gen import make_example_nested_dataframe
+    >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_nested_dataframe(
-    ...     n_cases=20,
-    ...     min_n_timepoints=8,
-    ...     max_n_timepoints=12,
-    ...     n_labels=3,
+    ...     n_cases=2,
+    ...     min_n_timepoints=4,
+    ...     max_n_timepoints=6,
+    ...     n_labels=2,
+    ...     random_state=0,
     ... )
+    >>> print(data)
+                                                       0
+    0  0    0.000000
+    1    1.688531
+    2    1.715891
+    3   ...
+    1  0    2.000000
+    1    1.190138
+    2    0.226852
+    3   ...
+    >>> print(labels)
+    [0 1]
+    >>> get_type(data)
+    'nested_univ'
     """
     rng = np.random.RandomState(random_state)
     X = pd.DataFrame(index=range(n_cases), columns=range(n_channels))
@@ -535,8 +566,7 @@ def make_example_nested_dataframe(
         x = x * (label + 1)
 
         for j in range(n_channels):
-            data = pd.Series(x[j], index=range(n_timepoints))
-            X.iloc[i, j] = data
+            X.iloc[i][j] = pd.Series(x[j], index=range(n_timepoints))
 
         y[i] = label
 
