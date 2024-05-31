@@ -53,30 +53,27 @@ class AEBiGRUNetwork(BaseDeepNetwork):
         )
         from tensorflow.keras.models import Model
 
-        if self.n_layers is None:
-            if self.n_units is None:
-                self.n_layers = 2
-                self.n_units = [50, self.latent_space_dim // 2]
-            else:
-                if isinstance(self.n_units, int):
-                    self.n_layers = 1
-                elif isinstance(self.n_units, list):
-                    self.n_layers = len(self.n_units)
+        if (self.n_layers is None) and (self.n_units is None):
+            self._n_layers = 2
+            self._n_units = [50, self.latent_space_dim // 2]
+        elif (self.n_layers is not None) and (self.n_units is None):
+            raise ValueError("Please specify the number of units for each GRU Layer.")
 
         if isinstance(self.activation, str):
-            self.activation = [self.activation for _ in range(self.n_layers)]
+            self._activation = [self.activation for _ in range(self.n_layers)]
         else:
+            self._activation = self.activation
             assert isinstance(self.activation, list)
             assert len(self.activation) == self.n_layers
 
         encoder_inputs = Input(shape=input_shape, name="encoder_input")
         x = encoder_inputs
-        for i in range(self.n_layers):
-            return_sequences = i < self.n_layers - 1
+        for i in range(self._n_layers):
+            return_sequences = i < self._n_layers - 1
             x = Bidirectional(
                 GRU(
-                    units=self.n_units[i],
-                    activation=self.activation[i],
+                    units=self._n_units[i],
+                    activation=self._activation[i],
                     return_sequences=return_sequences,
                 ),
                 name=f"encoder_bgru_{i+1}",
@@ -91,11 +88,11 @@ class AEBiGRUNetwork(BaseDeepNetwork):
 
         decoder_inputs = Input(shape=(self.latent_space_dim,), name="decoder_input")
         x = RepeatVector(input_shape[0], name="repeat_vector")(decoder_inputs)
-        for i in range(self.n_layers - 1, -1, -1):
+        for i in range(self._n_layers - 1, -1, -1):
             x = Bidirectional(
                 GRU(
-                    units=self.n_units[i],
-                    activation=self.activation[i],
+                    units=self._n_units[i],
+                    activation=self._activation[i],
                     return_sequences=True,
                 ),
                 name=f"decoder_bgru_{i+1}",
