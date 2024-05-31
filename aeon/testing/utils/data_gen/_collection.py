@@ -1,5 +1,17 @@
 """Utility functions for generating collections of time series."""
 
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = [
+    "make_example_3d_numpy",
+    "make_example_2d_numpy",
+    "make_example_3d_numpy_list",
+    "make_example_2d_numpy_list",
+    "make_example_dataframe_list",
+    "make_example_2d_dataframe",
+    "make_example_nested_dataframe",
+    "make_example_multi_index_dataframe",
+]
+
 from typing import List, Tuple, Union
 
 import numpy as np
