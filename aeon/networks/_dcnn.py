@@ -47,6 +47,7 @@ class DCNNNetwork(BaseDeepNetwork):
         activation="relu",
         num_filters=None,
         dilation_rate=None,
+        temporal_latent_space=False,
     ):
         super().__init__()
 
@@ -56,6 +57,7 @@ class DCNNNetwork(BaseDeepNetwork):
         self.num_layers = num_layers
         self.dilation_rate = dilation_rate
         self.activation = activation
+        self.temporal_latent_space = temporal_latent_space
 
     def build_network(self, input_shape):
         """Construct a network and return its input and output layers.
@@ -111,8 +113,16 @@ class DCNNNetwork(BaseDeepNetwork):
                 _activation=self._activation[i],
                 _kernel_size=self._kernel_size[i],
             )
-        x = tf.keras.layers.GlobalMaxPool1D()(x)
-        output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
+
+        if not self.temporal_latent_space:
+            x = tf.keras.layers.GlobalMaxPool1D()(x)
+            output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
+
+        elif self.temporal_latent_space:
+            output_layer = tf.keras.layers.Conv1D(
+                filters=self.latent_space_dim,
+                kernel_size=1,
+            )(x)
 
         model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
         return model
