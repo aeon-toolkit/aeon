@@ -197,14 +197,14 @@ def test_from_nested_to_multi_index(n_cases, n_channels, n_timepoints):
         n_cases, n_channels, n_timepoints, n_timepoints
     )
     mi_df = from_nested_to_multi_index(
-        nested, instance_index="case_id", time_index="reading_id"
+        nested, instance_index="case", time_index="timepoint"
     )
 
     # n_timepoints_max = nested.applymap(_nested_cell_timepoints).sum().max()
 
     assert isinstance(mi_df, pd.DataFrame)
     assert mi_df.shape == (n_cases * n_timepoints, n_channels)
-    assert mi_df.index.names == ["case_id", "reading_id"]
+    assert mi_df.index.names == ["case", "timepoint"]
 
 
 @pytest.mark.parametrize("n_cases", N_CASES)
