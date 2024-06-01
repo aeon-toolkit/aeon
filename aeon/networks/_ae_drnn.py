@@ -12,18 +12,24 @@ class AEDRNNNetwork(BaseDeepNetwork):
     ----------
     latent_space_dim : int, default = 128
         Dimensionality of the latent space.
-    n_layers : int, default = 3
+    n_layers_encoder : int, default = 3
         Number of GRU layers in the encoder.
+    n_layers_decoder : int, default = 3
+        Number of GRU layers in the decoder.
     dilation_rate : Union[int, List[int]], default = None
         List of dilation rates for each layer, by default None.
         If None, default = powers of 2 up to `n_stacked`.
-    activation : str, default="relu"
+    activation_encoder : Union[str, List[str]], default="relu"
         Activation function to use in the GRU layers.
-    decoder_activation : str, default=None
+    activation_decoder : Union[str, List[str]], default=None
         Activation function of the single GRU layer in the decoder.
+        If None, defaults to relu.
     n_units : List[int], default="None"
         Number of units in each GRU layer, by default None.
         If None, default to [100, 50, 50].
+    dilation_rate : Union[int, List[int]], default = None
+        List of dilation rates for each layer, by default None.
+        If None, default to a list of ones.
     """
 
     def __init__(
@@ -68,9 +74,11 @@ class AEDRNNNetwork(BaseDeepNetwork):
         import tensorflow as tf
 
         if self.activation_decoder is None:
-            self._decoder_activation=["relu" for _ in range(self.n_layers_decoder)]
+            self._decoder_activation = ["relu" for _ in range(self.n_layers_decoder)]
         elif isinstance(self.activation_decoder, str):
-            self._decoder_activation = [self.activation_decoder for _ in range(self.n_layers_decoder)]
+            self._decoder_activation = [
+                self.activation_decoder for _ in range(self.n_layers_decoder)
+            ]
         elif isinstance(self.activation_decoder, list):
             self._decoder_activation = self.activation_decoder
             assert len(self._decoder_activation) == self.n_layers_decoder
@@ -78,7 +86,9 @@ class AEDRNNNetwork(BaseDeepNetwork):
         if self.dilation_rate is None:
             self._dilation_rate = [2**i for i in range(self.n_layers_encoder)]
         elif isinstance(self.dilation_rate, int):
-            self._dilate_input = [self.dilation_rate for _ in range(self.n_layers_encoder)]
+            self._dilate_input = [
+                self.dilation_rate for _ in range(self.n_layers_encoder)
+            ]
         else:
             self._dilation_rate = self.dilation_rate
             assert isinstance(self.dilation_rate, list)
@@ -93,7 +103,9 @@ class AEDRNNNetwork(BaseDeepNetwork):
             assert len(self.n_units) == self.n_layers_encoder
 
         if isinstance(self.activation_encoder, str):
-            self._activation_encoder = [self.activation_encoder for _ in range(self.n_layers_encoder)]
+            self._activation_encoder = [
+                self.activation_encoder for _ in range(self.n_layers_encoder)
+            ]
         elif isinstance(self.activation_encoder, list):
             self._activation_encoder = self.activation_encoder
             assert len(self.activation_encoder) == self.n_layers_encoder
@@ -101,7 +113,9 @@ class AEDRNNNetwork(BaseDeepNetwork):
         if self.dilation_rate_decoder is None:
             self._dilation_rate_decoder = [1 for _ in range(self.n_layers_decoder)]
         elif isinstance(self.dilation_rate, int):
-            self._dilation_rate_decoder = [self.dilation_rate for _ in range(self.n_layers_decoder)]
+            self._dilation_rate_decoder = [
+                self.dilation_rate for _ in range(self.n_layers_decoder)
+            ]
         elif isinstance(self.dilation_rate_decoder, list):
             self._dilation_rate_decoder = self.dilation_rate
             assert len(self._dilation_rate_decoder) == self.n_layers_decoder
@@ -148,9 +162,10 @@ class AEDRNNNetwork(BaseDeepNetwork):
                 return_sequences=True,
                 activation=self._decoder_activation[i],
             )(expanded_latent_space)
-            if (i < self.n_layers_decoder-1):
+            if i < self.n_layers_decoder - 1:
                 decoder_gru = tf.keras.layers.Lambda(
-                    self._dilate_input, arguments={"dilation_rate": self._dilation_rate_decoder[i]}
+                    self._dilate_input,
+                    arguments={"dilation_rate": self._dilation_rate_decoder[i]},
                 )
 
         decoder_output_layer = tf.keras.layers.TimeDistributed(
@@ -179,4 +194,3 @@ class AEDRNNNetwork(BaseDeepNetwork):
         )(input)
         final = tf.keras.layers.Concatenate()([forward, backward])
         return final, output
-    
