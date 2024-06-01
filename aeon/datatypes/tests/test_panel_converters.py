@@ -180,7 +180,7 @@ def test_from_multi_index_to_nested(n_cases, n_channels, n_timepoints):
         n_channels=n_channels,
     )
     nested_df = from_multi_index_to_nested(
-        mi_df, instance_index="case_id", cells_as_numpy=False
+        mi_df, instance_index="case", cells_as_numpy=False
     )
 
     assert is_nested_dataframe(nested_df)
