@@ -5,6 +5,47 @@ from sklearn.utils import check_random_state
 from aeon.utils.conversion import convert_collection
 
 
+def make_example_long_table(
+    n_cases: int = 50, n_channels: int = 2, n_timepoints: int = 20
+) -> pd.DataFrame:
+    """Generate example collection in long table format file.
+
+    Parameters
+    ----------
+    n_cases: int, default = 50
+        Number of cases.
+    n_channels: int, default = 2
+        Number of dimensions.
+    n_timepoints: int, default = 20
+        Length of the series.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame containing random data in long format.
+    """
+    rows_per_case = n_timepoints * n_channels
+    total_rows = n_cases * n_timepoints * n_channels
+
+    case_ids = np.empty(total_rows, dtype=int)
+    idxs = np.empty(total_rows, dtype=int)
+    dims = np.empty(total_rows, dtype=int)
+    vals = np.random.rand(total_rows)
+
+    for i in range(total_rows):
+        case_ids[i] = int(i / rows_per_case)
+        rem = i % rows_per_case
+        dims[i] = int(rem / n_timepoints)
+        idxs[i] = rem % n_timepoints
+
+    df = pd.DataFrame()
+    df["case_id"] = pd.Series(case_ids)
+    df["dim_id"] = pd.Series(dims)
+    df["reading_id"] = pd.Series(idxs)
+    df["value"] = pd.Series(vals)
+    return df
+
+
 def _make_collection(
     n_cases=20,
     n_channels=1,

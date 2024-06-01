@@ -180,7 +180,12 @@ EQUAL_LENGTH_UNIVARIATE = {
         return_y=False,
     ),
     "pd-multiindex": make_example_multi_index_dataframe(
-        n_cases=10, n_channels=1, n_timepoints=20
+        n_cases=10,
+        n_channels=1,
+        min_n_timepoints=20,
+        max_n_timepoints=20,
+        random_state=data_rng.randint(np.iinfo(np.int32).max),
+        return_y=False,
     ),
 }
 
@@ -195,6 +200,14 @@ UNEQUAL_LENGTH_UNIVARIATE = {
         return_y=False,
     ),
     "nested_univ": make_example_nested_dataframe(
+        n_cases=10,
+        n_channels=1,
+        min_n_timepoints=10,
+        max_n_timepoints=20,
+        random_state=data_rng.randint(np.iinfo(np.int32).max),
+        return_y=False,
+    ),
+    "pd-multiindex": make_example_multi_index_dataframe(
         n_cases=10,
         n_channels=1,
         min_n_timepoints=10,
@@ -232,7 +245,12 @@ EQUAL_LENGTH_MULTIVARIATE = {
         return_y=False,
     ),
     "pd-multiindex": make_example_multi_index_dataframe(
-        n_cases=10, n_channels=2, n_timepoints=20
+        n_cases=10,
+        n_channels=2,
+        min_n_timepoints=20,
+        max_n_timepoints=20,
+        random_state=data_rng.randint(np.iinfo(np.int32).max),
+        return_y=False,
     ),
 }
 
@@ -254,6 +272,14 @@ UNEQUAL_LENGTH_MULTIVARIATE = {
         return_y=False,
     ),
     "nested_univ": make_example_nested_dataframe(
+        n_cases=10,
+        n_channels=2,
+        min_n_timepoints=10,
+        max_n_timepoints=20,
+        random_state=data_rng.randint(np.iinfo(np.int32).max),
+        return_y=False,
+    ),
+    "pd-multiindex": make_example_multi_index_dataframe(
         n_cases=10,
         n_channels=2,
         min_n_timepoints=10,

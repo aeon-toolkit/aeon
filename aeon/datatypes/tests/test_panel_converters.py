@@ -30,9 +30,12 @@ from aeon.datatypes._panel._convert import (
 )
 from aeon.testing.utils.data_gen import (
     make_example_3d_numpy_list,
-    make_example_long_table,
     make_example_multi_index_dataframe,
     make_example_nested_dataframe,
+)
+from aeon.testing.utils.data_gen._legacy import (
+    _make_collection_X,
+    make_example_long_table,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -204,8 +207,11 @@ def test_from_nested_to_multi_index(n_cases, n_channels, n_timepoints):
 def test_is_nested_dataframe(n_cases, n_channels, n_timepoints):
     """Test is_nested_dataframe for correctness."""
     array = np.random.normal(size=(n_cases, n_channels, n_timepoints))
-    nested, _ = make_example_nested_dataframe(
-        n_cases, n_channels, n_timepoints, n_timepoints
+    nested = _make_collection_X(
+        n_cases=n_cases,
+        n_channels=n_channels,
+        n_timepoints=n_timepoints,
+        return_numpy=False,
     )
     zero_df = pd.DataFrame(np.zeros_like(nested))
     nested_heterogenous = pd.concat([zero_df, nested], axis=1)

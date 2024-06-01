@@ -507,7 +507,7 @@ def make_example_nested_dataframe(
     random_state=None,
     return_y: bool = True,
 ):
-    """Randomly generate nested pd.DataFrame X and y data for testing.
+    """Randomly generate nested pd.DataFrame X and numpy y data for testing.
 
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
@@ -591,72 +591,105 @@ def make_example_nested_dataframe(
     return X
 
 
-def make_example_long_table(
-    n_cases: int = 50, n_channels: int = 2, n_timepoints: int = 20
-) -> pd.DataFrame:
-    """Generate example collection in long table format file.
-
-    Parameters
-    ----------
-    n_cases: int, default = 50
-        Number of cases.
-    n_channels: int, default = 2
-        Number of dimensions.
-    n_timepoints: int, default = 20
-        Length of the series.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing random data in long format.
-    """
-    rows_per_case = n_timepoints * n_channels
-    total_rows = n_cases * n_timepoints * n_channels
-
-    case_ids = np.empty(total_rows, dtype=int)
-    idxs = np.empty(total_rows, dtype=int)
-    dims = np.empty(total_rows, dtype=int)
-    vals = np.random.rand(total_rows)
-
-    for i in range(total_rows):
-        case_ids[i] = int(i / rows_per_case)
-        rem = i % rows_per_case
-        dims[i] = int(rem / n_timepoints)
-        idxs[i] = rem % n_timepoints
-
-    df = pd.DataFrame()
-    df["case_id"] = pd.Series(case_ids)
-    df["dim_id"] = pd.Series(dims)
-    df["reading_id"] = pd.Series(idxs)
-    df["value"] = pd.Series(vals)
-    return df
-
-
 def make_example_multi_index_dataframe(
-    n_cases: int = 50, n_channels: int = 3, n_timepoints: int = 20
+    n_cases: int = 10,
+    n_channels: int = 1,
+    min_n_timepoints: int = 12,
+    max_n_timepoints: int = 12,
+    n_labels: int = 2,
+    regression_target: bool = False,
+    random_state=None,
+    return_y: bool = True,
 ):
-    """Generate example collection as multi-index DataFrame.
+    """Randomly generate multi-index pd.DataFrame X and numpy y data for testing.
+
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
 
     Parameters
     ----------
-    n_cases : int, default =50
-        Number of instances.
-    n_channels : int, default =3
-        Number of columns (series) in multi-indexed DataFrame.
-    n_timepoints : int, default =20
-        Number of timepoints per instance-column pair.
+    n_cases : int, default = 10
+        The number of samples to generate.
+    n_channels : int, default = 1
+        The number of series channels to generate.
+    min_n_timepoints : int, default = 12
+        The minimum number of features/series length to generate for individual series.
+    max_n_timepoints : int, default = 12
+        The maximum number of features/series length to generate for individual series.
+    n_labels : int, default = 2
+        The number of unique labels to generate.
+    regression_target : bool, default = False
+        If True, the target will be a float, otherwise a discrete.
+    random_state : int or None, default = None
+        Seed for random number generation.
+    return_y : bool, default = True
+        Return the y target variable.
 
     Returns
     -------
-    mi_df : pd.DataFrame
-        The multi-indexed DataFrame with
-        shape (n_cases*n_timepoints, n_column).
+    X : np.ndarray
+        Randomly generated 3D data.
+    y : np.ndarray
+        Randomly generated labels.
+
+    Examples
+    --------
+    >>> from aeon.testing.utils.data_gen import make_example_multi_index_dataframe
+    >>> from aeon.utils.validation.collection import get_type
+    >>> data, labels = make_example_multi_index_dataframe(
+    ...     n_cases=2,
+    ...     n_channels=2,
+    ...     min_n_timepoints=4,
+    ...     max_n_timepoints=6,
+    ...     n_labels=2,
+    ...     random_state=0,
+    ... )
+    >>> print(data)
+                    channel_0  channel_1
+    case timepoint
+    0    0           0.000000   1.247127
+         1           1.688531   0.768763
+         2           1.715891   0.595069
+         3           1.694503   0.113426
+    1    0           2.000000   3.702387
+         1           3.166900   0.284144
+         2           2.115580   0.348517
+         3           2.272178   0.080874
+    >>> print(labels)
+    [0 1]
+    >>> get_type(data)
+    'pd-multiindex'
     """
-    # Make long DataFrame
-    long_df = make_example_long_table(
-        n_cases=n_cases, n_timepoints=n_timepoints, n_channels=n_channels
-    )
-    # Make Multi index DataFrame
-    mi_df = long_df.set_index(["case_id", "reading_id"]).pivot(columns="dim_id")
-    mi_df.columns = [f"var_{i}" for i in range(n_channels)]
-    return mi_df
+    rng = np.random.RandomState(random_state)
+    X = pd.DataFrame(columns=["case", "channel", "timepoint", "value"])
+    y = np.zeros(n_cases, dtype=np.int32)
+
+    for i in range(n_cases):
+        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
+        x = n_labels * rng.uniform(size=(n_channels, n_timepoints))
+        label = x[0, 0].astype(int)
+        if i < n_labels and n_cases > i:
+            x[0, 0] = i
+            label = i
+        x = x * (label + 1)
+
+        df = pd.DataFrame()
+        df["case"] = pd.Series([i] * n_channels * n_timepoints)
+        df["channel"] = pd.Series(np.repeat(range(n_channels), n_timepoints))
+        df["timepoint"] = pd.Series(np.tile(range(n_timepoints), n_channels))
+        df["value"] = pd.Series(x.reshape(-1))
+
+        X = pd.concat([X, df])
+        y[i] = label
+
+    X = X.reset_index(drop=True)
+    X = X.set_index(["case", "timepoint"]).pivot(columns="channel")
+    X.columns = [f"channel_{i}" for i in range(n_channels)]
+
+    if regression_target:
+        y = y.astype(np.float32)
+        y += rng.uniform(size=y.shape)
+
+    if return_y:
+        return X, y
+    return X
