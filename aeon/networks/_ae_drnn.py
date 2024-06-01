@@ -42,6 +42,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
         activation_decoder=None,
         n_units=None,
         dilation_rate_decoder=None,
+        temporal_latent_space=False,
     ):
         super().__init__()
 
@@ -53,6 +54,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
         self.n_layers_decoder = n_layers_decoder
         self.dilation_rate = dilation_rate
         self.dilation_rate_decoder = dilation_rate_decoder
+        self.temporal_latent_space = temporal_latent_space
 
     def build_network(self, input_shape, **kwargs):
         """Build the encoder and decoder networks.
@@ -141,7 +143,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
         )
         _finals.append(final)
         _output = tf.keras.layers.Concatenate()(_finals)
-
+        
         encoder_output_layer = tf.keras.layers.Dense(
             self.latent_space_dim, activation="linear"
         )(_output)
