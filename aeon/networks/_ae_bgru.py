@@ -18,10 +18,17 @@ class AEBiGRUNetwork(BaseDeepNetwork):
         activation : Union[list, str]
             Activation function(s) to use in each layer.
             Can be a single string or a list.
+        temporal_latent_space : bool, default = False
+            Flag to choose whether the latent space is an MTS or Euclidean space.
     """
 
     def __init__(
-        self, latent_space_dim=128, n_layers=None, n_units=None, activation="relu"
+        self,
+        latent_space_dim=128,
+        n_layers=None,
+        n_units=None,
+        activation="relu",
+        temporal_latent_space=False,
     ):
         super().__init__()
 
@@ -29,6 +36,7 @@ class AEBiGRUNetwork(BaseDeepNetwork):
         self.activation = activation
         self.n_layers = n_layers
         self.n_units = n_units
+        self.temporal_latent_space = temporal_latent_space
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -70,6 +78,8 @@ class AEBiGRUNetwork(BaseDeepNetwork):
         x = encoder_inputs
         for i in range(self._n_layers):
             return_sequences = i < self._n_layers - 1
+            if self.temporal_latent_space:
+                return_sequences = i < self._n_layers
             x = Bidirectional(
                 GRU(
                     units=self._n_units[i],
@@ -86,7 +96,7 @@ class AEBiGRUNetwork(BaseDeepNetwork):
             inputs=encoder_inputs, outputs=latent_space, name="encoder"
         )
 
-        decoder_inputs = Input(shape=(self.latent_space_dim,), name="decoder_input")
+        decoder_inputs = Input(shape=latent_space.shape[1:], name="decoder_input")
         x = RepeatVector(input_shape[0], name="repeat_vector")(decoder_inputs)
         for i in range(self._n_layers - 1, -1, -1):
             x = Bidirectional(
