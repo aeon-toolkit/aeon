@@ -357,9 +357,12 @@ def _equal_length(X, input_type):
             if X[i].shape[0] != first:
                 return False
         return True
-    if input_type == "nested_univ":  # Nested univariate or hierachical
+    if input_type == "nested_univ":  # Nested univariate
         return _nested_univ_is_equal(X)
-    if input_type == "pd-multiindex":  # multiindex will store unequal as NaN
-        return not X.isna().any().any()
+    if input_type == "pd-multiindex":  # multiindex dataframe
+        X = X.reset_index(-1).drop(X.columns, axis=1)
+        return (
+            X.groupby(level=0, group_keys=True, as_index=True).count().nunique()[0] == 1
+        )
     raise ValueError(f" unknown input type {input_type}")
     return False

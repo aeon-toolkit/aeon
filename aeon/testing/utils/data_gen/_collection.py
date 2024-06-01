@@ -644,7 +644,7 @@ def make_example_multi_index_dataframe(
     ...     n_labels=2,
     ...     random_state=0,
     ... )
-    >>> print(data)
+    >>> print(data)  # doctest: +NORMALIZE_WHITESPACE
                     channel_0  channel_1
     case timepoint
     0    0           0.000000   1.247127
@@ -661,7 +661,11 @@ def make_example_multi_index_dataframe(
     'pd-multiindex'
     """
     rng = np.random.RandomState(random_state)
-    X = pd.DataFrame(columns=["case", "channel", "timepoint", "value"])
+    X = pd.DataFrame()
+    X["case"] = pd.Series(dtype=np.int32)
+    X["channel"] = pd.Series(dtype=np.int32)
+    X["timepoint"] = pd.Series(dtype=np.int32)
+    X["value"] = pd.Series(dtype=np.float32)
     y = np.zeros(n_cases, dtype=np.int32)
 
     for i in range(n_cases):

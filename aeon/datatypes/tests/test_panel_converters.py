@@ -131,7 +131,10 @@ def test_from_3d_numpy_to_2d_array(n_cases, n_channels, n_timepoints):
 def test_from_multi_index_to_3d_numpy(n_cases, n_channels, n_timepoints):
     """Test from_multi_index_to_3d_numpy for correctness."""
     mi_df = make_example_multi_index_dataframe(
-        n_cases=n_cases, n_timepoints=n_timepoints, n_channels=n_channels
+        n_cases=n_cases,
+        min_n_timepoints=n_timepoints,
+        max_n_timepoints=n_timepoints,
+        n_channels=n_channels,
     )
 
     array = from_multi_index_to_3d_numpy(mi_df)
@@ -171,7 +174,10 @@ def test_from_3d_numpy_to_multi_index(n_cases, n_channels, n_timepoints):
 def test_from_multi_index_to_nested(n_cases, n_channels, n_timepoints):
     """Test from_multi_index_to_nested for correctness."""
     mi_df = make_example_multi_index_dataframe(
-        n_cases=n_cases, n_timepoints=n_timepoints, n_channels=n_channels
+        n_cases=n_cases,
+        min_n_timepoints=n_timepoints,
+        max_n_timepoints=n_timepoints,
+        n_channels=n_channels,
     )
     nested_df = from_multi_index_to_nested(
         mi_df, instance_index="case_id", cells_as_numpy=False
@@ -217,7 +223,10 @@ def test_is_nested_dataframe(n_cases, n_channels, n_timepoints):
     nested_heterogenous = pd.concat([zero_df, nested], axis=1)
 
     mi_df = make_example_multi_index_dataframe(
-        n_cases=n_cases, n_timepoints=n_timepoints, n_channels=n_channels
+        n_cases=n_cases,
+        min_n_timepoints=n_timepoints,
+        max_n_timepoints=n_timepoints,
+        n_channels=n_channels,
     )
 
     assert not is_nested_dataframe(array)
