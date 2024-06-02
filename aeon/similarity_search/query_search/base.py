@@ -256,16 +256,16 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
 
         """
         if self.metadata_["unequal_length"]:
-            mask = np.ones(
-                (self.n_cases_, self.min_timepoints_ - query_length + 1),
-                dtype=bool,
-            )
-        else:
             mask = List(
                 [
                     np.ones(self.X_[i].shape[1] - query_length + 1, dtype=bool)
                     for i in range(self.n_cases_)
                 ]
+            )
+        else:
+            mask = np.ones(
+                (self.n_cases_, self.min_timepoints_ - query_length + 1),
+                dtype=bool,
             )
         if X_index is not None:
             if isinstance(X_index, Iterable):
