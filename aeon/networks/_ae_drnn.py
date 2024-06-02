@@ -138,21 +138,39 @@ class AEDRNNNetwork(BaseDeepNetwork):
             )(output)
             _finals.append(final)
 
-        final, output = self._bidir_gru(
-            x, self._n_units[-1], activation=self._activation_encoder[-1]
-        )
+        if not self.temporal_latent_space:
+            final, output = self._bidir_gru(
+                x, self._n_units[-1], activation=self._activation_encoder[-1]
+            )
+        elif self.temporal_latent_space:
+            final, output = self._bidir_gru(
+                x,
+                self._n_units[-1],
+                activation=self._activation_encoder[-1],
+                return_sequences=False,
+            )
+
         _finals.append(final)
         _output = tf.keras.layers.Concatenate()(_finals)
-        
-        encoder_output_layer = tf.keras.layers.Dense(
-            self.latent_space_dim, activation="linear"
-        )(_output)
+
+        if not self.temporal_latent_space:
+            encoder_output_layer = tf.keras.layers.Dense(
+                self.latent_space_dim, activation="linear"
+            )(_output)
+
+        elif self.temporal_latent_space:
+            encoder_output_layer = tf.keras.layers.Conv1D(
+                self.latent_space_dim, activation="relu"
+            )(_output)
 
         encoder = tf.keras.Model(
             inputs=encoder_input_layer, outputs=encoder_output_layer
         )
 
-        decoder_input_layer = tf.keras.layers.Input(shape=(self.latent_space_dim,))
+        if not self.temporal_latent_space:
+            decoder_input_layer = tf.keras.layers.Input(shape=(self.latent_space_dim,))
+        elif self.temporal_latent_space:
+            decoder_input_layer = tf.keras.layers.Input(shape=_output.shape[1:])
         expanded_latent_space = tf.keras.layers.RepeatVector(input_shape[0])(
             decoder_input_layer
         )
@@ -183,7 +201,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
     def _dilate_input(self, tensor, dilation_rate):
         return tensor[:, ::dilation_rate, :]
 
-    def _bidir_gru(self, input, nunits, activation):
+    def _bidir_gru(self, input, nunits, activation, return_sequences=True):
         import tensorflow as tf
 
         output, forward, backward = tf.keras.layers.Bidirectional(
@@ -191,7 +209,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
                 nunits,
                 activation=activation,
                 return_sequences=True,
-                return_state=True,
+                return_state=return_sequences,
             )
         )(input)
         final = tf.keras.layers.Concatenate()([forward, backward])
