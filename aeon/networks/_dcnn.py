@@ -15,6 +15,8 @@ class DCNNNetwork(BaseDeepNetwork):
     ----------
     latent_space_dim: int, default=128
         Dimension of the models's latent space.
+    temporal_latent_space : bool, default = False
+        Flag to choose whether the latent space is an MTS or Euclidean space.
     num_layers: int, default=4
         Number of convolution layers.
     kernel_size: int, default=3
