@@ -1,3 +1,5 @@
+"""Datasets used for testing."""
+
 import numpy as np
 
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
