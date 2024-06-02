@@ -1278,7 +1278,7 @@ def load_classification(
         format <name>_TRAIN.ts or <name>_TEST.ts.
     extract_path : str, default=None
         the path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
+        looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
         e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
     return_metadata : boolean, default = True
         If True, returns a tuple (X, y, metadata)

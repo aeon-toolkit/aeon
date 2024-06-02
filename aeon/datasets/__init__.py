@@ -6,6 +6,7 @@ __all__ = [
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
+    "load_anomaly_detection",
     "load_classification",
     "load_forecasting",
     "load_regression",
@@ -91,3 +92,4 @@ from aeon.datasets._single_problem_loaders import (
     load_unit_test_tsf,
     load_uschange,
 )
+from aeon.datasets._tsad_data_loader import load_anomaly_detection
