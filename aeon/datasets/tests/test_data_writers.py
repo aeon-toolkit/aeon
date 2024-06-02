@@ -124,7 +124,7 @@ def test_write_dataframe_to_ts(tsfile_writer):
     """Tests whether a dataset can be written by the .ts writer then read in."""
     # load an example dataset
     problem_name = "Testy.ts"
-    X, y = make_example_nested_dataframe()
+    X, y = make_example_nested_dataframe(min_n_timepoints=12)
     with tempfile.TemporaryDirectory() as tmp:
         # output the dataframe in a ts file
         tsfile_writer(

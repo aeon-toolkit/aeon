@@ -512,7 +512,7 @@ def make_example_2d_dataframe(
 def make_example_nested_dataframe(
     n_cases: int = 10,
     n_channels: int = 1,
-    min_n_timepoints: int = 12,
+    min_n_timepoints: int = 8,
     max_n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
@@ -610,7 +610,7 @@ def make_example_nested_dataframe(
 def make_example_multi_index_dataframe(
     n_cases: int = 10,
     n_channels: int = 1,
-    min_n_timepoints: int = 12,
+    min_n_timepoints: int = 8,
     max_n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
