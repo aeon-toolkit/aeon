@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.clustering import TimeSeriesKMeans
 from aeon.clustering.compose import ClustererPipeline
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )

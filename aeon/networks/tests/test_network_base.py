@@ -3,7 +3,7 @@
 import pytest
 
 from aeon.networks.base import BaseDeepNetwork
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __maintainer__ = []

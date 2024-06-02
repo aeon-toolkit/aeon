@@ -148,7 +148,7 @@ class InceptionTimeRegressor(BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import InceptionTimeRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -462,7 +462,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import IndividualInceptionRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)

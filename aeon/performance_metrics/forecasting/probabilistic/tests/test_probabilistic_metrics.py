@@ -13,7 +13,7 @@ from aeon.performance_metrics.forecasting.probabilistic import (
     EmpiricalCoverage,
     PinballLoss,
 )
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation import make_series
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
