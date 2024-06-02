@@ -44,12 +44,12 @@ class DCNNNetwork(BaseDeepNetwork):
     def __init__(
         self,
         latent_space_dim=128,
+        temporal_latent_space=False,
         num_layers=4,
         kernel_size=3,
         activation="relu",
         num_filters=None,
         dilation_rate=None,
-        temporal_latent_space=False,
     ):
         super().__init__()
 
