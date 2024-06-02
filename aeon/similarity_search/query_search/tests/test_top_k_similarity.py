@@ -44,7 +44,7 @@ def test_TopKQuerySearch_euclidean(dtype):
 
     search = TopKQuerySearch(k=1, normalize=True, distance="euclidean")
     search.fit(X)
-    idx = search.predict(q, q_index=(1, 2))
+    idx = search.predict(q, X_index=(1, 2))
     assert_array_equal(idx, [(1, 0)])
 
 
@@ -82,7 +82,7 @@ def test_TopKQuerySearch_euclidean_unequal_length(dtype):
 
     search = TopKQuerySearch(k=1, normalize=True, distance="euclidean")
     search.fit(X)
-    idx = search.predict(q, q_index=(1, 2))
+    idx = search.predict(q, X_index=(1, 2))
     assert_array_equal(idx, [(1, 0)])
 
 
@@ -117,7 +117,7 @@ def test_TopKQuerySearch_custom_func(dtype):
 
     search = TopKQuerySearch(k=1, normalize=True, distance=dist)
     search.fit(X)
-    idx = search.predict(q, q_index=(1, 2))
+    idx = search.predict(q, X_index=(1, 2))
     assert_array_equal(idx, [(1, 0)])
 
 
