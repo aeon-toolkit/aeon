@@ -26,15 +26,15 @@ def is_tabular(X):
         return _is_pd_wide(X)
 
 
-def is_collection(X):
+def is_collection(X, include_2d=False):
     """Check X is a valid collection data structure.
-
-    Currently this is limited to 3D numpy, hierarchical pandas and nested pandas.
 
     Parameters
     ----------
     X : array-like
         Input data to be checked.
+    include_2d : bool, optional
+        If True, 2D numpy arrays and wide pandas DataFrames are also considered valid.
 
     Returns
     -------
@@ -44,15 +44,21 @@ def is_collection(X):
     if isinstance(X, np.ndarray):
         if X.ndim == 3:
             return True
+        if include_2d and X.ndim == 2:
+            return True
     if isinstance(X, pd.DataFrame):
         if X.index.nlevels == 2:
             return True
         if is_nested_univ_dataframe(X):
             return True
+        if include_2d and _is_pd_wide(X):
+            return True
     if isinstance(X, list):
         if isinstance(X[0], np.ndarray):
             if X[0].ndim == 2:
                 return True
+        if isinstance(X[0], pd.DataFrame):
+            return True
     return False
 
 

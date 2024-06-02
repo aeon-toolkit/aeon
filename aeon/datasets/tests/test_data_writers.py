@@ -138,8 +138,7 @@ def test_write_dataframe_to_ts(tsfile_writer):
         newX, newy = load_from_tsfile_to_dataframe(load_path)
         # check if the dataframes are the same
         pd.testing.assert_frame_equal(newX, X)
-        y2 = pd.Series(y)
-        pd.testing.assert_series_equal(y, y2)
+        np.testing.assert_array_almost_equal(newy.astype(int), y)
 
 
 def test_write_header():

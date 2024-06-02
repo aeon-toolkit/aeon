@@ -29,6 +29,8 @@ def make_example_3d_numpy(
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 3D numpy X and numpy y data for testing.
 
+    Generates data in 'numpy3D' format.
+
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
 
@@ -54,7 +56,7 @@ def make_example_3d_numpy(
     X : np.ndarray
         Randomly generated 3D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
 
     Examples
     --------
@@ -107,6 +109,8 @@ def make_example_2d_numpy(
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 2D numpy X and numpy y for testing.
 
+    Generates data in 'numpy2D' format.
+
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
 
@@ -128,7 +132,7 @@ def make_example_2d_numpy(
     Returns
     -------
     X : np.ndarray
-        Randomly generated 1D data.
+        Randomly generated 2D data.
     y : np.ndarray
         Randomly generated labels if return_y is True.
 
@@ -181,6 +185,8 @@ def make_example_3d_numpy_list(
 ) -> Union[List[np.ndarray], Tuple[List[np.ndarray], np.ndarray]]:
     """Randomly generate 3D list of numpy X and numpy y for testing.
 
+    Generates data in 'np-list' format.
+
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
 
@@ -206,9 +212,9 @@ def make_example_3d_numpy_list(
     Returns
     -------
     X : list of np.ndarray
-        Randomly generated unequal length 3D data.
+        Randomly generated potentially unequal length 3D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
 
     Examples
     --------
@@ -222,9 +228,10 @@ def make_example_3d_numpy_list(
     ...     n_labels=2,
     ...     random_state=0,
     ... )
-    >>> print(data)
+    >>> print(data)  # doctest: +NORMALIZE_WHITESPACE
     [array([[0.        , 1.6885315 , 1.71589124, 1.69450348],
-           [1.24712739, 0.76876341, 0.59506921, 0.11342595]]), array([[2.        , 3.16690015, 2.11557968, 2.27217824],
+           [1.24712739, 0.76876341, 0.59506921, 0.11342595]]),
+           array([[2.        , 3.16690015, 2.11557968, 2.27217824],
            [3.70238655, 0.28414423, 0.3485172 , 0.08087359]])]
     >>> print(labels)
     [0 1]
@@ -290,9 +297,9 @@ def make_example_2d_numpy_list(
     Returns
     -------
     X : list of np.ndarray
-        Randomly generated unequal length 2D data.
+        Randomly generated potentially unequal length 2D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
 
     Examples
     --------
@@ -305,8 +312,9 @@ def make_example_2d_numpy_list(
     ...     n_labels=2,
     ...     random_state=0,
     ... )
-    >>> print(data)
-    [array([0.        , 1.6885315 , 1.71589124, 1.69450348]), array([2.        , 1.19013843, 0.22685191, 1.09062518, 1.91066047])]
+    >>> print(data)  # doctest: +NORMALIZE_WHITESPACE
+    [array([0.        , 1.6885315 , 1.71589124, 1.69450348]),
+            array([2.        , 1.19013843, 0.22685191, 1.09062518, 1.91066047])]
     >>> print(labels)
     [0 1]
     """
@@ -347,6 +355,8 @@ def make_example_dataframe_list(
 ) -> Union[List[pd.DataFrame], Tuple[List[pd.DataFrame], np.ndarray]]:
     """Randomly generate list of DataFrame X and numpy y for testing.
 
+    Generates data in 'df-list' format.
+
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
 
@@ -372,9 +382,9 @@ def make_example_dataframe_list(
     Returns
     -------
     X : list of pd.DataFrame
-        Randomly generated unequal length 3D data.
+        Randomly generated potentially unequal length 3D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
 
     Examples
     --------
@@ -438,6 +448,8 @@ def make_example_2d_dataframe(
 ) -> Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]:
     """Randomly generate 2D DataFrame X and numpy y for testing.
 
+    Generates data in 'pd-wide' format.
+
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
 
@@ -458,8 +470,8 @@ def make_example_2d_dataframe(
 
     Returns
     -------
-    X : np.ndarray
-        Randomly generated 1D data.
+    X : pd.DataFrame
+        Randomly generated 2D data.
     y : np.ndarray
         Randomly generated labels if return_y is True.
 
@@ -509,6 +521,8 @@ def make_example_nested_dataframe(
 ):
     """Randomly generate nested pd.DataFrame X and numpy y data for testing.
 
+    Generates data in 'nested_univ' format.
+
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
 
@@ -533,10 +547,10 @@ def make_example_nested_dataframe(
 
     Returns
     -------
-    X : np.ndarray
-        Randomly generated 3D data.
+    X : pd.DataFrame
+        Randomly generated potentially unequal length 3D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
 
     Examples
     --------
@@ -550,7 +564,7 @@ def make_example_nested_dataframe(
     ...     random_state=0,
     ... )
     >>> print(data)
-                                                       0
+                                               channel_0
     0  0    0.000000
     1    1.688531
     2    1.715891
@@ -582,6 +596,8 @@ def make_example_nested_dataframe(
 
         y[i] = label
 
+    X.columns = [f"channel_{i}" for i in range(n_channels)]
+
     if regression_target:
         y = y.astype(np.float32)
         y += rng.uniform(size=y.shape)
@@ -602,6 +618,8 @@ def make_example_multi_index_dataframe(
     return_y: bool = True,
 ):
     """Randomly generate multi-index pd.DataFrame X and numpy y data for testing.
+
+    Generates data in 'pd-multiindex' format.
 
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
@@ -627,10 +645,10 @@ def make_example_multi_index_dataframe(
 
     Returns
     -------
-    X : np.ndarray
-        Randomly generated 3D data.
+    X : pd.DataFrame
+        Randomly generated potentially unequal length 3D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
 
     Examples
     --------
