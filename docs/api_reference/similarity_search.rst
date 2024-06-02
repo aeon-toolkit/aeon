@@ -18,7 +18,7 @@ Similarity search with a known query
 
     BaseQuerySearch
     DummyQuerySearch
-    TopKSimilaritySearch
+    TopKQuerySearch
 
 
 Distance profile functions
