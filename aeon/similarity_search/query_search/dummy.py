@@ -9,7 +9,7 @@ from aeon.similarity_search.query_search import BaseQuerySearch
 
 class DummyQuerySearch(BaseQuerySearch):
     """
-    DummySimilaritySearch for testing of the BaseQuerySearch class.
+    DummySimilaritySearch estimator, will return the best match to the query.
 
     Parameters
     ----------

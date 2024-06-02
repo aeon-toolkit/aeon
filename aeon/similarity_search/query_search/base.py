@@ -7,6 +7,7 @@ from collections.abc import Iterable
 from typing import final
 
 import numpy as np
+from numba import get_num_threads, set_num_threads
 from numba.core.registry import CPUDispatcher
 from numba.typed import List
 
@@ -119,21 +120,21 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
     @final
     def predict(
         self,
-        q,
+        X,
         axis=1,
-        q_index=None,
+        X_index=None,
         exclusion_factor=2.0,
         apply_exclusion_to_result=False,
     ):
         """
-        Predict method: Check the shape of q and call _predict to perform the search.
+        Predict method: Check the shape of X and call _predict to perform the search.
 
         If the distance profile function is normalized, it stores the mean and stds
-        from q and X_.
+        from X and X_, with X_ the training data.
 
         Parameters
         ----------
-        q :  array, shape (n_channels, query_length)
+        X :  array, shape (n_channels, query_length)
             Input query used for similarity search.
         axis: int
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
@@ -141,13 +142,13 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
             shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
             the time series are in rows, i.e. the shape of the data is
             ``(n_channels,n_timepoints)``.
-        q_index : Iterable
+        X_index : Iterable
             An Interable (tuple, list, array) of length two used to specify the index of
-            the query q if it was extracted from the input data X given during the fit
+            the query X if it was extracted from the input data X given during the fit
             method. Given the tuple (id_sample, id_timestamp), the similarity search
-            will define an exclusion zone around the q_index in order to avoid matching
-            q with itself. If None, it is considered that the query is not extracted
-            from X.
+            will define an exclusion zone around the X_index in order to avoid matching
+            X with itself. If None, it is considered that the query is not extracted
+            from X_.
         exclusion_factor : float, default=2.
             The factor to apply to the query length to define the exclusion zone. The
             exclusion zone is define from
@@ -168,32 +169,35 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
         Raises
         ------
         TypeError
-            If the input q array is not 2D raise an error.
+            If the input X array is not 2D raise an error.
         ValueError
             If the length of the query is greater
 
         Returns
         -------
         array, shape (n_matches, 2)
-            An array containing the indexes of the matches between q and X_.
+            An array containing the indexes of the matches between X and X_.
             The decision of wheter a candidate of size query_length from X_ is matched
-            with Q depends on the subclasses that implent the _predict method
+            with X depends on the subclasses that implent the _predict method
             (e.g. top-k, threshold, ...). The first index for each match is the sample
             id, the second is the timestamp id.
 
         """
-        query_dim, query_length = self._check_query_format(q, axis)
+        prev_threads = get_num_threads()
+        set_num_threads(self._n_jobs)
 
-        mask = self._init_q_index_mask(
-            q_index,
+        query_dim, query_length = self._check_query_format(X, axis)
+
+        mask = self._init_X_index_mask(
+            X_index,
             query_dim,
             query_length,
             exclusion_factor=exclusion_factor,
         )
 
         if self.normalize:
-            self.q_means_ = np.mean(q, axis=-1)
-            self.q_stds_ = np.std(q, axis=-1)
+            self.query_means_ = np.mean(X, axis=-1)
+            self.query_stds_ = np.std(X, axis=-1)
             if self._previous_query_length != query_length:
                 self._store_mean_std_from_inputs(query_length)
 
@@ -204,26 +208,28 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
 
         self._previous_query_length = query_length
 
-        return self._predict(
-            self._call_distance_profile(q, mask),
+        X_preds = self._predict(
+            self._call_distance_profile(X, mask),
             exclusion_size=exclusion_size,
         )
+        set_num_threads(prev_threads)
+        return X_preds
 
-    def _init_q_index_mask(
-        self, q_index, query_dim, query_length, exclusion_factor=2.0
+    def _init_X_index_mask(
+        self, X_index, query_dim, query_length, exclusion_factor=2.0
     ):
         """
         Initiliaze the mask indicating the candidates to be evaluated in the search.
 
         Parameters
         ----------
-        q_index : Iterable
+        X_index : Iterable
             An Interable (tuple, list, array) of length two used to specify the index of
-            the query q if it was extracted from the input data X given during the fit
+            the query X if it was extracted from the input data X given during the fit
             method. Given the tuple (id_sample, id_timestamp), the similarity search
-            will define an exclusion zone around the q_index in order to avoid matching
-            q with itself. If None, it is considered that the query is not extracted
-            from X.
+            will define an exclusion zone around the X_index in order to avoid matching
+            X with itself. If None, it is considered that the query is not extracted
+            from X_ (the training data).
         query_dim : int
             Number of channels of the queries.
         query_length : int
@@ -261,18 +267,18 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
                     for i in range(self.n_cases_)
                 ]
             )
-        if q_index is not None:
-            if isinstance(q_index, Iterable):
-                if len(q_index) != 2:
+        if X_index is not None:
+            if isinstance(X_index, Iterable):
+                if len(X_index) != 2:
                     raise ValueError(
-                        "The q_index should contain an interable of size 2 such as "
+                        "The X_index should contain an interable of size 2 such as "
                         "(id_sample, id_timestamp), but got an iterable of "
-                        "size {}".format(len(q_index))
+                        "size {}".format(len(X_index))
                     )
             else:
                 raise TypeError(
-                    "If not None, the q_index parameter should be an iterable, here "
-                    "q_index is of type {}".format(type(q_index))
+                    "If not None, the X_index parameter should be an iterable, here "
+                    "X_index is of type {}".format(type(X_index))
                 )
 
             if exclusion_factor <= 0:
@@ -281,7 +287,7 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
                     "{}".format(len(exclusion_factor))
                 )
 
-            i_instance, i_timestamp = q_index
+            i_instance, i_timestamp = X_index
             profile_length = self.X_[i_instance].shape[1] - query_length + 1
             exclusion_LB = max(0, int(i_timestamp - query_length // exclusion_factor))
             exclusion_UB = min(
@@ -292,30 +298,30 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
 
         return mask
 
-    def _check_query_format(self, q, axis):
+    def _check_query_format(self, X, axis):
         if axis not in [0, 1]:
             raise ValueError("The axis argument is expected to be either 1 or 0")
         if self.axis != axis:
-            q = q.T
-        if not isinstance(q, np.ndarray) or q.ndim != 2:
+            X = X.T
+        if not isinstance(X, np.ndarray) or X.ndim != 2:
             raise TypeError(
-                "Error, only supports 2D numpy for now. If the query q is univariate "
-                "do q.reshape(1,-1)."
+                "Error, only supports 2D numpy for now. If the query X is univariate "
+                "do X.reshape(1,-1)."
             )
 
-        query_dim, query_length = q.shape
+        query_dim, query_length = X.shape
         if query_length >= self.min_timepoints_:
             raise ValueError(
                 "The length of the query should be inferior or equal to the length of "
-                "data (X) provided during fit, but got {} for q and {} for X".format(
+                "data (X_) provided during fit, but got {} for X and {} for X_".format(
                     query_length, self.min_timepoints_
                 )
             )
 
         if query_dim != self.n_channels_:
             raise ValueError(
-                "The number of feature should be the same for the query q and the data "
-                "(X) provided during fit, but got {} for q and {} for X".format(
+                "The number of feature should be the same for the query X and the data "
+                "(X_) provided during fit, but got {} for X and {} for X_".format(
                     query_dim, self.n_channels_
                 )
             )
@@ -368,13 +374,13 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
         else:
             return naive_distance_profile
 
-    def _call_distance_profile(self, q, mask):
+    def _call_distance_profile(self, X, mask):
         """
         Obtain the distance profile function and call it with the query and the mask.
 
         Parameters
         ----------
-        q :  array, shape (n_channels, query_length)
+        X :  array, shape (n_channels, query_length)
             Input query used for similarity search.
          mask : array, shape=(n_cases, n_timepoints - query_length + 1)
              Boolean array which indicates the candidates that should be evaluated in
@@ -390,19 +396,19 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
             if self.normalize:
                 distance_profiles = self.distance_profile_function_(
                     self.X_,
-                    q,
+                    X,
                     mask,
                     self.X_means_,
                     self.X_stds_,
-                    self.q_means_,
-                    self.q_stds_,
+                    self.query_means_,
+                    self.query_stds_,
                     self.distance_function_,
                     distance_args=self.distance_args,
                 )
             else:
                 distance_profiles = self.distance_profile_function_(
                     self.X_,
-                    q,
+                    X,
                     mask,
                     self.distance_function_,
                     distance_args=self.distance_args,
@@ -411,15 +417,15 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
             if self.normalize:
                 distance_profiles = self.distance_profile_function_(
                     self.X_,
-                    q,
+                    X,
                     mask,
                     self.X_means_,
                     self.X_stds_,
-                    self.q_means_,
-                    self.q_stds_,
+                    self.query_means_,
+                    self.query_stds_,
                 )
             else:
-                distance_profiles = self.distance_profile_function_(self.X_, q, mask)
+                distance_profiles = self.distance_profile_function_(self.X_, X, mask)
         # For now, deal with the multidimensional case as "dependent", so we sum.
         if self.metadata_["unequal_length"]:
             distance_profiles = List(

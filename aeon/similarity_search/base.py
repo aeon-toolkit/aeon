@@ -5,7 +5,7 @@ __maintainer__ = ["baraline"]
 from abc import ABC, abstractmethod
 from typing import final
 
-from numba import set_num_threads
+from numba import get_num_threads, set_num_threads
 from numba.typed import List
 
 from aeon.base import BaseCollectionEstimator
@@ -95,6 +95,7 @@ class BaseSimiliaritySearch(BaseCollectionEstimator, ABC):
         self
 
         """
+        prev_threads = get_num_threads()
         X = self._preprocess_collection(X)
         # Store minimum number of n_timepoints for unequal length collections
         self.min_timepoints_ = min([X[i].shape[-1] for i in range(len(X))])
@@ -105,6 +106,7 @@ class BaseSimiliaritySearch(BaseCollectionEstimator, ABC):
         set_num_threads(self._n_jobs)
         self.X_ = X
         self._fit(X, y)
+        set_num_threads(prev_threads)
         return self
 
     def _store_mean_std_from_inputs(self, query_length):
