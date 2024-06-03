@@ -3,7 +3,7 @@
 import pytest
 from pandas.testing import assert_series_equal
 
-from aeon.testing.data_generation import make_series
+from aeon.testing.data_generation._legacy import make_series
 from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import OptionalPassthrough
 

@@ -3,11 +3,11 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = [
     "make_example_3d_numpy",
-    "make_example_2d_numpy",
+    "make_example_2d_numpy_collection",
     "make_example_3d_numpy_list",
     "make_example_2d_numpy_list",
     "make_example_dataframe_list",
-    "make_example_2d_dataframe",
+    "make_example_2d_dataframe_collection",
     "make_example_nested_dataframe",
     "make_example_multi_index_dataframe",
 ]
@@ -99,7 +99,7 @@ def make_example_3d_numpy(
     return X
 
 
-def make_example_2d_numpy(
+def make_example_2d_numpy_collection(
     n_cases: int = 10,
     n_timepoints: int = 8,
     n_labels: int = 2,
@@ -138,9 +138,9 @@ def make_example_2d_numpy(
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import make_example_2d_numpy
+    >>> from aeon.testing.data_generation import make_example_2d_numpy_collection
     >>> from aeon.utils.validation.collection import get_type
-    >>> data, labels = make_example_2d_numpy(
+    >>> data, labels = make_example_2d_numpy_collection(
     ...     n_cases=2,
     ...     n_timepoints=6,
     ...     n_labels=2,
@@ -438,7 +438,7 @@ def make_example_dataframe_list(
     return X
 
 
-def make_example_2d_dataframe(
+def make_example_2d_dataframe_collection(
     n_cases: int = 10,
     n_timepoints: int = 8,
     n_labels: int = 2,
@@ -477,9 +477,9 @@ def make_example_2d_dataframe(
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import make_example_2d_dataframe
+    >>> from aeon.testing.data_generation import make_example_2d_dataframe_collection
     >>> from aeon.utils.validation.collection import get_type
-    >>> data, labels = make_example_2d_dataframe(
+    >>> data, labels = make_example_2d_dataframe_collection(
     ...     n_cases=2,
     ...     n_timepoints=6,
     ...     n_labels=2,
@@ -494,7 +494,7 @@ def make_example_2d_dataframe(
     >>> get_type(data)
     'pd-wide'
     """
-    X, y = make_example_2d_numpy(
+    X, y = make_example_2d_numpy_collection(
         n_cases=n_cases,
         n_timepoints=n_timepoints,
         n_labels=n_labels,

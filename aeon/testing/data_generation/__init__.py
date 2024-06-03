@@ -3,17 +3,19 @@
 __all__ = [
     # collections
     "make_example_3d_numpy",
-    "make_example_2d_numpy",
+    "make_example_2d_numpy_collection",
     "make_example_3d_numpy_list",
     "make_example_2d_numpy_list",
     "make_example_dataframe_list",
-    "make_example_2d_dataframe",
+    "make_example_2d_dataframe_collection",
     "make_example_nested_dataframe",
     "make_example_multi_index_dataframe",
-    # other
+    # series
+    "make_example_1d_numpy",
+    "make_example_2d_numpy_series",
+    #
     "make_series",
-    "make_forecasting_problem",
-    "_make_index",
+    # other
     "piecewise_normal_multivariate",
     "piecewise_normal",
     "piecewise_multinomial",
@@ -31,8 +33,8 @@ __all__ = [
 
 
 from aeon.testing.data_generation._collection import (
-    make_example_2d_dataframe,
-    make_example_2d_numpy,
+    make_example_2d_dataframe_collection,
+    make_example_2d_numpy_collection,
     make_example_2d_numpy_list,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
@@ -41,8 +43,8 @@ from aeon.testing.data_generation._collection import (
     make_example_nested_dataframe,
 )
 from aeon.testing.data_generation._series import (
-    _make_index,
-    make_forecasting_problem,
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
     make_series,
 )
 from aeon.testing.data_generation._test_examples import get_examples

@@ -4,8 +4,8 @@ import numpy as np
 
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.testing.data_generation import (
-    make_example_2d_dataframe,
-    make_example_2d_numpy,
+    make_example_2d_dataframe_collection,
+    make_example_2d_numpy_collection,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
     make_example_dataframe_list,
@@ -145,7 +145,7 @@ TEST_LABEL_DICT = {
 
 EQUAL_LENGTH_UNIVARIATE = {
     "numpy3D": X_collection,
-    "numpy2D": make_example_2d_numpy(
+    "numpy2D": make_example_2d_numpy_collection(
         n_cases=10,
         n_timepoints=20,
         random_state=data_rng.randint(np.iinfo(np.int32).max),
@@ -167,7 +167,7 @@ EQUAL_LENGTH_UNIVARIATE = {
         random_state=data_rng.randint(np.iinfo(np.int32).max),
         return_y=False,
     ),
-    "pd-wide": make_example_2d_dataframe(
+    "pd-wide": make_example_2d_dataframe_collection(
         n_cases=10,
         n_timepoints=20,
         random_state=data_rng.randint(np.iinfo(np.int32).max),

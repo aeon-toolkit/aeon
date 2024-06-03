@@ -6,7 +6,7 @@ __all__ = []
 from pandas.testing import assert_series_equal
 
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.testing.data_generation import make_forecasting_problem
+from aeon.testing.data_generation._legacy import make_forecasting_problem
 from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import FitInTransform
 

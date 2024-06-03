@@ -28,9 +28,8 @@ from aeon.testing.data_generation import (
     _get_n_columns,
     _make_fh,
     _make_hierarchical,
-    make_forecasting_problem,
-    make_series,
 )
+from aeon.testing.data_generation._legacy import make_forecasting_problem, make_series
 from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils.index_functions import get_cutoff, get_window
 from aeon.utils.validation import is_pdmultiindex_hierarchical, is_pred_interval_proba
