@@ -14,6 +14,7 @@ __all__ = [
 from warnings import warn
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
@@ -106,6 +107,12 @@ def _init_matrix(matrices, transform_func, default_val):
     return default_val if matrices is None else transform_func(matrices)
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="BaseKalmanFilter will be removed in version 0.10.",
+    category=FutureWarning,
+)
 class BaseKalmanFilter:
     """Kalman Filter is used for denoising data, or inferring the hidden state of data.
 
@@ -305,6 +312,12 @@ class BaseKalmanFilter:
         setattr(self, attr_name, value)
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="KalmanFilterTransformer will be removed in version 0.10.",
+    category=FutureWarning,
+)
 class KalmanFilterTransformer(BaseKalmanFilter, BaseTransformer):
     """Kalman Filter Transformer.
 

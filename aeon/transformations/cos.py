@@ -12,8 +12,7 @@ __all__ = ["CosineTransformer"]
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="CosineTransformer scikit wrapper will be removed in version 0.10. Please "
-    "just use scikit learn.",
+    reason="CosineTransformer will be removed in version 0.10.",
     category=FutureWarning,
 )
 class CosineTransformer(BaseTransformer):

@@ -97,8 +97,8 @@ def _nested_univ_is_equal(X):
     bool
         True if all series in the DataFrame are of equal length, False otherwise.
 
-    Example
-    -------
+    Examples
+    --------
     >>> df = pd.DataFrame({
     ...     'A': [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
     ...     'B': [pd.Series([7, 8, 9]), pd.Series([10, 11, 12])]
@@ -166,8 +166,8 @@ def get_type(X):
         X is list but not of np.ndarray or p.DataFrame.
         X is a pd.DataFrame of non float primitives.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.validation import get_type
     >>> get_type( np.zeros(shape=(10, 3, 20)))
     'numpy3D'
@@ -237,8 +237,8 @@ def is_equal_length(X):
     ValueError
         input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.validation import is_equal_length
     >>> is_equal_length( np.zeros(shape=(10, 3, 20)))
     True
@@ -265,8 +265,8 @@ def has_missing(X):
     ValueError
         Input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.validation import has_missing
     >>> has_missing( np.zeros(shape=(10, 3, 20)))
     False
@@ -336,8 +336,8 @@ def _equal_length(X, input_type):
     ValueError
         input_type not in COLLECTIONS_DATA_TYPES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> _equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
     True
     """

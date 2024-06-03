@@ -5,6 +5,30 @@ import numpy as np
 from aeon.transformations.series import BaseSeriesTransformer
 
 
+class MockSeriesTransformer(BaseSeriesTransformer):
+    """MockSeriesTransformer to set tags."""
+
+    _tags = {
+        "capability:multivariate": True,
+        "capability:inverse_transform": True,
+    }
+
+    def __init__(self):
+        super().__init__(axis=1)
+
+    def _fit(self, X, y=None):
+        """Empty fit."""
+        return self
+
+    def _transform(self, X, y=None) -> np.ndarray:
+        """Empty transform."""
+        return X
+
+    def _inverse_transform(self, X, y=None) -> np.ndarray:
+        """Empty inverse transform."""
+        return X
+
+
 class MockUnivariateSeriesTransformer(BaseSeriesTransformer):
     """
     MockSeriesTransformer adds a random value and a constant to the input series.
@@ -79,22 +103,6 @@ class MockUnivariateSeriesTransformer(BaseSeriesTransformer):
             2D inverse transformed version of X
         """
         return X - (self.constant + self.random_values_)
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """
-        Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class.
-        """
-        return {}
 
 
 class MockMultivariateSeriesTransformer(BaseSeriesTransformer):
@@ -175,22 +183,6 @@ class MockMultivariateSeriesTransformer(BaseSeriesTransformer):
             X_new[i] = X[i] - (self.constant + self.random_values_[i])
         return X_new
 
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """
-        Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class.
-        """
-        return {}
-
 
 class MockSeriesTransformerNoFit(BaseSeriesTransformer):
     """
@@ -231,7 +223,7 @@ class MockSeriesTransformerNoFit(BaseSeriesTransformer):
         return X_new
 
     def _inverse_transform(self, X: np.ndarray, y=None) -> np.ndarray:
-        """Inverse transform X by substracting the constant.
+        """Inverse transform X by subtracting the constant.
 
         Parameters
         ----------
@@ -244,22 +236,5 @@ class MockSeriesTransformerNoFit(BaseSeriesTransformer):
         np.ndarray, shape = (n_channels, n_timepoints)
             2D inverse transformed version of X
         """
-        X_new = np.zeros_like(X)
         X_new = X - self.constant
         return X_new
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """
-        Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class.
-        """
-        return {}

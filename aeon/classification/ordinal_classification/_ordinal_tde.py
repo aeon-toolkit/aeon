@@ -4,7 +4,7 @@ Dictionary based Ordinal TDE classifiers based on SFA transform. Contains a sing
 IndividualOrdinalTDE and Ordinal TDE.
 """
 
-__maintainer__ = []
+__maintainer__ = ["RafaAyGar"]
 __all__ = [
     "OrdinalTDE",
     "IndividualOrdinalTDE",

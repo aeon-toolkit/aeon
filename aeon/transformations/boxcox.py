@@ -44,7 +44,7 @@ def _calc_uniform_order_statistic_medians(n):
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="BoxCoxTransformer will be removed in version 0.10 and replaced with a "
+    reason="BoxCoxTransformer will be removed in version 0.10.0 and replaced with a "
     "BaseSeriesTransformer version in the transformations.series module.",
     category=FutureWarning,
 )
@@ -217,7 +217,7 @@ class BoxCoxTransformer(BaseTransformer):
 # TODO: remove in v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="LogTransformer will be removed in version 0.10 and replaced with a "
+    reason="LogTransformer will be removed in version 0.10.0 and replaced with a "
     "BaseSeriesTransformer version in the transformations.series module.",
     category=FutureWarning,
 )
