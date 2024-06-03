@@ -66,6 +66,9 @@ class AEBiGRUNetwork(BaseDeepNetwork):
             self._n_units = [50, self.latent_space_dim // 2]
         elif (self.n_layers is not None) and (self.n_units is None):
             raise ValueError("Please specify the number of units for each GRU Layer.")
+        else:
+            self._n_layers = self.n_layers
+            self._n_units = self.n_units
 
         if isinstance(self.activation, str):
             self._activation = [self.activation for _ in range(self.n_layers)]
@@ -96,8 +99,13 @@ class AEBiGRUNetwork(BaseDeepNetwork):
             inputs=encoder_inputs, outputs=latent_space, name="encoder"
         )
 
-        decoder_inputs = Input(shape=latent_space.shape[1:], name="decoder_input")
-        x = RepeatVector(input_shape[0], name="repeat_vector")(decoder_inputs)
+        if not self.temporal_latent_space:
+            decoder_inputs = Input(shape=(self.latent_space_dim,), name="decoder_input")
+            x = RepeatVector(input_shape[0], name="repeat_vector")(decoder_inputs)
+        elif self.temporal_latent_space:
+            decoder_inputs = Input(shape=latent_space.shape[1:], name="decoder_input")
+            x = decoder_inputs
+
         for i in range(self._n_layers - 1, -1, -1):
             x = Bidirectional(
                 GRU(
