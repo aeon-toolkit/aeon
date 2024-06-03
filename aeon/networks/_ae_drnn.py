@@ -30,6 +30,8 @@ class AEDRNNNetwork(BaseDeepNetwork):
     dilation_rate : Union[int, List[int]], default = None
         List of dilation rates for each layer, by default None.
         If None, default to a list of ones.
+    temporal_latent_space : bool, default = False
+        Flag to choose whether the latent space is an MTS or Euclidean space.
     """
 
     def __init__(
