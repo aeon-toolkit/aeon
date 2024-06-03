@@ -6,6 +6,7 @@ __all__ = [
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
+    "load_from_timeeval_csv_file",
     "load_anomaly_detection",
     "load_classification",
     "load_forecasting",
@@ -40,12 +41,16 @@ __all__ = [
     "load_solar",
     "load_cardano_sentiment",
     "load_covid_3month",
+    "load_dodgers",
+    "load_calit2",
+    "load_rmj_2_short_2_diff_channel",
     # legacy load functions
     "load_from_arff_to_dataframe",
     "load_from_ucr_tsv_to_dataframe",
     "load_from_tsfile_to_dataframe",
     "get_dataset_meta_data",
 ]
+
 from aeon.datasets._data_loaders import (
     download_all_regression,
     get_dataset_meta_data,
@@ -92,4 +97,10 @@ from aeon.datasets._single_problem_loaders import (
     load_unit_test_tsf,
     load_uschange,
 )
-from aeon.datasets._tsad_data_loader import load_anomaly_detection
+from aeon.datasets._tsad_data_loaders import (
+    load_anomaly_detection,
+    load_calit2,
+    load_dodgers,
+    load_from_timeeval_csv_file,
+    load_rmj_2_short_2_diff_channel,
+)

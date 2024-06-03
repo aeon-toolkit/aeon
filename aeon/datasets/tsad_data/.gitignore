@@ -1,3 +1,5 @@
 *
 !datasets.csv
 !.gitignore
+!univariate/Dodgers/101-freeway-traffic.test.csv
+!multivariate/CalIt2/CalIt2-traffic.test.csv
