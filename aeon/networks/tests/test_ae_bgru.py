@@ -23,10 +23,7 @@ def pytest_generate_tests():
                         latent_space_dim=latent_space_dim,
                         n_layers=n_layer,
                         activation=random.choice(["relu", "tanh"]),
-                        n_units=[
-                            random.choice([50, 25, 100])
-                            for _ in range(n_layer)
-                        ],
+                        n_units=[random.choice([50, 25, 100]) for _ in range(n_layer)],
                         temporal_latent_space=temporal_latent_space,
                     )
                 )
