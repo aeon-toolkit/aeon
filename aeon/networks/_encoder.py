@@ -146,11 +146,10 @@ class EncoderNetwork(BaseDeepNetwork):
         return input_layer, flatten_layer
 
 
-if _check_soft_dependencies(["tensorflow", "typeguard"], severity="none"):
+if _check_soft_dependencies(["tensorflow"], severity="none"):
     import logging
 
     import tensorflow as tf
-    from typeguard import typechecked
 
     @tf.keras.utils.register_keras_serializable(package="Addons")
     class GroupNormalization(tf.keras.layers.Layer):
@@ -201,7 +200,6 @@ if _check_soft_dependencies(["tensorflow", "typeguard"], severity="none"):
         https://github.com/tensorflow/addons/tree/v0.20.0
         """
 
-        @typechecked
         def __init__(
             self,
             groups: int = 32,
