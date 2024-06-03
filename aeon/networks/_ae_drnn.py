@@ -99,8 +99,10 @@ class AEDRNNNetwork(BaseDeepNetwork):
             assert len(self.dilation_rate) == self.n_layers_encoder
 
         if self.n_units is None:
-            assert self.n_layers_encoder == 3
-            self._n_units = [100, 50, 50]
+            if self.n_layers_encoder == 3:
+                self._n_units = [100, 50, 50]
+            else:
+                self._n_units = [100] + [50 for _ in range(self.n_layers_encoder - 1)]
         else:
             self._n_units = self.n_units
             assert isinstance(self.n_units, list)
