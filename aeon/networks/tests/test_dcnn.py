@@ -38,9 +38,8 @@ params = pytest_generate_tests()
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow"]),
-    severity="none",
-    reason="tensorflow soft dependency not present",
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="tensorflow soft dependency not present.",
 )
 @pytest.mark.parametrize("params", params)
 def test_aedrnnnetwork_init(params):
