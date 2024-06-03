@@ -41,7 +41,7 @@ def pytest_generate_tests():
 params = pytest_generate_tests()
 
 
-@pytest.mark.skipif(_check_soft_dependencies(["tensorflow"]))
+@pytest.mark.skipif(not _check_soft_dependencies(["tensorflow"]), severity="none")
 @pytest.mark.parametrize("params", params)
 def test_aedrnnnetwork_init(params):
     """Test whether AEDRNNNetwork initializes correctly for various parameters."""
