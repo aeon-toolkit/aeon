@@ -93,16 +93,16 @@ class DCNNNetwork(BaseDeepNetwork):
             assert len(self.dilation_rate) == self.num_layers
 
         if isinstance(self.kernel_size, int):
-            self.kernel_size = [self.kernel_size for _ in range(self.num_layers)]
+            self._kernel_size = [self.kernel_size for _ in range(self.num_layers)]
         elif isinstance(self.kernel_size, list):
             self._kernel_size = self.kernel_size
             assert len(self.kernel_size) == self.num_layers
 
         if isinstance(self.activation, str):
-            self.activation = [self.activation for _ in range(self.num_layers)]
+            self._activation = [self.activation for _ in range(self.num_layers)]
         elif isinstance(self.activation, list):
             self._activation = self.activation
-            assert len(self.activation) == self.num_layers
+            assert len(self._activation) == self.num_layers
 
         input_layer = tf.keras.layers.Input(input_shape)
 
