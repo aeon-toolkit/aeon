@@ -279,15 +279,9 @@ class Imputer(BaseTransformer):
 
                 # fill NaN before fitting with ffill and backfill (heuristic)
                 self._forecaster.fit(
-                    y=self._X[col]
-                    .fillna(method="ffill")
-                    .fillna(method="backfill")
-                    .fillna(self.value),
+                    y=self._X[col].ffill().bfill().fillna(self.value),
                     X=(
-                        self._y[col]
-                        .fillna(method="ffill")
-                        .fillna(method="backfill")
-                        .fillna(self.value)
+                        self._y[col].ffill().bfill().fillna(self.value)
                         if self._y is not None
                         else None
                     ),
