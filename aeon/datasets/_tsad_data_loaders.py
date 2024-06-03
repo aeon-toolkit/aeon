@@ -67,7 +67,7 @@ def load_anomaly_detection(
     """Load an anomaly detection dataset.
 
     This function loads TSAD problems into memory, downloading from the TimeEval
-    archive (https://timeeval.github.io/evaluation-paper/notebooks/Datasets.html) if
+    archive (https://timeeval.github.io/evaluation-paper/notebooks/Datasets.html) [1] if
     the data is not available at the specified ``extract_path``. If you want to load a
     problem from a local file, specify the location in ``extract_path``. This function
     assumes the data is stored in the
@@ -124,6 +124,12 @@ def load_anomaly_detection(
     >>> X, y = load_anomaly_detection(
     ...     name=("KDD-TSAD", "001_UCR_Anomaly_DISTORTED1sddb40")
     ... )  # doctest: +SKIP
+
+    References
+    ----------
+    .. [1] Sebastian Schmidl, Phillip Wenig, Thorsten Papenbrock: Anomaly Detection in
+           Time Series: A Comprehensive Evaluation. PVLDB 9:(15), 2022,
+           DOI:10.14778/3538598.3538602.
     """
     if not isinstance(name, tuple) or len(name) != 2:
         raise ValueError(
@@ -233,6 +239,7 @@ def load_from_timeeval_csv_file(path: Path) -> Tuple[np.ndarray, np.ndarray]:
     """Load a TimeEval-formatted CSV file into memory.
 
     TimeEval datasets are stored in simple CSV files with the following format:
+
     - The first column contains the timestamps; usually with the header 'timestamp'.
     - The last column contains the binary anomaly labels; usually with the header
       'is_anomaly'.
@@ -263,7 +270,7 @@ def load_from_timeeval_csv_file(path: Path) -> Tuple[np.ndarray, np.ndarray]:
 
 
 def load_dodgers() -> Tuple[np.ndarray, np.ndarray]:
-    """Load the Dodgers 101 freeway traffic univariate time series dataset [1].
+    """Load the Dodgers 101 freeway traffic univariate time series dataset.
 
     Returns
     -------
@@ -279,16 +286,16 @@ def load_dodgers() -> Tuple[np.ndarray, np.ndarray]:
 
     Notes
     -----
-    The Dodgers collection consists of a single univariate time series that represents
-    the traffic volume on the Glendale ramp on the 101 freeway in Los Angeles. The
-    measurements were taken over 25 weeks in 5 minute count aggregates. Dodgers baseball
-    games are played at the stadium near the ramp, which causes traffic congestion =
-    anomalies in the traffic.
+    The Dodgers collection [1] consists of a single univariate time series that
+    represents the traffic volume on the Glendale ramp on the 101 freeway in Los
+    Angeles. The measurements were taken over 25 weeks in 5 minute count aggregates.
+    Dodgers baseball games are played at the stadium near the ramp, which causes traffic
+    congestion = anomalies in the traffic.
 
-    Dimensionality:     univariate
-    Series length:      50400
-    Frequency:          5 minutes
-    Learning Type:      unsupervised (no training data)
+        Dimensionality:     univariate
+        Series length:      50400
+        Frequency:          5 minutes
+        Learning Type:      unsupervised (no training data)
 
 
     References
@@ -302,7 +309,7 @@ def load_dodgers() -> Tuple[np.ndarray, np.ndarray]:
 
 
 def load_calit2() -> Tuple[np.ndarray, np.ndarray]:
-    """Load the CalIt2 building counts multivariate time series dataset [1].
+    """Load the CalIt2 building counts multivariate time series dataset.
 
     Returns
     -------
@@ -318,15 +325,15 @@ def load_calit2() -> Tuple[np.ndarray, np.ndarray]:
 
     Notes
     -----
-    The CalIt2 collection consists of a multivariate time series that represents the
+    The CalIt2 collection [1] consists of a multivariate time series that represents the
     number of people flowing in and out through the main door of the CalIt2 building
     at UCI. The data is collected over 15 weeks in half hour count aggregates. Anomalies
     in the traffic are caused by special events, such as a conference.
 
-    Dimensionality:     multivariate (2 channels)
-    Series length:      5040
-    Frequency:          30 minutes
-    Learning Type:      unsupervised (no training data)
+        Dimensionality:     multivariate (2 channels)
+        Series length:      5040
+        Frequency:          30 minutes
+        Learning Type:      unsupervised (no training data)
 
 
     References
@@ -384,10 +391,10 @@ def load_rmj_2_short_2_diff_channel(
 
     Notes
     -----
-    Dimensionality:     multivariate (2 channels)
-    Series length:      10000
-    Frequency:          unknown
-    Learning Type:      all supported
+        Dimensionality:     multivariate (2 channels)
+        Series length:      10000
+        Frequency:          unknown
+        Learning Type:      all supported
 
     References
     ----------
