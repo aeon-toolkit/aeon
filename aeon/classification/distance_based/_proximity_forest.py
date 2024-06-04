@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.exceptions import NotFittedError
 
 from aeon.classification.base import BaseClassifier
 from aeon.distances import distance
@@ -305,9 +306,26 @@ class ProximityTree(BaseClassifier):
         self.root = self._build_tree(
             X, y, depth=0, node_id="0", parent_target_value=None
         )
+        self._is_fitted = True
 
     def _predict(self, X):
-        pass
+        if not self._is_fitted:
+            raise NotFittedError(
+                f"This instance of {self.__class__.__name__} has not "
+                f"been fitted yet; please call `fit` first."
+            )
+        predictions = list()
+        for i in range(len(X)):
+            prediction = self.classify(self.root, X[i])
+            predictions.append(prediction)
+        return predictions
+
+    def classify(self, treenode, x):
+        # classify one datapoint using the proximity tree
+        if treenode._is_leaf is True:
+            return treenode.label
+        else:
+            return self.classify(treenode.children, x)
 
     def _predict_proba(self, X):
         pass
