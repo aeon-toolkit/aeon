@@ -83,7 +83,7 @@ class DWT_MLEAD(BaseAnomalyDetector):
     ...    start_level=1, quantile_boundary_type='percentile', quantile_epsilon=0.01
     ... )
     >>> detector.fit_predict(X)
-    array([0. 0. 0. 0. 0. 0. 0. 0. 2. 2. 2. 2. 0. 0. 0. 0.])
+    array([0., 0., 0., 0., 0., 0., 0., 0., 2., 2., 2., 2., 0., 0., 0., 0.])
     """
 
     _tags = {
