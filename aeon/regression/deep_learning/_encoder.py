@@ -101,7 +101,7 @@ class EncoderRegressor(BaseDeepRegressor):
     """
 
     _tags = {
-        "python_dependencies": ["tensorflow", "tensorflow_addons"],
+        "python_dependencies": ["tensorflow", "typeguard"],
     }
 
     def __init__(
