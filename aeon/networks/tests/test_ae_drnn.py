@@ -37,7 +37,7 @@ def test_aedrnnnetwork_init(
         activation_decoder=random.choice(["relu", "tanh"]),
         n_units=[random.choice([50, 25, 100]) for _ in range(n_layers_encoder)],
     )
-    encoder, decoder = aedrnn.build_network((1000, 5))
+    encoder, decoder = aedrnn.build_network((150, 5))
     assert encoder is not None
     assert decoder is not None
 
@@ -61,7 +61,7 @@ def test_aedrnnnetwork_activations(activation_encoder, activation_decoder):
         activation_decoder=activation_decoder,
         n_units=[50, 50],
     )
-    encoder, decoder = aedrnn.build_network((1000, 5))
+    encoder, decoder = aedrnn.build_network((150, 5))
     assert encoder is not None
     assert decoder is not None
 
