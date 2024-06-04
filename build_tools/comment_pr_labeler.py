@@ -20,7 +20,6 @@ labels = [label.name for label in issue.get_labels()]
 if comment_user != "aeon-actions-bot[bot]":
     sys.exit(0)
 
-
 def check_label_option(label, option):
     """Add or remove a label based on a checkbox in a comment."""
     if f"- [x] {option}" in comment_body:
@@ -31,15 +30,16 @@ def check_label_option(label, option):
             issue.remove_from_labels(label)
 
 
+
+
+
+
 label_options = [
     ("full pytest actions", "Run `pre-commit` checks for all files"),
     ("full pre-commit", "Run all `pytest` tests and configurations"),
     ("full examples run", "Run all notebook example tests"),
     ("codecov actions", "Run numba-disabled `codecov` tests"),
-    (
-        "stop pre-commit fixes",
-        "Stop automatic `pre-commit` fixes (always disabled for drafts)",
-    ),
+    ("stop pre-commit fixes", "Stop automatic `pre-commit` fixes (always disabled for drafts)"),
 ]
 
 for option in label_options:
