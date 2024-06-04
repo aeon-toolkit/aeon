@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10

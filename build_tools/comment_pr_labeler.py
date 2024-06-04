@@ -2,7 +2,6 @@
 
 import json
 import os
-import re
 import sys
 
 from github import Github
@@ -15,16 +14,33 @@ repo = g.get_repo(repo)
 issue_number = context_dict["event"]["issue"]["number"]
 issue = repo.get_issue(number=issue_number)
 comment_body = context_dict["event"]["comment"]["body"]
+comment_user = context_dict["event"]["comment"]["user"]["login"]
+labels = [label.name for label in issue.get_labels()]
 
-if issue:
-    pr.add_to_labels("documentation", "no changelog")
+if comment_user != "aeon-actions-bot[bot]":
     sys.exit(0)
-elif "[bot]" in pr.user.login:
-    sys.exit(0)
 
-if comment_body.startswith("@aeon-actions-bot") and "assign" in comment_body.lower():
-    mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
-    mentioned_users = [user[1:] for user in mentioned_users[1:]]
 
-    for user in mentioned_users:
-        issue.add_to_assignees(user)
+def check_label_option(label, option):
+    """Add or remove a label based on a checkbox in a comment."""
+    if f"- [x] {option}" in comment_body:
+        if label not in labels:
+            issue.add_to_labels(label)
+    elif f"- [ ] {option}" in comment_body:
+        if label in labels:
+            issue.remove_from_labels(label)
+
+
+label_options = [
+    ("full pytest actions", "Run `pre-commit` checks for all files"),
+    ("full pre-commit", "Run all `pytest` tests and configurations"),
+    ("full examples run", "Run all notebook example tests"),
+    ("codecov actions", "Run numba-disabled `codecov` tests"),
+    (
+        "stop pre-commit fixes",
+        "Stop automatic `pre-commit` fixes (always disabled for drafts)",
+    ),
+]
+
+for option in label_options:
+    check_label_option(option[0], option[1])
