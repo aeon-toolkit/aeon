@@ -67,23 +67,23 @@ class DWT_MLEAD(BaseAnomalyDetector):
     quantile_epsilon : float, default=0.01
         The epsilon value for the quantile boundary. Must be in [0, 1].
 
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.anomaly_detection import DWT_MLEAD
-    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 3, 4, 5, 1, 2, 3, 4], dtype=np.float_)
-    >>> detector = DWT_MLEAD(
-    ...    start_level=2, quantile_boundary_type='percentile', quantile_epsilon=0.01
-    ... )
-    >>> detector.fit_predict(X)
-    array([])
-
     References
     ----------
     .. [1] Thill, Markus, Wolfgang Konen, and Thomas Bäck. "Time Series Anomaly
            Detection with Discrete Wavelet Transforms and Maximum Likelihood
            Estimation." In Proceedings of the International Conference on Time Series
            (ITISE). Granada, Spain, 2017.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.anomaly_detection import DWT_MLEAD
+    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float_)
+    >>> detector = DWT_MLEAD(
+    ...    start_level=1, quantile_boundary_type='percentile', quantile_epsilon=0.01
+    ... )
+    >>> detector.fit_predict(X)
+    array([0. 0. 0. 0. 0. 0. 0. 0. 2. 2. 2. 2. 0. 0. 0. 0.])
     """
 
     _tags = {
@@ -228,6 +228,20 @@ class DWT_MLEAD(BaseAnomalyDetector):
         """Return testing parameter settings for the estimator.
 
         Only supports 'default'-parameter set.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "start_level": 2,
