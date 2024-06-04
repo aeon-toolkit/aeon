@@ -82,7 +82,6 @@ class SummaryClusterer(BaseClusterer):
 
         self._transformer = None
         self._estimator = None
-        self._transform_atts = 0
 
         super().__init__()
 
@@ -120,11 +119,6 @@ class SummaryClusterer(BaseClusterer):
             self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-
-        if X_t.shape[0] > len(y):
-            X_t = X_t.to_numpy().reshape((len(y), -1))
-            self._transform_atts = X_t.shape[1]
-
         self._estimator.fit(X_t, y)
 
         return self
@@ -142,12 +136,7 @@ class SummaryClusterer(BaseClusterer):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        X_t = self._transformer.transform(X)
-
-        if X_t.shape[1] < self._transform_atts:
-            X_t = X_t.to_numpy().reshape((-1, self._transform_atts))
-
-        return self._estimator.predict(X_t)
+        return self._estimator.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class values of n instances in X.
@@ -164,7 +153,15 @@ class SummaryClusterer(BaseClusterer):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        return self._estimator.predict_proba(self._transformer.transform(X))
+        m = getattr(self._estimator, "predict_proba", None)
+        if callable(m):
+            return self._estimator.predict_proba(self._transformer.transform(X))
+        else:
+            preds = self._estimator.predict(self._transformer.transform(X))
+            dists = np.zeros((X.shape[0], np.unique(preds).shape[0]))
+            for i in range(0, X.shape[0]):
+                dists[i, preds[i]] = 1
+            return dists
 
     def _score(self, X, y=None):
         raise NotImplementedError("SummaryClusterer does not support scoring.")

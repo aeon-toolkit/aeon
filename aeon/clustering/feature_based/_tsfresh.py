@@ -194,7 +194,15 @@ class TSFreshClusterer(BaseClusterer):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        return self._estimator.predict_proba(self._transformer.transform(X))
+        m = getattr(self._estimator, "predict_proba", None)
+        if callable(m):
+            return self._estimator.predict_proba(self._transformer.transform(X))
+        else:
+            preds = self._estimator.predict(self._transformer.transform(X))
+            dists = np.zeros((X.shape[0], np.unique(preds).shape[0]))
+            for i in range(0, X.shape[0]):
+                dists[i, preds[i]] = 1
+            return dists
 
     def _score(self, X, y=None):
         raise NotImplementedError("TSFreshClusterer does not support scoring.")
