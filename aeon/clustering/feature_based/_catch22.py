@@ -85,7 +85,7 @@ class Catch22Clusterer(BaseClusterer):
     >>> from sklearn.cluster import KMeans
     >>> from aeon.clustering.feature_based import Catch22Clusterer
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst= Catch22Clusterer(estimator=KMeans(n_clusters=2)
+    >>> clst = Catch22Clusterer(estimator=KMeans(n_clusters=2))
     >>> clst.fit(X)
     Catch22Clusterer(...)
     >>> preds = clst.predict(X)

@@ -68,7 +68,7 @@ class TSFreshClusterer(BaseClusterer):
     >>> from sklearn.cluster import KMeans
     >>> from aeon.clustering.feature_based import TSFreshClusterer
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst= TSFreshClusterer(estimator=KMeans(n_clusters=2)  # doctest: +SKIP
+    >>> clst = TSFreshClusterer(estimator=KMeans(n_clusters=2))  # doctest: +SKIP
     >>> clst.fit(X)  # doctest: +SKIP
     TSFreshClusterer(...)
     >>> preds = clst.predict(X)  # doctest: +SKIP

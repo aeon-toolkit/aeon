@@ -55,7 +55,7 @@ class SummaryClusterer(BaseClusterer):
     >>> from sklearn.cluster import KMeans
     >>> from aeon.clustering.feature_based import SummaryClusterer
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst= SummaryClusterer(estimator=KMeans(n_clusters=2)
+    >>> clst = SummaryClusterer(estimator=KMeans(n_clusters=2))
     >>> clst.fit(X)
     SummaryClusterer(...)
     >>> preds = clst.predict(X)
