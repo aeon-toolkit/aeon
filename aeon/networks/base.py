@@ -14,10 +14,10 @@ from aeon.utils.validation._dependencies import (
 )
 
 
-# TODO: remove v0.10.0
+# TODO: remove v0.11.0
 @deprecated(
-    version="0.9.0",
-    reason="BaseDeepNetwork will be removed in 0.10.0, use BaseDeepLearningNetwork "
+    version="0.10.0",
+    reason="BaseDeepNetwork will be removed in 0.11.0, use BaseDeepLearningNetwork "
     "instead. The new class does not inherit from BaseObject.",
     category=FutureWarning,
 )
