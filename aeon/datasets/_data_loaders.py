@@ -977,8 +977,8 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
         If a dataset name that does not exist on the repo is given or if a
         webpage is requested that does not exist.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.datasets import load_forecasting
     >>> X=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
@@ -1134,8 +1134,8 @@ def load_regression(
         'problemname',timestamps, missing,univariate,equallength.
         targetlabel should be true, and classlabel false
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.datasets import load_regression
     >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """

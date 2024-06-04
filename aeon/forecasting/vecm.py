@@ -57,8 +57,8 @@ class VECM(_StatsModelsAdapter):
         2D ndarray/pd.DataFrame of size (any, neqs)
         Forcasted value of exog_coint
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.forecasting.vecm import VECM
     >>> from aeon.forecasting.model_selection import temporal_train_test_split
     >>> from aeon.forecasting.base import ForecastingHorizon
