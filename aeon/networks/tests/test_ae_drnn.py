@@ -48,7 +48,7 @@ def test_aedrnnnetwork_init(
 )
 @pytest.mark.parametrize(
     "activation_encoder,activation_decoder",
-    [("relu", "relu"), ("tanh", "relu"), ("relu", "tanh"), ("tanh", "tanh")],
+    [("relu", "relu"), (["relu", "tanh"], ["tanh", "relu"])],
 )
 def test_aedrnnnetwork_activations(activation_encoder, activation_decoder):
     """Test whether AEDRNNNetwork initializes correctly with different activations."""
@@ -64,3 +64,51 @@ def test_aedrnnnetwork_activations(activation_encoder, activation_decoder):
     encoder, decoder = aedrnn.build_network((1000, 5))
     assert encoder is not None
     assert decoder is not None
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
+@pytest.mark.parametrize(
+    "dilation_rate_encoder,dilation_rate_decoder",
+    [(None, None), ([2**i for i in range(1, 4)], [2**i for i in range(1, 4)]), (4, 4)],
+)
+def test_aedrnnnetwork_dilation_rate(dilation_rate_encoder, dilation_rate_decoder):
+    """Test whether AEDRNNNetwork initializes properly with different dilation-rates."""
+    aedrnn = AEDRNNNetwork(
+        latent_space_dim=64,
+        n_layers_decoder=3,
+        dilation_rate_encoder=dilation_rate_encoder,
+        dilation_rate_decoder=dilation_rate_decoder,
+    )
+    encoder, decoder = aedrnn.build_network((150, 5))
+    assert encoder is not None
+    assert decoder is not None
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
+def test_aedrnnnetwork_exceptions():
+    """Test whether AEDRNNNetwork raises exceptions correctly."""
+    aedrnn = AEDRNNNetwork(
+        latent_space_dim=64,
+        n_layers_decoder=3,
+        n_layers_encoder=5,
+        dilation_rate_encoder=[1, 2],
+    )
+
+    with pytest.raises(AssertionError):
+        aedrnn.build_network((150, 5))
+
+    aedrnn = AEDRNNNetwork(
+        latent_space_dim=64,
+        n_layers_decoder=3,
+        n_layers_encoder=5,
+        dilation_rate_decoder=[1, 2],
+    )
+
+    with pytest.raises(AssertionError):
+        aedrnn.build_network((150, 5))
