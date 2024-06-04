@@ -10,7 +10,7 @@ class Node:
         self,
         node_id,
         _is_leaf,
-        label,
+        label=None,
         splitter=None,
     ):
         self.node_id = node_id
@@ -208,25 +208,62 @@ class ProximityTree(BaseClassifier):
             leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
 
         # Target value in current node
-        initial_target_value = self._find_target_value(X, y)
+        target_value = self._find_target_value(y)
 
         # If max depth is reached
-        if (self.max_depth is not None) & (depth >= self.max_depth):
-            leaf_label = initial_target_value
+        if (self.max_depth is not None) and (depth >= self.max_depth):
+            leaf_label = target_value
             leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
 
         # Pure node
         if len(np.unique(y)) == 1:
-            leaf_label = initial_target_value
+            leaf_label = target_value
             leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
             return leaf
 
         # Find the best splitter
-        # splitter = self.get_best_splitter(self, X, y, self.n_splitters)
+        splitter = self.get_best_splitter(X, y)
 
-        # node = Node(node_id=node_id, _is_leaf=False, splitter=splitter)
+        # Create root node
+        node = Node(node_id=node_id, _is_leaf=False, splitter=splitter)
 
-    def _find_target_value(y):
+        # For each exemplar split the data
+        labels = list(splitter[0].keys())
+        measure = list(splitter[1].keys())[0]
+        X_child = [[] for _ in labels]
+        y_child = [[] for _ in labels]
+        for i in range(len(X)):
+            min_dist = np.inf
+            id = None
+            for j in range(len(labels)):
+                dist = distance(
+                    X[i],
+                    splitter[0][labels[j]],
+                    metric=measure,
+                    kwargs=splitter[1][measure],
+                )
+                if dist < min_dist:
+                    min_dist = dist
+                    id = j
+            X_child[id].append(X[i])
+            y_child[id].append(y[i])
+        X_child = [np.array(ele) for ele in X_child]
+        y_child = [np.array(ele) for ele in y_child]
+        # For each exemplar, create a branch
+        for i in range(len(labels)):
+            child_node_id = node_id + "." + str(i)
+            child_node = self._build_tree(
+                X_child[i],
+                y_child[i],
+                depth=depth + 1,
+                node_id=child_node_id,
+                parent_target_value=target_value,
+            )
+            node.children[labels[i]] = child_node
+
+        return node
+
+    def _find_target_value(self, y):
         """Get the class label of highest frequency."""
         unique, counts = np.unique(y, return_counts=True)
         # Find the index of the maximum count
