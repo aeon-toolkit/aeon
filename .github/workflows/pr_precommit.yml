@@ -58,3 +58,4 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Automatic `pre-commit` fixes
+          commit_user_name: aeon-actions-bot[bot]
