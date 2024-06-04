@@ -166,7 +166,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
 
             encoder_output_layer = tf.keras.layers.Conv1D(
                 self.latent_space_dim,
-                activation="relu",
+                activation="linear",
                 kernel_size=1,
             )(output)
 
