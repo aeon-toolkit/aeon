@@ -48,5 +48,5 @@ def test_dcnnnetwork_activations(activation):
         activation=activation,
         num_filters=[50, 50],
     )
-    model = dcnnnet.build_network((1000, 5))
+    model = dcnnnet.build_network((150, 5))
     assert model is not None
