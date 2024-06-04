@@ -199,6 +199,9 @@ class Catch22Clusterer(BaseClusterer):
         """
         return self._estimator.predict_proba(self._transformer.transform(X))
 
+    def _score(self, X, y=None):
+        raise NotImplementedError("Catch22Clusterer does not support scoring.")
+
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.

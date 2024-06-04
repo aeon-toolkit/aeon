@@ -165,3 +165,6 @@ class SummaryClusterer(BaseClusterer):
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
         return self._estimator.predict_proba(self._transformer.transform(X))
+
+    def _score(self, X, y=None):
+        raise NotImplementedError("SummaryClusterer does not support scoring.")
