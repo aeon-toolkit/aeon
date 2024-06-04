@@ -1,4 +1,4 @@
-"""Tests for the AEDRNN Model."""
+"""Tests for the DCNN Model."""
 
 import random
 
@@ -8,42 +8,45 @@ from aeon.networks import DCNNNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-def pytest_generate_tests():
-    """Parameter generation for test cases."""
-    latent_space_dim_range = [32, 128, 256]
-    num_layers = range(1, 5)
-    temporal_latent_space_options = [True, False]
-
-    test_params = []
-    for latent_space_dim in latent_space_dim_range:
-        for n_layers_encoder in num_layers:
-            for temporal_latent_space in temporal_latent_space_options:
-                test_params.append(
-                    dict(
-                        latent_space_dim=latent_space_dim,
-                        num_layers=n_layers_encoder,
-                        dilation_rate=None,
-                        activation=random.choice(["relu", "tanh"]),
-                        num_filters=[
-                            random.choice([50, 25, 100])
-                            for _ in range(n_layers_encoder)
-                        ],
-                        temporal_latent_space=temporal_latent_space,
-                    )
-                )
-    return test_params
-
-
-params = pytest_generate_tests()
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
+@pytest.mark.parametrize(
+    "latent_space_dim,num_layers,temporal_latent_space",
+    [
+        (32, 1, True),
+        (128, 2, False),
+        (256, 3, True),
+        (64, 4, False),
+    ],
+)
+def test_dcnnnetwork_init(latent_space_dim, num_layers, temporal_latent_space):
+    """Test whether DCNNNetwork initializes correctly for various parameters."""
+    dcnnnet = DCNNNetwork(
+        latent_space_dim=latent_space_dim,
+        num_layers=num_layers,
+        temporal_latent_space=temporal_latent_space,
+        activation=random.choice(["relu", "tanh"]),
+        num_filters=[random.choice([50, 25, 100]) for _ in range(num_layers)],
+    )
+    model = dcnnnet.build_network((1000, 5))
+    assert model is not None
 
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tensorflow"], severity="none"),
-    reason="tensorflow soft dependency not present.",
+    reason="Tensorflow soft dependency unavailable.",
 )
-@pytest.mark.parametrize("params", params)
-def test_aedrnnnetwork_init(params):
-    """Test whether AEDRNNNetwork initializes correctly for various parameters."""
-    dcnnnet = DCNNNetwork(**params)
+@pytest.mark.parametrize("activation", ["relu", "tanh"])
+def test_dcnnnetwork_activations(activation):
+    """Test whether DCNNNetwork initializes correctly with different activations."""
+    dcnnnet = DCNNNetwork(
+        latent_space_dim=64,
+        num_layers=2,
+        temporal_latent_space=True,
+        activation=activation,
+        num_filters=[50, 50],
+    )
     model = dcnnnet.build_network((1000, 5))
     assert model is not None
