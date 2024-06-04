@@ -1,7 +1,12 @@
-"""Series testing utils."""
+"""Utility functions for generating series testing data."""
 
-__maintainer__ = []
-__all__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = [
+    "make_example_1d_numpy",
+    "make_example_2d_numpy_series",
+    "make_example_pandas_series",
+    "make_example_dataframe_series",
+]
 
 from typing import Union
 
@@ -33,16 +38,13 @@ def make_example_1d_numpy(
     Examples
     --------
     >>> from aeon.testing.data_generation import make_example_1d_numpy
-    >>> data, labels = make_example_1d_numpy(
+    >>> data = make_example_1d_numpy(
     ...     n_timepoints=8,
     ...     random_state=0,
     ... )
     >>> print(data)
-    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
-      [0.87517442 1.783546   1.92732552 0.76688304 1.58345008 1.05778984]]
-    <BLANKLINE>
-     [[2.         3.70238655 0.28414423 0.3485172  0.08087359 3.33047938]
-      [3.112627   3.48004859 3.91447337 3.19663426 1.84591745 3.12211671]]]
+    [0.5488135  0.71518937 0.60276338 0.54488318 0.4236548  0.64589411
+     0.43758721 0.891773  ]
     """
     rng = np.random.RandomState(random_state)
     return rng.uniform(size=(n_timepoints,))
@@ -74,17 +76,18 @@ def make_example_2d_numpy_series(
     Examples
     --------
     >>> from aeon.testing.data_generation import make_example_2d_numpy_series
-    >>> data, labels = make_example_2d_numpy_series(
-    ...     n_channels=2,
+    >>> data = make_example_2d_numpy_series(
     ...     n_timepoints=6,
+    ...     n_channels=2,
     ...     random_state=0,
     ... )
     >>> print(data)
-    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
-      [0.87517442 1.783546   1.92732552 0.76688304 1.58345008 1.05778984]]
-    <BLANKLINE>
-     [[2.         3.70238655 0.28414423 0.3485172  0.08087359 3.33047938]
-      [3.112627   3.48004859 3.91447337 3.19663426 1.84591745 3.12211671]]]
+    [[0.5488135  0.71518937]
+     [0.60276338 0.54488318]
+     [0.4236548  0.64589411]
+     [0.43758721 0.891773  ]
+     [0.96366276 0.38344152]
+     [0.79172504 0.52889492]]
     """
     rng = np.random.RandomState(random_state)
     return rng.uniform(size=(n_timepoints, n_channels))
@@ -116,18 +119,19 @@ def make_example_pandas_series(
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import make_example_2d_numpy_series
-    >>> data, labels = make_example_2d_numpy_series(
-    ...     n_channels=2,
+    >>> from aeon.testing.data_generation import make_example_pandas_series
+    >>> data = make_example_pandas_series(
     ...     n_timepoints=6,
     ...     random_state=0,
     ... )
     >>> print(data)
-    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
-      [0.87517442 1.783546   1.92732552 0.76688304 1.58345008 1.05778984]]
-    <BLANKLINE>
-     [[2.         3.70238655 0.28414423 0.3485172  0.08087359 3.33047938]
-      [3.112627   3.48004859 3.91447337 3.19663426 1.84591745 3.12211671]]]
+    0    0.548814
+    1    0.715189
+    2    0.602763
+    3    0.544883
+    4    0.423655
+    5    0.645894
+    dtype: float64
     """
     rng = np.random.RandomState(random_state)
     index = _make_index(n_timepoints, index_type)
@@ -163,18 +167,20 @@ def make_example_dataframe_series(
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import make_example_2d_numpy_series
-    >>> data, labels = make_example_2d_numpy_series(
-    ...     n_channels=2,
+    >>> from aeon.testing.data_generation import make_example_dataframe_series
+    >>> data = make_example_dataframe_series(
     ...     n_timepoints=6,
+    ...     n_channels=2,
     ...     random_state=0,
     ... )
     >>> print(data)
-    [[[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
-      [0.87517442 1.783546   1.92732552 0.76688304 1.58345008 1.05778984]]
-    <BLANKLINE>
-     [[2.         3.70238655 0.28414423 0.3485172  0.08087359 3.33047938]
-      [3.112627   3.48004859 3.91447337 3.19663426 1.84591745 3.12211671]]]
+              0         1
+    0  0.548814  0.715189
+    1  0.602763  0.544883
+    2  0.423655  0.645894
+    3  0.437587  0.891773
+    4  0.963663  0.383442
+    5  0.791725  0.528895
     """
     rng = np.random.RandomState(random_state)
     index = _make_index(n_timepoints, index_type)

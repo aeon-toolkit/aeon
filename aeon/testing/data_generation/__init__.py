@@ -13,6 +13,8 @@ __all__ = [
     # series
     "make_example_1d_numpy",
     "make_example_2d_numpy_series",
+    "make_example_pandas_series",
+    "make_example_dataframe_series",
     #
     "make_series",
     # other
@@ -45,6 +47,8 @@ from aeon.testing.data_generation._collection import (
 from aeon.testing.data_generation._series import (
     make_example_1d_numpy,
     make_example_2d_numpy_series,
+    make_example_dataframe_series,
+    make_example_pandas_series,
     make_series,
 )
 from aeon.testing.data_generation._test_examples import get_examples
