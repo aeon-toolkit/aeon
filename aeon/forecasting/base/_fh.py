@@ -770,7 +770,7 @@ def _check_cutoff(cutoff, index):
         assert isinstance(cutoff, pd.Timestamp)
 
 
-def _coerce_to_period(x, freq=None):
+def _coerce_to_period(x, freq):
     """Coerce pandas time index to a alternative pandas time index.
 
     This coerces pd.Timestamp to pd.Period or pd.DatetimeIndex to
@@ -788,10 +788,6 @@ def _coerce_to_period(x, freq=None):
     index : pd.Period or pd.PeriodIndex
         Index or index element coerced to period based format.
     """
-    if isinstance(x, pd.Timestamp) and freq is None:
-        raise ValueError(
-            "_coerce_to_period requires freq argument to be passed if x is pd.Timestamp"
-        )
     try:
         return x.to_period(freq)
     except (ValueError, AttributeError) as e:
