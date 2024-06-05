@@ -108,6 +108,7 @@ def reverse_windowing(
     Reverse windowing is the inverse operation of sliding windows. It aggregates the
     windowed results for each point of the original time series. The aggregation is
     performed with a reduction function, e.g., np.nanmean, np.nanmedian, or np.nanmax.
+    An aggregation function ignoring NaN values is required to handle the padding.
 
     The resulting time series has the same length as the original time series, namely
     n_timepoints = (n_windows - 1) * stride + window_size + padding_length.
@@ -130,7 +131,9 @@ def reverse_windowing(
     window_size : int
         Size of the sliding windows.
     reduction : callable, optional, default=np.nanmean
-        Reduction function to aggregate the windowed results.
+        Reduction function to aggregate the windowed results. The function must accept
+        an axis argument to specify the axis along which the reduction is applied. It
+        is required to ignore NaN values to handle the padding on the edges.
     stride : int, optional, default=1
         Stride of the sliding windows. If stride is greater than 1, the windows
         have skipped over some time points. If stride is unequal 1, ``padding_length``
@@ -261,10 +264,13 @@ def _reverse_windowing_vectorized(
 def _reverse_windowing_iterative(
     y: np.ndarray, window_size: int, reduction: Callable[..., np.ndarray]
 ) -> np.ndarray:
-    pad_n = (0, window_size - 1)
+    y = np.array(y, dtype=np.float_)
+    unwindowed_length = len(y) + window_size - 1
+    pad_n = (window_size - 1, window_size - 1)
     y = np.pad(y, pad_n, "constant", constant_values=(np.nan, np.nan))
 
     for i in range(len(y) - (window_size - 1)):
-        y[i] = reduction(y[i : i + window_size]).item()
+        points = y[i : i + window_size]
+        y[i] = reduction(points[~np.isnan(points)]).item()
 
-    return y[~np.isnan(y)]
+    return y[:unwindowed_length]

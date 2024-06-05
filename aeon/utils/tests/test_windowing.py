@@ -3,7 +3,13 @@
 import numpy as np
 import pytest
 
-from aeon.utils.windowing import reverse_windowing, sliding_windows
+from aeon.utils.windowing import (
+    _reverse_windowing_iterative,
+    _reverse_windowing_strided,
+    _reverse_windowing_vectorized,
+    reverse_windowing,
+    sliding_windows,
+)
 
 _DATA = np.random.default_rng(42).integers(0, 10, (10,))
 _MULTIVARIATE_DATA = np.random.default_rng(42).integers(0, 10, (10, 2))
@@ -217,8 +223,9 @@ def test_sliding_windows_multivariate(ws, stride):
     assert padding == _padding(_MULTIVARIATE_DATA.shape[0], ws, stride)
 
 
+@pytest.mark.parametrize("force", [True, False])
 @pytest.mark.parametrize("ws, stride, padding, results, expected", _REVERSE_FIXTURES)
-def test_reverse_windowing(ws, stride, padding, results, expected):
+def test_reverse_windowing(ws, stride, padding, results, expected, force):
     """Test the reverse windowing function."""
     scores = reverse_windowing(
         results,
@@ -226,17 +233,21 @@ def test_reverse_windowing(ws, stride, padding, results, expected):
         reduction=np.nanmean,
         stride=stride,
         padding_length=padding,
+        force_iterative=force,
     )
     assert scores.shape[0] == 10
     np.testing.assert_array_almost_equal(scores, expected, decimal=2)
 
 
+@pytest.mark.parametrize("force", [True, False])
 @pytest.mark.parametrize(
-    "reduction", [np.nanmean, np.nanmedian, np.nanmax, np.mean, np.median, np.average]
+    "reduction", [np.nanmean, np.nanmedian, np.nanmax, np.nanmin, np.mean, np.average]
 )
-def test_reverse_windowing_reductions(reduction):
+def test_reverse_windowing_reductions(reduction, force):
     """Test the reverse windowing function with different reduction functions."""
-    scores = reverse_windowing(_DATA[:9], window_size=2, reduction=reduction)
+    scores = reverse_windowing(
+        _DATA[:9], window_size=2, reduction=reduction, force_iterative=force
+    )
     assert scores.shape[0] == 10
 
 
@@ -244,6 +255,7 @@ def test_reverse_windowing_custom_reduction():
     """Test the reverse windowing function with a custom reduction function."""
 
     def reduce(x, axis=0):
+        np.nan_to_num(x, copy=True)
         return np.sum(x, axis=axis) - np.min(x, axis=axis)
 
     scores = reverse_windowing(_DATA[:9], window_size=2, reduction=reduce)
@@ -265,3 +277,17 @@ def test_combined():
     )
     assert mapped.shape[0] == _DATA.shape[0]
     assert mapped[2] == np.nanmedian(results[:2])
+
+
+@pytest.mark.parametrize("ws", [1, 2, 3, 4, 5])
+def test_all_reverse_windowing_implementations_equal(ws):
+    """Test that all reverse windowing implementations return the same result."""
+    data = _DATA[:8]
+    res_vec = _reverse_windowing_vectorized(data, window_size=3, reduction=np.nanmedian)
+    res_strided = _reverse_windowing_strided(
+        data, window_size=3, reduction=np.nanmedian, stride=1, padding_length=0
+    )
+    res_iter = _reverse_windowing_iterative(data, window_size=3, reduction=np.nanmedian)
+    np.testing.assert_array_equal(res_vec, res_strided)
+    np.testing.assert_array_equal(res_vec, res_iter)
+    np.testing.assert_array_equal(res_strided, res_iter)
