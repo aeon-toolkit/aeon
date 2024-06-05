@@ -186,6 +186,7 @@ addopts = '''
     --dist worksteal
     --reruns 2
     --only-rerun "crashed while running"
+    --ignore-glob 'aeon/testing/utils/_*.py'
 '''
 filterwarnings = '''
     ignore::UserWarning
