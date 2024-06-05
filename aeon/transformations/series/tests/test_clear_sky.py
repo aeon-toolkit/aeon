@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_solar
-from aeon.transformations.clear_sky import ClearSky
+from aeon.transformations.series import ClearSkyTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 output_chk = [0.0, 0.0, 0.901, 0.739, 0.618, 0.0]
@@ -22,7 +22,7 @@ def test_clearsky_trafo_vals():
     y = load_solar(api_version=None)
     # only take every 4H for quickness
     y = y.asfreq("4H")
-    cs_model = ClearSky()
+    cs_model = ClearSkyTransformer()
     y_trafo = cs_model.fit_transform(y)
 
     msg = "ClearSky not transforming values consistently with stored values."
@@ -30,7 +30,7 @@ def test_clearsky_trafo_vals():
 
     y_missing = y.copy()
     y_missing.iloc[6:12] = np.nan
-    cs_model_missing = ClearSky()
+    cs_model_missing = ClearSkyTransformer()
     y_trafo_missing = cs_model_missing.fit_transform(y_missing)
 
     msg = "ClearSky transformer not returning correct number of values."
@@ -39,7 +39,7 @@ def test_clearsky_trafo_vals():
 
     y_period = y.copy()
     y_period.index = y_period.index.to_period()
-    cs_model_period = ClearSky()
+    cs_model_period = ClearSkyTransformer()
     y_trafo_period = cs_model_period.fit_transform(y_period)
 
     msg = "PeriodIndex and DatetimeIndex returning different values"
@@ -56,7 +56,7 @@ def test_clearsky_trafo_range_exception():
 
     # range index should not work
     y = y.reset_index(drop=True)
-    cs_model = ClearSky()
+    cs_model = ClearSkyTransformer()
     with pytest.raises(ValueError):
         cs_model.fit_transform(y)
 
@@ -71,7 +71,7 @@ def test_clearsky_trafo_nofreq_exception():
 
     # no set or inferrable frequency should not work
     y = y.drop(pd.to_datetime("2021-05-01 00:30:00", utc=True))
-    cs_model = ClearSky()
+    cs_model = ClearSkyTransformer()
     with pytest.raises(ValueError):
         cs_model.fit_transform(y)
 
@@ -86,6 +86,6 @@ def test_clearsky_trafo_grdaily_exception():
 
     # gr daily frequency should not work
     y = y.asfreq("2D")
-    cs_model = ClearSky()
+    cs_model = ClearSkyTransformer()
     with pytest.raises(ValueError):
         cs_model.fit_transform(y)
