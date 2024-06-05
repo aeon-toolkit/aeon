@@ -8,9 +8,9 @@ __all__ = ["PyODAdapter"]
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from numpy.lib.stride_tricks import sliding_window_view
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.utils.windowing import reverse_windowing, sliding_windows
 
 if TYPE_CHECKING:
     from pyod.models.base import BaseDetector
@@ -59,7 +59,7 @@ class PyODAdapter(BaseAnomalyDetector):
         "capability:univariate": True,
         "capability:missing_values": False,
         # Omit the version specification until PyOD has __version__
-        # (https://github.com/yzhao062/pyod/pull/584)
+        # (https://github.com/yzhao062/pyod/pull/584 in dev but not released yet)
         # "python_dependencies": ["pyod>=1.1.3"]
         "python_dependencies": ["pyod"],
     }
@@ -100,47 +100,15 @@ class PyODAdapter(BaseAnomalyDetector):
                 "The stride must be at least 1 and at most the window size."
             )
 
-        _X = self._preprocess_data(X)
+        _X, self._padding_length = sliding_windows(
+            X, window_size=self.window_size, stride=self.stride
+        )
         self.pyod_model.fit(_X)
         scores = self.pyod_model.decision_scores_
-        scores = self._postprocess_scores(scores)
+        scores = reverse_windowing(
+            scores, self.window_size, np.nanmean, self.stride, self._padding_length
+        )
         return scores
-
-    def _preprocess_data(self, X: np.ndarray) -> np.ndarray:
-        flat_shape = (
-            X.shape[0] - (self.window_size - 1),
-            -1,
-        )  # in case we have a multivariate TS
-        slides = sliding_window_view(X, window_shape=self.window_size, axis=0).reshape(
-            flat_shape
-        )[:: self.stride, :]
-        self._padding_length = X.shape[0] - (
-            slides.shape[0] * self.stride + self.window_size - self.stride
-        )
-        return slides
-
-    def _postprocess_scores(self, scores: np.ndarray) -> np.ndarray:
-        # compute begin and end indices of windows
-        begins = np.array([i * self.stride for i in range(scores.shape[0])])
-        ends = begins + self.window_size
-
-        # prepare target array
-        unwindowed_length = (
-            self.stride * (scores.shape[0] - 1)
-            + self.window_size
-            + self._padding_length
-        )
-        mapped = np.full(unwindowed_length, fill_value=np.nan)
-
-        # only iterate over window intersections
-        indices = np.unique(np.r_[begins, ends])
-        for i, j in zip(indices[:-1], indices[1:]):
-            window_indices = np.flatnonzero((begins <= i) & (j - 1 < ends))
-            mapped[i:j] = np.nanmean(scores[window_indices])
-
-        # replace untouched indices with 0 (especially for the padding at the end)
-        np.nan_to_num(mapped, copy=False)
-        return mapped
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
