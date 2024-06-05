@@ -32,7 +32,7 @@ class _AttentionLayer(tf.keras.layers.Layer):
         return output
 
 
-class AttentionBiGRUNetwork(BaseDeepNetwork):
+class AEAttentionBiGRUNetwork(BaseDeepNetwork):
     """
     A class to implement an Auto-Encoder based on Attention Bidirectional GRUs.
 
