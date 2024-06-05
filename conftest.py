@@ -37,8 +37,9 @@ def pytest_configure(config):
             set_inter_op_parallelism_threads,
             set_intra_op_parallelism_threads,
         )
+        
         set_inter_op_parallelism_threads(1)
         set_intra_op_parallelism_threads(1)
-        
+
     if config.getoption("--prtesting") in [True, "True", "true"]:
         test_config.PR_TESTING = True
