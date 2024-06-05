@@ -2348,7 +2348,10 @@
         "bug",
         "code",
         "doc",
-        "research"
+        "research",
+        "tests",
+        "review",
+        "data"
       ]
     },
     {
