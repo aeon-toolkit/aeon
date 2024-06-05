@@ -9,15 +9,17 @@ class Node:
 
     def __init__(
         self,
-        node_id,
-        _is_leaf,
+        node_id: int,
+        _is_leaf: bool,
         label=None,
+        class_distribution=None,
         splitter=None,
     ):
         self.node_id = node_id
         self._is_leaf = _is_leaf
         self.label = label
         self.splitter = splitter
+        self.class_distribution = class_distribution or {}
         self.children = {}
 
 
@@ -206,20 +208,50 @@ class ProximityTree(BaseClassifier):
         # If the data reaching the node is empty
         if len(X) == 0:
             leaf_label = parent_target_value
-            leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
+            leaf_distribution = {}
+            leaf = Node(
+                node_id=node_id,
+                _is_leaf=True,
+                label=leaf_label,
+                class_distribution=leaf_distribution,
+            )
 
         # Target value in current node
         target_value = self._find_target_value(y)
+        class_distribution = {
+            label: count / len(y)
+            for label, count in zip(*np.unique(y, return_counts=True))
+        }
+
+        # If min sample splits is reached
+        if self.min_samples_split >= len(X):
+            leaf_label = target_value
+            leaf = Node(
+                node_id=node_id,
+                _is_leaf=True,
+                label=leaf_label,
+                class_distribution=class_distribution,
+            )
 
         # If max depth is reached
         if (self.max_depth is not None) and (depth >= self.max_depth):
             leaf_label = target_value
-            leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
+            leaf = Node(
+                node_id=node_id,
+                _is_leaf=True,
+                label=leaf_label,
+                class_distribution=class_distribution,
+            )
 
         # Pure node
         if len(np.unique(y)) == 1:
             leaf_label = target_value
-            leaf = Node(node_id=node_id, _is_leaf=True, label=leaf_label)
+            leaf = Node(
+                node_id=node_id,
+                _is_leaf=True,
+                label=leaf_label,
+                class_distribution=class_distribution,
+            )
             return leaf
 
         # Find the best splitter
@@ -303,6 +335,9 @@ class ProximityTree(BaseClassifier):
         return best_splitter
 
     def _fit(self, X, y):
+        # Set the unique class labels
+        self.classes_ = list(np.unique(y))
+
         self.root = self._build_tree(
             X, y, depth=0, node_id="0", parent_target_value=None
         )
@@ -318,14 +353,70 @@ class ProximityTree(BaseClassifier):
         for i in range(len(X)):
             prediction = self.classify(self.root, X[i])
             predictions.append(prediction)
+        predictions = np.array(predictions)
         return predictions
 
     def classify(self, treenode, x):
-        # classify one datapoint using the proximity tree
-        if treenode._is_leaf is True:
+        # Classify one data point using the proximity tree
+        if treenode._is_leaf:
             return treenode.label
         else:
-            return self.classify(treenode.children, x)
+            measure = list(treenode.splitter[1].keys())[0]
+            branches = list(treenode.splitter[0].keys())
+            min_dist = np.inf
+            id = None
+            for i in range(len(branches)):
+                dist = distance(
+                    x,
+                    treenode.splitter[0][branches[i]],
+                    metric=measure,
+                    kwargs=treenode.splitter[1][measure],
+                )
+                if dist < min_dist:
+                    min_dist = dist
+                    id = i
+            return self.classify(treenode.children[branches[id]], x)
 
     def _predict_proba(self, X):
-        pass
+        if not self._is_fitted:
+            raise NotFittedError(
+                f"This instance of {self.__class__.__name__} has not "
+                f"been fitted yet; please call `fit` first."
+            )
+        # Get the unique class labels
+        classes = self.classes_
+        class_count = len(classes)
+        probas = []
+
+        for i in range(len(X)):
+            # Classify the data point and find the leaf node
+            leaf_node = self._find_leaf(self.root, X[i])
+
+            # Create probability distribution based on class counts in the leaf node
+            proba = np.zeros(class_count)
+            for class_label, class_proba in leaf_node.class_distribution.items():
+                proba[classes.index(class_label)] = class_proba
+            probas.append(proba)
+
+        return np.array(probas)
+
+    def _find_leaf(self, treenode, x):
+        # Helper function to find the leaf node for a given data point
+        if treenode._is_leaf:
+            return treenode
+        else:
+            measure = list(treenode.splitter[1].keys())[0]
+            branches = list(treenode.splitter[0].keys())
+            min_dist = np.inf
+            id = None
+            for i in range(len(branches)):
+                dist = distance(
+                    x,
+                    treenode.splitter[0][branches[i]],
+                    metric=measure,
+                    kwargs=treenode.splitter[1][measure],
+                )
+                if dist < min_dist:
+                    min_dist = dist
+                    id = i
+            return self._find_leaf(treenode.children[branches[id]], x)
