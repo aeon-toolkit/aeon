@@ -102,7 +102,14 @@ class KMeansAD(BaseAnomalyDetector):
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "KMeansAD":
         _X, _ = sliding_windows(X, window_size=self.window_size, stride=self.stride)
         self.estimator_ = KMeans(
-            n_clusters=self.n_clusters, random_state=self.random_state
+            n_clusters=self.n_clusters,
+            random_state=self.random_state,
+            init="k-means++",
+            n_init=10,
+            max_iter=300,
+            tol=1e-4,
+            verbose=0,
+            algorithm="lloyd",
         )
         self.estimator_.fit(_X)
         return self

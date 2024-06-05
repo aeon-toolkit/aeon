@@ -15,3 +15,4 @@ for time series segmentation.
     :template: class.rst
 
     STRAY
+    KMeansAD
