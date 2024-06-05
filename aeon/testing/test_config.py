@@ -31,6 +31,19 @@ EXCLUDE_ESTIMATORS = [
     "PinballLoss",
     "ColumnSelect",
     "IndexSubset",
+    "TimeSince",
+    "Differencer",
+    "CosineTransformer",
+    "ThetaLinesTransformer",
+    "InvertAugmenter",
+    "BKFilter",
+    "AutoCorrelationTransformer",
+    "PCATransformer",
+    "EmpiricalCoverage",
+    "WhiteNoiseAugmenter",
+    "KalmanFilterTransformer",
+    "BaseKalmanFilter",
+    "ClearSky",
 ]  # Exclude deprecated estimators to reduce warnings
 
 # the test currently fails when numba is disabled. See issue #622
