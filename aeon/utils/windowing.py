@@ -67,17 +67,17 @@ def sliding_windows(
     >>> X = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     >>> windows, _ = sliding_windows(X, window_size=4)
     >>> print(windows)
-    [[1, 2, 3, 4],
-     [2, 3, 4, 5],
-     [3, 4, 5, 6],
-     [4, 5, 6, 7],
-     [5, 6, 7, 8],
-     [6, 7, 8, 9],
-     [7, 8, 9, 10]]
-    >>> window_size, padding = sliding_windows(X, window_size=4, stride=4)
+    [[ 1  2  3  4]
+     [ 2  3  4  5]
+     [ 3  4  5  6]
+     [ 4  5  6  7]
+     [ 5  6  7  8]
+     [ 6  7  8  9]
+     [ 7  8  9 10]]
+    >>> windows, padding = sliding_windows(X, window_size=4, stride=4)
     >>> print(windows)
-    [[1, 2, 3, 4],
-     [5, 6, 7, 8]]
+    [[1 2 3 4]
+     [5 6 7 8]]
     >>> print(padding)
     2
 
@@ -160,7 +160,7 @@ def reverse_windowing(
     >>> windows, padding_length = sliding_windows(X, window_size=3, stride=2)
     >>> y = np.array([0.5, 0.6, 0.5, 0.8])
     >>> reverse_windowing(y, window_size=3, stride=2, padding_length=padding_length)
-    array([0.5, 0.5, 0.55, 0.6, 0.55, 0.5, 0.65, 0.8, 0.8, 0.])
+    array([0.5 , 0.5 , 0.55, 0.6 , 0.55, 0.5 , 0.65, 0.8 , 0.8 , 0.  ])
     """
     if stride != 1:
         if padding_length is None:
