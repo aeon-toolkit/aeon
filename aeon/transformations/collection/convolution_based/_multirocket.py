@@ -112,8 +112,8 @@ class MultiRocket(BaseCollectionTransformer):
         -------
         self
         """
-        X = X.astype(np.float64)
         X = X.squeeze()
+        X = X.astype(np.float32)
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
@@ -139,8 +139,8 @@ class MultiRocket(BaseCollectionTransformer):
         -------
         pandas DataFrame, transformed features
         """
-        X = X.astype(np.float32)
         X = X.squeeze()
+        X = X.astype(np.float32)
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
@@ -725,7 +725,7 @@ def _transform(X, X1, parameters, parameters1, n_features_per_kernel):
 
 
 @njit(
-    "float32[:](float64[:,:],int32[:],int32[:],float32[:],optional(int64))",
+    "float32[:](float32[:,:],int32[:],int32[:],float32[:],optional(int64))",
     fastmath=True,
     parallel=False,
     cache=True,
