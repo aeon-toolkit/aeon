@@ -1,5 +1,8 @@
+from typing import Type, Union
+
 import numpy as np
 from sklearn.exceptions import NotFittedError
+from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.distances import distance
@@ -30,19 +33,19 @@ class ProximityTree(BaseClassifier):
         n_splitters: int = 5,
         max_depth: int = None,
         min_samples_split: int = 2,
-        random_state: int = 0,
+        random_state: Union[int, Type[np.random.RandomState], None] = None,
         n_jobs: int = 1,
         verbose: int = 0,
     ) -> None:
         self.n_splitters = n_splitters
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
-        self.random_state = random_state
+        self.rng = check_random_state(random_state)
         self.n_jobs = n_jobs
         self.verbose = verbose
         super().__init__()
 
-    def get_parameter_value(self, X=None):
+    def get_parameter_value(self, X):
         """Generate random parameter values.
 
         For a list of distance measures, generate a dictionary
@@ -70,13 +73,13 @@ class ProximityTree(BaseClassifier):
         random_params = {}
         for measure, ranges in param_ranges.items():
             random_params[measure] = {
-                param: np.round(np.random.uniform(low, high), 3)
+                param: np.round(self.rng.uniform(low, high), 3)
                 for param, (low, high) in ranges.items()
             }
         # For TWE
-        lmbda = np.random.randint(0, 9)
+        lmbda = self.rng.randint(0, 9)
         exponent_range = np.arange(1, 6)  # Exponents from -5 to 1 (inclusive)
-        random_exponent = np.random.choice(exponent_range)
+        random_exponent = self.rng.choice(exponent_range)
         nu = 1 / 10**random_exponent
         random_params["twe"] = {"lmbda": lmbda, "nu": nu}
 
@@ -85,7 +88,7 @@ class ProximityTree(BaseClassifier):
         # Exponents from -2 to 2 (inclusive)
         exponents = np.arange(-2, 3, dtype=np.float64)
         # Randomly select an index from the exponent range
-        random_index = np.random.randint(0, len(exponents))
+        random_index = self.rng.randint(0, len(exponents))
         c = base ** exponents[random_index]
         random_params["msm"] = {"c": c}
 
@@ -118,19 +121,20 @@ class ProximityTree(BaseClassifier):
         for label in np.unique(_y):
             y_new = _y[_y == label]
             X_new = _X[_y == label]
-            id = np.random.randint(0, X_new.shape[0])
+            id = self.rng.randint(0, X_new.shape[0])
             exemplars[y_new[id]] = X_new[id, :]
 
         # Create a list with first element exemplars and second element a
         # random parameterized distance measure
         parameterized_distances = self.get_parameter_value(X)
-        n = np.random.randint(0, 9)
+        n = self.rng.randint(0, 9)
         dist = list(parameterized_distances.keys())[n]
         splitter = [exemplars, {dist: parameterized_distances[dist]}]
 
         return splitter
 
-    def gini(self, y):
+    @staticmethod
+    def gini(y):
         """Get gini score at a specific node.
 
         Parameters
@@ -296,6 +300,7 @@ class ProximityTree(BaseClassifier):
 
         return node
 
+    @staticmethod
     def _find_target_value(self, y):
         """Get the class label of highest frequency."""
         unique, counts = np.unique(y, return_counts=True)
