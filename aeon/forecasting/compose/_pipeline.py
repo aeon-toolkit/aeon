@@ -250,7 +250,6 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
         ]
         params1 = {"steps": STEPS1}
 
-        # ARIMA has probabilistic methods, ExponentTransformer skips fit
         STEPS2 = [
             ("transformer", MockTransformer()),
             ("forecaster", DirectReductionForecaster.create_test_instance()),
@@ -752,7 +751,6 @@ class TransformedTargetForecaster(_Pipeline):
     >>> from aeon.forecasting.compose import TransformedTargetForecaster
     >>> from aeon.transformations.impute import Imputer
     >>> from aeon.transformations.detrend import Detrender
-    >>> from aeon.transformations.exponent import ExponentTransformer
     >>> y = load_airline()
 
         Example 1: string/estimator pairs
@@ -770,13 +768,7 @@ class TransformedTargetForecaster(_Pipeline):
     ...     Imputer(method="mean"),
     ...     Detrender(),
     ...     NaiveForecaster(strategy="drift"),
-    ...     ExponentTransformer(),
     ... ])
-
-        Example 3: using the dunder method
-    >>> forecaster = NaiveForecaster(strategy="drift")
-    >>> imputer = Imputer(method="mean")
-    >>> pipe = imputer * Detrender() * forecaster * ExponentTransformer()
     """
 
     _tags = {
@@ -1559,7 +1551,6 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     >>> from aeon.forecasting.compose import ForecastingPipeline, Permute
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.transformations.boxcox import BoxCoxTransformer
-    >>> from aeon.transformations.exponent import ExponentTransformer
 
     Simple example: permute sequence of estimator in forecasting pipeline
     >>> y = load_airline()
@@ -1567,12 +1558,11 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     >>> pipe = ForecastingPipeline(
     ...     [
     ...         ("boxcox", BoxCoxTransformer()),
-    ...         ("exp", ExponentTransformer(3)),
     ...         ("naive", NaiveForecaster()),
     ...     ]
     ... )
-    >>> # this results in the pipeline with sequence "exp", "boxcox", "naive"
-    >>> permuted = Permute(pipe, ["exp", "boxcox", "naive"])
+    >>> # this results in the pipeline with sequence "boxcox", "naive"
+    >>> permuted = Permute(pipe, ["boxcox", "naive"])
     >>> permuted = permuted.fit(y, fh=fh)
     >>> y_pred = permuted.predict()
 

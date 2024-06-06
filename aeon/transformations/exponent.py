@@ -12,6 +12,13 @@ from deprecated.sphinx import deprecated
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ExponentTransformer statsmodels wrapper will be removed in version "
+    "0.11.0. Please use the BaseSeriesTransformer version.",
+    category=FutureWarning,
+)
 class ExponentTransformer(BaseTransformer):
     """Apply element-wise exponentiation transformation to a time series.
 
