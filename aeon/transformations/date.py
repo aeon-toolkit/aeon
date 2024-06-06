@@ -7,6 +7,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
@@ -31,6 +32,13 @@ _RAW_DUMMIES = [
 ]
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="DateTimeFeatures will be removed in version 0.11.0. Please use the "
+    "BaseSeriesTransformer version.",
+    category=FutureWarning,
+)
 class DateTimeFeatures(BaseTransformer):
     """DateTime feature extraction for use in e.g. tree based models.
 
