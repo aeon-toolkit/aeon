@@ -12,7 +12,6 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from sklearn.utils import check_random_state
 
 
 def make_example_1d_numpy(
@@ -185,60 +184,6 @@ def make_example_dataframe_series(
     rng = np.random.RandomState(random_state)
     index = _make_index(n_timepoints, index_type)
     return pd.DataFrame(rng.uniform(size=(n_timepoints, n_channels)), index=index)
-
-
-def make_series(
-    n_timepoints: int = 50,
-    n_columns: int = 1,
-    all_positive: bool = True,
-    index_type=None,
-    return_numpy: bool = False,
-    random_state=None,
-    add_nan: bool = False,
-):
-    """Generate univariate or multivariate time series.
-
-    Parameters
-    ----------
-    n_timepoints : int, default = 50
-        Num of timepoints in series.
-    n_columns : int, default = 1
-        Number of columns of y.
-    all_positive : bool, default = True
-        Only positive values or not.
-    index_type : pd.PeriodIndex or None, default = None
-        pandas Index type to use.
-    random_state : inst, str, float, default=None
-        Set seed of random state
-    add_nan : bool, default = False
-        Add nan values to the series.
-
-    Returns
-    -------
-    np.ndarray, pd.Series, pd.DataFrame
-        np.ndarray if return_numpy is True
-        pd.Series if n_columns == 1
-        else pd.DataFrame
-    """
-    rng = check_random_state(random_state)
-    data = rng.normal(size=(n_timepoints, n_columns))
-    if add_nan:
-        # add some nan values
-        data[len(data) // 2] = np.nan
-        data[0] = np.nan
-        data[-1] = np.nan
-    if all_positive:
-        data -= np.min(data, axis=0) - 1
-    if return_numpy:
-        if n_columns == 1:
-            data = data.ravel()
-        return data
-    else:
-        index = _make_index(n_timepoints, index_type)
-        if n_columns == 1:
-            return pd.Series(data.ravel(), index)
-        else:
-            return pd.DataFrame(data, index)
 
 
 def _make_index(n_timepoints, index_type=None):

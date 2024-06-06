@@ -3,7 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 
 from aeon.anomaly_detection import MERLIN
-from aeon.testing.data_generation import make_series
+from aeon.testing.data_generation._legacy import make_series
 
 
 def test_merlin():
