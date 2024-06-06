@@ -24,7 +24,7 @@ from aeon.forecasting.model_selection import (
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.sarimax import SARIMAX
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.testing.mock_estimators import MockForecaster
+from aeon.testing.mock_estimators import MockForecaster, MockTransformer
 from aeon.testing.utils.data_gen import get_examples, make_series
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
@@ -32,7 +32,6 @@ from aeon.transformations.boxcox import LogTransformer
 from aeon.transformations.compose import OptionalPassthrough
 from aeon.transformations.detrend import Detrender
 from aeon.transformations.difference import Differencer
-from aeon.transformations.exponent import ExponentTransformer
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.impute import Imputer
 from aeon.transformations.outlier_detection import HampelFilter
@@ -47,7 +46,7 @@ def test_pipeline():
 
     forecaster = TransformedTargetForecaster(
         [
-            ("t1", ExponentTransformer()),
+            ("t1", MockTransformer()),
             ("t2", TabularToSeriesAdaptor(MinMaxScaler())),
             ("forecaster", NaiveForecaster()),
         ]
@@ -59,7 +58,7 @@ def test_pipeline():
     def compute_expected_y_pred(y_train, fh):
         # fitting
         yt = y_train.copy()
-        t1 = ExponentTransformer()
+        t1 = MockTransformer()
         yt = t1.fit_transform(yt)
         t2 = TabularToSeriesAdaptor(MinMaxScaler())
         yt = t2.fit_transform(yt)
@@ -275,10 +274,10 @@ def test_forecasting_pipeline_dunder_endog():
     y = load_airline()
     y_train, y_test = temporal_train_test_split(y)
 
-    forecaster = ExponentTransformer() * MinMaxScaler() * NaiveForecaster()
+    forecaster = MockTransformer() * MinMaxScaler() * NaiveForecaster()
 
     assert isinstance(forecaster, TransformedTargetForecaster)
-    assert isinstance(forecaster.steps[0], ExponentTransformer)
+    assert isinstance(forecaster.steps[0], MockTransformer)
     assert isinstance(forecaster.steps[1], TabularToSeriesAdaptor)
     assert isinstance(forecaster.steps[2], NaiveForecaster)
 
@@ -289,7 +288,7 @@ def test_forecasting_pipeline_dunder_endog():
     def compute_expected_y_pred(y_train, fh):
         # fitting
         yt = y_train.copy()
-        t1 = ExponentTransformer()
+        t1 = MockTransformer()
         yt = t1.fit_transform(yt)
         t2 = TabularToSeriesAdaptor(MinMaxScaler())
         yt = t2.fit_transform(yt)
@@ -318,20 +317,20 @@ def test_forecasting_pipeline_dunder_exog():
     X_train, X_test = temporal_train_test_split(X)
 
     forecaster = (
-        ExponentTransformer()
+        MockTransformer()
         ** MinMaxScaler()
         ** ExponentialSmoothing(sp=12, random_state=3)
     )
-    forecaster_alt = (ExponentTransformer() * MinMaxScaler()) ** ExponentialSmoothing(
+    forecaster_alt = (MockTransformer() * MinMaxScaler()) ** ExponentialSmoothing(
         sp=12, random_state=3
     )
 
     assert isinstance(forecaster, ForecastingPipeline)
-    assert isinstance(forecaster.steps[0], ExponentTransformer)
+    assert isinstance(forecaster.steps[0], MockTransformer)
     assert isinstance(forecaster.steps[1], TabularToSeriesAdaptor)
     assert isinstance(forecaster.steps[2], ExponentialSmoothing)
     assert isinstance(forecaster_alt, ForecastingPipeline)
-    assert isinstance(forecaster_alt.steps[0], ExponentTransformer)
+    assert isinstance(forecaster_alt.steps[0], MockTransformer)
     assert isinstance(forecaster_alt.steps[1], TabularToSeriesAdaptor)
     assert isinstance(forecaster_alt.steps[2], ExponentialSmoothing)
 
@@ -350,7 +349,7 @@ def test_forecasting_pipeline_dunder_exog():
         # fitting
         yt = y_train.copy()
         Xt = X_train.copy()
-        t1 = ExponentTransformer()
+        t1 = MockTransformer()
         Xt = t1.fit_transform(Xt)
         t2 = TabularToSeriesAdaptor(MinMaxScaler())
         Xt = t2.fit_transform(Xt)

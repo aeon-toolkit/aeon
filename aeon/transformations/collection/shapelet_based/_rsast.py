@@ -66,8 +66,8 @@ class RSAST(BaseCollectionTransformer):
     n_jobs : int, default -1
         Number of threads to use for the transform.
 
-    Reference
-    ---------
+    References
+    ----------
     .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023).
     RSAST: Sampling Shapelets for Time Series Classification.
     https://hal.science/hal-04311309/
@@ -127,8 +127,8 @@ class RSAST(BaseCollectionTransformer):
         y: array-like or list
             The class values for X.
 
-        Return
-        ------
+        Returns
+        -------
         self : RSAST
             This transformer
 
@@ -313,8 +313,8 @@ class RSAST(BaseCollectionTransformer):
         y: array-like or list
             Ignored argument, interface compatibility
 
-        Return
-        ------
+        Returns
+        -------
         X_transformed: np.ndarray shape (n_cases, n_timepoints),
             The transformed data
         """

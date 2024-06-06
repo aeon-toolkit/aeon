@@ -22,8 +22,8 @@ class TruncationTransformer(BaseCollectionTransformer):
         to a specific length.
         if None, will find the shortest sequence and use instead.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.transformations.collection import TruncationTransformer
     >>> import numpy as np
     >>> X = []

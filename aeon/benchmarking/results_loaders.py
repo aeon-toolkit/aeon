@@ -189,8 +189,8 @@ def estimator_alias(name: str) -> str:
     name: str
         Standardized name as defined by NAME_ALIASES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.benchmarking.results_loaders import estimator_alias
     >>> estimator_alias("HIVECOTEV2")
     'HC2'
@@ -223,8 +223,8 @@ def get_available_estimators(task="classification", return_dataframe=True):
     pd.DataFrame or List
         Standardised name as defined by NAME_ALIASES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.benchmarking.results_loaders import get_available_estimators
     >>> cls = get_available_estimators("Classification")  # doctest: +SKIP
     """
@@ -275,7 +275,7 @@ def get_estimator_results(
     default_only=True,
     task="classification",
     measure="accuracy",
-    path="https://timeseriesclassification.com/results/ReferenceResults",
+    path="http://timeseriesclassification.com/results/ReferenceResults",
 ):
     """Look for results for given estimators for a list of datasets.
 
@@ -307,8 +307,8 @@ def get_estimator_results(
         dataset names for keys and results as the value. If default only is an
         np.ndarray.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.benchmarking.results_loaders import get_estimator_results
     >>> cls = ["HC2"]  # doctest: +SKIP
     >>> data = ["Chinatown", "Adiac"]  # doctest: +SKIP
@@ -346,7 +346,7 @@ def get_estimator_results_as_array(
     task="Classification",
     measure="accuracy",
     include_missing=False,
-    path="https://timeseriesclassification.com/results/ReferenceResults",
+    path="http://timeseriesclassification.com/results/ReferenceResults",
 ):
     """Look for results for given estimators for a list of datasets.
 
@@ -376,8 +376,8 @@ def get_estimator_results_as_array(
         Each column is a results for a classifier, each row a dataset.
     if include_missing == false, returns names: an aligned list of names of included.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.benchmarking.results_loaders import get_estimator_results
     >>> cls = ["HC2", "FreshPRINCE"] # doctest: +SKIP
     >>> data = ["Chinatown", "Adiac"] # doctest: +SKIP
