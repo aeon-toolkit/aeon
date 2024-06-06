@@ -1,6 +1,15 @@
 """SplitsTimeSeries mixin."""
 
+from deprecated.sphinx import deprecated
 
+
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="SplitsTimeSeries class will be removed in 0.11.0. Use the function "
+    "split_series in utils instead.",
+    category=FutureWarning,
+)
 class SplitsTimeSeries:
     """Split time series mixin."""
 
