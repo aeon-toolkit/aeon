@@ -19,6 +19,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from numba import njit
 
 from aeon.transformations.base import BaseTransformer
@@ -351,6 +352,13 @@ def clasp(
     return profile, knn_mask
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ClaSPTransformer will be removed in version 0.11.0 and replaced with a "
+    "BaseSeriesTransformer version in the transformations.series module.",
+    category=FutureWarning,
+)
 class ClaSPTransformer(BaseTransformer):
     """ClaSP (Classification Score Profile) Transformer.
 
