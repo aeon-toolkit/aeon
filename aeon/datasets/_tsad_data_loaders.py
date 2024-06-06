@@ -104,7 +104,7 @@ def load_anomaly_detection(
     X: np.ndarray
         The univariate (1d) or multivariate (2d) time series with shape
         (n_instances, n_channels).
-    y: numpy array
+    y: np.ndarray
         The binary anomaly labels with shape (n_instances,).
     metadata: optional
         returns the following metadata
