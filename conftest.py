@@ -37,7 +37,7 @@ def pytest_configure(config):
             set_inter_op_parallelism_threads,
             set_intra_op_parallelism_threads,
         )
-        
+
         set_inter_op_parallelism_threads(1)
         set_intra_op_parallelism_threads(1)
 
