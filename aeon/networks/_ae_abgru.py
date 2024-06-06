@@ -1,35 +1,38 @@
 """Implements an Auto-Encoder based on Attention Bidirectional GRUs."""
 
-import tensorflow as tf
-
 from aeon.networks.base import BaseDeepNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
+if _check_soft_dependencies("tensorflow", severity="none"):
+    import tensorflow as tf
 
-class _AttentionLayer(tf.keras.layers.Layer):
-    def __init__(self, n_units, att_size, **kwargs):
-        super().__init__(**kwargs)
-        self.n_units = n_units
-        self.att_size = att_size
+    class _AttentionLayer(tf.keras.layers.Layer):
+        def __init__(self, n_units, att_size, **kwargs):
+            super().__init__(**kwargs)
+            self.n_units = n_units
+            self.att_size = att_size
 
-    def build(self, input_shape):
-        initializer = tf.keras.initializers.RandomNormal(stddev=0.1)
-        self.W_omega = self.add_weight(
-            shape=(self.n_units, self.att_size), initializer=initializer, name="W_omega"
-        )
-        self.b_omega = self.add_weight(
-            shape=(self.att_size,), initializer=initializer, name="b_omega"
-        )
-        self.u_omega = self.add_weight(
-            shape=(self.att_size,), initializer=initializer, name="u_omega"
-        )
-        super().build(input_shape)
+        def build(self, input_shape):
+            initializer = tf.keras.initializers.RandomNormal(stddev=0.1)
+            self.W_omega = self.add_weight(
+                shape=(self.n_units, self.att_size),
+                initializer=initializer,
+                name="W_omega",
+            )
+            self.b_omega = self.add_weight(
+                shape=(self.att_size,), initializer=initializer, name="b_omega"
+            )
+            self.u_omega = self.add_weight(
+                shape=(self.att_size,), initializer=initializer, name="u_omega"
+            )
+            super().build(input_shape)
 
-    def call(self, inputs):
-        v = tf.tanh(tf.tensordot(inputs, self.W_omega, axes=1) + self.b_omega)
-        vu = tf.tensordot(v, self.u_omega, axes=1)
-        alphas = tf.nn.softmax(vu)
-        output = tf.reduce_sum(inputs * tf.expand_dims(alphas, -1), 1)
-        return output
+        def call(self, inputs):
+            v = tf.tanh(tf.tensordot(inputs, self.W_omega, axes=1) + self.b_omega)
+            vu = tf.tensordot(v, self.u_omega, axes=1)
+            alphas = tf.nn.softmax(vu)
+            output = tf.reduce_sum(inputs * tf.expand_dims(alphas, -1), 1)
+            return output
 
 
 class AEAttentionBiGRUNetwork(BaseDeepNetwork):
