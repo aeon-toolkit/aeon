@@ -69,6 +69,11 @@ def sliding_windows(
         Number of time points that are not covered by the windows. The padding length
         is always 0 for stride 1.
 
+    See Also
+    --------
+    aeon.utils.windowing.reverse_windowing :
+        Reverse windowing of a time series.
+
     Examples
     --------
     >>> import numpy as np
@@ -89,11 +94,6 @@ def sliding_windows(
      [5 6 7 8]]
     >>> print(padding)
     2
-
-    See Also
-    --------
-    aeon.utils.windowing.reverse_windowing :
-        Reverse windowing of a time series.
     """
     if X.ndim == 1:
         axis = 0
