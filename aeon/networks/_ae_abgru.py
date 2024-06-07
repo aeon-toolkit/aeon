@@ -59,7 +59,7 @@ class AEAttentionBiGRUNetwork(BaseDeepNetwork):
 
     def __init__(
         self,
-        latent_space_dim=128,
+        latent_space_dim=None,
         n_layers_encoder=1,
         n_layers_decoder=1,
         activation_encoder="relu",
@@ -80,6 +80,9 @@ class AEAttentionBiGRUNetwork(BaseDeepNetwork):
         ---------
         input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer.
+        kwargs : dict
+            Contains additional keyword arguments to be passed to the
+            `build_network` method like `num_input_samples`.
 
         Returns
         -------
@@ -114,10 +117,14 @@ class AEAttentionBiGRUNetwork(BaseDeepNetwork):
         x = input_layer
 
         if self.latent_space_dim is None:
-            self.n_filters_RNN = 64
-            if x.shape[0] > 250:
-                self.n_filters_RNN = 512
-        else:
+            if "num_input_samples" in kwargs.keys():
+                self.n_filters_RNN = 64
+                if kwargs["input_samples"] > 250:
+                    self.n_filters_RNN = 512
+            else:
+                self.latent_space_dim = 64
+                self.n_filters_RNN = self.latent_space_dim
+        elif self.latent_space_dim is not None:
             self.n_filters_RNN = self.latent_space_dim
 
         self._gate = tf.keras.layers.Dense(self.n_filters_RNN, activation="sigmoid")
