@@ -7,9 +7,8 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 _RAW_DUMMIES = [
     ["child", "parent", "dummy_func", "feature_scope"],
@@ -32,14 +31,7 @@ _RAW_DUMMIES = [
 ]
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="DateTimeFeatures will be removed in version 0.11.0. Please use the "
-    "BaseSeriesTransformer version.",
-    category=FutureWarning,
-)
-class DateTimeFeatures(BaseTransformer):
+class DateTimeFeatures(BaseSeriesTransformer):
     """DateTime feature extraction for use in e.g. tree based models.
 
     DateTimeFeatures uses a date index column and generates date features
@@ -89,6 +81,28 @@ class DateTimeFeatures(BaseTransformer):
         * year (special case with no lower frequency).
     keep_original_columns :  boolean, optional, default=False
         Keep original columns in X passed to `.transform()`.
+
+    Examples
+    --------
+    >>> from aeon.transformations.series._date_time import DateTimeFeatures
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+
+    Returns columns `y`, `year`, `month_of_year`
+    >>> transformer = DateTimeFeatures(ts_freq="M")
+    >>> y_hat = transformer.fit_transform(y)
+
+    Returns columns 'y', 'year', 'quarter_of_year', 'month_of_year', 'month_of_quarter'
+    >>> transformer = DateTimeFeatures(ts_freq="M", feature_scope="comprehensive")
+    >>> y_hat = transformer.fit_transform(y)
+
+    Returns columns 'y', 'year', 'quarter_of_year', 'month_of_year'
+    >>> transformer = DateTimeFeatures(ts_freq="M", feature_scope="efficient")
+    >>> y_hat = transformer.fit_transform(y)
+
+    Returns columns 'y',  'year', 'month_of_year'
+    >>> transformer = DateTimeFeatures(ts_freq="M", feature_scope="minimal")
+    >>> y_hat = transformer.fit_transform(y)
     """
 
     _tags = {
@@ -96,11 +110,10 @@ class DateTimeFeatures(BaseTransformer):
         # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
         # what abstract type is returned: Primitives, Series, Panel
+        "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": [
             "pd.Series",
             "pd.DataFrame",
-            "pd-multiindex",
-            "pd_multiindex_hier",
         ],
         "y_inner_type": "None",
         "capability:multivariate": True,
