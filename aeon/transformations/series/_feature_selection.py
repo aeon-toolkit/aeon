@@ -5,21 +5,12 @@ __all__ = ["FeatureSelection"]
 
 import math
 
-import pandas as pd
-from deprecated.sphinx import deprecated
+from sklearn.ensemble import GradientBoostingRegressor
 
-from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation.forecasting import check_regressor
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="FeatureSelection will be removed in version 0.11.0 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class FeatureSelection(BaseTransformer):
+class FeatureSelection(BaseSeriesTransformer):
     """
     Select exogenous features.
 
@@ -66,19 +57,19 @@ class FeatureSelection(BaseTransformer):
         A dictionary with column name as key and feature imporatnce value as value.
         The dict is sorted descending on value. This attribute is a dict if
         method="feature-importances", else None.
+
+    Examples
+    --------
+    >>> from aeon.transformations.series._feature_selection import FeatureSelection
+    >>> from aeon.datasets import load_longley
+    >>> y, X = load_longley()
+    >>> transformer = FeatureSelection(method="feature-importances", n_columns=3)
+    >>> X_hat = transformer.fit_transform(X, y)
     """
 
     _tags = {
-        "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
-        "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": True,
-        "X_inner_type": ["pd.DataFrame", "pd.Series"],
-        "y_inner_type": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "fit_is_empty": False,
-        "transform-returns-same-time-index": True,
-        "skip-inverse-transform": True,
         "capability:multivariate": True,
     }
 
@@ -93,6 +84,13 @@ class FeatureSelection(BaseTransformer):
         self.n_columns = n_columns
         self.method = method
         self.regressor = regressor
+        if regressor is not None:
+            if not getattr(regressor, "_estimator_type", None) == "regressor":
+                raise ValueError(
+                    f"`regressor` should be a sklearn-like regressor, "
+                    f"but found: {regressor}"
+                )
+
         self.random_state = random_state
         self.columns = columns
 
@@ -105,7 +103,7 @@ class FeatureSelection(BaseTransformer):
 
         Parameters
         ----------
-        X : pd.Series or pd.DataFrame
+        X : pd.DataFrame
             Data to fit transform to
         y : pd.DataFrame, default=None
             Additional data, e.g., labels for transformation
@@ -114,19 +112,26 @@ class FeatureSelection(BaseTransformer):
         -------
         self: a fitted instance of the estimator
         """
-        self.n_columns_ = self.n_columns
+        if self.n_columns is None:
+            self.n_columns_ = int(math.ceil(X.shape[1] / 2))
+        else:
+            self.n_columns_ = self.n_columns
         self.feature_importances_ = None
 
         if self.method == "none":
             self.set_tags(**{"output_data_type": "Primitives"})
 
-        # multivariate X
-        if not isinstance(X, pd.Series):
+        # Only do this if multivariate X
+        if len(X.columns) > 1:
             if self.method == "feature-importances":
-                self.regressor_ = check_regressor(
-                    regressor=self.regressor, random_state=self.random_state
-                )
-                self._check_n_columns(X)
+                if y is None:
+                    raise ValueError(
+                        "y must be passed if method is 'feature-importances'."
+                    )
+                if self.regressor is None:
+                    self.regressor_ = GradientBoostingRegressor(max_depth=5)
+                else:
+                    self.regressor_ = self.regressor  # CHANGE
                 # fit regressor with X as exog data and y as endog data (target)
                 self.regressor_.fit(X=X, y=y)
                 if not hasattr(self.regressor_, "feature_importances_"):
@@ -166,10 +171,9 @@ class FeatureSelection(BaseTransformer):
 
         Parameters
         ----------
-        X : pd.Series or pd.DataFrame
+        X : pd.DataFrame
             Data to be transformed
         y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
 
         Returns
         -------
@@ -177,7 +181,7 @@ class FeatureSelection(BaseTransformer):
             transformed version of X
         """
         # multivariate case
-        if not isinstance(X, pd.Series):
+        if len(X.columns) > 1:
             if self.method == "none":
                 Xt = None
             else:
@@ -189,10 +193,6 @@ class FeatureSelection(BaseTransformer):
             else:
                 Xt = X
         return Xt
-
-    def _check_n_columns(self, Z):
-        if not isinstance(self.n_columns_, int):
-            self.n_columns_ = int(math.ceil(Z.shape[1] / 2))
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
