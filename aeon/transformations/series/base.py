@@ -79,7 +79,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         return self
 
     @final
-    def transform(self, X, axis=1):
+    def transform(self, X, y=None, axis=1):
         """Transform X and return a transformed version.
 
         State required:
