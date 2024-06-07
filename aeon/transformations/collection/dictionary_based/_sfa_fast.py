@@ -132,7 +132,7 @@ class SFAFast(BaseCollectionTransformer):
     """
 
     _tags = {
-        "requires_y": True,
+        "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
         "algorithm_type": "dictionary",
     }
 
@@ -148,7 +148,7 @@ class SFAFast(BaseCollectionTransformer):
         bigrams=False,
         skip_grams=False,
         remove_repeat_words=False,
-        lower_bounding=True,
+        lower_bounding=False,
         save_words=False,
         dilation=0,
         first_difference=False,
@@ -172,9 +172,7 @@ class SFAFast(BaseCollectionTransformer):
         self.norm = norm
         self.lower_bounding = lower_bounding
         self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size)
-            if lower_bounding
-            else 1.0  # FIXME this is wrong
+            1.0 / math.sqrt(window_size) if lower_bounding else 1.0
         )
 
         self.remove_repeat_words = remove_repeat_words
@@ -340,8 +338,8 @@ class SFAFast(BaseCollectionTransformer):
         )
 
         # only save at fit
-        if self.save_words:
-            self.words = words
+        # if self.save_words:
+        #    self.words = words
 
         # transform: applies the feature selection strategy
         empty_dict = Dict.empty(
@@ -668,6 +666,35 @@ class SFAFast(BaseCollectionTransformer):
             [_get_chars(word, self.word_length, self.alphabet_size) for word in words]
         )
 
+    def transform_words(self, X):
+        """Return the words generated for each series.
+
+        Parameters
+        ----------
+        X : 3d numpy array, all input time series.
+
+        Returns
+        -------
+        Array of words
+        """
+        if X.ndim == 3:
+            X = X.squeeze(1)
+
+        return _transform_words_case(
+            X,
+            self.window_size,
+            self.dft_length,
+            self.norm,
+            self.support,
+            self.anova,
+            self.variance,
+            self.inverse_sqrt_win_size,
+            self.lower_bounding,
+            self.word_length,
+            self.alphabet_size,
+            self.breakpoints,
+        )
+
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
@@ -916,7 +943,7 @@ def generate_words(
         # allocate memory for 2- and 3-skip-grams
         needed_size += max(0, 2 * dfts.shape[1] - 5 * window_size)
 
-    words = np.zeros((dfts.shape[0], needed_size), dtype=np.int64)
+    words = np.zeros((dfts.shape[0], needed_size), dtype=np.uint32)
 
     letter_bits = np.uint32(letter_bits)
     word_bits = word_length * letter_bits  # dfts.shape[2] * letter_bits
@@ -929,7 +956,7 @@ def generate_words(
 
         for a in prange(dfts.shape[0]):
             match = (dfts[a] <= breakpoints[:, 0]).astype(np.float32)
-            words[a, : dfts.shape[1]] = np.dot(match, vector).astype(np.int64)
+            words[a, : dfts.shape[1]] = np.dot(match, vector).astype(np.uint32)
 
     # general case: alphabet-size many breakpoints
     else:
@@ -1193,6 +1220,46 @@ def shorten_words(words, amount, letter_bits):
     #         words[:, n_instances + a] = (first_word << word_bits) | second_word
 
     return new_words
+
+
+@njit(fastmath=True, cache=True, parallel=True)
+def _transform_words_case(
+    X,
+    window_size,
+    dft_length,
+    norm,
+    support,
+    anova,
+    variance,
+    inverse_sqrt_win_size,
+    lower_bounding,
+    word_length,
+    alphabet_size,
+    breakpoints,
+):
+    dfts = _mft(
+        X,
+        window_size,
+        dft_length,
+        norm,
+        support,
+        anova,
+        variance,
+        inverse_sqrt_win_size,
+        lower_bounding,
+    )
+
+    words = np.zeros((dfts.shape[0], dfts.shape[1], word_length), dtype=np.int32)
+
+    for x in prange(dfts.shape[0]):
+        for window in prange(dfts.shape[1]):
+            for i in prange(word_length):
+                for bp in range(alphabet_size):
+                    if dfts[x, window, i] <= breakpoints[i][bp]:
+                        words[x, window, i] = bp
+                        break
+
+    return words
 
 
 # @njit(fastmath=True, cache=True)

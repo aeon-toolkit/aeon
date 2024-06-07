@@ -106,7 +106,7 @@ class SFA(BaseCollectionTransformer):
     """
 
     _tags = {
-        "requires_y": True,
+        "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
         "algorithm_type": "dictionary",
     }
 
@@ -122,7 +122,7 @@ class SFA(BaseCollectionTransformer):
         skip_grams=False,
         remove_repeat_words=False,
         levels=1,
-        lower_bounding=True,
+        lower_bounding=False,
         save_words=False,
         keep_binning_dft=False,
         use_fallback_dft=False,
@@ -148,9 +148,7 @@ class SFA(BaseCollectionTransformer):
         self.norm = norm
         self.lower_bounding = lower_bounding
         self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size)
-            if lower_bounding
-            else 1.0  # FIXME this is wrong
+            1.0 / math.sqrt(window_size) if lower_bounding else 1.0
         )
 
         self.remove_repeat_words = remove_repeat_words
@@ -423,6 +421,44 @@ class SFA(BaseCollectionTransformer):
             bag,
             words if self.save_words else [],
         ]
+
+    def _transform_words_case(self, X):
+        dfts = self._mft(X)
+        words = np.zeros((dfts.shape[0], self.word_length), dtype=np.int32)
+
+        for window in range(dfts.shape[0]):
+            words[window] = SFA._create_word_full(
+                dfts[window],
+                self.word_length,
+                self.alphabet_size,
+                self.breakpoints,
+                self.letter_bits,
+            )
+
+        return words
+
+    def transform_words(self, X):
+        """Return the words generated for each series.
+
+        Parameters
+        ----------
+        X : 3d numpy array, all input time series.
+
+        Returns
+        -------
+        Array of words
+        """
+        if X.ndim == 3:
+            X = X.squeeze(1)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
+            transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+                delayed(self._transform_words_case)(X[i, :]) for i in range(X.shape[0])
+            )
+
+        words = zip(*transform)
+        return np.array(list(words))
 
     def get_words(self):
         """Return the words generated for each series.
@@ -952,6 +988,18 @@ class SFA(BaseCollectionTransformer):
             for bp in range(alphabet_size):
                 if dft[i] <= breakpoints[i][bp]:
                     word = (word << letter_bits) | bp
+                    break
+
+        return word
+
+    @staticmethod
+    @njit(fastmath=True, cache=True)
+    def _create_word_full(dft, word_length, alphabet_size, breakpoints, letter_bits):
+        word = np.zeros(word_length, dtype=np.int32)
+        for i in range(word_length):
+            for bp in range(alphabet_size):
+                if dft[i] <= breakpoints[i][bp]:
+                    word[i] = bp
                     break
 
         return word

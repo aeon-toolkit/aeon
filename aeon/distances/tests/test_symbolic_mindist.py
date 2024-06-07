@@ -10,7 +10,7 @@ from aeon.distances._dft_sfa_mindist import dft_sfa_mindist
 from aeon.distances._paa_sax_mindist import paa_sax_mindist
 from aeon.distances._sax_mindist import sax_mindist
 from aeon.distances._sfa_mindist import sfa_mindist
-from aeon.transformations.collection.dictionary_based import SAX, SFAFast
+from aeon.transformations.collection.dictionary_based import SAX, SFA, SFAFast
 
 
 def test_sax_mindist():
@@ -66,7 +66,7 @@ def test_sax_mindist():
 
 
 def test_sfa_mindist():
-    n_segments = 16
+    n_segments = 32
     alphabet_size = 8
 
     X_train, _ = load_unit_test("TRAIN")
@@ -76,24 +76,32 @@ def test_sfa_mindist():
     X_train = zscore(X_train.squeeze(), axis=1)
     X_test = zscore(X_test.squeeze(), axis=1)
 
-    SFA = SFAFast(
+    histogram = "equi-width"
+
+    sfa = SFAFast(
         word_length=n_segments,
         alphabet_size=alphabet_size,
         window_size=n,
-        binning_method="equi-width",
+        binning_method=histogram,
         norm=True,
         variance=True,
         lower_bounding=True,
-        save_words=True,
     )
 
-    SFA.fit_transform(X_train)
-    X_train_words = SFA.get_words()
+    # sfa = SFA(
+    #       word_length=n_segments,
+    #       alphabet_size=alphabet_size,
+    #       window_size=X_train.shape[-1],
+    #       binning_method=histogram,
+    #       norm=True,
+    #       lower_bounding=True,
+    # )
 
-    SFA.transform(X_test)
-    Y_train_words = SFA.get_words()
+    sfa.fit(X_train)
+    X_train_words = sfa.transform_words(X_train)
+    Y_train_words = sfa.transform_words(X_test)
 
-    SFA_train_dfts = SFA.transform_mft(X_train).squeeze()
+    SFA_train_dfts = sfa.transform_mft(X_train).squeeze()
 
     tightness_sfa = 0.0
     tightness_dft_sfa = 0.0
@@ -102,11 +110,11 @@ def test_sfa_mindist():
         Y = X_test[i].reshape(1, -1)
 
         # SFA Min-Distance
-        mindist_sfa = sfa_mindist(X_train_words[i], Y_train_words[i], SFA.breakpoints)
+        mindist_sfa = sfa_mindist(X_train_words[i], Y_train_words[i], sfa.breakpoints)
 
         # DFT-SFA Min-Distance
         mindist_dft_sfa = dft_sfa_mindist(
-            SFA_train_dfts[i], Y_train_words[i], SFA.breakpoints
+            SFA_train_dfts[i], Y_train_words[i], sfa.breakpoints
         )
 
         # Euclidean Distance

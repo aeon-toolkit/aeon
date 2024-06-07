@@ -86,7 +86,8 @@ class PAA(BaseCollectionTransformer):
             X_paa = np.zeros(shape=(n_samples, n_channels, self.n_segments))
 
             for _s, segment in enumerate(split_segments):
-                X_paa[:, :, _s] = X[:, :, segment].mean(axis=-1)
+                if X[:, :, segment].shape[-1] > 0:  # avoids mean of empty slice error
+                    X_paa[:, :, _s] = X[:, :, segment].mean(axis=-1)
 
             return X_paa
 

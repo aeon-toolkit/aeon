@@ -114,7 +114,13 @@ class SAX(BaseCollectionTransformer):
             The output of the PAA transformation
         """
         if not self.znormalized:
-            X = scipy.stats.zscore(X, axis=-1)
+            # Safe, if std is 0
+            X = (X - np.mean(X, axis=-1, keepdims=True)) / (
+                np.std(X, axis=-1, keepdims=True) + 1e-8
+            )
+
+            # Non-Safe is std is 0
+            # X = scipy.stats.zscore(X, axis=-1)
 
         paa = PAA(n_segments=self.n_segments)
         X_paa = paa.fit_transform(X=X)
