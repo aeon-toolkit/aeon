@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class AEResNetNetwork(BaseDeepNetwork):
+class AEResNetNetwork(BaseDeepLearningNetwork):
     """
     Establish the network structure for a AE-ResNet.
 
