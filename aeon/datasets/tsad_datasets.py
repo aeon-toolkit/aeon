@@ -30,75 +30,94 @@ Time series types:
 - multivariate: Multivariate datasets have two or more features/dimensions/channels.
 """
 
+from pathlib import Path
+from typing import Dict, List, Tuple
 
-def _load_from_indexfile(refresh=False) -> tuple:
+import numpy as np
+import pandas as pd
+
+import aeon
+
+_DATA_FOLDER = Path(aeon.__file__).parent / "datasets" / "local_data"
+_TIMEEVAL_INDEX_URL = "https://my.hidrive.com/api/sharelink/download?id=koCGAvOe"
+
+
+def _to_tuple_list(X: np.ndarray) -> List[Tuple[str, str]]:
+    return [tuple(x) for x in X]
+
+
+def _load_indexfile(refresh=False) -> pd.DataFrame:
     """Load dataset and collection information from the TimeEval index file."""
-    from pathlib import Path
-
-    import pandas as pd
-
-    import aeon
-
-    _DATA_FOLDER = Path(aeon.__file__).parent / "datasets" / "tsad_data"
-    _TIMEEVAL_INDEX_URL = "https://my.hidrive.com/api/sharelink/download?id=koCGAvOe"
-
-    def _to_tuple_list(X):
-        return [tuple(x) for x in X]
-
-    if refresh:
+    if refresh or not (_DATA_FOLDER / "datasets.csv").exists():
         df = pd.read_csv(_TIMEEVAL_INDEX_URL)
         df.to_csv(_DATA_FOLDER / "datasets.csv", index=False)
     else:
         df = pd.read_csv(_DATA_FOLDER / "datasets.csv")
 
-    _tsad_collections = (
+    return df
+
+
+def tsad_collections() -> Dict[str, List[str]]:
+    """Return dictionary mapping collection names to dataset names."""
+    df = _load_indexfile()
+    return (
         df.groupby("collection_name")
         .apply(lambda x: x["dataset_name"].to_list())
         .to_dict()
     )
-    _tsad_datasets = _to_tuple_list(df[["collection_name", "dataset_name"]].values)
-    _univariate = _to_tuple_list(
+
+
+def tsad_datasets() -> List[Tuple[str, str]]:
+    """Return list of all anomaly detection datasets in the TimeEval archive."""
+    df = _load_indexfile()
+    return _to_tuple_list(df[["collection_name", "dataset_name"]].values)
+
+
+def univariate() -> List[Tuple[str, str]]:
+    """Return list of univariate anomaly detection datasets."""
+    df = _load_indexfile()
+    return _to_tuple_list(
         df.loc[
             df["input_type"] == "univariate", ["collection_name", "dataset_name"]
         ].values
     )
-    _multivariate = _to_tuple_list(
+
+
+def multivariate() -> List[Tuple[str, str]]:
+    """Return list of multivariate anomaly detection datasets."""
+    df = _load_indexfile()
+    return _to_tuple_list(
         df.loc[
             df["input_type"] == "multivariate", ["collection_name", "dataset_name"]
         ].values
     )
-    _unsupervised = _to_tuple_list(
+
+
+def unsupervised() -> List[Tuple[str, str]]:
+    """Return list of unsupervised anomaly detection datasets."""
+    df = _load_indexfile()
+    return _to_tuple_list(
         df.loc[
             df["train_type"] == "unsupervised", ["collection_name", "dataset_name"]
         ].values
     )
-    _supervised = _to_tuple_list(
+
+
+def supervised() -> List[Tuple[str, str]]:
+    """Return list of supervised anomaly detection datasets."""
+    df = _load_indexfile()
+    return _to_tuple_list(
         df.loc[
             df["train_type"] == "supervised", ["collection_name", "dataset_name"]
         ].values
     )
-    _semi_supervised = _to_tuple_list(
+
+
+def semi_supervised() -> List[Tuple[str, str]]:
+    """Return list of semi-supervised anomaly detection datasets."""
+    df = _load_indexfile()
+    return _to_tuple_list(
         df.loc[
             df["train_type"] == "semi-supervised", ["collection_name", "dataset_name"]
         ].values
     )
-    return (
-        _tsad_collections,
-        _tsad_datasets,
-        _univariate,
-        _multivariate,
-        _unsupervised,
-        _supervised,
-        _semi_supervised,
-    )
-
-
-(
-    tsad_collections,
-    tsad_datasets,
-    univariate,
-    multivariate,
-    unsupervised,
-    supervised,
-    semi_supervised,
-) = _load_from_indexfile()

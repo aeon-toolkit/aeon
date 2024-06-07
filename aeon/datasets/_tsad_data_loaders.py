@@ -3,9 +3,9 @@
 __all__ = [
     "load_anomaly_detection",
     "load_from_timeeval_csv_file",
-    "load_dodgers",
-    "load_calit2",
-    "load_rmj_2_short_2_diff_channel",
+    "load_kdd_tsad_135",
+    "load_Daphnet_S07R01E0",
+    "load_ecg_diff_count_3",
 ]
 
 import tempfile
@@ -19,9 +19,9 @@ import numpy as np
 import pandas as pd
 
 import aeon
-from aeon.datasets.tsad_datasets import tsad_datasets
+from aeon.datasets.tsad_datasets import _load_indexfile, tsad_datasets
 
-_DATA_FOLDER = Path(aeon.__file__).parent / "datasets" / "tsad_data"
+_DATA_FOLDER = Path(aeon.__file__).parent / "datasets" / "local_data"
 _TIMEEVAL_BASE_URL = "https://my.hidrive.com/api/sharelink/download?id="
 _COLLECTION_DOWNLOAD_IDS = {
     "CalIt2": "QbiGASlZ",
@@ -49,10 +49,6 @@ _COLLECTION_DOWNLOAD_IDS = {
     "TSB-UAD-synthetic": "kmimguBY",
     "CATSv2": "WXQc8Zufo",
     "TODS-synthetic": "ewIPtYmmZ",
-    # not allowed to publicly share:
-    # "SSA": "",
-    # "IOPS": "",
-    # "WebscopeS5": "",
 }
 
 
@@ -75,7 +71,7 @@ def load_anomaly_detection(
     #canonical-file-format>`_.
 
     If you do not specify ``extract_path``, it will set the path to
-    ``aeon/datasets/tsad_data``. If the problem is not present in ``extract_path``, it
+    ``aeon/datasets/local_data``. If the problem is not present in ``extract_path``, it
     will attempt to download the data.
 
     The problem name is a tuple of collection name and dataset name.
@@ -94,8 +90,8 @@ def load_anomaly_detection(
         loads the test partition.
     extract_path : str, default=None
         The path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/tsad_data/`. If a path is given, it can be absolute,
-        e.g., C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
+        looks in `aeon/datasets/local_data/`. If a path is given, it can be an absolute,
+        e.g., C:/Temp/ or relative, e.g. Temp/ or ./Temp/, path to an existing CSV-file.
     return_metadata : boolean, default = False
         If True, returns a tuple (X, y, metadata).
 
@@ -143,14 +139,14 @@ def load_anomaly_detection(
         data_folder = _DATA_FOLDER
 
     # Check if the dataset is part of the TimeEval archive
-    if name not in tsad_datasets:
+    if name not in tsad_datasets():
         return _load_custom(name, split, data_folder, return_metadata)
 
     # Load index
-    df_meta = pd.read_csv(data_folder / "datasets.csv")
+    df_meta = _load_indexfile()
     df_meta = df_meta.set_index(["collection_name", "dataset_name"])
     metadata = df_meta.loc[name]
-    if split == "train":
+    if split.lower() == "train":
         if metadata["train_path"] is None or np.isnan(metadata["train_path"]):
             raise ValueError(
                 f"Dataset {name} does not have a training partition. Only "
@@ -196,7 +192,7 @@ def _load_custom(
     X, y = load_from_timeeval_csv_file(path)
     if return_metadata:
         learning_type = "unsupervised"
-        if split == "train":
+        if split.lower() == "train":
             learning_type = "semi-supervised" if np.sum(y) == 0 else "supervised"
         meta = {
             "problemname": " ".join(name),
@@ -215,6 +211,7 @@ def _download_and_extract(collection: str, extract_path: Path) -> None:
         raise ValueError(
             f"Collection {collection} is part of the TimeEval archive but not "
             "available for download (missing permission to share)."
+            # e.g. SSA, IOPS, WebscopeS5
         )
 
     url = _TIMEEVAL_BASE_URL + _COLLECTION_DOWNLOAD_IDS[collection]
@@ -269,98 +266,109 @@ def load_from_timeeval_csv_file(path: Path) -> Tuple[np.ndarray, np.ndarray]:
     return X, y
 
 
-def load_dodgers() -> Tuple[np.ndarray, np.ndarray]:
-    """Load the Dodgers 101 freeway traffic univariate time series dataset.
+def load_kdd_tsad_135(
+    split: Literal["train", "test"] = "test"
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Load the KDD-TSAD 135 UCR_Anomaly_Internal_Bleeding16 univariate dataset.
 
     Returns
     -------
     X : np.ndarray
-        Univariate time series with shape (50400,).
+        Univariate time series with shape (n_timepoints,).
     y : np.ndarray
-        Binary anomaly labels with shape (50400,).
+        Binary anomaly labels with shape (n_timepoints,).
 
     Examples
     --------
-    >>> from aeon.datasets import load_dodgers
-    >>> X, y = load_dodgers()
+    >>> from aeon.datasets import load_kdd_tsad_135
+    >>> X, y = load_kdd_tsad_135()
 
     Notes
     -----
-    The Dodgers collection [1] consists of a single univariate time series that
-    represents the traffic volume on the Glendale ramp on the 101 freeway in Los
-    Angeles. The measurements were taken over 25 weeks in 5 minute count aggregates.
-    Dodgers baseball games are played at the stadium near the ramp, which causes traffic
-    congestion = anomalies in the traffic.
+    The KDD-TSAD collection contains 250 datasets from different sources with a single
+    anomaly annotated in each dataset (the top discord). It was prepared for a
+    competition at SIGKDD 2021 [1]. Dataset 135 is a univariate dataset from this
+    collection that records the heart rate of a patient with internal bleeding.
 
         Dimensionality:     univariate
-        Series length:      50400
-        Frequency:          5 minutes
-        Learning Type:      unsupervised (no training data)
+        Series length:      7501
+        Learning Type:      semi-supervised (normal training data)
 
 
     References
     ----------
-    .. [1] Hutchins,Jon. (2006). Dodgers Loop Sensor. UCI Machine Learning Repository.
-           https://doi.org/10.24432/C51P50.
+    .. [1] Keogh, E., Dutta Roy, T., Naik, U. & Agrawal, A (2021). Multi-dataset
+           Time-Series Anomaly Detection Competition, SIGKDD 2021.
+           https://compete.hexagon-ml.com/practice/competition/39/
     """
-    name = ("Dodgers", "101-freeway-traffic")
-    X, y = load_anomaly_detection(name, split="test")
+    # name = ("KDD-TSAD", "135_UCR_Anomaly_InternalBleeding16")
+    dataset_path = (
+        Path(aeon.__file__).parent
+        / "datasets"
+        / "data"
+        / "KDD-TSAD_135"
+        / f"135_UCR_Anomaly_InternalBleeding16_{split.upper()}.csv"
+    )
+    X, y = load_from_timeeval_csv_file(dataset_path)
     return X, y
 
 
-def load_calit2() -> Tuple[np.ndarray, np.ndarray]:
-    """Load the CalIt2 building counts multivariate time series dataset.
+def load_Daphnet_S07R01E0() -> Tuple[np.ndarray, np.ndarray]:
+    """Load the Daphnet S07R01E0 multivariate time series dataset.
 
     Returns
     -------
     X : np.ndarray
-        Multivariate time series with shape (5040,2).
+        Multivariate time series with shape (28800,9).
     y : np.ndarray
-        Binary anomaly labels with shape (5040,).
+        Binary anomaly labels with shape (28800,).
 
     Examples
     --------
-    >>> from aeon.datasets import load_calit2
-    >>> X, y = load_calit2()
+    >>> from aeon.datasets import load_Daphnet_S07R01E0
+    >>> X, y = load_Daphnet_S07R01E0()
 
     Notes
     -----
-    The CalIt2 collection [1] consists of a multivariate time series that represents the
-    number of people flowing in and out through the main door of the CalIt2 building
-    at UCI. The data is collected over 15 weeks in half hour count aggregates. Anomalies
-    in the traffic are caused by special events, such as a conference.
+    The Daphnet collection [1] contains unsupervised datasets with multivariate time
+    series. Each dataset contains the annotated readings of 3 acceleration sensors at
+    the hip and leg of Parkinson's disease patients that experience freezing of gait
+    (FoG) during walking tasks. FoG occureances are annotated as anomalies.
 
-        Dimensionality:     multivariate (2 channels)
-        Series length:      5040
-        Frequency:          30 minutes
+        Dimensionality:     multivariate (9 channels)
+        Series length:      28800
+        Frequency:          around 256 Hz
         Learning Type:      unsupervised (no training data)
 
 
     References
     ----------
-    .. [1] Hutchins,Jon. (2006). CalIt2 Building People Counts. UCI Machine Learning
-           Repository. https://doi.org/10.24432/C5NG78.
+    .. [1] Roggen, Daniel, Plotnik, Meir, and Hausdorff,Jeff. (2013). Daphnet Freezing
+           of Gait. UCI Machine Learning Repository. https://doi.org/10.24432/C56K78.
     """
-    name = ("CalIt2", "CalIt2-traffic")
-    X, y = load_anomaly_detection(name, split="test")
+    # name = ("Daphnet", "S07R02E0")
+    dataset_path = (
+        Path(aeon.__file__).parent
+        / "datasets"
+        / "data"
+        / "Daphnet_S07R02E0"
+        / "S07R02E0.csv"
+    )
+    X, y = load_from_timeeval_csv_file(dataset_path)
     return X, y
 
 
-def load_rmj_2_short_2_diff_channel(
+def load_ecg_diff_count_3(
     learning_type: Literal[
         "unsupervised", "semi-supervised", "supervised"
     ] = "unsupervised"
 ) -> Union[
     Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
 ]:
-    """Load the synthetic Random Mode Jump dataset 'rmj-2-short-2-diff-channel'.
+    """Load the synthetic ECG dataset 'ecg-diff-count-3'.
 
-    The dataset contains two short anomalies in different channels. Each channel in the
-    dataset follows random mode jumps with noise on top of it. The mode jumps are
-    correlated between the channels. A break in this correlation is considered an
-    anomaly. This kind of anomaly cannot be detected by simple combination of univariate
-    anomaly detection methods [1]. The dataset was generated using
-    `GutenTAG <https://github.com/TimeEval/gutentag>`_ [2]
+    The dataset contains three different kind of anomalies. The dataset was generated
+    using `GutenTAG <https://github.com/TimeEval/gutentag>`_ [1]
 
     Parameters
     ----------
@@ -386,31 +394,27 @@ def load_rmj_2_short_2_diff_channel(
 
     Examples
     --------
-    >>> from aeon.datasets import load_rmj_2_short_2_diff_channel
-    >>> X_test, y_test, X_train, y_train = load_rmj_2_short_2_diff_channel("supervised")
+    >>> from aeon.datasets import load_ecg_diff_count_3
+    >>> X_test, y_test, X_train, y_train = load_ecg_diff_count_3("supervised")
 
     Notes
     -----
-        Dimensionality:     multivariate (2 channels)
+        Dimensionality:     univariate
         Series length:      10000
         Frequency:          unknown
         Learning Type:      all supported
 
     References
     ----------
-    .. [1] Phillip Wenig, Sebastian Schmidl, Thorsten Papenbrock: Anomaly Detectors for
-           Multivariate Time Series: The Proof of the Pudding is in the Eating.
-           Proceedings of the Workshop on Multivariate Time Series Analytics (MulTiSA),
-           2024.
-    .. [2] Phillip Wenig, Sebastian Schmidl, and Thorsten Papenbrock. TimeEval: A
+    .. [1] Phillip Wenig, Sebastian Schmidl, and Thorsten Papenbrock. TimeEval: A
            Benchmarking Toolkit for Time Series Anomaly Detection Algorithms. PVLDB,
            15(12): 3678 - 3681, 2022. doi:10.14778/3554821.3554873.
     """
-    name = ("correlation-anomalies", "rmj-2-short-2-diff-channel")
+    name = ("correlation-anomalies", "ecg-diff-count-3")
     base_path = Path(aeon.__file__).parent / "datasets" / "data" / "UnitTest"
-    test_file = base_path / "rmj-2-short-2-diff-channel.test.csv"
-    train_semi_file = base_path / "rmj-2-short-2-diff-channel.train_no_anomaly.csv"
-    train_super_file = base_path / "rmj-2-short-2-diff-channel.train_anomaly.csv"
+    test_file = base_path / "ecg-diff-count-3_TEST.csv"
+    train_semi_file = base_path / "ecg-diff-count-3_TRAIN_NA.csv"
+    train_super_file = base_path / "ecg-diff-count-3_TRAIN_A.csv"
 
     X_test, y_test = load_anomaly_detection(name, extract_path=test_file, split="test")
     if learning_type == "semi-supervised":

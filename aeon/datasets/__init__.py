@@ -41,9 +41,9 @@ __all__ = [
     "load_solar",
     "load_cardano_sentiment",
     "load_covid_3month",
-    "load_dodgers",
-    "load_calit2",
-    "load_rmj_2_short_2_diff_channel",
+    "load_kdd_tsad_135",
+    "load_Daphnet_S07R01E0",
+    "load_ecg_diff_count_3",
     # legacy load functions
     "load_from_arff_to_dataframe",
     "load_from_ucr_tsv_to_dataframe",
@@ -99,8 +99,8 @@ from aeon.datasets._single_problem_loaders import (
 )
 from aeon.datasets._tsad_data_loaders import (
     load_anomaly_detection,
-    load_calit2,
-    load_dodgers,
+    load_Daphnet_S07R01E0,
+    load_ecg_diff_count_3,
     load_from_timeeval_csv_file,
-    load_rmj_2_short_2_diff_channel,
+    load_kdd_tsad_135,
 )
