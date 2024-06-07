@@ -46,11 +46,10 @@ from scipy.stats import norm
 
 from aeon.base import BaseEstimator
 from aeon.datatypes import convert_to
-from aeon.datatypes._vec_df import _VectorizedDF
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_cutoff, update_data
-from aeon.utils.validation import abstract_types, validate_input
+from aeon.utils.validation import validate_input
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_alpha, check_cv, check_fh, check_X
 from aeon.utils.validation.series import check_equal_time_index
@@ -332,14 +331,7 @@ class BaseForecaster(BaseEstimator):
 
         # checks and conversions complete, pass to inner fit
         #####################################################
-        vectorization_needed = isinstance(y_inner, _VectorizedDF)
-        self._is_vectorized = vectorization_needed
-        # we call the ordinary _fit if no looping/vectorization needed
-        if not vectorization_needed:
-            self._fit(y=y_inner, X=X_inner, fh=fh)
-        else:
-            # otherwise we call the vectorized version of fit
-            self._vectorize("fit", y=y_inner, X=X_inner, fh=fh)
+        self._fit(y=y_inner, X=X_inner, fh=fh)
 
         # this should happen last
         self._is_fitted = True
@@ -470,16 +462,7 @@ class BaseForecaster(BaseEstimator):
         self._update_y_X(y_inner, X_inner)
 
         fh = self._check_fh(fh)
-
-        # apply fit and then predict
-        vectorization_needed = isinstance(y_inner, _VectorizedDF)
-        self._is_vectorized = vectorization_needed
-        # we call the ordinary _fit if no looping/vectorization needed
-        if not vectorization_needed:
-            self._fit(y=y_inner, X=X_inner, fh=fh)
-        else:
-            # otherwise we call the vectorized version of fit
-            self._vectorize("fit", y=y_inner, X=X_inner, fh=fh)
+        self._fit(y=y_inner, X=X_inner, fh=fh)
 
         self._is_fitted = True
         # call the public predict to avoid duplicating output conversions
@@ -1282,20 +1265,6 @@ class BaseForecaster(BaseEstimator):
         if X is None and y is None:
             return None, None
 
-        def _most_complex_abstract_type(abstract_types, smaller_equal_than=None):
-            """Return most complex abstract type in a list of str."""
-            if (
-                "Hierarchical" in abstract_types
-                and smaller_equal_than == "Hierarchical"
-            ):
-                return "Hierarchical"
-            elif "Panel" in abstract_types and smaller_equal_than != "Series":
-                return "Panel"
-            elif "Series" in abstract_types:
-                return "Series"
-            else:
-                raise ValueError("no series abstract types supported, bug in estimator")
-
         def _check_missing(metadata, obj_name):
             """Check input metadata against self's missing capability tag."""
             if not self.get_tag("capability:missing_values"):
@@ -1315,8 +1284,6 @@ class BaseForecaster(BaseEstimator):
         # retrieve supported mtypes
         y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
         X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
-        y_inner_abstract_type = abstract_types(y_inner_type)
-        X_inner_abstract_type = abstract_types(X_inner_type)
 
         # checking y
         if y is not None:
@@ -1337,13 +1304,6 @@ class BaseForecaster(BaseEstimator):
             y_type = y_metadata["scitype"]
             self._y_mtype_last_seen = y_metadata["mtype"]
 
-            req_vec_because_rows = y_type not in y_inner_abstract_type
-            req_vec_because_cols = (
-                self.get_tag("y_input_type") == "univariate"
-                and not y_metadata["is_univariate"]
-            )
-            requires_vectorization = req_vec_because_rows or req_vec_because_cols
-
             if (
                 self.get_tag("y_input_type") == "multivariate"
                 and y_metadata["is_univariate"]
@@ -1353,10 +1313,8 @@ class BaseForecaster(BaseEstimator):
                 )
 
             _check_missing(y_metadata, "y")
-
         else:
             y_type = None
-            requires_vectorization = False
         # end checking y
 
         # checking X
@@ -1376,11 +1334,7 @@ class BaseForecaster(BaseEstimator):
                     "Possible mtype specification strings are as follows. "
                 )
             X_type = X_metadata["scitype"]
-            X_requires_vectorization = X_type not in X_inner_abstract_type
-            requires_vectorization = requires_vectorization or X_requires_vectorization
-
             _check_missing(X_metadata, "X")
-
         else:
             X_type = None
 
@@ -1400,49 +1354,18 @@ class BaseForecaster(BaseEstimator):
             if y_type != X_type:
                 raise TypeError("X and y must have the same abstract type")
         # end compatibility checking X and y
-
-        # convert X & y to supported inner type, if necessary
-        #####################################################
-
-        # convert X and y to a supported internal mtype
-        #  it X/y mtype is already supported, no conversion takes place
-        #  if X/y is None, then no conversion takes place (returns None)
-        #  if vectorization is required, we wrap in Vect
-
-        if not requires_vectorization:
-            # converts y, skips conversion if already of right type
-            y_inner = convert_to(
-                y,
-                to_type=y_inner_type,
-                as_scitype=y_type,  # we are dealing with series
-                store=self._converter_store_y,
-                store_behaviour="reset",
-            )
-
-            # converts X, converts None to None if X is None
-            X_inner = convert_to(
-                X,
-                to_type=X_inner_type,
-                as_scitype=X_type,  # we are dealing with series
-            )
-        else:
-            iterate_as = _most_complex_abstract_type(
-                y_inner_abstract_type, smaller_equal_than=y_type
-            )
-            if y is not None:
-                y_inner = _VectorizedDF(
-                    X=y,
-                    iterate_as=iterate_as,
-                    is_scitype=y_type,
-                    iterate_cols=req_vec_because_cols,
-                )
-            else:
-                y_inner = None
-            if X is not None:
-                X_inner = _VectorizedDF(X=X, iterate_as=iterate_as, is_scitype=X_type)
-            else:
-                X_inner = None
-
+        y_inner = convert_to(
+            y,
+            to_type=y_inner_type,
+            as_scitype=y_type,  # we are dealing with series
+            store=self._converter_store_y,
+            store_behaviour="reset",
+        )
+        X_inner = convert_to(
+            X,
+            to_type=X_inner_type,
+            as_scitype=X_type,  # we are dealing with series
+        )
         return X_inner, y_inner
 
     def _check_X(self, X=None):
@@ -1483,9 +1406,6 @@ class BaseForecaster(BaseEstimator):
             Exogeneous time series
         """
         if y is not None:
-            # unwrap y if VectorizedDF
-            if isinstance(y, _VectorizedDF):
-                y = y.X_multiindex
             # if _y does not exist yet, initialize it with y
             if not hasattr(self, "_y") or self._y is None or not self.is_fitted:
                 self._y = y
@@ -1496,9 +1416,6 @@ class BaseForecaster(BaseEstimator):
             self._set_cutoff_from_y(y)
 
         if X is not None:
-            # unwrap X if VectorizedDF
-            if isinstance(X, _VectorizedDF):
-                X = X.X_multiindex
             # if _X does not exist yet, initialize it with X
             if not hasattr(self, "_X") or self._X is None or not self.is_fitted:
                 self._X = X
@@ -1685,65 +1602,6 @@ class BaseForecaster(BaseEstimator):
             # if existing one and new match, ignore new one
 
         return self._fh
-
-    def _vectorize(self, methodname, **kwargs):
-        """Vectorized/iterated loop over method of BaseForecaster.
-
-        Uses forecasters_ attribute to store one forecaster per loop index.
-        """
-        FIT_METHODS = ["fit", "update"]
-        PREDICT_METHODS = [
-            "predict",
-            "update_predict_single",
-            "predict_quantiles",
-            "predict_interval",
-            "predict_var",
-        ]
-
-        # retrieve data arguments
-        X = kwargs.pop("X", None)
-        y = kwargs.get("y", None)
-
-        # add some common arguments to kwargs
-        kwargs["args_rowvec"] = {"X": X}
-        kwargs["rowname_default"] = "forecasters"
-        kwargs["colname_default"] = "forecasters"
-
-        # fit-like methods: write y to self._yvec; then run method; clone first if fit
-        if methodname in FIT_METHODS:
-            self._yvec = y
-
-            if methodname == "fit":
-                forecasters_ = y.vectorize_est(self, method="clone")
-            else:
-                forecasters_ = self.forecasters_
-
-            self.forecasters_ = y.vectorize_est(
-                forecasters_, method=methodname, **kwargs
-            )
-            return self
-
-        # predict-like methods: return as list, then run through reconstruct
-        # to obtain a pandas based container in one of the pandas mtype formats
-        elif methodname in PREDICT_METHODS:
-            if methodname == "update_predict_single":
-                self._yvec = y
-
-            y_preds = self._yvec.vectorize_est(
-                self.forecasters_, method=methodname, return_type="list", **kwargs
-            )
-
-            # if we vectorize over columns,
-            #   we need to replace top column level with variable names - part 1
-            m = len(self.forecasters_.columns)
-            col_multiindex = "multiindex" if m > 1 else "none"
-            y_pred = self._yvec.reconstruct(
-                y_preds, overwrite_index=True, col_multiindex=col_multiindex
-            )
-            # if vectorize over columns replace top column level with variable names
-            if col_multiindex == "multiindex":
-                y_pred.columns = y_pred.columns.droplevel(1)
-            return y_pred
 
     def _fit(self, y, X=None, fh=None):
         """Fit forecaster to training data.
@@ -2241,11 +2099,6 @@ class BaseForecaster(BaseEstimator):
         # set cutoff to time point before data
         y_first_index = get_cutoff(y, return_index=True, reverse_order=True)
         self_copy._set_cutoff(_shift(y_first_index, by=-1, return_index=True))
-
-        if isinstance(y, _VectorizedDF):
-            y = y.X
-        if isinstance(X, _VectorizedDF):
-            X = X.X
 
         # iterate over data
         for new_window, _ in cv.split(y):
