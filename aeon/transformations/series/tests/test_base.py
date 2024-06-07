@@ -49,3 +49,7 @@ def test_fit_transform_univariate():
     assert isinstance(x4, np.ndarray) and x4.ndim == 1
     with pytest.raises(ValueError, match="Multivariate data not supported"):
         transformer.fit_transform(np.random.rand(2, 10))
+    transformer.fit(x1, x2)
+    x3 = transformer.transform(x1, x2)
+    x4 = transformer.fit_transform(x1, x2)
+    np.testing.assert_array_almost_equal(x3, x4)
