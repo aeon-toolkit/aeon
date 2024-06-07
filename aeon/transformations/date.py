@@ -178,7 +178,7 @@ class DateTimeFeatures(BaseTransformer):
                 ):
                     warnings.warn(
                         "Level of selected dummy variable "
-                        + " lower level than base ts_frequency.",
+                        + "lower level than base ts_frequency.",
                         stacklevel=2,
                     )
                 calendar_dummies = self.dummies.loc[
