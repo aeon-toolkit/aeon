@@ -105,6 +105,9 @@ env.bak/
 venv.bak/
 aeon-dev/
 
+#Pyright
+pyrightconfig.json
+
 # mkdocs documentation
 /site
 
@@ -154,7 +157,7 @@ build_doc_site/
 envs/
 *.html
 
-# example mlflow runs
+# example run output
 examples/local/
 
 # local files

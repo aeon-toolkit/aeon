@@ -9,12 +9,19 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from sklearn.exceptions import FitFailedWarning
 
-from aeon.datatypes import check_is_scitype, convert_to
-from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.base import ForecastingHorizon
+from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
+from aeon.utils.conversion import convert_collection, convert_series
+from aeon.utils.validation import (
+    is_collection,
+    is_hierarchical,
+    is_single_series,
+    validate_input,
+)
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.forecasting import check_cv, check_scoring
+from aeon.utils.validation.forecasting import check_cv
 
 PANDAS_MTYPES = ["pd.DataFrame", "pd.Series", "pd-multiindex", "pd_multiindex_hier"]
 
@@ -151,15 +158,6 @@ def _evaluate_window(
 
         scitype = None
         metric_args = {}
-        from aeon.performance_metrics.forecasting.probabilistic import (
-            _BaseProbaForecastingErrorMetric,
-        )
-
-        if isinstance(scoring, _BaseProbaForecastingErrorMetric):
-            if hasattr(scoring, "metric_args"):
-                metric_args = scoring.metric_args
-            scitype = scoring.get_tag("y_input_type_pred")
-
         y_pred = eval(pred_type[scitype])(fh, X_test, **metric_args)
         pred_time = time.perf_counter() - start_pred
         # score
@@ -228,9 +226,9 @@ def evaluate(
         aeon forecaster (concrete BaseForecaster descendant)
     cv : aeon BaseSplitter descendant
         Splitter of how to split the data into test data and train data
-    y : aeon time series container
+    y : aeon time series data structure
         Target (endogeneous) time series used in the evaluation experiment
-    X : aeon time series container, of same mtype as y
+    X : aeon time series data structure, of same type as y
         Exogenous time series used in the evaluation experiment
     strategy : {"refit", "update", "no-update_params"}, optional, default="refit"
         defines the ingestion mode when the forecaster sees new data when window expands
@@ -325,21 +323,33 @@ def evaluate(
 
     _check_strategy(strategy)
     cv = check_cv(cv, enforce_start_with_window=True)
+
+    def _check_scoring(s):
+        if s is None:
+            return mean_absolute_percentage_error
+        if not callable(s):
+            raise TypeError("`scoring` must be a callable object")
+        return s
+
     if isinstance(scoring, List):
-        scoring = [check_scoring(s) for s in scoring]
+        scoring = [_check_scoring(s) for s in scoring]
     else:
-        scoring = check_scoring(scoring)
+        scoring = [_check_scoring(scoring)]
 
-    ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-
-    y_valid, _, _ = check_is_scitype(y, scitype=ALLOWED_SCITYPES, return_metadata=True)
-    if not y_valid:
+    valid, y_metadata = validate_input(y)
+    if not valid:
         raise TypeError(
-            f"Expected y dtype {ALLOWED_SCITYPES!r}. Got {type(y)} instead."
+            f"Expected a series, collection or hierarchy. Got {type(y)} instead."
         )
-
-    y = convert_to(y, to_type=PANDAS_MTYPES)
-
+    if isinstance(y, np.ndarray):
+        if y_metadata["scitype"] == "Series":
+            if y_metadata["is_univariate"]:
+                y = convert_series(y, output_type="pd.Series")
+            else:
+                y = convert_series(y, output_type="pd.DataFrame")
+        elif y_metadata["scitype"] == "Panel":
+            y = convert_collection(y, output_type="pd-multiindex")
+        # If hierarchical, we don't need to convert
     freq = None
     try:
         if y.index.nlevels == 1:
@@ -350,14 +360,22 @@ def evaluate(
         pass
 
     if X is not None:
-        X_valid, _, _ = check_is_scitype(
-            X, scitype=ALLOWED_SCITYPES, return_metadata=True
-        )
-        if not X_valid:
+        series = is_single_series(X)
+        hier = is_hierarchical(X)
+        collection = is_collection(X)
+        if not (series or hier or collection):
             raise TypeError(
-                f"Expected X dtype {ALLOWED_SCITYPES!r}. Got {type(X)} instead."
+                f"Expected a series, collection or hierarchy. Got {type(y)} instead."
             )
-        X = convert_to(X, to_type=PANDAS_MTYPES)
+        _, x_metadata = validate_input(X)
+        if isinstance(X, np.ndarray):
+            if series:
+                if x_metadata["is_univariate"]:
+                    X = convert_series(X, output_type="pd.Series")
+                else:
+                    X = convert_series(X, output_type="pd.DataFrame")
+            elif collection:
+                X = convert_collection(X, output_type="pd-multiindex")
     score_name = (
         f"test_{scoring.__name__}"
         if not isinstance(scoring, List)

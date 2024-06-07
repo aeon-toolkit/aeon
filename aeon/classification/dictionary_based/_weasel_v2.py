@@ -8,12 +8,10 @@ Time Series Classification.
 __maintainer__ = []
 __all__ = ["WEASEL_V2", "WEASELTransformerV2"]
 
-import warnings
-
 import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse import hstack
-from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
+from sklearn.linear_model import RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -70,17 +68,6 @@ class WEASEL_V2(BaseClassifier):
         If the array contains True, words are computed over first order differences.
         If the array contains False, words are computed over the raw time series.
         If both are set, words are computed for both.
-    support_probabilities : str or bool, default="deprecated"
-         Old parameter to support probabilities, no longer needed as probabilities
-         are supported by default.
-
-         If set to False or "deprecated", a RidgeClassifierCV will be trained,
-         which has higher accuracy and is faster. Now also supports probabilities.
-         If set to True, a LogisticRegression will be trained, which supports better
-         probabilities, yet is slower and typically less accurate. Probabilities are
-         needed, for example in Early-Classification like TEASER.
-
-         Deprecated and will be removed in v0.8.0.
     feature_selection : str, default = "chi2_top_k"
         Sets the feature selections strategy to be used. Options from {"chi2_top_k",
         "none", "random"}. Large amounts of memory may be needed depending on the
@@ -94,7 +81,9 @@ class WEASEL_V2(BaseClassifier):
        size of the dictionary - number of words to use - if feature_selection set to
        "chi2" or "random". Else ignored.
     random_state : int or None, default=None
-        Seed for random, integer.
+        If `int`, random_state is the seed used by the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -139,7 +128,6 @@ class WEASEL_V2(BaseClassifier):
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
-        support_probabilities="deprecated",
         n_jobs=4,
     ):
         self.norm_options = norm_options
@@ -155,15 +143,6 @@ class WEASEL_V2(BaseClassifier):
 
         self.clf = None
         self.n_jobs = n_jobs
-
-        # TODO remove 'support_probabilities' in v0.8.0
-        self.support_probabilities = support_probabilities
-        if support_probabilities != "deprecated":
-            warnings.warn(
-                "the support_probabilities parameter is deprecated and will be"
-                "removed in v0.8.0",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -198,24 +177,8 @@ class WEASEL_V2(BaseClassifier):
         )
         words = self.transform.fit_transform(X, y)
 
-        if (self.support_probabilities == "deprecated") or (
-            not self.support_probabilities
-        ):
-            # use RidgeClassifierCV for classification,
-            # if support_probabilities is not set to True
-            self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
-        else:
-            # TODO remove 'support_probabilities' in v0.8.0
-            # Use legacy classifier, if support_probabilities is set to True
-            self.clf = LogisticRegression(
-                max_iter=5000,
-                solver="liblinear",
-                dual=True,
-                penalty="l2",
-                random_state=self.random_state,
-                n_jobs=self.n_jobs,
-            )
-
+        # use RidgeClassifierCV for classification
+        self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
         self.clf.fit(words, y)
 
         if hasattr(self.clf, "best_score_"):

@@ -1,15 +1,30 @@
 """Pipeline making utility."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
+
+from sklearn.base import ClassifierMixin, ClusterMixin, RegressorMixin, TransformerMixin
+
+from aeon.classification import BaseClassifier
+from aeon.classification.compose import ClassifierPipeline
+from aeon.clustering import BaseClusterer
+from aeon.clustering.compose import ClustererPipeline
+from aeon.regression import BaseRegressor
+from aeon.regression.compose import RegressorPipeline
+from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.compose import CollectionTransformerPipeline
 
 
 def make_pipeline(*steps):
-    """Create a pipeline from estimators of any type.
+    """Create a pipeline from aeon and sklearn estimators.
+
+    Currently available for:
+        forecasters, classifiers, regressors, clusterers, and transformers.
 
     Parameters
     ----------
-    steps : tuple of aeon estimators
-        in same order as used for pipeline construction
+    steps : list or tuple of aeon and/or sklearn estimators
+        This should be provided in same order as the required pipeline construction
 
     Returns
     -------
@@ -19,15 +34,11 @@ def make_pipeline(*steps):
 
     Examples
     --------
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-
     Example 1: forecaster pipeline
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.pipeline import make_pipeline
     >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> y = load_airline()
     >>> pipe = make_pipeline(ExponentTransformer(), PolynomialTrendForecaster())
     >>> type(pipe).__name__
     'TransformedTargetForecaster'
@@ -47,8 +58,44 @@ def make_pipeline(*steps):
     >>> type(pipe).__name__
     'TransformerPipeline'
     """
-    pipe = steps[0]
-    for i in range(1, len(steps)):
-        pipe = pipe * steps[i]
+    if len(steps) == 1 and isinstance(steps[0], list):
+        steps = steps[0]
 
-    return pipe
+    # Classifiers
+    if (
+        isinstance(steps[-1], BaseClassifier)
+        or isinstance(steps[-1], ClassifierMixin)
+        or getattr(steps[-1], "_estimator_type", None) == "classifier"
+    ):
+        return ClassifierPipeline(list(steps[:-1]), steps[-1])
+    # Regressors
+    elif (
+        isinstance(steps[-1], BaseRegressor)
+        or isinstance(steps[-1], RegressorMixin)
+        or getattr(steps[-1], "_estimator_type", None) == "regressor"
+    ):
+        return RegressorPipeline(list(steps[:-1]), steps[-1])
+    # Clusterers
+    elif (
+        isinstance(steps[-1], BaseClusterer)
+        or isinstance(steps[-1], ClusterMixin)
+        or getattr(steps[-1], "_estimator_type", None) == "clusterer"
+    ):
+        return ClustererPipeline(list(steps[:-1]), steps[-1])
+    # Collection transformers
+    elif (
+        isinstance(steps[0], BaseCollectionTransformer)
+        or isinstance(steps[0], TransformerMixin)
+        or getattr(steps[0], "_estimator_type", None) == "transformer"
+    ) and (
+        isinstance(steps[-1], BaseTransformer)
+        or isinstance(steps[-1], TransformerMixin)
+        or getattr(steps[-1], "_estimator_type", None) == "transformer"
+    ):
+        return CollectionTransformerPipeline(list(steps))
+    else:
+        pipe = steps[0]
+        for i in range(1, len(steps)):
+            pipe = pipe * steps[i]
+
+        return pipe

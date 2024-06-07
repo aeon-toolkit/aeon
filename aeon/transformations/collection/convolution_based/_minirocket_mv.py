@@ -65,7 +65,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
     Raises
     ------
     ValueError
-        If any multivariate series_length in X is < 9 and
+        If any multivariate n_timepoints in X is < 9 and
         pad_value_short_series is set to None
 
     See Also
@@ -147,7 +147,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         Raises
         ------
         ValueError
-            If any multivariate series_length in X is < 9 and
+            If any multivariate n_timepoints in X is < 9 and
             pad_value_short_series is set to None
         """
         X_2d_t, lengths_1darray = _np_list_transposed2D_array_and_len_list(
@@ -208,12 +208,12 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
 
         Returns
         -------
-           np.ndarray, size (n_instances, num_kernels)
+           np.ndarray, size (n_cases, num_kernels)
 
         Raises
         ------
         ValueError
-            If any multivariate series_length in X is < 9 and
+            If any multivariate n_timepoints in X is < 9 and
             pad_value_short_series is set to None
         """
         X_2d_t, L = _np_list_transposed2D_array_and_len_list(
@@ -239,8 +239,8 @@ def _np_list_transposed2D_array_and_len_list(
     Parameters
     ----------
     X : List of dataframes
-        List of length n_instances, with
-        dataframes of series_length-rows and n_channels-columns
+        List of length n_cases, with
+        dataframes of n_timepoints-rows and n_channels-columns
     pad : float or None. if float/int,pads multivariate series with 'pad',
         so that each series has at least length 9.
         if None, no padding is applied.
@@ -248,15 +248,15 @@ def _np_list_transposed2D_array_and_len_list(
     Returns
     -------
     np.ndarray: 2D array of shape =
-        [n_channels, sum(length_series(i) for i in n_instances)],
+        [n_channels, sum(length_series(i) for i in n_cases)],
         np.float32
-    np.ndarray: 1D array of shape = [n_instances]
+    np.ndarray: 1D array of shape = [n_cases]
         with length of each series, np.int32
 
     Raises
     ------
     ValueError
-        If any multivariate series_length in X is < 9 and
+        If any multivariate n_timepoints in X is < 9 and
         pad_value_short_series is set to None
     """
     vec = []
@@ -273,8 +273,8 @@ def _np_list_transposed2D_array_and_len_list(
                 vec.append(np.transpose(x_pad))
             else:
                 raise ValueError(
-                    "X series_length must be >= 9 for all samples"
-                    f"but sample with series_length {_x_shape[1]} found. Consider"
+                    "X n_timepoints must be >= 9 for all samples"
+                    f"but sample with n_timepoints {_x_shape[1]} found. Consider"
                     " padding, discard, or setting a pad_value_short_series value"
                 )
         else:
@@ -312,7 +312,7 @@ def _fit_biases_multi_var(
 ):
     if seed is not None:
         np.random.seed(seed)
-    n_instances = len(L)
+    n_cases = len(L)
 
     num_channels, _ = X.shape
 
@@ -610,7 +610,7 @@ def _fit_biases_multi_var(
                 num_channels_start:num_channels_end
             ]
 
-            example_index = np.random.randint(n_instances)
+            example_index = np.random.randint(n_cases)
 
             input_length = np.int64(L[example_index])
 
@@ -793,7 +793,7 @@ def _PPV(a, b):
     cache=True,
 )
 def _transform_multi_var(X, L, parameters):
-    n_instances = len(L)
+    n_cases = len(L)
 
     num_channels, _ = X.shape
 
@@ -1073,9 +1073,9 @@ def _transform_multi_var(X, L, parameters):
 
     num_features = num_kernels * np.sum(num_features_per_dilation)
 
-    features = np.zeros((n_instances, num_features), dtype=np.float32)
+    features = np.zeros((n_cases, num_features), dtype=np.float32)
 
-    for example_index in prange(n_instances):
+    for example_index in prange(n_cases):
         input_length = np.int64(L[example_index])
 
         b = np.sum(L[0 : example_index + 1])

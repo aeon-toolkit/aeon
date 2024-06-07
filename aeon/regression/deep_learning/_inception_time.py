@@ -115,8 +115,13 @@ class InceptionTimeRegressor(BaseRegressor):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
-        random_state        : int, default = 0
-            seed to any needed random actions.
+        random_state : int, RandomState instance or None, default=None
+            If `int`, random_state is the seed used by the random number generator;
+            If `RandomState` instance, random_state is the random number generator;
+            If `None`, the random number generator is the `RandomState` instance used
+            by `np.random`.
+            Seeded random number generation can only be guaranteed on CPU processing,
+            GPU processing will be non-deterministic.
         verbose             : boolean, default = False
             whether to output extra information
         optimizer           : keras optimizer, default = Adam
@@ -237,10 +242,10 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples.
-        y : np.ndarray of shape n
-            The training data target values.
+        X : np.ndarray
+            The training input samples of shape (n_cases, n_channels, n_timepoints).
+        y : np.ndarray
+            The training data target values of shape (n_cases,).
 
         Returns
         -------
@@ -292,12 +297,12 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
             The testing input samples.
 
         Returns
         -------
-        Y : np.ndarray of shape = (n_instances)
+        Y : np.ndarray of shape = (n_cases)
             The predicted values
 
         """
@@ -427,8 +432,13 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
-        random_state        : int, default = 0
-            seed to any needed random actions.
+        random_state : int, RandomState instance or None, default=None
+            If `int`, random_state is the seed used by the random number generator;
+            If `RandomState` instance, random_state is the random number generator;
+            If `None`, the random number generator is the `RandomState` instance used
+            by `np.random`.
+            Seeded random number generation can only be guaranteed on CPU processing,
+            GPU processing will be non-deterministic.
         verbose             : boolean, default = False
             whether to output extra information
         optimizer           : keras optimizer, default = Adam
@@ -559,8 +569,12 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         tf.keras.models.Model
             A compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(1, activation=self.output_activation)(
@@ -568,8 +582,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        tf.random.set_seed(self.random_state)
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
@@ -588,20 +600,18 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_instances, n_channels, series_length)
-            The training input samples. If a 2D array-like is passed,
-            n_channels is assumed to be 1.
-        y : np.ndarray of shape (n_instances)
-            The training data target values.
+        X : np.ndarray
+            The training input samples of,
+            shape (n_cases, n_channels, n_timepoints).
+            If a 2D array-like is passed, n_channels is assumed to be 1.
+        y : np.ndarray
+            The training data target values of shape (n_cases,).
 
         Returns
         -------
         self : object
         """
         import tensorflow as tf
-
-        rng = check_random_state(self.random_state)
-        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
@@ -629,7 +639,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.file_name_ + ".hdf5",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -649,10 +659,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".hdf5", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.file_name_ + ".hdf5")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 

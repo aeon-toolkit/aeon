@@ -52,18 +52,21 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
     n_classes_ : int
         The number of classes.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
-    series_length_ : int
+    n_timepoints_ : int
         The full length of each series.
     classes_ : list
         The unique class labels.
@@ -117,14 +120,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         self._estimators = []
         self._classification_points = []
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
 
         super().__init__()
 
     def _fit(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._estimator = (
             DrCIFClassifier() if self.estimator is None else self.estimator
@@ -137,7 +140,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         self._classification_points = (
             copy.deepcopy(self.classification_points)
             if self.classification_points is not None
-            else [round(self.series_length_ / i) for i in range(1, 21)]
+            else [round(self.n_timepoints_ / i) for i in range(1, 21)]
         )
         # remove duplicates
         self._classification_points = list(set(self._classification_points))
@@ -145,8 +148,8 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         # remove classification points that are less than 3 time stamps
         self._classification_points = [i for i in self._classification_points if i >= 3]
         # make sure the full series length is included
-        if self._classification_points[-1] != self.series_length_:
-            self._classification_points.append(self.series_length_)
+        if self._classification_points[-1] != self.n_timepoints_:
+            self._classification_points.append(self.n_timepoints_)
         # create dictionary of classification point indices
         self._classification_point_dictionary = {}
         for index, classification_point in enumerate(self._classification_points):
@@ -179,10 +182,10 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         return self._proba_output_to_preds(out)
 
     def _predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
-        n_instances, _, series_length = X.shape
+        n_cases, _, n_timepoints = X.shape
 
         # maybe use the largest index that is smaller than the series length
-        next_idx = self._get_next_idx(series_length) + 1
+        next_idx = self._get_next_idx(n_timepoints) + 1
 
         # if the input series length is invalid
         if next_idx == 0:
@@ -221,10 +224,10 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         return probas, accept_decision
 
     def _update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
-        series_length = X.shape[2]
+        n_timepoints = X.shape[2]
 
         # maybe use the largest index that is smaller than the series length
-        next_idx = self._get_next_idx(series_length) + 1
+        next_idx = self._get_next_idx(n_timepoints) + 1
 
         # remove cases where a positive decision has been made
         state_info = self.state_info[
@@ -315,14 +318,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         # stores whether we have made a final decision on a prediction, if true
         # state info won't be edited in later time stamps
         finished = state_info[:, 1] >= self.consecutive_predictions
-        n_instances = len(preds)
+        n_cases = len(preds)
 
         full_length_ts = idx == len(self._classification_points) - 1
         if full_length_ts:
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
         else:
             offsets = np.argwhere(finished == 0).flatten()
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
             if len(offsets) > 0:
                 p = probas[offsets, preds[offsets]]
                 accept_decision[offsets] = p >= self.probability_threshold
@@ -335,14 +338,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
                     if not finished[i]
                     else state_info[i]
                 )
-                for i in range(n_instances)
+                for i in range(n_cases)
             ]
         )
 
         # check safety of decisions
         if full_length_ts:
             # Force prediction at last time stamp
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
         else:
             accept_decision = state_info[:, 1] >= self.consecutive_predictions
 
@@ -372,11 +375,11 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         return probas, preds
 
-    def _get_next_idx(self, series_length):
+    def _get_next_idx(self, n_timepoints):
         """Return the largest index smaller than the series length."""
         next_idx = -1
         for idx, offset in enumerate(np.sort(self._classification_points)):
-            if offset <= series_length:
+            if offset <= n_timepoints:
                 next_idx = idx
         return next_idx
 
@@ -447,7 +450,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         )
         earliness = np.average(
             [
-                self._classification_points[state_info[i][0]] / self.series_length_
+                self._classification_points[state_info[i][0]] / self.n_timepoints_
                 for i in range(len(state_info))
             ]
         )

@@ -2,15 +2,17 @@
 hide-toc: true
 ---
 
-<h1 style="text-align: center;">Welcome to aeon</h1>
+<h1 style="text-align: center;">Welcome to <b>aeon</b></h1>
 
 `aeon` is a scikit-learn compatible toolkit for time series tasks such as
-forecasting, classification and clustering.</p>
+forecasting, classification, regression, clustering and anomaly detection.</p>
 
 - Provides a broad library of time series algorithms, including the latest advances.
 - Efficient implementation of time series algorithms using numba.
 - Interfaces with other time series packages to provide a single framework for algorithm
 comparison.
+
+Please visit our [GitHub repository](https://github.com/aeon-toolkit/aeon).
 
 ::::{grid} 1 2 2 2
 :gutter: 3
@@ -81,7 +83,7 @@ Get started with time series clustering.
 
 +++
 
-```{button-ref} /examples/clustering/partitional_clustering.ipynb
+```{button-ref} /examples/clustering/clustering.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -92,7 +94,7 @@ Clustering
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/transformation.png
+:img-top: examples/transformations/img/transformations.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -130,49 +132,10 @@ Distances
 :::
 
 :::{grid-item-card}
-:img-top: examples/annotation/img/clasp.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Annotation
-
-+++
-
-```{button-ref} /examples/annotation/annotation.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Annotation
-```
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/networks/img/Inception.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Deep learning networks.
-
-+++
-
-```{button-ref} /examples/segmentation/segmentation.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Networks
-```
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/segmentation/img/segmentation.png
 :class-img-top: aeon-card-image
 :text-align: center
 
-
 Segmentation
 
 +++
@@ -183,6 +146,25 @@ Segmentation
 :expand:
 
 Segmentation
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/similarity_search/img/sim_search.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Similarity Search
+
++++
+
+```{button-ref} /examples/similarity_search/similarity_search.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Similarity Search
 ```
 
 :::
@@ -290,6 +272,7 @@ code_of_conduct.md
 :hidden:
 
 glossary.md
+estimator_overview.md
 changelog.md
 papers_using_aeon.md
 ```

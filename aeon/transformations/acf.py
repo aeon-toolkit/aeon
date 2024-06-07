@@ -4,6 +4,8 @@ Module :mod:`aeon.transformations` implements auto-correlation
 transformers.
 """
 
+from deprecated.sphinx import deprecated
+
 __maintainer__ = []
 __all__ = ["AutoCorrelationTransformer", "PartialAutoCorrelationTransformer"]
 
@@ -12,6 +14,14 @@ import pandas as pd
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="AutoCorrelationTransformer statsmodels wrapper will be removed in version "
+    "0.10.0. Please use the BaseSeriesTransformer version in the "
+    "transformations.series module called StatsModelsACF for a wrapper version.",
+    category=FutureWarning,
+)
 class AutoCorrelationTransformer(BaseTransformer):
     """Auto-correlation transformer.
 
@@ -59,7 +69,7 @@ class AutoCorrelationTransformer(BaseTransformer):
     >>> from aeon.transformations.acf import AutoCorrelationTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()  # doctest: +SKIP
-    >>> transformer = AutoCorrelationTransformer(n_lags=12)  # doctest: +SKIP
+    >>> transformer = AutoCorrelationSeriesTransformer(n_lags=12)  # doctest: +SKIP
     >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
     """
 
@@ -71,7 +81,7 @@ class AutoCorrelationTransformer(BaseTransformer):
         "instancewise": True,  # is this an instance-wise transform?
         "X_inner_type": "pd.Series",
         "y_inner_type": "None",
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": True,
         "python_dependencies": "statsmodels",
     }
@@ -142,6 +152,14 @@ class AutoCorrelationTransformer(BaseTransformer):
         return [{}, {"n_lags": 1}]
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="PartialAutoCorrelationTransformer statsmodels wrapper will be removed"
+    "in version 0.10.0. Please use the BaseSeriesTransformer version in the "
+    "transformations.series module called StatsModelsPACF.",
+    category=FutureWarning,
+)
 class PartialAutoCorrelationTransformer(BaseTransformer):
     """Partial auto-correlation transformer.
 
@@ -177,7 +195,7 @@ class PartialAutoCorrelationTransformer(BaseTransformer):
 
     See Also
     --------
-    AutoCorrelationTransformer
+    AutoCorrelationSeriesTransformer
 
     Notes
     -----
@@ -203,7 +221,7 @@ class PartialAutoCorrelationTransformer(BaseTransformer):
         "instancewise": True,
         "X_inner_type": "pd.Series",
         "y_inner_type": "None",
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": True,
         "python_dependencies": "statsmodels",
     }

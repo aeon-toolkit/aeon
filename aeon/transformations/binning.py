@@ -6,10 +6,17 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="TimeBinAggregate will be removed in version 0.10.0.",
+    category=FutureWarning,
+)
 class TimeBinAggregate(BaseTransformer):
     r"""Bins time series and aggregates by bin.
 
@@ -44,7 +51,7 @@ class TimeBinAggregate(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "input_data_type": "Series",
         # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",

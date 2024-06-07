@@ -61,7 +61,7 @@ class RISTRegressor(BaseRIST, BaseRegressor):
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of dimensions per case in the training set.
@@ -113,8 +113,6 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         if use_pyfftw:
             d.append("pyfftw")
 
-        self.set_tags(**{"python_dependencies": d})
-
         super().__init__(
             n_intervals=n_intervals,
             n_shapelets=n_shapelets,
@@ -125,6 +123,8 @@ class RISTRegressor(BaseRIST, BaseRegressor):
             random_state=random_state,
             n_jobs=n_jobs,
         )
+
+        self.set_tags(**{"python_dependencies": d if len(d) > 1 else d[0]})
 
     _tags = {
         "capability:multivariate": True,

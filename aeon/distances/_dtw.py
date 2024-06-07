@@ -2,20 +2,24 @@ r"""Dynamic time warping (DTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
 
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import _univariate_squared_distance
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
 def dtw_distance(
-    x: np.ndarray, y: np.ndarray, window: float = None, itakura_max_slope: float = None
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the DTW distance between two time series.
 
@@ -125,7 +129,10 @@ def dtw_distance(
 
 @njit(cache=True, fastmath=True)
 def dtw_cost_matrix(
-    x: np.ndarray, y: np.ndarray, window: float = None, itakura_max_slope: float = None
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     r"""Compute the DTW cost matrix between two time series.
 
@@ -220,12 +227,11 @@ def _dtw_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
 def dtw_pairwise_distance(
-    X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
-    itakura_max_slope: float = None,
+    X: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     r"""Compute the DTW pairwise distance between a set of time series.
 
@@ -233,26 +239,26 @@ def dtw_pairwise_distance(
     matrix
     :math:`D` where :math:`D_{i,j}` is the DTW distance between the :math:`i^{th}`
     and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
-    it is assumed to be a collection of univariate series with shape ``(n_instances,
-    n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_instances,
+    it is assumed to be a collection of univariate series with shape ``(n_cases,
+    n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_cases,
     n_channels, n_timepoints)``.
 
     This function has an optional argument, :math:`y`, to allow calculation of the
     distance matrix between :math:`X` and one or more series stored in :math:`y`. If
     :math:`y` is 1 dimensional, we assume it is a single univariate series and the
-    distance matrix returned is shape ``(n_instances,1)``. If it is 2D, we assume it
-    is a collection of univariate series with shape ``(m_instances, m_timepoints)``
-    and the distance ``(n_instances,m_instances)``. If it is 3 dimensional,
-    it is assumed to be shape ``(m_instances, m_channels, m_timepoints)``.
+    distance matrix returned is shape ``(n_cases,1)``. If it is 2D, we assume it
+    is a collection of univariate series with shape ``(m_cases, m_timepoints)``
+    and the distance ``(n_cases,m_cases)``. If it is 3 dimensional,
+    it is assumed to be shape ``(m_cases, m_channels, m_timepoints)``.
 
     Parameters
     ----------
-    X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
-    y : np.ndarray or None, default=None
+    X : np.ndarray or List of np.ndarray
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
+    y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the dtw pairwise distance between the instances of X is
         calculated.
     window : float or None, default=None
@@ -266,8 +272,8 @@ def dtw_pairwise_distance(
     -------
     np.ndarray
         DTW pairwise matrix between the instances of X of shape
-        ``(n_instances, n_instances)`` or between X and y of shape ``(n_instances,
-        n_instances)``.
+        ``(n_cases, n_cases)`` or between X and y of shape ``(n_cases,
+        n_cases)``.
 
     Raises
     ------
@@ -294,37 +300,54 @@ def dtw_pairwise_distance(
            [ 48., 147., 300.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> dtw_pairwise_distance(X, y_univariate)
     array([[300.],
            [147.],
            [ 48.]])
+
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> dtw_pairwise_distance(X)
+    array([[  0.,  42., 292.],
+           [ 42.,   0.,  83.],
+           [292.,  83.,   0.]])
     """
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
+
     if y is None:
         # To self
-        if X.ndim == 3:
-            return _dtw_pairwise_distance(X, window, itakura_max_slope)
-        if X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _dtw_pairwise_distance(_X, window, itakura_max_slope)
-        raise ValueError("x and y must be 2D or 3D arrays")
-    _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _dtw_from_multiple_to_multiple_distance(_x, _y, window, itakura_max_slope)
+        return _dtw_pairwise_distance(_X, window, itakura_max_slope, unequal_length)
+    _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
+    return _dtw_from_multiple_to_multiple_distance(
+        _X, _y, window, itakura_max_slope, unequal_length
+    )
 
 
 @njit(cache=True, fastmath=True)
 def _dtw_pairwise_distance(
-    X: np.ndarray, window: float, itakura_max_slope: float
+    X: NumbaList[np.ndarray],
+    window: Optional[float],
+    itakura_max_slope: Optional[float],
+    unequal_length: bool,
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
-    bounding_matrix = create_bounding_matrix(
-        X.shape[2], X.shape[2], window, itakura_max_slope
-    )
+    n_cases = len(X)
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
-            distances[i, j] = _dtw_distance(X[i], X[j], bounding_matrix)
+    if not unequal_length:
+        n_timepoints = X[0].shape[1]
+        bounding_matrix = create_bounding_matrix(
+            n_timepoints, n_timepoints, window, itakura_max_slope
+        )
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
+            x1, x2 = X[i], X[j]
+            if unequal_length:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[1], x2.shape[1], window, itakura_max_slope
+                )
+            distances[i, j] = _dtw_distance(x1, x2, bounding_matrix)
             distances[j, i] = distances[i, j]
 
     return distances
@@ -332,24 +355,37 @@ def _dtw_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _dtw_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, window: float, itakura_max_slope: float
+    x: NumbaList[np.ndarray],
+    y: NumbaList[np.ndarray],
+    window: Optional[float],
+    itakura_max_slope: Optional[float],
+    unequal_length: bool,
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
-    bounding_matrix = create_bounding_matrix(
-        x.shape[2], y.shape[2], window, itakura_max_slope
-    )
+    n_cases = len(x)
+    m_cases = len(y)
+    distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_instances):
-        for j in range(m_instances):
-            distances[i, j] = _dtw_distance(x[i], y[j], bounding_matrix)
+    if not unequal_length:
+        bounding_matrix = create_bounding_matrix(
+            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
+        )
+    for i in range(n_cases):
+        for j in range(m_cases):
+            x1, y1 = x[i], y[j]
+            if unequal_length:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[1], y1.shape[1], window, itakura_max_slope
+                )
+            distances[i, j] = _dtw_distance(x1, y1, bounding_matrix)
     return distances
 
 
 @njit(cache=True, fastmath=True)
 def dtw_alignment_path(
-    x: np.ndarray, y: np.ndarray, window: float = None, itakura_max_slope: float = None
+    x: np.ndarray,
+    y: np.ndarray,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the DTW alignment path between two time series.
 

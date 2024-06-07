@@ -7,10 +7,8 @@ RotationForestClassifier.
 __maintainer__ = []
 __all__ = ["FreshPRINCEClassifier"]
 
-import warnings
 
 import numpy as np
-from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
@@ -32,12 +30,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestClassifier ensemble.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
-        ``transformed_data_`` will also be removed.
     verbose : int, default=0
         Level of output printed to the console (for information only).
     n_jobs : int, default=1
@@ -46,8 +38,11 @@ class FreshPRINCEClassifier(BaseClassifier):
     chunksize : int or None, default=None
         Number of series processed in each parallel TSFresh job, should be optimised
         for efficient parallelisation.
-    random_state : int or None, default=None
-        Seed for random, integer.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -67,6 +62,12 @@ class FreshPRINCEClassifier(BaseClassifier):
         scalable hypothesis tests (tsfresh-a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
+    .. [2] Middlehurst, M., Bagnall, A. "The FreshPRINCE: A Simple Transformation
+        Based Pipeline Time Series Classifier." In: El Yacoubi, M., Granger, E.,
+        Yuen, P.C., Pal, U., Vincent, N. (eds) Pattern Recognition and Artificial
+        Intelligence. ICPRAI 2022. Lecture Notes in Computer Science, vol 13364.
+        Springer, Cham. (2022).
+        https://link.springer.com/chapter/10.1007/978-3-031-09282-4_13
     """
 
     _tags = {
@@ -81,7 +82,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         self,
         default_fc_parameters="comprehensive",
         n_estimators=200,
-        save_transformed_data="deprecated",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -95,23 +95,13 @@ class FreshPRINCEClassifier(BaseClassifier):
         self.chunksize = chunksize
         self.random_state = random_state
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
         self.transformed_data_ = []
 
         self._rotf = None
         self._tsfresh = None
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
-        self.transformed_data_ = []
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.8.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -121,9 +111,9 @@ class FreshPRINCEClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The training data shape = (n_instances, n_channels, n_timepoints).
+            The training data shape = (n_cases, n_channels, n_timepoints).
         y : 1D np.ndarray
-            The training labels, shape = (n_instances).
+            The training labels, shape = (n_cases).
 
         Returns
         -------
@@ -135,14 +125,8 @@ class FreshPRINCEClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        b = (
-            False
-            if isinstance(self.save_transformed_data, str)
-            else self.save_transformed_data
-        )
-        self.transformed_data_ = self._fit_fresh_prince(X, y)
-        if not b:
-            self.transformed_data_ = []
+        X_t = self._fit_fp_shared(X, y)
+        self._rotf.fit(X_t, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -151,13 +135,13 @@ class FreshPRINCEClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         y : 1D np.ndarray
-            The predicted class labels, shape = (n_instances).
+            The predicted class labels, shape = (n_cases).
         """
         return self._rotf.predict(self._tsfresh.transform(X))
 
@@ -167,36 +151,30 @@ class FreshPRINCEClassifier(BaseClassifier):
         Parameters
         ----------
         X : 3D np.ndarray
-            The data to make predictions for, shape = (n_instances, n_channels,
+            The data to make predictions for, shape = (n_cases, n_channels,
             n_timepoints).
 
         Returns
         -------
         y : 2D np.ndarray
             Predicted probabilities using the ordering in classes_ shape = (
-            n_instances, n_classes_).
+            n_cases, n_classes_).
         """
         return self._rotf.predict_proba(self._tsfresh.transform(X))
 
     def _fit_predict(self, X, y) -> np.ndarray:
-        rng = check_random_state(self.random_state)
-        return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self._fit_predict_proba(X, y)
-            ]
-        )
+        X_t = self._fit_fp_shared(X, y)
+        return self._rotf.fit_predict(X_t, y)
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        Xt = self._fit_fresh_prince(X, y)
-        return self._rotf._get_train_probs(Xt, y)
+        X_t = self._fit_fp_shared(X, y)
+        return self._rotf.fit_predict_proba(X_t, y)
 
-    def _fit_fresh_prince(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+    def _fit_fp_shared(self, X, y):
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,
-            save_transformed_data=self.save_transformed_data,
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
@@ -208,10 +186,7 @@ class FreshPRINCEClassifier(BaseClassifier):
             disable_progressbar=self.verbose < 1,
         )
 
-        X_t = self._tsfresh.fit_transform(X, y)
-        self._rotf.fit(X_t, y)
-
-        return X_t
+        return self._tsfresh.fit_transform(X, y)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

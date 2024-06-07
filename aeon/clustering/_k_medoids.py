@@ -78,16 +78,21 @@ class TimeSeriesKMedoids(BaseClusterer):
         convergence.
     verbose : bool, default=False
         Verbosity mode.
-    random_state : int or np.random.RandomState instance or None, default=None
+    random_state : int, np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
+        If `int`, random_state is the seed used by the random number generator;
+        If `np.random.RandomState` instance,
+        random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     distance_params: dict, default=None
         Dictionary containing kwargs for the distance metric being used.
 
     Attributes
     ----------
-    cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
+    cluster_centers_ : np.ndarray, of shape (n_cases, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centers.
-    labels_ : np.ndarray (1d array of shape (n_instance,))
+    labels_ : np.ndarray (1d array of shape (n_case,))
         Labels that is the index each time series belongs to.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
@@ -259,18 +264,18 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     def _pam_fit(self, X: np.ndarray):
         old_inertia = np.inf
-        n_instances = X.shape[0]
+        n_cases = X.shape[0]
 
         if isinstance(self._init_algorithm, Callable):
             medoids_idxs = self._init_algorithm(X)
         else:
             medoids_idxs = self._init_algorithm
-        not_medoid_idxs = np.arange(n_instances, dtype=int)
+        not_medoid_idxs = np.arange(n_cases, dtype=int)
         distance_matrix = self._compute_pairwise(X, not_medoid_idxs, not_medoid_idxs)
         distance_closest_medoid, distance_second_closest_medoid = np.sort(
             distance_matrix[medoids_idxs], axis=0
         )[[0, 1]]
-        not_medoid_idxs = np.delete(np.arange(n_instances, dtype=int), medoids_idxs)
+        not_medoid_idxs = np.delete(np.arange(n_cases, dtype=int), medoids_idxs)
 
         for i in range(self.max_iter):
             # Initialize best cost change and the associated swap couple.
@@ -451,7 +456,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         if self.n_clusters > X.shape[0]:
             raise ValueError(
                 f"n_clusters ({self.n_clusters}) cannot be larger than "
-                f"n_instances ({X.shape[0]})"
+                f"n_cases ({X.shape[0]})"
             )
         self._distance_callable = get_distance_function(metric=self.distance)
         self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
@@ -497,12 +502,12 @@ class TimeSeriesKMedoids(BaseClusterer):
         self,
         X: np.ndarray,
     ):
-        n_instances = X.shape[0]
-        X_index = np.arange(n_instances, dtype=int)
+        n_cases = X.shape[0]
+        X_index = np.arange(n_cases, dtype=int)
         distance_matrix = self._compute_pairwise(X, X_index, X_index)
 
         medoid_idxs = np.zeros(self.n_clusters, dtype=int)
-        not_medoid_idxs = np.arange(n_instances, dtype=int)
+        not_medoid_idxs = np.arange(n_cases, dtype=int)
 
         medoid_idxs[0] = np.argmin(np.sum(distance_matrix, axis=1))
         not_medoid_idxs = np.delete(not_medoid_idxs, medoid_idxs[0])
@@ -513,10 +518,10 @@ class TimeSeriesKMedoids(BaseClusterer):
 
         for _ in range(self.n_clusters - 1):
             cost_change_max = 0
-            for i in range(n_instances - n_medoids_current):
+            for i in range(n_cases - n_medoids_current):
                 id_i = not_medoid_idxs[i]
                 cost_change = 0
-                for j in range(n_instances - n_medoids_current):
+                for j in range(n_cases - n_medoids_current):
                     id_j = not_medoid_idxs[j]
                     cost_change += max(0, Dj[id_j] - distance_matrix[id_i, id_j])
                 if cost_change >= cost_change_max:
@@ -527,7 +532,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             n_medoids_current += 1
             not_medoid_idxs = np.delete(not_medoid_idxs, new_medoid[1])
 
-            for id_j in range(n_instances):
+            for id_j in range(n_cases):
                 Dj[id_j] = min(Dj[id_j], distance_matrix[id_j, new_medoid[0]])
 
         return np.array(medoid_idxs)

@@ -8,7 +8,7 @@ from scipy.stats import rankdata
 
 import aeon
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
-from aeon.datasets.tsc_data_lists import univariate_equal_length
+from aeon.datasets.tsc_datasets import univariate_equal_length
 from aeon.performance_metrics.stats import check_friedman, nemenyi_test, wilcoxon_test
 
 data_path = os.path.join(

@@ -60,7 +60,7 @@ class SignatureClassifier(BaseClassifier):
     depth : int, default=4
         Signature truncation depth.
     random_state : int, default=None
-        Random state initialisation.
+        If `int`, random_state is the seed used by the random number generator;
 
     Attributes
     ----------
@@ -149,8 +149,8 @@ class SignatureClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_cases, n_channels, series_length)
-        y : array-like, shape = (n_instances) The class labels.
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
+        y : array-like, shape = (n_cases) The class labels.
 
         Returns
         -------
@@ -165,7 +165,7 @@ class SignatureClassifier(BaseClassifier):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predict class values of n_instances in X.
+        """Predict class values of n_cases in X.
 
         Parameters
         ----------
@@ -179,15 +179,15 @@ class SignatureClassifier(BaseClassifier):
         return self.pipeline.predict(X)
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n_instances in X.
+        """Predict class probabilities for n_cases in X.
 
         Parameters
         ----------
-        X : np.ndarray of shape (n_cases, n_channels, series_length)
+        X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
 
         Returns
         -------
-        predicted_probs : array of shape (n_instances, n_classes)
+        predicted_probs : array of shape (n_cases, n_classes)
             Predicted probability of each class.
         """
         return self.pipeline.predict_proba(X)

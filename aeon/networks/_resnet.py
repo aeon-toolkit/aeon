@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class ResNetNetwork(BaseDeepNetwork):
+class ResNetNetwork(BaseDeepLearningNetwork):
     """
     Establish the network structure for a ResNet.
 
@@ -105,7 +105,7 @@ class ResNetNetwork(BaseDeepNetwork):
 
         Parameters
         ----------
-        input_shape : tuple of shape = (series_length (m), n_channels (d))
+        input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer.
 
         Returns

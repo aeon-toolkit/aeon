@@ -32,9 +32,8 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
     Parameters
     ----------
-    classifiers : dict or None, default=None
-        Parameters for the ShapeletTransformClassifier module. If None, uses the
-        default parameters with a 2 hour transform contract.
+    classifiers : list of tuples (str, classifier) of aeon classifiers
+        Classifiers to apply to the input series.
     weights : float, or iterable of float, optional, default=None
         if float, ensemble weight for classifier i will be train score to this power
         if iterable of float, must be equal length as classifiers
@@ -56,8 +55,11 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         type of sklearn metric, point prediction ("point") or probabilistic ("proba")
         if "point", most probable class is passed as y_pred
         if "proba", probability of most probable class is passed as y_pred
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -158,8 +160,8 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
-        y : 1D np.array of int, of shape [n_instances] - class labels for fitting
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        y : 1D np.array of int, of shape [n_cases] - class labels for fitting
             indices correspond to instance indices in X
 
         Returns
@@ -203,12 +205,12 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         dists = np.zeros((X.shape[0], self.n_classes_))

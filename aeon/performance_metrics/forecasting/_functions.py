@@ -14,8 +14,8 @@ from sklearn.metrics._regression import _check_reg_targets
 from sklearn.utils.stats import _weighted_percentile
 from sklearn.utils.validation import check_consistent_length
 
-from aeon.utils.stats import _weighted_geometric_mean
 from aeon.utils.validation.series import check_series
+from aeon.utils.weighted_metrics import _weighted_geometric_mean
 
 __maintainer__ = []
 __all__ = [
@@ -1963,10 +1963,6 @@ def mean_relative_absolute_error(
              where fh is the forecasting horizon
         Forecasted values.
 
-    y_pred_benchmark : pd.Series, pd.DataFrame or np.array of shape (fh,) or \
-             (fh, n_outputs) where fh is the forecasting horizon, default=None
-        Forecasted values from benchmark method.
-
     horizon_weight : array-like of shape (fh,), default=None
         Forecast horizon weights.
 
@@ -1976,6 +1972,10 @@ def mean_relative_absolute_error(
         If array-like, values used as weights to average the errors.
         If 'raw_values', returns a full set of errors in case of multioutput input.
         If 'uniform_average', errors of all outputs are averaged with uniform weight.
+
+    y_pred_benchmark : pd.Series, pd.DataFrame or np.array of shape (fh,) or \
+             (fh, n_outputs) where fh is the forecasting horizon, default=None
+        Forecasted values from benchmark method. Passed by kwargs.
 
     Returns
     -------

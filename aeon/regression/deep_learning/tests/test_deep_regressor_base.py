@@ -1,7 +1,7 @@
 """Unit tests for regressors deep learning base class functionality."""
 
 import gc
-import os
+import tempfile
 import time
 
 import pytest
@@ -16,7 +16,7 @@ __maintainer__ = []
 class _DummyDeepRegressor(BaseDeepRegressor):
     """Dummy Deep Regressor for testing empty base deep class save utilities."""
 
-    def __init__(self, last_file_name):
+    def __init__(self, last_file_name="last_model"):
         self.last_file_name = last_file_name
         super().__init__(last_file_name=last_file_name)
 
@@ -55,24 +55,35 @@ class _DummyDeepRegressor(BaseDeepRegressor):
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_regressor():
-    last_file_name = str(time.time_ns())
+    """Test for DummyRegressor."""
+    with tempfile.TemporaryDirectory() as tmp:
+        last_file_name = str(time.time_ns())
 
-    # create a dummy regressor
-    dummy_deep_rg = _DummyDeepRegressor(last_file_name=last_file_name)
+        # create a dummy regressor
+        dummy_deep_rg = _DummyDeepRegressor(last_file_name=last_file_name)
 
-    # generate random data
+        # generate random data
 
-    X, y = make_example_2d_numpy()
+        X, y = make_example_2d_numpy()
 
-    # test fit function on random data
-    dummy_deep_rg.fit(X=X, y=y)
+        # test fit function on random data
+        dummy_deep_rg.fit(X=X, y=y)
 
-    # test save last model to file than delete it
+        # test save last model to file than delete it
 
-    dummy_deep_rg.save_last_model_to_file()
+        dummy_deep_rg.save_last_model_to_file(file_path=tmp)
 
-    os.remove("./" + last_file_name + ".hdf5")
+        # create a new dummy deep classifier
+        dummy_deep_clf2 = _DummyDeepRegressor()
 
-    # test summary of model
+        # load without fitting
+        dummy_deep_clf2.load_model(model_path=tmp + last_file_name + ".keras")
 
-    assert dummy_deep_rg.summary() is not None
+        # predict
+        ypred = dummy_deep_clf2.predict(X=X)
+
+        assert len(ypred) == len(y)
+
+        # test summary of model
+
+        assert dummy_deep_rg.summary() is not None

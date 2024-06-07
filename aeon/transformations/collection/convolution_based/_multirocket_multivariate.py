@@ -104,7 +104,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -112,6 +112,9 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
         -------
         self
         """
+        if self.random_state is not None:
+            np.random.seed(self.random_state)
+
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
@@ -125,7 +128,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
             X = _X1
             del _X1
 
-        X = X.astype(np.float64)
+        X = X.astype(np.float32)
 
         self.parameter = self._get_parameter(X)
         _X1 = np.diff(X, 1)
@@ -139,7 +142,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             panel of time series to transform
         y : ignored argument for interface compatibility
 
@@ -151,7 +154,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
-
+        X = X.astype(np.float32)
         _X1 = np.diff(X, 1)
 
         # change n_jobs dependend on value and existing cores
@@ -232,7 +235,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
 
 
 @njit(
-    "float32[:](float64[:,:,:],int32[:],int32[:],int32[:],int32[:],float32[:],"
+    "float32[:](float32[:,:,:],int32[:],int32[:],int32[:],int32[:],float32[:],"
     "optional(int64))",
     fastmath=True,
     parallel=False,
@@ -630,7 +633,7 @@ def _quantiles(n):
 
 
 @njit(
-    "float32[:,:](float64[:,:,:],float64[:,:,:],"
+    "float32[:,:](float32[:,:,:],float32[:,:,:],"
     "Tuple((int32[:],int32[:],int32[:],int32[:],float32[:])),"
     "Tuple((int32[:],int32[:],int32[:],int32[:],float32[:])),int32)",
     fastmath=True,

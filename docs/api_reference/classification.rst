@@ -19,6 +19,8 @@ Convolution-based
     :template: class.rst
 
     Arsenal
+    HydraClassifier
+    MultiRocketHydraClassifier
     RocketClassifier
 
 Deep learning
@@ -31,13 +33,15 @@ Deep learning
     :template: class.rst
 
     CNNClassifier
+    EncoderClassifier
     FCNClassifier
-    MLPClassifier
     InceptionTimeClassifier
     IndividualInceptionClassifier
-    TapNetClassifier
-    EncoderClassifier
+    IndividualLITEClassifier
     LITETimeClassifier
+    MLPClassifier
+    ResNetClassifier
+    TapNetClassifier
 
 Dictionary-based
 ----------------
@@ -53,10 +57,10 @@ Dictionary-based
     IndividualBOSS
     IndividualTDE
     MUSE
+    REDCOMETS
     TemporalDictionaryEnsemble
     WEASEL
     WEASEL_V2
-    REDCOMETS
 
 Distance-based
 --------------
@@ -69,7 +73,6 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
-    ShapeDTW
 
 Feature-based
 -------------
@@ -82,7 +85,6 @@ Feature-based
 
     Catch22Classifier
     FreshPRINCEClassifier
-    MatrixProfileClassifier
     SignatureClassifier
     SummaryClassifier
     TSFreshClassifier
@@ -111,11 +113,14 @@ Interval-based
 
     CanonicalIntervalForestClassifier
     DrCIFClassifier
+    IntervalForestClassifier
+    QUANTClassifier
+    RandomIntervalClassifier
     RandomIntervalSpectralEnsembleClassifier
+    RSTSF
+    SupervisedIntervalClassifier
     SupervisedTimeSeriesForest
     TimeSeriesForestClassifier
-    RandomIntervalClassifier
-    QUANTClassifier
 
 Shapelet-based
 --------------
@@ -126,10 +131,11 @@ Shapelet-based
     :toctree: auto_generated/
     :template: class.rst
 
-    ShapeletTransformClassifier
+    LearningShapeletClassifier
     MrSQMClassifier
     RDSTClassifier
     SASTClassifier
+    ShapeletTransformClassifier
 
 sklearn
 -------
@@ -186,7 +192,6 @@ Composition
 
     ClassifierPipeline
     ChannelEnsembleClassifier
-    SklearnClassifierPipeline
     WeightedEnsembleClassifier
 
 

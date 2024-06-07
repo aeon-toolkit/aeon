@@ -44,7 +44,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         convergence.
     verbose: bool, default=False
         Verbosity mode.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         The number of jobs to run in parallel for GAK cross-similarity matrix
         computations.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
@@ -56,7 +56,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
     Attributes
     ----------
-    labels_: np.ndarray (1d array of shape (n_instance,))
+    labels_: np.ndarray (1d array of shape (n_case,))
         Labels that is the index each time series belongs to.
     inertia_: float
         Sum of squared distances of samples to their closest cluster center, weighted by
@@ -64,11 +64,11 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     n_iter_: int
         Number of iterations run.
 
-    Reference
-    ---------
-        .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
-        Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
-        .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
+    References
+    ----------
+    .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
+           Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
+    .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
 
     Examples
     --------
@@ -124,8 +124,8 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         Parameters
         ----------
-        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints)
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
@@ -164,14 +164,14 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         Parameters
         ----------
-        X: np.ndarray, of shape (n_instances, n_channels, n_timepoints) or
-                (n_instances, n_timepoints)
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
             A collection of time series instances.
         y: ignored, exists for API consistency reasons.
 
         Returns
         -------
-        np.ndarray (1d array of shape (n_instances,))
+        np.ndarray (1d array of shape (n_cases,))
             Index of the cluster each time series in X belongs to.
         """
         _X = X.swapaxes(1, 2)

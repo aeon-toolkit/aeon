@@ -196,7 +196,7 @@ class DynamicFactor(_StatsModelsAdapter):
             The forecasters horizon with the steps ahead to to predict.
             Default is one-step ahead forecast,
             i.e. np.array([1])
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
 
         Returns
@@ -238,7 +238,7 @@ class DynamicFactor(_StatsModelsAdapter):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -259,7 +259,7 @@ class DynamicFactor(_StatsModelsAdapter):
                 Upper/lower interval end forecasts are equivalent to
                 quantile forecasts at alpha = 0.5 - c/2, 0.5 + c/2 for c in coverage.
         """
-        if type(coverage) is not list:
+        if not isinstance(coverage, list):
             coverage_list = [coverage]
         else:
             coverage_list = coverage
@@ -344,7 +344,7 @@ class DynamicFactor(_StatsModelsAdapter):
         ----------
         y:pd.Series
           Target time series to which forcaster is fit.
-        X:pd.DataFrame , optional (default=None)
+        X:pd.DataFrame , default=None
           Exogenous variables
         """
         from statsmodels.tsa.statespace.dynamic_factor import (

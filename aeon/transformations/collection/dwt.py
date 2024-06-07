@@ -2,11 +2,10 @@
 
 __maintainer__ = []
 
-import math
-
 import numpy as np
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.numba.wavelets import haar_transform
 
 
 class DWTTransformer(BaseCollectionTransformer):
@@ -43,17 +42,18 @@ class DWTTransformer(BaseCollectionTransformer):
 
         private _transform containing core logic, called from transform
 
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        Xt : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        Xt : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of transformed time series
         """
-        n_instances, n_channels, n_timepoints = X.shape
-        _X = np.swapaxes(X, 0, 1)
+        _X = np.array(X, dtype=np.float_)
+        n_cases, n_channels, n_timepoints = _X.shape
+        _X = np.swapaxes(_X, 0, 1)
         self._check_parameters()
 
         # On each dimension, perform PAA
@@ -83,13 +83,10 @@ class DWTTransformer(BaseCollectionTransformer):
                 current = x
                 approx = None
                 for _ in range(num_levels):
-                    approx = self._get_approx_coefficients(current)
-                    wav_coeffs = self._get_wavelet_coefficients(current)
+                    approx, wav_coeffs = haar_transform(current)
                     current = approx
-                    wav_coeffs.reverse()
-                    coeffs.extend(wav_coeffs)
-                approx.reverse()
-                coeffs.extend(approx)
+                    coeffs.extend(wav_coeffs[::-1])
+                coeffs.extend(approx[::-1])
                 coeffs.reverse()
                 res.append(coeffs)
 
@@ -112,22 +109,3 @@ class DWTTransformer(BaseCollectionTransformer):
                 + type(self.n_levels).__name__
                 + "' instead."
             )
-
-    def _get_approx_coefficients(self, arr):
-        """Get the approximate coefficients at a given level."""
-        new = []
-        if len(arr) == 1:
-            return [arr[0]]
-        for x in range(math.floor(len(arr) / 2)):
-            new.append((arr[2 * x] + arr[2 * x + 1]) / math.sqrt(2))
-        return new
-
-    def _get_wavelet_coefficients(self, arr):
-        """Get the wavelet coefficients at a given level."""
-        new = []
-        # if length is 1, just return the list back
-        if len(arr) == 1:
-            return [arr[0]]
-        for x in range(math.floor(len(arr) / 2)):
-            new.append((arr[2 * x] - arr[2 * x + 1]) / math.sqrt(2))
-        return new

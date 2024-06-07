@@ -7,7 +7,6 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.datatypes import convert_to, scitype_to_mtype
 from aeon.forecasting.conformal import ConformalIntervals
 from aeon.forecasting.model_evaluation import evaluate
 from aeon.forecasting.model_selection import (
@@ -17,6 +16,7 @@ from aeon.forecasting.model_selection import (
 from aeon.forecasting.naive import NaiveForecaster, NaiveVariance
 from aeon.performance_metrics.forecasting import mean_squared_error
 from aeon.testing.test_config import PR_TESTING
+from aeon.utils.conversion import convert_series
 
 if PR_TESTING:
     INTERVAL_WRAPPERS = [NaiveVariance]
@@ -29,7 +29,7 @@ else:
     CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
     EVALUATE_STRATEGY = ["update", "refit"]
     SAMPLE_FRACS = [None, 0.5]
-    SERIES_TYPES = scitype_to_mtype("Series", softdeps="present")
+    SERIES_TYPES = ["pd.Series", "pd.DataFrame", "np.ndarray"]
 
 
 @pytest.mark.parametrize("wrapper", INTERVAL_WRAPPERS)
@@ -49,7 +49,7 @@ def test_wrapper_series_mtype(wrapper, override_y_type, input_type):
     "pd.DataFrame only" forecaster by restricting its y_inner_type tag to pd.Series.
     """
     y = load_airline()
-    y = convert_to(y, to_type=input_type)
+    y = convert_series(y, input_type)
 
     f = NaiveForecaster()
 

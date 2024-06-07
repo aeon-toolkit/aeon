@@ -19,8 +19,8 @@ class TSInterpolator(BaseCollectionTransformer):
     ----------
     length : integer, the length of time series to resize to.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> from aeon.transformations.collection.interpolate import TSInterpolator
     >>> # Unequal length collection of time series
@@ -62,7 +62,7 @@ class TSInterpolator(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, series_length) or
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or
             list size [n_cases] of 2D nump arrays, case i has shape (n_channels,
             length_i). Collection of time series to transform
         y : ignored argument for interface compatibility

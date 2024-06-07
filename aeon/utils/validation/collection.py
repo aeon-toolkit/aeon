@@ -3,14 +3,57 @@
 import numpy as np
 import pandas as pd
 
+__maintainer__ = ["TonyBagnall"]
+
+
+def is_tabular(X):
+    """Check if input is a 2D table.
+
+    Parameters
+    ----------
+    X : array-like
+
+    Returns
+    -------
+    bool
+        True if input is 2D, False otherwise.
+    """
+    if isinstance(X, np.ndarray):
+        if X.ndim != 2:
+            return False
+        return True
+    if isinstance(X, pd.DataFrame):
+        return _is_pd_wide(X)
+
 
 def is_collection(X):
-    """Check X is a valid collection data structure."""
-    try:
-        get_type(X)
-        return True
-    except TypeError:
-        return False
+    """Check X is a valid collection data structure.
+
+    Currently this is limited to 3D numpy, hierarchical pandas and nested pandas.
+
+    Parameters
+    ----------
+    X : array-like
+        Input data to be checked.
+
+    Returns
+    -------
+    bool
+        True if input is a collection, False otherwise.
+    """
+    if isinstance(X, np.ndarray):
+        if X.ndim == 3:
+            return True
+    if isinstance(X, pd.DataFrame):
+        if X.index.nlevels == 2:
+            return True
+        if is_nested_univ_dataframe(X):
+            return True
+    if isinstance(X, list):
+        if isinstance(X[0], np.ndarray):
+            if X[0].ndim == 2:
+                return True
+    return False
 
 
 def is_nested_univ_dataframe(X):
@@ -21,6 +64,11 @@ def is_nested_univ_dataframe(X):
     X: collection
         See aeon.registry.COLLECTIONS_DATA_TYPES for details
         on aeon supported data structures.
+
+    Returns
+    -------
+    bool
+        True if input is a nested dataframe, False otherwise.
     """
     # Otherwise check all entries are pd.Series
     if not isinstance(X, pd.DataFrame):
@@ -49,8 +97,8 @@ def _nested_univ_is_equal(X):
     bool
         True if all series in the DataFrame are of equal length, False otherwise.
 
-    Example
-    -------
+    Examples
+    --------
     >>> df = pd.DataFrame({
     ...     'A': [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
     ...     'B': [pd.Series([7, 8, 9]), pd.Series([10, 11, 12])]
@@ -66,13 +114,12 @@ def _nested_univ_is_equal(X):
 
 
 def _is_pd_wide(X):
-    """Check whether the input nested DataFrame is "pd-wide" type."""
+    """Check whether the input DataFrame is "pd-wide" type."""
     # only test is if all values are float.
     if isinstance(X, pd.DataFrame) and not isinstance(X.index, pd.MultiIndex):
         if is_nested_univ_dataframe(X):
             return False
-        float_cols = X.select_dtypes(include=[float]).columns
-        for col in float_cols:
+        for col in X:
             if not np.issubdtype(X[col].dtype, np.floating):
                 return False
         return True
@@ -119,8 +166,8 @@ def get_type(X):
         X is list but not of np.ndarray or p.DataFrame.
         X is a pd.DataFrame of non float primitives.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.validation import get_type
     >>> get_type( np.zeros(shape=(10, 3, 20)))
     'numpy3D'
@@ -132,15 +179,14 @@ def get_type(X):
             return "numpy2D"
         else:
             raise ValueError(
-                f"ERROR np.ndarray must be either 2D or 3D but found " f"{X.ndim}"
+                f"ERROR np.ndarray must be 2D or 3D but found " f"{X.ndim}"
             )
     elif isinstance(X, list):  # np-list or df-list
         if isinstance(X[0], np.ndarray):  # if one a numpy they must all be 2D numpy
             for a in X:
                 if not (isinstance(a, np.ndarray) and a.ndim == 2):
                     raise TypeError(
-                        f"ERROR np-list np.ndarray must be either 2D or "
-                        f"3D, found {a.ndim}"
+                        f"ERROR nnp-list must contain 2D np.ndarray but found {a.ndim}"
                     )
             return "np-list"
         elif isinstance(X[0], pd.DataFrame):
@@ -192,8 +238,8 @@ def is_equal_length(X):
     ValueError
         input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.validation import is_equal_length
     >>> is_equal_length( np.zeros(shape=(10, 3, 20)))
     True
@@ -220,8 +266,8 @@ def has_missing(X):
     ValueError
         Input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.validation import has_missing
     >>> has_missing( np.zeros(shape=(10, 3, 20)))
     False
@@ -291,8 +337,8 @@ def _equal_length(X, input_type):
     ValueError
         input_type not in COLLECTIONS_DATA_TYPES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> _equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
     True
     """

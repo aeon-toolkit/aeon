@@ -1,13 +1,8 @@
-from deprecated.sphinx import deprecated
+import pandas as pd
+
+from aeon.datatypes import convert_to
 
 
-# TODO: remove in v0.8.0
-@deprecated(
-    version="0.6.0",
-    reason="convert_gluonts_result_to_multiindex will be moved from datatypes in "
-    "v0.8.0 to utils.conversion in v0.8.0",
-    category=FutureWarning,
-)
 def convert_gluonts_result_to_multiindex(gluonts_result):
     """
 
@@ -29,10 +24,6 @@ def convert_gluonts_result_to_multiindex(gluonts_result):
     A MultiIndex DF mtype type compatible with aeon.
 
     """
-    import pandas as pd
-
-    from aeon.datatypes import convert_to
-
     instance_no = len(gluonts_result)
     global_ls = []
     per_instance_ls = []

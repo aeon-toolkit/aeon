@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class FCNNetwork(BaseDeepNetwork):
+class FCNNetwork(BaseDeepLearningNetwork):
     """
     Establish the network structure for a FCN.
 
@@ -69,7 +69,7 @@ class FCNNetwork(BaseDeepNetwork):
         Parameters
         ----------
         input_shape : tuple
-          shape = (series_length (m), n_channels (d)), the shape of the data fed
+          shape = (n_timepoints (m), n_channels (d)), the shape of the data fed
           into the input layer.
 
         Returns

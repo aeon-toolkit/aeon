@@ -21,7 +21,7 @@ class WindowSummarizer(BaseTransformer):
 
     Parameters
     ----------
-    n_jobs : int, optional (default=-1)
+    n_jobs : int, default=-1
         The number of jobs to run in parallel for applying the window functions.
         ``-1`` means using all processors.
     target_cols : list of str, optional (default = None)
@@ -188,7 +188,7 @@ class WindowSummarizer(BaseTransformer):
             "pd_multiindex_hier",
         ],
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "capability:missing_values": True,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -606,7 +606,7 @@ class SummaryTransformer(BaseTransformer):
     quantiles : str, list, tuple or None, default=(0.1, 0.25, 0.5, 0.75, 0.9)
         Optional list of series quantiles to calculate. If None, no quantiles
         are calculated, and summary_function must be non-None.
-    flatten_transform_index : bool, optional (default=True)
+    flatten_transform_index : bool, default=True
         if True, columns of return DataFrame are flat, by "variablename__feature"
         if False, columns are MultiIndex (variablename__feature)
         has no effect if return type is one without column names
@@ -748,7 +748,7 @@ class PlateauFinder(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "output_data_type": "Series",
         "instancewise": False,
         "X_inner_type": "numpy3D",
@@ -765,7 +765,7 @@ class PlateauFinder(BaseTransformer):
 
         Parameters
         ----------
-        X : numpy3D array shape (n_cases, 1, series_length)
+        X : numpy3D array shape (n_cases, 1, n_timepoints)
 
         Returns
         -------
@@ -830,7 +830,7 @@ class FittedParamExtractor(BaseTransformer):
         An aeon estimator to extract features from.
     param_names : str
         Name of parameters to extract from the forecaster.
-    n_jobs : int, optional (default=None)
+    n_jobs : int, default=None
         Number of jobs to run in parallel.
         None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.
@@ -838,7 +838,7 @@ class FittedParamExtractor(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "input_data_type": "Series",
         # what is the abstract type of X: Series, or Panel
         "output_data_type": "Primitives",
@@ -859,7 +859,7 @@ class FittedParamExtractor(BaseTransformer):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_time_series, 1, series_length)
+        X: np.ndarray shape (n_cases, 1, n_timepoints)
             The training input samples.
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation
@@ -870,7 +870,7 @@ class FittedParamExtractor(BaseTransformer):
             Extracted parameters; columns are parameter values
         """
         param_names = self._check_param_names(self.param_names)
-        n_instances = X.shape[0]
+        n_cases = X.shape[0]
 
         def _fit_extract(forecaster, x, param_names):
             forecaster.fit(x)
@@ -889,7 +889,7 @@ class FittedParamExtractor(BaseTransformer):
             delayed(_fit_extract)(
                 self.forecaster.clone(), _get_instance(X, i), param_names
             )
-            for i in range(n_instances)
+            for i in range(n_cases)
         )
 
         return pd.DataFrame(extracted_params, columns=param_names)

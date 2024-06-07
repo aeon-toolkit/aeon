@@ -15,13 +15,14 @@ from aeon.forecasting.model_selection import (
 )
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.theta import ThetaForecaster
+from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.forecasting import check_scoring
 
 
 def _score_forecasters(forecasters, cv, y):
     """Will evaluate all the forecasters on y and return the name of best."""
-    scoring = check_scoring(None)
+    scoring = mean_absolute_percentage_error
+
     scoring_name = f"test_{scoring.__name__}"
     score = None
     for name, forecaster in forecasters:

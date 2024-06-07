@@ -4,11 +4,19 @@ __maintainer__ = []
 __all__ = ["PCATransformer"]
 
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.decomposition import PCA
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="PCATransformer will be removed in version 0.10 and replaced with a "
+    "BaseSeriesTransformer version in the transformations.series module.",
+    category=FutureWarning,
+)
 class PCATransformer(BaseTransformer):
     """Principal Components Analysis applied as transformer.
 
@@ -83,24 +91,6 @@ class PCATransformer(BaseTransformer):
     ----------
     pca_ : sklearn.decomposition.PCA
         The fitted PCA object
-
-    Examples
-    --------
-    >>> # skip DOCTEST if Python < 3.8
-    >>> import sys, pytest
-    >>> if sys.version_info < (3, 8):
-    ...     pytest.skip("PCATransformer requires Python >= 3.8")
-    >>>
-    >>> from aeon.transformations.pca import PCATransformer
-    >>> from aeon.datasets import load_longley
-    >>> _, X = load_longley()
-    >>> transformer = PCATransformer(n_components=2)
-    >>> X_hat = transformer.fit_transform(X)
-
-    References
-    ----------
-    # noqa: E501
-    .. [1] https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html
     """
 
     _tags = {
@@ -111,7 +101,7 @@ class PCATransformer(BaseTransformer):
         "instancewise": False,  # is this an instance-wise transform?
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": False,
         "capability:missing_values": False,
         "python_version": ">=3.8",

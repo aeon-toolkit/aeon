@@ -140,8 +140,8 @@ def plot_critical_difference(
     .. [5] Holm S., " A simple sequentially rejective multiple test procedure."
     Scandinavian Journal of Statistics, 6:65-70, 1979.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.visualisation import plot_critical_difference
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
@@ -181,7 +181,8 @@ def plot_critical_difference(
     ordered_avg_ranks = ranks.mean(axis=0)
     # Sort labels and ranks
     ordered_labels_ranks = np.array(
-        [(l, float(r)) for r, l in sorted(zip(ordered_avg_ranks, labels))], dtype=object
+        [(labels, float(r)) for r, labels in sorted(zip(ordered_avg_ranks, labels))],
+        dtype=object,
     )
     ordered_labels = np.array([la for la, _ in ordered_labels_ranks], dtype=str)
     ordered_avg_ranks = np.array([r for _, r in ordered_labels_ranks], dtype=np.float32)

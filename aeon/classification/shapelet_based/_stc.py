@@ -7,7 +7,7 @@ transform then builds (by default) a rotation forest classifier on the output.
 __maintainer__ = []
 __all__ = ["ShapeletTransformClassifier"]
 
-import warnings
+from typing import List, Type, Union
 
 import numpy as np
 from sklearn.model_selection import cross_val_predict
@@ -40,7 +40,7 @@ class ShapeletTransformClassifier(BaseClassifier):
     max_shapelets : int or None, default=None
         Max number of shapelets to keep for the final transform. Each class value will
         have its own max, set to ``n_classes_ / max_shapelets``. If `None`, uses the
-        minimum between ``10 * n_instances_`` and `1000`.
+        minimum between ``10 * n_cases_`` and `1000`.
     max_shapelet_length : int or None, default=None
         Lower bound on candidate shapelet lengths for the transform. If ``None``, no
         max length is used
@@ -59,12 +59,6 @@ class ShapeletTransformClassifier(BaseClassifier):
     contract_max_n_shapelet_samples : int, default=np.inf
         Max number of shapelets to extract when contracting the transform with
         ``transform_limit_in_minutes`` or ``time_limit_in_minutes``.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
-        ``transformed_data_`` will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
@@ -85,11 +79,11 @@ class ShapeletTransformClassifier(BaseClassifier):
         The number of unique classes in the training set.
     fit_time_  : int
         The time (in milliseconds) for ``fit`` to run.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case in the training set.
-    series_length_ : int
+    n_timepoints_ : int
         The length of each series in the training set.
 
     See Also
@@ -139,18 +133,17 @@ class ShapeletTransformClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_shapelet_samples=10000,
-        max_shapelets=None,
-        max_shapelet_length=None,
+        n_shapelet_samples: int = 10000,
+        max_shapelets: Union[int, None] = None,
+        max_shapelet_length: Union[int, None] = None,
         estimator=None,
-        transform_limit_in_minutes=0,
-        time_limit_in_minutes=0,
-        contract_max_n_shapelet_samples=np.inf,
-        save_transformed_data="deprecated",
-        n_jobs=1,
-        batch_size=100,
-        random_state=None,
-    ):
+        transform_limit_in_minutes: int = 0,
+        time_limit_in_minutes: int = 0,
+        contract_max_n_shapelet_samples: int = np.inf,
+        n_jobs: int = 1,
+        batch_size: Union[int, None] = 100,
+        random_state: Union[int, Type[np.random.RandomState], None] = None,
+    ) -> None:
         self.n_shapelet_samples = n_shapelet_samples
         self.max_shapelets = max_shapelets
         self.max_shapelet_length = max_shapelet_length
@@ -164,24 +157,14 @@ class ShapeletTransformClassifier(BaseClassifier):
         self.batch_size = batch_size
         self.n_jobs = n_jobs
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
 
         self._transformer = None
         self._estimator = estimator
         self._transform_limit_in_minutes = 0
         self._classifier_limit_in_minutes = 0
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.8.0
-        self.transformed_data_ = []
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.8.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -190,9 +173,9 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             The class labels.
 
         Returns
@@ -205,14 +188,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        b = (
-            False
-            if isinstance(self.save_transformed_data, str)
-            else self.save_transformed_data
-        )
-        self.transformed_data_ = self._fit_stc(X, y)
-        if not b:
-            self.transformed_data_ = []
+        X_t = self._fit_stc_shared(X, y)
+        self._estimator.fit(X_t, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -220,12 +197,12 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
+        y : array-like, shape = [n_cases]
             Predicted class labels.
         """
         X_t = self._transformer.transform(X)
@@ -237,12 +214,12 @@ class ShapeletTransformClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_instances, n_channels, series_length]
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The data to make predict probabilities for.
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
+        y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
         X_t = self._transformer.transform(X)
@@ -267,13 +244,15 @@ class ShapeletTransformClassifier(BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        Xt = self._fit_stc(X, y)
+        X_t = self._fit_stc_shared(X, y)
 
         if (isinstance(self.estimator, RotationForestClassifier)) or (
             self.estimator is None
         ):
-            return self._estimator._get_train_probs(Xt, y)
+            return self._estimator.fit_predict_proba(X_t, y)
         else:
+            self._estimator.fit(X_t, y)
+
             m = getattr(self._estimator, "predict_proba", None)
             if not callable(m):
                 raise ValueError("Estimator must have a predict_proba method.")
@@ -293,15 +272,15 @@ class ShapeletTransformClassifier(BaseClassifier):
 
             return cross_val_predict(
                 estimator,
-                X=Xt,
+                X=X_t,
                 y=y,
                 cv=cv_size,
                 method="predict_proba",
                 n_jobs=self._n_jobs,
             )
 
-    def _fit_stc(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+    def _fit_stc_shared(self, X, y):
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         if self.time_limit_in_minutes > 0:
             # contracting 2/3 transform (with 1/5 of that taken away for final
@@ -328,9 +307,6 @@ class ShapeletTransformClassifier(BaseClassifier):
             self.random_state,
         )
 
-        if isinstance(self._estimator, RotationForestClassifier):
-            self._estimator.save_transformed_data = self.save_transformed_data
-
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
             self._estimator.n_jobs = self._n_jobs
@@ -339,14 +315,10 @@ class ShapeletTransformClassifier(BaseClassifier):
         if m is not None and self.time_limit_in_minutes > 0:
             self._estimator.time_limit_in_minutes = self._classifier_limit_in_minutes
 
-        Xt = self._transformer.fit_transform(X, y)
-
-        self._estimator.fit(Xt, y)
-
-        return Xt
+        return self._transformer.fit_transform(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

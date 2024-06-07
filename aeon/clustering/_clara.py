@@ -45,7 +45,7 @@ class TimeSeriesCLARA(BaseClusterer):
         a function that takes two 2d numpy arrays as input and returns a float.
     n_samples : int, default=None,
         Number of samples to sample from the dataset. If None, then
-        min(n_instances, 40 + 2 * n_clusters) is used.
+        min(n_cases, 40 + 2 * n_clusters) is used.
     n_sampling_iters : int, default=5,
         Number of different subsets of samples to try. The best subset cluster centers
         are used.
@@ -62,16 +62,21 @@ class TimeSeriesCLARA(BaseClusterer):
         convergence.
     verbose : bool, default=False
         Verbosity mode.
-    random_state : int or np.random.RandomState instance or None, default=None
+    random_state : int, np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
+        If `int`, random_state is the seed used by the random number generator;
+        If `np.random.RandomState` instance,
+        random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     distance_params : dict, default=None
         Dictionary containing kwargs for the distance metric being used.
 
     Attributes
     ----------
-    cluster_centers_ : np.ndarray, of shape (n_instances, n_channels, n_timepoints)
+    cluster_centers_ : np.ndarray, of shape (n_cases, n_channels, n_timepoints)
         A collection of time series instances that represent the cluster centers.
-    labels_ : np.ndarray (1d array of shape (n_instance,))
+    labels_ : np.ndarray (1d array of shape (n_case,))
         Labels that is the index each time series belongs to.
     inertia_ : float
         Sum of squared distances of samples to their closest cluster center, weighted by
@@ -147,11 +152,9 @@ class TimeSeriesCLARA(BaseClusterer):
 
     def _fit(self, X: np.ndarray, y=None):
         self._random_state = check_random_state(self.random_state)
-        n_instances = X.shape[0]
+        n_cases = X.shape[0]
         if self.n_samples is None:
-            n_samples = max(
-                min(n_instances, 40 + 2 * self.n_clusters), self.n_clusters + 1
-            )
+            n_samples = max(min(n_cases, 40 + 2 * self.n_clusters), self.n_clusters + 1)
         else:
             n_samples = self.n_samples
 
@@ -159,7 +162,7 @@ class TimeSeriesCLARA(BaseClusterer):
         best_pam = None
         for _ in range(self.n_sampling_iters):
             sample_idxs = np.arange(n_samples)
-            if n_samples < n_instances:
+            if n_samples < n_cases:
                 sample_idxs = self._random_state.choice(
                     sample_idxs,
                     size=n_samples,

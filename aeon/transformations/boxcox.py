@@ -4,6 +4,7 @@ __maintainer__ = []
 __all__ = ["BoxCoxTransformer", "LogTransformer"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from scipy import optimize, special, stats
 from scipy.special import boxcox, inv_boxcox
 from scipy.stats import boxcox_llf, distributions, variation
@@ -40,6 +41,13 @@ def _calc_uniform_order_statistic_medians(n):
     return v
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="BoxCoxTransformer will be removed in version 0.10.0 and replaced with a "
+    "BaseSeriesTransformer version in the transformations.series module.",
+    category=FutureWarning,
+)
 class BoxCoxTransformer(BaseTransformer):
     r"""Box-Cox power transform.
 
@@ -125,7 +133,7 @@ class BoxCoxTransformer(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": False,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "capability:inverse_transform": True,
     }
 
@@ -206,6 +214,13 @@ class BoxCoxTransformer(BaseTransformer):
         return Xt
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="LogTransformer will be removed in version 0.10.0 and replaced with a "
+    "BaseSeriesTransformer version in the transformations.series module.",
+    category=FutureWarning,
+)
 class LogTransformer(BaseTransformer):
     """Natural logarithm transformation.
 
@@ -256,7 +271,7 @@ class LogTransformer(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": True,
     }
 

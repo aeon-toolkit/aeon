@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class AEResNetNetwork(BaseDeepNetwork):
+class AEResNetNetwork(BaseDeepLearningNetwork):
     """
     Establish the network structure for a AE-ResNet.
 
@@ -113,7 +113,7 @@ class AEResNetNetwork(BaseDeepNetwork):
 
         Parameters
         ----------
-        input_shape : tuple of shape = (series_length (m), n_dimensions (d))
+        input_shape : tuple of shape = (n_timepoints (m), n_dimensions (d))
             The shape of the data fed into the input layer.
 
         Returns

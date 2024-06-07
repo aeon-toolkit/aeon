@@ -46,7 +46,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         as the number of series_transformers.
     acf_lag : int or callable, default=100
         The maximum number of autocorrelation terms to use. If callable, the function
-        should take a 3D numpy array of shape (n_instances, n_channels, n_timepoints)
+        should take a 3D numpy array of shape (n_cases, n_channels, n_timepoints)
         and return an integer.
     acf_min_values : int, default=0
         Never use fewer than this number of terms to find a correlation unless the
@@ -59,8 +59,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     use_pyfftw : bool, default=False
         Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
         package to be installed.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit for use in _get_train_probs.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -77,7 +75,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of dimensions per case in the training set.
@@ -89,10 +87,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         The collections of estimators trained in fit.
     intervals_ : list of shape (n_estimators) of TransformerMixin
         Stores the interval extraction transformer for all estimators.
-    transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances_ ,total_intervals * att_subsample_size)
-        The transformed dataset for all estimators. Only saved when
-        save_transformed_data is true.
 
     See Also
     --------
@@ -140,17 +134,13 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
         use_pyfftw=False,
-        save_transformed_data=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
         self.acf_lag = acf_lag
         self.acf_min_values = acf_min_values
-
         self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
 
         interval_features = [
             PeriodogramTransformer(use_pyfftw=use_pyfftw, pad_with="mean"),
@@ -171,11 +161,13 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
             replace_nan=0,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
-            save_transformed_data=save_transformed_data,
             random_state=random_state,
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pyfftw:
+            self.set_tags(**{"python_dependencies": "pyfftw"})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -194,9 +186,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
                 "contracting" - used in classifiers that set the
                     "capability:contractable" tag to True to test contacting
                     functionality
-                "train_estimate" - used in some classifiers that set the
-                    "capability:train_estimate" tag to True to allow for more efficient
-                    testing when relevant parameters are available
 
         Returns
         -------
@@ -212,11 +201,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
             return {
                 "time_limit_in_minutes": 5,
                 "contract_max_n_estimators": 2,
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "save_transformed_data": True,
             }
         else:
             return {"n_estimators": 2}

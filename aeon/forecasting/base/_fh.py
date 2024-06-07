@@ -192,7 +192,7 @@ class ForecastingHorizon:
     ----------
     values : pd.Index, pd.TimedeltaIndex, np.array, list, pd.Timedelta, or int
         Values of forecasting horizon
-    is_relative : bool, optional (default=None)
+    is_relative : bool, default=None
         - If True, a relative ForecastingHorizon is created:
                 values are relative to end of training series.
         - If False, an absolute ForecastingHorizon is created:
@@ -200,7 +200,7 @@ class ForecastingHorizon:
         - if None, the flag is determined automatically:
             relative, if values are of supported relative index type
             absolute, if not relative and values of supported absolute index type
-    freq : str, pd.Index, pandas offset, or aeon forecaster, optional (default=None)
+    freq : str, pd.Index, pandas offset, or aeon forecaster, default=None
         object carrying frequency information on values
         ignored unless values is without inferrable freq
 
@@ -333,7 +333,7 @@ class ForecastingHorizon:
             - If None, determined automatically: same as self.is_relative
             - If True, values are relative to end of training series.
             - If False, values are absolute.
-        freq : str, optional (default=None)
+        freq : str, default=None
             Frequency string
 
         Returns
@@ -447,7 +447,7 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, or pd.Index, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, or pd.Index, default=None
             Cutoff value required to convert a relative forecasting
             horizon to an absolute one (and vice versa).
             If pd.Index, last/latest value is considered the cutoff
@@ -485,7 +485,7 @@ class ForecastingHorizon:
         ----------
         start : pd.Period, pd.Timestamp, int
             Start value returned as zero.
-        cutoff : pd.Period, pd.Timestamp, int, or pd.Index, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, or pd.Index, default=None
             Cutoff value required to convert a relative forecasting
             horizon to an absolute one (and vice versa).
             If pd.Index, last/latest value is considered the cutoff
@@ -538,7 +538,7 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, default=None
             Cutoff value required to convert a relative forecasting
             horizon to an absolute one (and vice versa).
 
@@ -556,7 +556,7 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, default=None
             Cutoff value is required to convert a relative forecasting
             horizon to an absolute one (and vice versa).
 
@@ -599,7 +599,7 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, default=None
             Cutoff value used to check if forecasting horizon is purely
             out-of-sample.
 
@@ -616,10 +616,10 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, default=None
             Cutoff value required to convert a relative forecasting
             horizon to an absolute one and vice versa.
-        from_cutoff : bool, optional (default=True)
+        from_cutoff : bool, default=True
             - If True, zero-based relative to cutoff.
             - If False, zero-based relative to first value in forecasting
             horizon.
@@ -665,7 +665,7 @@ def _to_relative(fh: ForecastingHorizon, cutoff=None) -> ForecastingHorizon:
     Parameters
     ----------
     fh : ForecastingHorizon
-    cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+    cutoff : pd.Period, pd.Timestamp, int, default=None
         Cutoff value required to convert a relative forecasting
         horizon to an absolute one (and vice versa).
 
@@ -752,7 +752,7 @@ def _check_cutoff(cutoff, index):
 
     Parameters
     ----------
-    cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+    cutoff : pd.Period, pd.Timestamp, int, default=None
         Cutoff value is required to convert a relative forecasting
         horizon to an absolute one and vice versa.
     index : pd.PeriodIndex or pd.DataTimeIndex
@@ -770,7 +770,7 @@ def _check_cutoff(cutoff, index):
         assert isinstance(cutoff, pd.Timestamp)
 
 
-def _coerce_to_period(x, freq=None):
+def _coerce_to_period(x, freq):
     """Coerce pandas time index to a alternative pandas time index.
 
     This coerces pd.Timestamp to pd.Period or pd.DatetimeIndex to
@@ -788,11 +788,6 @@ def _coerce_to_period(x, freq=None):
     index : pd.Period or pd.PeriodIndex
         Index or index element coerced to period based format.
     """
-    if isinstance(x, pd.Timestamp) and freq is None:
-        freq = x.freq
-        raise ValueError(
-            "_coerce_to_period requires freq argument to be passed if x is pd.Timestamp"
-        )
     try:
         return x.to_period(freq)
     except (ValueError, AttributeError) as e:

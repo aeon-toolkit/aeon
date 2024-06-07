@@ -95,13 +95,13 @@ class RSTSF(BaseClassifier):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
+        super().__init__()
+
         if use_pyfftw:
             self.set_tags(**{"python_dependencies": ["statsmodels", "pyfftw"]})
 
-        super().__init__()
-
     def _fit(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 

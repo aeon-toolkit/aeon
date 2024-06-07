@@ -9,6 +9,7 @@ __all__ = ["ElasticEnsemble"]
 import math
 import time
 from itertools import product
+from typing import List, Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -39,7 +40,9 @@ class ElasticEnsemble(BaseClassifier):
     ----------
     distance_measures : str or list of str, default="all"
       A list of strings identifying which distance measures to include. Valid values
-      are one or more of: euclidean, dtw, wdtw, ddtw, dwdtw, lcss, erp, msm, twe, all
+      are one or more of: ``euclidean``, ``dtw``, ``wdtw``, ``ddtw``, ``wddtw``,
+      ``lcss``, ``erp``, ``msm``, ``twe``. The default value ``all`` means that all
+      the previously listed distances are used.
     proportion_of_param_options : float, default=1
       The proportion of the parameter grid space to search optional.
     proportion_train_in_param_finding : float, default=1
@@ -50,7 +53,7 @@ class ElasticEnsemble(BaseClassifier):
       The number of jobs to run in parallel for both `fit` and `predict`.
       ``-1`` means using all processors.
     random_state : int, default=0
-      The random seed.
+        If `int`, random_state is the seed used by the random number generator;
     verbose : int, default=0
       If ``>0``, then prints out debug information.
     majority_vote: boolean, default = False
@@ -65,12 +68,11 @@ class ElasticEnsemble(BaseClassifier):
     constituent_build_times_ : array of float
         build time for each member of the ensemble.
 
-    Notes
-    -----
-    .. [1] Jason Lines and Anthony Bagnall,
-          "Time Series Classification with Ensembles of Elastic Distance Measures",
-              Data Mining and Knowledge Discovery, 29(3), 2015.
-    https://link.springer.com/article/10.1007/s10618-014-0361-2
+    References
+    ----------
+    .. [1] Jason Lines and Anthony Bagnall, "Time Series Classification with Ensembles
+        of Elastic Distance Measures", Data Mining and Knowledge Discovery, 29(3), 2015.
+        https://link.springer.com/article/10.1007/s10618-014-0361-2
 
     Examples
     --------
@@ -99,15 +101,15 @@ class ElasticEnsemble(BaseClassifier):
 
     def __init__(
         self,
-        distance_measures="all",
-        proportion_of_param_options=1.0,
-        proportion_train_in_param_finding=1.0,
-        proportion_train_for_test=1.0,
-        n_jobs=1,
-        random_state=0,
-        verbose=0,
-        majority_vote=False,
-    ):
+        distance_measures: Union[str, List[str]] = "all",
+        proportion_of_param_options: float = 1.0,
+        proportion_train_in_param_finding: float = 1.0,
+        proportion_train_for_test: float = 1.0,
+        n_jobs: int = 1,
+        random_state: int = 0,
+        verbose: int = 0,
+        majority_vote: bool = False,
+    ) -> None:
         self.distance_measures = distance_measures
         self.proportion_train_in_param_finding = proportion_train_in_param_finding
         self.proportion_of_param_options = proportion_of_param_options
@@ -131,7 +133,7 @@ class ElasticEnsemble(BaseClassifier):
             or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
             The training input samples.
 
-        y : array-like, shape = (n_cases) The class labels.
+        y : array-like, shape = (n_cases,) The class labels.
 
         Returns
         -------
@@ -146,6 +148,8 @@ class ElasticEnsemble(BaseClassifier):
                 "lcss",
                 "erp",
                 "msm",
+                "euclidean",
+                "twe",
             ]
         else:
             self._distance_measures = self.distance_measures
@@ -394,16 +398,33 @@ class ElasticEnsemble(BaseClassifier):
         preds = np.asarray([self.classes_[x] for x in idx])
         return preds
 
-    def get_metric_params(self):
-        """Return the parameters for the distance metrics used."""
+    def get_metric_params(self) -> dict:
+        """Return the parameters for the distance metrics used.
+
+        Returns
+        -------
+        params : dict
+            The distance measures and the list of their parameter values.
+        """
         return {
             self._distance_measures[dm]: str(self.estimators_[dm]._distance_params)
             for dm in range(len(self.estimators_))
         }
 
     @staticmethod
-    def _get_100_param_options(distance_measure, train_x=None):
-        def get_inclusive(min_val, max_val, num_vals):
+    def _get_100_param_options(distance_measure: str, train_x=None):
+        """Generate 100 parameter values for each classifier.
+
+        Parameters
+        ----------
+        distance_measure : str, the name of the distance measure.
+
+        train_x : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            or list of [n_cases] np.ndarray shape (n_channels, n_timepoints_i)
+            The training input samples.
+        """
+
+        def get_inclusive(min_val: float, max_val: float, num_vals: float):
             inc = (max_val - min_val) / (num_vals - 1)
             return np.arange(min_val, max_val + inc / 2, inc)
 
@@ -446,13 +467,31 @@ class ElasticEnsemble(BaseClassifier):
                     {"c": x} for x in np.concatenate([a, b[1:], c[1:], d[1:]])
                 ]
             }
+        elif distance_measure == "euclidean":
+            return {"distance_params": [{}]}  # No parameters for Euclidean distance
+        elif distance_measure == "twe":
+            band_sizes = get_inclusive(0, 0.25, 5)
+            nu_values = get_inclusive(0.0001, 0.001, 10)
+            lmbda_values = get_inclusive(1.0, 2.0, 2)
+            b_and_nu_and_lmbda = list(product(band_sizes, nu_values, lmbda_values))
+            return {
+                "distance_params": [
+                    {
+                        "window": b_and_nu_and_lmbda[x][0],
+                        "nu": b_and_nu_and_lmbda[x][1],
+                        "lmbda": b_and_nu_and_lmbda[x][2],
+                    }
+                    for x in range(0, len(b_and_nu_and_lmbda))
+                ]
+            }
+
         else:
             raise NotImplementedError(
                 "EE does not currently support: " + str(distance_measure)
             )
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

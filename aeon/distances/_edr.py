@@ -2,10 +2,11 @@
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
 
 from aeon.distances._alignment_paths import (
     _add_inf_to_out_of_bounds_cost_matrix,
@@ -13,16 +14,16 @@ from aeon.distances._alignment_paths import (
 )
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._euclidean import _univariate_euclidean_distance
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
 def edr_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
-    epsilon: float = None,
-    itakura_max_slope: float = None,
+    window: Optional[float] = None,
+    epsilon: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the EDR distance between two time series.
 
@@ -115,9 +116,9 @@ def edr_distance(
 def edr_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
-    epsilon: float = None,
-    itakura_max_slope: float = None,
+    window: Optional[float] = None,
+    epsilon: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the EDR cost matrix between two time series.
 
@@ -182,7 +183,10 @@ def edr_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _edr_distance(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
+    x: np.ndarray,
+    y: np.ndarray,
+    bounding_matrix: np.ndarray,
+    epsilon: Optional[float] = None,
 ) -> float:
     distance = _edr_cost_matrix(x, y, bounding_matrix, epsilon)[
         x.shape[1] - 1, y.shape[1] - 1
@@ -192,12 +196,15 @@ def _edr_distance(
 
 @njit(cache=True, fastmath=True)
 def _edr_cost_matrix(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float = None
+    x: np.ndarray,
+    y: np.ndarray,
+    bounding_matrix: np.ndarray,
+    epsilon: Optional[float] = None,
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
     if epsilon is None:
-        epsilon = max(np.std(x), np.std(y)) / 4
+        epsilon = float(max(np.std(x), np.std(y))) / 4
 
     cost_matrix = np.zeros((x_size + 1, y_size + 1))
 
@@ -216,24 +223,23 @@ def _edr_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@njit(cache=True, fastmath=True)
 def edr_pairwise_distance(
-    X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
-    epsilon: float = None,
-    itakura_max_slope: float = None,
+    X: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    window: Optional[float] = None,
+    epsilon: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     """Compute the pairwise EDR distance between a set of time series.
 
     Parameters
     ----------
-    X : np.ndarray
-        A collection of time series instances  of shape ``(n_instances, n_timepoints)``
-        or ``(n_instances, n_channels, n_timepoints)``.
-    y : np.ndarray or None, default=None
+    X : np.ndarray or List of np.ndarray
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
+    y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the edr pairwise distance between the instances of X is
         calculated.
     window : float, default=None
@@ -249,7 +255,7 @@ def edr_pairwise_distance(
 
     Returns
     -------
-    np.ndarray (n_instances, n_instances)
+    np.ndarray (n_cases, n_cases)
         EDR pairwise matrix between the instances of X.
 
     Raises
@@ -278,39 +284,58 @@ def edr_pairwise_distance(
            [1., 1., 1.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> edr_pairwise_distance(X, y_univariate)
     array([[1.],
            [1.],
            [1.]])
+
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> edr_pairwise_distance(X)
+    array([[0.  , 0.75, 0.6 ],
+           [0.75, 0.  , 0.8 ],
+           [0.6 , 0.8 , 0.  ]])
     """
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
+
     if y is None:
         # To self
-        if X.ndim == 3:
-            return _edr_pairwise_distance(X, window, epsilon, itakura_max_slope)
-        if X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _edr_pairwise_distance(_X, window, epsilon, itakura_max_slope)
-        raise ValueError("x and y must be 2D or 3D arrays")
-    _x, _y = reshape_pairwise_to_multiple(X, y)
+        return _edr_pairwise_distance(
+            _X, window, epsilon, itakura_max_slope, unequal_length
+        )
+
+    _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
     return _edr_from_multiple_to_multiple_distance(
-        _x, _y, window, epsilon, itakura_max_slope
+        _X, _y, window, epsilon, itakura_max_slope, unequal_length
     )
 
 
 @njit(cache=True, fastmath=True)
 def _edr_pairwise_distance(
-    X: np.ndarray, window: float, epsilon: float = None, itakura_max_slope: float = None
+    X: NumbaList[np.ndarray],
+    window: Optional[float],
+    epsilon: Optional[float],
+    itakura_max_slope: Optional[float],
+    unequal_length: bool,
 ) -> np.ndarray:
-    n_instances = X.shape[0]
-    distances = np.zeros((n_instances, n_instances))
-    bounding_matrix = create_bounding_matrix(
-        X.shape[2], X.shape[2], window, itakura_max_slope
-    )
+    n_cases = len(X)
+    distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_instances):
-        for j in range(i + 1, n_instances):
-            distances[i, j] = _edr_distance(X[i], X[j], bounding_matrix, epsilon)
+    if not unequal_length:
+        n_timepoints = X[0].shape[1]
+        bounding_matrix = create_bounding_matrix(
+            n_timepoints, n_timepoints, window, itakura_max_slope
+        )
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
+            x1, x2 = X[i], X[j]
+            if unequal_length:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[1], x2.shape[1], window, itakura_max_slope
+                )
+            distances[i, j] = _edr_distance(x1, x2, bounding_matrix, epsilon)
             distances[j, i] = distances[i, j]
 
     return distances
@@ -318,22 +343,29 @@ def _edr_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _edr_from_multiple_to_multiple_distance(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: float,
-    epsilon: float = None,
-    itakura_max_slope: float = None,
+    x: NumbaList[np.ndarray],
+    y: NumbaList[np.ndarray],
+    window: Optional[float],
+    epsilon: Optional[float],
+    itakura_max_slope: Optional[float],
+    unequal_length: bool,
 ) -> np.ndarray:
-    n_instances = x.shape[0]
-    m_instances = y.shape[0]
-    distances = np.zeros((n_instances, m_instances))
-    bounding_matrix = create_bounding_matrix(
-        x.shape[2], y.shape[2], window, itakura_max_slope
-    )
+    n_cases = len(x)
+    m_cases = len(y)
+    distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_instances):
-        for j in range(m_instances):
-            distances[i, j] = _edr_distance(x[i], y[j], bounding_matrix, epsilon)
+    if not unequal_length:
+        bounding_matrix = create_bounding_matrix(
+            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
+        )
+    for i in range(n_cases):
+        for j in range(m_cases):
+            x1, y1 = x[i], y[j]
+            if unequal_length:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[1], y1.shape[1], window, itakura_max_slope
+                )
+            distances[i, j] = _edr_distance(x1, y1, bounding_matrix, epsilon)
     return distances
 
 
@@ -341,9 +373,9 @@ def _edr_from_multiple_to_multiple_distance(
 def edr_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
-    epsilon: float = None,
-    itakura_max_slope: float = None,
+    window: Optional[float] = None,
+    epsilon: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the EDR alignment path between two time series.
 

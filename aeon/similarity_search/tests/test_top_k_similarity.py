@@ -14,6 +14,7 @@ DATATYPES = ["int64", "float64"]
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_TopKSimilaritySearch_euclidean(dtype):
+    """Test the functionality of TopKSimilaritySearch with Euclidean distance."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -49,6 +50,8 @@ def test_TopKSimilaritySearch_euclidean(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_TopKSimilaritySearch_custom_func(dtype):
+    """Test the functionality of TopKSimilaritySearch using a custom function."""
+
     def _dist(x: np.ndarray, y: np.ndarray) -> float:
         return np.sqrt(np.sum((x - y) ** 2))
 
@@ -82,6 +85,7 @@ def test_TopKSimilaritySearch_custom_func(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_TopKSimilaritySearch_change_args(dtype):
+    """Test the functionality of TopKSimilaritySearch with different arguments."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -103,6 +107,7 @@ def test_TopKSimilaritySearch_change_args(dtype):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_TopKSimilaritySearch_speedup(dtype):
+    """Test the speedup functionality of TopKSimilaritySearch."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )

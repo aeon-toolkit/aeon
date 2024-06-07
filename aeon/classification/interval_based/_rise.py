@@ -50,7 +50,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         Ignored for supervised interval_selection_method inputs.
     acf_lag : int or callable, default=100
         The maximum number of autocorrelation terms to use. If callable, the function
-        should take a 3D numpy array of shape (n_instances, n_channels, n_timepoints)
+        should take a 3D numpy array of shape (n_cases, n_channels, n_timepoints)
         and return an integer.
     acf_min_values : int, default=0
         Never use fewer than this number of terms to find a correlation unless the
@@ -63,12 +63,6 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
     use_pyfftw : bool, default=False
         Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
         package to be installed.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in ``fit``.
-
-        Deprecated and will be removed in v0.8.0. Use ``fit_predict`` and
-        ``fit_predict_proba`` to generate train estimates instead.
-        ``transformed_data_`` will also be removed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -85,7 +79,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
 
     Attributes
     ----------
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases in the training set.
     n_channels_ : int
         The number of dimensions per case in the training set.
@@ -101,10 +95,6 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         The collections of estimators trained in fit.
     intervals_ : list of shape (n_estimators) of TransformerMixin
         Stores the interval extraction transformer for all estimators.
-    transformed_data_ : list of shape (n_estimators) of ndarray with shape
-    (n_instances_ ,total_intervals * att_subsample_size)
-        The transformed dataset for all estimators. Only saved when
-        save_transformed_data is true.
 
     See Also
     --------
@@ -156,17 +146,13 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
         use_pyfftw=False,
-        save_transformed_data="deprecated",
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
         self.acf_lag = acf_lag
         self.acf_min_values = acf_min_values
-
         self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
@@ -193,11 +179,13 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
             replace_nan=replace_nan,
             time_limit_in_minutes=time_limit_in_minutes,
             contract_max_n_estimators=contract_max_n_estimators,
-            save_transformed_data=save_transformed_data,
             random_state=random_state,
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pyfftw:
+            self.set_tags(**{"python_dependencies": "pyfftw"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)

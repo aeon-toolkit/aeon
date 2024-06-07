@@ -2,46 +2,47 @@ r"""Shape Dynamic time warping (ShapeDTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
 
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._dtw import _dtw_cost_matrix
 from aeon.distances._squared import _univariate_squared_distance
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
 def _pad_ts_edges(x: np.ndarray, reach: int) -> np.ndarray:
-    if x.ndim == 2:
-        n_channels = x.shape[0]
-        n_timepoints = x.shape[1]
+    """Pad the edges of a time series.
 
-        n_channels = int(n_channels)
-        n_timepoints = int(n_timepoints)
-        x_padded = np.zeros((n_channels, n_timepoints + 2 * reach), dtype=float)
+    Time series should be of shape (n_channels, n_timepoints)
+    """
+    n_channels = x.shape[0]
+    n_timepoints = x.shape[1]
 
-        x_padded[:, reach : reach + n_timepoints] = x
-        x_padded[:, :reach] = np.expand_dims(x[:, 0], axis=-1)
-        x_padded[:, reach + n_timepoints :] = np.expand_dims(x[:, -1], axis=-1)
+    n_channels = int(n_channels)
+    n_timepoints = int(n_timepoints)
+    x_padded = np.zeros((n_channels, n_timepoints + 2 * reach), dtype=float)
 
-    elif x.ndim == 3:
-        n_timepoints = x.shape[2]
-        n_channels = x.shape[1]
-        n_instances = x.shape[0]
-        new_n_timepoints = int(n_timepoints + 2 * reach)
+    x_padded[:, reach : reach + n_timepoints] = x
+    x_padded[:, :reach] = np.expand_dims(x[:, 0], axis=-1)
+    x_padded[:, reach + n_timepoints :] = np.expand_dims(x[:, -1], axis=-1)
+    return x_padded
 
-        x_padded = np.zeros(
-            shape=(n_instances, n_channels, new_n_timepoints), dtype=float
-        )
 
-        x_padded[:, :, reach : reach + n_timepoints] = x
-        x_padded[:, :, :reach] = np.expand_dims(x[:, :, 0], axis=-1)
-        x_padded[:, :, reach + n_timepoints :] = np.expand_dims(x[:, :, -1], axis=-1)
+def _pad_ts_collection_edges(x: List[np.ndarray], reach: int) -> List[np.ndarray]:
+    """Pad the edges of a collection of time series.
 
+    Time series should be of shape (n_cases, n_channels, n_timepoints)
+    """
+    x_padded = NumbaList()
+
+    for ts in x:
+        x_padded.append(np.pad(ts, [[0, 0], [reach, reach]], mode="edge"))
     return x_padded
 
 
@@ -88,6 +89,8 @@ def _transform_subsequences(
     """
     if descriptor == "identity":
         descriptor_function = _identity_descriptor
+    else:
+        raise ValueError("Descriptor invalid. Descriptor must be 'identity'.")
 
     sliding_window = reach * 2 + 1
     sliding_window = int(sliding_window)
@@ -117,10 +120,13 @@ def _transform_subsequences(
 def shape_dtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> float:
     """Compute the ShapeDTW distance function between two series x and y.
 
@@ -154,6 +160,12 @@ def shape_dtw_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -192,6 +204,9 @@ def shape_dtw_distance(
             descriptor=descriptor,
             reach=reach,
             bounding_matrix=bounding_matrix,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
         )
     if x.ndim == 2 and y.ndim == 2:
         x_pad = _pad_ts_edges(x=x, reach=reach)
@@ -207,6 +222,9 @@ def shape_dtw_distance(
             descriptor=descriptor,
             reach=reach,
             bounding_matrix=bounding_matrix,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
         )
 
     raise ValueError("x and y must be 1D or 2D")
@@ -219,13 +237,27 @@ def _shape_dtw_distance(
     bounding_matrix: np.ndarray,
     descriptor: str = "identity",
     reach: int = 30,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> float:
-    new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
-    new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
+    # for compilation purposes
+    if transformed_x is None:
+        transformed_x = x
+    if transformed_y is None:
+        transformed_y = y
 
-    shape_dtw_cost_mat = _dtw_cost_matrix(
-        x=new_x, y=new_y, bounding_matrix=bounding_matrix
-    )
+    if not transformation_precomputed:
+        new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
+        new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
+
+        shape_dtw_cost_mat = _dtw_cost_matrix(
+            x=new_x, y=new_y, bounding_matrix=bounding_matrix
+        )
+    else:
+        shape_dtw_cost_mat = _dtw_cost_matrix(
+            x=transformed_x, y=transformed_y, bounding_matrix=bounding_matrix
+        )
 
     return _get_shape_dtw_distance_from_cost_mat(
         x=x, y=y, reach=reach, shape_dtw_cost_mat=shape_dtw_cost_mat
@@ -262,11 +294,14 @@ def _get_shape_dtw_distance_from_cost_mat(
 def shape_dtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,
-    itakura_max_slope: float = None,
-) -> float:
+    itakura_max_slope: Optional[float] = None,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
+) -> np.ndarray:
     """Compute the ShapeDTW cost matrix between two series x and y.
 
     Parameters
@@ -296,6 +331,12 @@ def shape_dtw_cost_matrix(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -324,6 +365,9 @@ def shape_dtw_cost_matrix(
             descriptor=descriptor,
             reach=reach,
             bounding_matrix=bounding_matrix,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
         )
     if x.ndim == 2 and y.ndim == 2:
         x_pad = _pad_ts_edges(x=x, reach=reach)
@@ -339,6 +383,9 @@ def shape_dtw_cost_matrix(
             descriptor=descriptor,
             reach=reach,
             bounding_matrix=bounding_matrix,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
         )
 
     raise ValueError("x and y must be 1D or 2D")
@@ -351,13 +398,27 @@ def _shape_dtw_cost_matrix(
     bounding_matrix: np.ndarray,
     descriptor: str = "identity",
     reach: int = 30,
-) -> float:
-    new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
-    new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
+) -> np.ndarray:
+    # for compilation purposes
+    if transformed_x is None:
+        transformed_x = x
+    if transformed_y is None:
+        transformed_y = y
 
-    shapedtw_cost_mat = _dtw_cost_matrix(
-        x=new_x, y=new_y, bounding_matrix=bounding_matrix
-    )
+    if not transformation_precomputed:
+        new_x = _transform_subsequences(x=x, descriptor=descriptor, reach=reach)
+        new_y = _transform_subsequences(x=y, descriptor=descriptor, reach=reach)
+
+        shapedtw_cost_mat = _dtw_cost_matrix(
+            x=new_x, y=new_y, bounding_matrix=bounding_matrix
+        )
+    else:
+        shapedtw_cost_mat = _dtw_cost_matrix(
+            x=transformed_x, y=transformed_y, bounding_matrix=bounding_matrix
+        )
 
     return shapedtw_cost_mat
 
@@ -366,10 +427,13 @@ def _shape_dtw_cost_matrix(
 def shape_dtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: float = None,
+    window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the ShapeDTW alignment path between two series x and y.
 
@@ -400,6 +464,12 @@ def shape_dtw_alignment_path(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of x, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
@@ -420,6 +490,9 @@ def shape_dtw_alignment_path(
         descriptor=descriptor,
         reach=reach,
         itakura_max_slope=itakura_max_slope,
+        transformation_precomputed=transformation_precomputed,
+        transformed_x=transformed_x,
+        transformed_y=transformed_y,
     )
 
     if x.ndim == 1 and y.ndim == 1:
@@ -428,10 +501,11 @@ def shape_dtw_alignment_path(
 
         x_pad = _pad_ts_edges(x=_x, reach=reach)
         y_pad = _pad_ts_edges(x=_y, reach=reach)
-
-    if x.ndim == 2 and y.ndim == 2:
+    elif x.ndim == 2 and y.ndim == 2:
         x_pad = _pad_ts_edges(x=x, reach=reach)
         y_pad = _pad_ts_edges(x=y, reach=reach)
+    else:
+        raise ValueError("x and y must be 1D or 2D")
 
     shapedtw_dist = _get_shape_dtw_distance_from_cost_mat(
         x=x_pad, y=y_pad, reach=reach, shape_dtw_cost_mat=cost_matrix
@@ -440,25 +514,29 @@ def shape_dtw_alignment_path(
     return (compute_min_return_path(cost_matrix), shapedtw_dist)
 
 
-@njit(cache=True, fastmath=True)
 def shape_dtw_pairwise_distance(
-    X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
+    X: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,
-    itakura_max_slope: float = None,
+    itakura_max_slope: Optional[float] = None,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     """Compute the ShapeDTW pairwise distance among a set of series.
 
     Parameters
     ----------
-    X : np.ndarray
-        A set of time series, either univariate, shape ``(n_instances, n_timepoints,)``,
-        or multivariate, shape ``(n_instances, n_channels, n_timepoints)``.
-    y : np.ndarray or None, default=None
+    X : np.ndarray or List of np.ndarray
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
+    y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
-        ``(m_instances, m_timepoints)`` or ``(m_instances, m_channels, m_timepoints)``.
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
+        If None, then the shape-dtw pairwise distance between the instances of X is
+        calculated.
     window : float or None, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used. window is a percentage deviation, so if ``window = 0.1`` then
@@ -478,80 +556,188 @@ def shape_dtw_pairwise_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    transformation_precomputed : bool, default = False
+        To choose if the transformation of the sub-sequences is pre-computed or not.
+    transformed_x : np.ndarray, default = None
+        The transformation of X, ignored if transformation_precomputed is False.
+    transformed_y : np.ndarray, default = None
+        The transformation of y, ignored if transformation_precomputed is False.
 
     Returns
     -------
     np.ndarray
         ShapeDTW pairwise matrix between the instances of X of shape
-        ``(n_instances, n_instances)`` or between X and y of shape ``(n_instances,
-        n_instances)``.
+        ``(n_cases, n_cases)`` or between X and y of shape ``(n_cases,
+        n_cases)``.
 
     Raises
     ------
     ValueError
         If x and y are not 1D or 2D arrays.
-    """
-    if y is None:
-        if X.ndim == 3:
-            X_pad = _pad_ts_edges(x=X, reach=reach)
-            return _shape_dtw_pairwise_distance(
-                X=X_pad,
-                window=window,
-                descriptor=descriptor,
-                reach=reach,
-                itakura_max_slope=itakura_max_slope,
-            )
-        if X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            X_pad = _pad_ts_edges(x=_X, reach=reach)
-            return _shape_dtw_pairwise_distance(
-                X=X_pad,
-                window=window,
-                descriptor=descriptor,
-                reach=reach,
-                itakura_max_slope=itakura_max_slope,
-            )
-        raise ValueError("X must be 2D or 3D arrays")
-    else:
-        _X, _y = reshape_pairwise_to_multiple(x=X, y=y)
-        X_pad = _pad_ts_edges(x=_X, reach=reach)
-        y_pad = _pad_ts_edges(x=_y, reach=reach)
 
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import shape_dtw_pairwise_distance
+    >>> # Distance between each time series in a collection of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> shape_dtw_pairwise_distance(X)
+    array([[  0.,  27., 108.],
+           [ 27.,   0.,  27.],
+           [108.,  27.,   0.]])
+
+    >>> # Distance between two collections of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
+    >>> shape_dtw_pairwise_distance(X, y)
+    array([[300., 507., 768.],
+           [147., 300., 507.],
+           [ 48., 147., 300.]])
+
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y_univariate = np.array([11, 12, 13])
+    >>> shape_dtw_pairwise_distance(X, y_univariate)
+    array([[300.],
+           [147.],
+           [ 48.]])
+
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> shape_dtw_pairwise_distance(X)
+    array([[  0.,  43., 292.],
+           [ 43.,   0.,  89.],
+           [292.,  89.,   0.]])
+    """
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
+    X_pad = _pad_ts_collection_edges(x=_X, reach=reach)
+    if y is None:
+        # To self
         return _shape_dtw_pairwise_distance(
             X=X_pad,
-            y=y_pad,
             window=window,
             descriptor=descriptor,
             reach=reach,
             itakura_max_slope=itakura_max_slope,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            unequal_length=unequal_length,
         )
+    _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
+    y_pad = _pad_ts_collection_edges(x=_y, reach=reach)
+
+    return _shape_dtw_from_multiple_to_multiple_distance(
+        x=X_pad,
+        y=y_pad,
+        window=window,
+        descriptor=descriptor,
+        reach=reach,
+        itakura_max_slope=itakura_max_slope,
+        transformation_precomputed=transformation_precomputed,
+        transformed_x=transformed_x,
+        transformed_y=transformed_y,
+        unequal_length=unequal_length,
+    )
 
 
 @njit(cache=True, fastmath=True)
 def _shape_dtw_pairwise_distance(
-    X: np.ndarray,
-    y: np.ndarray = None,
-    window: float = None,
-    descriptor: str = "identity",
-    reach: int = 30,
-    itakura_max_slope: float = None,
+    X: NumbaList[np.ndarray],
+    window: Optional[float],
+    descriptor: str,
+    reach: int,
+    itakura_max_slope: Optional[float],
+    transformation_precomputed: bool,
+    transformed_x: Optional[np.ndarray],
+    unequal_length: bool,
 ) -> np.ndarray:
-    if y is None:
-        y = np.copy(X)
+    n_cases = len(X)
+    distances = np.zeros((n_cases, n_cases))
 
-    distances = np.zeros(shape=(len(X), len(y)))
-    bounding_matrix = create_bounding_matrix(
-        X.shape[2] - 2 * reach, y.shape[2] - 2 * reach, window, itakura_max_slope
-    )
-
+    if not unequal_length:
+        n_timepoints = X[0].shape[1]
+        bounding_matrix = create_bounding_matrix(
+            n_timepoints, n_timepoints, window, itakura_max_slope
+        )
     for i in range(len(X)):
-        for j in range(len(y)):
+        for j in range(i + 1, n_cases):
+            x1, x2 = X[i], X[j]
+            if unequal_length:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[1], x2.shape[1], window, itakura_max_slope
+                )
+
+            if transformation_precomputed and transformed_x is not None:
+                transformed_x1 = transformed_x[i]
+                transformed_x2 = transformed_x[j]
+            else:
+                transformed_x1 = x1
+                transformed_x2 = x2
+
             distances[i, j] = _shape_dtw_distance(
-                x=X[i],
-                y=y[j],
+                x=x1,
+                y=x2,
                 descriptor=descriptor,
                 reach=reach,
                 bounding_matrix=bounding_matrix,
+                transformation_precomputed=transformation_precomputed,
+                transformed_x=transformed_x1,
+                transformed_y=transformed_x2,
+            )
+            distances[j, i] = distances[i, j]
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def _shape_dtw_from_multiple_to_multiple_distance(
+    x: NumbaList[np.ndarray],
+    y: NumbaList[np.ndarray],
+    window: Optional[float],
+    descriptor: str,
+    reach: int,
+    itakura_max_slope: Optional[float],
+    transformation_precomputed: bool,
+    transformed_x: Optional[np.ndarray],
+    transformed_y: Optional[np.ndarray],
+    unequal_length: bool,
+) -> np.ndarray:
+    n_cases = len(x)
+    m_cases = len(y)
+    distances = np.zeros((n_cases, m_cases))
+
+    if not unequal_length:
+        bounding_matrix = create_bounding_matrix(
+            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
+        )
+    for i in range(n_cases):
+        for j in range(m_cases):
+            x1, y1 = x[i], y[j]
+            if unequal_length:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[1], y1.shape[1], window, itakura_max_slope
+                )
+
+            if (
+                transformation_precomputed
+                and transformed_y is not None
+                and transformed_x is not None
+            ):
+                transformed_x1 = transformed_x[i]
+                transformed_x2 = transformed_y[j]
+            else:
+                transformed_x1 = x1
+                transformed_x2 = y1
+
+            distances[i, j] = _shape_dtw_distance(
+                x=x1,
+                y=y1,
+                descriptor=descriptor,
+                reach=reach,
+                bounding_matrix=bounding_matrix,
+                transformation_precomputed=transformation_precomputed,
+                transformed_x=transformed_x1,
+                transformed_y=transformed_x2,
             )
 
     return distances

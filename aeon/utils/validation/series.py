@@ -1,12 +1,14 @@
 """Functions for checking input data."""
 
-__maintainer__ = []
 __all__ = [
     "check_series",
     "check_time_index",
     "check_equal_time_index",
     "check_consistent_index_type",
+    "is_hierarchical",
+    "is_single_series",
 ]
+__maintainer__ = ["TonyBagnall"]
 
 from typing import Union
 
@@ -21,6 +23,79 @@ RELATIVE_INDEX_TYPES = (pd.RangeIndex, pd.TimedeltaIndex)
 ABSOLUTE_INDEX_TYPES = (pd.RangeIndex, pd.DatetimeIndex, pd.PeriodIndex)
 assert set(RELATIVE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
 assert set(ABSOLUTE_INDEX_TYPES).issubset(VALID_INDEX_TYPES)
+
+
+def is_single_series(y):
+    """Check if input is a single time series.
+
+    Minimal checks that do not check the index characteristics. To check index and
+    throw an error if not correct, use `check_series` instead.
+
+    Parameters
+    ----------
+    y : Any object
+
+    Returns
+    -------
+    bool
+        True if y is one of VALID_DATA_TYPES a valid shape with unique columns.
+    """
+    if isinstance(y, pd.Series):
+        return True
+    if isinstance(y, pd.DataFrame):
+        if "object" in y.dtypes.values:
+            return False
+        if y.index.nlevels > 1:
+            return False
+        return True
+    if isinstance(y, np.ndarray):
+        if y.ndim > 2:
+            return False
+        return True
+    return False
+
+
+def is_hierarchical(y):
+    """Check to see if y is in a hierarchical dataframe.
+
+     Hierarchical is defined as a pd.DataFrame having 3 or more indices.
+
+    Parameters
+    ----------
+    y : Any object
+
+    Returns
+    -------
+    bool
+        True if y is a pd.DataFrame with three or more indices.
+    """
+    if isinstance(y, pd.DataFrame):
+        if y.index.nlevels >= 3:
+            return True
+    return False
+
+
+def _check_pd_dataframe(y):
+    # check that columns are unique
+    if not y.columns.is_unique:
+        raise ValueError(
+            f"Series in a pd.DataFrame must have unique column indices " f"{y.columns}"
+        )
+    # check whether the time index is of valid type
+    if not is_in_valid_index_types(y.index):
+        raise ValueError(
+            f"{type(y.index)} is not supported for series, use "
+            f"one of {VALID_INDEX_TYPES} or integer index instead."
+        )
+    # check that no dtype is object
+    if "object" in y.dtypes.values:
+        raise ValueError("y should not have column of 'object' dtype")
+    # Check time index is ordered in time
+    if not y.index.is_monotonic_increasing:
+        raise ValueError(
+            f"The (time) index of a series must be sorted monotonically increasing, "
+            f"but found: {y.index}"
+        )
 
 
 def is_univariate_series(y):
@@ -240,9 +315,9 @@ def check_time_index(
     ----------
     index : pd.Index or np.array
         Time index
-    allow_empty : bool, optional (default=False)
+    allow_empty : bool, default=False
         If False, empty `index` raises an error.
-    enforce_index_type : type, optional (default=None)
+    enforce_index_type : type, default=None
         type of time index
     var_name : str, default = "input" - variable name printed in error messages
 
@@ -439,7 +514,7 @@ def is_pdmultiindex_hierarchical(y):
         True if y is pd multindex hierarchical.
 
     """
-    if not isinstance(y, pd.DataFrame) and not isinstance(y.index, pd.MultiIndex):
+    if not isinstance(y, pd.DataFrame) or not isinstance(y.index, pd.MultiIndex):
         return False
     if not y.columns.is_unique:
         return False

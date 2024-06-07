@@ -20,8 +20,6 @@ are used to predict a categorical target class.
 instance are used to predict a continuous target value.
 - {term}`Time series clustering` where the goal is to discover groups consisting of
 instances with similar time series.
-- {term}`Time series annotation` which is focused on outlier detection, anomaly
-detection, change point detection and segmentation.
 - {term}`Time series similarity search` where the goal is to evaluate the similarity
 between a time series against a collection of other time series.
 
@@ -77,12 +75,12 @@ Quarter
 ```
 
 We commonly refer to the number of observations for a time series as `n_timepoints` or
-`series_length`. If a series is multivariate, we refer to the dimensions as channels
+`n_timepoints`. If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`.
 Dimensions may also be referred to as variables.
 
 Different parts of `aeon` work with single series or collections of series. The
-`forecasting` and `annotation` modules will commonly use single series input, while
+`forecasting` module will commonly use single series input, while
 `classification`, `regression` and `clustering` modules will use collections of time
 series. Collections of time series may also be referred to a Panels. Collections of
 time series will often be accompanied by an array of target variables.
@@ -102,9 +100,9 @@ time series will often be accompanied by an array of target variables.
 ['1' '1' '2' '2' '1']
 ```
 
-We use the terms case or instance when referring to a single time series
+We use the terms case when referring to a single time series
 contained in a collection. The size of a collection of time series is referred to as
-`n_cases` or `n_instances`. Collections of time typically follows the shape `
+`n_cases`. Collections of time typically follows the shape `
 (n_cases, n_channels, n_timepoints)` if the series are equal length, but `n_timepoints`
 may vary between cases.
 
@@ -290,29 +288,6 @@ After calling `fit`, the `labels_` attribute contains the cluster labels for
 each time series. The `predict` method can be used to predict the cluster labels for
 new data.
 
-## Time Series Annotation
-
-Annotation encompasses a range of time series tasks, including segmentation and anomaly
-detection. The package is still in early development, so major changes are expected
-as time goes on.
-
-```{code-block} python
->>> from aeon.annotation.adapters import PyODAnnotator
->>> from aeon.datasets import load_airline
->>> from pyod.models.iforest import IForest
->>> y = load_airline()
->>> pyod_model = IForest()
->>> annotator = PyODAnnotator(pyod_model)
->>> annotator.fit(y)
->>> annotated_series = annotator.predict(y)
->>> annotated_series.head()
-1949-01    1
-1949-02    0
-1949-03    0
-1949-04    0
-1949-05    0
-Freq: M, dtype: int32
-```
 
 ## Transformers for Time Series Data
 
@@ -418,8 +393,8 @@ series and process unequal length collections.
 >>> from aeon.testing.utils.data_gen import make_example_unequal_length
 >>> X, _ = make_example_unequal_length(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
-...     min_series_length=8,
-...     max_series_length=12,
+...     min_n_timepoints=8,
+...     max_n_timepoints=12,
 ...     random_state=0,
 ... )
 >>> print(X[0])
@@ -643,7 +618,7 @@ or as parts of pipelines, while the functions give you the tools to build your o
 estimators that would rely on similarity search at some point.
 
 The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
-class accepts as inputs 3D time series (n_instances, n_channels, n_timepoints) for the
+class accepts as inputs 3D time series (n_cases, n_channels, n_timepoints) for the
 fit method. Univariate and single series can still be used, but will need to be reshaped
 to this format.
 
@@ -664,7 +639,7 @@ function.
 >>> from aeon.similarity_search import TopKSimilaritySearch
 >>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
 ...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
->>> X = np.array(X) # X is of shape (2, 1, 7) : (n_instances, n_channels, n_timepoints)
+>>> X = np.array(X) # X is of shape (2, 1, 7) : (n_cases, n_channels, n_timepoints)
 >>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
 >>> topk.fit(X)  # fit the estimator on train data
 ...
