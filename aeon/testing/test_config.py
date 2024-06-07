@@ -20,7 +20,31 @@ PR_TESTING = False
 if os.environ.get("CICD_RUNNING") == "1":
     import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 
-EXCLUDE_ESTIMATORS = []
+EXCLUDE_ESTIMATORS = [
+    "BoxCoxTransformer",
+    "TimeBinAggregate",
+    "PartialAutoCorrelationTransformer",
+    "LogTransformer",
+    "ReverseAugmenter",
+    "RandomSamplesAugmenter",
+    "SqrtTransformer",
+    "PinballLoss",
+    "ColumnSelect",
+    "IndexSubset",
+    "TimeSince",
+    "Differencer",
+    "CosineTransformer",
+    "ThetaLinesTransformer",
+    "InvertAugmenter",
+    "BKFilter",
+    "AutoCorrelationTransformer",
+    "PCATransformer",
+    "EmpiricalCoverage",
+    "WhiteNoiseAugmenter",
+    "KalmanFilterTransformer",
+    "BaseKalmanFilter",
+    "ClearSky",
+]  # Exclude deprecated estimators to reduce warnings
 
 # the test currently fails when numba is disabled. See issue #622
 if os.environ.get("NUMBA_DISABLE_JIT") == "1":
