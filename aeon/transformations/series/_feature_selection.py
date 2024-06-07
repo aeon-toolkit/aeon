@@ -146,7 +146,8 @@ class FeatureSelection(BaseSeriesTransformer):
                 self.feature_importances_ = d
                 self.columns_ = list(d.keys())[: self.n_columns_]
             elif self.method == "random":
-                self._check_n_columns(X)
+                if not isinstance(self.n_columns_, int):
+                    self.n_columns_ = int(math.ceil(X.shape[1] / 2))
                 self.columns_ = list(
                     X.sample(
                         n=self.n_columns_, random_state=self.random_state, axis=1

@@ -85,6 +85,3 @@ def test_feature_selection(method, n_columns, random_state):
             assert X_hat.shape[1] == len(columns)
             for c in columns:
                 assert c in X_hat.columns
-
-
-test_feature_selection("random", 2, None)
