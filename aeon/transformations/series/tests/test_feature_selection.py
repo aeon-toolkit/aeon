@@ -12,7 +12,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 from aeon.datasets import load_longley
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.transformations.feature_selection import FeatureSelection
+from aeon.transformations.series._feature_selection import FeatureSelection
 
 y, X = load_longley()
 y_train, y_test, X_train, X_test = temporal_train_test_split(y, X, test_size=3)

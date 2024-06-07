@@ -6,20 +6,12 @@ __all__ = ["FeatureSelection"]
 import math
 
 import pandas as pd
-from deprecated.sphinx import deprecated
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation.forecasting import check_regressor
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="FeatureSelection will be removed in version "
-    "0.11.0. Please use the BaseSeriesTransformer version in.",
-    category=FutureWarning,
-)
-class FeatureSelection(BaseTransformer):
+class FeatureSelection(BaseSeriesTransformer):
     """
     Select exogenous features.
 
@@ -66,6 +58,14 @@ class FeatureSelection(BaseTransformer):
         A dictionary with column name as key and feature imporatnce value as value.
         The dict is sorted descending on value. This attribute is a dict if
         method="feature-importances", else None.
+
+    Examples
+    --------
+    >>> from aeon.transformations.series._feature_selection import FeatureSelection
+    >>> from aeon.datasets import load_longley
+    >>> y, X = load_longley()
+    >>> transformer = FeatureSelection(method="feature-importances", n_columns=3)
+    >>> X_hat = transformer.fit_transform(X, y)
     """
 
     _tags = {
