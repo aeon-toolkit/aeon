@@ -35,8 +35,7 @@ _RAW_DUMMIES = [
 # TODO: remove in v0.11.0
 @deprecated(
     version="0.10.0",
-    reason="DateTimeFeatures will be removed in version 0.11.0. Please use the "
-    "BaseSeriesTransformer version.",
+    reason="DateTimeFeatures will be removed in version 0.11.0.",
     category=FutureWarning,
 )
 class DateTimeFeatures(BaseTransformer):
