@@ -583,8 +583,6 @@ class BaseTransformer(BaseEstimator):
         if X is None:
             raise TypeError("X cannot be None, but found None")
 
-        metadata = dict()
-
         # retrieve supported mtypes
         X_inner_type = _coerce_to_list(self.get_tag("X_inner_type"))
         y_inner_type = _coerce_to_list(self.get_tag("y_inner_type"))
@@ -599,12 +597,15 @@ class BaseTransformer(BaseEstimator):
         X_inner_type = X_metadata["mtype"]
         if X_inner_type not in self.ALLOWED_INPUT_TYPES:
             raise TypeError("X an invalid internal type")
-        metadata["_X_input_scitype"] = X_metadata["scitype"]
 
         # checking X vs tags
-        if not metadata["is_univariate"]:
+        if not X_metadata["is_univariate"]:
             if not self.get_tag("capability:multivariate"):
                 raise TypeError("X is multivariate, estimator cannot handle it")
+        if X_metadata["scitype"] == "Series":
+            X_inner = convert_series(X, output_type=X_inner_type)
+        elif X_metadata["scitype"] == "Collection":
+            X_inner = convert_collection(X, output_type=X_inner_type)
         y_inner = None
         if y_inner_type != ["None"] and y is not None:
             valid, y_metadata = validate_input(y)
@@ -615,13 +616,8 @@ class BaseTransformer(BaseEstimator):
             elif y_metadata["scitype"] == "Collection":
                 y_inner = convert_collection(X, output_type=y_inner_type)
 
-        if metadata["scitype"] == "Series":
-            X_inner = convert_series(X, output_type=X_inner_type)
-        elif metadata["scitype"] == "Collection":
-            X_inner = convert_collection(X, output_type=X_inner_type)
-
         if return_metadata:
-            return X_inner, y_inner, metadata
+            return X_inner, y_inner, X_metadata
         else:
             return X_inner, y_inner
 
