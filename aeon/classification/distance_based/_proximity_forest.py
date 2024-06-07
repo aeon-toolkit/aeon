@@ -301,7 +301,7 @@ class ProximityTree(BaseClassifier):
         return node
 
     @staticmethod
-    def _find_target_value(self, y):
+    def _find_target_value(y):
         """Get the class label of highest frequency."""
         unique, counts = np.unique(y, return_counts=True)
         # Find the index of the maximum count
@@ -349,38 +349,9 @@ class ProximityTree(BaseClassifier):
         self._is_fitted = True
 
     def _predict(self, X):
-        if not self._is_fitted:
-            raise NotFittedError(
-                f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
-            )
-        predictions = list()
-        for i in range(len(X)):
-            prediction = self.classify(self.root, X[i])
-            predictions.append(prediction)
-        predictions = np.array(predictions)
-        return predictions
-
-    def classify(self, treenode, x):
-        # Classify one data point using the proximity tree
-        if treenode._is_leaf:
-            return treenode.label
-        else:
-            measure = list(treenode.splitter[1].keys())[0]
-            branches = list(treenode.splitter[0].keys())
-            min_dist = np.inf
-            id = None
-            for i in range(len(branches)):
-                dist = distance(
-                    x,
-                    treenode.splitter[0][branches[i]],
-                    metric=measure,
-                    kwargs=treenode.splitter[1][measure],
-                )
-                if dist < min_dist:
-                    min_dist = dist
-                    id = i
-            return self.classify(treenode.children[branches[id]], x)
+        probas = self._predict_proba(X)
+        predictions = np.argmax(probas, axis=1)
+        return np.array([self.classes_[pred] for pred in predictions])
 
     def _predict_proba(self, X):
         if not self._is_fitted:
@@ -395,7 +366,7 @@ class ProximityTree(BaseClassifier):
 
         for i in range(len(X)):
             # Classify the data point and find the leaf node
-            leaf_node = self._find_leaf(self.root, X[i])
+            leaf_node = self._classify(self.root, X[i])
 
             # Create probability distribution based on class counts in the leaf node
             proba = np.zeros(class_count)
@@ -405,8 +376,8 @@ class ProximityTree(BaseClassifier):
 
         return np.array(probas)
 
-    def _find_leaf(self, treenode, x):
-        # Helper function to find the leaf node for a given data point
+    def _classify(self, treenode, x):
+        # Classify one data point using the proximity tree
         if treenode._is_leaf:
             return treenode
         else:
@@ -424,4 +395,4 @@ class ProximityTree(BaseClassifier):
                 if dist < min_dist:
                     min_dist = dist
                     id = i
-            return self._find_leaf(treenode.children[branches[id]], x)
+            return self._classify(treenode.children[branches[id]], x)
