@@ -14,9 +14,6 @@ from aeon.datasets import load_longley
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.transformations.series._feature_selection import FeatureSelection
 
-y, X = load_longley()
-y_train, y_test, X_train, X_test = temporal_train_test_split(y, X, test_size=3)
-
 
 @pytest.mark.parametrize(
     "method", ["feature-importances", "random", "columns", "none", "all"]
@@ -24,6 +21,8 @@ y_train, y_test, X_train, X_test = temporal_train_test_split(y, X, test_size=3)
 @pytest.mark.parametrize("n_columns", [None, 2])
 @pytest.mark.parametrize("random_state", [1, 3])
 def test_feature_selection(method, n_columns, random_state):
+    y, X = load_longley()
+    y_train, y_test, X_train, X_test = temporal_train_test_split(y, X, test_size=3)
     columns = ["GNP", "UNEMP"] if method == "columns" else None
     transformer = FeatureSelection(
         method=method, columns=columns, n_columns=n_columns, random_state=random_state
