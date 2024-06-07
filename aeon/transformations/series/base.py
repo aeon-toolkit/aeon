@@ -11,6 +11,9 @@ fit & transform - fit_transform(self, X, y=None)
 from abc import ABCMeta, abstractmethod
 from typing import final
 
+import numpy as np
+import pandas as pd
+
 from aeon.base import BaseSeriesEstimator
 from aeon.transformations.base import BaseTransformer
 
@@ -349,3 +352,12 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             return Xt
         else:
             return Xt.T
+
+    def _check_y(self, y):
+        # Check y valid input for supervised transform
+        if not isinstance(y, (pd.Series, np.ndarray)):
+            raise TypeError(
+                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
+            )
+        if isinstance(y, np.ndarray) and y.ndim > 1:
+            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
