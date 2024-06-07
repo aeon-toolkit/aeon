@@ -92,10 +92,6 @@ class DateTimeFeatures(BaseSeriesTransformer):
     >>> transformer = DateTimeFeatures(ts_freq="M")
     >>> y_hat = transformer.fit_transform(y)
 
-    Returns columns `y`, `month_of_year`
-    >>> transformer = DateTimeFeatures(ts_freq="M", manual_selection=["month_of_year"])
-    >>> y_hat = transformer.fit_transform(y)
-
     Returns columns 'y', 'year', 'quarter_of_year', 'month_of_year', 'month_of_quarter'
     >>> transformer = DateTimeFeatures(ts_freq="M", feature_scope="comprehensive")
     >>> y_hat = transformer.fit_transform(y)
