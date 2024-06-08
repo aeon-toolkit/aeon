@@ -340,9 +340,9 @@ class InformationGainSegmenter(BaseSegmenter):
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(
-    ... lengths=[10, 10, 10, 10],
-    ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ... variances=0.5,
+    ...     lengths=[10, 10, 10, 10],
+    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
+    ...     variances=0.5,
     ... )
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> igts = InformationGainSegmenter(k_max=3, step=2)
@@ -366,7 +366,7 @@ class InformationGainSegmenter(BaseSegmenter):
             k_max=k_max,
             step=step,
         )
-        super().__init__(n_segments=k_max + 1, axis=0)
+        super().__init__(axis=0, n_segments=k_max + 1)
 
     def _predict(self, X, y=None) -> np.ndarray:
         """Perform segmentation.

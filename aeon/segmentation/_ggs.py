@@ -439,9 +439,9 @@ class GreedyGaussianSegmenter(BaseSegmenter):
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import GreedyGaussianSegmenter
     >>> X = piecewise_normal_multivariate(
-    ... lengths=[10, 10, 10, 10],
-    ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ... variances=0.5,
+    ...     lengths=[10, 10, 10, 10],
+    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
+    ...     variances=0.5,
     ... )
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> ggs = GreedyGaussianSegmenter(k_max=3, max_shuffles=5)
@@ -474,7 +474,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             verbose=verbose,
             random_state=random_state,
         )
-        super().__init__(n_segments=k_max + 1, axis=0)
+        super().__init__(axis=0, n_segments=k_max + 1)
 
     def _fit(self, X: np.ndarray, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.
