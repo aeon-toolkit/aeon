@@ -1,8 +1,6 @@
 """Test MinDist functions of symbolic representations."""
 
 import numpy as np
-import pandas as pd
-import pytest
 from scipy.stats import zscore
 
 from aeon.datasets import load_unit_test
@@ -14,6 +12,7 @@ from aeon.transformations.collection.dictionary_based import SAX, SFA, SFAFast
 
 
 def test_sax_mindist():
+    """Test the SAX Min-Distance function."""
     n_segments = 16
     alphabet_size = 8
 
@@ -51,22 +50,23 @@ def test_sax_mindist():
             tightness_sax += mindist_sax / ed
             tightness_paa_sax += mindist_paa_sax / ed
 
-        if mindist_sax > ed:
-            print("mindist_sax is:\t", mindist_sax)
-            print("ED is:         \t", ed)
+        assert mindist_sax <= ed
+        #    print("mindist_sax is:\t", mindist_sax)
+        #    print("ED is:         \t", ed)
 
-        if mindist_paa_sax > ed:
-            print("mindist_paa_sax is:\t", mindist_paa_sax, mindist_sax)
-            print("ED is:             \t", ed)
+        assert mindist_paa_sax <= ed
+        #    print("mindist_paa_sax is:\t", mindist_paa_sax, mindist_sax)
+        #    print("ED is:             \t", ed)
 
-    print("\n")
-    print("All ok:")
-    print("PAA-SAX-Min-Dist Tightness:\t", tightness_paa_sax / X_train.shape[0])
-    print("SAX-Min-Dist Tightness:    \t", tightness_sax / X_train.shape[0])
+    # print("\n")
+    # print("All ok:")
+    # print("PAA-SAX-Min-Dist Tightness:\t", tightness_paa_sax / X_train.shape[0])
+    # print("SAX-Min-Dist Tightness:    \t", tightness_sax / X_train.shape[0])
 
 
 def test_sfa_mindist():
-    n_segments = 32
+    """Test the SFA Min-Distance function."""
+    n_segments = 16
     alphabet_size = 8
 
     X_train, _ = load_unit_test("TRAIN")
@@ -76,63 +76,67 @@ def test_sfa_mindist():
     X_train = zscore(X_train.squeeze(), axis=1)
     X_test = zscore(X_test.squeeze(), axis=1)
 
-    histogram = "equi-width"
+    histogram_type = "equi-width"
 
-    sfa = SFAFast(
+    sfa_fast = SFAFast(
         word_length=n_segments,
         alphabet_size=alphabet_size,
         window_size=n,
-        binning_method=histogram,
+        binning_method=histogram_type,
         norm=True,
         variance=True,
         lower_bounding=True,
     )
 
-    # sfa = SFA(
-    #       word_length=n_segments,
-    #       alphabet_size=alphabet_size,
-    #       window_size=X_train.shape[-1],
-    #       binning_method=histogram,
-    #       norm=True,
-    #       lower_bounding=True,
-    # )
+    sfa_old = SFA(
+        word_length=n_segments,
+        alphabet_size=alphabet_size,
+        window_size=X_train.shape[-1],
+        binning_method=histogram_type,
+        norm=True,
+        lower_bounding=True,
+    )
+    transforms = [sfa_old, sfa_fast]
 
-    sfa.fit(X_train)
-    X_train_words = sfa.transform_words(X_train)
-    Y_train_words = sfa.transform_words(X_test)
+    for sfa in transforms:
+        sfa.fit(X_train)
+        X_train_words = sfa.transform_words(X_train).squeeze()
+        Y_train_words = sfa.transform_words(X_test).squeeze()
 
-    SFA_train_dfts = sfa.transform_mft(X_train).squeeze()
+        SFA_train_dfts = sfa.transform_mft(X_train).squeeze()
 
-    tightness_sfa = 0.0
-    tightness_dft_sfa = 0.0
-    for i in range(min(X_train.shape[0], X_test.shape[0])):
-        X = X_train[i].reshape(1, -1)
-        Y = X_test[i].reshape(1, -1)
+        tightness_sfa = 0.0
+        tightness_dft_sfa = 0.0
+        for i in range(min(X_train.shape[0], X_test.shape[0])):
+            X = X_train[i].reshape(1, -1)
+            Y = X_test[i].reshape(1, -1)
 
-        # SFA Min-Distance
-        mindist_sfa = sfa_mindist(X_train_words[i], Y_train_words[i], sfa.breakpoints)
+            # SFA Min-Distance
+            mindist_sfa = sfa_mindist(
+                X_train_words[i], Y_train_words[i], sfa.breakpoints
+            )
 
-        # DFT-SFA Min-Distance
-        mindist_dft_sfa = dft_sfa_mindist(
-            SFA_train_dfts[i], Y_train_words[i], sfa.breakpoints
-        )
+            # DFT-SFA Min-Distance
+            mindist_dft_sfa = dft_sfa_mindist(
+                SFA_train_dfts[i], Y_train_words[i], sfa.breakpoints
+            )
 
-        # Euclidean Distance
-        ed = np.linalg.norm(X[0] - Y[0])
+            # Euclidean Distance
+            ed = np.linalg.norm(X[0] - Y[0])
 
-        if ed > 0:
-            tightness_sfa += mindist_sfa / ed
-            tightness_dft_sfa += mindist_dft_sfa / ed
+            if ed > 0:
+                tightness_sfa += mindist_sfa / ed
+                tightness_dft_sfa += mindist_dft_sfa / ed
 
-        if mindist_sfa > ed:
-            print("mindist_sfa is:\t", mindist_sfa)
-            print("ED is:         \t", ed)
+            assert mindist_sfa <= ed
+            #    print("mindist_sfa is:\t", mindist_sfa)
+            #    print("ED is:         \t", ed)
 
-        if mindist_dft_sfa > ed:
-            print("mindist_paa_sax is:\t", mindist_dft_sfa, mindist_sfa)
-            print("ED is:             \t", ed)
+            assert mindist_dft_sfa <= ed
+            #    print("mindist_paa_sax is:\t", mindist_dft_sfa, mindist_sfa)
+            #    print("ED is:             \t", ed)
 
-    print("\n")
-    print("All ok:")
-    print("DFT-SFA-Min-Dist Tightness:\t", tightness_dft_sfa / X_train.shape[0])
-    print("SFA-Min-Dist Tightness:    \t", tightness_sfa / X_train.shape[0])
+        # print("\n")
+        # print("All ok:")
+        # print("DFT-SFA-Min-Dist Tightness:\t", tightness_dft_sfa / X_train.shape[0])
+        # print("SFA-Min-Dist Tightness:    \t", tightness_sfa / X_train.shape[0])
