@@ -26,7 +26,7 @@ repos:
     rev: v0.1.6
     hooks:
       - id: detect-missing-init
-        args: [ "--create", "--python-folders", "aeon"]
+        args: [ "--create", "--python-folders", "aeon" ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.4.7
