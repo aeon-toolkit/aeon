@@ -148,6 +148,9 @@ class AEAttentionBiGRUNetwork(BaseDeepNetwork):
                 backward_layer
             )
             x = self._gate(h_att_fw) * h_att_fw + self._gate(h_att_bw) * h_att_bw
+            
+            if not (i == self.n_layers_encoder - 1):
+                x = tf.expand_dims(x, -1)
 
         encoder = tf.keras.models.Model(inputs=input_layer, outputs=x, name="encoder")
 
@@ -176,3 +179,8 @@ class AEAttentionBiGRUNetwork(BaseDeepNetwork):
         )
 
         return encoder, decoder
+
+model = AEAttentionBiGRUNetwork(n_layers_encoder=2, n_layers_decoder=2)
+encoder, decoder = model.build_network((1000, 5))
+print(encoder.summary())
+print(decoder.summary())
