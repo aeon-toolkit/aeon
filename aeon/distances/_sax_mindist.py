@@ -20,6 +20,7 @@ def sax_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int) -
         The breakpoints of the SAX transformation
     n : int
         The original size of the time series
+
     Returns
     -------
     float

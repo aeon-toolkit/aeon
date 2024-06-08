@@ -20,6 +20,7 @@ def dft_sfa_mindist(
         Second SFA transform of the time series, univariate, shape ``(n_timepoints,)``
     breakpoints: np.ndarray
         The breakpoints of the SFA transformation
+
     Returns
     -------
     float
