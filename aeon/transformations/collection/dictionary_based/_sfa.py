@@ -76,6 +76,9 @@ class SFA(BaseCollectionTransformer):
     remove_repeat_words: boolean, default = False
         whether to use numerosity reduction (default False)
 
+    lower_bounding_distances : boolean, default = None
+        If set to True, the FFT is normed to allow for ED lower bounding.
+
     levels:              int, default = 1
         Number of spatial pyramid levels
 
@@ -122,7 +125,8 @@ class SFA(BaseCollectionTransformer):
         skip_grams=False,
         remove_repeat_words=False,
         levels=1,
-        lower_bounding=False,
+        lower_bounding=True,
+        lower_bounding_distances=None,
         save_words=False,
         keep_binning_dft=False,
         use_fallback_dft=False,
@@ -147,9 +151,16 @@ class SFA(BaseCollectionTransformer):
 
         self.norm = norm
         self.lower_bounding = lower_bounding
-        self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size) if lower_bounding else 1.0
-        )
+        self.lower_bounding_distances = lower_bounding_distances
+
+        if lower_bounding_distances:
+            self.inverse_sqrt_win_size = (
+                1.0 / math.sqrt(window_size) if lower_bounding_distances else 1.0
+            )
+        else:
+            self.inverse_sqrt_win_size = (
+                1.0 / math.sqrt(window_size) if not lower_bounding else 1.0
+            )
 
         self.remove_repeat_words = remove_repeat_words
 
@@ -620,7 +631,7 @@ class SFA(BaseCollectionTransformer):
                     self.dft_length,
                     self.norm,
                     self.inverse_sqrt_win_size,
-                    self.lower_bounding,
+                    self.lower_bounding or self.lower_bounding_distances,
                 )
                 if self._use_fallback_dft
                 else self._fast_fourier_transform(row)
@@ -658,7 +669,7 @@ class SFA(BaseCollectionTransformer):
         dft = np.empty((length,), dtype=reals.dtype)
         dft[0::2] = reals[: np.uint32(length / 2)]
         dft[1::2] = imags[: np.uint32(length / 2)]
-        if self.lower_bounding:
+        if self.lower_bounding or self.lower_bounding_distances:
             dft[1::2] = dft[1::2] * -1  # lower bounding
         dft *= self.inverse_sqrt_win_size / std
         return dft[start:]
@@ -735,7 +746,7 @@ class SFA(BaseCollectionTransformer):
                 self.dft_length,
                 self.norm,
                 self.inverse_sqrt_win_size,
-                self.lower_bounding,
+                self.lower_bounding or self.lower_bounding_distances,
                 apply_normalising_factor=False,
                 cut_start_if_norm=False,
             )

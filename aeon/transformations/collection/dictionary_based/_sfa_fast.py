@@ -105,6 +105,8 @@ class SFAFast(BaseCollectionTransformer):
         Whether to create skip-grams of SFA words.
     remove_repeat_words : boolean, default = False
        Whether to use numerosity reduction.
+    lower_bounding_distances : boolean, default = None
+       If set to True, the FFT is normed to allow for ED lower bounding.
     return_sparse :  boolean, default=True
         If set to true, a scipy sparse matrix will be returned as BOP model.
         If set to false a dense array will be returned as BOP model. Sparse
@@ -148,7 +150,8 @@ class SFAFast(BaseCollectionTransformer):
         bigrams=False,
         skip_grams=False,
         remove_repeat_words=False,
-        lower_bounding=False,
+        lower_bounding=True,
+        lower_bounding_distances=None,
         save_words=False,
         dilation=0,
         first_difference=False,
@@ -171,9 +174,16 @@ class SFAFast(BaseCollectionTransformer):
 
         self.norm = norm
         self.lower_bounding = lower_bounding
-        self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size) if lower_bounding else 1.0
-        )
+        self.lower_bounding_distances = lower_bounding_distances
+
+        if lower_bounding_distances:
+            self.inverse_sqrt_win_size = (
+                1.0 / math.sqrt(window_size) if lower_bounding_distances else 1.0
+            )
+        else:
+            self.inverse_sqrt_win_size = (
+                1.0 / math.sqrt(window_size) if not lower_bounding else 1.0
+            )
 
         self.remove_repeat_words = remove_repeat_words
 
@@ -273,7 +283,7 @@ class SFAFast(BaseCollectionTransformer):
             self.bigrams,
             self.skip_grams,
             self.inverse_sqrt_win_size,
-            self.lower_bounding,
+            self.lower_bounding or self.lower_bounding_distances,
         )
 
         if self.remove_repeat_words:
@@ -334,7 +344,7 @@ class SFAFast(BaseCollectionTransformer):
             self.bigrams,
             self.skip_grams,
             self.inverse_sqrt_win_size,
-            self.lower_bounding,
+            self.lower_bounding or self.lower_bounding_distances,
         )
 
         # only save at fit
@@ -392,7 +402,7 @@ class SFAFast(BaseCollectionTransformer):
             self.anova,
             self.variance,
             self.inverse_sqrt_win_size,
-            self.lower_bounding,
+            self.lower_bounding or self.lower_bounding_distances,
         )
 
     def transform_to_bag(self, words, word_len, y=None):
@@ -498,7 +508,7 @@ class SFAFast(BaseCollectionTransformer):
             self.dft_length,
             self.norm,
             self.inverse_sqrt_win_size,
-            self.lower_bounding,
+            self.lower_bounding or self.lower_bounding_distances,
         )
 
         if y is not None:
@@ -689,7 +699,7 @@ class SFAFast(BaseCollectionTransformer):
             self.anova,
             self.variance,
             self.inverse_sqrt_win_size,
-            self.lower_bounding,
+            self.lower_bounding or self.lower_bounding_distances,
             self.word_length,
             self.alphabet_size,
             self.breakpoints,
