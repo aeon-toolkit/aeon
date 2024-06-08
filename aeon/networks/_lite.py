@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class LITENetwork(BaseDeepNetwork):
+class LITENetwork(BaseDeepLearningNetwork):
     """LITE Network.
 
     LITE deep neural network architecture from [1]_.
@@ -35,8 +35,6 @@ class LITENetwork(BaseDeepNetwork):
 
     https://github.com/MSD-IRIMAS/LITE
     """
-
-    _tags = {"python_dependencies": "tensorflow"}
 
     def __init__(
         self,

@@ -92,8 +92,8 @@ class MiniRocket(BaseCollectionTransformer):
         random_state = (
             np.int32(self.random_state) if isinstance(self.random_state, int) else None
         )
-
-        X = X[:, 0, :].astype(np.float32)
+        X = X.squeeze()
+        X = X.astype(np.float32)
         _, n_timepoints = X.shape
         if n_timepoints < 9:
             raise ValueError(
@@ -118,7 +118,8 @@ class MiniRocket(BaseCollectionTransformer):
         -------
         pandas DataFrame, transformed features
         """
-        X = X[:, 0, :].astype(np.float32)
+        X = X.squeeze()
+        X = X.astype(np.float32)
 
         # change n_jobs dependend on value and existing cores
         prev_threads = get_num_threads()
