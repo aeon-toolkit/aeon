@@ -43,14 +43,15 @@ def sfa_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray) -> float:
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> transform = SFAFast(
-    >>>    word_length=16,
-    >>>    alphabet_size=8,
-    >>>    window_size=x.shape[-1],
-    >>>    norm=True,
-    >>>    lower_bounding_distances=True)
+    ...    word_length=16,
+    ...    alphabet_size=8,
+    ...    window_size=x.shape[-1],
+    ...    norm=True,
+    ...    lower_bounding_distances=True  # this is important!
+    ... )
     >>> x_sfa = transform.fit_transform(x).squeeze()
     >>> y_sfa = transform.transform(y).squeeze()
-    >>> sfa_mindist(x_sfa, y_sfa, transform.breakpoints)
+    >>> dist = sfa_mindist(x_sfa, y_sfa, transform.breakpoints)
     """
     x = x.squeeze()
     y = y.squeeze()

@@ -45,15 +45,16 @@ def dft_sfa_mindist(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
     >>> transform = SFAFast(
-    >>>    word_length=16,
-    >>>    alphabet_size=8,
-    >>>    window_size=x.shape[-1],
-    >>>    norm=True,
-    >>>    lower_bounding_distances=True)
+    ...    word_length=16,
+    ...    alphabet_size=8,
+    ...    window_size=x.shape[-1],
+    ...    norm=True,
+    ...    lower_bounding_distances=True  # this is important!
+    ... )
     >>> x_sfa = transform.fit_transform(x)
     >>> x_dft = sfa.transform_mft(x).squeeze()
     >>> y_sfa = transform.transform(y).squeeze()
-    >>> dft_sfa_mindist(x_dft, y_sfa, transform.breakpoints)
+    >>> dist = dft_sfa_mindist(x_dft, y_sfa, transform.breakpoints)
     """
     x_dft = x_dft.squeeze()
     y_sfa = y_sfa.squeeze()
