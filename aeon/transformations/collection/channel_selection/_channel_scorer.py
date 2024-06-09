@@ -4,12 +4,12 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 
 from aeon.classification.base import BaseClassifier
-from aeon.classification.convolution_based import RocketClassifier
+from aeon.classification.convolution_based._rocket_classifier import RocketClassifier
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
 
 class ChannelScorer(BaseChannelSelector):
-    """Channel scorer channel selection using a single channel classifier wrapper.
+    """Channel scorer performs channel selection using a single channel classifier.
 
     ChannelScorer uses a time series classifier to score each channel using an
     estimate of accuracy on the training data, then selects a proportion of the top
@@ -45,8 +45,7 @@ class ChannelScorer(BaseChannelSelector):
         if classifier is not None and not isinstance(classifier, BaseClassifier):
             raise ValueError(
                 "parameter classifier must be None or an instance of a  "
-                "base classifier to ChannelScorer. If None, "
-                "a RocketClassifier is used"
+                "BaseClassifier. If None, a RocketClassifier is used"
             )
 
         self.proportion = proportion
