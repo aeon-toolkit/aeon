@@ -69,6 +69,6 @@ def test_DummyQuerySearch_unequal_length(dtype):
     assert_array_equal(idx, (1, 0))
     for i in range(len(X)):
         for j in range(X[i].shape[1] - q.shape[1] + 1):
-            subsequence = X[i, :, j : j + q.shape[1]]
+            subsequence = X[i][:, j : j + q.shape[1]]
             assert_almost_equal(search.X_means_[i][:, j], subsequence.mean(axis=-1))
             assert_almost_equal(search.X_stds_[i][:, j], subsequence.std(axis=-1))

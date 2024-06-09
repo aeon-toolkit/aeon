@@ -99,6 +99,7 @@ class BaseQuerySearch(BaseCollectionEstimator, ABC):
         self.normalize = normalize
         self.n_jobs = n_jobs
         self.speed_up = speed_up
+        super().__init__()
 
     @final
     def fit(self, X, y=None):
