@@ -49,7 +49,7 @@ def sfa_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray) -> float:
     ...    norm=True,
     ...    lower_bounding_distances=True  # this is important!
     ... )
-    >>> transform.fit(X_train)
+    >>> transform.fit(x)
     >>> x_sfa = transform.transform_words(x).squeeze()
     >>> y_sfa = transform.transform_words(y).squeeze()
     >>> dist = sfa_mindist(x_sfa, y_sfa, transform.breakpoints)
