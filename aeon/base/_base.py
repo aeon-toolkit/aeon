@@ -59,8 +59,7 @@ from copy import deepcopy
 from sklearn import clone
 from sklearn.base import BaseEstimator as _BaseEstimator
 from sklearn.ensemble._base import _set_random_states
-
-from aeon.exceptions import NotFittedError
+from sklearn.exceptions import NotFittedError
 
 
 class BaseObject(_BaseEstimator):
@@ -333,7 +332,7 @@ class BaseObject(_BaseEstimator):
         See Also
         --------
         get_tag : Get a single tag from an object.
-        get_clas_tags : Get all tags from a class.
+        get_class_tags : Get all tags from a class.
         get_class_tag : Get a single tag from a class.
 
         Examples

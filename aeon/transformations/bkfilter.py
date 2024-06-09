@@ -11,10 +11,18 @@ __all__ = ["BKFilter"]
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="BKFilter will be removed in version 0.10 and replaced with a "
+    "BaseSeriesTransformer version in the transformations.series module.",
+    category=FutureWarning,
+)
 class BKFilter(BaseTransformer):
     """Filter a times series using the Baxter-King filter.
 
@@ -51,17 +59,6 @@ class BKFilter(BaseTransformer):
     Baxter, M. and R. G. King. "Measuring Business Cycles: Approximate
         Band-Pass Filters for Economic Time Series." *Review of Economics and
         Statistics*, 1999, 81(4), 575-593.
-
-    Examples
-    --------
-    >>> from aeon.transformations.bkfilter import BKFilter # doctest: +SKIP
-    >>> import pandas as pd # doctest: +SKIP
-    >>> import statsmodels.api as sm # doctest: +SKIP
-    >>> dta = sm.datasets.macrodata.load_pandas().data # doctest: +SKIP
-    >>> index = pd.date_range(start='1959Q1', end='2009Q4', freq='Q') # doctest: +SKIP
-    >>> dta.set_index(index, inplace=True) # doctest: +SKIP
-    >>> bk = BKFilter(6, 24, 12) # doctest: +SKIP
-    >>> cycles = bk.fit_transform(X=dta[['realinv']]) # doctest: +SKIP
     """
 
     _tags = {

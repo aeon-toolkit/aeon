@@ -20,7 +20,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.exceptions import NotFittedError
 from aeon.utils.validation import check_n_jobs
 
 
@@ -56,7 +55,7 @@ class RotationForestClassifier(BaseEstimator):
     save_transformed_data : bool, default=False
         Save the data transformed in fit.
 
-        Deprecated and will be removed in v0.8.0. Use fit_predict and fit_predict_proba
+        Deprecated and will be removed in v0.10.0. Use fit_predict and fit_predict_proba
         to generate train estimates instead. transformed_data_ will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
@@ -192,6 +191,8 @@ class RotationForestClassifier(BaseEstimator):
             Predicted probabilities using the ordering in classes_.
         """
         if not self._is_fitted:
+            from sklearn.exceptions import NotFittedError
+
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
                 f"been fitted yet; please call `fit` first."

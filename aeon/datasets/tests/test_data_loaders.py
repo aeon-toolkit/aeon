@@ -96,8 +96,8 @@ def test_load_regression_from_repo():
     ):
         load_regression(name)
     name = "FloodModeling1"
-    name2 = "ParkingBirmingham"
-    name3 = "AcousticContaminationMadrid"
+    # name2 = "ParkingBirmingham"
+    # name3 = "AcousticContaminationMadrid"
     with tempfile.TemporaryDirectory() as tmp:
         X, y, meta = load_regression(name, extract_path=tmp, return_metadata=True)
         assert isinstance(X, np.ndarray)
@@ -113,24 +113,25 @@ def test_load_regression_from_repo():
         assert not meta["classlabel"]
         assert meta["targetlabel"]
         assert meta["class_values"] == []
-        # Test load equal length
-        X, y, meta = load_regression(
-            name2, extract_path=tmp, return_metadata=True, load_equal_length=True
-        )
-        assert meta["equallength"]
-        X, y, meta = load_regression(
-            name2, extract_path=tmp, return_metadata=True, load_equal_length=False
-        )
-        assert not meta["equallength"]
-        # Test load no missing values
-        X, y, meta = load_regression(
-            name3, extract_path=tmp, return_metadata=True, load_no_missing=True
-        )
-        assert not meta["missing"]
-        X, y, meta = load_regression(
-            name3, extract_path=tmp, return_metadata=True, load_no_missing=False
-        )
-        assert meta["missing"]
+        # TODO restore these tests once these data are on zenodo and or tsc.com works.
+        # # Test load equal length
+        # X, y, meta = load_regression(
+        #     name2, extract_path=tmp, return_metadata=True, load_equal_length=True
+        # )
+        # assert meta["equallength"]
+        # X, y, meta = load_regression(
+        #     name2, extract_path=tmp, return_metadata=True, load_equal_length=False
+        # )
+        # assert not meta["equallength"]
+        # # Test load no missing values
+        # X, y, meta = load_regression(
+        #     name3, extract_path=tmp, return_metadata=True, load_no_missing=True
+        # )
+        # assert not meta["missing"]
+        # X, y, meta = load_regression(
+        #     name3, extract_path=tmp, return_metadata=True, load_no_missing=False
+        # )
+        # assert meta["missing"]
 
 
 @pytest.mark.skipif(
