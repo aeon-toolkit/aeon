@@ -6,7 +6,7 @@ import warnings
 
 import numpy as np
 
-from aeon.similarity_search.query_search import BaseQuerySearch
+from aeon.similarity_search.query_search.base import BaseQuerySearch
 
 
 class TopKQuerySearch(BaseQuerySearch):

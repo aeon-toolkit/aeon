@@ -11,8 +11,8 @@ from numba import get_num_threads, set_num_threads
 from numba.core.registry import CPUDispatcher
 from numba.typed import List
 
-from aeon.base import BaseCollectionEstimator
 from aeon.distances import get_distance_function
+from aeon.similarity_search.base import BaseSimilaritySearch
 from aeon.similarity_search.distance_profiles import (
     naive_distance_profile,
     normalized_naive_distance_profile,
@@ -28,7 +28,7 @@ from aeon.similarity_search.distance_profiles.squared_distance_profile import (
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
-class BaseQuerySearch(BaseCollectionEstimator, ABC):
+class BaseQuerySearch(BaseSimilaritySearch, ABC):
     """
     Base class of query search module.
 
@@ -75,13 +75,6 @@ class BaseQuerySearch(BaseCollectionEstimator, ABC):
     summed together.
     """
 
-    _tags = {
-        "capability:multivariate": True,
-        "capability:unequal_length": True,
-        "capability:multithreading": True,
-        "X_inner_type": ["np-list", "numpy3D"],
-    }
-
     def __init__(
         self,
         distance="euclidean",
@@ -94,15 +87,16 @@ class BaseQuerySearch(BaseCollectionEstimator, ABC):
         self.store_distance_profiles = store_distance_profiles
         self._previous_query_length = -1
         self.axis = 1
-        self.distance = distance
-        self.distance_args = distance_args
-        self.normalize = normalize
-        self.n_jobs = n_jobs
-        self.speed_up = speed_up
-        super().__init__()
 
-    @final
-    def fit(self, X, y=None):
+        super().__init__(
+            distance=distance,
+            distance_args=distance_args,
+            normalize=normalize,
+            speed_up=speed_up,
+            n_jobs=n_jobs,
+        )
+
+    def _fit(self, X, y=None):
         """
         Check input format and store it to be used as search space during predict.
 
@@ -123,13 +117,7 @@ class BaseQuerySearch(BaseCollectionEstimator, ABC):
         self
 
         """
-        X = self._preprocess_collection(X)
-        # Store minimum number of n_timepoints for unequal length collections
-        self.min_timepoints_ = min([X[i].shape[-1] for i in range(len(X))])
-        self.n_channels_ = X[0].shape[0]
-        self.n_cases_ = len(X)
-        if self.metadata_["unequal_length"]:
-            X = List(X)
+        # In the basic query search, we use the whole input as search space for predict.
         self.X_ = X
         self.distance_profile_function_ = self._get_distance_profile_function()
         return self

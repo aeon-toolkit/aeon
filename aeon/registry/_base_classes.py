@@ -48,7 +48,7 @@ from aeon.networks.base import BaseDeepNetwork
 from aeon.performance_metrics.base import BaseMetric
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
-from aeon.similarity_search.query_search import BaseQuerySearch
+from aeon.similarity_search.base import BaseSimilaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
@@ -70,7 +70,7 @@ BASE_CLASS_REGISTER = [
     ("series-estimator", BaseSeriesEstimator, "single series estimator"),
     ("series-transformer", BaseSeriesTransformer, "single series transformer"),
     ("splitter", BaseSplitter, "splitter"),
-    ("query-search", BaseQuerySearch, "query search"),
+    ("similarity-search", BaseSimilaritySearch, "similarity search"),
     ("transformer", BaseTransformer, "transformer"),
 ]
 

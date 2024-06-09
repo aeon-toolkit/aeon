@@ -3,7 +3,7 @@
 Used in tests for the query search base class.
 """
 
-from aeon.similarity_search.query_search import BaseQuerySearch
+from aeon.similarity_search.query_search.base import BaseQuerySearch
 
 
 class MockQuerySearch(BaseQuerySearch):
