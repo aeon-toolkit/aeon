@@ -55,7 +55,7 @@ def dft_sfa_mindist(
     SFAFast(...)
     >>> x_sfa = transform.transform_words(x).squeeze()
     >>> y_sfa = transform.transform_words(y).squeeze()
-    >>> x_dft = sfa.transform_mft(x).squeeze()
+    >>> x_dft = transform.transform_mft(x).squeeze()
     >>> dist = dft_sfa_mindist(x_dft, y_sfa, transform.breakpoints)
     """
     x_dft = x_dft.squeeze()
