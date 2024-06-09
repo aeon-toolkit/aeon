@@ -1,7 +1,9 @@
 """Similarity search module."""
 
 __all__ = [
-    "BaseSimiliaritySearch",
+    "DummyQuerySearch",
+    "TopKQuerySearch",
 ]
 
-from aeon.similarity_search.base import BaseSimiliaritySearch
+from aeon.similarity_search.query_search.dummy import DummyQuerySearch
+from aeon.similarity_search.query_search.top_k import TopKQuerySearch

@@ -11,8 +11,8 @@ from numba import get_num_threads, set_num_threads
 from numba.core.registry import CPUDispatcher
 from numba.typed import List
 
+from aeon.base import BaseCollectionEstimator
 from aeon.distances import get_distance_function
-from aeon.similarity_search.base import BaseSimiliaritySearch
 from aeon.similarity_search.distance_profiles import (
     naive_distance_profile,
     normalized_naive_distance_profile,
@@ -25,11 +25,16 @@ from aeon.similarity_search.distance_profiles.squared_distance_profile import (
     normalized_squared_distance_profile,
     squared_distance_profile,
 )
+from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
-class BaseQuerySearch(BaseSimiliaritySearch, ABC):
+class BaseQuerySearch(BaseCollectionEstimator, ABC):
     """
-    BaseSimilaritySearch.
+    Base class of query search module.
+
+    The base class does all the necessary work up until the last step of prediction
+    phase, where the child classes dictates what to do with the output of the
+    query similarity search (e.g. return best match, or the k best).
 
     Parameters
     ----------
@@ -70,6 +75,13 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
     summed together.
     """
 
+    _tags = {
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "capability:multithreading": True,
+        "X_inner_type": ["np-list", "numpy3D"],
+    }
+
     def __init__(
         self,
         distance="euclidean",
@@ -82,18 +94,16 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
         self.store_distance_profiles = store_distance_profiles
         self._previous_query_length = -1
         self.axis = 1
+        self.distance = distance
+        self.distance_args = distance_args
+        self.normalize = normalize
+        self.n_jobs = n_jobs
+        self.speed_up = speed_up
 
-        super().__init__(
-            distance=distance,
-            distance_args=distance_args,
-            normalize=normalize,
-            speed_up=speed_up,
-            n_jobs=n_jobs,
-        )
-
-    def _fit(self, X, y=None):
+    @final
+    def fit(self, X, y=None):
         """
-        Fetch the distance function to be used in query search.
+        Check input format and store it to be used as search space during predict.
 
         Parameters
         ----------
@@ -112,9 +122,15 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
         self
 
         """
-        # Get distance function
+        X = self._preprocess_collection(X)
+        # Store minimum number of n_timepoints for unequal length collections
+        self.min_timepoints_ = min([X[i].shape[-1] for i in range(len(X))])
+        self.n_channels_ = X[0].shape[0]
+        self.n_cases_ = len(X)
+        if self.metadata_["unequal_length"]:
+            X = List(X)
+        self.X_ = X
         self.distance_profile_function_ = self._get_distance_profile_function()
-
         return self
 
     @final
@@ -434,6 +450,32 @@ class BaseQuerySearch(BaseSimiliaritySearch, ABC):
         else:
             distance_profiles = distance_profiles.sum(axis=1)
         return distance_profiles
+
+    def _store_mean_std_from_inputs(self, query_length):
+        """
+        Store the mean and std of each subsequence of size query_length in X_.
+
+        Parameters
+        ----------
+        query_length : int
+            Length of the query.
+
+        Returns
+        -------
+        None.
+
+        """
+        means = []
+        stds = []
+
+        for i in range(len(self.X_)):
+            _mean, _std = sliding_mean_std_one_series(self.X_[i], query_length, 1)
+
+            stds.append(_std)
+            means.append(_mean)
+
+        self.X_means_ = List(means)
+        self.X_stds_ = List(stds)
 
     @classmethod
     def get_speedup_function_names(self):
