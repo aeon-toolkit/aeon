@@ -51,9 +51,10 @@ def dft_sfa_mindist(
     ...    norm=True,
     ...    lower_bounding_distances=True  # this is important!
     ... )
-    >>> x_sfa = transform.fit_transform(x)
+    >>> transform.fit(X_train)
+    >>> x_sfa = transform.transform_words(x).squeeze()
+    >>> y_sfa = transform.transform_words(y).squeeze()
     >>> x_dft = sfa.transform_mft(x).squeeze()
-    >>> y_sfa = transform.transform(y).squeeze()
     >>> dist = dft_sfa_mindist(x_dft, y_sfa, transform.breakpoints)
     """
     x_dft = x_dft.squeeze()
