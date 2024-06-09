@@ -49,6 +49,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseEstimator
+from aeon.transformations.collection._broadcaster import SeriesToCollectionBroadcaster
 from aeon.utils.conversion import convert_collection, convert_series
 from aeon.utils.index_functions import update_data
 from aeon.utils.sklearn import (
@@ -58,6 +59,7 @@ from aeon.utils.sklearn import (
 )
 from aeon.utils.validation import validate_input
 from aeon.utils.validation._dependencies import _check_estimator_deps
+from aeon.utils.validation.collection import is_collection
 
 # single/multiple primitives
 Primitive = Union[np.integer, int, float, str]
@@ -347,7 +349,7 @@ class BaseTransformer(BaseEstimator):
 
         Parameters
         ----------
-        X : Series or Panel, any supported type
+        X : Series or Collection, any supported type
             Data to fit transform to, of python type as follows:
                 Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
                 Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
@@ -366,8 +368,12 @@ class BaseTransformer(BaseEstimator):
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
             return self
-
-        self._fit(X=X_inner, y=y_inner)
+        if is_collection(X_inner):
+            self._fit_collection = True
+            self._broadcaster = SeriesToCollectionBroadcaster(self)
+            self._broadcaster.fit(X=X_inner, y=y_inner)
+        else:
+            self._fit(X=X_inner, y=y_inner)
         # this should happen last: fitted state is set to True
         self._is_fitted = True
 
@@ -403,9 +409,14 @@ class BaseTransformer(BaseEstimator):
 
         # input check and conversion for X/y
         X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
-
-        Xt = self._transform(X=X_inner, y=y_inner)
-
+        if is_collection(X_inner):
+            if not self._fit_collection:
+                self._broadcaster = SeriesToCollectionBroadcaster(self)
+            Xt = self._broadcaster.transform(X=X_inner, y=y_inner)
+        else:
+            X = self._transform(X=X_inner, y=y_inner)
+        # this should happen last: fitted state is set to True
+        self._is_fitted = True
         return Xt
 
     def fit_transform(self, X, y=None):
@@ -489,7 +500,10 @@ class BaseTransformer(BaseEstimator):
 
         # input check and conversion for X/y
         X_inner, y_inner, metadata = self._check_X_y(X=X, y=y, return_metadata=True)
-        Xt = self._inverse_transform(X=X_inner, y=y_inner)
+        if is_collection(X_inner) or self._collection:
+            self._broadcaster.inverse_transform(X=X_inner, y=y_inner)
+        else:
+            Xt = self._inverse_transform(X=X_inner, y=y_inner)
 
         return Xt
 
