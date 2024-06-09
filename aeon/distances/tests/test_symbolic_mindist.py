@@ -24,8 +24,8 @@ def test_sax_mindist():
 
     SAX_transform = SAX(n_segments=n_segments, alphabet_size=alphabet_size)
     SAX_train = SAX_transform.fit_transform(X_train).squeeze()
-    SAX_test = SAX_transform.transform(X_test).squeeze()
     PAA_train = SAX_transform._get_paa(X_train).squeeze()
+    SAX_test = SAX_transform.transform(X_test).squeeze()
 
     tightness_sax = 0.0
     tightness_paa_sax = 0.0
