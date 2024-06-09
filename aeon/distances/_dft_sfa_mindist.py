@@ -52,6 +52,7 @@ def dft_sfa_mindist(
     ...    lower_bounding_distances=True  # this is important!
     ... )
     >>> transform.fit(x)
+    SFAFast(...)
     >>> x_sfa = transform.transform_words(x).squeeze()
     >>> y_sfa = transform.transform_words(y).squeeze()
     >>> x_dft = sfa.transform_mft(x).squeeze()
