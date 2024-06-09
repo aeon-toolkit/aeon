@@ -21,7 +21,7 @@ CLASSES_WITHOUT_TAGS = [
     "collection-estimator",
     "series-estimator",
     "series-transformer",
-    "similarity-search",
+    "query-search",
 ]
 
 # shorthands for easy reading
