@@ -5,8 +5,8 @@ __all__ = ["SeriesToCollectionBroadcaster"]
 
 import numpy as np
 
+from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import get_n_cases
 
 
@@ -41,7 +41,7 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
 
     def __init__(
         self,
-        transformer: BaseSeriesTransformer,
+        transformer: BaseTransformer,
     ) -> None:
         self.transformer = transformer
         tags_to_keep = SeriesToCollectionBroadcaster._tags
