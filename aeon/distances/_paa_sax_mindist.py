@@ -49,7 +49,7 @@ def paa_sax_mindist(
     >>> x_sax = transform.fit_transform(x).squeeze()
     >>> x_paa = transform._get_paa(x).squeeze()
     >>> y_sax = transform.transform(y).squeeze()
-    >>> paa_sax_mindist(x_paa, y_sax)
+    >>> paa_sax_mindist(x_paa, y_sax, transform.breakpoints, x.shape[-1])
     """
     x_paa = x_paa.squeeze()
     y_sax = y_sax.squeeze()

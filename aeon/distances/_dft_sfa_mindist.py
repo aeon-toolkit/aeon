@@ -49,12 +49,11 @@ def dft_sfa_mindist(
     >>>    alphabet_size=8,
     >>>    window_size=x.shape[-1],
     >>>    norm=True,
-    >>>    lower_bounding_distances=True,  # This must be set!
-    >>> )
+    >>>    lower_bounding_distances=True)
     >>> x_sfa = transform.fit_transform(x)
     >>> x_dft = sfa.transform_mft(x).squeeze()
     >>> y_sfa = transform.transform(y).squeeze()
-    >>> dft_sfa_mindist(x_dft, y_sfa)
+    >>> dft_sfa_mindist(x_dft, y_sfa, transform.breakpoints)
     """
     x_dft = x_dft.squeeze()
     y_sfa = y_sfa.squeeze()

@@ -46,7 +46,7 @@ def sax_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int) -
     >>> transform = SAX(n_segments=16, alphabet_size=8)
     >>> x_sax = transform.fit_transform(x).squeeze()
     >>> y_sax = transform.transform(y).squeeze()
-    >>> paa_sax_mindist(x_sax, y_sax)
+    >>> paa_sax_mindist(x_sax, y_sax, transform.breakpoints, x.shape[-1])
     """
     x = np.squeeze(x)
     y = np.squeeze(y)
