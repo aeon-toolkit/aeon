@@ -1,66 +1,51 @@
-# The file lists aeon's package and estimator maintainers.
-# Each line is a file pattern followed by one or more owners/groups.
+# Lists core developers to be automatically added as reviewers for pull requests.
 # Only users with write access to the repository will be automatically added as
 # reviewers and contacted.
 
+aeon/anomaly_detection/ @CodeLionX @MatthewMiddlehurst
 
 aeon/benchmarking/ @TonyBagnall @MatthewMiddlehurst @hadifawaz1999 @dguijo
 
 aeon/classification/ @MatthewMiddlehurst @TonyBagnall
 aeon/classification/deep_learning/ @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall
 aeon/classification/dictionary_based/ @patrickzib @MatthewMiddlehurst @TonyBagnall
-aeon/classification/ordinal_classification/ @RafaAyGar @dguijo @MatthewMiddlehurst @TonyBagnall
-aeon/classification/dictionary_based/_redcomets.py @zy18811
+aeon/classification/ordinal_classification/ @dguijo @MatthewMiddlehurst @TonyBagnall
 
 aeon/clustering/ @chrisholder @TonyBagnall
 
-aeon/distances/ @chrisholder @TonyBagnall @akshatvishu
+aeon/distances/ @chrisholder @TonyBagnall
 
 aeon/forecasting/ @aiwalter @guzalbulatova @ltsaprounis
-aeon/forecasting/base/adapters/_statsforecast.py @FedericoGarza
-aeon/forecasting/compose/_multiplexer.py @koralturkk @aiwalter
-aeon/forecasting/model_selection/_split @koralturkk
-aeon/forecasting/online_learning/ @magittan
-aeon/forecasting/naive.py @Flix6x
-aeon/forecasting/sarimax.py @TNTran92
-aeon/forecasting/statsforecast.py @FedericoGarza
-aeon/forecasting/structural.py @juanitorduz
 
 aeon/networks/ @hadifawaz1999
 
-aeon/performance_metrics/forecasting/_functions.py @aiwalter
-aeon/performance_metrics/annotation/ @lmmentel
+aeon/performance_metrics/forecasting/ @aiwalter
 
 aeon/pipeline/ @aiwalter
 
 aeon/regression/ @MatthewMiddlehurst @TonyBagnall @dguijo
 aeon/regression/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall @dguijo
 
-aeon/transformations/collection/ @MatthewMiddlehurst @TonyBagnall
-aeon/transformations/collection/dictionary_based/ @patrickzib @MatthewMiddlehurst
-aeon/transformations/collection/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
-aeon/transformations/collection/convolution_based/ @angus924
-aeon/transformations/collection/convolution_based/_multirocket.py @ChangWeiTan @fstinner @angus924
-aeon/transformations/collection/convolution_based/_multirocket_multivariate.py @ChangWeiTan @fstinner @angus924
-aeon/transformations/collection/signature_based/ @jambo6
-aeon/transformations/collection/feature_based/_catch22.py @MatthewMiddlehurst
-aeon/transformations/collection/channel_selection.py @haskarb @TonyBagnall
-aeon/transformations/collection/interval_based/random_intervals.py @MatthewMiddlehurst
-aeon/transformations/collection/shapelet_based/dilated_shapelet_transform.py @baraline
-aeon/transformations/collection/shapelet_based/shapelet_transform.py @MatthewMiddlehurst @TonyBagnall
-aeon/transformations/collection/supervised_intervals.py @MatthewMiddlehurst
-
-aeon/transformations/ @aiwalter
-aeon/transformations/augmenter.py @MrPr3ntice @iljamaurer
-aeon/transformations/clasp.py @patrickzib @ermshaua
-aeon/transformations/kalman_filter.py @NoaBenAmi
-aeon/transformations/scaledlogit.py @ltsaprounis
-aeon/transformations/theta.py @GuzalBulatova
-aeon/transformations/time_since.py @KishManani
+aeon/segmentation/ @TonyBagnall
 
 aeon/similarity_search/ @baraline
 
-aeon/utils/numba/ @baraline
+aeon/transformations/collection/ @MatthewMiddlehurst @TonyBagnall
+aeon/transformations/collection/dictionary_based/ @patrickzib @MatthewMiddlehurst
+aeon/transformations/collection/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
+aeon/transformations/collection/shapelet_based/dilated_shapelet_transform.py @baraline
 
-docs/get_involved/code_of_conduct.rst @aeon/aeon-code-of-conduct-committee
-docs/get_involved/governance.rst @aeon/aeon-core-developers
+aeon/transformations/series/ @TonyBagnall
+
+aeon/transformations/ @aiwalter
+aeon/transformations/clasp.py @patrickzib
+aeon/transformations/scaledlogit.py @ltsaprounis
+aeon/transformations/theta.py @GuzalBulatova
+
+aeon/utils/numba/ @baraline @MatthewMiddlehurst
+
+.github/ @aeon-toolkit/aeon-infrastructure-workgroup
+build_tools/ @aeon-toolkit/aeon-infrastructure-workgroup
+
+docs/get_involved/code_of_conduct.rst @aeon-toolkit/aeon-code-of-conduct-workgroup
+docs/get_involved/governance.rst @aeon-toolkit/aeon-core-developers

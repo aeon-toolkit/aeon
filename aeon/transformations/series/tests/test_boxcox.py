@@ -8,7 +8,7 @@ import pytest
 from scipy.stats import boxcox
 
 from aeon.datasets import load_airline
-from aeon.transformations.boxcox import BoxCoxTransformer
+from aeon.transformations.series._boxcox import BoxCoxTransformer
 
 
 def test_boxcox_against_scipy():

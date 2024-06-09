@@ -5,12 +5,20 @@ __all__ = ["ThetaLinesTransformer"]
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="ThetaLinesTransformer will be removed in version 0.10 and replaced with a "
+    "BaseSeriesTransformer version in the transformations.series module.",
+    category=FutureWarning,
+)
 class ThetaLinesTransformer(BaseTransformer):
     """Decompose the original data into two or more Theta-lines.
 
@@ -47,14 +55,6 @@ class ThetaLinesTransformer(BaseTransformer):
     .. [2] E.Spiliotis et al., "Generalizing the Theta method for
        automatic forecasting ", European Journal of Operational
        Research, vol. 284, pp. 550-558, 2020.
-
-    Examples
-    --------
-    >>> from aeon.transformations.theta import ThetaLinesTransformer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = ThetaLinesTransformer([0, 0.25, 0.5, 0.75])
-    >>> y_thetas = transformer.fit_transform(y)
     """
 
     _tags = {

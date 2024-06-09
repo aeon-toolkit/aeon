@@ -9,6 +9,7 @@ __all__ = ["RotationForestClassifier"]
 
 import time
 import warnings
+from typing import Type, Union
 
 import numpy as np
 import pandas as pd
@@ -19,7 +20,6 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.exceptions import NotFittedError
 from aeon.utils.validation import check_n_jobs
 
 
@@ -55,7 +55,7 @@ class RotationForestClassifier(BaseEstimator):
     save_transformed_data : bool, default=False
         Save the data transformed in fit.
 
-        Deprecated and will be removed in v0.8.0. Use fit_predict and fit_predict_proba
+        Deprecated and will be removed in v0.10.0. Use fit_predict and fit_predict_proba
         to generate train estimates instead. transformed_data_ will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
@@ -102,16 +102,16 @@ class RotationForestClassifier(BaseEstimator):
 
     def __init__(
         self,
-        n_estimators=200,
-        min_group=3,
-        max_group=3,
-        remove_proportion=0.5,
-        base_estimator=None,
-        time_limit_in_minutes=0.0,
-        contract_max_n_estimators=500,
-        save_transformed_data="deprecated",
-        n_jobs=1,
-        random_state=None,
+        n_estimators: int = 200,
+        min_group: int = 3,
+        max_group: int = 3,
+        remove_proportion: float = 0.5,
+        base_estimator: Union[Type[BaseEstimator], None] = None,
+        time_limit_in_minutes: int = 0.0,
+        contract_max_n_estimators: int = 500,
+        save_transformed_data: bool = "deprecated",
+        n_jobs: int = 1,
+        random_state: Union[int, Type[np.random.RandomState], None] = None,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
@@ -191,6 +191,8 @@ class RotationForestClassifier(BaseEstimator):
             Predicted probabilities using the ordering in classes_.
         """
         if not self._is_fitted:
+            from sklearn.exceptions import NotFittedError
+
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
                 f"been fitted yet; please call `fit` first."
@@ -315,7 +317,7 @@ class RotationForestClassifier(BaseEstimator):
 
         return results
 
-    def _fit_rotf(self, X, y, save_transformed_data=False):
+    def _fit_rotf(self, X, y, save_transformed_data: bool = False):
         if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
             X = np.reshape(X, (X.shape[0], -1))
         elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
@@ -414,7 +416,14 @@ class RotationForestClassifier(BaseEstimator):
         self._is_fitted = True
         return X_t
 
-    def _fit_estimator(self, X, X_cls_split, y, rng, save_transformed_data):
+    def _fit_estimator(
+        self,
+        X,
+        X_cls_split,
+        y,
+        rng: Type[np.random.RandomState],
+        save_transformed_data: bool,
+    ):
         groups = self._generate_groups(rng)
         pcas = []
 
@@ -471,7 +480,7 @@ class RotationForestClassifier(BaseEstimator):
 
         return tree, pcas, groups, X_t if save_transformed_data else None
 
-    def _predict_proba_for_estimator(self, X, clf, pcas, groups):
+    def _predict_proba_for_estimator(self, X, clf: int, pcas: Type[PCA], groups):
         X_t = np.concatenate(
             [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
         )
@@ -491,7 +500,9 @@ class RotationForestClassifier(BaseEstimator):
 
         return probas
 
-    def _train_probas_for_estimator(self, X_t, y, idx, rng):
+    def _train_probas_for_estimator(
+        self, X_t, y, idx, rng: Type[np.random.RandomState]
+    ):
         indices = range(self.n_cases_)
         subsample = rng.choice(self.n_cases_, size=self.n_cases_)
         oob = [n for n in indices if n not in subsample]
@@ -516,7 +527,7 @@ class RotationForestClassifier(BaseEstimator):
 
         return [results, oob]
 
-    def _generate_groups(self, rng):
+    def _generate_groups(self, rng: Type[np.random.RandomState]):
         permutation = rng.permutation(np.arange(0, self._n_atts))
 
         # select the size of each group.

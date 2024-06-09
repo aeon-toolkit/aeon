@@ -8,7 +8,7 @@ import numpy as np
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.transformations.scaledlogit import ScaledLogitTransformer
+from aeon.transformations.series._scaled_logit import ScaledLogitSeriesTransformer
 
 TEST_SERIES = np.array([30, 40, 60])
 
@@ -22,9 +22,9 @@ TEST_SERIES = np.array([30, 40, 60])
         (None, None, TEST_SERIES),
     ],
 )
-def test_scaledlogit_transform(lower, upper, output):
+def test_scaled_logit_transform(lower, upper, output):
     """Test that we get the right output."""
-    transformer = ScaledLogitTransformer(lower, upper)
+    transformer = ScaledLogitSeriesTransformer(lower, upper)
     y_transformed = transformer.fit_transform(TEST_SERIES)
     assert np.all(output == y_transformed)
 
@@ -36,20 +36,21 @@ def test_scaledlogit_transform(lower, upper, output):
             0,
             300,
             (
-                "X in ScaledLogitTransformer should not have values greater"
+                "X in ScaledLogitSeriesTransformer should not have values greater"
                 "than upper_bound"
             ),
         ),
         (
             300,
             700,
-            "X in ScaledLogitTransformer should not have values lower than lower_bound",
+            "X in ScaledLogitSeriesTransformer should not have values lower than "
+            "lower_bound",
         ),
     ],
 )
-def test_scaledlogit_bound_errors(lower, upper, message):
+def test_scaled_logit_bound_errors(lower, upper, message):
     """Tests all exceptions."""
     y = load_airline()
     with pytest.warns(RuntimeWarning):
-        ScaledLogitTransformer(lower, upper).fit_transform(y)
+        ScaledLogitSeriesTransformer(lower, upper).fit_transform(y)
         warn(message, RuntimeWarning)

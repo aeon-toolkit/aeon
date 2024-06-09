@@ -8,7 +8,7 @@ distances in aeon.distances.
 __maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
 
-from typing import List
+from typing import Callable, List, Union
 
 import numpy as np
 
@@ -71,10 +71,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     def __init__(
         self,
-        distance: str = "dtw",
+        distance: Union[str, Callable] = "dtw",
         distance_params: dict = None,
         n_neighbors: int = 1,
-        weights: str = "uniform",
+        weights: Union[str, Callable] = "uniform",
         n_jobs: int = 1,
     ) -> None:
         self.distance = distance
@@ -216,7 +216,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> List[dict]:
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

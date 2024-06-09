@@ -68,8 +68,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
         # reset estimator at the start of fit
         self.reset()
-        if axis is None:  # If none given, assume it is correct.
-            axis = self.axis
         X = self._preprocess_series(X, axis=axis, store_metadata=True)
         if y is not None:
             self._check_y(y)
@@ -351,30 +349,3 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             return Xt
         else:
             return Xt.T
-
-
-def _postprocess_series(self, Xt, axis):
-    """Postprocess data Xt to revert to original shape.
-
-    Parameters
-    ----------
-    Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
-        A valid aeon time series data structure. See
-        aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        Intended for algorithms which have another series as output.
-    axis: int or None
-        The time point axis of the input series if it is 2D. If ``axis==0``, it is
-        assumed each column is a time series and each row is a time point. i.e. the
-        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
-        the time series are in rows, i.e. the shape of the data is
-        ``(n_channels, n_timepoints)``.
-        If None, the default class axis is used.
-
-    Returns
-    -------
-    Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
-        New time series input reshaped to match the original input.
-    """
-    # If a univariate only transformer, return a univariate series
-    if not self.get_tag("capability:multivariate"):
-        Xt = Xt.squeeze()
