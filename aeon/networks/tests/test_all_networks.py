@@ -11,7 +11,7 @@ __maintainer__ = []
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow", "tensorflow_addons"], severity="none"),
+    not _check_soft_dependencies(["tensorflow", "tensorflow-addons"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_all_networks_functionality():
