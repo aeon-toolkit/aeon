@@ -154,8 +154,8 @@ class _IGTS:
        Pervasive and Mobile Computing, 38, 92-109, (2017).
        https://www.sciencedirect.com/science/article/abs/pii/S1574119217300081
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter

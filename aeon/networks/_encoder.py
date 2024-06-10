@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class EncoderNetwork(BaseDeepNetwork):
+class EncoderNetwork(BaseDeepLearningNetwork):
     """Establish the network structure for an Encoder.
 
     Adapted from the implementation used in [1]

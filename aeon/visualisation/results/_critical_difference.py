@@ -140,8 +140,8 @@ def plot_critical_difference(
     .. [5] Holm S., " A simple sequentially rejective multiple test procedure."
     Scandinavian Journal of Statistics, 6:65-70, 1979.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.visualisation import plot_critical_difference
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]

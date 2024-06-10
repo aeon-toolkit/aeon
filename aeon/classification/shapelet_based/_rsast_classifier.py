@@ -38,8 +38,8 @@ class RSASTClassifier(BaseClassifier):
         Number of threads to use for the transform.
 
 
-    Reference
-    ---------
+    References
+    ----------
     .. [1] Varela, N. R., Mbouopda, M. F., & Nguifo, E. M. (2023). RSAST: Sampling
     Shapelets for Time Series Classification.
     https://hal.science/hal-04311309/
@@ -90,8 +90,8 @@ class RSASTClassifier(BaseClassifier):
         y: array-like or list
             The class values for X.
 
-        Return
-        ------
+        Returns
+        -------
         self : RSASTClassifier
             This pipeline classifier
 
@@ -127,8 +127,8 @@ class RSASTClassifier(BaseClassifier):
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
-        Return
-        ------
+        Returns
+        -------
         array-like or list
             Predicted class labels.
         """
@@ -142,8 +142,8 @@ class RSASTClassifier(BaseClassifier):
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
-        Return
-        ------
+        Returns
+        -------
         dists : np.ndarray shape (n_cases, n_timepoints)
             Predicted class probabilities.
         """
