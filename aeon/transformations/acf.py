@@ -18,7 +18,7 @@ from aeon.transformations.base import BaseTransformer
 @deprecated(
     version="0.9.0",
     reason="AutoCorrelationTransformer statsmodels wrapper will be removed in version "
-    "0.10. Please use the BaseSeriesTransformer version in the "
+    "0.10.0. Please use the BaseSeriesTransformer version in the "
     "transformations.series module called StatsModelsACF for a wrapper version.",
     category=FutureWarning,
 )
@@ -156,8 +156,8 @@ class AutoCorrelationTransformer(BaseTransformer):
 @deprecated(
     version="0.9.0",
     reason="PartialAutoCorrelationTransformer statsmodels wrapper will be removed"
-    "in version 0.10. Please use the BaseSeriesTransformer version in the "
-    "transformations.series module called StatsModelsACF.",
+    "in version 0.10.0. Please use the BaseSeriesTransformer version in the "
+    "transformations.series module called StatsModelsPACF.",
     category=FutureWarning,
 )
 class PartialAutoCorrelationTransformer(BaseTransformer):

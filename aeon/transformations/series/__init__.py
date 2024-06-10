@@ -3,10 +3,12 @@
 __all__ = [
     "AutoCorrelationSeriesTransformer",
     "BaseSeriesTransformer",
+    "ClearSkyTransformer",
+    "Dobin",
     "MatrixProfileSeriesTransformer",
     "StatsModelsACF",
     "StatsModelsPACF",
-    "Dobin",
+    "ThetaTransformer",
 ]
 
 from aeon.transformations.series._acf import (
@@ -14,6 +16,8 @@ from aeon.transformations.series._acf import (
     StatsModelsACF,
     StatsModelsPACF,
 )
+from aeon.transformations.series._clear_sky import ClearSkyTransformer
 from aeon.transformations.series._dobin import Dobin
 from aeon.transformations.series._matrix_profile import MatrixProfileSeriesTransformer
+from aeon.transformations.series._theta import ThetaTransformer
 from aeon.transformations.series.base import BaseSeriesTransformer

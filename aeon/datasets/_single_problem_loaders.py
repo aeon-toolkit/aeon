@@ -950,8 +950,8 @@ def load_solar(
     api_version : string or None, default="v4"
         API version to call. If None then a stored sample of the data is loaded.
 
-    Return
-    ------
+    Returns
+    -------
     pd.Series
 
     References
