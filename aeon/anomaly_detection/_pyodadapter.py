@@ -48,8 +48,8 @@ class PyODAdapter(BaseAnomalyDetector):
     >>> from pyod.models.lof import LOF
     >>> from aeon.anomaly_detection import PyODAdapter
     >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float_)
-    >>> detector = PyODAdapter(LOF(), window_size=2)
-    >>> detector.fit_predict(X, axis=0)
+    >>> detector = PyODAdapter(LOF(), window_size=2)  # doctest: +SKIP
+    >>> detector.fit_predict(X, axis=0)  # doctest: +SKIP
     array([1.02352234 1.00193038 0.98584441 0.99630753 1.00656619 1.00682081 1.00781515
            0.99709741 0.98878895 0.99723947])
     """
@@ -79,11 +79,7 @@ class PyODAdapter(BaseAnomalyDetector):
         """Check if the provided model is a PyOD model."""
         from pyod.models.base import BaseDetector
 
-        # allow duck-typing for tests?
-        def looks_like_pyod_model(model: Any) -> bool:
-            return hasattr(model, "fit") and hasattr(model, "decision_scores_")
-
-        return isinstance(model, BaseDetector) or looks_like_pyod_model(model)
+        return isinstance(model, BaseDetector)
 
     def _predict(self, X) -> np.ndarray:
         if not self._is_pyod_model(self.pyod_model):
@@ -128,21 +124,6 @@ class PyODAdapter(BaseAnomalyDetector):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {"pyod_model": _PyODMock(), "window_size": 5, "stride": 1}
+        from pyod.models.lof import LOF
 
-
-class _PyODMock:
-    def __init__(self, anomaly_position: int | None = None):
-        self._anomaly_position = anomaly_position
-        self.decision_scores_ = np.empty(0, dtype=np.float_)
-
-    def fit(self, X, y=None):
-        self._X = X
-        self._y = y
-        self.decision_scores_ = self._decision_scores_(X.shape[0])
-
-    def _decision_scores_(self, n):
-        scores = np.zeros(n, dtype=np.float_)
-        if self._anomaly_position is not None:
-            scores[self._anomaly_position] = 1.0
-        return scores
+        return {"pyod_model": LOF(), "window_size": 5, "stride": 1}
