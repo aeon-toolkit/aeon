@@ -26,15 +26,15 @@ def is_tabular(X):
         return _is_pd_wide(X)
 
 
-def is_collection(X):
+def is_collection(X, include_2d=False):
     """Check X is a valid collection data structure.
-
-    Currently this is limited to 3D numpy, hierarchical pandas and nested pandas.
 
     Parameters
     ----------
     X : array-like
         Input data to be checked.
+    include_2d : bool, optional
+        If True, 2D numpy arrays and wide pandas DataFrames are also considered valid.
 
     Returns
     -------
@@ -44,15 +44,21 @@ def is_collection(X):
     if isinstance(X, np.ndarray):
         if X.ndim == 3:
             return True
+        if include_2d and X.ndim == 2:
+            return True
     if isinstance(X, pd.DataFrame):
         if X.index.nlevels == 2:
             return True
         if is_nested_univ_dataframe(X):
             return True
+        if include_2d and _is_pd_wide(X):
+            return True
     if isinstance(X, list):
         if isinstance(X[0], np.ndarray):
             if X[0].ndim == 2:
                 return True
+        if isinstance(X[0], pd.DataFrame):
+            return True
     return False
 
 
@@ -199,7 +205,7 @@ def get_type(X):
                 f"ERROR passed a list containing {type(X[0])}, "
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
-    elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
+    elif isinstance(X, pd.DataFrame):  # Nested univariate, hierarchical or pd-wide
         if is_nested_univ_dataframe(X):
             return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
@@ -210,8 +216,6 @@ def get_type(X):
             "ERROR unknown pd.DataFrame, contains non float values, "
             "not hierarchical nor is it nested pd.Series"
         )
-    #    if isinstance(X, dask.dataframe.core.DataFrame):
-    #        return "dask_panel"
     raise TypeError(
         f"ERROR passed input of type {type(X)}, must be of type "
         f"np.ndarray, pd.DataFrame or list of np.ndarray/pd.DataFrame"
@@ -359,9 +363,12 @@ def _equal_length(X, input_type):
             if X[i].shape[0] != first:
                 return False
         return True
-    if input_type == "nested_univ":  # Nested univariate or hierachical
+    if input_type == "nested_univ":  # Nested univariate
         return _nested_univ_is_equal(X)
-    if input_type == "pd-multiindex":  # multiindex will store unequal as NaN
-        return not X.isna().any().any()
+    if input_type == "pd-multiindex":  # multiindex dataframe
+        X = X.reset_index(-1).drop(X.columns, axis=1)
+        return (
+            X.groupby(level=0, group_keys=True, as_index=True).count().nunique()[0] == 1
+        )
     raise ValueError(f" unknown input type {input_type}")
     return False
