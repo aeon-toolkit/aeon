@@ -224,6 +224,7 @@ def _download_and_extract(collection: str, extract_path: Path) -> None:
                 out_file.write(response.read())
 
         try:
+            extract_path.mkdir(parents=True, exist_ok=True)
             with zipfile.ZipFile(zip_file_name, "r") as fh:
                 fh.extractall(extract_path)
         except zipfile.BadZipFile:
@@ -410,21 +411,17 @@ def load_ecg_diff_count_3(
            Benchmarking Toolkit for Time Series Anomaly Detection Algorithms. PVLDB,
            15(12): 3678 - 3681, 2022. doi:10.14778/3554821.3554873.
     """
-    name = ("correlation-anomalies", "ecg-diff-count-3")
+    # name = ("correlation-anomalies", "ecg-diff-count-3")
     base_path = Path(aeon.__file__).parent / "datasets" / "data" / "UnitTest"
     test_file = base_path / "ecg-diff-count-3_TEST.csv"
     train_semi_file = base_path / "ecg-diff-count-3_TRAIN_NA.csv"
     train_super_file = base_path / "ecg-diff-count-3_TRAIN_A.csv"
 
-    X_test, y_test = load_anomaly_detection(name, extract_path=test_file, split="test")
+    X_test, y_test = load_from_timeeval_csv_file(test_file)
     if learning_type == "semi-supervised":
-        X_train, y_train = load_anomaly_detection(
-            name, extract_path=train_semi_file, split="train"
-        )
+        X_train, y_train = load_from_timeeval_csv_file(train_semi_file)
         return X_test, y_test, X_train, y_train
     if learning_type == "supervised":
-        X_train, y_train = load_anomaly_detection(
-            name, extract_path=train_super_file, split="train"
-        )
+        X_train, y_train = load_from_timeeval_csv_file(train_super_file)
         return X_test, y_test, X_train, y_train
     return X_test, y_test

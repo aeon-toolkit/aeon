@@ -50,6 +50,7 @@ def _to_tuple_list(X: np.ndarray) -> List[Tuple[str, str]]:
 def _load_indexfile(refresh=False) -> pd.DataFrame:
     """Load dataset and collection information from the TimeEval index file."""
     if refresh or not (_DATA_FOLDER / "datasets.csv").exists():
+        _DATA_FOLDER.mkdir(parents=True, exist_ok=True)
         df = pd.read_csv(_TIMEEVAL_INDEX_URL)
         df.to_csv(_DATA_FOLDER / "_datasets.csv", index=False)
         # Atomic (unfortunately only guaranteed on POSIX-systems) rename to avoid
