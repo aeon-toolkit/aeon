@@ -20,8 +20,8 @@ from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
 from aeon.testing.test_config import PR_TESTING
 from aeon.testing.utils.data_gen import (
     make_example_3d_numpy,
+    make_example_3d_numpy_list,
     make_example_nested_dataframe,
-    make_example_unequal_length,
 )
 
 
@@ -88,7 +88,7 @@ def test_write_to_tsfile_unequal_length(problem_name):
     Loads equal and unequal length problems into both data frames and numpy arrays,
     writes locally, reloads, then compares all class labels. It then delete the files.
     """
-    X, y = make_example_unequal_length()
+    X, y = make_example_3d_numpy_list()
     with tempfile.TemporaryDirectory() as tmp:
         write_to_tsfile(X=X, path=tmp, y=y, problem_name=problem_name)
         load_path = os.path.join(tmp, problem_name)
@@ -124,7 +124,7 @@ def test_write_dataframe_to_ts(tsfile_writer):
     """Tests whether a dataset can be written by the .ts writer then read in."""
     # load an example dataset
     problem_name = "Testy.ts"
-    X, y = make_example_nested_dataframe()
+    X, y = make_example_nested_dataframe(min_n_timepoints=12)
     with tempfile.TemporaryDirectory() as tmp:
         # output the dataframe in a ts file
         tsfile_writer(
@@ -138,8 +138,7 @@ def test_write_dataframe_to_ts(tsfile_writer):
         newX, newy = load_from_tsfile_to_dataframe(load_path)
         # check if the dataframes are the same
         pd.testing.assert_frame_equal(newX, X)
-        y2 = pd.Series(y)
-        pd.testing.assert_series_equal(y, y2)
+        np.testing.assert_array_almost_equal(newy.astype(int), y)
 
 
 def test_write_header():

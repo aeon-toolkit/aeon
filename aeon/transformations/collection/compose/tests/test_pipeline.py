@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.testing.mock_estimators import MockCollectionTransformer
 from aeon.testing.utils.data_gen import (
     make_example_3d_numpy,
-    make_example_unequal_length,
+    make_example_3d_numpy_list,
 )
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
@@ -58,7 +58,7 @@ def test_collection_transform_pipeline(transformers):
 
 def test_unequal_tag_inference():
     """Test that CollectionTransformerPipeline infers unequal length tag correctly."""
-    X, y = make_example_unequal_length(
+    X, y = make_example_3d_numpy_list(
         n_cases=10, min_n_timepoints=8, max_n_timepoints=12
     )
 

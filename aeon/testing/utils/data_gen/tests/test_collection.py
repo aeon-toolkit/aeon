@@ -1,74 +1,40 @@
 """Tests for datagen functions."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
 import pandas as pd
 import pytest
-from numpy import array_equal
 
 from aeon.testing.utils.data_gen import (
-    _make_classification_y,
-    _make_collection,
-    _make_nested_from_array,
-    _make_regression_y,
+    make_example_2d_dataframe,
     make_example_2d_numpy,
-    make_example_2d_unequal_length,
+    make_example_2d_numpy_list,
     make_example_3d_numpy,
+    make_example_3d_numpy_list,
+    make_example_dataframe_list,
+    make_example_multi_index_dataframe,
     make_example_nested_dataframe,
-    make_example_unequal_length,
-    piecewise_poisson,
 )
+from aeon.utils.validation.collection import get_type
 
-N_CASES = [10]
+N_CASES = [5, 10]
 N_CHANNELS = [1, 3]
-N_TIMEPOINTS = [3, 5]
+MIN_N_TIMEPOINTS = [6, 8]
+MAX_N_TIMEPOINTS = [8, 10]
 N_CLASSES = [2, 5]
-
-
-def _check_X_y_pandas(X, y, n_cases, n_columns, n_timepoints):
-    assert isinstance(X, pd.DataFrame)
-    assert isinstance(y, pd.Series)
-    assert X.shape[0] == y.shape[0] == n_cases
-    assert X.shape[1] == n_columns
-    assert X.iloc[0, 0].shape == (n_timepoints,)
-
-
-def _check_X_y_numpy(X, y, n_cases, n_columns, n_timepoints):
-    assert isinstance(X, np.ndarray)
-    assert isinstance(y, np.ndarray)
-    assert X.shape == (n_cases, n_columns, n_timepoints)
-    assert y.shape == (n_cases,)
-
-
-def _check_X_y(X, y, n_cases, n_columns, n_timepoints, check_numpy=False):
-    if check_numpy:
-        _check_X_y_numpy(X, y, n_cases, n_columns, n_timepoints)
-    else:
-        _check_X_y_pandas(X, y, n_cases, n_columns, n_timepoints)
-
-
-@pytest.mark.parametrize(
-    "lambdas, lengths, random_state, output",
-    [
-        ([1, 2, 3], [2, 4, 8], 42, [1, 2, 1, 3, 3, 1, 3, 1, 3, 2, 2, 4, 2, 1]),
-        ([1, 3, 6], [2, 4, 8], 42, [1, 2, 1, 3, 3, 2, 5, 5, 6, 4, 4, 9, 3, 5]),
-    ],
-)
-def test_piecewise_poisson(lambdas, lengths, random_state, output):
-    """Test piecewise_poisson fuction returns the expected Poisson distributed array."""
-    assert array_equal(piecewise_poisson(lambdas, lengths, random_state), output)
+REGRESSION = [True, False]
 
 
 @pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
-@pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
+@pytest.mark.parametrize("n_timepoints", MAX_N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
-@pytest.mark.parametrize("regression", [True, False])
+@pytest.mark.parametrize("regression", REGRESSION)
 def test_make_example_3d_numpy(
     n_cases, n_channels, n_timepoints, n_classes, regression
 ):
-    """Test data of right format."""
+    """Test generated numpy3d data is in the correct format."""
     X, y = make_example_3d_numpy(
         n_cases=n_cases,
         n_channels=n_channels,
@@ -76,7 +42,12 @@ def test_make_example_3d_numpy(
         n_labels=n_classes,
         regression_target=regression,
     )
-    _check_X_y(X, y, n_cases, n_channels, n_timepoints, check_numpy=True)
+
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (n_cases, n_channels, n_timepoints)
+    assert y.shape == (n_cases,)
+    assert get_type(X) == "numpy3D"
     if regression:
         assert y.dtype == np.float32
     else:
@@ -84,19 +55,23 @@ def test_make_example_3d_numpy(
 
 
 @pytest.mark.parametrize("n_cases", N_CASES)
-@pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
+@pytest.mark.parametrize("n_timepoints", MAX_N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
-@pytest.mark.parametrize("regression", [True, False])
+@pytest.mark.parametrize("regression", REGRESSION)
 def test_make_example_2d_numpy(n_cases, n_timepoints, n_classes, regression):
-    """Test data of right format."""
+    """Test generated numpy2d data is in the correct format."""
     X, y = make_example_2d_numpy(
         n_cases=n_cases,
         n_timepoints=n_timepoints,
         n_labels=n_classes,
         regression_target=regression,
     )
+
+    assert isinstance(X, np.ndarray)
+    assert isinstance(y, np.ndarray)
     assert X.shape == (n_cases, n_timepoints)
-    assert len(y) == len(X)
+    assert y.shape == (n_cases,)
+    assert get_type(X) == "numpy2D"
     if regression:
         assert y.dtype == np.float32
     else:
@@ -105,124 +80,217 @@ def test_make_example_2d_numpy(n_cases, n_timepoints, n_classes, regression):
 
 @pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
-@pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
+@pytest.mark.parametrize("min_n_timepoints", MIN_N_TIMEPOINTS)
+@pytest.mark.parametrize("max_n_timepoints", MAX_N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
-@pytest.mark.parametrize("regression", [True, False])
-def test_make_unequal_length_data(
-    n_cases, n_channels, n_timepoints, n_classes, regression
+@pytest.mark.parametrize("regression", REGRESSION)
+def test_make_example_3d_numpy_list(
+    n_cases, n_channels, min_n_timepoints, max_n_timepoints, n_classes, regression
 ):
-    """Test data of right format."""
-    X, y = make_example_unequal_length(
+    """Test generated 3d numpy list data is in the correct format."""
+    X, y = make_example_3d_numpy_list(
         n_cases=n_cases,
         n_channels=n_channels,
         n_labels=n_classes,
-        min_n_timepoints=n_timepoints - 1,
-        max_n_timepoints=n_timepoints + 1,
+        min_n_timepoints=min_n_timepoints,
+        max_n_timepoints=max_n_timepoints,
         regression_target=regression,
     )
+
     assert isinstance(X, list)
-    assert len(X) == len(y) == n_cases
-    assert X[0].shape[0] == n_channels
-    assert abs(X[0].shape[1] - n_timepoints) <= 1
+    assert all(isinstance(x, np.ndarray) for x in X)
+    assert isinstance(y, np.ndarray)
+    assert len(X) == n_cases
+    assert all([x.shape[0] == n_channels for x in X])
+    if min_n_timepoints == max_n_timepoints:
+        assert all([x.shape[1] == min_n_timepoints for x in X])
+    else:
+        assert all(
+            [
+                x.shape[1] >= min_n_timepoints and x.shape[1] <= max_n_timepoints
+                for x in X
+            ]
+        )
+    assert y.shape == (n_cases,)
+    assert get_type(X) == "np-list"
     if regression:
         assert y.dtype == np.float32
     else:
         assert len(np.unique(y)) == n_classes
-    X = make_example_unequal_length(
-        n_cases=n_cases,
-        n_channels=n_channels,
-        n_labels=n_classes,
-        min_n_timepoints=n_timepoints - 1,
-        max_n_timepoints=n_timepoints + 1,
-        regression_target=regression,
-        return_y=False,
-    )
-    assert isinstance(X, list)
 
 
 @pytest.mark.parametrize("n_cases", N_CASES)
-@pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
+@pytest.mark.parametrize("min_n_timepoints", MIN_N_TIMEPOINTS)
+@pytest.mark.parametrize("max_n_timepoints", MAX_N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
-@pytest.mark.parametrize("regression", [True, False])
-def test_make_2d_unequal_length_data(n_cases, n_timepoints, n_classes, regression):
-    """Test data of right format."""
-    X, y = make_example_2d_unequal_length(
+@pytest.mark.parametrize("regression", REGRESSION)
+def test_make_example_2d_numpy_list(
+    n_cases, min_n_timepoints, max_n_timepoints, n_classes, regression
+):
+    """Test generated 2d numpy list data is in the correct format."""
+    X, y = make_example_2d_numpy_list(
         n_cases=n_cases,
-        min_n_timepoints=n_timepoints - 1,
-        max_n_timepoints=n_timepoints + 1,
+        min_n_timepoints=min_n_timepoints,
+        max_n_timepoints=max_n_timepoints,
         n_labels=n_classes,
         regression_target=regression,
     )
+
     assert isinstance(X, list)
-    assert len(X) == len(y) == n_cases
-    assert abs(X[0].shape[0] - n_timepoints) <= 1
+    assert all(isinstance(x, np.ndarray) for x in X)
+    assert isinstance(y, np.ndarray)
+    assert len(X) == n_cases
+    if min_n_timepoints == max_n_timepoints:
+        assert all([x.shape[0] == min_n_timepoints for x in X])
+    else:
+        assert all(
+            [
+                x.shape[0] >= min_n_timepoints and x.shape[0] <= max_n_timepoints
+                for x in X
+            ]
+        )
+    assert y.shape == (n_cases,)
     if regression:
         assert y.dtype == np.float32
     else:
         assert len(np.unique(y)) == n_classes
-    X = make_example_2d_unequal_length(
-        n_cases=n_cases,
-        min_n_timepoints=n_timepoints - 1,
-        max_n_timepoints=n_timepoints + 1,
-        n_labels=n_classes,
-        regression_target=regression,
-        return_y=False,
-    )
-    assert isinstance(X, list)
 
 
 @pytest.mark.parametrize("n_cases", N_CASES)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
-@pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
+@pytest.mark.parametrize("min_n_timepoints", MIN_N_TIMEPOINTS)
+@pytest.mark.parametrize("max_n_timepoints", MAX_N_TIMEPOINTS)
 @pytest.mark.parametrize("n_classes", N_CLASSES)
-@pytest.mark.parametrize("regression", [True, False])
+@pytest.mark.parametrize("regression", REGRESSION)
+def test_make_example_dataframe_list(
+    n_cases, n_channels, min_n_timepoints, max_n_timepoints, n_classes, regression
+):
+    """Test generated DataFrame list data is in the correct format."""
+    X, y = make_example_dataframe_list(
+        n_cases=n_cases,
+        n_channels=n_channels,
+        n_labels=n_classes,
+        min_n_timepoints=min_n_timepoints,
+        max_n_timepoints=max_n_timepoints,
+        regression_target=regression,
+    )
+
+    assert isinstance(X, list)
+    assert all(isinstance(x, pd.DataFrame) for x in X)
+    assert isinstance(y, np.ndarray)
+    assert len(X) == n_cases
+    assert all([x.shape[1] == n_channels for x in X])
+    if min_n_timepoints == max_n_timepoints:
+        assert all([x.shape[0] == min_n_timepoints for x in X])
+    else:
+        assert all(
+            [
+                x.shape[0] >= min_n_timepoints and x.shape[0] <= max_n_timepoints
+                for x in X
+            ]
+        )
+    assert y.shape == (n_cases,)
+    assert get_type(X) == "df-list"
+    if regression:
+        assert y.dtype == np.float32
+    else:
+        assert len(np.unique(y)) == n_classes
+
+
+@pytest.mark.parametrize("n_cases", N_CASES)
+@pytest.mark.parametrize("n_timepoints", MAX_N_TIMEPOINTS)
+@pytest.mark.parametrize("n_classes", N_CLASSES)
+@pytest.mark.parametrize("regression", REGRESSION)
+def test_make_example_2d_dataframe(n_cases, n_timepoints, n_classes, regression):
+    """Test generated pd-wide data is in the correct format."""
+    X, y = make_example_2d_dataframe(
+        n_cases=n_cases,
+        n_timepoints=n_timepoints,
+        n_labels=n_classes,
+        regression_target=regression,
+    )
+
+    assert isinstance(X, pd.DataFrame)
+    assert isinstance(y, np.ndarray)
+    assert X.shape == (n_cases, n_timepoints)
+    assert y.shape == (n_cases,)
+    assert get_type(X) == "pd-wide"
+    if regression:
+        assert y.dtype == np.float32
+    else:
+        assert len(np.unique(y)) == n_classes
+
+
+@pytest.mark.parametrize("n_cases", N_CASES)
+@pytest.mark.parametrize("n_channels", N_CHANNELS)
+@pytest.mark.parametrize("min_n_timepoints", MIN_N_TIMEPOINTS)
+@pytest.mark.parametrize("max_n_timepoints", MAX_N_TIMEPOINTS)
+@pytest.mark.parametrize("n_classes", N_CLASSES)
+@pytest.mark.parametrize("regression", REGRESSION)
 def test_make_example_nested_dataframe(
-    n_cases, n_channels, n_timepoints, n_classes, regression
+    n_cases, n_channels, min_n_timepoints, max_n_timepoints, n_classes, regression
 ):
-    """Test examples nested dataframes creation."""
+    """Test generated nested dataframe data is in the correct format."""
     X, y = make_example_nested_dataframe(
         n_cases=n_cases,
         n_labels=n_classes,
         n_channels=n_channels,
-        n_timepoints=n_timepoints,
+        min_n_timepoints=min_n_timepoints,
+        max_n_timepoints=max_n_timepoints,
         regression_target=regression,
     )
 
-    # check dimensions of generated data
-    _check_X_y(X, y, n_cases, n_channels, n_timepoints, check_numpy=False)
+    assert isinstance(X, pd.DataFrame)
+    assert isinstance(y, np.ndarray)
+    assert isinstance(X.iloc[0][0], pd.Series)
+    assert X.shape == (n_cases, n_channels)
+    if min_n_timepoints == max_n_timepoints:
+        assert X.iloc[0][0].shape[0] == min_n_timepoints
+    else:
+        assert (
+            X.iloc[0][0].shape[0] >= min_n_timepoints
+            and X.iloc[0][0].shape[0] <= max_n_timepoints
+        )
+    assert y.shape == (n_cases,)
+    assert get_type(X) == "nested_univ"
     if regression:
         assert y.dtype == np.float32
     else:
         assert len(np.unique(y)) == n_classes
-    X = make_example_nested_dataframe(
+
+
+@pytest.mark.parametrize("n_cases", N_CASES)
+@pytest.mark.parametrize("n_channels", N_CHANNELS)
+@pytest.mark.parametrize("min_n_timepoints", MIN_N_TIMEPOINTS)
+@pytest.mark.parametrize("max_n_timepoints", MAX_N_TIMEPOINTS)
+@pytest.mark.parametrize("n_classes", N_CLASSES)
+@pytest.mark.parametrize("regression", REGRESSION)
+def test_make_example_multi_index_dataframe(
+    n_cases, n_channels, min_n_timepoints, max_n_timepoints, n_classes, regression
+):
+    """Test generated multi-index data is in the correct format."""
+    X, y = make_example_multi_index_dataframe(
         n_cases=n_cases,
         n_labels=n_classes,
         n_channels=n_channels,
-        n_timepoints=n_timepoints,
+        min_n_timepoints=min_n_timepoints,
+        max_n_timepoints=max_n_timepoints,
         regression_target=regression,
-        return_y=False,
     )
+
     assert isinstance(X, pd.DataFrame)
-
-
-def test_uncovered():
-    """Test data gen cases we dont need to do for all combos."""
-    X, y = make_example_2d_numpy(n_cases=4, n_labels=5)
-    assert np.unique(y).size == 4
-    y = _make_regression_y(return_numpy=True)
     assert isinstance(y, np.ndarray)
-    y = _make_regression_y(return_numpy=False)
-    assert isinstance(y, pd.Series)
-    with pytest.raises(ValueError, match="n_cases must be bigger than n_classes"):
-        y = _make_classification_y(n_cases=4, n_classes=5)
-    x = _make_nested_from_array(make_example_3d_numpy(n_channels=2), 2)
-    assert isinstance(x, pd.DataFrame)
-
-
-def test__make_collection():
-    """Test make collection."""
-    X = _make_collection(n_cases=4, n_channels=2, n_timepoints=20)
-    assert X.shape == (4, 2, 20)
-    y = np.array([0, 1, 0, 1, 0, 1, 0, 1])
-    X = _make_collection(n_cases=4, n_channels=2, n_timepoints=20, y=y)
-    assert X.shape == (8, 2, 20)
+    if min_n_timepoints == max_n_timepoints:
+        assert X.shape == (n_cases * min_n_timepoints, n_channels)
+    else:
+        assert (
+            X.shape[0] >= n_cases * min_n_timepoints
+            and X.shape[0] <= n_cases * max_n_timepoints
+        )
+        assert X.shape[1] == n_channels
+    assert y.shape == (n_cases,)
+    assert get_type(X) == "pd-multiindex"
+    if regression:
+        assert y.dtype == np.float32
+    else:
+        assert len(np.unique(y)) == n_classes
