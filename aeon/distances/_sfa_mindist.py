@@ -6,7 +6,7 @@ from numba import njit, prange
 from aeon.distances._utils import reshape_pairwise_to_multiple
 
 
-# @njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def sfa_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray) -> float:
     r"""Compute the SFA lower bounding distance between two SFA representations.
 
@@ -47,7 +47,7 @@ def sfa_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray) -> float:
     ...    alphabet_size=8,
     ...    window_size=x.shape[-1],
     ...    norm=True,
-    ...    lower_bounding_distances=True  # this is important!
+    ...    lower_bounding_distances=True   # This must be set!
     ... )
     >>> transform.fit(x)
     SFAFast(...)
@@ -55,9 +55,6 @@ def sfa_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray) -> float:
     >>> y_sfa = transform.transform_words(y).squeeze()
     >>> dist = sfa_mindist(x_sfa, y_sfa, transform.breakpoints)
     """
-    x = x.squeeze()
-    y = y.squeeze()
-
     if x.ndim == 1 and y.ndim == 1:
         return _univariate_SFA_distance(x, y, breakpoints)
     raise ValueError("x and y must be 1D")

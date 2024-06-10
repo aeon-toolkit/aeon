@@ -6,7 +6,7 @@ from numba import njit, prange
 from aeon.distances._utils import reshape_pairwise_to_multiple
 
 
-# @njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def sax_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int) -> float:
     r"""Compute the SAX lower bounding distance between two SAX representations.
 
@@ -48,9 +48,6 @@ def sax_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int) -
     >>> y_sax = transform.transform(y).squeeze()
     >>> dist = paa_sax_mindist(x_sax, y_sax, transform.breakpoints, x.shape[-1])
     """
-    x = np.squeeze(x)
-    y = np.squeeze(y)
-
     if x.ndim == 1 and y.ndim == 1:
         return _univariate_SAX_distance(x, y, breakpoints, n)
     raise ValueError("x and y must be 1D")

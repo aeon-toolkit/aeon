@@ -6,7 +6,7 @@ from numba import njit, prange
 from aeon.distances._utils import reshape_pairwise_to_multiple
 
 
-# @njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def paa_sax_mindist(
     x_paa: np.ndarray, y_sax: np.ndarray, breakpoints: np.ndarray, n: int
 ) -> float:
@@ -51,9 +51,6 @@ def paa_sax_mindist(
     >>> y_sax = transform.transform(y).squeeze()
     >>> dist = paa_sax_mindist(x_paa, y_sax, transform.breakpoints, x.shape[-1])
     """
-    x_paa = x_paa.squeeze()
-    y_sax = y_sax.squeeze()
-
     if x_paa.ndim == 1 and y_sax.ndim == 1:
         return _univariate_PAA_SAX_distance(x_paa, y_sax, breakpoints, n)
     raise ValueError("x and y must be 1D")

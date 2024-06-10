@@ -51,17 +51,8 @@ def test_sax_mindist():
             tightness_paa_sax += mindist_paa_sax / ed
 
         assert mindist_sax <= ed
-        #    print("mindist_sax is:\t", mindist_sax)
-        #    print("ED is:         \t", ed)
-
+        assert mindist_paa_sax >= mindist_sax  # a tighter lower bound
         assert mindist_paa_sax <= ed
-        #    print("mindist_paa_sax is:\t", mindist_paa_sax, mindist_sax)
-        #    print("ED is:             \t", ed)
-
-    # print("\n")
-    # print("All ok:")
-    # print("PAA-SAX-Min-Dist Tightness:\t", tightness_paa_sax / X_train.shape[0])
-    # print("SAX-Min-Dist Tightness:    \t", tightness_sax / X_train.shape[0])
 
 
 def test_sfa_mindist():
@@ -129,14 +120,5 @@ def test_sfa_mindist():
                 tightness_dft_sfa += mindist_dft_sfa / ed
 
             assert mindist_sfa <= ed
-            #    print("mindist_sfa is:\t", mindist_sfa)
-            #    print("ED is:         \t", ed)
-
+            assert mindist_dft_sfa >= mindist_sfa  # a tighter lower bound
             assert mindist_dft_sfa <= ed
-            #    print("mindist_paa_sax is:\t", mindist_dft_sfa, mindist_sfa)
-            #    print("ED is:             \t", ed)
-
-        # print("\n")
-        # print("All ok:")
-        # print("DFT-SFA-Min-Dist Tightness:\t", tightness_dft_sfa / X_train.shape[0])
-        # print("SFA-Min-Dist Tightness:    \t", tightness_sfa / X_train.shape[0])

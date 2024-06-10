@@ -6,7 +6,7 @@ from numba import njit, prange
 from aeon.distances._utils import reshape_pairwise_to_multiple
 
 
-# @njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def dft_sfa_mindist(
     x_dft: np.ndarray, y_sfa: np.ndarray, breakpoints: np.ndarray
 ) -> float:
@@ -49,7 +49,7 @@ def dft_sfa_mindist(
     ...    alphabet_size=8,
     ...    window_size=x.shape[-1],
     ...    norm=True,
-    ...    lower_bounding_distances=True  # this is important!
+    ...    lower_bounding_distances=True   # This must be set!
     ... )
     >>> transform.fit(x)
     SFAFast(...)
@@ -58,9 +58,6 @@ def dft_sfa_mindist(
     >>> x_dft = transform.transform_mft(x).squeeze()
     >>> dist = dft_sfa_mindist(x_dft, y_sfa, transform.breakpoints)
     """
-    x_dft = x_dft.squeeze()
-    y_sfa = y_sfa.squeeze()
-
     if x_dft.ndim == 1 and y_sfa.ndim == 1:
         return _univariate_DFT_SFA_distance(x_dft, y_sfa, breakpoints)
     raise ValueError("x and y must be 1D")
