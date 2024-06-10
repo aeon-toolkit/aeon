@@ -42,7 +42,7 @@ __all__ = [
     "load_cardano_sentiment",
     "load_covid_3month",
     "load_kdd_tsad_135",
-    "load_Daphnet_S07R01E0",
+    "load_daphnet_s06r02e0",
     "load_ecg_diff_count_3",
     # legacy load functions
     "load_from_arff_to_dataframe",
@@ -99,7 +99,7 @@ from aeon.datasets._single_problem_loaders import (
 )
 from aeon.datasets._tsad_data_loaders import (
     load_anomaly_detection,
-    load_Daphnet_S07R01E0,
+    load_daphnet_s06r02e0,
     load_ecg_diff_count_3,
     load_from_timeeval_csv_file,
     load_kdd_tsad_135,

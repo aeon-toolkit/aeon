@@ -4,7 +4,7 @@ __all__ = [
     "load_anomaly_detection",
     "load_from_timeeval_csv_file",
     "load_kdd_tsad_135",
-    "load_Daphnet_S07R01E0",
+    "load_daphnet_s06r02e0",
     "load_ecg_diff_count_3",
 ]
 
@@ -313,8 +313,8 @@ def load_kdd_tsad_135(
     return X, y
 
 
-def load_Daphnet_S07R01E0() -> Tuple[np.ndarray, np.ndarray]:
-    """Load the Daphnet S07R01E0 multivariate time series dataset.
+def load_daphnet_s06r02e0() -> Tuple[np.ndarray, np.ndarray]:
+    """Load the Daphnet S06R02E0 multivariate time series dataset.
 
     Returns
     -------
@@ -325,8 +325,8 @@ def load_Daphnet_S07R01E0() -> Tuple[np.ndarray, np.ndarray]:
 
     Examples
     --------
-    >>> from aeon.datasets import load_Daphnet_S07R01E0
-    >>> X, y = load_Daphnet_S07R01E0()
+    >>> from aeon.datasets import load_daphnet_s06r02e0
+    >>> X, y = load_daphnet_s06r02e0()
 
     Notes
     -----
@@ -336,7 +336,7 @@ def load_Daphnet_S07R01E0() -> Tuple[np.ndarray, np.ndarray]:
     (FoG) during walking tasks. FoG occureances are annotated as anomalies.
 
         Dimensionality:     multivariate (9 channels)
-        Series length:      28800
+        Series length:      7040
         Frequency:          around 256 Hz
         Learning Type:      unsupervised (no training data)
 
@@ -346,13 +346,13 @@ def load_Daphnet_S07R01E0() -> Tuple[np.ndarray, np.ndarray]:
     .. [1] Roggen, Daniel, Plotnik, Meir, and Hausdorff,Jeff. (2013). Daphnet Freezing
            of Gait. UCI Machine Learning Repository. https://doi.org/10.24432/C56K78.
     """
-    # name = ("Daphnet", "S07R02E0")
+    # name = ("Daphnet", "S06R02E0")
     dataset_path = (
         Path(aeon.__file__).parent
         / "datasets"
         / "data"
-        / "Daphnet_S07R02E0"
-        / "S07R02E0.csv"
+        / "Daphnet_S06R02E0"
+        / "S06R02E0.csv"
     )
     X, y = load_from_timeeval_csv_file(dataset_path)
     return X, y

@@ -30,6 +30,7 @@ Time series types:
 - multivariate: Multivariate datasets have two or more features/dimensions/channels.
 """
 
+import os
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -50,7 +51,11 @@ def _load_indexfile(refresh=False) -> pd.DataFrame:
     """Load dataset and collection information from the TimeEval index file."""
     if refresh or not (_DATA_FOLDER / "datasets.csv").exists():
         df = pd.read_csv(_TIMEEVAL_INDEX_URL)
-        df.to_csv(_DATA_FOLDER / "datasets.csv", index=False)
+        df.to_csv(_DATA_FOLDER / "_datasets.csv", index=False)
+        # Atomic (unfortunately only guaranteed on POSIX-systems) rename to avoid
+        # reading incomplete file in other processes. Atomicity guarantees are hard to
+        # find in Windows (NT).
+        os.rename(_DATA_FOLDER / "_datasets.csv", _DATA_FOLDER / "datasets.csv")
     else:
         df = pd.read_csv(_DATA_FOLDER / "datasets.csv")
 

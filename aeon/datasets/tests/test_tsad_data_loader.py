@@ -9,7 +9,7 @@ import pytest
 from aeon.datasets._tsad_data_loaders import (
     _DATA_FOLDER,
     load_anomaly_detection,
-    load_Daphnet_S07R01E0,
+    load_daphnet_s06r02e0,
     load_ecg_diff_count_3,
     load_from_timeeval_csv_file,
     load_kdd_tsad_135,
@@ -37,34 +37,6 @@ def test_load_anomaly_detection_no_train_split():
         ValueError, match="Dataset .* does not have a training partition.*"
     ):
         load_anomaly_detection(name, split="train")
-
-
-# def test_load_anomaly_detection_from_repo():
-#     """Test load univariate anomaly detection dataset from repo."""
-#     name = ("Dodgers", "101-freeway-traffic")
-#     X, y, meta = load_anomaly_detection(name, return_metadata=True)
-#     assert isinstance(X, np.ndarray)
-#     assert X.shape == (50400,)
-#     assert isinstance(y, np.ndarray)
-#     assert y.shape == (50400,)
-#     assert isinstance(meta, dict)
-#     assert meta["learning_type"] == "unsupervised"
-#     assert meta["num_anomalies"] == 133
-#     np.testing.assert_almost_equal(meta["contamination"], 0.1113, decimal=4)
-#
-#
-# def test_load_anomaly_detection_from_repo_multivariate():
-#     """Test load multivariate anomaly detection dataset from repo."""
-#     name = ("CalIt2", "CalIt2-traffic")
-#     X, y, meta = load_anomaly_detection(name, return_metadata=True)
-#     assert isinstance(X, np.ndarray)
-#     assert X.shape == (5040, 2)
-#     assert isinstance(y, np.ndarray)
-#     assert y.shape == (5040,)
-#     assert isinstance(meta, dict)
-#     assert meta["learning_type"] == "unsupervised"
-#     assert meta["num_anomalies"] == 29
-#     np.testing.assert_almost_equal(meta["contamination"], 0.0409, decimal=4)
 
 
 def test_load_anomaly_detection_from_archive():
@@ -135,12 +107,12 @@ def test_load_from_timeeval_csv_file_univariate():
 def test_load_from_timeeval_csv_file_multivariate():
     """Test load multivariate dataset from file."""
     X, y = load_from_timeeval_csv_file(
-        Path(__file__).parent.parent / "data" / "Daphnet_S07R02E0" / "S07R02E0.csv"
+        Path(__file__).parent.parent / "data" / "Daphnet_S06R02E0" / "S06R02E0.csv"
     )
     assert isinstance(X, np.ndarray)
-    assert X.shape == (28800, 9)
+    assert X.shape == (7040, 9)
     assert isinstance(y, np.ndarray)
-    assert y.shape == (28800,)
+    assert y.shape == (7040,)
 
 
 def test_load_kdd_tsad_135():
@@ -158,13 +130,13 @@ def test_load_kdd_tsad_135():
     assert y_train.shape == (1200,)
 
 
-def test_load_Daphnet_S07R01E0():
-    """Test load Daphnet S07R01E0 dataset."""
-    X, y = load_Daphnet_S07R01E0()
+def test_load_daphnet_s06r02e0():
+    """Test load Daphnet S06R02E0 dataset."""
+    X, y = load_daphnet_s06r02e0()
     assert isinstance(X, np.ndarray)
-    assert X.shape == (28800, 9)
+    assert X.shape == (7040, 9)
     assert isinstance(y, np.ndarray)
-    assert y.shape == (28800,)
+    assert y.shape == (7040,)
 
 
 @pytest.mark.parametrize(
