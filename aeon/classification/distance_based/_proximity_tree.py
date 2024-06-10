@@ -180,8 +180,6 @@ class ProximityTree(BaseClassifier):
             higher score means better gain,
             i.e. a better split
         """
-        if y.ndim != 1:
-            raise ValueError()
         # find number of instances overall
         parent_n_instances = y.shape[0]
         # if parent has no instances then is pure
@@ -248,7 +246,7 @@ class ProximityTree(BaseClassifier):
             )
 
         # Pure node
-        if len(np.unique(y)) == 1:
+        if len(self.classes_) == 1:
             leaf_label = target_value
             leaf = Node(
                 node_id=node_id,
@@ -311,6 +309,7 @@ class ProximityTree(BaseClassifier):
         return mode_value
 
     def get_best_splitter(self, X, y):
+        """Get the splitter for a node which maximizes the gini gain."""
         max_gain = float("-inf")
         best_splitter = None
         for _ in range(self.n_splitters):
@@ -341,6 +340,8 @@ class ProximityTree(BaseClassifier):
 
     def _fit(self, X, y):
         # Set the unique class labels
+        if (X.ndim != 2) or (y.ndim != 1):
+            raise ValueError("X should be of shape (n_cases, n_timepoints).")
         self.classes_ = list(np.unique(y))
 
         self.root = self._build_tree(
