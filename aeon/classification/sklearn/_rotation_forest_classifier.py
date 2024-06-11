@@ -94,10 +94,6 @@ class RotationForestClassifier(BaseEstimator):
     array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
-    _tags = {
-        "X_inner_type": ["numpy3D"],
-    }
-
     def __init__(
         self,
         n_estimators: int = 200,
@@ -119,7 +115,6 @@ class RotationForestClassifier(BaseEstimator):
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
         self.random_state = random_state
-        self._estimator_type = "classifier"
 
         super().__init__()
 
@@ -142,7 +137,6 @@ class RotationForestClassifier(BaseEstimator):
         -----
         Changes state by creating a fitted model that updates attributes ending in "_".
         """
-        X = X.squeeze()
         self._fit_rotf(X, y)
         return self
 
@@ -160,7 +154,6 @@ class RotationForestClassifier(BaseEstimator):
             Predicted class labels.
         """
         rng = check_random_state(self.random_state)
-        X = X.squeeze()
         return np.array(
             [
                 self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
