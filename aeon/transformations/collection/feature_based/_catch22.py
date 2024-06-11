@@ -10,12 +10,14 @@ import math
 
 import numpy as np
 from joblib import Parallel, delayed
-from numba import njit
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series, z_normalise_series_with_mean
 from aeon.utils.numba.stats import mean, numba_max, numba_min
 from aeon.utils.validation import check_n_jobs
+
+# from numba import njit
+
 
 feature_names = [
     "DN_HistogramMode_5",
@@ -407,7 +409,7 @@ class Catch22(BaseCollectionTransformer):
         return _histogram_mode(X, 10, smin, smax)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #   @njit(fastmath=True, cache=True)
     def _SB_BinaryStats_diff_longstretch0(X, smean):
         # Longest period of consecutive values above the mean.
         mean_binary = np.zeros(len(X))
@@ -423,13 +425,13 @@ class Catch22(BaseCollectionTransformer):
         return _outlier_include(X)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _DN_OutlierInclude_n_001_mdrmd(X):
         # Time intervals between successive extreme events below the mean.
         return _outlier_include(-X)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _CO_f1ecac(X_ac):
         # First 1/e crossing of autocorrelation function.
         threshold = 0.36787944117144233  # 1 / np.exp(1)
@@ -439,7 +441,7 @@ class Catch22(BaseCollectionTransformer):
         return len(X_ac)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _CO_FirstMin_ac(X_ac):
         # First minimum of autocorrelation function.
         for i in range(1, len(X_ac) - 1):
@@ -458,7 +460,7 @@ class Catch22(BaseCollectionTransformer):
         return _summaries_welch_rect(X, True, X_fft)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _FC_LocalSimple_mean3_stderr(X):
         # Mean error from a rolling 3-sample mean forecasting.
         if len(X) - 3 < 3:
@@ -467,7 +469,7 @@ class Catch22(BaseCollectionTransformer):
         return np.std(res)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _CO_trev_1_num(X):
         # Time-reversibility statistic, ((x_t+1 − x_t)^3)_t.
         y = np.zeros(len(X) - 1)
@@ -476,7 +478,7 @@ class Catch22(BaseCollectionTransformer):
         return np.mean(y)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _CO_HistogramAMI_even_2_5(X, smin, smax):
         # Automutual information, m = 2, τ = 5.
         new_min = smin - 0.1
@@ -506,7 +508,7 @@ class Catch22(BaseCollectionTransformer):
         return nsum
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _IN_AutoMutualInfoStats_40_gaussian_fmmi(X_ac):
         # First minimum of the automutual information function.
         tau = int(min(40, np.ceil(len(X_ac) / 2)))
@@ -525,7 +527,7 @@ class Catch22(BaseCollectionTransformer):
         return tau
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _MD_hrv_classic_pnn40(X):
         # Proportion of successive differences exceeding 0.04σ (Mietus 2002).
         diffs = np.zeros(len(X) - 1)
@@ -540,7 +542,7 @@ class Catch22(BaseCollectionTransformer):
         return nsum / len(diffs)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _SB_BinaryStats_mean_longstretch1(X):
         # Longest period of successive incremental decreases.
         diff_binary = np.zeros(len(X) - 1)
@@ -551,7 +553,7 @@ class Catch22(BaseCollectionTransformer):
         return _long_stretch(diff_binary, 0)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _SB_MotifThree_quantile_hh(X, indices):
         # Shannon entropy of two successive letters in equiprobable 3-letter
         # symbolization.
@@ -618,7 +620,7 @@ class Catch22(BaseCollectionTransformer):
         return _ac_first_zero(ac) / acfz
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _CO_Embed2_Dist_tau_d_expfit_meandiff(X, acfz):
         # Exponential fit to successive distances in 2-d embedding space.
         tau = acfz
@@ -670,7 +672,7 @@ class Catch22(BaseCollectionTransformer):
         return sum / num_bins
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1(X):
         # Proportion of slower timescale fluctuations that scale with DFA (50%
         # sampling).
@@ -682,7 +684,7 @@ class Catch22(BaseCollectionTransformer):
         return _fluct_prop(cs, len(X), True)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1(X):
         # Proportion of slower timescale fluctuations that scale with linearly rescaled
         # range fits.
@@ -694,7 +696,7 @@ class Catch22(BaseCollectionTransformer):
         return _fluct_prop(cs, len(X), False)
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _SB_TransitionMatrix_3ac_sumdiagcov(X, acfz):
         # Trace of covariance of transition matrix between symbols in 3-letter
         # alphabet.
@@ -738,7 +740,7 @@ class Catch22(BaseCollectionTransformer):
         return ssum
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _PD_PeriodicityWang_th0_01(X):
         # Periodicity measure of (Wang et al. 2007).
         y_spline = _spline_fit(X)
@@ -785,7 +787,7 @@ class Catch22(BaseCollectionTransformer):
         return out
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _histogram_mode(X, num_bins, smin, smax):
     bin_width = (smax - smin) / num_bins
 
@@ -818,7 +820,7 @@ def _histogram_mode(X, num_bins, smin, smax):
     return max_sum / num_maxs
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _long_stretch(X_binary, val):
     last_val = 0
     max_stretch = 0
@@ -832,7 +834,7 @@ def _long_stretch(X_binary, val):
     return max_stretch
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _outlier_include(X):
     total = 0
     threshold = 0
@@ -888,7 +890,7 @@ def _autocorr(X, X_fft):
     return _get_acf(X, ca)
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _multiply_complex_arr(X_fft):
     c = np.zeros(len(X_fft), dtype=np.complex128)
     for i, n in enumerate(X_fft):
@@ -896,7 +898,7 @@ def _multiply_complex_arr(X_fft):
     return c
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _get_acf(X, ca):
     acf = np.zeros(len(X))
     if ca[0].real != 0:
@@ -905,7 +907,7 @@ def _get_acf(X, ca):
     return acf
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _summaries_welch_rect(X, centroid, X_fft):
     new_length = int(len(X_fft) / 2) + 1
     p = np.zeros(new_length)
@@ -942,12 +944,12 @@ def _summaries_welch_rect(X, centroid, X_fft):
         return nsum * (w[1] - w[0])
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _complex_magnitude(c):
     return np.sqrt(c.real * c.real + c.imag * c.imag)
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _local_simple_mean(X, train_length):
     res = np.zeros(len(X) - train_length)
     for i in range(len(res)):
@@ -958,7 +960,7 @@ def _local_simple_mean(X, train_length):
     return res
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _ac_first_zero(X_ac):
     for i in range(1, len(X_ac)):
         if X_ac[i] <= 0:
@@ -967,7 +969,7 @@ def _ac_first_zero(X_ac):
     return len(X_ac)
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _fluct_prop(X, og_length, dfa):
     a = np.zeros(50, dtype=np.int_)
     a[0] = 5
@@ -1045,7 +1047,7 @@ def _fluct_prop(X, og_length, dfa):
     return (np.argmin(sserr) + 6) / n_tau
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _linear_regression(X, y, n, lag):
     sumx = 0
     sumx2 = 0
@@ -1064,7 +1066,7 @@ def _linear_regression(X, y, n, lag):
     return (n * sumxy - sumx * sumy) / denom, (sumy * sumx2 - sumx * sumxy) / denom
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _spline_fit(X):
     breaks = np.array([0, len(X) / 2 - 1, len(X) - 1])
     h0 = np.array([breaks[1] - breaks[0], breaks[2] - breaks[1]])

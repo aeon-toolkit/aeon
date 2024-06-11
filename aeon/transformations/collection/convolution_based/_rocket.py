@@ -4,7 +4,7 @@ __maintainer__ = []
 __all__ = ["Rocket"]
 
 import numpy as np
-from numba import get_num_threads, njit, prange, set_num_threads
+from numba import get_num_threads, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -135,11 +135,11 @@ class Rocket(BaseCollectionTransformer):
         return X_
 
 
-@njit(
-    "Tuple((float32[:],int32[:],float32[:],int32[:],int32[:],int32[:],"
-    "int32[:]))(int32,int32,int32,optional(int32))",
-    cache=True,
-)
+# @njit(
+#     "Tuple((float32[:],int32[:],float32[:],int32[:],int32[:],int32[:],"
+#     "int32[:]))(int32,int32,int32,optional(int32))",
+#     cache=True,
+# )
 def _generate_kernels(n_timepoints, num_kernels, n_channels, seed):
     if seed is not None:
         np.random.seed(seed)
@@ -214,7 +214,7 @@ def _generate_kernels(n_timepoints, num_kernels, n_channels, seed):
     )
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _apply_kernel_univariate(X, weights, length, bias, dilation, padding):
     n_timepoints = len(X)
 
@@ -245,7 +245,7 @@ def _apply_kernel_univariate(X, weights, length, bias, dilation, padding):
     return np.float32(_ppv / output_length), np.float32(_max)
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _apply_kernel_multivariate(
     X, weights, length, bias, dilation, padding, num_channel_indices, channel_indices
 ):
@@ -279,13 +279,13 @@ def _apply_kernel_multivariate(
     return np.float32(_ppv / output_length), np.float32(_max)
 
 
-@njit(
-    "float32[:,:](float32[:,:,:],Tuple((float32[::1],int32[:],float32[:],"
-    "int32[:],int32[:],int32[:],int32[:])))",
-    parallel=True,
-    fastmath=True,
-    cache=True,
-)
+# @njit(
+#     "float32[:,:](float32[:,:,:],Tuple((float32[::1],int32[:],float32[:],"
+#     "int32[:],int32[:],int32[:],int32[:])))",
+#     parallel=True,
+#     fastmath=True,
+#     cache=True,
+# )
 def _apply_kernels(X, kernels):
     (
         weights,

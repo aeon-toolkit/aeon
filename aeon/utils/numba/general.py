@@ -227,7 +227,7 @@ def first_order_differences_2d(X: np.ndarray) -> np.ndarray:
     return X[:, 1:] - X[:, :-1]
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def first_order_differences_3d(X: np.ndarray) -> np.ndarray:
     """Numba first order differences function for a 3d numpy array.
 

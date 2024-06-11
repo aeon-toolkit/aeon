@@ -460,7 +460,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         return np.round(quality, 8), length, position, channel, inst_idx, cls_idx
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _find_shapelet_quality(
         X,
         y,
@@ -702,7 +702,7 @@ def _calc_early_binary_ig(
     return bsf_ig
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _calc_binary_ig(orderline, c1, c2):
     initial_ent = _binary_entropy(c1, c2)
 

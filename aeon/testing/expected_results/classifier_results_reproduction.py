@@ -289,13 +289,23 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         raise ValueError(f"Unknown dataset: {dataset_name}")
 
     set_random_state(classifier, 0)
-
+    res = data_function(classifier)
     _print_array(
         f"{classifier_name} - {dataset_name}",
-        data_function(classifier),
+        res,
     )
+    return res
 
 
 if __name__ == "__main__":
     # change as required when adding new classifiers, datasets or updating results
-    _print_results_for_classifier("HIVECOTEV2", "BasicMotions")
+    res = _print_results_for_classifier("HIVECOTEV2", "BasicMotions")
+    res = np.round(res, 4)
+    import numpy.testing as npt
+
+    from aeon.testing.expected_results.expected_classifier_outputs import (
+        basic_motions_proba,
+    )
+
+    print(basic_motions_proba["HIVECOTEV2"])
+    npt.assert_almost_equal(res, basic_motions_proba["HIVECOTEV2"])
