@@ -8,6 +8,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestClassifier"]
 
 import time
+import warnings
 from typing import Type, Union
 
 import numpy as np
@@ -51,6 +52,11 @@ class RotationForestClassifier(BaseEstimator):
         Default of `0` means ``n_estimators`` is used.
     contract_max_n_estimators : int, default=500
         Max number of estimators to build when ``time_limit_in_minutes`` is set.
+    save_transformed_data : bool, default=False
+        Save the data transformed in fit.
+
+        Deprecated and will be removed in v0.10.0. Use fit_predict and fit_predict_proba
+        to generate train estimates instead. transformed_data_ will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
@@ -103,6 +109,7 @@ class RotationForestClassifier(BaseEstimator):
         base_estimator: Union[Type[BaseEstimator], None] = None,
         time_limit_in_minutes: int = 0.0,
         contract_max_n_estimators: int = 500,
+        save_transformed_data: bool = "deprecated",
         n_jobs: int = 1,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
     ):
@@ -115,6 +122,15 @@ class RotationForestClassifier(BaseEstimator):
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
         self.random_state = random_state
+
+        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.10.0
+        self.save_transformed_data = save_transformed_data
+        if save_transformed_data != "deprecated":
+            warnings.warn(
+                "the save_transformed_data parameter is deprecated and will be"
+                "removed in v0.10.0. transformed_data_ will also be removed.",
+                stacklevel=2,
+            )
 
         super().__init__()
 
