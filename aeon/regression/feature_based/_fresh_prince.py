@@ -7,8 +7,6 @@ regressor.
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["FreshPRINCERegressor"]
 
-import warnings
-
 import numpy as np
 
 from aeon.regression.base import BaseRegressor
@@ -31,11 +29,6 @@ class FreshPRINCERegressor(BaseRegressor):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestRegressor ensemble.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in fit.
-
-        Deprecated and will be removed in v0.10.0. Use fit_predict
-        to generate train estimates instead. transformed_data_ will also be removed.
     verbose : int, default=0
         Level of output printed to the console (for information only)
     n_jobs : int, default=1
@@ -81,7 +74,6 @@ class FreshPRINCERegressor(BaseRegressor):
         self,
         default_fc_parameters="comprehensive",
         n_estimators=200,
-        save_transformed_data="deprecated",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -101,16 +93,6 @@ class FreshPRINCERegressor(BaseRegressor):
 
         self._rotf = None
         self._tsfresh = None
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.10.0
-        self.transformed_data_ = []
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.10.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
