@@ -27,8 +27,6 @@ def test_sax_mindist():
     PAA_train = SAX_transform._get_paa(X_train).squeeze()
     SAX_test = SAX_transform.transform(X_test).squeeze()
 
-    tightness_sax = 0.0
-    tightness_paa_sax = 0.0
     for i in range(min(X_train.shape[0], X_test.shape[0])):
         X = X_train[i].reshape(1, -1)
         Y = X_test[i].reshape(1, -1)
@@ -45,10 +43,6 @@ def test_sax_mindist():
 
         # Euclidean Distance
         ed = np.linalg.norm(X[0] - Y[0])
-
-        if ed > 0:
-            tightness_sax += mindist_sax / ed
-            tightness_paa_sax += mindist_paa_sax / ed
 
         assert mindist_sax <= ed
         assert mindist_paa_sax >= mindist_sax  # a tighter lower bound
@@ -96,8 +90,6 @@ def test_sfa_mindist():
 
         SFA_train_dfts = sfa.transform_mft(X_train).squeeze()
 
-        tightness_sfa = 0.0
-        tightness_dft_sfa = 0.0
         for i in range(min(X_train.shape[0], X_test.shape[0])):
             X = X_train[i].reshape(1, -1)
             Y = X_test[i].reshape(1, -1)
@@ -114,10 +106,6 @@ def test_sfa_mindist():
 
             # Euclidean Distance
             ed = np.linalg.norm(X[0] - Y[0])
-
-            if ed > 0:
-                tightness_sfa += mindist_sfa / ed
-                tightness_dft_sfa += mindist_dft_sfa / ed
 
             assert mindist_sfa <= ed
             assert mindist_dft_sfa >= mindist_sfa  # a tighter lower bound
