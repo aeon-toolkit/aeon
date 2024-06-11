@@ -10,13 +10,14 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 
 def sliding_windows(
-    X: np.ndarray, window_size: int, stride: int = 1
+    X: np.ndarray, window_size: int, stride: int = 1, axis: int = 1
 ) -> Tuple[np.ndarray, int]:
     """Create sliding windows of a time series.
 
     Extracts sliding windows of a time series with a given window size and stride. The
-    windows are extracted along the first axis of the time series. If the time series is
-    multivariate, the channels of each window are stacked along the second axis.
+    windows are extracted along the specified axis of the time series. If the time
+    series is multivariate, the channels of each window are stacked along the
+    remaining axis.
 
     ``stride == 1`` creates default sliding windows, where the window is moved one time
     point at a time. If ``stride > 1``, the windows will skip over some time points.
@@ -49,16 +50,29 @@ def sliding_windows(
     stride : int, optional, default=1
         Stride of the sliding windows. If stride is greater than 1, the windows
         will skip over some time points.
+    axis : int, optional, default=1
+        Axis along which the sliding windows are extracted. The axis must be the
+        time axis of the time series. If ``axis == 1``, ``X`` is assumed to have the
+        shape (n_channels, n_timepoints). If ``axis == 0``, ``X`` is assumed to have
+        the shape (n_timepoints, n_channels).
 
     Returns
     -------
     windows : np.ndarray
-        Sliding windows of the time series with the shape
-        (n_windows, window_size) or (n_windows, window_size * n_channels) in
-        case of a multivariate time series.
+        Sliding windows of the time series. The return shape depends on the ``axis``
+        parameter. If ``axis == 0``, the windows have the shape
+        ``(n_windows, window_size)`` (univariate) or
+        ``(n_windows, window_size * n_channels)`` (multivariate). If ``axis == 1``, the
+        windows have the shape ``(window_size, n_windows)`` (univariate) or
+        ``(window_size * n_channels, n_windows)`` (multivariate).
     padding_length : int
         Number of time points that are not covered by the windows. The padding length
         is always 0 for stride 1.
+
+    See Also
+    --------
+    aeon.utils.windowing.reverse_windowing :
+        Reverse windowing of a time series.
 
     Examples
     --------
@@ -80,18 +94,24 @@ def sliding_windows(
      [5 6 7 8]]
     >>> print(padding)
     2
-
-    See Also
-    --------
-    aeon.utils.windowing.reverse_windowing :
-        Reverse windowing of a time series.
     """
-    windows = sliding_window_view(X, window_shape=window_size, axis=0, writeable=False)
+    if X.ndim == 1:
+        axis = 0
+    windows = sliding_window_view(
+        X, window_shape=window_size, axis=axis, writeable=False
+    )
+    n_timepoints = X.shape[axis]
     # in case we have a multivariate TS
-    windows = windows.reshape((X.shape[0] - (window_size - 1), -1))
-    windows = windows[::stride, :]
+    if axis == 0:
+        windows = windows.reshape((n_timepoints - (window_size - 1), -1))
+        windows = windows[::stride, :]
+    else:
+        windows = windows.reshape((-1, n_timepoints - (window_size - 1)))
+        windows = windows[:, ::stride]
 
-    padding_length = X.shape[0] - (windows.shape[0] * stride + window_size - stride)
+    padding_length = n_timepoints - (
+        windows.shape[axis] * stride + window_size - stride
+    )
     return windows, padding_length
 
 
@@ -127,7 +147,7 @@ def reverse_windowing(
     Parameters
     ----------
     y : np.ndarray
-        Array of windowed results with the shape (n_windows, window_size).
+        Array of windowed results with the shape (n_windows,).
     window_size : int
         Size of the sliding windows.
     reduction : callable, optional, default=np.nanmean

@@ -390,8 +390,8 @@ series and process unequal length collections.
 
 ```{code-block} python
 >>> from aeon.transformations.collection.pad import PaddingTransformer
->>> from aeon.testing.utils.data_gen import make_example_unequal_length
->>> X, _ = make_example_unequal_length(  # unequal length data with 8-12 timepoints
+>>> from aeon.testing.utils.data_gen import make_example_3d_numpy_list
+>>> X, _ = make_example_3d_numpy_list(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
 ...     min_n_timepoints=8,
 ...     max_n_timepoints=12,
