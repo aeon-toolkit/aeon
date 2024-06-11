@@ -8,7 +8,6 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestClassifier"]
 
 import time
-import warnings
 from typing import Type, Union
 
 import numpy as np
@@ -109,7 +108,6 @@ class RotationForestClassifier(BaseEstimator):
         base_estimator: Union[Type[BaseEstimator], None] = None,
         time_limit_in_minutes: int = 0.0,
         contract_max_n_estimators: int = 500,
-        save_transformed_data: bool = "deprecated",
         n_jobs: int = 1,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
     ):
@@ -122,15 +120,7 @@ class RotationForestClassifier(BaseEstimator):
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
         self.random_state = random_state
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.10.0
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.10.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
+        self._estimator_type = "classifier"
 
         super().__init__()
 
