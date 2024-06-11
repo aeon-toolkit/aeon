@@ -416,7 +416,7 @@ def row_quantile75(X: np.ndarray) -> np.ndarray:
     return row_quantile(X, 0.75)
 
 
-# @njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
 def std(X: np.ndarray) -> float:
     """Numba standard deviation function for a 1d numpy array.
 
