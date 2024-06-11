@@ -60,32 +60,25 @@ def check_estimator(
 
     Examples
     --------
-    >>> from aeon.transformations.exponent import ExponentTransformer
+    >>> from aeon.testing.mock_estimators import MockTransformer
     >>> from aeon.testing.estimator_checks import check_estimator
 
     Running all tests for ExponentTransformer class,
     this uses all instances from get_test_params and compatible scenarios
-    >>> results = check_estimator(ExponentTransformer)
+    >>> results = check_estimator(MockTransformer)
     All tests PASSED!
 
-    Running all tests for a specific ExponentTransformer
+    Running all tests for a specific MockTransformer
     this uses the instance that is passed and compatible scenarios
-    >>> results = check_estimator(ExponentTransformer(42))
+    >>> results = check_estimator(MockTransformer(42))
     All tests PASSED!
 
-    Running specific test (all fixtures) for ExponentTransformer
-    >>> results = check_estimator(ExponentTransformer, tests_to_run="test_clone")
+    Running specific test (all fixtures) for MockTransformer
+    >>> results = check_estimator(MockTransformer, tests_to_run="test_clone")
     All tests PASSED!
 
-    {'test_clone[ExponentTransformer-0]': 'PASSED',
-    'test_clone[ExponentTransformer-1]': 'PASSED'}
-
-    Running one specific test-fixture-combination for ExponentTransformer
-    >>> check_estimator(
-    ...    ExponentTransformer, fixtures_to_run="test_clone[ExponentTransformer-1]"
-    ... )
-    All tests PASSED!
-    {'test_clone[ExponentTransformer-1]': 'PASSED'}
+    {'test_clone[MockTransformer-0]': 'PASSED',
+    'test_clone[MockTransformer-1]': 'PASSED'}
     """
     from aeon.base import BaseEstimator
     from aeon.classification.early_classification.tests.test_all_early_classifiers import (  # noqa E501

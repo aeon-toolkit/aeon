@@ -194,7 +194,10 @@ def _lcss_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
     distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[x.shape[1], y.shape[1]]
-    return 1 - (float(distance / min(x.shape[1], y.shape[1])))
+    distance = 1 - (float(distance / min(x.shape[1], y.shape[1])))
+    if distance < 0.0:
+        return 0.0
+    return distance
 
 
 @njit(cache=True, fastmath=True)

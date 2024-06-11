@@ -13,6 +13,7 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
+from aeon.testing.mock_estimators import MockCollectionTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import (
@@ -23,7 +24,6 @@ from aeon.transformations.collection import (
     TimeSeriesScaler,
 )
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
-from aeon.transformations.impute import Imputer
 
 
 @pytest.mark.parametrize(
@@ -179,7 +179,10 @@ def test_missing_tag_inference():
     """Test that ClustererPipeline infers missing data tag correctly."""
     X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
-    t1 = Imputer()
+    t1 = MockCollectionTransformer()
+    t1.set_tags(
+        **{"capability:missing_values": True, "capability:missing_values:removes": True}
+    )
     t2 = TimeSeriesScaler()
     t3 = StandardScaler()
     t4 = Tabularizer()

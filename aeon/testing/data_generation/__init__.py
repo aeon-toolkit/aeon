@@ -18,6 +18,9 @@ __all__ = [
     #
     "make_series",
     # other
+    "make_series",
+    "make_forecasting_problem",
+    "_make_index",
     "piecewise_normal_multivariate",
     "piecewise_normal",
     "piecewise_multinomial",
