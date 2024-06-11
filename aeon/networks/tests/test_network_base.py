@@ -2,14 +2,14 @@
 
 import pytest
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __maintainer__ = []
 
 
-class DummyDeepNetwork(BaseDeepNetwork):
+class DummyDeepNetwork(BaseDeepLearningNetwork):
     """A Dummy Deep Network for testing empty base network class save utilities."""
 
     def __init__(self):
@@ -26,7 +26,7 @@ class DummyDeepNetwork(BaseDeepNetwork):
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow", "pydot"], severity="none"),
+    not _check_soft_dependencies("tensorflow", severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_dummy_deep_network():

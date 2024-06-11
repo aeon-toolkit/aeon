@@ -513,3 +513,18 @@ def test_single_to_multiple_distances(dist):
             dist["distance"],
             dist["pairwise_distance"],
         )
+
+
+@pytest.mark.parametrize("seed", [1, 10, 42, 52, 100])
+@pytest.mark.parametrize("dist", DISTANCES)
+def test_pairwise_distance_non_negative(dist, seed):
+    """Most estimators require distances to be non-negative."""
+    X = make_example_3d_numpy(
+        n_cases=5, n_channels=1, n_timepoints=10, random_state=seed, return_y=False
+    )
+    X2 = make_example_3d_numpy(
+        n_cases=10, n_channels=1, n_timepoints=10, random_state=seed + 1, return_y=False
+    )
+    pairwise = dist["pairwise_distance"]
+    Xt2 = pairwise(X2, X)
+    assert Xt2.min() >= 0, f"Distance {dist['name']} is negative"
