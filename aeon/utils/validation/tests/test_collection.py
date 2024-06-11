@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from aeon.testing.data_generation import make_example_nested_dataframe
 from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE
-from aeon.testing.utils.data_gen import make_example_nested_dataframe
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.collection import (
     _is_pd_wide,

@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_2d_dataframe,
     make_example_2d_numpy,
     make_example_2d_numpy_list,

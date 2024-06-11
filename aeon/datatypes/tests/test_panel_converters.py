@@ -28,12 +28,12 @@ from aeon.datatypes._panel._convert import (
     from_nplist_to_nested,
     from_numpy3d_to_dflist,
 )
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_3d_numpy_list,
     make_example_multi_index_dataframe,
     make_example_nested_dataframe,
 )
-from aeon.testing.utils.data_gen._legacy import (
+from aeon.testing.data_generation._legacy import (
     _make_collection_X,
     make_example_long_table,
 )
