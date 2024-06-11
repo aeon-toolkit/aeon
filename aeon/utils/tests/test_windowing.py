@@ -216,10 +216,22 @@ def test_sliding_windows_univariate(ws, stride):
 def test_sliding_windows_multivariate(ws, stride):
     """Test the sliding window function with multivariate data."""
     windows, padding = sliding_windows(
-        _MULTIVARIATE_DATA, window_size=ws, stride=stride
+        _MULTIVARIATE_DATA, window_size=ws, stride=stride, axis=0
     )
     assert windows.shape[1] == ws * _MULTIVARIATE_DATA.shape[1]
     assert windows.shape[0] == _n_windows(_MULTIVARIATE_DATA.shape[0], ws, stride)
+    assert padding == _padding(_MULTIVARIATE_DATA.shape[0], ws, stride)
+
+
+@pytest.mark.parametrize("ws", [1, 2, 3, 4, 5])
+@pytest.mark.parametrize("stride", [1, 2, 3, 4, 5])
+def test_sliding_windows_multivariate_axis(ws, stride):
+    """Test the sliding window function with multivariate data."""
+    windows, padding = sliding_windows(
+        _MULTIVARIATE_DATA.T, window_size=ws, stride=stride, axis=1
+    )
+    assert windows.shape[0] == ws * _MULTIVARIATE_DATA.shape[1]
+    assert windows.shape[1] == _n_windows(_MULTIVARIATE_DATA.shape[0], ws, stride)
     assert padding == _padding(_MULTIVARIATE_DATA.shape[0], ws, stride)
 
 

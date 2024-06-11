@@ -97,7 +97,7 @@ class PyODAdapter(BaseAnomalyDetector):
             )
 
         _X, self._padding_length = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride
+            X, window_size=self.window_size, stride=self.stride, axis=0
         )
         self.pyod_model.fit(_X)
         scores = self.pyod_model.decision_scores_

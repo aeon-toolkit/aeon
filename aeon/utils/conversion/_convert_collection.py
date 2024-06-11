@@ -155,7 +155,7 @@ def _from_numpy3d_to_nested_univ(X):
     n_cases, n_channels, n_timepoints = X.shape
     array_type = X.dtype
     container = pd.Series
-    column_names = [f"var_{i}" for i in range(n_channels)]
+    column_names = [f"channel_{i}" for i in range(n_channels)]
     column_list = []
     for j, column in enumerate(column_names):
         nested_column = (
