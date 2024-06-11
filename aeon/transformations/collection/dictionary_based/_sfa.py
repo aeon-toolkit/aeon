@@ -281,15 +281,15 @@ class SFA(BaseCollectionTransformer):
         """
         X = X.squeeze(1)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
-            transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
-                delayed(self._transform_case)(
-                    X[i, :],
-                    supplied_dft=self.binning_dft[i] if self.keep_binning_dft else None,
-                )
-                for i in range(X.shape[0])
+        # with warnings.catch_warnings():
+        # warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
+        transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            delayed(self._transform_case)(
+                X[i, :],
+                supplied_dft=self.binning_dft[i] if self.keep_binning_dft else None,
             )
+            for i in range(X.shape[0])
+        )
 
         dim, words = zip(*transform)
         if self.save_words:
@@ -329,11 +329,11 @@ class SFA(BaseCollectionTransformer):
         """
         # X = X.squeeze(1)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
-            transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
-                delayed(self._mft)(X[i, :]) for i in range(X.shape[0])
-            )
+        # with warnings.catch_warnings():
+        #    warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
+        transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            delayed(self._mft)(X[i, :]) for i in range(X.shape[0])
+        )
 
         words = np.array(list(zip(*transform))[0])
         return words
@@ -462,11 +462,9 @@ class SFA(BaseCollectionTransformer):
         if X.ndim == 3:
             X = X.squeeze(1)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
-            transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
-                delayed(self._transform_words_case)(X[i, :]) for i in range(X.shape[0])
-            )
+        transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            delayed(self._transform_words_case)(X[i, :]) for i in range(X.shape[0])
+        )
 
         words = zip(*transform)
         return np.array(list(words))

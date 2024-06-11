@@ -1270,19 +1270,3 @@ def _transform_words_case(
                         break
 
     return words
-
-
-# @njit(fastmath=True, cache=True)
-# def next_power_of_two(n):
-#     # If n is already a power of two, return it
-#     if n and not (n & (n - 1)):
-#         return n
-#
-#     # Find the position of the most significant bit
-#     msb = 0
-#     while n > 0:
-#         n >>= 1
-#         msb += 1
-#
-#     # Return the next power of two
-#     return 1 << msb
