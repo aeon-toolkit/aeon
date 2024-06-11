@@ -116,16 +116,8 @@ class FreshPRINCERegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        # TODO remove in v0.10.0
-        b = (
-            False
-            if isinstance(self.save_transformed_data, str)
-            else self.save_transformed_data
-        )
         self.transformed_data_ = self._fit_fp_shared(X, y)
         self._rotf.fit(self.transformed_data_, y)
-        if not b:
-            self.transformed_data_ = []
 
         return self
 
