@@ -72,7 +72,6 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
 
-        # the test currently fails when numba is disabled. See issue #622
         # import os
         #
         # if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
