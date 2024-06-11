@@ -100,7 +100,9 @@ class KMeansAD(BaseAnomalyDetector):
         self.estimator_: Optional[KMeans] = None
 
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "KMeansAD":
-        _X, _ = sliding_windows(X, window_size=self.window_size, stride=self.stride)
+        _X, _ = sliding_windows(
+            X, window_size=self.window_size, stride=self.stride, axis=0
+        )
         self.estimator_ = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
@@ -116,7 +118,7 @@ class KMeansAD(BaseAnomalyDetector):
 
     def _predict(self, X) -> np.ndarray:
         _X, padding = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride
+            X, window_size=self.window_size, stride=self.stride, axis=0
         )
         clusters = self.estimator_.predict(_X)
         window_scores = np.linalg.norm(
@@ -129,7 +131,7 @@ class KMeansAD(BaseAnomalyDetector):
 
     def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
         _X, padding = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride
+            X, window_size=self.window_size, stride=self.stride, axis=0
         )
         self.estimator_ = KMeans(
             n_clusters=self.n_clusters, random_state=self.random_state
