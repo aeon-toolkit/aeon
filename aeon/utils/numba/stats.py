@@ -35,13 +35,12 @@ __all__ = [
 ]
 
 import numpy as np
+from numba import njit
 
 import aeon.utils.numba.general as general_numba
 
-# from numba import njit
 
-
-# @njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
 def mean(X: np.ndarray) -> float:
     """Numba mean function for a 1d numpy array.
 
