@@ -33,6 +33,17 @@ class PyODAdapter(BaseAnomalyDetector):
     series the adapter concatenates the data points of each channel in the window to
     a single univariate feature vector per window as input to the PyOD model.
 
+    .. list-table:: Capabilities
+       :stub-columns: 1
+
+       * - Input data format
+         - univariate and multivariate
+       * - Output data format
+         - anomaly scores
+       * - Learning Type
+         - unsupervised
+
+
     Parameters
     ----------
     pyod_model : BaseDetector
