@@ -156,7 +156,7 @@ class _IGTS:
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
@@ -336,7 +336,7 @@ class InformationGainSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(

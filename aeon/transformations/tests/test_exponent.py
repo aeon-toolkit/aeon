@@ -5,7 +5,7 @@ __all__ = []
 
 import pytest
 
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation import make_series
 from aeon.transformations.exponent import ExponentTransformer
 
 

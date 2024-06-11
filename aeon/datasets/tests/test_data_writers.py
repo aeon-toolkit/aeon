@@ -17,12 +17,12 @@ from aeon.datasets._data_writers import (
     write_to_arff_file,
 )
 from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
-from aeon.testing.test_config import PR_TESTING
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
     make_example_nested_dataframe,
 )
+from aeon.testing.test_config import PR_TESTING
 
 
 @pytest.mark.skipif(

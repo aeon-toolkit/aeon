@@ -3,7 +3,7 @@
 import pandas as pd
 import pytest
 
-from aeon.testing.utils.data_gen.forecasting import (
+from aeon.testing.data_generation.forecasting import (
     _assert_correct_columns,
     _get_n_columns,
 )

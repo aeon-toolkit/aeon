@@ -128,7 +128,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = TimeSeriesForestClassifier(n_estimators=10, random_state=0)

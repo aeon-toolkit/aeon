@@ -11,11 +11,11 @@ from aeon.regression import DummyRegressor
 from aeon.regression.compose import RegressorPipeline
 from aeon.regression.convolution_based import RocketRegressor
 from aeon.regression.tests.test_base import _TestRegressor
-from aeon.testing.mock_estimators import MockCollectionTransformer
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
+from aeon.testing.mock_estimators import MockCollectionTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import (
