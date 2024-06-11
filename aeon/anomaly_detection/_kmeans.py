@@ -25,11 +25,15 @@ class KMeansAD(BaseAnomalyDetector):
     fitted on a clean reference time series and used to detect anomalies in a different
     target time series with the same number of dimensions.
 
-    Notes
-    -----
-    This implementation is inspired by [1]_. However, the original paper proposes a
-    different kind of preprocessing and also uses advanced techniques to post-process
-    the clustering.
+    .. list-table:: Capabilities
+       :stub-columns: 1
+
+       * - Input data format
+         - univariate and multivariate
+       * - Output data format
+         - anomaly scores
+       * - Learning Type
+         - unsupervised or semi-superivsed
 
     Parameters
     ----------
@@ -54,6 +58,12 @@ class KMeansAD(BaseAnomalyDetector):
 
     random_state : int, default=None
         The random state to use in the k-Means algorithm.
+
+    Notes
+    -----
+    This implementation is inspired by [1]_. However, the original paper proposes a
+    different kind of preprocessing and also uses advanced techniques to post-process
+    the clustering.
 
     References
     ----------
@@ -158,7 +168,7 @@ class KMeansAD(BaseAnomalyDetector):
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
