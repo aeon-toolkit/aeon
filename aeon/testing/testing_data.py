@@ -3,7 +3,7 @@
 import numpy as np
 
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_2d_dataframe,
     make_example_2d_numpy,
     make_example_3d_numpy,

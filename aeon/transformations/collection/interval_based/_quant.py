@@ -50,7 +50,7 @@ class QUANTTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.interval_based import QUANTTransformer
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, _ = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              random_state=0)
     >>> q = QUANTTransformer(interval_depth=2, quantile_divisor=8)  # doctest: +SKIP
