@@ -15,12 +15,7 @@ __all__ = [
     "make_example_2d_numpy_series",
     "make_example_pandas_series",
     "make_example_dataframe_series",
-    #
-    "make_series",
     # other
-    "make_series",
-    "make_forecasting_problem",
-    "_make_index",
     "piecewise_normal_multivariate",
     "piecewise_normal",
     "piecewise_multinomial",
@@ -52,7 +47,6 @@ from aeon.testing.data_generation._series import (
     make_example_2d_numpy_series,
     make_example_dataframe_series,
     make_example_pandas_series,
-    make_series,
 )
 from aeon.testing.data_generation._test_examples import get_examples
 from aeon.testing.data_generation.forecasting import (
