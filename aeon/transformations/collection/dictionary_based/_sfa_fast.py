@@ -176,14 +176,11 @@ class SFAFast(BaseCollectionTransformer):
         self.lower_bounding = lower_bounding
         self.lower_bounding_distances = lower_bounding_distances
 
-        if lower_bounding_distances:
-            self.inverse_sqrt_win_size = (
-                1.0 / math.sqrt(window_size) if lower_bounding_distances else 1.0
-            )
-        else:
-            self.inverse_sqrt_win_size = (
-                1.0 / math.sqrt(window_size) if not lower_bounding else 1.0
-            )
+        self.inverse_sqrt_win_size = (
+            1.0 / math.sqrt(window_size)
+            if (not lower_bounding or lower_bounding_distances)
+            else 1.0
+        )
 
         self.remove_repeat_words = remove_repeat_words
 
