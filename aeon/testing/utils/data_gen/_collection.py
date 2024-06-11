@@ -1,12 +1,21 @@
 """Utility functions for generating collections of time series."""
 
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = [
+    "make_example_3d_numpy",
+    "make_example_2d_numpy",
+    "make_example_3d_numpy_list",
+    "make_example_2d_numpy_list",
+    "make_example_dataframe_list",
+    "make_example_2d_dataframe",
+    "make_example_nested_dataframe",
+    "make_example_multi_index_dataframe",
+]
+
 from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from sklearn.utils.validation import check_random_state
-
-from aeon.utils.conversion import convert_collection
 
 
 def make_example_3d_numpy(
@@ -18,7 +27,9 @@ def make_example_3d_numpy(
     random_state: Union[int, None] = None,
     return_y: bool = True,
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-    """Randomly generate 3D X and y data for testing.
+    """Randomly generate 3D numpy X and numpy y data for testing.
+
+    Generates data in 'numpy3D' format.
 
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
@@ -45,16 +56,16 @@ def make_example_3d_numpy(
     X : np.ndarray
         Randomly generated 3D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
 
     Examples
     --------
     >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_3d_numpy(
     ...     n_cases=2,
     ...     n_channels=2,
     ...     n_timepoints=6,
-    ...     return_y=True,
     ...     n_labels=2,
     ...     random_state=0,
     ... )
@@ -66,6 +77,8 @@ def make_example_3d_numpy(
       [3.112627   3.48004859 3.91447337 3.19663426 1.84591745 3.12211671]]]
     >>> print(labels)
     [0 1]
+    >>> get_type(data)
+    'numpy3D'
     """
     rng = np.random.RandomState(random_state)
     X = n_labels * rng.uniform(size=(n_cases, n_channels, n_timepoints))
@@ -80,6 +93,7 @@ def make_example_3d_numpy(
     if regression_target:
         y = y.astype(np.float32)
         y += rng.uniform(size=y.shape)
+
     if return_y:
         return X, y
     return X
@@ -93,7 +107,9 @@ def make_example_2d_numpy(
     random_state: Union[int, None] = None,
     return_y: bool = True,
 ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-    """Randomly generate 2D data for testing.
+    """Randomly generate 2D numpy X and numpy y for testing.
+
+    Generates data in 'numpy2D' format.
 
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
@@ -116,19 +132,27 @@ def make_example_2d_numpy(
     Returns
     -------
     X : np.ndarray
-        Randomly generated 1D data.
+        Randomly generated 2D data.
     y : np.ndarray
         Randomly generated labels if return_y is True.
 
     Examples
     --------
-    >>> data, labels = make_example_2d_numpy(n_cases=2, n_timepoints=6,
-    ... n_labels=2, random_state=0)
+    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
+    >>> from aeon.utils.validation.collection import get_type
+    >>> data, labels = make_example_2d_numpy(
+    ...     n_cases=2,
+    ...     n_timepoints=6,
+    ...     n_labels=2,
+    ...     random_state=0,
+    ... )
     >>> print(data)
     [[0.         1.43037873 1.20552675 1.08976637 0.8473096  1.29178823]
      [2.         3.567092   3.85465104 1.53376608 3.16690015 2.11557968]]
     >>> print(labels)
     [0 1]
+    >>> get_type(data)
+    'numpy2D'
     """
     rng = np.random.RandomState(random_state)
     X = n_labels * rng.uniform(size=(n_cases, n_timepoints))
@@ -143,94 +167,25 @@ def make_example_2d_numpy(
     if regression_target:
         y = y.astype(np.float32)
         y += rng.uniform(size=y.shape)
+
     if return_y:
         return X, y
     return X
 
 
-def make_example_2d_unequal_length(
+def make_example_3d_numpy_list(
     n_cases: int = 10,
-    min_n_timepoints: int = 6,
-    max_n_timepoints: int = 8,
+    n_channels: int = 1,
+    min_n_timepoints: int = 8,
+    max_n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
     return_y: bool = True,
 ) -> Union[List[np.ndarray], Tuple[List[np.ndarray], np.ndarray]]:
-    """Randomly generate 2D unequal length X and y for testing.
+    """Randomly generate 3D list of numpy X and numpy y for testing.
 
-    Will ensure there is at least one sample per label if a classification
-    label is being returned (regression_target=False).
-
-    Parameters
-    ----------
-    n_cases : int
-        The number of samples to generate.
-    min_n_timepoints : int
-        The minimum number of features/series length to generate for invidiaul series.
-    max_n_timepoints : int
-        The maximum number of features/series length to generate for invidiaul series.
-    n_labels : int
-        The number of unique labels to generate.
-    regression_target : bool
-        If True, the target will be a scalar float, otherwise an int.
-    random_state : int or None
-        Seed for random number generation.
-    return_y : bool, default = True
-        Return the y target variable.
-
-    Returns
-    -------
-    X : list of np.ndarray
-        Randomly generated unequal length 2D data.
-    y : np.ndarray
-        Randomly generated labels.
-
-    Examples
-    --------
-    >>> from aeon.testing.utils.data_gen import make_example_2d_unequal_length
-    >>> data, labels = make_example_2d_unequal_length(
-    ...     n_cases=20,
-    ...     min_n_timepoints=8,
-    ...     max_n_timepoints=12,
-    ...     n_labels=3,
-    ... )
-    """
-    rng = np.random.RandomState(random_state)
-    X = []
-    y = np.zeros(n_cases, dtype=np.int32)
-    for i in range(n_cases):
-        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
-        x = n_labels * rng.uniform(size=n_timepoints)
-        label = x[0].astype(int)
-        if i < n_labels and n_cases > i:
-            x[0] = i
-            label = i
-        x = x * (label + 1)
-
-        X.append(x)
-        y[i] = label
-
-    if regression_target:
-        y = y.astype(np.float32)
-        y += rng.uniform(size=y.shape)
-
-    if return_y:
-        return X, y
-    return X
-
-
-def make_example_unequal_length(
-    n_cases: int = 10,
-    n_channels: int = 1,
-    min_n_timepoints: int = 6,
-    max_n_timepoints: int = 8,
-    n_labels: int = 2,
-    regression_target: bool = False,
-    random_state: Union[int, None] = None,
-    return_y: bool = True,
-) -> Tuple[List[np.ndarray], np.ndarray]:
-    """Randomly generate unequal length X and y for testing.
+    Generates data in 'np-list' format.
 
     Will ensure there is at least one sample per label if a classification
     label is being returned (regression_target=False).
@@ -242,9 +197,9 @@ def make_example_unequal_length(
     n_channels : int
         The number of series channels to generate.
     min_n_timepoints : int
-        The minimum number of features/series length to generate for invidiaul series.
+        The minimum number of features/series length to generate for individual series.
     max_n_timepoints : int
-        The maximum number of features/series length to generate for invidiaul series.
+        The maximum number of features/series length to generate for individual series.
     n_labels : int
         The number of unique labels to generate.
     regression_target : bool
@@ -257,20 +212,31 @@ def make_example_unequal_length(
     Returns
     -------
     X : list of np.ndarray
-        Randomly generated unequal length 3D data.
+        Randomly generated potentially unequal length 3D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_unequal_length
-    >>> data, labels = make_example_unequal_length(
-    ...     n_cases=20,
+    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy_list
+    >>> from aeon.utils.validation.collection import get_type
+    >>> data, labels = make_example_3d_numpy_list(
+    ...     n_cases=2,
     ...     n_channels=2,
-    ...     min_n_timepoints=8,
-    ...     max_n_timepoints=12,
-    ...     n_labels=3,
+    ...     min_n_timepoints=4,
+    ...     max_n_timepoints=6,
+    ...     n_labels=2,
+    ...     random_state=0,
     ... )
+    >>> print(data)  # doctest: +NORMALIZE_WHITESPACE
+    [array([[0.        , 1.6885315 , 1.71589124, 1.69450348],
+           [1.24712739, 0.76876341, 0.59506921, 0.11342595]]),
+           array([[2.        , 3.16690015, 2.11557968, 2.27217824],
+           [3.70238655, 0.28414423, 0.3485172 , 0.08087359]])]
+    >>> print(labels)
+    [0 1]
+    >>> get_type(data)
+    'np-list'
     """
     rng = np.random.RandomState(random_state)
     X = []
@@ -297,25 +263,279 @@ def make_example_unequal_length(
     return X
 
 
-def make_example_nested_dataframe(
-    n_cases: int = 20,
+def make_example_2d_numpy_list(
+    n_cases: int = 10,
+    min_n_timepoints: int = 8,
+    max_n_timepoints: int = 12,
+    n_labels: int = 2,
+    regression_target: bool = False,
+    random_state: Union[int, None] = None,
+    return_y: bool = True,
+) -> Union[List[np.ndarray], Tuple[List[np.ndarray], np.ndarray]]:
+    """Randomly generate 2D list of numpy X and numpy y for testing.
+
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
+
+    Parameters
+    ----------
+    n_cases : int, default = 10
+        The number of samples to generate.
+    min_n_timepoints : int, default = 8
+        The minimum number of features/series length to generate for individual series.
+    max_n_timepoints : int, default = 12
+        The maximum number of features/series length to generate for individual series.
+    n_labels : int, default = 2
+        The number of unique labels to generate.
+    regression_target : bool, default = False
+        If True, the target will be a scalar float, otherwise an int.
+    random_state : int or None, default = None
+        Seed for random number generation.
+    return_y : bool, default = True
+        Return the y target variable.
+
+    Returns
+    -------
+    X : list of np.ndarray
+        Randomly generated potentially unequal length 2D data.
+    y : np.ndarray
+        Randomly generated labels if return_y is True.
+
+    Examples
+    --------
+    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy_list
+    >>> from aeon.utils.validation.collection import get_type
+    >>> data, labels = make_example_2d_numpy_list(
+    ...     n_cases=2,
+    ...     min_n_timepoints=4,
+    ...     max_n_timepoints=6,
+    ...     n_labels=2,
+    ...     random_state=0,
+    ... )
+    >>> print(data)  # doctest: +NORMALIZE_WHITESPACE
+    [array([0.        , 1.6885315 , 1.71589124, 1.69450348]),
+            array([2.        , 1.19013843, 0.22685191, 1.09062518, 1.91066047])]
+    >>> print(labels)
+    [0 1]
+    """
+    rng = np.random.RandomState(random_state)
+    X = []
+    y = np.zeros(n_cases, dtype=np.int32)
+
+    for i in range(n_cases):
+        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
+        x = n_labels * rng.uniform(size=n_timepoints)
+        label = x[0].astype(int)
+        if i < n_labels and n_cases > i:
+            x[0] = i
+            label = i
+        x = x * (label + 1)
+
+        X.append(x)
+        y[i] = label
+
+    if regression_target:
+        y = y.astype(np.float32)
+        y += rng.uniform(size=y.shape)
+
+    if return_y:
+        return X, y
+    return X
+
+
+def make_example_dataframe_list(
+    n_cases: int = 10,
     n_channels: int = 1,
-    n_timepoints: int = 20,
+    min_n_timepoints: int = 8,
+    max_n_timepoints: int = 12,
+    n_labels: int = 2,
+    regression_target: bool = False,
+    random_state: Union[int, None] = None,
+    return_y: bool = True,
+) -> Union[List[pd.DataFrame], Tuple[List[pd.DataFrame], np.ndarray]]:
+    """Randomly generate list of DataFrame X and numpy y for testing.
+
+    Generates data in 'df-list' format.
+
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
+
+    Parameters
+    ----------
+    n_cases : int
+        The number of samples to generate.
+    n_channels : int
+        The number of series channels to generate.
+    min_n_timepoints : int
+        The minimum number of features/series length to generate for individual series.
+    max_n_timepoints : int
+        The maximum number of features/series length to generate for individual series.
+    n_labels : int
+        The number of unique labels to generate.
+    regression_target : bool
+        If True, the target will be a scalar float, otherwise an int.
+    random_state : int or None
+        Seed for random number generation.
+    return_y : bool, default = True
+        Return the y target variable.
+
+    Returns
+    -------
+    X : list of pd.DataFrame
+        Randomly generated potentially unequal length 3D data.
+    y : np.ndarray
+        Randomly generated labels if return_y is True.
+
+    Examples
+    --------
+    >>> from aeon.testing.utils.data_gen import make_example_dataframe_list
+    >>> from aeon.utils.validation.collection import get_type
+    >>> data, labels = make_example_dataframe_list(
+    ...     n_cases=2,
+    ...     n_channels=2,
+    ...     min_n_timepoints=4,
+    ...     max_n_timepoints=6,
+    ...     n_labels=2,
+    ...     random_state=0,
+    ... )
+    >>> print(data)
+    [          0         1
+    0  0.000000  1.688531
+    1  1.715891  1.694503
+    2  1.247127  0.768763
+    3  0.595069  0.113426,           0         1
+    0  2.000000  3.166900
+    1  2.115580  2.272178
+    2  3.702387  0.284144
+    3  0.348517  0.080874]
+    >>> print(labels)
+    [0 1]
+    >>> get_type(data)
+    'df-list'
+    """
+    rng = np.random.RandomState(random_state)
+    X = []
+    y = np.zeros(n_cases, dtype=np.int32)
+
+    for i in range(n_cases):
+        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
+        x = n_labels * rng.uniform(size=(n_timepoints, n_channels))
+        label = x[0, 0].astype(int)
+        if i < n_labels and n_cases > i:
+            x[0, 0] = i
+            label = i
+        x = x * (label + 1)
+
+        X.append(pd.DataFrame(x, index=range(n_timepoints), columns=range(n_channels)))
+        y[i] = label
+
+    if regression_target:
+        y = y.astype(np.float32)
+        y += rng.uniform(size=y.shape)
+
+    if return_y:
+        return X, y
+    return X
+
+
+def make_example_2d_dataframe(
+    n_cases: int = 10,
+    n_timepoints: int = 8,
+    n_labels: int = 2,
+    regression_target: bool = False,
+    random_state: Union[int, None] = None,
+    return_y: bool = True,
+) -> Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]:
+    """Randomly generate 2D DataFrame X and numpy y for testing.
+
+    Generates data in 'pd-wide' format.
+
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
+
+    Parameters
+    ----------
+    n_cases : int
+        The number of samples to generate.
+    n_timepoints : int
+        The number of features/series length to generate.
+    n_labels : int
+        The number of unique labels to generate.
+    regression_target : bool
+        If True, the target will be a scalar float, otherwise an int.
+    random_state : int or None
+        Seed for random number generation.
+    return_y : bool, default = True
+        If True, return the labels as well as the data.
+
+    Returns
+    -------
+    X : pd.DataFrame
+        Randomly generated 2D data.
+    y : np.ndarray
+        Randomly generated labels if return_y is True.
+
+    Examples
+    --------
+    >>> from aeon.testing.utils.data_gen import make_example_2d_dataframe
+    >>> from aeon.utils.validation.collection import get_type
+    >>> data, labels = make_example_2d_dataframe(
+    ...     n_cases=2,
+    ...     n_timepoints=6,
+    ...     n_labels=2,
+    ...     random_state=0,
+    ... )
+    >>> print(data)
+         0         1         2         3        4         5
+    0  0.0  1.430379  1.205527  1.089766  0.84731  1.291788
+    1  2.0  3.567092  3.854651  1.533766  3.16690  2.115580
+    >>> print(labels)
+    [0 1]
+    >>> get_type(data)
+    'pd-wide'
+    """
+    X, y = make_example_2d_numpy(
+        n_cases=n_cases,
+        n_timepoints=n_timepoints,
+        n_labels=n_labels,
+        regression_target=regression_target,
+        random_state=random_state,
+        return_y=True,
+    )
+    X = pd.DataFrame(X, index=range(n_cases), columns=range(n_timepoints))
+
+    if return_y:
+        return X, y
+    return X
+
+
+def make_example_nested_dataframe(
+    n_cases: int = 10,
+    n_channels: int = 1,
+    min_n_timepoints: int = 8,
+    max_n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
     random_state=None,
     return_y: bool = True,
 ):
-    """Randomly generate nest pd.DataFrame X and pd.Series y data for testing.
+    """Randomly generate nested pd.DataFrame X and numpy y data for testing.
+
+    Generates data in 'nested_univ' format.
+
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
 
     Parameters
     ----------
-    n_cases : int, default = 20
+    n_cases : int, default = 10
         The number of samples to generate.
     n_channels : int, default = 1
         The number of series channels to generate.
-    n_timepoints : int, default = 20
-        The number of features/series length to generate.
+    min_n_timepoints : int, default = 12
+        The minimum number of features/series length to generate for individual series.
+    max_n_timepoints : int, default = 12
+        The maximum number of features/series length to generate for individual series.
     n_labels : int, default = 2
         The number of unique labels to generate.
     regression_target : bool, default = False
@@ -327,276 +547,171 @@ def make_example_nested_dataframe(
 
     Returns
     -------
-    X : np.ndarray
-        Randomly generated 3D data.
+    X : pd.DataFrame
+        Randomly generated potentially unequal length 3D data.
     y : np.ndarray
-        Randomly generated labels.
+        Randomly generated labels if return_y is True.
+
+    Examples
+    --------
+    >>> from aeon.testing.utils.data_gen import make_example_nested_dataframe
+    >>> from aeon.utils.validation.collection import get_type
+    >>> data, labels = make_example_nested_dataframe(
+    ...     n_cases=2,
+    ...     min_n_timepoints=4,
+    ...     max_n_timepoints=6,
+    ...     n_labels=2,
+    ...     random_state=0,
+    ... )
+    >>> print(data)
+                                               channel_0
+    0  0    0.000000
+    1    1.688531
+    2    1.715891
+    3   ...
+    1  0    2.000000
+    1    1.190138
+    2    0.226852
+    3   ...
+    >>> print(labels)
+    [0 1]
+    >>> get_type(data)
+    'nested_univ'
     """
-    X = _make_collection_X(
-        n_cases=n_cases,
-        n_channels=n_channels,
-        n_timepoints=n_timepoints,
-        return_numpy=False,
-        random_state=random_state,
-    )
+    rng = np.random.RandomState(random_state)
+    X = pd.DataFrame(index=range(n_cases), columns=range(n_channels))
+    y = np.zeros(n_cases, dtype=np.int32)
+
+    for i in range(n_cases):
+        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
+        x = n_labels * rng.uniform(size=(n_channels, n_timepoints))
+        label = x[0, 0].astype(int)
+        if i < n_labels and n_cases > i:
+            x[0, 0] = i
+            label = i
+        x = x * (label + 1)
+
+        for j in range(n_channels):
+            X.iloc[i][j] = pd.Series(x[j], index=range(n_timepoints))
+
+        y[i] = label
+
+    X.columns = [f"channel_{i}" for i in range(n_channels)]
+
+    if regression_target:
+        y = y.astype(np.float32)
+        y += rng.uniform(size=y.shape)
+
     if return_y:
-        if not regression_target:
-            """Make Classification Problem."""
-            y = _make_classification_y(
-                n_cases, n_labels, return_numpy=False, random_state=random_state
-            )
-        else:
-            y = _make_regression_y(
-                n_cases, return_numpy=False, random_state=random_state
-            )
         return X, y
     return X
 
 
-def make_example_long_table(
-    n_cases: int = 50, n_channels: int = 2, n_timepoints: int = 20
-) -> pd.DataFrame:
-    """Generate example collection in long table format file.
-
-    Parameters
-    ----------
-    n_cases: int, default = 50
-        Number of cases.
-    n_channels: int, default = 2
-        Number of dimensions.
-    n_timepoints: int, default = 20
-        Length of the series.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing random data in long format.
-    """
-    rows_per_case = n_timepoints * n_channels
-    total_rows = n_cases * n_timepoints * n_channels
-
-    case_ids = np.empty(total_rows, dtype=int)
-    idxs = np.empty(total_rows, dtype=int)
-    dims = np.empty(total_rows, dtype=int)
-    vals = np.random.rand(total_rows)
-
-    for i in range(total_rows):
-        case_ids[i] = int(i / rows_per_case)
-        rem = i % rows_per_case
-        dims[i] = int(rem / n_timepoints)
-        idxs[i] = rem % n_timepoints
-
-    df = pd.DataFrame()
-    df["case_id"] = pd.Series(case_ids)
-    df["dim_id"] = pd.Series(dims)
-    df["reading_id"] = pd.Series(idxs)
-    df["value"] = pd.Series(vals)
-    return df
-
-
 def make_example_multi_index_dataframe(
-    n_cases: int = 50, n_channels: int = 3, n_timepoints: int = 20
-):
-    """Generate example collection as multi-index DataFrame.
-
-    Parameters
-    ----------
-    n_cases : int, default =50
-        Number of instances.
-    n_channels : int, default =3
-        Number of columns (series) in multi-indexed DataFrame.
-    n_timepoints : int, default =20
-        Number of timepoints per instance-column pair.
-
-    Returns
-    -------
-    mi_df : pd.DataFrame
-        The multi-indexed DataFrame with
-        shape (n_cases*n_timepoints, n_column).
-    """
-    # Make long DataFrame
-    long_df = make_example_long_table(
-        n_cases=n_cases, n_timepoints=n_timepoints, n_channels=n_channels
-    )
-    # Make Multi index DataFrame
-    mi_df = long_df.set_index(["case_id", "reading_id"]).pivot(columns="dim_id")
-    mi_df.columns = [f"var_{i}" for i in range(n_channels)]
-    return mi_df
-
-
-def _make_collection(
-    n_cases=20,
-    n_channels=1,
-    n_timepoints=20,
-    y=None,
-    all_positive=False,
+    n_cases: int = 10,
+    n_channels: int = 1,
+    min_n_timepoints: int = 8,
+    max_n_timepoints: int = 12,
+    n_labels: int = 2,
+    regression_target: bool = False,
     random_state=None,
-    return_type="numpy3D",
+    return_y: bool = True,
 ):
-    """Generate aeon compatible test data, data formats.
+    """Randomly generate multi-index pd.DataFrame X and numpy y data for testing.
+
+    Generates data in 'pd-multiindex' format.
+
+    Will ensure there is at least one sample per label if a classification
+    label is being returned (regression_target=False).
 
     Parameters
     ----------
-    n_cases : int, optional, default=20
-        number of instances per series in the collection
-    n_channels : int, optional, default=1
-        number of variables in the time series
-    n_timepoints : int, optional, default=20
-        number of time points in each series
-    y : None (default), or 1D np.darray or 1D array-like, shape (n_cases, )
-        if passed, return will be generated with association to y
-    all_positive : bool, optional, default=False
-        whether series contain only positive values when generated
-    random_state : None (default) or int
-        if int is passed, will be used in numpy RandomState for generation
-    return_type : str, aeon collection type, default="numpy3D"
+    n_cases : int, default = 10
+        The number of samples to generate.
+    n_channels : int, default = 1
+        The number of series channels to generate.
+    min_n_timepoints : int, default = 12
+        The minimum number of features/series length to generate for individual series.
+    max_n_timepoints : int, default = 12
+        The maximum number of features/series length to generate for individual series.
+    n_labels : int, default = 2
+        The number of unique labels to generate.
+    regression_target : bool, default = False
+        If True, the target will be a float, otherwise a discrete.
+    random_state : int or None, default = None
+        Seed for random number generation.
+    return_y : bool, default = True
+        Return the y target variable.
 
     Returns
     -------
-    X : an aeon time series data container of type return_type
-        with n_cases instances, n_channels variables, n_timepoints time points
-        generating distribution is all values i.i.d. normal with std 0.5
-        if y is passed, i-th series values are additively shifted by y[i] * 100
+    X : pd.DataFrame
+        Randomly generated potentially unequal length 3D data.
+    y : np.ndarray
+        Randomly generated labels if return_y is True.
+
+    Examples
+    --------
+    >>> from aeon.testing.utils.data_gen import make_example_multi_index_dataframe
+    >>> from aeon.utils.validation.collection import get_type
+    >>> data, labels = make_example_multi_index_dataframe(
+    ...     n_cases=2,
+    ...     n_channels=2,
+    ...     min_n_timepoints=4,
+    ...     max_n_timepoints=6,
+    ...     n_labels=2,
+    ...     random_state=0,
+    ... )
+    >>> print(data)  # doctest: +NORMALIZE_WHITESPACE
+                    channel_0  channel_1
+    case timepoint
+    0    0           0.000000   1.247127
+         1           1.688531   0.768763
+         2           1.715891   0.595069
+         3           1.694503   0.113426
+    1    0           2.000000   3.702387
+         1           3.166900   0.284144
+         2           2.115580   0.348517
+         3           2.272178   0.080874
+    >>> print(labels)
+    [0 1]
+    >>> get_type(data)
+    'pd-multiindex'
     """
-    # If target variable y is given, we ignore n_cases and instead generate as
-    # many instances as in the target variable
-    if y is not None:
-        y = np.asarray(y)
-        n_cases = len(y)
-    rng = check_random_state(random_state)
+    rng = np.random.RandomState(random_state)
+    X = pd.DataFrame()
+    X["case"] = pd.Series(dtype=np.int32)
+    X["channel"] = pd.Series(dtype=np.int32)
+    X["timepoint"] = pd.Series(dtype=np.int32)
+    X["value"] = pd.Series(dtype=np.float32)
+    y = np.zeros(n_cases, dtype=np.int32)
 
-    # Generate data as 3d numpy array
-    X = rng.normal(scale=0.5, size=(n_cases, n_channels, n_timepoints))
+    for i in range(n_cases):
+        n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
+        x = n_labels * rng.uniform(size=(n_channels, n_timepoints))
+        label = x[0, 0].astype(int)
+        if i < n_labels and n_cases > i:
+            x[0, 0] = i
+            label = i
+        x = x * (label + 1)
 
-    # Generate association between data and target variable
-    if y is not None:
-        X = X + (y * 100).reshape(-1, 1, 1)
+        df = pd.DataFrame()
+        df["case"] = pd.Series([i] * n_channels * n_timepoints)
+        df["channel"] = pd.Series(np.repeat(range(n_channels), n_timepoints))
+        df["timepoint"] = pd.Series(np.tile(range(n_timepoints), n_channels))
+        df["value"] = pd.Series(x.reshape(-1))
 
-    if all_positive:
-        X = X**2
+        X = pd.concat([X, df])
+        y[i] = label
 
-    X = convert_collection(X, return_type)
+    X = X.reset_index(drop=True)
+    X = X.set_index(["case", "timepoint"]).pivot(columns="channel")
+    X.columns = [f"channel_{i}" for i in range(n_channels)]
+
+    if regression_target:
+        y = y.astype(np.float32)
+        y += rng.uniform(size=y.shape)
+
+    if return_y:
+        return X, y
     return X
-
-
-def _make_collection_X(
-    n_cases=20,
-    n_channels=1,
-    n_timepoints=20,
-    y=None,
-    all_positive=False,
-    return_numpy=False,
-    random_state=None,
-):
-    if return_numpy:
-        return_type = "numpy3D"
-    else:
-        return_type = "nested_univ"
-
-    return _make_collection(
-        n_cases=n_cases,
-        n_channels=n_channels,
-        n_timepoints=n_timepoints,
-        y=y,
-        all_positive=all_positive,
-        random_state=random_state,
-        return_type=return_type,
-    )
-
-
-def _make_regression_y(n_cases=20, return_numpy=True, random_state=None):
-    rng = check_random_state(random_state)
-    y = rng.normal(size=n_cases)
-    y = y.astype(np.float32)
-    if return_numpy:
-        return y
-    else:
-        return pd.Series(y)
-
-
-def _make_classification_y(
-    n_cases=20, n_classes=2, return_numpy=True, random_state=None
-):
-    if not n_cases >= n_classes:
-        raise ValueError("n_cases must be bigger than n_classes")
-    rng = check_random_state(random_state)
-    n_repeats = int(np.ceil(n_cases / n_classes))
-    y = np.tile(np.arange(n_classes), n_repeats)[:n_cases]
-    rng.shuffle(y)
-    if return_numpy:
-        return y
-    else:
-        return pd.Series(y)
-
-
-def _make_nested_from_array(array, n_cases=20, n_columns=1):
-    return pd.DataFrame(
-        [[pd.Series(array) for _ in range(n_columns)] for _ in range(n_cases)],
-        columns=[f"col{c}" for c in range(n_columns)],
-    )
-
-
-np_list = []
-for _ in range(10):
-    np_list.append(np.random.random(size=(1, 20)))
-df_list = []
-for _ in range(10):
-    df_list.append(pd.DataFrame(np.random.random(size=(20, 1))))
-nested, _ = make_example_nested_dataframe(n_cases=10)
-multiindex = make_example_multi_index_dataframe(
-    n_cases=10, n_channels=1, n_timepoints=20
-)
-
-EQUAL_LENGTH_UNIVARIATE = {
-    "numpy3D": np.random.random(size=(10, 1, 20)),
-    "np-list": np_list,
-    "df-list": df_list,
-    "numpy2D": np.zeros(shape=(10, 20)),
-    "pd-wide": pd.DataFrame(np.zeros(shape=(10, 20))),
-    "nested_univ": nested,
-    "pd-multiindex": multiindex,
-}
-np_list_uneq = []
-for i in range(10):
-    np_list_uneq.append(np.random.random(size=(1, 20 + i)))
-df_list_uneq = []
-for i in range(10):
-    df_list_uneq.append(pd.DataFrame(np.random.random(size=(20 + i, 1))))
-
-nested_univ_uneq = pd.DataFrame(dtype=float)
-instance_list = []
-for i in range(0, 10):
-    instance_list.append(pd.Series(np.random.randn(20 + i)))
-nested_univ_uneq["channel0"] = instance_list
-
-UNEQUAL_LENGTH_UNIVARIATE = {
-    "np-list": np_list_uneq,
-    "df-list": df_list_uneq,
-    "nested_univ": nested_univ_uneq,
-}
-np_list_multi = []
-for _ in range(10):
-    np_list_multi.append(np.random.random(size=(2, 20)))
-df_list_multi = []
-for _ in range(10):
-    df_list_multi.append(pd.DataFrame(np.random.random(size=(20, 2))))
-multi = make_example_multi_index_dataframe(n_cases=10, n_channels=2, n_timepoints=20)
-
-nested_univ_multi = pd.DataFrame(dtype=float)
-instance_list = []
-for _ in range(0, 10):
-    instance_list.append(pd.Series(np.random.randn(20)))
-nested_univ_multi["channel0"] = instance_list
-instance_list = []
-for _ in range(0, 10):
-    instance_list.append(pd.Series(np.random.randn(20)))
-nested_univ_multi["channel1"] = instance_list
-
-
-EQUAL_LENGTH_MULTIVARIATE = {
-    "numpy3D": np.random.random(size=(10, 2, 20)),
-    "np-list": np_list_multi,
-    "df-list": df_list_multi,
-    "nested_univ": nested_univ_multi,
-    "pd-multiindex": multi,
-}

@@ -27,9 +27,9 @@ def random_partition(n, k=2, seed=42):
         elements of elements of `parts` are in no particular order
         `parts` is sampled uniformly at random, subject to the above properties
     """
-    random.seed(seed)
+    rng = random.Random(seed)
     idx = list(range(n))
-    random.shuffle(idx)
+    rng.shuffle(idx)
 
     parts = []
     for i in range(k):
