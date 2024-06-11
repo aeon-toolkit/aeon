@@ -10,7 +10,7 @@ from aeon.clustering.averaging import (
     petitjean_barycenter_average,
     subgradient_barycenter_average,
 )
-from aeon.testing.utils.data_gen import make_example_3d_numpy, make_series
+from aeon.testing.data_generation import make_example_3d_numpy, make_series
 
 expected_petitjean_dba_univariate = np.array(
     [

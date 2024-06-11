@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.registry import all_estimators
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
 ALL_COLL_TRANS = all_estimators("collection-transformer", return_names=False)
