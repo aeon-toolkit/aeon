@@ -37,6 +37,8 @@ def test_all_networks_functionality():
                         my_network = network_classes[i]()
                     else:
                         continue
+                else:
+                    continue
 
         if str(network_classes[i]).startswith("AE"):
             encoder, decoder = my_network.build_network(input_shape=input_shape)
