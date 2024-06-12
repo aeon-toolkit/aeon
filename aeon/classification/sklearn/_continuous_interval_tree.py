@@ -10,14 +10,267 @@ __all__ = ["ContinuousIntervalTree"]
 
 import math
 import sys
+from typing import List, Tuple, Type, Union
 
 import numpy as np
 from numba import njit
 from sklearn import preprocessing
 from sklearn.base import BaseEstimator
+from sklearn.exceptions import NotFittedError
 from sklearn.utils import check_random_state
 
-from aeon.exceptions import NotFittedError
+
+class _TreeNode:
+    """ContinuousIntervalTree tree node."""
+
+    def __init__(
+        self, random_state: Union[int, Type[np.random.RandomState], None] = None
+    ) -> None:
+        self.random_state = random_state
+
+        self.best_split = -1
+        self.best_threshold = 0
+        self.best_gain = 0.000001
+        self.best_margin = -1
+        self.children = []
+        self.leaf_distribution = []
+        self.depth = -1
+
+    def build_tree(
+        self,
+        X,
+        y,
+        thresholds: int,
+        entropy: float,
+        distribution,
+        depth: int,
+        max_depth: int,
+        n_classes: int,
+        leaf: bool,
+    ):
+        self.depth = depth
+        best_distributions = []
+        best_entropies = []
+
+        if leaf is False and self.remaining_classes(distribution) and depth < max_depth:
+            for (_, att), threshold in np.ndenumerate(thresholds):
+                (
+                    info_gain,
+                    distributions,
+                    entropies,
+                ) = self.information_gain(X, y, att, threshold, entropy, n_classes)
+
+                if info_gain > self.best_gain:
+                    self.best_split = att
+                    self.best_threshold = threshold
+                    self.best_gain = info_gain
+                    self.best_margin = -1
+                    best_distributions = distributions
+                    best_entropies = entropies
+                elif info_gain == self.best_gain and info_gain > 0.000001:
+                    margin = self.margin_gain(X, att, threshold)
+                    if self.best_margin == -1:
+                        self.best_margin = self.margin_gain(
+                            X, self.best_split, self.best_threshold
+                        )
+
+                    if margin > self.best_margin or (
+                        margin == self.best_margin
+                        and self.random_state.choice([True, False])
+                    ):
+                        self.best_split = att
+                        self.best_threshold = threshold
+                        self.best_margin = margin
+                        best_distributions = distributions
+                        best_entropies = entropies
+
+        if self.best_split > -1:
+            self.children = [None, None, None]
+
+            left_idx, right_idx, missing_idx = self.split_data(
+                X, self.best_split, self.best_threshold
+            )
+
+            if len(left_idx) > 0:
+                self.children[0] = _TreeNode(random_state=self.random_state)
+                self.children[0].build_tree(
+                    X[left_idx],
+                    y[left_idx],
+                    thresholds,
+                    best_entropies[0],
+                    best_distributions[0],
+                    depth + 1,
+                    max_depth,
+                    n_classes,
+                    False,
+                )
+            else:
+                self.children[0] = _TreeNode(random_state=self.random_state)
+                self.children[0].build_tree(
+                    X,
+                    y,
+                    thresholds,
+                    entropy,
+                    distribution,
+                    depth + 1,
+                    max_depth,
+                    n_classes,
+                    True,
+                )
+
+            if len(right_idx) > 0:
+                self.children[1] = _TreeNode(random_state=self.random_state)
+                self.children[1].build_tree(
+                    X[right_idx],
+                    y[right_idx],
+                    thresholds,
+                    best_entropies[1],
+                    best_distributions[1],
+                    depth + 1,
+                    max_depth,
+                    n_classes,
+                    False,
+                )
+            else:
+                self.children[1] = _TreeNode(random_state=self.random_state)
+                self.children[1].build_tree(
+                    X,
+                    y,
+                    thresholds,
+                    entropy,
+                    distribution,
+                    depth + 1,
+                    max_depth,
+                    n_classes,
+                    True,
+                )
+
+            if len(missing_idx) > 0:
+                self.children[2] = _TreeNode(random_state=self.random_state)
+                self.children[2].build_tree(
+                    X[missing_idx],
+                    y[missing_idx],
+                    thresholds,
+                    best_entropies[2],
+                    best_distributions[2],
+                    depth + 1,
+                    max_depth,
+                    n_classes,
+                    False,
+                )
+            else:
+                self.children[2] = _TreeNode(random_state=self.random_state)
+                self.children[2].build_tree(
+                    X,
+                    y,
+                    thresholds,
+                    entropy,
+                    distribution,
+                    depth + 1,
+                    max_depth,
+                    n_classes,
+                    True,
+                )
+        else:
+            self.leaf_distribution = distribution / np.sum(distribution)
+
+        return self
+
+    def predict_proba(self, X, n_classes: int):
+        if self.best_split > -1:
+            if X[self.best_split] <= self.best_threshold:
+                return self.children[0].predict_proba(X, n_classes)
+            elif X[self.best_split] > self.best_threshold:
+                return self.children[1].predict_proba(X, n_classes)
+            else:
+                return self.children[2].predict_proba(X, n_classes)
+        else:
+            return self.leaf_distribution
+
+    @staticmethod
+    @njit(fastmath=True, cache=True)
+    def information_gain(
+        X, y, attribute: int, threshold: int, parent_entropy: float, n_classes: int
+    ):
+        dist_left = np.zeros(n_classes)
+        dist_right = np.zeros(n_classes)
+        dist_missing = np.zeros(n_classes)
+        for i, case in enumerate(X):
+            if case[attribute] <= threshold:
+                dist_left[y[i]] += 1
+            elif case[attribute] > threshold:
+                dist_right[y[i]] += 1
+            else:
+                dist_missing[y[i]] += 1
+
+        sum_missing = 0
+        for v in dist_missing:
+            sum_missing += v
+        sum_left = 0
+        for v in dist_left:
+            sum_left += v
+        sum_right = 0
+        for v in dist_right:
+            sum_right += v
+
+        entropy_left = _entropy(dist_left, sum_left)
+        entropy_right = _entropy(dist_right, sum_right)
+        entropy_missing = _entropy(dist_missing, sum_missing)
+
+        n_cases = X.shape[0]
+        info_gain = (
+            parent_entropy
+            - sum_left / n_cases * entropy_left
+            - sum_right / n_cases * entropy_right
+            - sum_missing / n_cases * entropy_missing
+        )
+
+        return (
+            info_gain,
+            [dist_left, dist_right, dist_missing],
+            [entropy_left, entropy_right, entropy_missing],
+        )
+
+    @staticmethod
+    @njit(fastmath=True, cache=True)
+    def margin_gain(X, attribute: int, threshold: int):
+        margins = np.abs(X[:, attribute] - threshold)
+        return np.min(margins)
+
+    @staticmethod
+    @njit(fastmath=True, cache=True)
+    def split_data(X, best_split: int, best_threshold: int):
+        left_idx = np.zeros(len(X), dtype=np.int_)
+        left_count = 0
+        right_idx = np.zeros(len(X), dtype=np.int_)
+        right_count = 0
+        missing_idx = np.zeros(len(X), dtype=np.int_)
+        missing_count = 0
+        for i, case in enumerate(X):
+            if case[best_split] <= best_threshold:
+                left_idx[left_count] = i
+                left_count += 1
+            elif case[best_split] > best_threshold:
+                right_idx[right_count] = i
+                right_count += 1
+            else:
+                missing_idx[missing_count] = i
+                missing_count += 1
+
+        return (
+            left_idx[:left_count],
+            right_idx[:right_count],
+            missing_idx[:missing_count],
+        )
+
+    @staticmethod
+    @njit(fastmath=True, cache=True)
+    def remaining_classes(distribution) -> bool:
+        remaining_classes = 0
+        for d in distribution:
+            if d > 0:
+                remaining_classes += 1
+        return remaining_classes > 1
 
 
 class ContinuousIntervalTree(BaseEstimator):
@@ -83,10 +336,10 @@ class ContinuousIntervalTree(BaseEstimator):
 
     def __init__(
         self,
-        max_depth=sys.maxsize,
-        thresholds=20,
-        random_state=None,
-    ):
+        max_depth: int = sys.maxsize,
+        thresholds: int = 20,
+        random_state: Union[int, Type[np.random.RandomState], None] = None,
+    ) -> None:
         self.max_depth = max_depth
         self.thresholds = thresholds
         self.random_state = random_state
@@ -228,7 +481,7 @@ class ContinuousIntervalTree(BaseEstimator):
             dists[i] = self._root.predict_proba(X[i], self.n_classes_)
         return dists
 
-    def tree_node_splits_and_gain(self):
+    def tree_node_splits_and_gain(self) -> Tuple[List[int], List[float]]:
         """Recursively find the split and information gain for each tree node."""
         splits = []
         gains = []
@@ -238,7 +491,7 @@ class ContinuousIntervalTree(BaseEstimator):
 
         return splits, gains
 
-    def _find_splits_gain(self, node, splits, gains):
+    def _find_splits_gain(self, node: Type[_TreeNode], splits: list, gains: list):
         """Recursively find the split and information gain for each tree node."""
         splits.append(node.best_split)
         gains.append(node.best_gain)
@@ -248,260 +501,8 @@ class ContinuousIntervalTree(BaseEstimator):
                 self._find_splits_gain(next_node, splits, gains)
 
 
-class _TreeNode:
-    """ContinuousIntervalTree tree node."""
-
-    def __init__(
-        self,
-        random_state=None,
-    ):
-        self.random_state = random_state
-
-        self.best_split = -1
-        self.best_threshold = 0
-        self.best_gain = 0.000001
-        self.best_margin = -1
-        self.children = []
-        self.leaf_distribution = []
-        self.depth = -1
-
-    def build_tree(
-        self,
-        X,
-        y,
-        thresholds,
-        entropy,
-        distribution,
-        depth,
-        max_depth,
-        n_classes,
-        leaf,
-    ):
-        self.depth = depth
-        best_distributions = []
-        best_entropies = []
-
-        if leaf is False and self.remaining_classes(distribution) and depth < max_depth:
-            for (_, att), threshold in np.ndenumerate(thresholds):
-                (
-                    info_gain,
-                    distributions,
-                    entropies,
-                ) = self.information_gain(X, y, att, threshold, entropy, n_classes)
-
-                if info_gain > self.best_gain:
-                    self.best_split = att
-                    self.best_threshold = threshold
-                    self.best_gain = info_gain
-                    self.best_margin = -1
-                    best_distributions = distributions
-                    best_entropies = entropies
-                elif info_gain == self.best_gain and info_gain > 0.000001:
-                    margin = self.margin_gain(X, att, threshold)
-                    if self.best_margin == -1:
-                        self.best_margin = self.margin_gain(
-                            X, self.best_split, self.best_threshold
-                        )
-
-                    if margin > self.best_margin or (
-                        margin == self.best_margin
-                        and self.random_state.choice([True, False])
-                    ):
-                        self.best_split = att
-                        self.best_threshold = threshold
-                        self.best_margin = margin
-                        best_distributions = distributions
-                        best_entropies = entropies
-
-        if self.best_split > -1:
-            self.children = [None, None, None]
-
-            left_idx, right_idx, missing_idx = self.split_data(
-                X, self.best_split, self.best_threshold
-            )
-
-            if len(left_idx) > 0:
-                self.children[0] = _TreeNode(random_state=self.random_state)
-                self.children[0].build_tree(
-                    X[left_idx],
-                    y[left_idx],
-                    thresholds,
-                    best_entropies[0],
-                    best_distributions[0],
-                    depth + 1,
-                    max_depth,
-                    n_classes,
-                    False,
-                )
-            else:
-                self.children[0] = _TreeNode(random_state=self.random_state)
-                self.children[0].build_tree(
-                    X,
-                    y,
-                    thresholds,
-                    entropy,
-                    distribution,
-                    depth + 1,
-                    max_depth,
-                    n_classes,
-                    True,
-                )
-
-            if len(right_idx) > 0:
-                self.children[1] = _TreeNode(random_state=self.random_state)
-                self.children[1].build_tree(
-                    X[right_idx],
-                    y[right_idx],
-                    thresholds,
-                    best_entropies[1],
-                    best_distributions[1],
-                    depth + 1,
-                    max_depth,
-                    n_classes,
-                    False,
-                )
-            else:
-                self.children[1] = _TreeNode(random_state=self.random_state)
-                self.children[1].build_tree(
-                    X,
-                    y,
-                    thresholds,
-                    entropy,
-                    distribution,
-                    depth + 1,
-                    max_depth,
-                    n_classes,
-                    True,
-                )
-
-            if len(missing_idx) > 0:
-                self.children[2] = _TreeNode(random_state=self.random_state)
-                self.children[2].build_tree(
-                    X[missing_idx],
-                    y[missing_idx],
-                    thresholds,
-                    best_entropies[2],
-                    best_distributions[2],
-                    depth + 1,
-                    max_depth,
-                    n_classes,
-                    False,
-                )
-            else:
-                self.children[2] = _TreeNode(random_state=self.random_state)
-                self.children[2].build_tree(
-                    X,
-                    y,
-                    thresholds,
-                    entropy,
-                    distribution,
-                    depth + 1,
-                    max_depth,
-                    n_classes,
-                    True,
-                )
-        else:
-            self.leaf_distribution = distribution / np.sum(distribution)
-
-        return self
-
-    def predict_proba(self, X, n_classes):
-        if self.best_split > -1:
-            if X[self.best_split] <= self.best_threshold:
-                return self.children[0].predict_proba(X, n_classes)
-            elif X[self.best_split] > self.best_threshold:
-                return self.children[1].predict_proba(X, n_classes)
-            else:
-                return self.children[2].predict_proba(X, n_classes)
-        else:
-            return self.leaf_distribution
-
-    @staticmethod
-    @njit(fastmath=True, cache=True)
-    def information_gain(X, y, attribute, threshold, parent_entropy, n_classes):
-        dist_left = np.zeros(n_classes)
-        dist_right = np.zeros(n_classes)
-        dist_missing = np.zeros(n_classes)
-        for i, case in enumerate(X):
-            if case[attribute] <= threshold:
-                dist_left[y[i]] += 1
-            elif case[attribute] > threshold:
-                dist_right[y[i]] += 1
-            else:
-                dist_missing[y[i]] += 1
-
-        sum_missing = 0
-        for v in dist_missing:
-            sum_missing += v
-        sum_left = 0
-        for v in dist_left:
-            sum_left += v
-        sum_right = 0
-        for v in dist_right:
-            sum_right += v
-
-        entropy_left = _entropy(dist_left, sum_left)
-        entropy_right = _entropy(dist_right, sum_right)
-        entropy_missing = _entropy(dist_missing, sum_missing)
-
-        n_cases = X.shape[0]
-        info_gain = (
-            parent_entropy
-            - sum_left / n_cases * entropy_left
-            - sum_right / n_cases * entropy_right
-            - sum_missing / n_cases * entropy_missing
-        )
-
-        return (
-            info_gain,
-            [dist_left, dist_right, dist_missing],
-            [entropy_left, entropy_right, entropy_missing],
-        )
-
-    @staticmethod
-    @njit(fastmath=True, cache=True)
-    def margin_gain(X, attribute, threshold):
-        margins = np.abs(X[:, attribute] - threshold)
-        return np.min(margins)
-
-    @staticmethod
-    @njit(fastmath=True, cache=True)
-    def split_data(X, best_split, best_threshold):
-        left_idx = np.zeros(len(X), dtype=np.int_)
-        left_count = 0
-        right_idx = np.zeros(len(X), dtype=np.int_)
-        right_count = 0
-        missing_idx = np.zeros(len(X), dtype=np.int_)
-        missing_count = 0
-        for i, case in enumerate(X):
-            if case[best_split] <= best_threshold:
-                left_idx[left_count] = i
-                left_count += 1
-            elif case[best_split] > best_threshold:
-                right_idx[right_count] = i
-                right_count += 1
-            else:
-                missing_idx[missing_count] = i
-                missing_count += 1
-
-        return (
-            left_idx[:left_count],
-            right_idx[:right_count],
-            missing_idx[:missing_count],
-        )
-
-    @staticmethod
-    @njit(fastmath=True, cache=True)
-    def remaining_classes(distribution):
-        remaining_classes = 0
-        for d in distribution:
-            if d > 0:
-                remaining_classes += 1
-        return remaining_classes > 1
-
-
 @njit(fastmath=True, cache=True)
-def _entropy(x, s):
+def _entropy(x, s: int) -> float:
     e = 0
     for i in x:
         p = i / s if s > 0 else 0

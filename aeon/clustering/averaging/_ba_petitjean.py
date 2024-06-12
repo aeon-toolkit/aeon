@@ -15,6 +15,7 @@ def petitjean_barycenter_average(
     max_iters: int = 30,
     tol=1e-5,
     init_barycenter: Union[np.ndarray, str] = "mean",
+    weights: Optional[np.ndarray] = None,
     precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
     verbose: bool = False,
     random_state: Optional[int] = None,
@@ -43,6 +44,9 @@ def petitjean_barycenter_average(
         The initial barycenter to use for the minimisation. If a np.ndarray is provided
         it must be of shape ``(n_channels, n_timepoints)``. If a str is provided it must
         be one of the following: ['mean', 'medoids', 'random'].
+    weights: Optional[np.ndarray] of shape (n_cases,), default=None
+        The weights associated to each time series instance, if None a weight
+        of 1 will be associated to each instance.
     precomputed_medoids_pairwise_distance: np.ndarray (of shape (len(X), len(X)),
                 default=None
         Precomputed medoids pairwise.
@@ -74,6 +78,9 @@ def petitjean_barycenter_average(
     else:
         raise ValueError("X must be a 2D or 3D array")
 
+    if weights is None:
+        weights = np.ones(len(_X))
+
     barycenter = _get_init_barycenter(
         _X,
         init_barycenter,
@@ -88,7 +95,9 @@ def petitjean_barycenter_average(
         if "g" not in kwargs:
             kwargs["g"] = 0.05
     for i in range(max_iters):
-        barycenter, cost = _ba_one_iter_petitjean(barycenter, _X, distance, **kwargs)
+        barycenter, cost = _ba_one_iter_petitjean(
+            barycenter, _X, distance, weights, **kwargs
+        )
         if abs(cost_prev - cost) < tol:
             break
         elif cost_prev < cost:
@@ -106,6 +115,7 @@ def _ba_one_iter_petitjean(
     barycenter: np.ndarray,
     X: np.ndarray,
     distance: str = "dtw",
+    weights: Optional[np.ndarray] = None,
     window: Union[float, None] = None,
     g: float = 0.0,
     epsilon: Union[float, None] = None,
@@ -116,6 +126,9 @@ def _ba_one_iter_petitjean(
     descriptor: str = "identity",
     reach: int = 30,
     warp_penalty: float = 1.0,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ) -> Tuple[np.ndarray, float]:
     X_size, X_dims, X_timepoints = X.shape
     sum = np.zeros(X_timepoints)
@@ -137,11 +150,14 @@ def _ba_one_iter_petitjean(
             descriptor,
             reach,
             warp_penalty,
+            transformation_precomputed,
+            transformed_x,
+            transformed_y,
         )
 
         for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j]
-            sum[k] += 1
-        cost += curr_cost
+            alignment[:, k] += curr_ts[:, j] * weights[i]
+            sum[k] += 1 * weights[i]
+        cost += curr_cost * weights[i]
 
     return alignment / sum, cost

@@ -15,9 +15,9 @@ from aeon.forecasting.model_selection import (
     ForecastingGridSearchCV,
 )
 from aeon.forecasting.naive import NaiveForecaster
+from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
+from aeon.testing.mock_estimators import MockTransformer
 from aeon.transformations.compose import MultiplexTransformer
-from aeon.transformations.exponent import ExponentTransformer
-from aeon.utils.validation.forecasting import check_scoring
 
 
 def test_multiplex_transformer_alone():
@@ -32,8 +32,8 @@ def test_multiplex_transformer_alone():
     y.loc[y.sample(frac=0.1).index] = np.nan
     # Note - we select two transformers which are deterministic.
     transformer_tuples = [
-        ("two", ExponentTransformer(2)),
-        ("three", ExponentTransformer(3)),
+        ("two", MockTransformer(2)),
+        ("three", MockTransformer(3)),
     ]
     transformer_names = [name for name, _ in transformer_tuples]
     transformers = [transformer for _, transformer in transformer_tuples]
@@ -52,7 +52,7 @@ def test_multiplex_transformer_alone():
 
 def _find_best_transformer(forecaster, transformers, cv, y):
     """Evaluate all the transformers on y and return the name of best."""
-    scoring = check_scoring(None)
+    scoring = mean_absolute_percentage_error
     scoring_name = f"test_{scoring.__name__}"
     score = None
     for name, transformer in transformers:
@@ -79,8 +79,8 @@ def test_multiplex_transformer_in_grid():
     y.iloc[[5, 10, 15, 25, 32]] = -1
     # Note - we select two transformers which are deterministic.
     transformer_tuples = [
-        ("two", ExponentTransformer(2)),
-        ("three", ExponentTransformer(3)),
+        ("two", MockTransformer(2)),
+        ("three", MockTransformer(3)),
     ]
     transformer_names = [name for name, _ in transformer_tuples]
     multiplex_transformer = MultiplexTransformer(transformers=transformer_tuples)
@@ -115,15 +115,15 @@ def test_multiplex_or_dunder():
     as expected on all the use cases, and raises the expected error in some others.
     """
     # test a simple | example with two transformers:
-    multiplex_two_transformers = ExponentTransformer(2) | ExponentTransformer(3)
+    multiplex_two_transformers = MockTransformer(2) | MockTransformer(3)
     assert isinstance(multiplex_two_transformers, MultiplexTransformer)
     assert len(multiplex_two_transformers.transformers) == 2
     # now test that | also works on two MultiplexTransformers:
     multiplex_one = MultiplexTransformer(
-        [("exp_2", ExponentTransformer(2)), ("exp_3", ExponentTransformer(3))]
+        [("exp_2", MockTransformer(2)), ("exp_3", MockTransformer(3))]
     )
     multiplex_two = MultiplexTransformer(
-        [("exp_4", ExponentTransformer(4)), ("exp_5", ExponentTransformer(5))]
+        [("exp_4", MockTransformer(4)), ("exp_5", MockTransformer(5))]
     )
 
     multiplex_two_multiplex = multiplex_one | multiplex_two
@@ -132,7 +132,7 @@ def test_multiplex_or_dunder():
     # last we will check 3 transformers with the same name - should check both that
     # MultiplexTransformer | transformer works, and that ensure_unique_names works
     multiplex_same_name_three_test = (
-        ExponentTransformer(2) | ExponentTransformer(3) | ExponentTransformer(4)
+        MockTransformer(2) | MockTransformer(3) | MockTransformer(4)
     )
     assert isinstance(multiplex_same_name_three_test, MultiplexTransformer)
     assert len(multiplex_same_name_three_test._transformers) == 3

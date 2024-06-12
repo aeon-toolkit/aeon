@@ -18,6 +18,7 @@ def subgradient_barycenter_average(
     init_barycenter: Union[np.ndarray, str] = "mean",
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
+    weights: Optional[np.ndarray] = None,
     precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
     verbose: bool = False,
     random_state: Optional[int] = None,
@@ -58,6 +59,9 @@ def subgradient_barycenter_average(
     final_step_size : float (default: 0.005)
         Final step size for the subgradient descent algorithm.
         Default value is suggested by [2]_.
+    weights: Optional[np.ndarray] of shape (n_cases,), default=None
+        The weights associated to each time series instance, if None a weight
+        of 1 will be associated to each instance.
     precomputed_medoids_pairwise_distance: np.ndarray (of shape (len(X), len(X)),
                 default=None
         Precomputed medoids pairwise.
@@ -92,6 +96,9 @@ def subgradient_barycenter_average(
     else:
         raise ValueError("X must be a 2D or 3D array")
 
+    if weights is None:
+        weights = np.ones(len(_X))
+
     barycenter = _get_init_barycenter(
         _X,
         init_barycenter,
@@ -120,6 +127,7 @@ def subgradient_barycenter_average(
             initial_step_size,
             final_step_size,
             current_step_size,
+            weights,
             i,
             **kwargs,
         )
@@ -144,6 +152,7 @@ def _ba_one_iter_subgradient(
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
     current_step_size: float = 0.05,
+    weights: Optional[np.ndarray] = None,
     iteration: int = 0,
     window: Union[float, None] = None,
     g: float = 0.0,
@@ -155,6 +164,9 @@ def _ba_one_iter_subgradient(
     descriptor: str = "identity",
     reach: int = 30,
     warp_penalty: float = 1.0,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
 ):
 
     X_size, X_dims, X_timepoints = X.shape
@@ -164,10 +176,12 @@ def _ba_one_iter_subgradient(
     if iteration == 0:
         step_size_reduction = (initial_step_size - final_step_size) / X_size
 
+    barycenter_copy = np.copy(barycenter)
+
     for i in shuffled_indices:
         curr_ts = X[i]
         curr_alignment, curr_cost = _get_alignment_path(
-            barycenter,
+            barycenter_copy,
             X[i],
             distance,
             window,
@@ -180,14 +194,17 @@ def _ba_one_iter_subgradient(
             descriptor,
             reach,
             warp_penalty,
+            transformation_precomputed,
+            transformed_x,
+            transformed_y,
         )
 
         new_ba = np.zeros((X_dims, X_timepoints))
         for j, k in curr_alignment:
-            new_ba[:, k] += barycenter[:, k] - curr_ts[:, j]
+            new_ba[:, k] += barycenter_copy[:, k] - curr_ts[:, j]
 
-        barycenter -= (2.0 * current_step_size) * new_ba
+        barycenter_copy -= (2.0 * current_step_size) * new_ba * weights[i]
 
         current_step_size -= step_size_reduction
-        cost = curr_cost
-    return barycenter, cost, current_step_size
+        cost = curr_cost * weights[i]
+    return barycenter_copy, cost, current_step_size

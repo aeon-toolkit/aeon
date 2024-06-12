@@ -79,9 +79,9 @@ Time series clustering
     similar {term}`time series`.
 
 Time series annotation
-    A learning task focused on labelling the {term}`variables` of a {term}`time series`.
-    This includes the related tasks of outlier detection, anomaly detection,
-    change point detection and segmentation.
+    A collection of  learning tasks focused on labelling the {term}`variables` of a
+    {term}`time series`. This includes the related tasks of  anomaly detection, change
+    point detection and segmentation.
 
 Time series transformation
 Time series transformers

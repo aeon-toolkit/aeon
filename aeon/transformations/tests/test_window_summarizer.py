@@ -8,7 +8,7 @@ import pytest
 
 from aeon.datasets import load_airline, load_longley
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.testing.utils.data_gen import get_examples
+from aeon.testing.data_generation import get_examples
 from aeon.transformations.summarize import WindowSummarizer
 
 

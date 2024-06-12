@@ -1,15 +1,8 @@
-from deprecated.sphinx import deprecated
+"""Multiindex to list."""
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-# TODO: move in v0.9.0
-@deprecated(
-    version="0.8.0",
-    reason="convert_from_multiindex_to_listdataset will be moved from datatypes to "
-    "utils.conversion in v0.9.0",
-    category=FutureWarning,
-)
 def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     """
     Output a dataset in ListDataset format compatible with gluonts.

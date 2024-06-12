@@ -3,11 +3,18 @@
 __maintainer__ = []
 
 import pandas as pd
+from deprecated.sphinx import deprecated
 from pandas.api.types import is_integer_dtype
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="IndexSubset will be removed in version 0.10.0.",
+    category=FutureWarning,
+)
 class IndexSubset(BaseTransformer):
     r"""Index subsetting transformer.
 
@@ -24,15 +31,6 @@ class IndexSubset(BaseTransformer):
         determines which indices are kept in `Xt = transform(X, y)`
         "keep" = all indices in y also appear in Xt. If not present in X, NA is filled.
         "remove" = only indices that appear in both X and y are present in Xt.
-
-    Examples
-    --------
-    >>> from aeon.transformations.subset import IndexSubset
-    >>> from aeon.datasets import load_airline
-    >>> X = load_airline()[0:32]
-    >>> y = load_airline()[24:42]
-    >>> transformer = IndexSubset()
-    >>> X_subset = transformer.fit_transform(X=X, y=y)
     """
 
     _tags = {
@@ -117,6 +115,12 @@ class IndexSubset(BaseTransformer):
         return [params1, params2]
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="ColumnSelect will be removed in version 0.10.0.",
+    category=FutureWarning,
+)
 class ColumnSelect(BaseTransformer):
     r"""Column selection transformer.
 
@@ -138,14 +142,6 @@ class ColumnSelect(BaseTransformer):
         determines which column are kept in `Xt = transform(X, y)`
         "remove" = only indices that appear in both X and columns are present in Xt.
         "keep" = all indices in columns appear in Xt. If not present in X, NA is filled.
-
-    Examples
-    --------
-    >>> from aeon.transformations.subset import ColumnSelect
-    >>> from aeon.datasets import load_longley
-    >>> X = load_longley()[1]
-    >>> transformer =  ColumnSelect(columns=["GNPDEFL", "POP", "FOO"])
-    >>> X_subset = transformer.fit_transform(X=X)
     """
 
     _tags = {

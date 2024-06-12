@@ -96,8 +96,8 @@ def test_load_regression_from_repo():
     ):
         load_regression(name)
     name = "FloodModeling1"
-    name2 = "ParkingBirmingham"
-    name3 = "AcousticContaminationMadrid"
+    # name2 = "ParkingBirmingham"
+    # name3 = "AcousticContaminationMadrid"
     with tempfile.TemporaryDirectory() as tmp:
         X, y, meta = load_regression(name, extract_path=tmp, return_metadata=True)
         assert isinstance(X, np.ndarray)
@@ -113,24 +113,25 @@ def test_load_regression_from_repo():
         assert not meta["classlabel"]
         assert meta["targetlabel"]
         assert meta["class_values"] == []
-        # Test load equal length
-        X, y, meta = load_regression(
-            name2, extract_path=tmp, return_metadata=True, load_equal_length=True
-        )
-        assert meta["equallength"]
-        X, y, meta = load_regression(
-            name2, extract_path=tmp, return_metadata=True, load_equal_length=False
-        )
-        assert not meta["equallength"]
-        # Test load no missing values
-        X, y, meta = load_regression(
-            name3, extract_path=tmp, return_metadata=True, load_no_missing=True
-        )
-        assert not meta["missing"]
-        X, y, meta = load_regression(
-            name3, extract_path=tmp, return_metadata=True, load_no_missing=False
-        )
-        assert meta["missing"]
+        # TODO restore these tests once these data are on zenodo and or tsc.com works.
+        # # Test load equal length
+        # X, y, meta = load_regression(
+        #     name2, extract_path=tmp, return_metadata=True, load_equal_length=True
+        # )
+        # assert meta["equallength"]
+        # X, y, meta = load_regression(
+        #     name2, extract_path=tmp, return_metadata=True, load_equal_length=False
+        # )
+        # assert not meta["equallength"]
+        # # Test load no missing values
+        # X, y, meta = load_regression(
+        #     name3, extract_path=tmp, return_metadata=True, load_no_missing=True
+        # )
+        # assert not meta["missing"]
+        # X, y, meta = load_regression(
+        #     name3, extract_path=tmp, return_metadata=True, load_no_missing=False
+        # )
+        # assert meta["missing"]
 
 
 @pytest.mark.skipif(
@@ -506,3 +507,21 @@ def test_get_meta_data():
     assert df.shape == (2, 3)
     with pytest.raises(ValueError):
         df = get_dataset_meta_data(url="FOOBAR")
+
+
+def test__load_saved_dataset():
+    """Test parameter settings for loading a saved dataset."""
+    name = "UnitTest"
+    local_dirname = "data"
+    X, y = _load_saved_dataset(name)
+    X2, y = _load_saved_dataset(name, local_dirname=local_dirname)
+    X3, y = _load_saved_dataset(name, dir_name="UnitTest", local_dirname=local_dirname)
+    X4, y = _load_saved_dataset(
+        name, dir_name="UnitTest", split="Train", local_dirname=local_dirname
+    )
+    X5, y = _load_saved_dataset(name, dir_name="UnitTest", split="Train")
+
+    assert np.array_equal(X, X2)
+    assert np.array_equal(X, X3)
+    assert np.array_equal(X4, X5)
+    assert not np.array_equal(X, X4)

@@ -4,13 +4,14 @@ import numpy as np
 import numpy.random
 import pandas as pd
 import pytest
+from sklearn.metrics import accuracy_score
 
 from aeon.testing.mock_estimators import (
     MockClassifier,
     MockClassifierFullTags,
     MockClassifierPredictProba,
 )
-from aeon.testing.utils.data_gen._collection import (
+from aeon.testing.testing_data import (
     EQUAL_LENGTH_MULTIVARIATE,
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
@@ -205,6 +206,9 @@ def test_classifier_score():
     dummy.fit(X, y2)
     assert dummy.score(X, y) == 0.5
     assert dummy.score(X, y2) == 0.5
+    with pytest.raises(ValueError):
+        dummy.score(X, y, metric="log_loss")
+    assert dummy.score(X, y, metric=accuracy_score) == 0.5  # Use callable
 
 
 def test_predict_single_class():
