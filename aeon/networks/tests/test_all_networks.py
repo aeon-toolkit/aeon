@@ -24,7 +24,7 @@ def test_all_networks_functionality():
             network_classes[i]
         ) or "BaseDeepLearningNetwork" in str(network_classes[i]):
             continue
-
+        
         try:
             my_network = network_classes[i]()
         except ModuleNotFoundError:
@@ -38,7 +38,7 @@ def test_all_networks_functionality():
                 else:
                     continue
 
-        if str(network_classes[i]).startswith("AE"):
+        if "AE" in str(network_classes[i]):
             encoder, decoder = my_network.build_network(input_shape=input_shape)
             assert encoder.layers[-1].output_shape == (my_network.latent_space_dim,)
             assert encoder.layers[0].input_shape == decoder.layers[-1].output_shape
