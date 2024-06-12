@@ -32,8 +32,8 @@ def test_all_networks_functionality():
             if "AEFCNNetwork" in str(network_classes[i]) or "EncoderNetwork" in str(
                 network_classes[i]
             ):
-                if _check_soft_dependencies(["tensorflow-addons"], severity=None):
-                    if _check_python_version(network_classes[i], severity=None):
+                if _check_soft_dependencies(["tensorflow-addons"], severity="none"):
+                    if _check_python_version(network_classes[i], severity="none"):
                         my_network = network_classes[i]()
                     else:
                         continue
