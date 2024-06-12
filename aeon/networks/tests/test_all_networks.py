@@ -24,7 +24,7 @@ def test_all_networks_functionality():
             network_classes[i]
         ) or "BaseDeepLearningNetwork" in str(network_classes[i]):
             continue
-        
+
         try:
             my_network = network_classes[i]()
         except ModuleNotFoundError:
