@@ -28,15 +28,13 @@ def test_all_networks_functionality():
         try:
             my_network = network_classes[i]()
         except ModuleNotFoundError:
-
             if "AEFCNNetwork" in str(network_classes[i]) or "EncoderNetwork" in str(
                 network_classes[i]
             ):
-                if _check_soft_dependencies(["tensorflow-addons"], severity="none"):
-                    if _check_python_version(network_classes[i], severity="none"):
-                        my_network = network_classes[i]()
-                    else:
-                        continue
+                if _check_soft_dependencies(
+                    ["tensorflow-addons"], severity="none"
+                ) and _check_python_version(network_classes[i], severity="none"):
+                    my_network = network_classes[i]()
                 else:
                     continue
 
