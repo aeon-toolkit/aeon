@@ -28,9 +28,7 @@ def test_all_networks_functionality():
         try:
             my_network = network_classes[i]()
         except ModuleNotFoundError:
-            if "AEFCNNetwork" in str(network_classes[i]) or "EncoderNetwork" in str(
-                network_classes[i]
-            ):
+            if "EncoderNetwork" in str(network_classes[i]):
                 if _check_soft_dependencies(
                     ["tensorflow-addons"], severity="none"
                 ) and _check_python_version(network_classes[i], severity="none"):
@@ -40,8 +38,8 @@ def test_all_networks_functionality():
 
         if "AE" in str(network_classes[i]):
             encoder, decoder = my_network.build_network(input_shape=input_shape)
-            assert encoder.layers[-1].output_shape == (my_network.latent_space_dim,)
-            assert encoder.layers[0].input_shape == decoder.layers[-1].output_shape
+            assert encoder.layers[-1].output_shape[1:] == (my_network.latent_space_dim,)
+            assert encoder.layers[0].input_shape[0] == decoder.layers[-1].output_shape
         else:
             input_layer, output_layer = my_network.build_network(
                 input_shape=input_shape
