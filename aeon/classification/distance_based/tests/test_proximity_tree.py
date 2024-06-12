@@ -6,6 +6,13 @@ import pytest
 from aeon.classification.distance_based import ProximityTree
 
 
+@pytest.fixture
+def sample_data():
+    """Generate some sample data."""
+    X = np.random.rand(10, 50)
+    return X
+
+
 def test_gini():
     """Test the method to calculate gini."""
     clf = ProximityTree()
@@ -52,3 +59,44 @@ def test_gini_gain():
     y_children = [np.array([1, 1]), np.array([])]
     score = 0.5 - ((1 / 2) * 0)
     assert clf.gini_gain(y, y_children) == score
+
+
+def test_get_parameter_value(sample_data):
+    """Test the distance parameters generated."""
+    X = sample_data
+    random_state = 42
+    tree = ProximityTree(random_state=random_state)
+
+    params = tree.get_parameter_value(X)
+
+    # Check if the parameters are generated for all distance measures
+    expected_measures = [
+        "euclidean",
+        "dtw",
+        "ddtw",
+        "wdtw",
+        "wddtw",
+        "erp",
+        "lcss",
+        "twe",
+        "msm",
+    ]
+    assert set(params.keys()) == set(expected_measures)
+
+    # Check specific parameter ranges
+    for measure, measure_params in params.items():
+        if measure in ["dtw", "ddtw", "lcss"]:
+            assert 0 <= measure_params["window"] <= 0.25
+        elif measure in ["wdtw", "wddtw"]:
+            assert 0 <= measure_params["g"] <= 1
+        elif measure == "erp":
+            X_std = X.std()
+            assert X_std / 5 <= measure_params["g"] <= X_std
+        elif measure == "lcss":
+            X_std = X.std()
+            assert X_std / 5 <= measure_params["epsilon"] <= X_std
+        elif measure == "twe":
+            assert 0 <= measure_params["lmbda"] < 9
+            assert 1e-5 <= measure_params["nu"] <= 1e-1
+        elif measure == "msm":
+            assert measure_params["c"] in [10**i for i in range(-2, 3)]

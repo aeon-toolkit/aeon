@@ -40,7 +40,7 @@ class ProximityTree(BaseClassifier):
         self.n_splitters = n_splitters
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
-        self.rng = check_random_state(random_state)
+        self.random_state = check_random_state(random_state)
         self.n_jobs = n_jobs
         self.verbose = verbose
         super().__init__()
@@ -73,13 +73,13 @@ class ProximityTree(BaseClassifier):
         random_params = {}
         for measure, ranges in param_ranges.items():
             random_params[measure] = {
-                param: np.round(self.rng.uniform(low, high), 3)
+                param: np.round(self.random_state.uniform(low, high), 3)
                 for param, (low, high) in ranges.items()
             }
         # For TWE
-        lmbda = self.rng.randint(0, 9)
+        lmbda = self.random_state.randint(0, 9)
         exponent_range = np.arange(1, 6)  # Exponents from -5 to 1 (inclusive)
-        random_exponent = self.rng.choice(exponent_range)
+        random_exponent = self.random_state.choice(exponent_range)
         nu = 1 / 10**random_exponent
         random_params["twe"] = {"lmbda": lmbda, "nu": nu}
 
@@ -88,7 +88,7 @@ class ProximityTree(BaseClassifier):
         # Exponents from -2 to 2 (inclusive)
         exponents = np.arange(-2, 3, dtype=np.float64)
         # Randomly select an index from the exponent range
-        random_index = self.rng.randint(0, len(exponents))
+        random_index = self.random_state.randint(0, len(exponents))
         c = base ** exponents[random_index]
         random_params["msm"] = {"c": c}
 
@@ -114,20 +114,17 @@ class ProximityTree(BaseClassifier):
         splitter : list of two dictionaries
             A distance and its parameter values and a set of exemplars.
         """
-        _X = X
-        _y = y
-
         exemplars = {}
-        for label in np.unique(_y):
-            y_new = _y[_y == label]
-            X_new = _X[_y == label]
-            id = self.rng.randint(0, X_new.shape[0])
+        for label in np.unique(y):
+            y_new = y[y == label]
+            X_new = X[y == label]
+            id = self.random_state.randint(0, X_new.shape[0])
             exemplars[y_new[id]] = X_new[id, :]
 
         # Create a list with first element exemplars and second element a
         # random parameterized distance measure
         parameterized_distances = self.get_parameter_value(X)
-        n = self.rng.randint(0, 9)
+        n = self.random_state.randint(0, 9)
         dist = list(parameterized_distances.keys())[n]
         splitter = [exemplars, {dist: parameterized_distances[dist]}]
 
