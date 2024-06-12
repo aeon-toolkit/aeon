@@ -17,8 +17,7 @@ import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
 
-from aeon.testing.data_generation import get_examples
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation._legacy import get_examples, make_series
 from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
     TransformerFitTransformHierarchicalUnivariate,

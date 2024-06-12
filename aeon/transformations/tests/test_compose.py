@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 from aeon.datasets import load_airline, load_basic_motions
-from aeon.testing.data_generation import get_examples
+from aeon.testing.data_generation._legacy import get_examples
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.boxcox import LogTransformer

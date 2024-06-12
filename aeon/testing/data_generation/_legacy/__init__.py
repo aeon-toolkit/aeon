@@ -15,7 +15,6 @@ __all__ = [
     "_get_n_columns",
 ]
 
-from aeon.testing.data_generation import get_examples
 from aeon.testing.data_generation._legacy._collection import (
     _make_classification_y,
     _make_collection,
@@ -33,3 +32,4 @@ from aeon.testing.data_generation._legacy._series import (
     make_forecasting_problem,
     make_series,
 )
+from aeon.testing.data_generation._legacy._test_examples import get_examples
