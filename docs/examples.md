@@ -1,4 +1,4 @@
-# Examples
+# Example
 
 This webpage contains the notebook examples for the `aeon` library. The examples are
 organised into categories based on module and functionality. The examples are designed
@@ -170,7 +170,7 @@ Shapelet based TSC
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/classification/img/early.png
 :class-img-top: aeon-card-image-m
 :link: /examples/classification/early_classification.ipynb
 :link-type: ref
@@ -217,7 +217,7 @@ Overview of Time Series Clustering (TSCL)
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/clustering/img/partition_tscl.png
 :class-img-top: aeon-card-image-m
 :link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
@@ -257,7 +257,7 @@ TSFresh transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/catch22.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/catch22.ipynb
 :link-type: ref
@@ -279,7 +279,7 @@ Rocket transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/mini_rocket.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/minirocket.ipynb
 :link-type: ref
@@ -290,7 +290,7 @@ MiniRocket transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/SAST.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/sast.ipynb
 :link-type: ref
@@ -363,7 +363,7 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top:  examples/segmentation/img/hidalgo.png
 :class-img-top: aeon-card-image-m
 :link: /examples/segmentation/hidalgo_segmentation.ipynb
 :link-type: ref
@@ -412,7 +412,7 @@ Using aeon distances with scikit-learn
 
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/intro_similarity.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/similarity_search.ipynb
 :link-type: ref
@@ -423,7 +423,7 @@ Intro to similarity search
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/distance_profiles.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/distance_profiles.ipynb
 :link-type: ref
@@ -434,7 +434,7 @@ Deep dive into distance profiles
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/benchmarking_similarity.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/code_speed.ipynb
 :link-type: ref
@@ -465,7 +465,7 @@ Data in aeon
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/datasets/img/ds.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_structures.ipynb
 :link-type: ref
@@ -476,7 +476,7 @@ Data structures and containers used in aeon
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/datasets/img/typecasting.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_conversions.ipynb
 :link-type: ref
@@ -487,7 +487,7 @@ Conversions between data structures
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/datasets/img/storing.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_loading.ipynb
 :link-type: ref
@@ -498,7 +498,7 @@ How series are stored in file and loaded into memory
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/datasets/img/example_ds.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/provided_data.ipynb
 :link-type: ref
@@ -511,7 +511,7 @@ Example data sets
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top:  /examples/datasets/img/load_data.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/load_data_from_web.ipynb
 :link-type: ref
@@ -522,7 +522,7 @@ Loading data from the web
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/datasets/img/var_len.png
 :class-img-top: aeon-card-image-m
 :link: /examples/datasets/data_unequal.ipynb
 :link-type: ref
@@ -541,7 +541,7 @@ Unequal length series
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/benchmarking/img/benchmark_algos.png
 :class-img-top: aeon-card-image-m
 :link: /examples/benchmarking/benchmarking.ipynb
 :link-type: ref
@@ -552,7 +552,7 @@ Benchmarking algorithms
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/benchmarking/img/benchmark_algo1.png
 :class-img-top: aeon-card-image-m
 :link: /examples/benchmarking/forecasting.ipynb
 :link-type: ref
@@ -563,7 +563,7 @@ Benchmarking forecasting algorithms
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/benchmarking/img/benchmark_reg.png
 :class-img-top: aeon-card-image-m
 :link: /examples/benchmarking/regression.ipynb
 :link-type: ref
@@ -574,7 +574,7 @@ Benchmarking extrinsic regression algorithms
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top:  /examples/benchmarking/img/reg_single_dataset.png
 :class-img-top: aeon-card-image-m
 :link: /examples/benchmarking/regression_results_per_dataset.ipynb
 :link-type: ref
@@ -585,7 +585,7 @@ Compare regression algorithms on a single dataset
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top:  /examples/benchmarking/img/estimator_ref.png
 :class-img-top: aeon-card-image-m
 :link: /examples/benchmarking/reference_results.ipynb
 :link-type: ref
@@ -596,7 +596,7 @@ Getting estimator reference results
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/benchmarking/img/bakeoff.png
 :class-img-top: aeon-card-image-m
 :link: /examples/benchmarking/bakeoff_results.ipynb
 :link-type: ref
@@ -614,7 +614,7 @@ Getting published bakeoff results
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/base/img/inherit.png
 :class-img-top: aeon-card-image-m
 :link: /examples/base/base_classes.ipynb
 :link-type: ref
@@ -625,7 +625,7 @@ Getting published bakeoff results
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: /examples/base/img/base_series_est.png
 :class-img-top: aeon-card-image-m
 :link: /examples/base/series_estimator.ipynb
 :link-type: ref
@@ -643,7 +643,7 @@ Series base classes
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top:  /examples/utils/img/preprocessing.png
 :class-img-top: aeon-card-image-m
 :link: /examples/utils/preprocessing.ipynb
 :link-type: ref
