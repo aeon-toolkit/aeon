@@ -6,12 +6,12 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeClassifier
 
-from aeon.testing.utils.data_gen import make_example_nested_dataframe
+from aeon.testing.data_generation import make_example_nested_dataframe
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection.segment import RandomIntervalSegmenter
 
 # load data
-X, y = make_example_nested_dataframe()
+X, y = make_example_nested_dataframe(min_n_timepoints=12)
 X_train, X_test, y_train, y_test = train_test_split(X, y)
 
 

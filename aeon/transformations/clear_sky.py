@@ -4,12 +4,20 @@ __maintainer__ = []
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from joblib import Parallel, delayed
 from scipy.stats import vonmises
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="ClearSky will be removed in version 0.10.0 and replaced with a "
+    "BaseSeriesTransformer version in the transformations.series module.",
+    category=FutureWarning,
+)
 class ClearSky(BaseTransformer):
     """Clear sky transformer for solar data.
 

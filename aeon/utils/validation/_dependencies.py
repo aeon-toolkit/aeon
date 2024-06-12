@@ -253,9 +253,14 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
         incompatible with the system python version. If package is given,
         error message gives package as the reason for incompatibility.
     """
-    est_specifier_tag = obj.get_class_tag("python_version", tag_value_default="None")
-    if est_specifier_tag in ["None", None]:
-        return True
+    if isinstance(obj, str):
+        est_specifier_tag = obj
+    else:
+        est_specifier_tag = obj.get_class_tag(
+            "python_version", tag_value_default="None"
+        )
+        if est_specifier_tag in ["None", None]:
+            return True
 
     try:
         est_specifier = SpecifierSet(est_specifier_tag)

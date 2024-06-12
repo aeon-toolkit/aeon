@@ -10,7 +10,7 @@ __all__ = [
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
+from aeon.testing.data_generation import make_example_2d_numpy, make_example_3d_numpy
 from aeon.transformations.collection.convolution_based._rocket import Rocket
 from aeon.transformations.collection.convolution_based.rocketGPU._rocket_gpu import (
     ROCKETGPU,

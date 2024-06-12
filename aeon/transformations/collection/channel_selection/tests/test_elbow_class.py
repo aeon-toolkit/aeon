@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.channel_selection._elbow_class import (
     ElbowClassPairwise,
     _ClassPrototype,

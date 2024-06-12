@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class InceptionNetwork(BaseDeepNetwork):
+class InceptionNetwork(BaseDeepLearningNetwork):
     """Inception Network.
 
     Parameters

@@ -5,7 +5,7 @@ import pytest
 from sklearn.linear_model import RidgeClassifierCV
 
 from aeon.classification.interval_based import QUANTClassifier
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

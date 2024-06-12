@@ -7,10 +7,10 @@ import math
 
 import numpy as np
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class TapNetNetwork(BaseDeepNetwork):
+class TapNetNetwork(BaseDeepLearningNetwork):
     """Establish Network structure for TapNet.
 
     Adapted from the implementation used in [1]
@@ -47,8 +47,6 @@ class TapNetNetwork(BaseDeepNetwork):
     34(4), 6845-6852, 2020
     """
 
-    _tags = {"python_dependencies": ["tensorflow", "keras_self_attention"]}
-
     def __init__(
         self,
         dropout=0.5,
@@ -79,7 +77,9 @@ class TapNetNetwork(BaseDeepNetwork):
         self.use_rp = use_rp
         self.rp_params = rp_params
 
-        super().__init__()
+        super().__init__(
+            soft_dependencies=["tensorflow", "keras_self_attention"],
+        )
 
     @staticmethod
     def output_conv_size(in_size, kernel_size, strides, padding):

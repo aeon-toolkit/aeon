@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class FCNNetwork(BaseDeepNetwork):
+class FCNNetwork(BaseDeepLearningNetwork):
     """
     Establish the network structure for a FCN.
 
