@@ -1,4 +1,4 @@
-# Example
+# Examples
 
 This webpage contains the notebook examples for the `aeon` library. The examples are
 organised into categories based on module and functionality. The examples are designed
