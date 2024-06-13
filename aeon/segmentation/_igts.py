@@ -160,11 +160,11 @@ class _IGTS:
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
-    ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ... variances=0.5)
+    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
+    ...     variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> igts = InformationGainSegmenter(k_max=3, step=2)
-    >>> y = igts.fit_predict(X_scaled)
+    >>> y = igts.fit_predict(X_scaled, axis=0)
 
     """
 
@@ -339,14 +339,12 @@ class InformationGainSegmenter(BaseSegmenter):
     >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
-    >>> X = piecewise_normal_multivariate(
-    ...     lengths=[10, 10, 10, 10],
+    >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
     ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ...     variances=0.5,
-    ... )
+    ...     variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> igts = InformationGainSegmenter(k_max=3, step=2)
-    >>> y = igts.fit_predict(X_scaled)
+    >>> y = igts.fit_predict(X_scaled, axis=0)
     """
 
     _tags = {

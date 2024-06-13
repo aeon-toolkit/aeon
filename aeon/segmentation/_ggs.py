@@ -438,14 +438,12 @@ class GreedyGaussianSegmenter(BaseSegmenter):
     >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import GreedyGaussianSegmenter
-    >>> X = piecewise_normal_multivariate(
-    ...     lengths=[10, 10, 10, 10],
+    >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
     ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ...     variances=0.5,
-    ... )
+    ...     variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> ggs = GreedyGaussianSegmenter(k_max=3, max_shuffles=5)
-    >>> y = ggs.fit_predict(X_scaled)
+    >>> y = ggs.fit_predict(X_scaled, axis=0)
     """
 
     _tags = {
