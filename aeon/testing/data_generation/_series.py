@@ -53,6 +53,7 @@ def make_example_2d_numpy_series(
     n_timepoints: int = 12,
     n_channels: int = 1,
     random_state: Union[int, None] = None,
+    axis: int = 1,
 ) -> np.ndarray:
     """Randomly generate 2D numpy X.
 
@@ -66,6 +67,9 @@ def make_example_2d_numpy_series(
         The number of series channels to generate.
     random_state : int or None, default=None
         Seed for random number generation.
+    axis : int, default=1
+        The axis to for the series timepoints. If 1, returns the shape
+        (n_channels, n_timepoints). If 0, returns the shape (n_timepoints, n_channels).
 
     Returns
     -------
@@ -89,7 +93,12 @@ def make_example_2d_numpy_series(
      [0.79172504 0.52889492]]
     """
     rng = np.random.RandomState(random_state)
-    return rng.uniform(size=(n_timepoints, n_channels))
+    if axis == 1:
+        return rng.uniform(size=(n_channels, n_timepoints))
+    elif axis == 0:
+        return rng.uniform(size=(n_timepoints, n_channels))
+    else:
+        raise ValueError(f"axis: {axis} is not supported, please use 0 or 1.")
 
 
 def make_example_pandas_series(
@@ -142,6 +151,7 @@ def make_example_dataframe_series(
     n_channels: int = 1,
     index_type=None,
     random_state: Union[int, None] = None,
+    axis: int = 1,
 ) -> pd.DataFrame:
     """Randomly generate pandas DataFrame X.
 
@@ -158,6 +168,9 @@ def make_example_dataframe_series(
         If None, uses default integer index.
     random_state : int or None, default=None
         Seed for random number generation.
+    axis : int, default=1
+        The axis to for the series timepoints. If 1, returns the shape
+        (n_channels, n_timepoints). If 0, returns the shape (n_timepoints, n_channels).
 
     Returns
     -------
@@ -183,7 +196,20 @@ def make_example_dataframe_series(
     """
     rng = np.random.RandomState(random_state)
     index = _make_index(n_timepoints, index_type)
-    return pd.DataFrame(rng.uniform(size=(n_timepoints, n_channels)), index=index)
+    if axis == 1:
+        return pd.DataFrame(
+            rng.uniform(size=(n_channels, n_timepoints)),
+            index=np.arange(n_channels),
+            columns=index,
+        )
+    elif axis == 0:
+        return pd.DataFrame(
+            rng.uniform(size=(n_timepoints, n_channels)),
+            columns=np.arange(n_channels),
+            index=index,
+        )
+    else:
+        raise ValueError(f"axis: {axis} is not supported, please use 0 or 1.")
 
 
 def _make_index(n_timepoints, index_type=None):

@@ -17,10 +17,10 @@ from aeon.testing.data_generation import (
     make_example_2d_numpy_collection,
     make_example_3d_numpy,
 )
+from aeon.testing.mock_estimators import MockTransformer
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import PaddingTransformer, Tabularizer
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
-from aeon.transformations.exponent import ExponentTransformer
 
 
 @pytest.mark.parametrize(
@@ -55,8 +55,8 @@ def test_make_pipeline(pipeline):
 @pytest.mark.parametrize(
     "pipeline",
     [
-        [ExponentTransformer(), NaiveForecaster()],
-        [ExponentTransformer(), ExponentTransformer(power=3)],
+        [MockTransformer(), NaiveForecaster()],
+        [MockTransformer(), MockTransformer(power=3)],
     ],
 )
 def test_make_pipeline_legacy(pipeline):

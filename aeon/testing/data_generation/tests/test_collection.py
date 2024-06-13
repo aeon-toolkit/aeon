@@ -1,4 +1,4 @@
-"""Tests for datagen functions."""
+"""Tests for collection data generation functions."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
 

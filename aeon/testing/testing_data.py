@@ -4,8 +4,10 @@ import numpy as np
 
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.testing.data_generation import (
+    make_example_1d_numpy,
     make_example_2d_dataframe_collection,
     make_example_2d_numpy_collection,
+    make_example_2d_numpy_series,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
     make_example_dataframe_list,
@@ -86,6 +88,8 @@ X_collection_mi2, y_collection_mi2 = make_example_3d_numpy(
     n_timepoints=20,
     random_state=data_rng.randint(np.iinfo(np.int32).max),
 )
+X_collection_mi[:, :, data_rng.choice(10, 2)] = np.nan
+X_collection_mi2[:, :, data_rng.choice(10, 2)] = np.nan
 y_collection_mi_r = y_collection.astype(np.float32) + data_rng.uniform(
     size=y_collection.shape
 )
@@ -93,12 +97,38 @@ y_collection_mi2_r = y_collection2.astype(np.float32) + data_rng.uniform(
     size=y_collection2.shape
 )
 
+X_series = make_example_1d_numpy(
+    n_timepoints=30, random_state=data_rng.randint(np.iinfo(np.int32).max)
+)
+X_series2 = X_series[20:30]
+X_series = X_series[:20]
+
+X_series_mv = make_example_2d_numpy_series(
+    n_timepoints=30,
+    n_channels=2,
+    axis=1,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
+)
+X_series_mv2 = X_series_mv[:, 20:30]
+X_series_mv = X_series_mv[:, :20]
+
+X_series_mi = make_example_1d_numpy(
+    n_timepoints=30, random_state=data_rng.randint(np.iinfo(np.int32).max)
+)
+X_series_mi2 = X_series_mi[20:30]
+X_series_mi2[data_rng.choice(10, 1)] = np.nan
+X_series_mi = X_series_mi[:20]
+X_series_mi[data_rng.choice(20, 2)] = np.nan
+
 
 TEST_DATA_DICT = {
     "UnivariateCollection": {"train": X_collection, "test": X_collection2},
     "MultivariateCollection": {"train": X_collection_mv, "test": X_collection_mv2},
     "UnequalLengthCollection": {"train": X_collection_ul, "test": X_collection_ul2},
     "MissingValuesCollection": {"train": X_collection_mi, "test": X_collection_mi2},
+    "UnivariateSeries": {"train": X_series, "test": X_series2},
+    "MultivariateSeries": {"train": X_series_mv, "test": X_series_mv2},
+    "MissingValuesSeries": {"train": X_series_mi, "test": X_series_mi2},
 }
 TEST_LABEL_DICT = {
     "Classification": {
