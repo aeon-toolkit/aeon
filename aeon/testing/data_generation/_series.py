@@ -83,6 +83,7 @@ def make_example_2d_numpy_series(
     ...     n_timepoints=6,
     ...     n_channels=2,
     ...     random_state=0,
+    ...     axis=0,
     ... )
     >>> print(data)
     [[0.5488135  0.71518937]
@@ -184,6 +185,7 @@ def make_example_dataframe_series(
     ...     n_timepoints=6,
     ...     n_channels=2,
     ...     random_state=0,
+    ...     axis=0,
     ... )
     >>> print(data)
               0         1
