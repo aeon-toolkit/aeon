@@ -47,7 +47,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -k 'not TestAll'
+        run: python -m pytest -n logical -k 'not TestAll'
 
   pytest:
     runs-on: ${{ matrix.os }}
@@ -94,7 +94,7 @@ jobs:
 
       - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
-        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+        run: python -m pytest -n logical --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
     # run the code coverage job if a PR has the 'codecov actions' label
@@ -125,7 +125,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
+        run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
