@@ -7,14 +7,14 @@ import pytest
 
 from aeon.base._base_series import VALID_INNER_TYPES
 from aeon.registry import all_estimators
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation import make_series
 
 ALL_ANOMALY_DETECTORS = all_estimators(
     estimator_types="anomaly-detector",
     return_names=False,
 )
 
-labels = np.zeros(15)
+labels = np.zeros(15, dtype=np.int_)
 labels[np.random.choice(15, 5)] = 1
 uv_series = make_series(n_timepoints=15, return_numpy=True, random_state=0)
 uv_series[labels == 1] += 1

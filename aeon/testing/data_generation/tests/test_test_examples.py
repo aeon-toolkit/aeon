@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from aeon.testing.utils.data_gen._test_examples import (
+from aeon.testing.data_generation._test_examples import (
     get_examples,
     get_hierarchical_examples,
     get_series_examples,

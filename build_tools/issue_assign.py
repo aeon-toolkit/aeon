@@ -21,10 +21,11 @@ issue = repo.get_issue(number=issue_number)
 comment_body = context_dict["event"]["comment"]["body"]
 
 # Assign tagged used to the issue if the comment includes the trigger phrase
-# and starts with a mention to the bot
-if comment_body.startswith("@aeon-actions-bot") and "assign" in comment_body.lower():
+body = comment_body.lower()
+if "@aeon-actions-bot" in body and "assign" in body:
     mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
-    mentioned_users = [user[1:] for user in mentioned_users[1:]]
+    mentioned_users = [user[1:] for user in mentioned_users]
+    mentioned_users.remove("aeon-actions-bot")
 
     for user in mentioned_users:
         issue.add_to_assignees(user)

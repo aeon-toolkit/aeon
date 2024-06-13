@@ -44,7 +44,6 @@ from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.model_selection._split import BaseSplitter
-from aeon.performance_metrics.base import BaseMetric
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search.base import BaseSimiliaritySearch
@@ -62,7 +61,6 @@ BASE_CLASS_REGISTER = [
     ("clusterer", BaseClusterer, "clusterer"),
     ("early_classifier", BaseEarlyClassifier, "early time series classifier"),
     ("forecaster", BaseForecaster, "forecaster"),
-    ("metric", BaseMetric, "performance metric"),
     ("regressor", BaseRegressor, "regressor"),
     ("segmenter", BaseSegmenter, "segmenter"),
     ("series-estimator", BaseSeriesEstimator, "single series estimator"),
