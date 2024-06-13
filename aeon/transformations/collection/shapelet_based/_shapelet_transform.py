@@ -460,7 +460,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         return np.round(quality, 8), length, position, channel, inst_idx, cls_idx
 
     @staticmethod
-    @njit(fastmath=True, cache=True)
+    #    @njit(fastmath=True, cache=True)
     def _find_shapelet_quality(
         X,
         y,

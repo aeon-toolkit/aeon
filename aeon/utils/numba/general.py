@@ -227,7 +227,7 @@ def first_order_differences_2d(X: np.ndarray) -> np.ndarray:
     return X[:, 1:] - X[:, :-1]
 
 
-# @njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
 def first_order_differences_3d(X: np.ndarray) -> np.ndarray:
     """Numba first order differences function for a 3d numpy array.
 
@@ -283,7 +283,7 @@ def z_normalise_series_with_mean(X: np.ndarray, series_mean: float) -> np.ndarra
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def z_normalise_series(X: np.ndarray) -> np.ndarray:
     """Numba series normalization function for a 1d numpy array.
 
