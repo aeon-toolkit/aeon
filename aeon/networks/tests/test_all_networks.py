@@ -26,7 +26,11 @@ def test_all_networks_functionality():
         if _check_soft_dependencies(
             ["tensorflow", "tensorflow-addons"], severity="none"
         ) and _check_python_version(network_classes[i], severity="none"):
-            my_network = network_classes[i]()
+            if "EncoderNetwork" in str(network_classes[i]):
+                if _check_soft_dependencies(["tensorflow-addons"], severity="none"):
+                    my_network = network_classes[i]()
+            else:
+                my_network = network_classes[i]()
         else:
             continue
 
