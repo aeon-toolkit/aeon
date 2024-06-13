@@ -20,7 +20,7 @@ class TimeSeriesCLARA(BaseClusterer):
     medoids from the sample to seed PAM on the entire dataset.
 
     For a comparison of using CLARA for time series compared to other k-medoids
-    algorithms see [3].
+    algorithms see [2].
 
     Parameters
     ----------

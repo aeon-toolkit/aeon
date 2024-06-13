@@ -2348,7 +2348,10 @@
         "bug",
         "code",
         "doc",
-        "research"
+        "research",
+        "tests",
+        "review",
+        "data"
       ]
     },
     {
@@ -2420,6 +2423,15 @@
       "name": "Jason Mok",
       "avatar_url": "https://avatars.githubusercontent.com/u/106209849?v=4",
       "profile": "https://github.com/jasonmokk",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "futuer-szd",
+      "name": "Futuer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/57895730?v=4",
+      "profile": "https://github.com/futuer-szd",
       "contributions": [
         "doc"
       ]

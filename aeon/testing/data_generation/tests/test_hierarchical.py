@@ -2,7 +2,7 @@
 
 import pandas as pd
 
-from aeon.testing.utils.data_gen.hierarchical import _make_hierarchical
+from aeon.testing.data_generation.hierarchical import _make_hierarchical
 
 
 def test_make_hierarchical_basic():
