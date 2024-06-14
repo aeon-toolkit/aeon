@@ -8,7 +8,7 @@ from sklearn.utils import check_random_state
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.datasets import load_basic_motions, load_gunpoint
 from aeon.distances import euclidean_distance
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 expected_results = {
