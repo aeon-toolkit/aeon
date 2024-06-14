@@ -218,14 +218,14 @@ Lagging
 
     Lag
 
-Element-wise transforms
+Series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 These transformations apply a function element-wise.
 
 Depending on the transformer, the transformation parameters can be fitted.
 
-.. currentmodule:: aeon.transformations.boxcox
+.. currentmodule:: aeon.transformations.series._boxcox
 
 .. autosummary::
     :toctree: auto_generated/
