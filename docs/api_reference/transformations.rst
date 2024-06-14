@@ -301,7 +301,7 @@ Filtering and denoising
 
     KalmanFilterTransformer
 
-.. currentmodule:: aeon.transformations.theta
+.. currentmodule:: aeon.transformations.series._theta
 
 .. autosummary::
     :toctree: auto_generated/

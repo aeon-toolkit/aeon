@@ -34,7 +34,7 @@ EXCLUDE_ESTIMATORS = [
     "TimeSince",
     "Differencer",
     "CosineTransformer",
-    "ThetaLinesTransformer",
+    "_ThetaLinesTransformer",
     "InvertAugmenter",
     "BKFilter",
     "AutoCorrelationTransformer",
