@@ -17,9 +17,9 @@ from aeon.base import BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.regression.base import BaseRegressor
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_3d_numpy,
-    make_example_unequal_length,
+    make_example_3d_numpy_list,
 )
 from aeon.testing.utils.scenarios import TestScenario
 
@@ -104,10 +104,10 @@ X_test_mv, _ = make_example_3d_numpy(
     n_cases=5, n_channels=2, n_timepoints=20, random_state=RAND_SEED
 )
 
-X_ul, _ = make_example_unequal_length(
+X_ul, _ = make_example_3d_numpy_list(
     n_cases=10, max_n_timepoints=15, min_n_timepoints=10, random_state=RAND_SEED
 )
-X_test_ul, _ = make_example_unequal_length(
+X_test_ul, _ = make_example_3d_numpy_list(
     n_cases=5, max_n_timepoints=15, min_n_timepoints=10, random_state=RAND_SEED
 )
 

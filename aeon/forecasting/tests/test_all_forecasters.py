@@ -22,8 +22,7 @@ from aeon.forecasting.tests import (
     VALID_INDEX_FH_COMBINATIONS,
 )
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
-from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,
     _get_n_columns,
@@ -32,6 +31,7 @@ from aeon.testing.utils.data_gen import (
     make_forecasting_problem,
     make_series,
 )
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
 from aeon.utils.index_functions import get_cutoff, get_window
 from aeon.utils.validation import is_pdmultiindex_hierarchical, is_pred_interval_proba
 from aeon.utils.validation.forecasting import check_fh

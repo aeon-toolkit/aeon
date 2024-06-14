@@ -3,14 +3,14 @@
 import numpy as np
 import pytest
 
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_3d_numpy,
-    make_example_unequal_length,
+    make_example_3d_numpy_list,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_collection_by_class, plot_series_collection
 
-data_to_test = [make_example_3d_numpy(), make_example_unequal_length()]
+data_to_test = [make_example_3d_numpy(), make_example_3d_numpy_list()]
 
 
 @pytest.mark.skipif(
