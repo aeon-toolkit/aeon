@@ -34,6 +34,8 @@ class AEDRNNNetwork(BaseDeepNetwork):
         If None, default to [100, 50, 50].
     """
 
+    _tags = {"auto-encoder": True}
+
     def __init__(
         self,
         latent_space_dim=128,
