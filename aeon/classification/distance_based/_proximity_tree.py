@@ -2,7 +2,6 @@ from typing import Type, Union
 
 import numpy as np
 from numba import njit
-from sklearn.exceptions import NotFittedError
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -165,7 +164,7 @@ class ProximityTree(BaseClassifier):
                         min_dist = dist
                         sub = k
                 y_subs[sub].append(y[j])
-            y_subs = [np.array(ele) for ele in y_subs]
+            y_subs = [np.array(ele, dtype=y.dtype) for ele in y_subs]
             gini_index = gini_gain(y, y_subs)
             if gini_index > max_gain:
                 max_gain = gini_index
@@ -216,7 +215,7 @@ class ProximityTree(BaseClassifier):
             return leaf
 
         # Pure node
-        if len(self.classes_) == 1:
+        if len(np.unique(y)) == 1:
             leaf_label = target_value
             leaf = Node(
                 node_id=node_id,
@@ -287,7 +286,6 @@ class ProximityTree(BaseClassifier):
         self.root = self._build_tree(
             X, y, depth=0, node_id="0", parent_target_value=None
         )
-        self._is_fitted = True
 
     def _predict(self, X):
         probas = self._predict_proba(X)
@@ -295,11 +293,6 @@ class ProximityTree(BaseClassifier):
         return np.array([self.classes_[pred] for pred in predictions])
 
     def _predict_proba(self, X):
-        if not self._is_fitted:
-            raise NotFittedError(
-                f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
-            )
         # Get the unique class labels
         classes = self.classes_
         class_count = len(classes)

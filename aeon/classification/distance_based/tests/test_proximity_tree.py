@@ -60,7 +60,7 @@ def test_gini_gain():
 
     # Split with an empty child
     y = np.array([1, 1, 0, 0])
-    y_children = [np.array([1, 1]), np.array([], dtype="int32")]
+    y_children = [np.array([1, 1]), np.array([], dtype=y.dtype)]
     score = 0.5 - ((1 / 2) * 0)
     assert gini_gain(y, y_children) == score
 
