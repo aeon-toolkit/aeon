@@ -10,11 +10,6 @@ least once, but not necessarily on each operating system / python version combin
 
 __maintainer__ = []
 
-from numba import set_num_threads
-
-from aeon.testing import test_config
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
 
 def pytest_addoption(parser):
     """Pytest command line parser options adder."""
@@ -31,8 +26,23 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     """Pytest configuration preamble."""
+    import os
+
+    # Must be called before any numpy imports
+    os.environ["MKL_NUM_THREADS"] = "1"
+    os.environ["NUMEXPR_NUM_THREADS"] = "1"
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+
+    from numba import set_num_threads
+
+    from aeon.testing import test_config
+    from aeon.utils.validation._dependencies import _check_soft_dependencies
+
     set_num_threads(1)
-    if _check_soft_dependencies("tensorflow"):
+
+    if _check_soft_dependencies("tensorflow", severity="none"):
         from tensorflow.config.threading import (
             set_inter_op_parallelism_threads,
             set_intra_op_parallelism_threads,
@@ -40,6 +50,11 @@ def pytest_configure(config):
 
         set_inter_op_parallelism_threads(1)
         set_intra_op_parallelism_threads(1)
+
+    if _check_soft_dependencies("torch", severity="none"):
+        import torch
+
+        torch.set_num_threads(1)
 
     if config.getoption("--prtesting") in [True, "True", "true"]:
         test_config.PR_TESTING = True
