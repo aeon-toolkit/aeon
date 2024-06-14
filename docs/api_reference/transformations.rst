@@ -273,7 +273,7 @@ Detrending
     ConditionalDeseasonalizer
     STLTransformer
 
-.. currentmodule:: aeon.transformations.clear_sky
+.. currentmodule:: aeon.transformations.series._clear_sky
 
 .. autosummary::
     :toctree: auto_generated/
