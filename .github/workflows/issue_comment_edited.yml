@@ -2,10 +2,10 @@ name: Issue Comment Posted
 
 on:
   issue_comment:
-    types: [created]
+    types: [edited]
 
 jobs:
-  self-assign:
+  check-pr-labels:
     runs-on: ubuntu-20.04
 
     steps:
@@ -30,7 +30,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Assign issue
-        run: python build_tools/issue_assign.py
+        run: python build_tools/comment_pr_labeler.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

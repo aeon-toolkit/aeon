@@ -42,6 +42,27 @@ class DWT_MLEAD(BaseAnomalyDetector):
     subsequently clusters the anomalies to determine the anomaly centers. This step is
     not implemented in this version.
 
+    .. list-table:: Capabilities
+       :stub-columns: 1
+
+       * - Input data format
+         - univariate
+       * - Output data format
+         - anomaly scores
+       * - Learning Type
+         - unsupervised
+
+    Parameters
+    ----------
+    start_level : int, default=3
+        The level at which to start the anomaly detection. Must be >= 0 and less than
+        log_2(n_timepoints).
+    quantile_boundary_type : str, default='percentile'
+        The type of boundary to use for the quantile. Must be 'percentile',
+        'monte-carlo' is not implemented yet.
+    quantile_epsilon : float, default=0.01
+        The epsilon value for the quantile boundary. Must be in [0, 1].
+
     Notes
     -----
     This implementation does not exactly match the original paper [1]_. We make the
@@ -55,17 +76,6 @@ class DWT_MLEAD(BaseAnomalyDetector):
     - We do not perform the anomaly clustering step to determine the anomaly centers.
       Instead, we return the anomaly scores for each timestep in the original time
       series.
-
-    Parameters
-    ----------
-    start_level : int, default=3
-        The level at which to start the anomaly detection. Must be >= 0 and less than
-        log_2(n_timepoints).
-    quantile_boundary_type : str, default='percentile'
-        The type of boundary to use for the quantile. Must be 'percentile',
-        'monte-carlo' is not implemented yet.
-    quantile_epsilon : float, default=0.01
-        The epsilon value for the quantile boundary. Must be in [0, 1].
 
     References
     ----------

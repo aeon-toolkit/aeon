@@ -19,7 +19,6 @@ from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 from pandas.api.types import is_numeric_dtype
 from sklearn.base import clone, is_regressor
 from sklearn.ensemble import GradientBoostingRegressor
@@ -392,43 +391,6 @@ def check_cutoffs(cutoffs: VALID_CUTOFF_TYPES) -> np.ndarray:
         raise ValueError("Found empty `cutoff` array")
 
     return np.sort(cutoffs)
-
-
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason=("check_scoring is being removed from aeon in v0.10.0."),
-    category=FutureWarning,
-)
-def check_scoring(scoring):
-    """
-    Validate the performance scoring.
-
-    Parameters
-    ----------
-    scoring : function in aeon.performance_metrics.
-
-    Returns
-    -------
-    scoring :
-        mean_absolute_percentage_error if the object is None.
-
-    Raises
-    ------
-    TypeError
-        if object is not callable from current scope.
-    NotImplementedError
-        if metric requires y_pred_benchmark to be passed
-    """
-    from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
-
-    if scoring is None:
-        return mean_absolute_percentage_error
-
-    if not callable(scoring):
-        raise TypeError("`scoring` must be a callable object")
-
-    return scoring
 
 
 def check_regressor(regressor=None, random_state=None):
