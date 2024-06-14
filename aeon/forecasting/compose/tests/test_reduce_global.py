@@ -20,7 +20,7 @@ from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.compose import make_reduction
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
-from aeon.testing.utils.data_gen import _make_hierarchical, get_examples
+from aeon.testing.data_generation import _make_hierarchical, get_examples
 from aeon.transformations.summarize import WindowSummarizer
 
 # Load data that will be the basis of tests

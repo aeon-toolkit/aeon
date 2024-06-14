@@ -27,9 +27,9 @@ jobs:
         with:
           repo-token: ${{ steps.app-token.outputs.token }}
           days-before-stale: 140
-          days-before-delete: 9999  # todo take down to 175
+          days-before-delete: 175
           comment-updates: true
           tag-committer: true
           stale-branch-label: "stale branch"
-          compare-branches: 'info'
+          compare-branches: "info"
           pr-check: true

@@ -6,8 +6,6 @@ Pipeline regressor using the ROCKET transformer and RidgeCV estimator.
 __maintainer__ = []
 __all__ = ["RocketRegressor"]
 
-import warnings
-
 import numpy as np
 from sklearn.linear_model import RidgeCV
 from sklearn.pipeline import make_pipeline
@@ -101,7 +99,6 @@ class RocketRegressor(BaseRegressor):
         rocket_transform="rocket",
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
-        use_multivariate="deprecated",
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -113,14 +110,6 @@ class RocketRegressor(BaseRegressor):
         self.random_state = random_state
         self.estimator = estimator
         self.n_jobs = n_jobs
-
-        self.use_multivariate = use_multivariate
-        if use_multivariate != "deprecated":
-            warnings.warn(
-                "the use_multivariate parameter is deprecated and will be "
-                "removed in v0.9.0. Datatype will be automatically detected.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
