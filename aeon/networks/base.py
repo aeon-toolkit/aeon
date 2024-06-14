@@ -58,6 +58,11 @@ class BaseDeepLearningNetwork(ABC):
         _check_python_version(python_version)
         super().__init__()
 
+    _tags = {
+        "python_dependencies": "tensorflow",
+        "python_version": "<3.12",
+    }
+
     @abstractmethod
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
