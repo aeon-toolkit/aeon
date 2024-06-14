@@ -11,7 +11,6 @@ from aeon.testing.data_generation import get_examples
 from aeon.testing.mock_estimators import MockTransformer
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
-from aeon.transformations.boxcox import LogTransformer
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.compose import (
     ColumnConcatenator,
@@ -21,6 +20,7 @@ from aeon.transformations.compose import (
     TransformerPipeline,
 )
 from aeon.transformations.impute import Imputer
+from aeon.transformations.series._boxcox import LogTransformer
 from aeon.transformations.subset import ColumnSelect
 from aeon.transformations.summarize import SummaryTransformer
 from aeon.transformations.theta import ThetaLinesTransformer

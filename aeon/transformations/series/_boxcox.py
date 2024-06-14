@@ -107,7 +107,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.boxcox import BoxCoxTransformer
+    >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = BoxCoxTransformer()
@@ -228,7 +228,7 @@ class LogTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.boxcox import LogTransformer
+    >>> from aeon.transformations.series._boxcox import LogTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = LogTransformer()

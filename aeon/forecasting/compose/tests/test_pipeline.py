@@ -28,13 +28,13 @@ from aeon.testing.data_generation import get_examples, make_series
 from aeon.testing.mock_estimators import MockForecaster, MockTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
-from aeon.transformations.boxcox import LogTransformer
 from aeon.transformations.compose import OptionalPassthrough
 from aeon.transformations.detrend import Detrender
 from aeon.transformations.difference import Differencer
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.impute import Imputer
 from aeon.transformations.outlier_detection import HampelFilter
+from aeon.transformations.series._boxcox import LogTransformer
 from aeon.utils.index_functions import get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -106,9 +106,6 @@ def test_nesting_pipelines():
     from aeon.testing.utils.scenarios_forecasting import (
         ForecasterFitPredictUnivariateWithX,
     )
-    from aeon.transformations.boxcox import LogTransformer
-    from aeon.transformations.compose import OptionalPassthrough
-    from aeon.transformations.detrend import Detrender
 
     pipe = ForecastingPipeline(
         steps=[
