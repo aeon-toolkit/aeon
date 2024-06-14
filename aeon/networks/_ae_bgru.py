@@ -22,6 +22,8 @@ class AEBiGRUNetwork(BaseDeepNetwork):
             Flag to choose whether the latent space is an MTS or Euclidean space.
     """
 
+    _tags = {"auto-encoder": True}
+
     def __init__(
         self,
         latent_space_dim=128,
