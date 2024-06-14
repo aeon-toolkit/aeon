@@ -36,10 +36,10 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
 
     See Also
     --------
-    aeon.transformations.boxcox.LogTransformer :
+    aeon.transformations.boxcox._LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.boxcox.BoxCoxTransformer :
+    aeon.transformations.boxcox._BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.ExponentTransformer :

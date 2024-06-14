@@ -1,4 +1,4 @@
-"""Tests for BoxCoxTransformer."""
+"""Tests for _BoxCoxTransformer."""
 
 __maintainer__ = []
 __all__ = []
@@ -43,11 +43,11 @@ def test_lambda_bounds(bounds, method, sp):
     ],
 )
 def test_guerrero_against_r_implementation(bounds, r_lambda):
-    """Test BoxCoxTransformer against forecast guerrero method.
+    """Test _BoxCoxTransformer against forecast guerrero method.
 
     Testing lambda values estimated by the R implementation of the Guerrero method
     https://github.com/robjhyndman/forecast/blob/master/R/guerrero.R
-    against the guerrero method in BoxCoxTransformer.
+    against the guerrero method in _BoxCoxTransformer.
     R code to generate the hardcoded value for bounds=(-1, 2) used in the test
     ('Airline.csv' contains the data from 'load_airline()'):
         airline_file <- read.csv(file = 'Airline.csv')[,c('Passengers')]

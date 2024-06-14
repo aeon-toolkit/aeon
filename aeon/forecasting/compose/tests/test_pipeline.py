@@ -29,7 +29,7 @@ from aeon.testing.data_generation import get_examples, make_series
 from aeon.testing.mock_estimators import MockForecaster, MockTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.testing.utils.scenarios_forecasting import ForecasterFitPredictUnivariateWithX
-from aeon.transformations._legacy.boxcox import LogTransformer
+from aeon.transformations._legacy.boxcox import _LogTransformer
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.compose import OptionalPassthrough
 from aeon.transformations.detrend import Detrender
@@ -106,13 +106,13 @@ def test_nesting_pipelines():
     """Test that nesting of pipelines works."""
     pipe = ForecastingPipeline(
         steps=[
-            ("logX", OptionalPassthrough(LogTransformer())),
+            ("logX", OptionalPassthrough(_LogTransformer())),
             ("detrenderX", OptionalPassthrough(Detrender(forecaster=AutoETS()))),
             (
                 "etsforecaster",
                 TransformedTargetForecaster(
                     steps=[
-                        ("log", OptionalPassthrough(LogTransformer())),
+                        ("log", OptionalPassthrough(_LogTransformer())),
                         ("autoETS", AutoETS()),
                     ]
                 ),
@@ -155,14 +155,14 @@ def test_pipeline_with_dimension_changing_transformer():
     # pipeline
     pipe = TransformedTargetForecaster(
         steps=[
-            ("log", OptionalPassthrough(LogTransformer())),
+            ("log", OptionalPassthrough(_LogTransformer())),
             ("differencer", Differencer(na_handling="drop_na")),
             ("scaler", TabularToSeriesAdaptor(StandardScaler())),
             (
                 "myforecasterpipe",
                 ForecastingPipeline(
                     steps=[
-                        ("logX", OptionalPassthrough(LogTransformer())),
+                        ("logX", OptionalPassthrough(_LogTransformer())),
                         ("differencerX", Differencer(na_handling="drop_na")),
                         ("scalerX", TabularToSeriesAdaptor(StandardScaler())),
                         ("myforecaster", make_reduction(SVR())),

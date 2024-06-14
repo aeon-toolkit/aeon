@@ -52,7 +52,7 @@ class FunctionTransformer(BaseTransformer):
 
     See Also
     --------
-    aeon.transformations.boxcox.LogTransformer :
+    aeon.transformations.boxcox._LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.ExponentTransformer :

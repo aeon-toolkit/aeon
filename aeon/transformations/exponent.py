@@ -45,10 +45,10 @@ class ExponentTransformer(BaseTransformer):
 
     See Also
     --------
-    BoxCoxTransformer :
+    _BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
-    LogTransformer :
+    _LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.SqrtTransformer :
@@ -218,10 +218,10 @@ class SqrtTransformer(ExponentTransformer):
 
     See Also
     --------
-    BoxCoxTransformer :
+    _BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
-    LogTransformer :
+    _LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.ExponentTransformer :

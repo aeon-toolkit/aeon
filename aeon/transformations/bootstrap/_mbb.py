@@ -9,8 +9,8 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
 
+from aeon.transformations._legacy._boxcox import _BoxCoxTransformer
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.series._boxcox import BoxCoxTransformer
 
 
 class STLBootstrapTransformer(BaseTransformer):
@@ -265,7 +265,7 @@ class STLBootstrapTransformer(BaseTransformer):
         )
 
         # fit boxcox to get lambda and transform X
-        self.box_cox_transformer_ = BoxCoxTransformer(
+        self.box_cox_transformer_ = _BoxCoxTransformer(
             sp=self.sp, bounds=self.lambda_bounds, method=self.lambda_method
         )
         self.box_cox_transformer_.fit(X)

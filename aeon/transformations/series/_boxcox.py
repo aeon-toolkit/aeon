@@ -46,7 +46,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
     make data more normally distributed and stabilize its variance based
     on the hyperparameter lambda. [1]_
 
-    The BoxCoxTransformer solves for the lambda parameter used in the Box-Cox
+    The _BoxCoxTransformer solves for the lambda parameter used in the Box-Cox
     transformation given `method`, the optimization approach, and input
     data provided to `fit`. The use of Guerrero's method for solving for lambda
     requires the seasonal periodicity, `sp` be provided. [2]_
@@ -79,7 +79,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
 
     See Also
     --------
-    LogTransformer :
+    _LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.ExponentTransformer :
@@ -107,7 +107,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.boxcox import BoxCoxTransformer
+    >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = BoxCoxTransformer()
@@ -212,7 +212,7 @@ class LogTransformer(BaseSeriesTransformer):
 
     See Also
     --------
-    BoxCoxTransformer :
+    _BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.ExponentTransformer :
@@ -228,7 +228,7 @@ class LogTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.boxcox import LogTransformer
+    >>> from aeon.transformations.series._boxcox import LogTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = LogTransformer()
