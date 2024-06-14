@@ -4,6 +4,7 @@ __maintainer__ = []
 __all__ = ["FunctionTransformer"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
@@ -13,6 +14,12 @@ def _identity(X):
     return X
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="FourierFeatures will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class FunctionTransformer(BaseTransformer):
     r"""
     Constructs a transformer from an arbitrary callable.
