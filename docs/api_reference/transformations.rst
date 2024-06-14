@@ -515,7 +515,7 @@ These transformations ensure all series in a panel have equal length
 Dimension reduction
 ~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.pca
+.. currentmodule:: aeon.transformations.series._pca
 
 .. autosummary::
     :toctree: auto_generated/
