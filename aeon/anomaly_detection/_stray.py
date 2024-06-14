@@ -18,11 +18,21 @@ class STRAY(BaseAnomalyDetector):
     This is based on STRAY (Search TRace AnomalY) [1]_, which is a modification
     of HDoutliers [2]_. HDoutliers is a powerful algorithm for the detection of
     anomalous observations in a dataset, which has (among other advantages) the
-    ability to detect clusters of outliers in multi-dimensional data without
+    ability to detect clusters of outliers in multidimensional data without
     requiring a model of the typical behavior of the system. However, it suffers
     from some limitations that affect its accuracy. STRAY is an extension of
     HDoutliers that uses extreme value theory for the anomolous threshold
     calculation, to deal with data streams that exhibit non-stationary behavior.
+
+    .. list-table:: Capabilities
+       :stub-columns: 1
+
+       * - Input data format
+         - univariate and multivariate
+       * - Output data format
+         - binary classification
+       * - Learning Type
+         - unsupervised
 
     Parameters
     ----------
@@ -47,11 +57,11 @@ class STRAY(BaseAnomalyDetector):
     References
     ----------
     .. [1] Talagala, Priyanga Dilini, Rob J. Hyndman, and Kate Smith-Miles.
-    "Anomaly detection in high-dimensional data." Journal of Computational
-    and Graphical Statistics 30.2 (2021): 360-374.
+           "Anomaly detection in high-dimensional data." Journal of Computational
+           and Graphical Statistics 30.2 (2021): 360-374.
     .. [2] Wilkinson, Leland. "Visualizing big data outliers through
-    distributed aggregation." IEEE transactions on visualization and
-    computer graphics 24.1 (2017): 256-266.
+           distributed aggregation." IEEE transactions on visualization and
+           computer graphics 24.1 (2017): 256-266.
 
     Examples
     --------
@@ -144,7 +154,7 @@ class STRAY(BaseAnomalyDetector):
         Parameters
         ----------
         outlier_score : np.ArrayLike
-            The outlier scores determined by k nearast neighbours distance
+            The outlier scores determined by k nearest neighbours distance
         n : int
             The number of rows remaining in X when NA's are removed.
 
