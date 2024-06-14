@@ -7,12 +7,19 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.utils import check_random_state
 
 from aeon.transformations._legacy._boxcox import _BoxCoxTransformer
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="STLBootstrapTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class STLBootstrapTransformer(BaseTransformer):
     """Creates a population of similar time series.
 
@@ -399,6 +406,12 @@ class STLBootstrapTransformer(BaseTransformer):
         return params
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="MovingBlockBootstrapTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class MovingBlockBootstrapTransformer(BaseTransformer):
     """Moving Block Bootstrapping method for synthetic time series generation.
 
