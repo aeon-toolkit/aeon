@@ -395,18 +395,6 @@ Seasonality and Date-Time Features
 
     FourierFeatures
 
-Auto-correlation series
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.acf
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    AutoCorrelationTransformer
-    PartialAutoCorrelationTransformer
-
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
