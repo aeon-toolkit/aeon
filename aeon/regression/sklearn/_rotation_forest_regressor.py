@@ -82,8 +82,8 @@ class RotationForestRegressor(BaseEstimator):
     Examples
     --------
     >>> from aeon.regression.sklearn import RotationForestRegressor
-    >>> from aeon.testing.data_generation import make_example_2d_numpy
-    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12,
+    >>> from aeon.testing.data_generation import make_example_2d_numpy_collection
+    >>> X, y = make_example_2d_numpy_collection(n_cases=10, n_timepoints=12,
     ...                              regression_target=True, random_state=0)
     >>> reg = RotationForestRegressor(n_estimators=10)
     >>> reg.fit(X, y)

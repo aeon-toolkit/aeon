@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.testing.data_generation import make_series
+from aeon.testing.data_generation._legacy import make_series
 from aeon.transformations.summarize import ALLOWED_SUM_FUNCS, SummaryTransformer
 
 # Test individual summary functions + lists and tuples of all summary functions
