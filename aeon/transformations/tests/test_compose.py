@@ -11,7 +11,7 @@ from aeon.testing.data_generation import get_examples
 from aeon.testing.mock_estimators import MockTransformer
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
-from aeon.transformations._legacy.boxcox import _LogTransformer
+from aeon.transformations._legacy._boxcox import _LogTransformer
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.compose import (
     ColumnConcatenator,

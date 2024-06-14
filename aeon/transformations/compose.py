@@ -27,7 +27,7 @@ __all__ = [
     "TransformerPipeline",
     "YtoX",
 ]
-from aeon.transformations._legacy.boxcox import _BoxCoxTransformer
+from aeon.transformations._legacy._boxcox import _BoxCoxTransformer
 from aeon.utils import ALL_TIME_SERIES_TYPES
 
 

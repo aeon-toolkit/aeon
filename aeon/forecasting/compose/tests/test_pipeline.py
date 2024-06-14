@@ -29,7 +29,7 @@ from aeon.testing.data_generation import get_examples, make_series
 from aeon.testing.mock_estimators import MockForecaster, MockTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.testing.utils.scenarios_forecasting import ForecasterFitPredictUnivariateWithX
-from aeon.transformations._legacy.boxcox import _LogTransformer
+from aeon.transformations._legacy._boxcox import _LogTransformer
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.compose import OptionalPassthrough
 from aeon.transformations.detrend import Detrender
