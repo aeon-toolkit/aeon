@@ -48,6 +48,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.base import BaseEstimator
 from aeon.datatypes import convert_to
@@ -86,6 +87,12 @@ def _coerce_to_list(obj):
         return obj
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="BaseTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class BaseTransformer(BaseEstimator):
     """Transformer base class."""
 
