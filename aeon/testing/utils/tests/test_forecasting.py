@@ -6,7 +6,7 @@ __all__ = []
 import pandas as pd
 import pytest
 
-from aeon.testing.utils.data_gen import make_forecasting_problem
+from aeon.testing.data_generation import make_forecasting_problem
 
 
 @pytest.mark.parametrize("n_timepoints", [3, 5])

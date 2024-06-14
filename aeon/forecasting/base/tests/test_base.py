@@ -8,12 +8,12 @@ from pandas.testing import assert_series_equal
 
 from aeon.forecasting.arima import ARIMA
 from aeon.forecasting.base._base import _format_moving_cutoff_predictions
-from aeon.testing.mock_estimators import MockForecaster
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     _make_hierarchical,
     make_example_3d_numpy,
     make_series,
 )
+from aeon.testing.mock_estimators import MockForecaster
 from aeon.utils.conversion import convert_collection
 from aeon.utils.index_functions import get_cutoff, get_window
 from aeon.utils.validation import (
