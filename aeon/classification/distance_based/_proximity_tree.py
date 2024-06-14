@@ -1,6 +1,7 @@
 from typing import Type, Union
 
 import numpy as np
+from numba import njit
 from sklearn.exceptions import NotFittedError
 from sklearn.utils import check_random_state
 
@@ -28,6 +29,13 @@ class Node:
 
 class ProximityTree(BaseClassifier):
 
+    _tags = {
+        "capability:multivariate": False,
+        "capability:unequal_length": False,
+        "algorithm_type": "distance",
+        "X_inner_type": ["numpy2D"],
+    }
+
     def __init__(
         self,
         n_splitters: int = 5,
@@ -40,7 +48,7 @@ class ProximityTree(BaseClassifier):
         self.n_splitters = n_splitters
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
-        self.random_state = check_random_state(random_state)
+        self.random_state = random_state
         self.n_jobs = n_jobs
         self.verbose = verbose
         super().__init__()
@@ -60,6 +68,8 @@ class ProximityTree(BaseClassifier):
         distance_param : a dictionary of distances and their
         parameters.
         """
+        rng = check_random_state(self.random_state)
+
         X_std = X.std()
         param_ranges = {
             "euclidean": {},
@@ -73,13 +83,13 @@ class ProximityTree(BaseClassifier):
         random_params = {}
         for measure, ranges in param_ranges.items():
             random_params[measure] = {
-                param: np.round(self.random_state.uniform(low, high), 3)
+                param: np.round(rng.uniform(low, high), 3)
                 for param, (low, high) in ranges.items()
             }
         # For TWE
-        lmbda = self.random_state.randint(0, 9)
+        lmbda = rng.randint(0, 9)
         exponent_range = np.arange(1, 6)  # Exponents from -5 to 1 (inclusive)
-        random_exponent = self.random_state.choice(exponent_range)
+        random_exponent = rng.choice(exponent_range)
         nu = 1 / 10**random_exponent
         random_params["twe"] = {"lmbda": lmbda, "nu": nu}
 
@@ -88,7 +98,7 @@ class ProximityTree(BaseClassifier):
         # Exponents from -2 to 2 (inclusive)
         exponents = np.arange(-2, 3, dtype=np.float64)
         # Randomly select an index from the exponent range
-        random_index = self.random_state.randint(0, len(exponents))
+        random_index = rng.randint(0, len(exponents))
         c = base ** exponents[random_index]
         random_params["msm"] = {"c": c}
 
@@ -114,93 +124,53 @@ class ProximityTree(BaseClassifier):
         splitter : list of two dictionaries
             A distance and its parameter values and a set of exemplars.
         """
+        rng = check_random_state(self.random_state)
+
         exemplars = {}
         for label in np.unique(y):
             y_new = y[y == label]
             X_new = X[y == label]
-            id = self.random_state.randint(0, X_new.shape[0])
+            id = rng.randint(0, X_new.shape[0])
             exemplars[y_new[id]] = X_new[id, :]
 
         # Create a list with first element exemplars and second element a
         # random parameterized distance measure
         parameterized_distances = self.get_parameter_value(X)
-        n = self.random_state.randint(0, 9)
+        n = rng.randint(0, 9)
         dist = list(parameterized_distances.keys())[n]
         splitter = [exemplars, {dist: parameterized_distances[dist]}]
 
         return splitter
 
-    @staticmethod
-    def gini(y):
-        """Get gini score at a specific node.
-
-        Parameters
-        ----------
-        y : 1d numpy array
-            array of class labels
-
-        Returns
-        -------
-        score : float
-            gini score for the set of class labels (i.e. how pure they are). A
-            larger score means more impurity. Zero means
-            pure.
-        """
-        # get number instances at node
-        n_instances = y.shape[0]
-        if n_instances > 0:
-            # count each class
-            unique_class_labels, class_counts = np.unique(y, return_counts=True)
-            # subtract class entropy from current score for each class
-            class_counts = np.divide(class_counts, n_instances)
-            class_counts = np.power(class_counts, 2)
-            sum = np.sum(class_counts)
-            return 1 - sum
-        else:
-            # y is empty, therefore considered pure
-            raise ValueError("y empty")
-
-    def gini_gain(self, y, y_subs):
-        """Get gini score of a split, i.e. the gain from parent to children.
-
-        Parameters
-        ----------
-        y : 1d array
-            array of class labels at parent
-        y_subs : list of 1d array like
-            list of array of class labels, one array per child
-
-        Returns
-        -------
-        score : float
-            gini score of the split from parent class labels to children. Note a
-            higher score means better gain,
-            i.e. a better split
-        """
-        # find number of instances overall
-        parent_n_instances = y.shape[0]
-        # if parent has no instances then is pure
-        if parent_n_instances == 0:
-            for child in y_subs:
-                if len(child) > 0:
-                    raise ValueError("children populated but parent empty")
-            return 0.5
-        # find gini for parent node
-        score = self.gini(y)
-        # sum the children's gini scores
-        for index in range(len(y_subs)):
-            child_class_labels = y_subs[index]
-            # ignore empty children
-            if len(child_class_labels) > 0:
-                # find gini score for this child
-                child_score = self.gini(child_class_labels)
-                # weight score by proportion of instances at child compared to
-                # parent
-                child_size = len(child_class_labels)
-                child_score *= child_size / parent_n_instances
-                # add to cumulative sum
-                score -= child_score
-        return score
+    def get_best_splitter(self, X, y):
+        """Get the splitter for a node which maximizes the gini gain."""
+        max_gain = float("-inf")
+        best_splitter = None
+        for _ in range(self.n_splitters):
+            splitter = self.get_candidate_splitter(X, y)
+            labels = list(splitter[0].keys())
+            measure = list(splitter[1].keys())[0]
+            y_subs = [[] for _ in range(len(labels))]
+            for j in range(X.shape[0]):
+                min_dist = float("inf")
+                sub = None
+                for k in range(len(labels)):
+                    dist = distance(
+                        X[j],
+                        splitter[0][labels[k]],
+                        metric=measure,
+                        kwargs=splitter[1][measure],
+                    )
+                    if dist < min_dist:
+                        min_dist = dist
+                        sub = k
+                y_subs[sub].append(y[j])
+            y_subs = [np.array(ele) for ele in y_subs]
+            gini_index = gini_gain(y, y_subs)
+            if gini_index > max_gain:
+                max_gain = gini_index
+                best_splitter = splitter
+        return best_splitter
 
     def _build_tree(self, X, y, depth, node_id, parent_target_value=None):
 
@@ -214,6 +184,7 @@ class ProximityTree(BaseClassifier):
                 label=leaf_label,
                 class_distribution=leaf_distribution,
             )
+            return leaf
 
         # Target value in current node
         target_value = self._find_target_value(y)
@@ -231,6 +202,7 @@ class ProximityTree(BaseClassifier):
                 label=leaf_label,
                 class_distribution=class_distribution,
             )
+            return leaf
 
         # If max depth is reached
         if (self.max_depth is not None) and (depth >= self.max_depth):
@@ -241,6 +213,7 @@ class ProximityTree(BaseClassifier):
                 label=leaf_label,
                 class_distribution=class_distribution,
             )
+            return leaf
 
         # Pure node
         if len(self.classes_) == 1:
@@ -305,36 +278,6 @@ class ProximityTree(BaseClassifier):
         # mode_count = counts[max_index]
         return mode_value
 
-    def get_best_splitter(self, X, y):
-        """Get the splitter for a node which maximizes the gini gain."""
-        max_gain = float("-inf")
-        best_splitter = None
-        for _ in range(self.n_splitters):
-            splitter = self.get_candidate_splitter(X, y)
-            labels = list(splitter[0].keys())
-            measure = list(splitter[1].keys())[0]
-            y_subs = [[] for k in range(len(labels))]
-            for j in range(X.shape[0]):
-                min_dist = float("inf")
-                sub = None
-                for k in range(len(labels)):
-                    dist = distance(
-                        X[j],
-                        splitter[0][labels[k]],
-                        metric=measure,
-                        kwargs=splitter[1][measure],
-                    )
-                    if dist < min_dist:
-                        min_dist = dist
-                        sub = k
-                y_subs[sub].append(y[j])
-            y_subs = [np.array(ele) for ele in y_subs]
-            gini_index = self.gini_gain(y, y_subs)
-            if gini_index > max_gain:
-                max_gain = gini_index
-                best_splitter = splitter
-        return best_splitter
-
     def _fit(self, X, y):
         # Set the unique class labels
         if (X.ndim != 2) or (y.ndim != 1):
@@ -394,3 +337,86 @@ class ProximityTree(BaseClassifier):
                     min_dist = dist
                     id = i
             return self._classify(treenode.children[branches[id]], x)
+
+
+@njit(cache=True, fastmath=True)
+def gini(y) -> float:
+    """Get gini score at a specific node.
+
+    Parameters
+    ----------
+    y : 1d numpy array
+        array of class labels
+
+    Returns
+    -------
+    score : float
+        gini score for the set of class labels (i.e. how pure they are). A
+        larger score means more impurity. Zero means
+        pure.
+    """
+    # get number instances at node
+    n_instances = y.shape[0]
+    if n_instances > 0:
+        # count each class
+        unique_labels = list(np.unique(y))
+        class_counts = []
+        for i in range(len(unique_labels)):
+            cnt = 0
+            for j in range(len(y)):
+                if y[j] == unique_labels[i]:
+                    cnt += 1
+            class_counts.append(cnt)
+        class_counts = np.array(class_counts)
+        # subtract class entropy from current score for each class
+        class_counts = np.divide(class_counts, n_instances)
+        class_counts = np.power(class_counts, 2)
+        sum = np.sum(class_counts)
+        return 1 - sum
+    else:
+        # y is empty, therefore considered pure
+        raise ValueError("y empty")
+
+
+@njit(cache=True, fastmath=True)
+def gini_gain(y, y_subs) -> float:
+    """Get gini score of a split, i.e. the gain from parent to children.
+
+    Parameters
+    ----------
+    y : 1d array
+        array of class labels at parent
+    y_subs : list of 1d array like
+        list of array of class labels, one array per child
+
+    Returns
+    -------
+    score : float
+        gini score of the split from parent class labels to children. Note a
+        higher score means better gain,
+        i.e. a better split
+    """
+    # find number of instances overall
+    parent_n_instances = y.shape[0]
+    # if parent has no instances then is pure
+    if parent_n_instances == 0:
+        for child in y_subs:
+            if len(child) > 0:
+                raise ValueError("children populated but parent empty")
+        return 0.5
+    # find gini for parent node
+    score = gini(y)
+    # sum the children's gini scores
+    for index in range(len(y_subs)):
+        child_class_labels = y_subs[index]
+        # ignore empty children
+        if len(child_class_labels) > 0:
+            # find gini score for this child
+            child_score = gini(child_class_labels)
+            # weight score by proportion of instances at child compared to
+            # parent
+            child_size = len(child_class_labels)
+            child_score *= child_size / parent_n_instances
+            # add to cumulative sum
+            score -= child_score
+    return score
