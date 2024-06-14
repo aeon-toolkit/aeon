@@ -1558,7 +1558,7 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     >>> from aeon.forecasting.base import ForecastingHorizon
     >>> from aeon.forecasting.compose import ForecastingPipeline, Permute
     >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.transformations.boxcox import BoxCoxTransformer
+    >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
     >>> from aeon.transformations.exponent import ExponentTransformer
 
     Simple example: permute sequence of estimator in forecasting pipeline

@@ -7,8 +7,8 @@ from aeon.datasets import load_airline
 from aeon.forecasting.compose import BaggingForecaster
 from aeon.forecasting.compose._bagging import _calculate_data_quantiles
 from aeon.forecasting.naive import NaiveForecaster
+from aeon.transformations._legacy.boxcox import LogTransformer
 from aeon.transformations.bootstrap import STLBootstrapTransformer
-from aeon.transformations.boxcox import LogTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 y = load_airline()

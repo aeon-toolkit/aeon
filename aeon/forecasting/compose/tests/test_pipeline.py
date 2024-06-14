@@ -15,6 +15,7 @@ from aeon.forecasting.compose import (
     TransformedTargetForecaster,
     make_reduction,
 )
+from aeon.forecasting.ets import AutoETS
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.model_selection import (
     ExpandingWindowSplitter,
@@ -27,8 +28,9 @@ from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.testing.data_generation import get_examples, make_series
 from aeon.testing.mock_estimators import MockForecaster, MockTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
+from aeon.testing.utils.scenarios_forecasting import ForecasterFitPredictUnivariateWithX
+from aeon.transformations._legacy.boxcox import LogTransformer
 from aeon.transformations.adapt import TabularToSeriesAdaptor
-from aeon.transformations.boxcox import LogTransformer
 from aeon.transformations.compose import OptionalPassthrough
 from aeon.transformations.detrend import Detrender
 from aeon.transformations.difference import Differencer
@@ -102,14 +104,6 @@ def test_skip_inverse_transform():
 )
 def test_nesting_pipelines():
     """Test that nesting of pipelines works."""
-    from aeon.forecasting.ets import AutoETS
-    from aeon.testing.utils.scenarios_forecasting import (
-        ForecasterFitPredictUnivariateWithX,
-    )
-    from aeon.transformations.boxcox import LogTransformer
-    from aeon.transformations.compose import OptionalPassthrough
-    from aeon.transformations.detrend import Detrender
-
     pipe = ForecastingPipeline(
         steps=[
             ("logX", OptionalPassthrough(LogTransformer())),

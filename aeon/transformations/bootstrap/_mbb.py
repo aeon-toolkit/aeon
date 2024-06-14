@@ -10,7 +10,7 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.boxcox import BoxCoxTransformer
+from aeon.transformations.series._boxcox import BoxCoxTransformer
 
 
 class STLBootstrapTransformer(BaseTransformer):
