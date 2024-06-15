@@ -27,6 +27,63 @@ class Node:
 
 
 class ProximityTree(BaseClassifier):
+    """Proximity Tree classifier.
+
+    A Proximity Tree is similar to a decision tree classifier where
+    the splits are based on similarity to chosen time series exemplars.
+    A Proximity Tree splits the data based on the proximity of each instance to
+    each of a set of class exemplars based on a parameterized similarity measure. The
+    tree is constructed recursively from the root node down to the leaf nodes.
+    At each node (other than leaf nodes) a pool of candidate splitters are evaluated.
+    Each splitter has a set of exemplar time series for each class chosen randomly,
+    and a parameterized distance measure, also chosen randomly. The splitter that
+    maximizes the difference between the Gini impurity of the parent node and the
+    weighted sum of Gini impurity of the child nodes.
+
+    Parameters
+    ----------
+    n_splitters: int, default = 5
+        The number of candidate splitters to be evaluated at each node.
+    max_depth: int, default = None
+        The maximum depth of the tree. If None, then nodes are expanded until all
+        leaves are pure or until all leaves contain less than min_samples_split samples.
+    min_samples_split: int, default = 2
+        The minimum number of samples required to split an internal node.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+    n_jobs : int, default = None
+        The number of parallel jobs to run for neighbors search.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details. Parameter for compatibility purposes, still unimplemented.
+
+    Notes
+    -----
+    For the Java version, see
+    `ProximityTree
+    <https://github.com/fpetitjean/ProximityForest/blob/master/src/trees/ProximityTree.java>`_.
+
+    References
+    ----------
+    .. [1] Lucas, B., Shifaz, A., Pelletier, C., O’Neill, L., Zaidi, N., Goethals, B.,
+    Petitjean, F. and Webb, G.I., 2019. Proximity forest: an effective and scalable
+    distance-based classifier for time series. Data Mining and Knowledge Discovery,
+    33(3), pp.607-635.
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.classification.distance_based import ProximityTree
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> classifier = ProximityTree(n_splitter = 3, max_depth = 5)
+    >>> classifier.fit(X_train, y_train)
+    ProximityTree(...)
+    >>> y_pred = classifier.predict(X_test)
+    """
 
     _tags = {
         "capability:multivariate": False,
@@ -42,17 +99,15 @@ class ProximityTree(BaseClassifier):
         min_samples_split: int = 2,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
         n_jobs: int = 1,
-        verbose: int = 0,
     ) -> None:
         self.n_splitters = n_splitters
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.random_state = random_state
         self.n_jobs = n_jobs
-        self.verbose = verbose
         super().__init__()
 
-    def get_parameter_value(self, X):
+    def _get_parameter_value(self, X):
         """Generate random parameter values.
 
         For a list of distance measures, generate a dictionary
@@ -103,7 +158,7 @@ class ProximityTree(BaseClassifier):
 
         return random_params
 
-    def get_candidate_splitter(self, X, y):
+    def _get_candidate_splitter(self, X, y):
         """Generate candidate splitter.
 
         Takes a time series dataset and a set of parameterized
@@ -134,19 +189,19 @@ class ProximityTree(BaseClassifier):
 
         # Create a list with first element exemplars and second element a
         # random parameterized distance measure
-        parameterized_distances = self.get_parameter_value(X)
+        parameterized_distances = self._get_parameter_value(X)
         n = rng.randint(0, 9)
         dist = list(parameterized_distances.keys())[n]
         splitter = [exemplars, {dist: parameterized_distances[dist]}]
 
         return splitter
 
-    def get_best_splitter(self, X, y):
+    def _get_best_splitter(self, X, y):
         """Get the splitter for a node which maximizes the gini gain."""
         max_gain = float("-inf")
         best_splitter = None
         for _ in range(self.n_splitters):
-            splitter = self.get_candidate_splitter(X, y)
+            splitter = self._get_candidate_splitter(X, y)
             labels = list(splitter[0].keys())
             measure = list(splitter[1].keys())[0]
             y_subs = [[] for _ in range(len(labels))]
