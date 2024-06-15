@@ -281,7 +281,7 @@ class ProximityTree(BaseClassifier):
             return leaf
 
         # Find the best splitter
-        splitter = self.get_best_splitter(X, y)
+        splitter = self._get_best_splitter(X, y)
 
         # Create root node
         node = Node(node_id=node_id, _is_leaf=False, splitter=splitter)
@@ -323,12 +323,21 @@ class ProximityTree(BaseClassifier):
         return node
 
     @staticmethod
+    @njit(cache=True, fastmath=True)
     def _find_target_value(y):
         """Get the class label of highest frequency."""
-        unique, counts = np.unique(y, return_counts=True)
+        unique_labels = list(np.unique(y))
+        class_counts = []
+        for i in range(len(unique_labels)):
+            cnt = 0
+            for j in range(len(y)):
+                if y[j] == unique_labels[i]:
+                    cnt += 1
+            class_counts.append(cnt)
+        class_counts = np.array(class_counts)
         # Find the index of the maximum count
-        max_index = np.argmax(counts)
-        mode_value = unique[max_index]
+        max_index = np.argmax(class_counts)
+        mode_value = unique_labels[max_index]
         # mode_count = counts[max_index]
         return mode_value
 
