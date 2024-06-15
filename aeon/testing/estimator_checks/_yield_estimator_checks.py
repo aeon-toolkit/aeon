@@ -1,5 +1,7 @@
 import numbers
+import pickle
 import types
+from copy import deepcopy
 from functools import partial
 from inspect import getfullargspec, signature
 
@@ -10,24 +12,38 @@ from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_get_params_invariance
 
 from aeon.base import BaseEstimator, BaseObject
+from aeon.base._base import _clone_estimator
+from aeon.classification.deep_learning.base import BaseDeepClassifier
+from aeon.clustering.deep_learning.base import BaseDeepClusterer
+from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.testing.test_config import (
     NON_STATE_CHANGING_METHODS,
+    NON_STATE_CHANGING_METHODS_ARRAYLIKE,
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
 )
-from aeon.testing.testing_data import TEST_DATA_DICT, get_data_types_for_estimator
+from aeon.testing.testing_data import (
+    TEST_DATA_DICT,
+    TEST_LABEL_DICT,
+    get_data_types_for_estimator,
+)
 from aeon.testing.utils.deep_equals import deep_equals
-from aeon.testing.utils.estimator_checks import _get_args, _list_required_methods
+from aeon.testing.utils.estimator_checks import (
+    _assert_array_almost_equal,
+    _get_args,
+    _list_required_methods,
+    _run_estimator_method,
+)
 from aeon.transformations.base import BaseTransformer
 
 
 def _yield_all_aeon_checks(estimator):
     datatypes = get_data_types_for_estimator(estimator)
 
-    yield from _yield_estimator_checks(datatypes)
+    yield from _yield_estimator_checks(estimator, datatypes)
 
 
-def _yield_estimator_checks(datatypes):
+def _yield_estimator_checks(estimator, datatypes):
     # no data needed
     yield check_create_test_instance
     yield check_create_test_instances_and_names
@@ -43,12 +59,29 @@ def _yield_estimator_checks(datatypes):
     yield check_valid_estimator_class_tags
     yield check_valid_estimator_tags
 
-    # data type irrelevant
-    yield partial(check_raises_not_fitted_error, datatypes=datatypes[0])
+    if (
+        isinstance(estimator, BaseDeepClassifier)
+        or isinstance(estimator, BaseDeepRegressor)
+        or isinstance(estimator, BaseDeepClusterer)
+    ):
+        yield check_dl_constructor_initializes_deeply
 
-    # should test all data types
-    for datatype in datatypes:
-        pass
+    # data type irrelevant
+    yield partial(check_non_state_changing_method, datatype=datatypes[0])
+    yield partial(check_fit_updates_state, datatype=datatypes[0])
+
+    if not estimator.get_tag(
+        "fit_is_empty", tag_value_default=False, raise_error=False
+    ):
+        yield partial(check_raises_not_fitted_error, datatype=datatypes[0])
+
+    if not estimator.get_tag("cant-pickle", tag_value_default=False, raise_error=False):
+        yield partial(test_persistence_via_pickle, datatype=datatypes[0])
+
+    if not estimator.get_tag(
+        "non-deterministic", tag_value_default=False, raise_error=False
+    ):
+        yield partial(check_fit_deterministic, datatype=datatypes[0])
 
 
 def check_create_test_instance(estimator):
@@ -378,7 +411,142 @@ def check_valid_estimator_tags(estimator):
         assert tag in VALID_ESTIMATOR_TAGS
 
 
-def check_raises_not_fitted_error(estimator, datatypes):
+def check_dl_constructor_initializes_deeply(estimator):
+    """Test DL estimators that they pass custom parameters to underlying Network."""
+    if not hasattr(estimator, "get_test_params"):
+        return None
+
+    params = estimator.get_test_params()
+
+    if isinstance(params, list):
+        params = params[0]
+    if isinstance(params, dict):
+        pass
+    else:
+        raise TypeError(
+            f"`get_test_params()` of estimator: {estimator} returns "
+            f"an expected type: {type(params)}, acceptable formats: [list, dict]"
+        )
+
+    estimator = estimator(**params)
+
+    for key, value in params.items():
+        assert vars(estimator)[key] == value
+        # some keys are only relevant to the final model (eg: n_epochs)
+        # skip them for the underlying network
+        if vars(estimator._network).get(key) is not None:
+            assert vars(estimator._network)[key] == value
+
+
+def check_non_state_changing_method(estimator, datatype):
+    """Check that non-state-changing methods behave as per interface contract.
+
+    Check the following contract on non-state-changing methods:
+    1. do not change state of the estimator, i.e., any attributes
+        (including hyper-parameters and fitted parameters)
+    2. expected output type of the method matches actual output type
+        - only for abstract BaseEstimator methods, common to all estimators.
+        List of BaseEstimator methods tested: get_fitted_params
+        Subclass specific method outputs are tested in TestAll[estimatortype] class
+    3. the state of method arguments does not change
+    """
+    estimator = _clone_estimator(estimator)
+
+    X = deepcopy(TEST_DATA_DICT[datatype[0]]["train"])
+    y = deepcopy(TEST_LABEL_DICT[datatype[1]]["train"])
+    _run_estimator_method(estimator, "fit", datatype, "train")
+
+    assert deep_equals(X, TEST_DATA_DICT[datatype[0]]["train"]) and deep_equals(
+        y, TEST_LABEL_DICT[datatype[1]]["train"]
+    ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
+
+    # dict_before = copy of dictionary of estimator before predict, post fit
+    dict_before = estimator.__dict__.copy()
+    X = deepcopy(TEST_DATA_DICT[datatype[0]]["test"])
+    y = deepcopy(TEST_LABEL_DICT[datatype[1]]["test"])
+
+    for method in NON_STATE_CHANGING_METHODS:
+        if hasattr(estimator, method):
+            _run_estimator_method(estimator, method, datatype, "test")
+
+        assert deep_equals(X, TEST_DATA_DICT[datatype[0]]["test"]) and deep_equals(
+            y, TEST_LABEL_DICT[datatype[1]]["test"]
+        ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
+
+        # dict_after = dictionary of estimator after predict and fit
+        dict_after = estimator.__dict__
+        is_equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
+        assert is_equal, (
+            f"Estimator: {type(estimator).__name__} changes __dict__ "
+            f"during {method}, "
+            f"reason/location of discrepancy (x=after, y=before): {msg}"
+        )
+
+
+def check_fit_updates_state(estimator, datatype):
+    """Check fit/update state change.
+
+    1. Check estimator_instance calls base class constructor
+    2. Check is_fitted attribute is set correctly to False before fit, at init
+        This is testing base class functionality, but its fast
+    3. Check fit returns self
+    4. Check is_fitted attribute is updated correctly to True after calling fit
+    5. Check estimator hyper parameters are not changed in fit
+    """
+    # Check that fit updates the is-fitted states
+    attrs = ["_is_fitted", "is_fitted"]
+
+    estimator = _clone_estimator(estimator)
+
+    msg = (
+        f"{type(estimator).__name__}.__init__ should call "
+        f"super({type(estimator).__name__}, self).__init__, "
+        "but that does not seem to be the case. Please ensure to call the "
+        f"parent class's constructor in {type(estimator).__name__}.__init__"
+    )
+    assert hasattr(estimator, "_is_fitted"), msg
+
+    # Check is_fitted attribute is set correctly to False before fit, at init
+    for attr in attrs:
+        assert not getattr(
+            estimator, attr
+        ), f"Estimator: {estimator} does not initiate attribute: {attr} to False"
+
+    # Make a physical copy of the original estimator parameters before fitting.
+    original_params = deepcopy(estimator.get_params())
+
+    fitted_estimator = _run_estimator_method(estimator, "fit", datatype, "train")
+
+    # Check fit returns self
+    assert (
+        fitted_estimator is estimator
+    ), f"Estimator: {estimator} does not return self when calling fit"
+
+    # Check is_fitted attribute is updated correctly to True after calling fit
+    for attr in attrs:
+        assert getattr(
+            fitted_estimator, attr
+        ), f"Estimator: {estimator} does not update attribute: {attr} during fit"
+
+    # Compare the state of the model parameters with the original parameters
+    new_params = fitted_estimator.get_params()
+    for param_name, original_value in original_params.items():
+        new_value = new_params[param_name]
+
+        # We should never change or mutate the internal state of input
+        # parameters by default. To check this we use the joblib.hash function
+        # that introspects recursively any subobjects to compute a checksum.
+        # The only exception to this rule of immutable constructor parameters
+        # is possible RandomState instance but in this check we explicitly
+        # fixed the random_state params recursively to be integer seeds.
+        assert joblib.hash(new_value) == joblib.hash(original_value), (
+            "Estimator %s should not change or mutate "
+            " the parameter %s from %s to %s during fit."
+            % (estimator.__class__.__name__, param_name, original_value, new_value)
+        )
+
+
+def check_raises_not_fitted_error(estimator, datatype):
     """Check exception raised for non-fit method calls to unfitted estimators.
 
     Tries to run all methods in NON_STATE_CHANGING_METHODS with valid scenario,
@@ -392,276 +560,74 @@ def check_raises_not_fitted_error(estimator, datatypes):
     Exception if NotFittedError is not raised by non-state changing method
     """
     # call methods without prior fitting and check that they raise NotFittedError
-    for method_nsc in NON_STATE_CHANGING_METHODS:
-        if hasattr(estimator, method_nsc):
+    for method in NON_STATE_CHANGING_METHODS:
+        if hasattr(estimator, method):
             with pytest.raises(NotFittedError, match=r"has not been fitted"):
-                getattr(estimator, method_nsc)(TEST_DATA_DICT[datatypes])
+                _run_estimator_method(estimator, method, datatype, "test")
 
 
-# def check_non_state_changing_method(estimator):
-#     """Check that non-state-changing methods behave as per interface contract.
-#
-#     Check the following contract on non-state-changing methods:
-#     1. do not change state of the estimator, i.e., any attributes
-#         (including hyper-parameters and fitted parameters)
-#     2. expected output type of the method matches actual output type
-#         - only for abstract BaseEstimator methods, common to all estimators.
-#         List of BaseEstimator methods tested: get_fitted_params
-#         Subclass specific method outputs are tested in TestAll[estimatortype] class
-#     3. the state of method arguments does not change
-#     """
-#     estimator = estimator_instance
-#     set_random_state(estimator)
-#
-#     _, args_after = scenario.run(
-#         estimator, method_sequence=["fit"], return_args=True
-#     )
-#     fit_args_after = args_after[0]
-#     fit_args_before = scenario.args["fit"]
-#     assert deep_equals(
-#         fit_args_before, fit_args_after
-#     ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
-#
-#     # dict_before = copy of dictionary of estimator before predict, post fit
-#     dict_before = estimator.__dict__.copy()
-#
-#     # skip test if predict_proba is not implemented
-#     if method_nsc == "predict_proba":
-#         try:
-#             output, args_after = scenario.run(
-#                 estimator, method_sequence=[method_nsc], return_args=True
-#             )
-#         except NotImplementedError:
-#             return None
-#     else:
-#         output, args_after = scenario.run(
-#             estimator, method_sequence=[method_nsc], return_args=True
-#         )
-#
-#     method_args_after = args_after[0]
-#     method_args_before = scenario.get_args(method_nsc, estimator)
-#
-#     assert deep_equals(method_args_after, method_args_before), (
-#         f"Estimator: {type(estimator)} has side effects on arguments of "
-#         f"{method_nsc}"
-#     )
-#
-#     # dict_after = dictionary of estimator after predict and fit
-#     dict_after = estimator.__dict__
-#     is_equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
-#     assert is_equal, (
-#         f"Estimator: {type(estimator).__name__} changes __dict__ "
-#         f"during {method_nsc}, "
-#         f"reason/location of discrepancy (x=after, y=before): {msg}"
-#     )
-#
-#     # test get_fitted_params here to avoid extra fit calls
-#     if method_nsc == "get_fitted_params":
-#         msg = (
-#             f"get_fitted_params of {type(estimator)} should return dict, "
-#             f"but returns object of type {type(output)}"
-#         )
-#         assert isinstance(output, dict), msg
-#
-#         nonstr = [x for x in output.keys() if not isinstance(x, str)]
-#         if not len(nonstr) == 0:
-#             msg = (
-#                 f"get_fitted_params of {type(estimator)} should return dict with "
-#                 f"with str keys, but some keys are not str."
-#                 f"found {nonstr}"
-#             )
-#             raise AssertionError(msg)
-#
-#
-# def check_fit_updates_state(estimator):
-#     """Check fit/update state change.
-#
-#     1. Check estimator_instance calls base class constructor
-#     2. Check is_fitted attribute is set correctly to False before fit, at init
-#         This is testing base class functionality, but its fast
-#     3. Check fit returns self
-#     4. Check is_fitted attribute is updated correctly to True after calling fit
-#     5. Check estimator hyper parameters are not changed in fit
-#     """
-#     # Check that fit updates the is-fitted states
-#     attrs = ["_is_fitted", "is_fitted"]
-#
-#     estimator = estimator_instance
-#     estimator_class = type(estimator_instance)
-#
-#     msg = (
-#         f"{estimator_class.__name__}.__init__ should call "
-#         f"super({estimator_class.__name__}, self).__init__, "
-#         "but that does not seem to be the case. Please ensure to call the "
-#         f"parent class's constructor in {estimator_class.__name__}.__init__"
-#     )
-#     assert hasattr(estimator, "_is_fitted"), msg
-#
-#     # Check is_fitted attribute is set correctly to False before fit, at init
-#     for attr in attrs:
-#         assert not getattr(
-#             estimator, attr
-#         ), f"Estimator: {estimator} does not initiate attribute: {attr} to False"
-#     # Make a physical copy of the original estimator parameters before fitting.
-#     set_random_state(estimator)
-#     params = estimator.get_params()
-#     original_params = deepcopy(params)
-#
-#     fitted_estimator = scenario.run(estimator_instance, method_sequence=["fit"])
-#     # Check fit returns self
-#     assert (
-#         fitted_estimator is estimator_instance
-#     ), f"Estimator: {estimator_instance} does not return self when calling fit"
-#
-#     # Check is_fitted attribute is updated correctly to True after calling fit
-#     for attr in attrs:
-#         assert getattr(
-#             fitted_estimator, attr
-#         ), f"Estimator: {estimator} does not update attribute: {attr} during fit"
-#
-#     # Compare the state of the model parameters with the original parameters
-#     new_params = fitted_estimator.get_params()
-#     for param_name, original_value in original_params.items():
-#         new_value = new_params[param_name]
-#
-#         # We should never change or mutate the internal state of input
-#         # parameters by default. To check this we use the joblib.hash function
-#         # that introspects recursively any subobjects to compute a checksum.
-#         # The only exception to this rule of immutable constructor parameters
-#         # is possible RandomState instance but in this check we explicitly
-#         # fixed the random_state params recursively to be integer seeds.
-#         assert joblib.hash(new_value) == joblib.hash(original_value), (
-#             "Estimator %s should not change or mutate "
-#             " the parameter %s from %s to %s during fit."
-#             % (estimator.__class__.__name__, param_name, original_value, new_value)
-#         )
-#
-# def check_fit_deterministic(estimator):
-#     """Test that fit is deterministic.
-#
-#     Check that calling fit twice is equivalent to calling it once, and also
-#     tests pickling (done here to save time).
-#     """
-#     # escape known non-deterministic estimators
-#     if estimator_instance.get_tag(
-#         "non-deterministic", tag_value_default=False, raise_error=False
-#     ):
-#         return None
-#
-#     # for now, we have to skip predict_proba, since current output comparison
-#     #   does not work for tensorflow Distribution
-#     if (
-#         isinstance(estimator_instance, BaseForecaster)
-#         and method_nsc_arraylike == "predict_proba"
-#     ):
-#         return None
-#
-#     # run fit plus method_nsc once, save results
-#     set_random_state(estimator_instance)
-#     results = scenario.run(
-#         estimator_instance,
-#         method_sequence=["fit", method_nsc_arraylike],
-#         return_all=True,
-#         deepcopy_return=True,
-#     )
-#
-#     estimator = results[0]
-#     set_random_state(estimator)
-#
-#     # run fit plus method_nsc a second time
-#     results_2nd = scenario.run(
-#         estimator,
-#         method_sequence=["fit", method_nsc_arraylike],
-#         return_all=True,
-#         deepcopy_return=True,
-#     )
-#
-#     # check results are equal
-#     _assert_array_almost_equal(
-#         results[1],
-#         results_2nd[1],
-#         err_msg=f"Running {method_nsc_arraylike} after fit twice with test "
-#         f"parameters gives different results.",
-#     )
-#
-#     def test_persistence_via_pickle(
-#         self, estimator_instance, scenario, method_nsc_arraylike
-#     ):
-#         """Check that we can pickle all estimators."""
-#         method_nsc = method_nsc_arraylike
-#
-#         # escape estimators we know cannot pickle. For saving there is an argument to
-#         # be made that alternate methods of saving should be available, but currently
-#         # this is not the case
-#         if estimator_instance.get_tag(
-#             "cant-pickle", tag_value_default=False, raise_error=False
-#         ):
-#             return None
-#
-#         # escape predict_proba for forecasters, tfp distributions cannot be pickled
-#         if (
-#             isinstance(estimator_instance, BaseForecaster)
-#             and method_nsc == "predict_proba"
-#         ):
-#             return None
-#
-#         estimator = estimator_instance
-#         set_random_state(estimator)
-#         # Fit the model, get args before and after
-#         scenario.run(estimator, method_sequence=["fit"], return_args=True)
-#
-#         # Generate results before pickling
-#         vanilla_result = scenario.run(estimator, method_sequence=[method_nsc])
-#
-#         # Serialize and deserialize
-#         serialized_estimator = pickle.dumps(estimator)
-#         deserialized_estimator = pickle.loads(serialized_estimator)
-#         deserialized_result = scenario.run(
-#             deserialized_estimator, method_sequence=[method_nsc]
-#         )
-#
-#         _assert_array_almost_equal(
-#             vanilla_result,
-#             deserialized_result,
-#             decimal=6,
-#             err_msg=(
-#                 f"Results of {method_nsc} difference between when pickling and not "
-#                 f"pickling, estimator {type(estimator_instance).__name__}"
-#             ),
-#         )
-#
-# def check_dl_constructor_initializes_deeply(estimator):
-#     """Test DL estimators that they pass custom parameters to underlying Network."""
-#     estimator = estimator_class
-#
-#     if not issubclass(estimator, (BaseDeepClassifier, BaseDeepRegressor)):
-#         return None
-#
-#     if not hasattr(estimator, "get_test_params"):
-#         return None
-#
-#     params = estimator.get_test_params()
-#
-#     if isinstance(params, list):
-#         params = params[0]
-#     if isinstance(params, dict):
-#         pass
-#     else:
-#         raise TypeError(
-#             f"`get_test_params()` of estimator: {estimator} returns "
-#             f"an expected type: {type(params)}, acceptable formats: [list, dict]"
-#         )
-#
-#     estimator = estimator(**params)
-#
-#     for key, value in params.items():
-#         assert vars(estimator)[key] == value
-#         # some keys are only relevant to the final model (eg: n_epochs)
-#         # skip them for the underlying network
-#         if vars(estimator._network).get(key) is not None:
-#             assert vars(estimator._network)[key] == value
-#
-#
+def test_persistence_via_pickle(estimator, datatype):
+    """Check that we can pickle all estimators."""
+    estimator = _clone_estimator(estimator, random_state=0)
+    _run_estimator_method(estimator, "fit", datatype, "train")
+
+    results = []
+    for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
+        if hasattr(estimator, method):
+            output = _run_estimator_method(estimator, method, datatype, "test")
+            results.append(output)
+
+    # Serialize and deserialize
+    serialized_estimator = pickle.dumps(estimator)
+    estimator = pickle.loads(serialized_estimator)
+
+    i = 0
+    for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
+        if hasattr(estimator, method):
+            output = _run_estimator_method(estimator, method, datatype, "test")
+
+            _assert_array_almost_equal(
+                output,
+                results[i],
+                err_msg=f"Running {method} after fit twice with test "
+                f"parameters gives different results.",
+            )
+
+            i += 1
+
+
+def check_fit_deterministic(estimator, datatype):
+    """Test that fit is deterministic.
+
+    Check that calling fit twice is equivalent to calling it once.
+    """
+    estimator = _clone_estimator(estimator, random_state=0)
+    _run_estimator_method(estimator, "fit", datatype, "train")
+
+    results = []
+    for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
+        if hasattr(estimator, method):
+            output = _run_estimator_method(estimator, method, datatype, "test")
+            results.append(output)
+
+    # run fit and other methods a second time
+    _run_estimator_method(estimator, "fit", datatype, "train")
+
+    i = 0
+    for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
+        if hasattr(estimator, method):
+            output = _run_estimator_method(estimator, method, datatype, "test")
+
+            _assert_array_almost_equal(
+                output,
+                results[i],
+                err_msg=f"Running {method} after fit twice with test "
+                f"parameters gives different results.",
+            )
+
+            i += 1
+
+
 # def check_multiprocessing_idempotent(estimator):
 #     """Test that single and multi-process run results are identical.
 #

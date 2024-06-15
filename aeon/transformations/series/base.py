@@ -107,9 +107,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(
-            X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
-        )
+        X = self._preprocess_series(X, axis=axis, store_metadata=False)
         Xt = self._transform(X)
         return self._postprocess_series(Xt, axis=axis)
 
@@ -187,9 +185,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(
-            X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
-        )
+        X = self._preprocess_series(X, axis=axis, store_metadata=False)
         Xt = self._inverse_transform(X=X, y=y)
         return self._postprocess_series(Xt, axis=axis)
 
@@ -214,7 +210,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
+        X = self._preprocess_series(X, axis, False)
         return self._update(X=X, y=y, update_params=update_params)
 
     def _fit(self, X, y=None):

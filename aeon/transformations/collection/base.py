@@ -120,7 +120,7 @@ class BaseCollectionTransformer(
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner = self._preprocess_collection(X)
+        X_inner = self._preprocess_collection(X, store_metadata=False)
         y_inner = y
 
         Xt = self._transform(X=X_inner, y=y_inner)
@@ -206,7 +206,7 @@ class BaseCollectionTransformer(
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner = self._preprocess_collection(X)
+        X_inner = self._preprocess_collection(X, store_metadata=False)
         y_inner = y
 
         Xt = self._inverse_transform(X=X_inner, y=y_inner)
@@ -250,7 +250,7 @@ class BaseCollectionTransformer(
             raise ValueError(f"{self.__class__.__name__} requires `y` in `update`.")
 
         # check and convert X/y
-        X_inner = self._preprocess_collection(X)
+        X_inner = self._preprocess_collection(X, store_metadata=False)
         y_inner = y
 
         # update memory of X, if remember_data exists and is set to True
