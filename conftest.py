@@ -35,12 +35,12 @@ def pytest_configure(config):
     os.environ["OPENBLAS_NUM_THREADS"] = "1"
     os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 
-    from numba import set_num_threads
+    import numba
 
     from aeon.testing import test_config
     from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-    set_num_threads(1)
+    numba.set_num_threads(1)
 
     if _check_soft_dependencies("tensorflow", severity="none"):
         from tensorflow.config.threading import (
