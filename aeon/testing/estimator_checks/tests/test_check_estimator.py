@@ -6,7 +6,6 @@ import pytest
 
 from aeon.base import BaseEstimator
 from aeon.clustering import TimeSeriesKMeans
-from aeon.similarity_search._dummy import DummySimilaritySearch
 from aeon.testing import parametrize_with_checks
 from aeon.testing.estimator_checks import check_estimator
 from aeon.testing.mock_estimators import (
@@ -27,7 +26,6 @@ EXAMPLE_CLASSES = [
     TimeSeriesKMeans,
     MockSegmenter,
     MockAnomalyDetector,
-    # DummySimilaritySearch,
     MockMultivariateSeriesTransformer,
     TimeSeriesScaler,
     MockClassifierMultiTestParams,
