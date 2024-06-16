@@ -318,7 +318,7 @@ class QuerySearch(BaseSimilaritySearch):
             return _argsort[:_k]
         else:
             # Apply exclusion zone to avoid neighboring matches
-            top_k = np.zeros((_k, 2), dtype=int) - 1
+            top_k = np.zeros((_k, 2), dtype=int)
             top_k[0] = _argsort[0, :]
 
             n_inserted = 1
