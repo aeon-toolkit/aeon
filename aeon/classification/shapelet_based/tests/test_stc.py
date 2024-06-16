@@ -11,7 +11,8 @@ from aeon.testing.data_generation import make_example_3d_numpy
 
 def test_predict_proba():
     """Test predict_proba when classifier has no predict_proba method."""
-    X, y = make_example_3d_numpy(return_y=True, n_cases=10)
+    X = make_example_3d_numpy(return_y=False, n_cases=10)
+    y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
     stc = ShapeletTransformClassifier(estimator=SVC(probability=False))
     stc.fit(X, y)
     probas = stc._predict_proba(X)
