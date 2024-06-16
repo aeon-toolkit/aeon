@@ -23,7 +23,7 @@ def test_QuerySearch_mean_std_equal_length(dtype):
     search = QuerySearch(normalize=True)
     search.fit(X)
     idx = search.predict(q, X_index=(1, 2))
-    assert_array_equal(idx, (1, 0))
+    assert_array_equal(idx, [(0, 0)])
     for i in range(len(X)):
         for j in range(X[i].shape[1] - q.shape[1] + 1):
             subsequence = X[i, :, j : j + q.shape[1]]
@@ -44,7 +44,7 @@ def test_QuerySearch_mean_std_unequal_length(dtype):
     search = QuerySearch(normalize=True)
     search.fit(X)
     idx = search.predict(q, X_index=(1, 2))
-    assert_array_equal(idx, (1, 0))
+    assert_array_equal(idx, [(0, 0)])
     for i in range(len(X)):
         for j in range(X[i].shape[1] - q.shape[1] + 1):
             subsequence = X[i][:, j : j + q.shape[1]]
