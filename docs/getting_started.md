@@ -302,14 +302,12 @@ class to extract the autocorrelation terms of a time series.
 ```{code-block} python
 >>> from aeon.transformations.series import AutoCorrelationSeriesTransformer
 >>> from aeon.datasets import load_airline
->>> from aeon.datasets import load_italy_power_demand
 >>> acf = AutoCorrelationSeriesTransformer()
 >>> y = load_airline()  # load single series airline dataset
 >>> res = acf.fit_transform(y)
->>> res[:5]
+>>> res[0][:5]
 [[0.96019465 0.89567531 0.83739477 0.7977347  0.78594315]]
 ```
-
 ## Transformers for Collections of Time Series
 
 The `aeon.transformations.collections` module contains a range of transformers for
