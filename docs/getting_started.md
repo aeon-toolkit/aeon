@@ -306,7 +306,7 @@ class to extract the autocorrelation terms of a time series.
 >>> y = load_airline()  # load single series airline dataset
 >>> res = acf.fit_transform(y)
 >>> res[0][:5]
-[[0.96019465 0.89567531 0.83739477 0.7977347  0.78594315]]
+[0.96019465 0.89567531 0.83739477 0.7977347  0.78594315]
 ```
 ## Transformers for Collections of Time Series
 
