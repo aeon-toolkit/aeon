@@ -15,8 +15,8 @@ from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.sarimax import SARIMAX
 from aeon.forecasting.trend import PolynomialTrendForecaster
+from aeon.testing.data_generation import get_examples, make_series
 from aeon.testing.mock_estimators import MockForecaster, MockTransformer
-from aeon.testing.utils.data_gen import get_examples, make_series
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.detrend import Detrender

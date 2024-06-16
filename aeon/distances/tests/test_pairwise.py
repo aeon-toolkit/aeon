@@ -12,7 +12,7 @@ from aeon.distances.tests.test_utils import (
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
     _make_3d_series,
 )
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_2d_numpy,
     make_example_2d_numpy_list,
     make_example_3d_numpy,

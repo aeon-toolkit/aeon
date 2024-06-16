@@ -6,7 +6,7 @@ from sklearn.pipeline import FeatureUnion, Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeClassifier
 
-from aeon.testing.utils.data_gen import make_example_nested_dataframe
+from aeon.testing.data_generation import make_example_nested_dataframe
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection.segment import RandomIntervalSegmenter
 

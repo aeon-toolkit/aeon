@@ -7,7 +7,7 @@ import pytest
 
 from aeon.distances._shape_dtw import _pad_ts_edges, _transform_subsequences
 from aeon.distances._utils import _is_multivariate, reshape_pairwise_to_multiple
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_2d_numpy_list,
     make_example_3d_numpy,
     make_example_3d_numpy_list,

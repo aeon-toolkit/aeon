@@ -7,7 +7,7 @@ import pytest
 
 from aeon.base._base_series import VALID_INNER_TYPES
 from aeon.registry import all_estimators
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation import make_series
 
 ALL_ANOMALY_DETECTORS = all_estimators(
     estimator_types="anomaly-detector",
