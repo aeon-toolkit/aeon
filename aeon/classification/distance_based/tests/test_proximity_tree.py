@@ -71,7 +71,7 @@ def test_get_parameter_value(sample_data):
     random_state = 42
     tree = ProximityTree(random_state=random_state)
 
-    params = tree.get_parameter_value(X)
+    params = tree._get_parameter_value(X)
 
     # Check if the parameters are generated for all distance measures
     expected_measures = [
@@ -111,7 +111,7 @@ def test_get_cadidate_splitter(sample_data, sample_labels):
     X = sample_data
     y = sample_labels
     clf = ProximityTree()
-    splitter = clf.get_candidate_splitter(X, y)
+    splitter = clf._get_candidate_splitter(X, y)
     assert len(splitter) == 2
 
     expected_measures = [
@@ -135,7 +135,7 @@ def test_get_best_splitter(sample_data, sample_labels):
     y = sample_labels
     clf = ProximityTree(n_splitters=3)
 
-    splitter = clf.get_best_splitter(X, y)
+    splitter = clf._get_best_splitter(X, y)
 
     assert splitter is not None
 

@@ -79,7 +79,7 @@ class ProximityTree(BaseClassifier):
     >>> from aeon.classification.distance_based import ProximityTree
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> classifier = ProximityTree(n_splitter = 3, max_depth = 5)
+    >>> classifier = ProximityTree(n_splitters = 3)
     >>> classifier.fit(X_train, y_train)
     ProximityTree(...)
     >>> y_pred = classifier.predict(X_test)
