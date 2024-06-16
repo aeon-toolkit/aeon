@@ -3,7 +3,7 @@
 __maintainer__ = ["baraline"]
 
 from abc import ABC, abstractmethod
-from typing import final
+from typing import Union, final
 
 from numba import get_num_threads, set_num_threads
 from numba.typed import List
@@ -24,11 +24,11 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
         with nopython=True, that takes two 1d numpy arrays as input and returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
+    inverse_distance : bool, default=False
+        If True, the matching will be made on the inverse of the distance, and thus, the
+        worst matches to the query will be returned instead of the best ones.
     normalize : bool, default=False
         Whether the distance function should be z-normalized.
-    store_distance_profiles : bool, default=False.
-        Whether to store the computed distance profiles in the attribute
-        "distance_profiles_" after calling the predict method.
     speed_up : str, default='fastest'
         Which speed up technique to use with for the selected distance
         function. By default, the fastest algorithm is used. A list of available
@@ -58,14 +58,16 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
 
     def __init__(
         self,
-        distance="euclidean",
-        distance_args=None,
-        normalize=False,
-        speed_up="fastest",
-        n_jobs=1,
+        distance: str = "euclidean",
+        distance_args: Union[None, dict] = None,
+        inverse_distance: bool = False,
+        normalize: bool = False,
+        speed_up: str = "fastest",
+        n_jobs: int = 1,
     ):
         self.distance = distance
         self.distance_args = distance_args
+        self.inverse_distance = inverse_distance
         self.normalize = normalize
         self.n_jobs = n_jobs
         self.speed_up = speed_up

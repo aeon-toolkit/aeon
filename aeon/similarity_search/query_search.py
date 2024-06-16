@@ -2,9 +2,9 @@
 
 __maintainer__ = ["baraline"]
 
-from abc import ABC, abstractmethod
+import warnings
 from collections.abc import Iterable
-from typing import final
+from typing import Union, final
 
 import numpy as np
 from numba import get_num_threads, set_num_threads
@@ -28,16 +28,26 @@ from aeon.similarity_search.distance_profiles.squared_distance_profile import (
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
-class BaseQuerySearch(BaseSimilaritySearch, ABC):
+class QuerySearch(BaseSimilaritySearch):
     """
-    Base class of query search module.
+    Query search estimator.
 
-    The base class does all the necessary work up until the last step of prediction
-    phase, where the child classes dictates what to do with the output of the
-    query similarity search (e.g. return best match, or the k best).
+    The query search estimator will return a set of matches of a query in a search space
+    , which is defined by a time series dataset given during fit. Depending on the `k`
+    and/or `threshold` parameters, which condition what is considered a valid match
+    during the search, the number of matches will vary. If `k` is used, at most `k`
+    matches (the `k` best) will be returned, if `threshold` is used and `k` is set to
+    `np.inf`, all the candidates which distance to the query is inferior or equal to
+    `threshold` will be returned. If both are used, the `k` best matches to the query
+    with distance inferior to `threshold` will be returned.
+
 
     Parameters
     ----------
+    k : int, default=1
+        The number of best matches to return during predict for a given query.
+    threshold : float, default=np.inf
+        The number of best matches to return during predict for a given query.
     distance : str, default="euclidean"
         Name of the distance function to use. A list of valid strings can be found in
         the documentation for :func:`aeon.distances.get_distance_function`.
@@ -52,11 +62,15 @@ class BaseQuerySearch(BaseSimilaritySearch, ABC):
         function. By default, the fastest algorithm is used. A list of available
         algorithm for each distance can be obtained by calling the
         `get_speedup_function_names` function of the child classes.
+    inverse_distance : bool, default=False
+        If True, the matching will be made on the inverse of the distance, and thus, the
+        worst matches to the query will be returned instead of the best ones.
     n_jobs : int, default=1
         Number of parallel jobs to use.
     store_distance_profiles : bool, default=False.
         Whether to store the computed distance profiles in the attribute
-        "distance_profiles_" after calling the predict method.
+        "distance_profiles_" after calling the predict method. It will store the raw
+        distance profile, meaning without potential inversion or thresholding applied.
 
     Attributes
     ----------
@@ -77,13 +91,18 @@ class BaseQuerySearch(BaseSimilaritySearch, ABC):
 
     def __init__(
         self,
-        distance="euclidean",
-        distance_args=None,
-        normalize=False,
-        speed_up="fastest",
-        n_jobs=1,
-        store_distance_profiles=False,
+        k: int = 1,
+        threshold: float = np.inf,
+        distance: str = "euclidean",
+        distance_args: Union[None, dict] = None,
+        inverse_distance: bool = False,
+        normalize: bool = False,
+        speed_up: str = "fastest",
+        n_jobs: int = 1,
+        store_distance_profiles: bool = False,
     ):
+        self.k = k
+        self.threshold = threshold
         self.store_distance_profiles = store_distance_profiles
         self._previous_query_length = -1
         self.axis = 1
@@ -91,6 +110,7 @@ class BaseQuerySearch(BaseSimilaritySearch, ABC):
         super().__init__(
             distance=distance,
             distance_args=distance_args,
+            inverse_distance=inverse_distance,
             normalize=normalize,
             speed_up=speed_up,
             n_jobs=n_jobs,
@@ -219,6 +239,112 @@ class BaseQuerySearch(BaseSimilaritySearch, ABC):
         )
         set_num_threads(prev_threads)
         return X_preds
+
+    def _predict(self, distance_profiles, exclusion_size=None):
+        """
+        Private predict method for QuerySearch.
+
+        It takes the distance profiles and apply the `k` and `threshold` conditions to
+        return the set of best matches.
+
+        Parameters
+        ----------
+        distance_profiles : array, shape (n_cases, n_timepoints - query_length + 1)
+            Precomputed distance profile.
+        exclusion_size : int, optional
+            The size of the exclusion zone used to prevent returning as top k candidates
+            the ones that are close to each other (for example i and i+1).
+            It is used to define a region between
+            :math:`id_timestamp - exclusion_size` and
+            :math:`id_timestamp + exclusion_size` which cannot be returned
+            as best match if :math:`id_timestamp` was already selected. By default,
+            the value None means that this is not used.
+
+        Returns
+        -------
+        array
+            An array containing the indexes of the best k matches between q and _X.
+
+        """
+        if self.store_distance_profiles:
+            self.distance_profiles_ = distance_profiles
+
+        # Define id sample and timestamp to not "loose" them due to concatenation
+        id_timestamps = np.concatenate(
+            [np.arange(distance_profiles[i].shape[0]) for i in range(self.n_cases_)]
+        )
+        id_samples = np.concatenate(
+            [[i] * distance_profiles[i].shape[0] for i in range(self.n_cases_)]
+        )
+        distance_profiles = np.concatenate(distance_profiles)
+
+        if self.inverse_distance:
+            # To avoid div by 0 case
+            distance_profiles += 1e-8
+            distance_profiles[distance_profiles != np.inf] = (
+                1 / distance_profiles[distance_profiles != np.inf]
+            )
+
+        if self.threshold != np.inf:
+            distance_profiles[distance_profiles > self.threshold] = np.inf
+
+        _argsort = distance_profiles.argsort()
+        _argsort = np.asarray(
+            [
+                [id_samples[_argsort[i]], id_timestamps[_argsort[i]]]
+                for i in range(len(_argsort))
+            ],
+            dtype=int,
+        )
+
+        if distance_profiles[distance_profiles <= self.threshold].shape[0] < self.k:
+            _k = distance_profiles[distance_profiles <= self.threshold].shape[0]
+            warnings.warn(
+                f"Only {_k} matches are bellow the threshold of {self.threshold}, while"
+                f" k={self.k}. The number of returned match will be {_k}.",
+                stacklevel=2,
+            )
+        elif _argsort.shape[0] < self.k:
+            _k = _argsort.shape[0]
+            warnings.warn(
+                f"The number of possible match is {_argsort.shape[0]}, but got"
+                f" k={self.k}. The number of returned match will be {_k}.",
+                stacklevel=2,
+            )
+        else:
+            _k = self.k
+
+        if exclusion_size is None:
+            return _argsort[:_k]
+        else:
+            # Apply exclusion zone to avoid neighboring matches
+            top_k = np.zeros((_k, 2), dtype=int) - 1
+            top_k[0] = _argsort[0, :]
+
+            n_inserted = 1
+            i_current = 1
+
+            while n_inserted < _k and i_current < _argsort.shape[0]:
+                candidate_sample, candidate_timestamp = _argsort[i_current]
+
+                insert = True
+                is_from_same_sample = top_k[:, 0] == candidate_sample
+                if np.any(is_from_same_sample):
+                    LB = candidate_timestamp >= (
+                        top_k[is_from_same_sample, 1] - exclusion_size
+                    )
+                    UB = candidate_timestamp <= (
+                        top_k[is_from_same_sample, 1] + exclusion_size
+                    )
+                    if np.any(UB & LB):
+                        insert = False
+
+                if insert:
+                    top_k[n_inserted] = _argsort[i_current]
+                    n_inserted += 1
+                i_current += 1
+
+            return top_k[:n_inserted]
 
     def _init_X_index_mask(
         self, X_index, query_dim, query_length, exclusion_factor=2.0
@@ -492,9 +618,6 @@ class BaseQuerySearch(BaseSimilaritySearch, ABC):
                 else:
                     speedups.update({f"{dist_name}": speedups_names})
         return speedups
-
-    @abstractmethod
-    def _predict(self, distance_profile, exclusion_size=None): ...
 
 
 _SIM_SEARCH_SPEED_UP_DICT = {
