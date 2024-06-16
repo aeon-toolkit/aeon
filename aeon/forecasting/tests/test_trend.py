@@ -13,7 +13,7 @@ from aeon.forecasting.trend import (
     TrendForecaster,
     _get_X_numpy_int_from_pandas,
 )
-from aeon.testing.utils.data_gen import make_forecasting_problem
+from aeon.testing.data_generation import make_forecasting_problem
 
 
 def test_get_X_numpy():

@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
 
-from aeon.testing.utils.data_gen import get_examples, make_series
+from aeon.testing.data_generation import get_examples, make_series
 from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
     TransformerFitTransformHierarchicalUnivariate,
@@ -451,7 +451,7 @@ def test_vectorize_reconstruct_correct_hierarchy():
     ------
     AssertionError if output index is not as expected.
     """
-    from aeon.testing.utils.data_gen import _make_hierarchical
+    from aeon.testing.data_generation import _make_hierarchical
 
     # hierarchical data with 2 variables and 2 levels
     X = _make_hierarchical(n_columns=2)
