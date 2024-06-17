@@ -49,7 +49,7 @@ class FLUSSSegmenter(BaseSegmenter):
     def __init__(self, period_length=10, n_regimes=2, exclusion_factor=5):
         self.period_length = int(period_length)
         self.n_regimes = n_regimes
-        self.exlusion_factor = exclusion_factor
+        self.exclusion_factor = exclusion_factor
         super().__init__(n_segments=n_regimes, axis=1)
 
     def _predict(self, X: np.ndarray):
@@ -107,7 +107,7 @@ class FLUSSSegmenter(BaseSegmenter):
         self.profile, self.found_cps = stumpy.fluss(
             mp[:, 1],
             L=self.period_length,
-            excl_factor=self.exlusion_factor,
+            excl_factor=self.exclusion_factor,
             n_regimes=self.n_regimes,
         )
         self.scores = self.profile[self.found_cps]
