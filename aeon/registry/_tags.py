@@ -246,6 +246,7 @@ ESTIMATOR_TAG_REGISTER = [
             "early_classifier",
             "regressor",
             "transformer",
+            "similarity-search",
             "segmenter",
         ],
         "bool",
