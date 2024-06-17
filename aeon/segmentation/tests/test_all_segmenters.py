@@ -52,7 +52,7 @@ def test_segmenter_instance(segmenter):
     try:
         instance = segmenter.create_test_instance()
     except ModuleNotFoundError:
-        pass
+        return
 
     multivariate = segmenter.get_class_tag(tag_name="capability:multivariate")
     X = np.random.random(size=(5, 20))
