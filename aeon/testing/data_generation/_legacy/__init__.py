@@ -7,7 +7,7 @@ __all__ = [
     "_make_classification_y",
 ]
 
-from aeon.testing.utils.data_gen._legacy._collection import (
+from aeon.testing.data_generation._legacy._collection import (
     _make_classification_y,
     _make_collection,
     _make_collection_X,

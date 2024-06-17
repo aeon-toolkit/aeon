@@ -95,7 +95,7 @@ class RandomIntervals(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.interval_based import RandomIntervals
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=8,
     ...                           return_y=False, random_state=0)
     >>> tnf = RandomIntervals(n_intervals=2, random_state=0)

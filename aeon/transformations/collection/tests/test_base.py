@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_2d_numpy,
     make_example_3d_numpy,
     make_example_3d_numpy_list,

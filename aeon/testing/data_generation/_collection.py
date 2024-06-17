@@ -60,7 +60,7 @@ def make_example_3d_numpy(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_3d_numpy(
     ...     n_cases=2,
@@ -138,7 +138,7 @@ def make_example_2d_numpy(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
+    >>> from aeon.testing.data_generation import make_example_2d_numpy
     >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_2d_numpy(
     ...     n_cases=2,
@@ -218,7 +218,7 @@ def make_example_3d_numpy_list(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy_list
+    >>> from aeon.testing.data_generation import make_example_3d_numpy_list
     >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_3d_numpy_list(
     ...     n_cases=2,
@@ -303,7 +303,7 @@ def make_example_2d_numpy_list(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy_list
+    >>> from aeon.testing.data_generation import make_example_2d_numpy_list
     >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_2d_numpy_list(
     ...     n_cases=2,
@@ -388,7 +388,7 @@ def make_example_dataframe_list(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_dataframe_list
+    >>> from aeon.testing.data_generation import make_example_dataframe_list
     >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_dataframe_list(
     ...     n_cases=2,
@@ -477,7 +477,7 @@ def make_example_2d_dataframe(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_2d_dataframe
+    >>> from aeon.testing.data_generation import make_example_2d_dataframe
     >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_2d_dataframe(
     ...     n_cases=2,
@@ -554,7 +554,7 @@ def make_example_nested_dataframe(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_nested_dataframe
+    >>> from aeon.testing.data_generation import make_example_nested_dataframe
     >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_nested_dataframe(
     ...     n_cases=2,
@@ -652,7 +652,7 @@ def make_example_multi_index_dataframe(
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_example_multi_index_dataframe
+    >>> from aeon.testing.data_generation import make_example_multi_index_dataframe
     >>> from aeon.utils.validation.collection import get_type
     >>> data, labels = make_example_multi_index_dataframe(
     ...     n_cases=2,

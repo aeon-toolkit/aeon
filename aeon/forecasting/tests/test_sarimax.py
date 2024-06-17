@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_allclose
 
 from aeon.forecasting.sarimax import SARIMAX
-from aeon.testing.utils.data_gen import make_forecasting_problem
+from aeon.testing.data_generation import make_forecasting_problem
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 df = make_forecasting_problem()

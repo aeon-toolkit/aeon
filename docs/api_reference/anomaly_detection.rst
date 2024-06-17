@@ -15,6 +15,7 @@ for time series anomaly detection.
     :template: class.rst
 
     DWT_MLEAD
+    KMeansAD
     MERLIN
     PyODAdapter
     STRAY

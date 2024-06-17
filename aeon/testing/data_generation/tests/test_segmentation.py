@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from numpy import array_equal
 
-from aeon.testing.utils.data_gen.segmentation import (
+from aeon.testing.data_generation.segmentation import (
     GenBasicGauss,
     label_piecewise_normal,
     labels_with_repeats,

@@ -7,7 +7,7 @@ from numpy.testing import assert_almost_equal
 from aeon.distances import alignment_path as compute_alignment_path
 from aeon.distances._distance import DISTANCES
 from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation import make_series
 
 
 def _validate_alignment_path_result(
