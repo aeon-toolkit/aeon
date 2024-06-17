@@ -3,10 +3,17 @@
 __maintainer__ = []
 __all__ = []
 
+import pytest
+
 from aeon.datasets import load_gun_point_segmentation
 from aeon.segmentation import FLUSSSegmenter
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["stumpy"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_fluss_sparse():
     """Test FLUSS segmentation.
 
