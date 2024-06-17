@@ -5,6 +5,7 @@ import pytest
 
 from aeon.base._base_series import VALID_INNER_TYPES
 from aeon.registry import all_estimators
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 ALL_SEGMENTERS = all_estimators(
     estimator_types="segmenter",
@@ -12,6 +13,10 @@ ALL_SEGMENTERS = all_estimators(
 )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["stumpy", "ruptures"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("segmenter", ALL_SEGMENTERS)
 def test_segmenter_base_functionality(segmenter):
     """Test compliance with the base class contract."""
@@ -46,6 +51,10 @@ def _assert_output(output, dense, length):
         assert len(output) == length
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["stumpy", "ruptures"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 @pytest.mark.parametrize("segmenter", ALL_SEGMENTERS)
 def test_segmenter_instance(segmenter):
     """Test segmenters."""
