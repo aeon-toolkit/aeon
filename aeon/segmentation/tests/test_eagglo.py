@@ -75,7 +75,7 @@ def test_fit_default_params_multivariate():
     fit_expected = [118.58235, 132.67919, 156.54531, 208.61512, -33.52743]
 
     model = EAggloSegmenter()
-    fitted_model = model.fit(X)
+    fitted_model = model.fit(X, axis=0)
 
     cluster_actual = fitted_model.cluster_
     fit_actual = fitted_model.gof_

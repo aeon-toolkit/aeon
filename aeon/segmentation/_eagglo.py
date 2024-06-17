@@ -75,9 +75,9 @@ class EAggloSegmenter(BaseSegmenter):
     >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from aeon.segmentation import EAggloSegmenter
     >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
-    ... random_state = 10)
+    ...     random_state = 10)
     >>> model = EAggloSegmenter()
-    >>> model.fit_predict(X)
+    >>> model.fit_predict(X, axis=0)
     array([0, 0, 0, 1, 1, 1, 1])
     """
 
