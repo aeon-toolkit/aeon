@@ -52,7 +52,10 @@ class BinSegSegmenter(BaseSegmenter):
     >>> found_cps = binseg.fit_predict(X)
     """
 
-    _tags = {"fit_is_empty": True}  # for unit test cases
+    _tags = {
+        "fit_is_empty": True,
+        "python_dependencies": "ruptures",
+    }
 
     def __init__(self, period_length=10, n_cps=1, model="l2"):
         self.period_length = int(period_length)
