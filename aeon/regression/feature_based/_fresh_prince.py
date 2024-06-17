@@ -7,8 +7,6 @@ regressor.
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["FreshPRINCERegressor"]
 
-import warnings
-
 import numpy as np
 from sklearn.tree import DecisionTreeRegressor
 
@@ -38,11 +36,6 @@ class FreshPRINCERegressor(BaseRegressor):
     pca_solver : str, default="auto"
         Solver to use for the PCA ``svd_solver`` parameter in rotation forest. See the
         scikit-learn PCA implementation for options.
-    save_transformed_data : bool, default="deprecated"
-        Save the data transformed in fit.
-
-        Deprecated and will be removed in v0.10.0. Use fit_predict
-        to generate train estimates instead. transformed_data_ will also be removed.
     verbose : int, default=0
         Level of output printed to the console (for information only)
     n_jobs : int, default=1
@@ -90,7 +83,6 @@ class FreshPRINCERegressor(BaseRegressor):
         n_estimators=200,
         base_estimator=None,
         pca_solver="auto",
-        save_transformed_data="deprecated",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -112,16 +104,6 @@ class FreshPRINCERegressor(BaseRegressor):
 
         self._rotf = None
         self._tsfresh = None
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.10.0
-        self.transformed_data_ = []
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.10.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -145,16 +127,8 @@ class FreshPRINCERegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        # TODO remove in v0.10.0
-        b = (
-            False
-            if isinstance(self.save_transformed_data, str)
-            else self.save_transformed_data
-        )
         self.transformed_data_ = self._fit_fp_shared(X, y)
         self._rotf.fit(self.transformed_data_, y)
-        if not b:
-            self.transformed_data_ = []
 
         return self
 

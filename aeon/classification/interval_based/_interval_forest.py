@@ -155,7 +155,7 @@ class IntervalForestClassifier(BaseIntervalForest, BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import IntervalForestClassifier
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = IntervalForestClassifier(n_estimators=10, random_state=0)
