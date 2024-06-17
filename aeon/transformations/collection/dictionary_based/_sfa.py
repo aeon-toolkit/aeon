@@ -221,6 +221,12 @@ class SFA(BaseCollectionTransformer):
                 "Class values must be provided for information gain binning"
             )
 
+        if self.word_length > X.shape[-1]:
+            raise ValueError(
+                "Please set the word-length to a value smaller than or equal to "
+                "the time series length."
+            )
+
         if self.binning_method not in binning_methods:
             raise TypeError("binning_method must be one of: ", binning_methods)
 
