@@ -75,6 +75,7 @@ all_extras = [
     "statsforecast>=0.5.2",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
+    "ruptures>=1.1.9",
     "tbats>=1.1.0",
     "tensorflow>=2.12; python_version < '3.12' and python_version >= '3.9'",
     "tensorflow-addons; python_version < '3.12' and python_version >= '3.9'",
