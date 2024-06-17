@@ -18,11 +18,11 @@ __all__ = ["ClaSPTransformer"]
 import warnings
 
 import numpy as np
+import numpy.fft as fft
 import pandas as pd
-from numba import njit
+from numba import njit, objmode
 
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.collection.matrix_profile import _sliding_dot_products
 
 
 def _sliding_window(X, m):
@@ -45,6 +45,34 @@ def _sliding_window(X, m):
     return np.lib.stride_tricks.as_strided(X, shape=shape, strides=strides)
 
 
+@njit(fastmath=True, cache=True)
+def _sliding_dot_product(query, time_series):
+    m = len(query)
+    n = len(time_series)
+
+    time_series_add = 0
+    if n % 2 == 1:
+        time_series = np.concatenate((np.array([0]), time_series))
+        time_series_add = 1
+
+    q_add = 0
+    if m % 2 == 1:
+        query = np.concatenate((np.array([0]), query))
+        q_add = 1
+
+    query = query[::-1]
+
+    query = np.concatenate((query, np.zeros(n - m + time_series_add - q_add)))
+
+    trim = m - 1 + time_series_add
+
+    with objmode(dot_product="float64[:]"):
+        dot_product = fft.irfft(fft.rfft(time_series) * fft.rfft(query))
+
+    return dot_product[trim:]
+
+
+@njit(fastmath=True, cache=True)
 def _sliding_mean_std(X, m):
     """Return the sliding mean and std for a time series and a window size.
 
@@ -60,19 +88,19 @@ def _sliding_mean_std(X, m):
     Tuple (float, float)
         The moving mean and moving std
     """
-    s = np.insert(np.cumsum(X), 0, 0)
-    sSq = np.insert(np.cumsum(X**2), 0, 0)
+    s = np.concatenate((np.zeros(1, dtype=np.float64), np.cumsum(X)))
+    sSq = np.concatenate((np.zeros(1, dtype=np.float64), np.cumsum(X**2)))
     segSum = s[m:] - s[:-m]
     segSumSq = sSq[m:] - sSq[:-m]
     movmean = segSum / m
-    movstd = np.sqrt(np.clip(segSumSq / m - (segSum / m) ** 2, 0, None))  # at least 0
 
     # avoid dividing by too small std, like 0
-    movstd = np.where(abs(movstd) < 0.001, 1, movstd)
-
+    movstd = np.sqrt(np.clip(segSumSq / m - (segSum / m) ** 2, 0, None))
+    movstd = np.where(np.abs(movstd) < 0.001, 1, movstd)
     return [movmean, movstd]
 
 
+@njit(fastmath=True, cache=True)
 def _compute_distances_iterative(X, m, k):
     """Compute kNN indices with dot-product.
 
@@ -102,8 +130,7 @@ def _compute_distances_iterative(X, m, k):
     for order in range(0, length):
         # first iteration O(n log n)
         if order == 0:
-            # dot_first = _sliding_dot_product(X[:m], X)
-            dot_first = _sliding_dot_products(X[:m], X, len(X[:m]), len(X))
+            dot_first = _sliding_dot_product(X[:m], X)
             dot_rolled = dot_first
         # O(1) further operations
         else:
