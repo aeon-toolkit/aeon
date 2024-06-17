@@ -39,10 +39,10 @@ class BinSegSegmenter(BaseSegmenter):
 
     References
     ----------
-    .. [1] [Bai1997] Bai, J. (1997). Estimating multiple breaks one at a time.
+    .. [Bai1997] Bai, J. (1997). Estimating multiple breaks one at a time.
     Econometric Theory, 13(3), 315–352.
 
-    .. [2] [Fryzlewicz2014] Fryzlewicz, P. (2014). Wild binary segmentation for multiple
+    .. [Fryzlewicz2014] Fryzlewicz, P. (2014). Wild binary segmentation for multiple
     change-point detection. The Annals of Statistics, 42(6), 2243–2281.
 
     Examples
@@ -50,7 +50,7 @@ class BinSegSegmenter(BaseSegmenter):
     >>> from aeon.segmentation import BinSegSegmenter
     >>> from aeon.datasets import load_gun_point_segmentation
     >>> X, true_period_size, cps = load_gun_point_segmentation()
-    >>> binseg = BinSegSegmenter(10, n_cps=1)  # doctest: +SKIP
+    >>> binseg = BinSegSegmenter(n_cps=1)  # doctest: +SKIP
     >>> found_cps = binseg.fit_predict(X)  # doctest: +SKIP
     """
 
