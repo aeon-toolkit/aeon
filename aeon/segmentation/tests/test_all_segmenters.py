@@ -5,7 +5,6 @@ import pytest
 
 from aeon.base._base_series import VALID_INNER_TYPES
 from aeon.registry import all_estimators
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 ALL_SEGMENTERS = all_estimators(
     estimator_types="segmenter",
@@ -13,10 +12,6 @@ ALL_SEGMENTERS = all_estimators(
 )
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["stumpy", "ruptures"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
 @pytest.mark.parametrize("segmenter", ALL_SEGMENTERS)
 def test_segmenter_base_functionality(segmenter):
     """Test compliance with the base class contract."""
@@ -51,14 +46,14 @@ def _assert_output(output, dense, length):
         assert len(output) == length
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["stumpy", "ruptures"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
 @pytest.mark.parametrize("segmenter", ALL_SEGMENTERS)
 def test_segmenter_instance(segmenter):
     """Test segmenters."""
-    instance = segmenter.create_test_instance()
+    try:
+        instance = segmenter.create_test_instance()
+    except ModuleNotFoundError:
+        pass
+
     multivariate = segmenter.get_class_tag(tag_name="capability:multivariate")
     X = np.random.random(size=(5, 20))
     # Also tests does not fail if y is passed
