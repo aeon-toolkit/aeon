@@ -44,7 +44,10 @@ class FLUSSSegmenter(BaseSegmenter):
     >>> scores = fluss.scores
     """
 
-    _tags = {"fit_is_empty": True}  # for unit test cases
+    _tags = {
+        "fit_is_empty": True,
+        "python_dependencies": "stumpy",
+    }
 
     def __init__(self, period_length=10, n_regimes=2, exclusion_factor=5):
         self.period_length = int(period_length)
