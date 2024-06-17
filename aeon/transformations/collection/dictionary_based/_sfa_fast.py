@@ -237,17 +237,18 @@ class SFAFast(BaseCollectionTransformer):
                 "Please set either variance or anova Fourier coefficient selection"
             )
 
-        if self.word_length > X.shape[-1]:
-            raise ValueError(
-                "Please set the word-length to a value smaller than or equal to "
-                "the time series length."
-            )
-
         if self.binning_method not in binning_methods:
             raise TypeError("binning_method must be one of: ", binning_methods)
 
         offset = 2 if self.norm else 0
         self.word_length_actual = min(self.window_size - offset, self.word_length)
+
+        if self.word_length > X.shape[-1] and self.word_length_actual > X.shape[-1]:
+            raise ValueError(
+                "Please set the word-length to a value smaller than or equal to "
+                "the time series length and window-length."
+            )
+
         self.dft_length = (
             self.window_size - offset
             if (self.anova or self.variance) is True
