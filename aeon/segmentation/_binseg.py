@@ -27,13 +27,15 @@ class BinSegSegmenter(BaseSegmenter):
 
     Parameters
     ----------
-    period_length : int, default = 10
-        Size of window for sliding, based on the period length of the data.
     n_cps : int, default = 1
         The number of change points to search.
     model : str, default = "l2"
         Segment model to use. Options are "l1", "l2", "rbf", etc.
         (see ruptures documentation for available models).
+    min_size : int, default = 2,
+        Minimum segment length. Defaults to 2 samples.
+    jump : int, default = 5,
+        Subsample (one every jump points). Defaults to 5.
 
     References
     ----------
@@ -57,9 +59,10 @@ class BinSegSegmenter(BaseSegmenter):
         "python_dependencies": "ruptures",
     }
 
-    def __init__(self, period_length=10, n_cps=1, model="l2"):
-        self.period_length = int(period_length)
+    def __init__(self, n_cps=1, model="l2", min_size=2, jump=5):
         self.n_cps = n_cps
+        self.min_size = min_size
+        self.jump = jump
         self.model = model
         super().__init__(n_segments=n_cps + 1, axis=1)
 
@@ -93,7 +96,9 @@ class BinSegSegmenter(BaseSegmenter):
         _check_soft_dependencies("ruptures", severity="error")
         import ruptures as rpt
 
-        binseg = rpt.Binseg(model=self.model, min_size=int(X.shape[0] * 0.05)).fit(X)
+        binseg = rpt.Binseg(
+            model=self.model, min_size=self.min_size, jump=self.jump
+        ).fit(X)
         self.found_cps = np.array(
             binseg.predict(n_bkps=self.n_cps)[:-1], dtype=np.int64
         )
@@ -138,4 +143,4 @@ class BinSegSegmenter(BaseSegmenter):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        return {"period_length": 10, "n_cps": 1}
+        return {"n_cps": 1}
