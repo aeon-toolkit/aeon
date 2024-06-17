@@ -8,7 +8,6 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestRegressor"]
 
 import time
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -53,10 +52,6 @@ class RotationForestRegressor(BaseEstimator):
         Default of `0` means ``n_estimators`` is used.
     contract_max_n_estimators : int, default=500
         Max number of estimators to build when ``time_limit_in_minutes`` is set.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit.
-        Deprecated and will be removed in v0.10.0. Use fit_predict
-        to generate train estimates instead. transformed_data_ will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
@@ -87,7 +82,7 @@ class RotationForestRegressor(BaseEstimator):
     Examples
     --------
     >>> from aeon.regression.sklearn import RotationForestRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
+    >>> from aeon.testing.data_generation import make_example_2d_numpy
     >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12,
     ...                              regression_target=True, random_state=0)
     >>> reg = RotationForestRegressor(n_estimators=10)
@@ -107,7 +102,6 @@ class RotationForestRegressor(BaseEstimator):
         base_estimator=None,
         time_limit_in_minutes=0.0,
         contract_max_n_estimators=500,
-        save_transformed_data="deprecated",
         n_jobs=1,
         random_state=None,
     ):
@@ -120,15 +114,7 @@ class RotationForestRegressor(BaseEstimator):
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
         self.random_state = random_state
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.10.0
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.10.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
+        self._estimator_type = "regressor"
 
         super().__init__()
 

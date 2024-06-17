@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.clustering import TimeSeriesKMeans
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import plot_cluster_algorithm
 

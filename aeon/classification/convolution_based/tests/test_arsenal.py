@@ -3,7 +3,7 @@
 import pytest
 
 from aeon.classification.convolution_based import Arsenal
-from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
+from aeon.testing.data_generation import make_example_2d_numpy, make_example_3d_numpy
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,

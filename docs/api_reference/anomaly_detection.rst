@@ -14,6 +14,7 @@ for time series anomaly detection.
     :toctree: auto_generated/
     :template: class.rst
 
-    STRAY
-    MERLIN
     DWT_MLEAD
+    KMeansAD
+    MERLIN
+    STRAY
