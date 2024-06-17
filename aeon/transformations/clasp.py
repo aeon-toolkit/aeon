@@ -353,6 +353,7 @@ def clasp(
     score=_roc_auc_score,
     interpolate=True,
     exclusion_radius=0.05,
+    n_jobs=4,
 ):
     """Calculate ClaSP for a time series and a window size.
 
@@ -370,13 +371,15 @@ def clasp(
         Interpolate the profile
     exclusion_radius : int
         Blind spot of the profile to the corners
+    n_jobs : int
+        Number of jobs to be used.
 
     Returns
     -------
     Tuple (array-like of shape [n], array-like of shape [k_neighbours, n])
         The ClaSP and the knn_mask
     """
-    knn_mask = _compute_distances_iterative(X, m, k_neighbours).T
+    knn_mask = _compute_distances_iterative(X, m, k_neighbours, n_jobs=n_jobs).T
 
     n_timepoints = knn_mask.shape[1]
     exclusion_zone = max(m, np.int64(n_timepoints * exclusion_radius))
@@ -405,6 +408,8 @@ class ClaSPTransformer(BaseTransformer):
         the scoring metric to use in ClaSP - choose from ROC_AUC or F1
     exclusion_radius : int
         Exclusion Radius for change points to be non-trivial matches
+    n_jobs : int
+        Number of jobs to be used.
 
     Notes
     -----
@@ -440,11 +445,16 @@ class ClaSPTransformer(BaseTransformer):
     }
 
     def __init__(
-        self, window_length=10, scoring_metric="ROC_AUC", exclusion_radius=0.05
+        self,
+        window_length=10,
+        scoring_metric="ROC_AUC",
+        exclusion_radius=0.05,
+        n_jobs=4,
     ):
         self.window_length = int(window_length)
         self.scoring_metric = scoring_metric
         self.exclusion_radius = exclusion_radius
+        self.n_jobs = n_jobs
         super().__init__()
 
     def _transform(self, X, y=None):
@@ -480,6 +490,7 @@ class ClaSPTransformer(BaseTransformer):
             self.window_length,
             score=scoring_metric_call,
             exclusion_radius=self.exclusion_radius,
+            n_jobs=self.n_jobs,
         )
 
         return Xt
