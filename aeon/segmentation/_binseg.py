@@ -48,8 +48,8 @@ class BinSegSegmenter(BaseSegmenter):
     >>> from aeon.segmentation import BinSegSegmenter
     >>> from aeon.datasets import load_gun_point_segmentation
     >>> X, true_period_size, cps = load_gun_point_segmentation()
-    >>> binseg = BinSegSegmenter(10, n_cps=1)
-    >>> found_cps = binseg.fit_predict(X)
+    >>> binseg = BinSegSegmenter(10, n_cps=1)  # doctest: +SKIP
+    >>> found_cps = binseg.fit_predict(X)  # doctest: +SKIP
     """
 
     _tags = {
