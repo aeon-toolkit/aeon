@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.windowing import reverse_windowing, sliding_windows
 
 if TYPE_CHECKING:
@@ -135,6 +136,8 @@ class PyODAdapter(BaseAnomalyDetector):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
+        _check_soft_dependencies("pyod")
+
         from pyod.models.lof import LOF
 
         return {"pyod_model": LOF(), "window_size": 5, "stride": 1}
