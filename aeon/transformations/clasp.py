@@ -20,7 +20,7 @@ import warnings
 import numpy as np
 import numpy.fft as fft
 import pandas as pd
-from numba import njit, objmode
+from numba import njit, objmode, prange
 
 from aeon.transformations.base import BaseTransformer
 
@@ -100,8 +100,8 @@ def _sliding_mean_std(X, m):
     return [movmean, movstd]
 
 
-@njit(fastmath=True, cache=True)
-def _compute_distances_iterative(X, m, k):
+@njit(fastmath=True, cache=True, parallel=True)
+def _compute_distances_iterative(X, m, k, n_jobs=4, slack=0.5):
     """Compute kNN indices with dot-product.
 
     No-loops implementation for a time series, given
@@ -115,51 +115,61 @@ def _compute_distances_iterative(X, m, k):
         The window size to generate sliding windows
     k : int
         The number of nearest neighbors
+    n_jobs : int
+        Number of jobs to be used.
+    slack: float
+        Defines an exclusion zone around each subsequence to avoid trivial matches.
+        Defined as percentage of m. E.g. 0.5 is equal to half the window length.
 
     Returns
     -------
     knns : array-like, shape = [n-m+1, k], dtype=int
         The knns (offsets!) for each subsequence in X
     """
-    length = len(X) - m + 1
-    knns = np.zeros(shape=(length, k), dtype=np.int64)
+    n = np.int32(X.shape[0] - m + 1)
+    halve_m = int(m * slack)
 
-    dot_prev = None
+    knns = np.zeros(shape=(n, k), dtype=np.int64)
+
     means, stds = _sliding_mean_std(X, m)
+    dot_first = _sliding_dot_product(X[:m], X)
+    bin_size = X.shape[0] // n_jobs
 
-    for order in range(0, length):
-        # first iteration O(n log n)
-        if order == 0:
-            dot_first = _sliding_dot_product(X[:m], X)
-            dot_rolled = dot_first
-        # O(1) further operations
-        else:
-            dot_rolled = (
-                np.roll(dot_prev, 1)
-                + X[order + m - 1] * X[m - 1 : length + m]
-                - X[order - 1] * np.roll(X[:length], 1)
+    for idx in prange(n_jobs):
+        start = idx * bin_size
+        end = min((idx + 1) * bin_size, X.shape[0] - m + 1)
+
+        dot_prev = None
+        for order in np.arange(start, end):
+            if order == start:
+                # first iteration O(n log n)
+                dot_rolled = _sliding_dot_product(X[start : start + m], X)
+            else:
+                # constant time O(1) operations
+                dot_rolled = (
+                    np.roll(dot_prev, 1)
+                    + X[order + m - 1] * X[m - 1 : n + m]
+                    - X[order - 1] * np.roll(X[:n], 1)
+                )
+                dot_rolled[0] = dot_first[order]
+
+            x_mean = means[order]
+            x_std = stds[order]
+
+            dist = 2 * m * (1 - (dot_rolled - m * means * x_mean) / (m * stds * x_std))
+
+            # self-join: exclusion zone
+            trivialMatchRange = (
+                int(max(0, order - halve_m)),
+                int(min(order + halve_m + 1, n)),
             )
-            dot_rolled[0] = dot_first[order]
+            dist[trivialMatchRange[0] : trivialMatchRange[1]] = np.inf
+            dot_prev = dot_rolled
 
-        x_mean = means[order]
-        x_std = stds[order]
-
-        dist = 2 * m * (1 - (dot_rolled - m * means * x_mean) / (m * stds * x_std))
-
-        # self-join: exclusion zone
-        trivialMatchRange = (
-            int(max(0, order - np.round(m / 2, 0))),
-            int(min(order + np.round(m / 2 + 1, 0), length)),
-        )
-        dist[trivialMatchRange[0] : trivialMatchRange[1]] = np.inf
-
-        if len(dist) >= k:
-            idx = np.argpartition(dist, k)
-        else:
-            idx = np.arange(len(dist))
-
-        knns[order, :] = idx[:k]
-        dot_prev = dot_rolled
+            if dist.shape[0] >= k:
+                knns[order] = np.argpartition(dist, k)[:k]
+            else:
+                knns[order] = np.arange(dist.shape[0], dtype=np.int64)
 
     return knns
 
@@ -373,7 +383,7 @@ def clasp(
 
     profile = _calc_profile(m, knn_mask, score, exclusion_zone)
 
-    if interpolate is True:
+    if interpolate:
         profile = pd.Series(profile).interpolate(limit_direction="both").to_numpy()
     return profile, knn_mask
 
