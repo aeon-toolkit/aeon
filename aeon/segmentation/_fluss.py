@@ -1,216 +1,56 @@
-"""ClaSP (Classification Score Profile) Segmentation."""
-
-import warnings
+"""FLUSS (Fast Low-cost Unipotent Semantic Segmentation) Segmenter."""
 
 __maintainer__ = []
-__all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
-
-from queue import PriorityQueue
+__all__ = ["FLUSSSegmenter"]
 
 import numpy as np
 import pandas as pd
 
 from aeon.segmentation.base import BaseSegmenter
-from aeon.transformations.clasp import ClaSPTransformer
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-def find_dominant_window_sizes(X, offset=0.05):
-    """Determine the Window-Size using dominant FFT-frequencies.
+class FLUSSSegmenter(BaseSegmenter):
+    """FLUSS (Fast Low-cost Unipotent Semantic Segmentation) Segmenter.
 
-    Parameters
-    ----------
-    X : array-like, shape=[n]
-        a single univariate time series of length n
-    offset : float
-        Exclusion Radius
-
-    Returns
-    -------
-    trivial_match: bool
-        If the candidate change point is a trivial match
-    """
-    fourier = np.absolute(np.fft.fft(X))
-    freqs = np.fft.fftfreq(X.shape[0], 1)
-
-    coefs = []
-    window_sizes = []
-
-    for coef, freq in zip(fourier, freqs):
-        if coef and freq > 0:
-            coefs.append(coef)
-            window_sizes.append(1 / freq)
-
-    coefs = np.array(coefs)
-    window_sizes = np.asarray(window_sizes, dtype=np.int64)
-
-    idx = np.argsort(coefs)[::-1]
-    return next(
-        (
-            int(window_size / 2)
-            for window_size in window_sizes[idx]
-            if window_size in range(20, int(X.shape[0] * offset))
-        ),
-        window_sizes[idx[0]],
-    )
-
-
-def _is_trivial_match(candidate, change_points, n_timepoints, exclusion_radius=0.05):
-    """Check if a candidate change point is in close proximity to other change points.
-
-    Parameters
-    ----------
-    candidate : int
-        A single candidate change point. Will be chosen if non-trivial match based
-        on exclusion_radius.
-    change_points : list, dtype=int
-        List of change points chosen so far
-    n_timepoints : int
-        Total length
-    exclusion_radius : int
-        Exclusion Radius for change points to be non-trivial matches
-
-    Returns
-    -------
-    trivial_match: bool
-        If the 'candidate' change point is a trivial match to the ones in change_points
-    """
-    change_points = [0] + change_points + [n_timepoints]
-    exclusion_zone = np.int64(n_timepoints * exclusion_radius)
-
-    for change_point in change_points:
-        left_begin = max(0, change_point - exclusion_zone)
-        right_end = min(n_timepoints, change_point + exclusion_zone)
-        if candidate in range(left_begin, right_end):
-            return True
-
-    return False
-
-
-def _segmentation(X, clasp, n_change_points=None, exclusion_radius=0.05):
-    """Segments the time series by extracting change points.
-
-    Parameters
-    ----------
-    X : array-like, shape=[n]
-        the univariate time series of length n to be segmented
-    clasp :
-        the transformer
-    n_change_points : int
-        the number of change points to find
-    exclusion_radius :
-        the exclusion zone
-
-    Returns
-    -------
-    Tuple (array-like, array-like, array-like):
-        (predicted_change_points, clasp_profiles, scores)
-    """
-    period_size = clasp.window_length
-    queue = PriorityQueue()
-
-    # compute global clasp
-    profile = clasp.transform(X)
-    queue.put(
-        (
-            -np.max(profile),
-            [np.arange(X.shape[0]).tolist(), np.argmax(profile), profile],
-        )
-    )
-
-    profiles = []
-    change_points = []
-    scores = []
-
-    for idx in range(n_change_points):
-        # should not happen ... safety first
-        if queue.empty() is True:
-            break
-
-        # get profile with highest change point score
-        priority, (profile_range, change_point, full_profile) = queue.get()
-
-        change_points.append(change_point)
-        scores.append(-priority)
-        profiles.append(full_profile)
-
-        if idx == n_change_points - 1:
-            break
-
-        # create left and right local range
-        left_range = np.arange(profile_range[0], change_point).tolist()
-        right_range = np.arange(change_point, profile_range[-1]).tolist()
-
-        for ranges in [left_range, right_range]:
-            # create and enqueue left local profile
-            exclusion_zone = np.int64(len(ranges) * exclusion_radius)
-            if len(ranges) - period_size > 2 * exclusion_zone:
-                profile = clasp.transform(X[ranges])
-                change_point = np.argmax(profile)
-                score = profile[change_point]
-
-                full_profile = np.zeros(len(X))
-                full_profile.fill(0.5)
-                np.copyto(
-                    full_profile[ranges[0] : ranges[0] + len(profile)],
-                    profile,
-                )
-
-                global_change_point = ranges[0] + change_point
-
-                if not _is_trivial_match(
-                    global_change_point,
-                    change_points,
-                    X.shape[0],
-                    exclusion_radius=exclusion_radius,
-                ):
-                    queue.put((-score, [ranges, global_change_point, full_profile]))
-
-    return np.array(change_points), np.array(profiles, dtype=object), np.array(scores)
-
-
-class ClaSPSegmenter(BaseSegmenter):
-    """ClaSP (Classification Score Profile) Segmentation.
-
-    Using ClaSP [1]_ [2]_ for the CPD problem is straightforward: We first compute the
-    profile and then choose its global maximum as the change point. The following CPDs
-    are obtained using a bespoke recursive split segmentation algorithm.
+    FLOSS [1]_ FLUSS is a domain-agnostic online semantic segmentation method that
+    operates on the assumption that a low number of arcs crossing a given index point
+    indicates a high probability of a semantic change.
 
     Parameters
     ----------
     period_length : int, default = 10
         Size of window for sliding, based on the period length of the data.
-    n_cps : int, default = 1
-        The number of change points to search.
-    exclusion_radius : int
-        Exclusion Radius for change points to be non-trivial matches.
+    n_regimes : int, default = 2
+        The number of regimes to search (equal to change points - 1).
+    exclusion_factor : int, default 5
+        The multiplying factor for the regime exclusion zone
 
     References
     ----------
-    .. [1] Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf. "ClaSP - Time Series
-    Segmentation", CIKM, 2021.
-    .. [2] Ermshaus, Arik, Sch"afer, Patrick and Leser, Ulf. ClaSP: parameter-free
-    time series segmentation. Data Mining and Knowledge Discovery, 37, 2023.
+    .. [1] Gharghabi S, Ding Y, Yeh C-CM, Kamgar K, Ulanova L, Keogh E. Matrix
+    Profile VIII: Domain Agnostic Online Semantic Segmentation at Superhuman Performance
+    Levels. In: 2017 IEEE International Conference on Data Mining (ICDM). IEEE; 2017.
+    p. 117-26.
 
     Examples
     --------
-    >>> from aeon.segmentation import ClaSPSegmenter
-    >>> from aeon.segmentation import find_dominant_window_sizes
+    >>> from aeon.segmentation import FLUSSSegmenter
     >>> from aeon.datasets import load_gun_point_segmentation
     >>> X, true_period_size, cps = load_gun_point_segmentation()
-    >>> dominant_period_size = find_dominant_window_sizes(X)
-    >>> clasp = ClaSPSegmenter(dominant_period_size, n_cps=1)
-    >>> found_cps = clasp.fit_predict(X)
-    >>> profiles = clasp.profiles
-    >>> scores = clasp.scores
+    >>> fluss = FLUSSSegmenter(period_length=10, n_regimes=2)
+    >>> found_cps = fluss.fit_predict(X)
+    >>> profiles = fluss.profiles
+    >>> scores = fluss.scores
     """
 
     _tags = {"fit_is_empty": True}  # for unit test cases
 
-    def __init__(self, period_length=10, n_cps=1, exclusion_radius=0.05):
+    def __init__(self, period_length=10, n_regimes=2, exclusion_factor=5):
         self.period_length = int(period_length)
-        self.n_cps = n_cps
-        self.exclusion_radius = exclusion_radius
-        super().__init__(n_segments=n_cps + 1, axis=1)
+        self.n_regimes = n_regimes
+        self.exlusion_factor = exclusion_factor
+        super().__init__(n_segments=n_regimes, axis=1)
 
     def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.
@@ -225,19 +65,17 @@ class ClaSPSegmenter(BaseSegmenter):
         list
             List of change points found in X.
         """
-        X = X.squeeze()
-        if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
-            warnings.warn(
-                "Period-Length is larger than size of the time series", stacklevel=1
+        if self.n_regimes < 2:
+            raise ValueError(
+                "The number of regimes must be set to an integer greater than 1"
             )
 
-            self.found_cps, self.profiles, self.scores = [], [], []
-        else:
-            self.found_cps, self.profiles, self.scores = self._run_clasp(X)
-            return self.found_cps
+        X = X.squeeze()
+        self.found_cps, self.profiles, self.scores = self._run_fluss(X)
+        return self.found_cps
 
     def predict_scores(self, X):
-        """Return scores in ClaSP's profile for each annotation.
+        """Return scores in FLUSS's profile for each annotation.
 
         Parameters
         ----------
@@ -249,7 +87,7 @@ class ClaSPSegmenter(BaseSegmenter):
         np.ndarray
             Scores for sequence X
         """
-        self.found_cps, self.profiles, self.scores = self._run_clasp(X)
+        self.found_cps, self.profiles, self.scores = self._run_fluss(X)
         return self.scores
 
     def get_fitted_params(self):
@@ -259,21 +97,22 @@ class ClaSPSegmenter(BaseSegmenter):
         -------
         fitted_params : dict
         """
-        return {"profiles": self.profiles, "scores": self.scores}
+        return {"profile": self.profile}
 
-    def _run_clasp(self, X):
-        clasp_transformer = ClaSPTransformer(
-            window_length=self.period_length, exclusion_radius=self.exclusion_radius
-        ).fit(X)
+    def _run_fluss(self, X):
+        _check_soft_dependencies("stumpy", severity="error")
+        import stumpy
 
-        self.found_cps, self.profiles, self.scores = _segmentation(
-            X,
-            clasp_transformer,
-            n_change_points=self.n_cps,
-            exclusion_radius=self.exclusion_radius,
+        mp = stumpy.stump(X, m=self.period_length)
+        self.profile, self.found_cps = stumpy.fluss(
+            mp[:, 1],
+            L=self.period_length,
+            excl_factor=self.exlusion_factor,
+            n_regimes=self.n_regimes,
         )
+        self.scores = self.profile[self.found_cps]
 
-        return self.found_cps, self.profiles, self.scores
+        return self.found_cps, self.profile, self.scores
 
     def _get_interval_series(self, X, found_cps):
         """Get the segmentation results based on the found change points.
@@ -281,8 +120,9 @@ class ClaSPSegmenter(BaseSegmenter):
         Parameters
         ----------
         X :         array-like, shape = [n]
-           Univariate time-series data to be segmented.
-        found_cps : array-like, shape = [n_cps] The found change points found
+            Univariate time-series data to be segmented.
+        found_cps : array-like, shape = [n_cps]
+            The found change points found
 
         Returns
         -------
@@ -313,4 +153,4 @@ class ClaSPSegmenter(BaseSegmenter):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        return {"period_length": 5, "n_cps": 1}
+        return {"period_length": 5, "n_regimes": 2}
