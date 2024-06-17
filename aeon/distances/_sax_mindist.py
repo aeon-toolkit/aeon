@@ -43,7 +43,7 @@ def sax_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int) -
     >>> from aeon.transformations.collection.dictionary_based import SAX
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> transform = SAX(n_segments=16, alphabet_size=8)
+    >>> transform = SAX(n_segments=8, alphabet_size=8)
     >>> x_sax = transform.fit_transform(x).squeeze()
     >>> y_sax = transform.transform(y).squeeze()
     >>> dist = paa_sax_mindist(x_sax, y_sax, transform.breakpoints, x.shape[-1])
