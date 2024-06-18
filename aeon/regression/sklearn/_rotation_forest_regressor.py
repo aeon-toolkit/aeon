@@ -8,11 +8,12 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestRegressor"]
 
 import time
+from typing import Optional, Type, Union
 
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.decomposition import PCA
 from sklearn.exceptions import NotFittedError
 from sklearn.tree import DecisionTreeRegressor
@@ -22,7 +23,7 @@ from aeon.base._base import _clone_estimator
 from aeon.utils.validation import check_n_jobs
 
 
-class RotationForestRegressor(BaseEstimator):
+class RotationForestRegressor(RegressorMixin, BaseEstimator):
     """
     A Rotation Forest (RotF) vector regressor.
 
@@ -95,15 +96,15 @@ class RotationForestRegressor(BaseEstimator):
 
     def __init__(
         self,
-        n_estimators=200,
-        min_group=3,
-        max_group=3,
-        remove_proportion=0.5,
-        base_estimator=None,
-        time_limit_in_minutes=0.0,
-        contract_max_n_estimators=500,
-        n_jobs=1,
-        random_state=None,
+        n_estimators: int = 200,
+        min_group: int = 3,
+        max_group: int = 3,
+        remove_proportion: float = 0.5,
+        base_estimator: Optional[Type[BaseEstimator]] = None,
+        time_limit_in_minutes: float = 0.0,
+        contract_max_n_estimators: int = 500,
+        n_jobs: int = 1,
+        random_state: Union[int, Type[np.random.RandomState], None] = None,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
@@ -114,7 +115,6 @@ class RotationForestRegressor(BaseEstimator):
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
         self.random_state = random_state
-        self._estimator_type = "regressor"
 
         super().__init__()
 
@@ -221,7 +221,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return results
 
-    def _fit_rotf(self, X, y, save_transformed_data=False):
+    def _fit_rotf(self, X, y, save_transformed_data: bool = False):
         if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
             X = np.reshape(X, (X.shape[0], -1))
         elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
@@ -308,7 +308,13 @@ class RotationForestRegressor(BaseEstimator):
         self._is_fitted = True
         return X_t
 
-    def _fit_estimator(self, X, y, rng, save_transformed_data):
+    def _fit_estimator(
+        self,
+        X,
+        y,
+        rng: Type[np.random.RandomState],
+        save_transformed_data: bool,
+    ):
         groups = self._generate_groups(rng)
         pcas = []
 
@@ -355,7 +361,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return tree, pcas, groups, X_t if save_transformed_data else None
 
-    def _predict_for_estimator(self, X, clf, pcas, groups):
+    def _predict_for_estimator(self, X, clf: int, pcas: Type[PCA], groups):
         X_t = np.concatenate(
             [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
         )
@@ -384,7 +390,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return [results, oob]
 
-    def _generate_groups(self, rng):
+    def _generate_groups(self, rng: Type[np.random.RandomState]):
         permutation = rng.permutation(np.arange(0, self._n_atts))
 
         # select the size of each group.
