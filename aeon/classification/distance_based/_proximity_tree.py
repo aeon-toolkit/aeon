@@ -8,11 +8,29 @@ from aeon.classification.base import BaseClassifier
 from aeon.distances import distance
 
 
-class Node:
+class _Node:
+    """Proximity Tree node.
+
+    Parameters
+    ----------
+    node_id: str
+        The id of node, root node has id 0.
+    _is_leaf: bool
+        To identify leaf nodes.
+    label: int, str or None
+        Contains the class label of leaf node, None otherwise.
+    splitter: dict
+        The splitter used to split the node.
+    class_distribution: dict
+        In case of unpure leaf node, save the class distribution to calculate
+        probability of each class.
+    children: dict
+        Contains the class label and the associated node, empty for leaf node.
+    """
 
     def __init__(
         self,
-        node_id: int,
+        node_id: str,
         _is_leaf: bool,
         label=None,
         class_distribution=None,
@@ -170,6 +188,7 @@ class ProximityTree(BaseClassifier):
         X : np.ndarray shape (n_cases, n_timepoints)
             The training input samples.
         y : np.array shape (n_cases,) or (n_cases,1)
+            The labels of the training samples.
         parameterized_distances : dictionary
             Contains the distances and their parameters.
 
@@ -232,7 +251,7 @@ class ProximityTree(BaseClassifier):
         if len(X) == 0:
             leaf_label = parent_target_value
             leaf_distribution = {}
-            leaf = Node(
+            leaf = _Node(
                 node_id=node_id,
                 _is_leaf=True,
                 label=leaf_label,
@@ -250,7 +269,7 @@ class ProximityTree(BaseClassifier):
         # If min sample splits is reached
         if self.min_samples_split >= len(X):
             leaf_label = target_value
-            leaf = Node(
+            leaf = _Node(
                 node_id=node_id,
                 _is_leaf=True,
                 label=leaf_label,
@@ -261,7 +280,7 @@ class ProximityTree(BaseClassifier):
         # If max depth is reached
         if (self.max_depth is not None) and (depth >= self.max_depth):
             leaf_label = target_value
-            leaf = Node(
+            leaf = _Node(
                 node_id=node_id,
                 _is_leaf=True,
                 label=leaf_label,
@@ -272,7 +291,7 @@ class ProximityTree(BaseClassifier):
         # Pure node
         if len(np.unique(y)) == 1:
             leaf_label = target_value
-            leaf = Node(
+            leaf = _Node(
                 node_id=node_id,
                 _is_leaf=True,
                 label=leaf_label,
@@ -284,7 +303,7 @@ class ProximityTree(BaseClassifier):
         splitter = self._get_best_splitter(X, y)
 
         # Create root node
-        node = Node(node_id=node_id, _is_leaf=False, splitter=splitter)
+        node = _Node(node_id=node_id, _is_leaf=False, splitter=splitter)
 
         # For each exemplar split the data
         labels = list(splitter[0].keys())
