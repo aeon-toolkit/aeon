@@ -18,10 +18,13 @@ def test_predict_proba():
     clf.fit(X, y)
     p = clf._predict_proba(X)
     assert p.shape == (10, 2)
-    clf = RSASTClassifier(classifier=RandomForestClassifier())
-    clf.fit(X, y)
-    p = clf._predict_proba(X)
-    assert p.shape == (10, 2)
+    try:
+        clf = RSASTClassifier(classifier=RandomForestClassifier())
+        clf.fit(X, y)
+        p = clf._predict_proba(X)
+        assert p.shape == (10, 2)
+    except ModuleNotFoundError:
+        pass
 
 
 @pytest.mark.skipif(

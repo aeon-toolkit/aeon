@@ -5,6 +5,7 @@ from numba import get_num_threads, njit, prange, set_num_threads
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series
 from aeon.utils.validation import check_n_jobs
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @njit(fastmath=False)
@@ -114,7 +115,7 @@ class RSAST(BaseCollectionTransformer):
         super().__init__()
 
     def _fit(self, X, y):
-
+        _check_soft_dependencies(packages="statsmodels", severity="error")
         from scipy.stats import ConstantInputWarning, DegenerateDataWarning, f_oneway
         from statsmodels.tsa.stattools import acf, pacf
 
@@ -177,7 +178,7 @@ class RSAST(BaseCollectionTransformer):
             else:
                 n.append(1 - p_value)
 
-        # 2--calculate PACF and ACF for each TS chossen in each class
+        # 2--calculate PACF and ACF for each TS chosen in each class
 
         for i, c in enumerate(classes):
 
@@ -197,7 +198,7 @@ class RSAST(BaseCollectionTransformer):
 
                 non_zero_acf = []
                 if self.len_method == "both" or self.len_method == "ACF":
-                    # 2.1 -- Compute Autorrelation per object
+                    # 2.1 -- Compute statsmodels autocorrelation per series
                     acf_val, acf_confint = acf(
                         X_c[idx], nlags=len(X_c[idx]) - 1, alpha=0.05
                     )
@@ -212,7 +213,7 @@ class RSAST(BaseCollectionTransformer):
 
                 non_zero_pacf = []
                 if self.len_method == "both" or self.len_method == "PACF":
-                    # 2.2 Compute Partial Autorrelation per object
+                    # 2.2 Compute Partial Autocorrelation per series
                     pacf_val, pacf_confint = pacf(
                         X_c[idx],
                         method="ols",
@@ -233,9 +234,9 @@ class RSAST(BaseCollectionTransformer):
                         np.arange(3, 1 + len(X_c[idx]))
                     )
 
-                # 2.3-- Save the maximum autocorralated lag value as shapelet lenght
+                # 2.3-- Save the maximum autocorrelated lag value as shapelet length
                 if len(self._cand_length_list[idx_len_list]) == 0:
-                    # chose a random lenght using the lenght of the time series
+                    # chose a random length using the length of the time series
                     # (added 1 since the range start in 0)
                     rand_value = self._random_state.choice(len(X_c[idx]), 1)[0] + 1
                     self._cand_length_list[idx_len_list].extend([max(3, rand_value)])
@@ -249,14 +250,13 @@ class RSAST(BaseCollectionTransformer):
                     # 2.5-- calculate the weights of probabilities for a random point
                     # in a TS
                     if sum(n) == 0:
-                        # Determine equal weights of a random point point in TS is
-                        # there are no significant points
+                        # Determine equal weights of a random point in TS ix
                         weights = [1 / len(n) for i in range(len(n))]
                         weights = weights[
                             : len(X_c[idx]) - max_shp_length + 1
                         ] / np.sum(weights[: len(X_c[idx]) - max_shp_length + 1])
                     else:
-                        # Determine the weights of a random point point in TS
+                        # Determine the weights of a random point in TS
                         # (excluding points after n-l+1)
                         weights = n / np.sum(n)
                         weights = weights[
@@ -264,7 +264,7 @@ class RSAST(BaseCollectionTransformer):
                         ] / np.sum(weights[: len(X_c[idx]) - max_shp_length + 1])
 
                     if self.n_random_points > len(X_c[idx]) - max_shp_length + 1:
-                        # set a upper limit for the posible of number of random
+                        # set an upper limit for the possible number of random
                         # points when selecting without replacement
                         limit_rpoint = len(X_c[idx]) - max_shp_length + 1
                         rand_point_ts = self._random_state.choice(
