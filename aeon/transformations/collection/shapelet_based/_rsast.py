@@ -5,7 +5,6 @@ from numba import get_num_threads, njit, prange, set_num_threads
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import z_normalise_series
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @njit(fastmath=False)
@@ -115,7 +114,6 @@ class RSAST(BaseCollectionTransformer):
         super().__init__()
 
     def _fit(self, X, y):
-        _check_soft_dependencies(packages="statsmodels", severity="error")
         from scipy.stats import ConstantInputWarning, DegenerateDataWarning, f_oneway
         from statsmodels.tsa.stattools import acf, pacf
 
