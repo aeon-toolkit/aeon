@@ -204,7 +204,7 @@ class StatsModelsACF(BaseSeriesTransformer):
         self.n_lags = n_lags
         self.fft = fft
         self.missing = missing
-        super().__init__()
+        super().__init__(axis=1)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -327,7 +327,7 @@ class StatsModelsPACF(BaseSeriesTransformer):
     ):
         self.n_lags = n_lags
         self.method = method
-        super().__init__()
+        super().__init__(axis=1)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
