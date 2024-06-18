@@ -1,24 +1,24 @@
-"""Summary Regressor.
+"""Summary Clusterer.
 
-Pipeline regressor using the basic summary statistics and an estimator.
+Pipeline clusterer using the basic summary statistics and an estimator.
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]
-__all__ = ["SummaryRegressor"]
+__all__ = ["SummaryClusterer"]
 
 import numpy as np
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.cluster import KMeans
 
 from aeon.base._base import _clone_estimator
-from aeon.regression.base import BaseRegressor
+from aeon.clustering import BaseClusterer
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
 
 
-class SummaryRegressor(BaseRegressor):
+class SummaryClusterer(BaseClusterer):
     """
-    Summary statistic regressor.
+    Summary statistic clusterer.
 
-    This regressor simply transforms the input data using the
+    This clusterer simply transforms the input data using the
     SevenNumberSummaryTransformer transformer and builds a provided estimator using the
     transformed data.
 
@@ -32,7 +32,7 @@ class SummaryRegressor(BaseRegressor):
             - "percentiles": 0.215, 0.887, 0.25, 0.5, 0.75, 0.9113, 0.9785
             - "bowley": min, max, 0.1, 0.25, 0.5, 0.75, 0.9
             - "tukey": min, max, 0.125, 0.25, 0.5, 0.75, 0.875
-    estimator : sklearn regressor, default=None
+    estimator : sklearn clusterer, default=None
         An sklearn estimator to be built using the transformed data. Defaults to a
         Random Forest with 200 trees.
     n_jobs : int, default=1
@@ -44,23 +44,21 @@ class SummaryRegressor(BaseRegressor):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
 
-
     See Also
     --------
     SummaryTransformer
-    SummaryClassifier
+    SummaryRegressor
 
     Examples
     --------
-    >>> from aeon.regression.feature_based import SummaryRegressor
-    >>> from sklearn.ensemble import RandomForestRegressor
-    >>> from aeon.datasets import load_covid_3month
-    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
-    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
-    >>> clf = SummaryRegressor(estimator=RandomForestRegressor(n_estimators=5))
-    >>> clf.fit(X_train, y_train)
-    SummaryRegressor(...)
-    >>> y_pred = clf.predict(X_test)
+    >>> import numpy as np
+    >>> from sklearn.cluster import KMeans
+    >>> from aeon.clustering.feature_based import SummaryClusterer
+    >>> X = np.random.random(size=(10,2,20))
+    >>> clst = SummaryClusterer(estimator=KMeans(n_clusters=2))
+    >>> clst.fit(X)
+    SummaryClusterer(...)
+    >>> preds = clst.predict(X)
     """
 
     _tags = {
@@ -87,15 +85,15 @@ class SummaryRegressor(BaseRegressor):
 
         super().__init__()
 
-    def _fit(self, X, y):
-        """Fit a pipeline on cases (X,y), where y is the target variable.
+    def _fit(self, X, y=None):
+        """Fit a pipeline on cases X.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             The training data.
         y : array-like, shape = [n_cases]
-            The target labels.
+            Ignored. The class labels.
 
         Returns
         -------
@@ -112,11 +110,7 @@ class SummaryRegressor(BaseRegressor):
         )
 
         self._estimator = _clone_estimator(
-            (
-                RandomForestRegressor(n_estimators=200)
-                if self.estimator is None
-                else self.estimator
-            ),
+            (KMeans() if self.estimator is None else self.estimator),
             self.random_state,
         )
 
@@ -130,7 +124,7 @@ class SummaryRegressor(BaseRegressor):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predict values of n instances in X.
+        """Predict class values of n instances in X.
 
         Parameters
         ----------
@@ -140,33 +134,34 @@ class SummaryRegressor(BaseRegressor):
         Returns
         -------
         y : array-like, shape = [n_cases]
-            Predicted labels.
+            Predicted class labels.
         """
         return self._estimator.predict(self._transformer.transform(X))
 
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
+    def _predict_proba(self, X) -> np.ndarray:
+        """Predict class values of n instances in X.
 
         Parameters
         ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            SummaryRegressor provides the following special sets:
-                 "results_comparison" - used in some regressors to compare against
-                    previously generated results where the default set of parameters
-                    cannot produce suitable probability estimates
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            The data to make predictions for.
 
         Returns
         -------
-        params : dict or list of dict, default={}
-            Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
+        y : 2D array of shape [n_cases, n_classes] - predicted class probabilities
+            1st dimension indices correspond to instance indices in X
+            2nd dimension indices correspond to possible labels (integers)
+            (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        if parameter_set == "results_comparison":
-            return {"estimator": RandomForestRegressor(n_estimators=10)}
+        m = getattr(self._estimator, "predict_proba", None)
+        if callable(m):
+            return self._estimator.predict_proba(self._transformer.transform(X))
         else:
-            return {"estimator": RandomForestRegressor(n_estimators=2)}
+            preds = self._estimator.predict(self._transformer.transform(X))
+            dists = np.zeros((X.shape[0], np.unique(preds).shape[0]))
+            for i in range(0, X.shape[0]):
+                dists[i, preds[i]] = 1
+            return dists
+
+    def _score(self, X, y=None):
+        raise NotImplementedError("SummaryClusterer does not support scoring.")

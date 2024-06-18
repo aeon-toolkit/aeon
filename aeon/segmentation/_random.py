@@ -23,7 +23,7 @@ class RandomSegmenter(BaseSegmenter):
     def __init__(self, random_state=None, n_segments=2):
         self.random_state = random_state
         self.breakpoints_ = []
-        super().__init__(n_segments=n_segments, axis=1)
+        super().__init__(axis=1, n_segments=n_segments)
 
     def _fit(self, X, y=None):
         """Fit the dummy segmenter.
