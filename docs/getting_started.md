@@ -289,73 +289,25 @@ each time series. The `predict` method can be used to predict the cluster labels
 new data.
 
 
-## Transformers for Time Series Data
+## Transformers for Single Time Series
 
-The transformations module in `aeon` contains a range of transformers for time series
-data. These transformers can be used standalone or as parts of pipelines.
-
-Transformers inheriting from the [BaseTransformer](transformations.base.BaseTransformer)
-class accept both series and collection input types. However, 2D input types can be
-ambiguous in what they are storing. As such, we give the following warning for
-`aeon` transformers: <span style="color:red">**2D input data types such as numpy arrays
-and dataframes will be treated as a single multivariate series rather than a collection
-of univariate series**</span>.
-
+Transformers inheriting from the [BaseSeriesTransformer](transformations.base.BaseSeriesTransformer)
+in the `aeon.transformations.series` transform a single (possibly multivariate) time
+series into a different time series or a feature vector.
 
 The following example shows how to use the
-[Differencer](transformations.difference.Differencer) class to extract the first
-order difference of a time series. Usage is the same for both single series and
-collection input types.
+[AutoCorrelationSeriesTransformer](transformations.series.AutoCorrelationSeriesTransformer)
+class to extract the autocorrelation terms of a time series.
 
 ```{code-block} python
->>> from aeon.transformations.difference import Differencer
+>>> from aeon.transformations.series import AutoCorrelationSeriesTransformer
 >>> from aeon.datasets import load_airline
->>> from aeon.datasets import load_italy_power_demand
->>> diff = Differencer(lags=1)
+>>> acf = AutoCorrelationSeriesTransformer()
 >>> y = load_airline()  # load single series airline dataset
->>> diff.fit_transform(y)
-Period
-1949-01     0.0
-1949-02     6.0
-1949-03    14.0
-1949-04    -3.0
-1949-05    -8.0
-           ...
-1960-08   -16.0
-1960-09   -98.0
-1960-10   -47.0
-1960-11   -71.0
-1960-12    42.0
-Freq: M, Name: Number of airline passengers, Length: 144, dtype: float64
->>> X, _ = load_italy_power_demand()  # load panel italy power demand dataset
->>> diff.fit_transform(X)[:2]
-[[[ 0.         -0.47280283 -0.1891212  -0.2206413   0.1260808
-    0.0945605   0.2836817   1.13472685  0.88256528  0.15760097
-    0.1891211  -0.31520188 -0.34672208 -0.59888358 -0.66192396
-    0.37824226  0.06304038  0.8195249   0.75648456  0.0945605
-   -0.4097624  -0.47280285 -0.40976245 -0.44128264]]
- [[ 0.         -0.43377715 -0.1530978  -0.0255163  -0.0255163
-    0.255163    0.3572282   0.66342387  1.07168459  0.48480974
-   -0.0765489  -0.0765489  -0.25516304 -0.33171189  0.0255163
-    0.0765489   0.0510326  -0.3061956  -0.05103261  0.84203794
-   -0.0510326  -0.35722823 -0.73997271 -0.33171189]]]
+>>> res = acf.fit_transform(y)
+>>> res[0][:5]
+[0.96019465 0.89567531 0.83739477 0.7977347  0.78594315]
 ```
-
-As well as series-to-series transformations, the transformations module also contains
-features which transform series into a feature vector. The following example shows how
-to use the [SummaryTransformer](transformations.summarize.SummaryTransformer)
-class to extract summary statistics from a time series.
-
-```{code-block} python
->>> from aeon.transformations.summarize import SummaryTransformer
->>> from aeon.datasets import load_airline
->>> y = load_airline()  # load single series airline dataset
->>> summary = SummaryTransformer()
->>> summary.fit_transform(y)
-         mean         std    min    max    0.1   0.25    0.5   0.75    0.9
-0  280.298611  119.966317  104.0  622.0  135.3  180.0  265.5  360.5  453.2
-```
-
 ## Transformers for Collections of Time Series
 
 The `aeon.transformations.collections` module contains a range of transformers for
@@ -390,8 +342,8 @@ series and process unequal length collections.
 
 ```{code-block} python
 >>> from aeon.transformations.collection.pad import PaddingTransformer
->>> from aeon.testing.utils.data_gen import make_example_unequal_length
->>> X, _ = make_example_unequal_length(  # unequal length data with 8-12 timepoints
+>>> from aeon.testing.data_generation import make_example_3d_numpy_list
+>>> X, _ = make_example_3d_numpy_list(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
 ...     min_n_timepoints=8,
 ...     max_n_timepoints=12,

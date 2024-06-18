@@ -23,7 +23,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Stale Branches
-        uses: crs-k/stale-branches@v5.0.0
+        uses: crs-k/stale-branches@v5
         with:
           repo-token: ${{ steps.app-token.outputs.token }}
           days-before-stale: 140
@@ -31,5 +31,5 @@ jobs:
           comment-updates: true
           tag-committer: true
           stale-branch-label: "stale branch"
-          compare-branches: 'info'
+          compare-branches: "info"
           pr-check: true
