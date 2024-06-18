@@ -17,4 +17,5 @@ for time series anomaly detection.
     DWT_MLEAD
     KMeansAD
     MERLIN
+    PyODAdapter
     STRAY

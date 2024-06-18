@@ -126,7 +126,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         self.method = method
         self.lambda_ = None
         self.sp = sp
-        super().__init__()
+        super().__init__(axis=1)
 
     def _fit(self, X, y=None):
         """
@@ -246,7 +246,7 @@ class LogTransformer(BaseSeriesTransformer):
     def __init__(self, offset=0, scale=1):
         self.offset = offset
         self.scale = scale
-        super().__init__()
+        super().__init__(axis=1)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

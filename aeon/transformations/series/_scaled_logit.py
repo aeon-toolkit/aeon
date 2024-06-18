@@ -103,7 +103,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
-        super().__init__()
+        super().__init__(axis=1)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
