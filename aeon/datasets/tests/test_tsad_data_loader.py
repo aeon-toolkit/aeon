@@ -1,13 +1,12 @@
 """Test anomaly detection dataset loaders."""
 
-import shutil
+import tempfile
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from aeon.datasets._tsad_data_loaders import (
-    _DATA_FOLDER,
     load_anomaly_detection,
     load_daphnet_s06r02e0,
     load_ecg_diff_count_3,
@@ -16,63 +15,77 @@ from aeon.datasets._tsad_data_loaders import (
 )
 
 
-def test_load_anomaly_detection_wrong_name():
+def test_load_anomaly_detection_wrong_name(mocker):
     """Test load non-existent anomaly detection datasets."""
     with pytest.raises(
         ValueError, match="The name of the dataset must be a tuple of two strings.*"
     ):
         load_anomaly_detection(("FOO", "BAR", "BAZ"))
-    with pytest.raises(
-        ValueError,
-        match="When loading a custom dataset, the extract_path must point "
-        "to a TimeEval-formatted CSV file.*",
-    ):
-        load_anomaly_detection(("FOO", "BAR"))
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        mocker.patch("aeon.datasets.tsad_datasets._DATA_FOLDER", tmp)
+        with pytest.raises(
+            ValueError,
+            match="When loading a custom dataset, the extract_path must point "
+            "to a TimeEval-formatted CSV file.*",
+        ):
+            load_anomaly_detection(("FOO", "BAR"))
 
 
-def test_load_anomaly_detection_no_train_split():
+def test_load_anomaly_detection_no_train_split(mocker):
     """Test load train split of anomaly detection dataset without training split."""
     name = ("Dodgers", "101-freeway-traffic")
-    with pytest.raises(
-        ValueError, match="Dataset .* does not have a training partition.*"
-    ):
-        load_anomaly_detection(name, split="train")
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        mocker.patch("aeon.datasets.tsad_datasets._DATA_FOLDER", tmp)
+        with pytest.raises(
+            ValueError, match="Dataset .* does not have a training partition.*"
+        ):
+            load_anomaly_detection(name, extract_path=tmp, split="train")
 
 
-def test_load_anomaly_detection_from_archive():
+def test_load_anomaly_detection_from_archive(mocker):
     """Test load anomaly detection dataset from archive."""
     name = ("Genesis", "genesis-anomalies")
-    X, y, meta = load_anomaly_detection(name, return_metadata=True)
-    assert isinstance(X, np.ndarray)
-    assert X.shape == (16220, 18)
-    assert isinstance(y, np.ndarray)
-    assert y.shape == (16220,)
-    assert isinstance(meta, dict)
-    assert meta["learning_type"] == "unsupervised"
-    assert meta["num_anomalies"] == 3
-    np.testing.assert_almost_equal(meta["contamination"], 0.0031, decimal=4)
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        mocker.patch("aeon.datasets.tsad_datasets._DATA_FOLDER", tmp)
+        X, y, meta = load_anomaly_detection(
+            name, extract_path=tmp, return_metadata=True
+        )
+        assert isinstance(X, np.ndarray)
+        assert X.shape == (16220, 18)
+        assert isinstance(y, np.ndarray)
+        assert y.shape == (16220,)
+        assert isinstance(meta, dict)
+        assert meta["learning_type"] == "unsupervised"
+        assert meta["num_anomalies"] == 3
+        np.testing.assert_almost_equal(meta["contamination"], 0.0031, decimal=4)
 
-    shutil.rmtree(_DATA_FOLDER / "multivariate" / "Genesis")
 
-
-def test_load_anomaly_detection_unavailable():
+def test_load_anomaly_detection_unavailable(mocker):
     """Test load anomaly detection dataset that is not available."""
     name = ("IOPS", "05f10d3a-239c-3bef-9bdc-a2feeb0037aa")
-    with pytest.raises(
-        ValueError, match=f"Collection {name[0]} .* not available for download.*"
-    ):
-        load_anomaly_detection(name)
+    with tempfile.TemporaryDirectory() as tmp:
+        mocker.patch("aeon.datasets.tsad_datasets._DATA_FOLDER", Path(tmp))
+        with pytest.raises(
+            ValueError, match=f"Collection {name[0]} .* not available for download.*"
+        ):
+            load_anomaly_detection(name)
 
 
-def test_load_anomaly_detection_custom_file():
+def test_load_anomaly_detection_custom_file(mocker):
     """Test load anomaly detection dataset from custom file."""
     name = ("correlation-anomalies", "rmj-2-short-2-diff-channel")
-    with pytest.raises(
-        ValueError,
-        match="When loading a custom dataset, the extract_path must point to a "
-        "TimeEval-formatted CSV file.*",
-    ):
-        load_anomaly_detection(name)
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        mocker.patch("aeon.datasets.tsad_datasets._DATA_FOLDER", tmp)
+        with pytest.raises(
+            ValueError,
+            match="When loading a custom dataset, the extract_path must point to a "
+            "TimeEval-formatted CSV file.*",
+        ):
+            load_anomaly_detection(name, extract_path=tmp)
 
     def _test(filename: str, learning_type: str) -> None:
         X, y, meta = load_anomaly_detection(

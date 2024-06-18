@@ -106,14 +106,14 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         "returns_dense": True,
     }
 
-    def __init__(self, n_segments=2, axis=1):
+    def __init__(self, axis, n_segments=2):
         self.n_segments = n_segments
-        self.axis = axis
         self._is_fitted = False
+
         super().__init__(axis=axis)
 
     @final
-    def fit(self, X, y=None, axis=None):
+    def fit(self, X, y=None, axis=1):
         """Fit time series segmenter to X.
 
         If the tag ``fit_is_empty`` is true, this just sets the ``is_fitted``  tag to
@@ -160,7 +160,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         return self
 
     @final
-    def predict(self, X, axis=None):
+    def predict(self, X, axis=1):
         """Create amd return segmentation of X.
 
         Parameters
@@ -189,7 +189,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
         return self._predict(X)
 
-    def fit_predict(self, X, y=None, axis=None):
+    def fit_predict(self, X, y=None, axis=1):
         """Fit segmentation to data and return it."""
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
@@ -278,20 +278,3 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         for cp in change_points:
             labels[cp:] += 1
         return labels
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """
-        Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class.
-        """
-        # default parameters = empty dict
-        return {}
