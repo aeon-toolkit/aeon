@@ -301,16 +301,8 @@ Filtering and denoising
 
     ThetaLinesTransformer
 
-Differencing and slope
+Slope
 ~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.difference
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Differencer
 
 .. currentmodule:: aeon.transformations.collection.slope
 
