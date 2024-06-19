@@ -2,23 +2,55 @@
 
 import numpy as np
 import pytest
+from sklearn.metrics import accuracy_score
 
 from aeon.classification.distance_based import ProximityTree
 from aeon.classification.distance_based._proximity_tree import gini, gini_gain
 
 
 @pytest.fixture
-def sample_data():
-    """Generate some sample data."""
-    X = np.random.rand(10, 50)
-    return X
+def time_series_dataset():
+    """Generate time series dataset for testing."""
+    n_samples = 100  # Total number of samples (should be even)
+    length = 50  # Length of each time series
+    data, labels = create_time_series_dataset(n_samples, length)
+    return data, labels
 
 
-@pytest.fixture
-def sample_labels():
-    """Generate sample labels for the sample data."""
-    y = np.array([1, 1, 1, 2, 2, 2, 0, 0, 0, 1])
-    return y
+def generate_time_series(length, mean, std, noise_level=0.5):
+    """Generate random time series of given length."""
+    signal = np.random.normal(mean, std, length)
+    noise = noise_level * np.random.randn(length)
+    return signal + noise
+
+
+def create_time_series_dataset(n_samples, length):
+    """Generate time series dataset with labels."""
+    data = []
+    labels = []
+
+    half_samples = n_samples // 2
+
+    for _ in range(half_samples):
+        # Generate time series with larger values for class 0
+        larger_values = generate_time_series(length, mean=5, std=1)
+        data.append(larger_values)
+        labels.append(0)
+
+        # Generate time series with smaller values for class 1
+        smaller_values = generate_time_series(length, mean=0, std=1)
+        data.append(smaller_values)
+        labels.append(1)
+
+    data = np.array(data)
+    labels = np.array(labels)
+
+    # Shuffle the dataset
+    indices = np.random.permutation(n_samples)
+    data = data[indices]
+    labels = labels[indices]
+
+    return data, labels
 
 
 def test_gini():
@@ -65,9 +97,9 @@ def test_gini_gain():
     assert gini_gain(y, y_children) == score
 
 
-def test_get_parameter_value(sample_data):
+def test_get_parameter_value():
     """Test the distance parameters generated."""
-    X = sample_data
+    X = np.random.rand(10, 50)
     random_state = 42
     tree = ProximityTree(random_state=random_state)
 
@@ -106,10 +138,9 @@ def test_get_parameter_value(sample_data):
             assert measure_params["c"] in [10**i for i in range(-2, 3)]
 
 
-def test_get_cadidate_splitter(sample_data, sample_labels):
+def test_get_cadidate_splitter(time_series_dataset):
     """Test the method to generate candidate splitters."""
-    X = sample_data
-    y = sample_labels
+    X, y = time_series_dataset
     clf = ProximityTree()
     splitter = clf._get_candidate_splitter(X, y)
     assert len(splitter) == 2
@@ -129,10 +160,9 @@ def test_get_cadidate_splitter(sample_data, sample_labels):
     assert measure in expected_measures
 
 
-def test_get_best_splitter(sample_data, sample_labels):
+def test_get_best_splitter(time_series_dataset):
     """Test the method to get optimum splitter of a node."""
-    X = sample_data
-    y = sample_labels
+    X, y = time_series_dataset
     clf = ProximityTree(n_splitters=3)
 
     splitter = clf._get_best_splitter(X, y)
@@ -142,3 +172,14 @@ def test_get_best_splitter(sample_data, sample_labels):
     assert isinstance(splitter, list)
 
     assert len(splitter) == 2
+
+
+def test_proximity_tree(time_series_dataset):
+    """Test the fit method of ProximityTree."""
+    X, y = time_series_dataset
+    clf = ProximityTree(n_splitters=3, max_depth=4)
+    clf.fit(X, y)
+    X_test, y_test = time_series_dataset
+    y_pred = clf.predict(X_test)
+    score = accuracy_score(y_test, y_pred)
+    assert score >= 0.9
