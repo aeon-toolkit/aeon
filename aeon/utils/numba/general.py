@@ -838,10 +838,19 @@ def generate_combinations(n, k):
     -------
     array
         where each row is a unique length k permutation from n.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import generate_combinations
+    >>> generate_combinations(3,2)
+    array([[0, 1],
+           [0, 2],
+           [1, 2]])
     """
     comb_array = np.arange(k)
     num_combinations = _comb(n, k)  # Using our efficient comb function
-    combinations = np.empty((num_combinations, k), dtype=np.int64)
+    combinations = np.empty((num_combinations, k), dtype=np.int32)
 
     for idx in range(num_combinations):
         combinations[idx, :] = comb_array
