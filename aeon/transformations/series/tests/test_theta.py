@@ -1,4 +1,4 @@
-"""Unit tests of _ThetaLinesTransformer functionality."""
+"""Unit tests of ThetaTransformer functionality."""
 
 __maintainer__ = []
 __all__ = []
