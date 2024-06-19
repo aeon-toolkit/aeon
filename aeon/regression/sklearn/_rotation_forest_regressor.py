@@ -13,6 +13,7 @@ from typing import Optional, Type, Union
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
+from scipy.sparse import issparse
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.decomposition import PCA
 from sklearn.exceptions import NotFittedError
@@ -154,23 +155,15 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         y : array-like, shape = [n_cases]
             Predicted output values.
         """
-        if not self._is_fitted:
+        if not hasattr(self, "_is_fitted") or not self._is_fitted:
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
                 f"been fitted yet; please call `fit` first."
             )
 
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
-            X = X.to_numpy()
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "RotationForestRegressor is not a time series regressor. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X = self._validate_data(X=X, reset=False)
+        # data processing
+        X = self._check_X(X)
+        X = self._validate_data(X=X, reset=False, accept_sparse=False)
 
         # replace missing values with 0 and remove useless attributes
         X = X[:, self._useful_atts]
@@ -222,17 +215,9 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         return results
 
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
-            X = X.to_numpy()
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "RotationForestRegressor is not a time series regressor. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2)
+        # data processing
+        X = self._check_X(X)
+        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2, accept_sparse=False)
 
         self._label_average = np.mean(y)
 
@@ -421,3 +406,27 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
                 current_attribute += 1
 
         return groups
+
+    def _check_X(self, X):
+        if issparse(X):
+            return X
+
+        msg = (
+            "RotationForestRegressor is not a time series regressor. "
+            "A valid sklearn input such as a 2d numpy array is required."
+            "Sparse input formats are currently not supported."
+        )
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+        else:
+            try:
+                X = np.array(X)
+            except Exception:
+                raise ValueError(msg)
+
+        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
+            X = np.reshape(X, (X.shape[0], -1))
+        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
+            raise ValueError(msg)
+
+        return X

@@ -13,10 +13,12 @@ from typing import Optional, Type, Union
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
+from scipy.sparse import issparse
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.decomposition import PCA
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import check_random_state
+from sklearn.utils.multiclass import check_classification_targets
 
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation import check_n_jobs
@@ -153,12 +155,8 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        rng = check_random_state(self.random_state)
         return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self.predict_proba(X)
-            ]
+            [self.classes_[int(np.argmax(prob))] for prob in self.predict_proba(X)]
         )
 
     def predict_proba(self, X) -> np.ndarray:
@@ -174,7 +172,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        if not self._is_fitted:
+        if not hasattr(self, "_is_fitted") or not self._is_fitted:
             from sklearn.exceptions import NotFittedError
 
             raise NotFittedError(
@@ -186,17 +184,9 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         if self.n_classes_ == 1:
             return np.repeat([[1]], X.shape[0], axis=0)
 
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
-            X = X.to_numpy()
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "RotationForestClassifier is not a time series classifier. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X = self._validate_data(X=X, reset=False)
+        # data processing
+        X = self._check_X(X)
+        X = self._validate_data(X=X, reset=False, accept_sparse=False)
 
         # replace missing values with 0 and remove useless attributes
         X = X[:, self._useful_atts]
@@ -241,12 +231,8 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         -----
         Changes state by creating a fitted model that updates attributes ending in "_".
         """
-        rng = check_random_state(self.random_state)
         return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self.fit_predict_proba(X, y)
-            ]
+            [self.classes_[int(np.argmax(prob))] for prob in self.fit_predict_proba(X)]
         )
 
     def fit_predict_proba(self, X, y) -> np.ndarray:
@@ -302,17 +288,10 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         return results
 
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
-            X = X.to_numpy()
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "RotationForestClassifier is not a time series classifier. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2)
+        # data processing
+        X = self._check_X(X)
+        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2, accept_sparse=False)
+        check_classification_targets(y)
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 
@@ -542,3 +521,27 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
                 current_attribute += 1
 
         return groups
+
+    def _check_X(self, X):
+        if issparse(X):
+            return X
+
+        msg = (
+            "RotationForestClassifier is not a time series classifier. "
+            "A valid sklearn input such as a 2d numpy array is required."
+            "Sparse input formats are currently not supported."
+        )
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+        else:
+            try:
+                X = np.array(X)
+            except Exception:
+                raise ValueError(msg)
+
+        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
+            X = np.reshape(X, (X.shape[0], -1))
+        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
+            raise ValueError(msg)
+
+        return X
