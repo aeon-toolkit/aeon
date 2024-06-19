@@ -71,6 +71,9 @@ class LearningShapeletClassifier(BaseClassifier):
         the data.  If int, random_state is the seed used by the random number
         generator; If None, the random number generator is the RandomState
         instance used by `np.random`.
+    save_transformed_data: bool = False,
+        Whether to save the transformed data for later use in the internal variable
+        ``self.transformed_data_``.
 
     References
     ----------
