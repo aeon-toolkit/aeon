@@ -284,14 +284,6 @@ Filtering and denoising
 
     BKFilter
 
-.. currentmodule:: aeon.transformations.kalman_filter
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    KalmanFilterTransformer
-
 .. currentmodule:: aeon.transformations.theta
 
 .. autosummary::
@@ -353,14 +345,6 @@ Seasonality and Date-Time Features
     :template: class.rst
 
     DateTimeFeatures
-
-.. currentmodule:: aeon.transformations.time_since
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeSince
 
 .. currentmodule:: aeon.transformations.fourier
 
