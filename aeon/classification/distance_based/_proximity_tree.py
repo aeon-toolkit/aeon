@@ -72,7 +72,7 @@ class ProximityTree(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    n_jobs : int, default = None
+    n_jobs : int, default = 1
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
@@ -246,7 +246,7 @@ class ProximityTree(BaseClassifier):
         return best_splitter
 
     def _build_tree(self, X, y, depth, node_id, parent_target_value=None):
-
+        """Build the tree recursively from the root node down to the leaf nodes."""
         # If the data reaching the node is empty
         if len(X) == 0:
             leaf_label = parent_target_value
