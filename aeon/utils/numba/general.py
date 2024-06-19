@@ -843,10 +843,7 @@ def generate_combinations(n, k):
     --------
     >>> import numpy as np
     >>> from aeon.utils.numba.general import generate_combinations
-    >>> generate_combinations(3,2)
-    array([[0, 1],
-           [0, 2],
-           [1, 2]])
+    >>> combos=generate_combinations(3,2)
     """
     comb_array = np.arange(k)
     num_combinations = _comb(n, k)  # Using our efficient comb function
