@@ -223,7 +223,7 @@ class TabularToSeriesAdaptor(BaseTransformer):
 # TODO: remove in v0.11.0
 @deprecated(
     version="0.10.0",
-    reason="PandasTransformAdaptorwill be removed in version 0.11.0.",
+    reason="PandasTransformAdaptor will be removed in version 0.11.0.",
     category=FutureWarning,
 )
 class PandasTransformAdaptor(BaseTransformer):
