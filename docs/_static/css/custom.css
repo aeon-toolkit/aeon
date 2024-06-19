@@ -33,3 +33,8 @@ img.avatar {
   object-fit: contain;
   object-position: center;
 }
+
+/* Removes margin issues caused by class.rst template error for some cases */
+.autosummary table {
+  margin: 0;
+}
