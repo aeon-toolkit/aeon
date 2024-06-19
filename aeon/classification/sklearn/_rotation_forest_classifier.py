@@ -232,7 +232,10 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         Changes state by creating a fitted model that updates attributes ending in "_".
         """
         return np.array(
-            [self.classes_[int(np.argmax(prob))] for prob in self.fit_predict_proba(X)]
+            [
+                self.classes_[int(np.argmax(prob))]
+                for prob in self.fit_predict_proba(X, y)
+            ]
         )
 
     def fit_predict_proba(self, X, y) -> np.ndarray:
