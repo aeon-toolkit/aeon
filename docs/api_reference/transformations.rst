@@ -242,14 +242,6 @@ Depending on the transformer, the transformation parameters can be fitted.
 
     ScaledLogitTransformer
 
-.. currentmodule:: aeon.transformations.cos
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    CosineTransformer
-
 .. currentmodule:: aeon.transformations.exponent
 
 .. autosummary::
@@ -257,7 +249,6 @@ Depending on the transformer, the transformation parameters can be fitted.
     :template: class.rst
 
     ExponentTransformer
-    SqrtTransformer
 
 Detrending
 ~~~~~~~~~~
@@ -320,16 +311,8 @@ Slope
 
     SlopeTransformer
 
-Binning and segmentation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.binning
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeBinAggregate
+Segmentation
+~~~~~~~~~~~~
 
 .. currentmodule:: aeon.transformations.collection.interpolate
 
@@ -424,20 +407,6 @@ These transformers convert multivariate series to univariate.
     :template: class.rst
 
     ColumnConcatenator
-
-Augmentation
-~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.augmenter
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    InvertAugmenter
-    RandomSamplesAugmenter
-    ReverseAugmenter
-    WhiteNoiseAugmenter
 
 FeatureSelection
 ~~~~~~~~~~~~~~~~
