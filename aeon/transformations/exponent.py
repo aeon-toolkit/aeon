@@ -43,17 +43,6 @@ class ExponentTransformer(BaseTransformer):
         User supplied offset value.
         Scalar or 1D iterable with as many values as X columns in transform.
 
-    See Also
-    --------
-    _BoxCoxTransformer :
-        Applies Box-Cox power transformation. Can help normalize data and
-        compress variance of the series.
-    _LogTransformer :
-        Transformer input data using natural log. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.exponent.SqrtTransformer :
-        Transform input data by taking its square root. Can help compress
-        variance of input series.
 
     Notes
     -----
@@ -215,18 +204,6 @@ class SqrtTransformer(ExponentTransformer):
     ----------
     offset : int or float
         User supplied offset value.
-
-    See Also
-    --------
-    _BoxCoxTransformer :
-        Applies Box-Cox power transformation. Can help normalize data and
-        compress variance of the series.
-    _LogTransformer :
-        Transformer input data using natural log. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.exponent.ExponentTransformer :
-        Transform input data by raising it to an exponent. Can help compress
-        variance of series if a fractional exponent is supplied.
 
     Notes
     -----

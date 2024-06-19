@@ -50,17 +50,6 @@ class FunctionTransformer(BaseTransformer):
         if X passed to transform/inverse_transform is not on the list,
             it will be converted to the first list element before passed to funcs
 
-    See Also
-    --------
-    aeon.transformations.boxcox._LogTransformer :
-        Transformer input data using natural log. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.exponent.ExponentTransformer :
-        Transform input data by raising it to an exponent. Can help compress
-        variance of series if a fractional exponent is supplied.
-    aeon.transformations.exponent.SqrtTransformer :
-        Transform input data by taking its square root. Can help compress
-        variance of input series.
 
     Examples
     --------
