@@ -4,6 +4,7 @@ __maintainer__ = []
 __all__ = ["TabularToSeriesAdaptor"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.base import clone
 
 from aeon.transformations.base import BaseTransformer
@@ -219,6 +220,12 @@ class TabularToSeriesAdaptor(BaseTransformer):
         return [params1, params2]
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="PandasTransformAdaptorwill be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class PandasTransformAdaptor(BaseTransformer):
     """
     Adapt pandas transformations to aeon interface.
@@ -244,19 +251,6 @@ class PandasTransformAdaptor(BaseTransformer):
         "all_subset" = method is applied to all `X` like for "all" value,
             but before returning, result is sub-set to indices of `X` in `transform`
         in "all", "all_subset", `X` seen in `transform` do not update `self._X`.
-
-    Examples
-    --------
-    >>> from aeon.transformations.adapt import PandasTransformAdaptor
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-
-    >>> transformer = PandasTransformAdaptor("diff")
-    >>> y_hat = transformer.fit_transform(y)
-
-    >>> transformer = PandasTransformAdaptor("diff", apply_to="all_subset")
-    >>> y_hat = transformer.fit(y.iloc[:12])
-    >>> y_hat = transformer.transform(y.iloc[12:])
     """
 
     _tags = {
