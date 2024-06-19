@@ -47,16 +47,19 @@ class _Node:
 class ProximityTree(BaseClassifier):
     """Proximity Tree classifier.
 
-    A Proximity Tree is similar to a decision tree classifier where
-    the splits are based on similarity to chosen time series exemplars.
-    A Proximity Tree splits the data based on the proximity of each instance to
-    each of a set of class exemplars based on a parameterized similarity measure. The
-    tree is constructed recursively from the root node down to the leaf nodes.
-    At each node (other than leaf nodes) a pool of candidate splitters are evaluated.
-    Each splitter has a set of exemplar time series for each class chosen randomly,
-    and a parameterized distance measure, also chosen randomly. The splitter that
-    maximizes the difference between the Gini impurity of the parent node and the
-    weighted sum of Gini impurity of the child nodes.
+    A Proximity Tree is a decision tree classifier where the splits based on the
+    similarity of instances to chosen time series exemplars. This tree is built
+    recursively, starting from the root and progressing down to the leaf nodes.
+
+    At each internal node, a pool of candidate splitters is evaluated. Each splitter
+    consists of a set of exemplar time series for each class and a parameterized
+    similarity measure, both chosen randomly. The optimal splitter is selected based on
+    its ability to maximize the reduction in Gini impurity, measured as the difference
+    between the Gini impurity of the parent node and the weighted sum of the Gini
+    impurity of the child nodes.
+
+    Proximity Trees are particularly useful as they are the building blocks of Proximity
+    Forest, the state-of-the art distance-based classifier.
 
     Parameters
     ----------

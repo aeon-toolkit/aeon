@@ -96,6 +96,12 @@ def test_gini_gain():
     score = 0.5 - ((1 / 2) * 0)
     assert gini_gain(y, y_children) == score
 
+    # When parent is empty but children non-empty
+    y_empty = np.array([])
+    y_children = [np.array([1, 1]), np.array([], dtype=y.dtype)]
+    with pytest.raises(ValueError, match="children populated but parent empty"):
+        gini_gain(y_empty, y_children)
+
 
 def test_get_parameter_value():
     """Test the distance parameters generated."""
