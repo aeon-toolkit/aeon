@@ -1,4 +1,4 @@
-"""Tests for _BoxCoxTransformer."""
+"""Tests for BoxCoxTransformer."""
 
 __maintainer__ = []
 __all__ = []
@@ -43,7 +43,7 @@ def test_lambda_bounds(bounds, method, sp):
     ],
 )
 def test_guerrero_against_r_implementation(bounds, r_lambda):
-    """Test _BoxCoxTransformer against forecast guerrero method.
+    """Test BoxCoxTransformer against forecast guerrero method.
 
     Testing lambda values estimated by the R implementation of the Guerrero method
     https://github.com/robjhyndman/forecast/blob/master/R/guerrero.R
