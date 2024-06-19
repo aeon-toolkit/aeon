@@ -8,7 +8,7 @@ from aeon.testing.data_generation import make_example_3d_numpy
 
 
 def test_predict_proba():
-    """RDST tests."""
+    """RDST tests for code not covered by standard tests."""
     X = make_example_3d_numpy(return_y=False, n_cases=10)
     y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
 
