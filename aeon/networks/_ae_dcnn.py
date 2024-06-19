@@ -51,6 +51,8 @@ class AEDCNNNetwork(BaseDeepNetwork):
     }
     """
 
+    _tags = {"auto-encoder": True}
+
     def __init__(
         self,
         latent_space_dim=128,
