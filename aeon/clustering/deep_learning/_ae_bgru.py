@@ -291,11 +291,8 @@ class AEBiGRUClusterer(BaseDeepClusterer):
             "n_epochs": 1,
             "batch_size": 4,
             "use_bias": False,
-            "n_layers": 1,
-            "n_filters": 5,
-            "kernel_size": 3,
-            "padding": "same",
-            "strides": 1,
+            "n_layers": 2,
+            "n_units": None,
             "clustering_params": {
                 "distance": "euclidean",
                 "averaging_method": "mean",
