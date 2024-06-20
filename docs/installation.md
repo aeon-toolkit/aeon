@@ -115,7 +115,7 @@ pip uninstall aeon
 
 The latest developments and bugfixes for `aeon` are available on the [`aeon`
 GitHub](https://github.com/aeon-toolkit/aeon) `main` branch. The `main` branch can be
-installed directly from GitHub using `pip insall`:
+installed directly from GitHub using `pip install`:
 
 ```{code-block} powershell
 pip install -U git+https://github.com/aeon-toolkit/aeon.git@main

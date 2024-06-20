@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 from numpy.testing import assert_array_equal
 
-from aeon.testing.utils.data_gen import get_examples, make_series
+from aeon.testing.data_generation import get_examples, make_series
 from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformHierarchicalMultivariate,
     TransformerFitTransformHierarchicalUnivariate,
@@ -27,8 +27,7 @@ from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformSeriesUnivariate,
 )
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.boxcox import BoxCoxTransformer
-from aeon.transformations.compose import FitInTransform
+from aeon.transformations.compose import FitInTransform, Id
 from aeon.utils.validation import (
     abstract_types,
     is_collection,
@@ -452,7 +451,7 @@ def test_vectorize_reconstruct_correct_hierarchy():
     ------
     AssertionError if output index is not as expected.
     """
-    from aeon.testing.utils.data_gen import _make_hierarchical
+    from aeon.testing.data_generation import _make_hierarchical
 
     # hierarchical data with 2 variables and 2 levels
     X = _make_hierarchical(n_columns=2)
@@ -607,7 +606,7 @@ def test_vectorize_reconstruct_unique_columns():
 def test_numpy_format_outputs():
     """Test that all numpy formats return the same output when converted."""
     X = np.random.random(size=(2, 1, 8))
-    bc = BoxCoxTransformer()
+    bc = Id()
 
     u1d = bc.fit_transform(X[0][0])
     # 2d numpy arrays are (n_timepoints, n_channels) while 3d numpy arrays are

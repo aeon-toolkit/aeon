@@ -11,7 +11,7 @@ from aeon.segmentation._igts import _IGTS
 def multivariate_mean_shift():
     """Generate simple mean shift time series."""
     x = np.concatenate(tuple(np.ones(5) * i**2 for i in range(4)))
-    return np.vstack((x, x.max() - x)).T
+    return np.vstack((x, x.max() - x))
 
 
 def test_entropy():

@@ -95,7 +95,7 @@ def generate_new_default_njit_func(
         base_func_py = base_func
     else:
         raise TypeError(
-            "Expected base_func to be of callable or CPUDispatcher type (numba "
+            "Expected base_func to be of type callable or CPUDispatcher type (numba "
             f"function), but got {type(base_func)}"
         )
     signature = inspect.signature(base_func_py)

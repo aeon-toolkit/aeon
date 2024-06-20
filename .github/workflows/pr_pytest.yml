@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Use numba cache to set env variables and restore cache
+      - name: Restore numba cache
         uses: ./.github/actions/numba_cache
         with:
           cache_name: "test-no-soft-deps"
@@ -47,7 +47,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -k 'not TestAll'
+        run: python -m pytest -n logical -k 'not TestAll'
 
   pytest:
     runs-on: ${{ matrix.os }}
@@ -67,7 +67,7 @@ jobs:
             python-version: "3.11"
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -75,7 +75,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Use numba cache to set env variables and restore cache
+      - name: Restore numba cache
         uses: ./.github/actions/numba_cache
         with:
           cache_name: "pytest"
@@ -94,7 +94,7 @@ jobs:
 
       - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
-        run: python -m pytest --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+        run: python -m pytest -n logical --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
     # run the code coverage job if a PR has the 'codecov actions' label
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -125,7 +125,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
+        run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

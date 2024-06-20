@@ -332,7 +332,7 @@ class BaseObject(_BaseEstimator):
         See Also
         --------
         get_tag : Get a single tag from an object.
-        get_clas_tags : Get all tags from a class.
+        get_class_tags : Get all tags from a class.
         get_class_tag : Get a single tag from a class.
 
         Examples
