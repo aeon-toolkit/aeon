@@ -3,8 +3,13 @@
 import pytest
 
 from aeon.networks import AEDCNNNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_default_initialization():
     """Test if the network initializes with proper attributes."""
     model = AEDCNNNetwork()
@@ -22,6 +27,10 @@ def test_default_initialization():
     assert not model.temporal_latent_space
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_custom_initialization():
     """Test whether custom kwargs are correctly set."""
     model = AEDCNNNetwork(
@@ -53,6 +62,10 @@ def test_custom_initialization():
     assert model.temporal_latent_space
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_edge_case_initialization():
     """Tests edge cases are correct or not."""
     model = AEDCNNNetwork(
@@ -77,6 +90,10 @@ def test_edge_case_initialization():
     assert model.dilation_rate_decoder == []
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_invalid_initialization():
     """Test if the network raises valid exceptions or not."""
     with pytest.raises(AssertionError):
@@ -90,6 +107,10 @@ def test_invalid_initialization():
         )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_build_network():
     """Test call to the build_network method."""
     model = AEDCNNNetwork()
