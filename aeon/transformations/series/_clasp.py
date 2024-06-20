@@ -22,7 +22,7 @@ import numpy.fft as fft
 import pandas as pd
 from numba import njit, objmode, prange
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
 def _sliding_window(X, m):
@@ -101,7 +101,7 @@ def _sliding_mean_std(X, m):
 
 
 @njit(fastmath=True, cache=True, parallel=True)
-def _compute_distances_iterative(X, m, k, n_jobs=4, slack=0.5):
+def _compute_distances_iterative(X, m, k, n_jobs=1, slack=0.5):
     """Compute kNN indices with dot-product.
 
     No-loops implementation for a time series, given
@@ -115,7 +115,7 @@ def _compute_distances_iterative(X, m, k, n_jobs=4, slack=0.5):
         The window size to generate sliding windows
     k : int
         The number of nearest neighbors
-    n_jobs : int
+    n_jobs : int, default=1
         Number of jobs to be used.
     slack: float
         Defines an exclusion zone around each subsequence to avoid trivial matches.
@@ -353,7 +353,7 @@ def clasp(
     score=_roc_auc_score,
     interpolate=True,
     exclusion_radius=0.05,
-    n_jobs=4,
+    n_jobs=1,
 ):
     """Calculate ClaSP for a time series and a window size.
 
@@ -391,7 +391,7 @@ def clasp(
     return profile, knn_mask
 
 
-class ClaSPTransformer(BaseTransformer):
+class ClaSPTransformer(BaseSeriesTransformer):
     """ClaSP (Classification Score Profile) Transformer.
 
     Implementation of the Classification Score Profile of a time series.
@@ -423,7 +423,7 @@ class ClaSPTransformer(BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.clasp import ClaSPTransformer
+    >>> from aeon.transformations.series import ClaSPTransformer
     >>> from aeon.segmentation import find_dominant_window_sizes
     >>> from aeon.datasets import load_electric_devices_segmentation
     >>> X, true_period_size, true_cps = load_electric_devices_segmentation()
@@ -434,14 +434,11 @@ class ClaSPTransformer(BaseTransformer):
 
     _tags = {
         "input_data_type": "Series",
-        # what is the abstract type of X: Series, or Panel
         "output_data_type": "Series",
-        # what abstract type is returned: Primitives, Series, Panel
-        "instancewise": True,
         "X_inner_type": "np.ndarray",
-        "y_inner_type": "None",
-        "capability:multivariate": False,
         "fit_is_empty": True,
+        "requires_y": False,
+        "capability:inverse_transform": False,
     }
 
     def __init__(
@@ -449,7 +446,7 @@ class ClaSPTransformer(BaseTransformer):
         window_length=10,
         scoring_metric="ROC_AUC",
         exclusion_radius=0.05,
-        n_jobs=4,
+        n_jobs=1,
     ):
         self.window_length = int(window_length)
         self.scoring_metric = scoring_metric
@@ -518,24 +515,3 @@ class ClaSPTransformer(BaseTransformer):
             return _roc_auc_score
         elif scoring_metric == "F1":
             return _binary_f1_score
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
-        """
-        return {"window_length": 5}
