@@ -452,7 +452,7 @@ class ClaSPTransformer(BaseSeriesTransformer):
         self.scoring_metric = scoring_metric
         self.exclusion_radius = exclusion_radius
         self.n_jobs = n_jobs
-        super().__init__()
+        super().__init__(axis=0)
 
     def _transform(self, X, y=None):
         """Compute ClaSP.
