@@ -160,7 +160,7 @@ class AEDCNNNetwork(BaseDeepNetwork):
             self._kernel_size_decoder = self._kernel_size_decoder[::-1]
         elif isinstance(self.kernel_size_decoder, int):
             self._kernel_size_decoder = [
-                self.activation_decoder for _ in range(self.num_layers_decoder)
+                self.kernel_size_decoder for _ in range(self.num_layers_decoder)
             ]
         else:
             self._kernel_size_decoder = self.kernel_size_decoder
