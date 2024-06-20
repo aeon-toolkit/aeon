@@ -89,7 +89,7 @@ jobs:
           command: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
 
       - name: Tests
-        run: python -m pytest
+        run: python -m pytest -n logical
 
   upload-wheels:
     needs: test-wheels

@@ -15,8 +15,6 @@ def write_to_tsfile(
     Write metadata and data stored in aeon compatible data set to file.
     A description of the ts format is in examples/load_data.ipynb.
 
-    Note that this file is structured to still support the
-
     Parameters
     ----------
     X : np.ndarray (n_cases, n_channels, n_timepoints) or list of np.ndarray[

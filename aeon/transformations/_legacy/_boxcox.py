@@ -1,10 +1,9 @@
 """Implemenents Box-Cox and Log Transformations."""
 
 __maintainer__ = []
-__all__ = ["BoxCoxTransformer", "LogTransformer"]
+__all__ = ["_BoxCoxTransformer", "_LogTransformer"]
 
 import numpy as np
-from deprecated.sphinx import deprecated
 from scipy import optimize, special, stats
 from scipy.special import boxcox, inv_boxcox
 from scipy.stats import boxcox_llf, distributions, variation
@@ -41,21 +40,14 @@ def _calc_uniform_order_statistic_medians(n):
     return v
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="BoxCoxTransformer will be removed in version 0.10.0 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class BoxCoxTransformer(BaseTransformer):
+class _BoxCoxTransformer(BaseTransformer):
     r"""Box-Cox power transform.
 
     Box-Cox transformation is a power transformation that is used to
     make data more normally distributed and stabilize its variance based
     on the hyperparameter lambda. [1]_
 
-    The BoxCoxTransformer solves for the lambda parameter used in the Box-Cox
+    The _BoxCoxTransformer solves for the lambda parameter used in the Box-Cox
     transformation given `method`, the optimization approach, and input
     data provided to `fit`. The use of Guerrero's method for solving for lambda
     requires the seasonal periodicity, `sp` be provided. [2]_
@@ -88,7 +80,7 @@ class BoxCoxTransformer(BaseTransformer):
 
     See Also
     --------
-    LogTransformer :
+    _LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.ExponentTransformer :
@@ -113,14 +105,6 @@ class BoxCoxTransformer(BaseTransformer):
        Journal ofthe Royal Statistical Society, Series B, 26, 211-252.
     .. [2] V.M. Guerrero, "Time-series analysis supported by Power
        Transformations ", Journal of Forecasting, vol. 12, pp. 37-48, 1993.
-
-    Examples
-    --------
-    >>> from aeon.transformations.boxcox import BoxCoxTransformer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = BoxCoxTransformer()
-    >>> y_hat = transformer.fit_transform(y)
     """
 
     _tags = {
@@ -214,14 +198,7 @@ class BoxCoxTransformer(BaseTransformer):
         return Xt
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="LogTransformer will be removed in version 0.10.0 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class LogTransformer(BaseTransformer):
+class _LogTransformer(BaseTransformer):
     """Natural logarithm transformation.
 
     The Natural logarithm transformation can be used to make the data more normally
@@ -238,7 +215,7 @@ class LogTransformer(BaseTransformer):
 
     See Also
     --------
-    BoxCoxTransformer :
+    _BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.ExponentTransformer :
@@ -251,14 +228,6 @@ class LogTransformer(BaseTransformer):
     Notes
     -----
     The log transformation is applied as :math:`ln(y)`.
-
-    Examples
-    --------
-    >>> from aeon.transformations.boxcox import LogTransformer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = LogTransformer()
-    >>> y_hat = transformer.fit_transform(y)
     """
 
     _tags = {

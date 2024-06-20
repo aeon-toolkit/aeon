@@ -27,6 +27,7 @@ __all__ = [
     "TransformerPipeline",
     "YtoX",
 ]
+from aeon.transformations._legacy._boxcox import _BoxCoxTransformer
 from aeon.utils import ALL_TIME_SERIES_TYPES
 
 
@@ -746,11 +747,9 @@ class FitInTransform(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.boxcox import BoxCoxTransformer
-
         params = [
-            {"transformer": BoxCoxTransformer()},
-            {"transformer": BoxCoxTransformer(), "skip_inverse_transform": False},
+            {"transformer": _BoxCoxTransformer()},
+            {"transformer": _BoxCoxTransformer(), "skip_inverse_transform": False},
         ]
         return params
 
@@ -1156,11 +1155,9 @@ class InvertTransform(_DelegatedTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.boxcox import BoxCoxTransformer
-
         params1 = {"transformer": MockTransformer()}
-        # BoxCoxTransformer has fit
-        params2 = {"transformer": BoxCoxTransformer()}
+        # _BoxCoxTransformer has fit
+        params2 = {"transformer": _BoxCoxTransformer()}
 
         return [params1, params2]
 
@@ -1354,9 +1351,7 @@ class OptionalPassthrough(_DelegatedTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.boxcox import BoxCoxTransformer
-
-        return {"transformer": BoxCoxTransformer(), "passthrough": False}
+        return {"transformer": _BoxCoxTransformer(), "passthrough": False}
 
 
 class ColumnwiseTransformer(BaseTransformer):
