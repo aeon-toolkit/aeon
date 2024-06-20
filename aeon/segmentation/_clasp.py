@@ -213,7 +213,7 @@ class ClaSPSegmenter(BaseSegmenter):
         self.n_cps = n_cps
         self.exclusion_radius = exclusion_radius
         self.n_jobs = n_jobs
-        super().__init__(n_segments=n_cps + 1, axis=1)
+        super().__init__(axis=1, n_segments=n_cps + 1)
 
     def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.

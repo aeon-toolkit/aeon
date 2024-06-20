@@ -1,9 +1,6 @@
 name: PR pre-commit
 
 on:
-  push:
-    branches:
-      - main
   pull_request_target:
     branches:
       - main
@@ -27,7 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Python 3.10
