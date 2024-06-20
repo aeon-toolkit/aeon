@@ -2,6 +2,8 @@
 
 __maintainer__ = []
 
+import numpy as np
+
 from aeon.networks.base import BaseDeepNetwork
 
 
@@ -111,7 +113,7 @@ class AEDCNNNetwork(BaseDeepNetwork):
             ]
         elif isinstance(self.dilation_rate_encoder, int):
             self._dilation_rate_encoder = [
-                self._dilation_rate_encoder for _ in range(self.num_layers_encoder)
+                self.dilation_rate_encoder for _ in range(self.num_layers_encoder)
             ]
         else:
             self._dilation_rate_encoder = self.dilation_rate_encoder
@@ -149,10 +151,10 @@ class AEDCNNNetwork(BaseDeepNetwork):
             self._dilation_rate_decoder = self._dilation_rate_encoder[::-1]
         elif isinstance(self.dilation_rate_decoder, int):
             self._dilation_rate_decoder = [
-                self._dilation_rate_decoder for _ in range(self.num_layers_decoder)
+                self.dilation_rate_decoder for _ in range(self.num_layers_decoder)
             ]
         else:
-            self._dilation_rate_decoder = self._dilation_rate_decoder
+            self._dilation_rate_decoder = self.dilation_rate_decoder
             assert isinstance(self._dilation_rate_decoder, list)
             assert len(self._dilation_rate_decoder) == self.num_layers_decoder
 
@@ -171,7 +173,7 @@ class AEDCNNNetwork(BaseDeepNetwork):
             self._dilation_rate_decoder = self._dilation_rate_encoder
         elif isinstance(self.dilation_rate_decoder, int):
             self._dilation_rate_decoder = [
-                self._dilation_rate_decoder for _ in range(self.num_layers_decoder)
+                self.dilation_rate_decoder for _ in range(self.num_layers_decoder)
             ]
         else:
             self._dilation_rate_decoder = self.dilation_rate_decoder
@@ -182,7 +184,7 @@ class AEDCNNNetwork(BaseDeepNetwork):
             self._num_filters_decoder = self._num_filters_encoder
         elif isinstance(self.num_filters_decoder, list):
             self._num_filters_decoder = self.num_filters_decoder
-            assert len(self.num_filters_encoder) == self.num_layers_decoder
+            assert len(self.num_filters_decoder) == self.num_layers_decoder
 
         input_layer = tf.keras.layers.Input(input_shape)
 
@@ -197,6 +199,7 @@ class AEDCNNNetwork(BaseDeepNetwork):
             )
 
         if not self.temporal_latent_space:
+            shape_before_flattent = x.shape[1:]
             x = tf.keras.layers.GlobalMaxPool1D()(x)
             output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
 
@@ -212,6 +215,14 @@ class AEDCNNNetwork(BaseDeepNetwork):
             input_layer_decoder = tf.keras.layers.Input(x.shape[1:])
         elif not self.temporal_latent_space:
             input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
+            dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flattent))(
+                input_layer_decoder
+            )
+
+            reshape_layer = tf.keras.layers.Reshape(target_shape=shape_before_flattent)(
+                dense_layer
+            )
+            input_layer_decoder = reshape_layer
 
         y = input_layer_decoder
 
