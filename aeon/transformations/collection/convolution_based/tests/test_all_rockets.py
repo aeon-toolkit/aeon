@@ -75,8 +75,8 @@ def test_expected_basic_motions():
     """Test MiniRocket on unit test data."""
     X, _ = load_basic_motions(split="train")
     mr = MiniRocket(random_state=0)
-    #    mr = MiniRocketMultivariate(random_state=0)
     X2 = mr.fit_transform(X)
+
     np.testing.assert_allclose(
         X2[:5, :5], expected_basic_motions["MiniRocket"], rtol=1e-6
     )
