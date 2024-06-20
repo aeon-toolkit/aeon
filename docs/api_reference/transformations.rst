@@ -284,14 +284,6 @@ Filtering and denoising
 
     BKFilter
 
-.. currentmodule:: aeon.transformations.theta
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ThetaLinesTransformer
-
 Slope
 ~~~~~~~~~~~~~~~~~~~~~~
 
