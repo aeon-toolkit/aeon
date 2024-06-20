@@ -290,7 +290,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
             "n_clusters": 2,
             "n_epochs": 1,
             "batch_size": 4,
-            "use_bias": False,
             "n_layers": 2,
             "n_units": None,
             "clustering_params": {
