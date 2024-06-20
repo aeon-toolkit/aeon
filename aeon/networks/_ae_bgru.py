@@ -53,24 +53,29 @@ class AEBiGRUNetwork(BaseDeepNetwork):
         encoder : a keras Model.
         decoder : a keras Model.
         """
-        from tensorflow.keras.layers import (
-            GRU,
-            Bidirectional,
-            Dense,
-            Input,
-            RepeatVector,
-            TimeDistributed,
-        )
-        from tensorflow.keras.models import Model
+        import tensorflow as tf
 
-        if (self.n_layers is None) and (self.n_units is None):
-            self._n_layers = 2
-            self._n_units = [50, self.latent_space_dim // 2]
-        elif (self.n_layers is not None) and (self.n_units is None):
-            raise ValueError("Please specify the number of units for each GRU Layer.")
-        else:
+        if self.n_layers is None:
+            if self.n_units is not None:
+                raise ValueError(
+                    """Cannot pass number of units without specifying
+                            number of layers."""
+                )
+            elif self.n_units is None:
+                self._n_layers, self._n_units = 2, [50, self.latent_space_dim // 2]
+        elif self.n_layers is not None:
             self._n_layers = self.n_layers
-            self._n_units = self.n_units
+            if self.n_units is None:
+                self._n_units = [50 for _ in range(self.n_layers)]
+                self._n_units[-1] = self.latent_space_dim // 2
+            elif self.n_units is not None:
+                if isinstance(self.n_units, list):
+                    self._n_units = self.n_units
+                    self._n_units[-1] = self.latent_space_dim // 2
+                    assert len(self.n_units) == self.n_layers
+                elif isinstance(self.n_units, int):
+                    self._n_units = [self.n_units for _ in range(self.n_layers)]
+                    self._n_units[-1] = self.latent_space_dim // 2
 
         if isinstance(self.activation, str):
             self._activation = [self.activation for _ in range(self.n_layers)]
@@ -79,14 +84,14 @@ class AEBiGRUNetwork(BaseDeepNetwork):
             assert isinstance(self.activation, list)
             assert len(self.activation) == self.n_layers
 
-        encoder_inputs = Input(shape=input_shape, name="encoder_input")
+        encoder_inputs = tf.keras.layers.Input(shape=input_shape, name="encoder_input")
         x = encoder_inputs
         for i in range(self._n_layers):
             return_sequences = i < self._n_layers - 1
             if self.temporal_latent_space:
                 return_sequences = i < self._n_layers
-            x = Bidirectional(
-                GRU(
+            x = tf.keras.layers.Bidirectional(
+                tf.keras.layers.GRU(
                     units=self._n_units[i],
                     activation=self._activation[i],
                     return_sequences=return_sequences,
@@ -94,33 +99,39 @@ class AEBiGRUNetwork(BaseDeepNetwork):
                 name=f"encoder_bgru_{i+1}",
             )(x)
 
-        latent_space = Dense(
+        latent_space = tf.keras.layers.Dense(
             self.latent_space_dim, activation="linear", name="latent_space"
         )(x)
-        encoder_model = Model(
+        encoder_model = tf.keras.models.Model(
             inputs=encoder_inputs, outputs=latent_space, name="encoder"
         )
 
         if not self.temporal_latent_space:
-            decoder_inputs = Input(shape=(self.latent_space_dim,), name="decoder_input")
-            x = RepeatVector(input_shape[0], name="repeat_vector")(decoder_inputs)
+            decoder_inputs = tf.keras.layers.Input(
+                shape=(self.latent_space_dim,), name="decoder_input"
+            )
+            x = tf.keras.layers.RepeatVector(input_shape[0], name="repeat_vector")(
+                decoder_inputs
+            )
         elif self.temporal_latent_space:
-            decoder_inputs = Input(shape=latent_space.shape[1:], name="decoder_input")
+            decoder_inputs = tf.keras.layers.Input(
+                shape=latent_space.shape[1:], name="decoder_input"
+            )
             x = decoder_inputs
 
         for i in range(self._n_layers - 1, -1, -1):
-            x = Bidirectional(
-                GRU(
+            x = tf.keras.layers.Bidirectional(
+                tf.keras.layers.GRU(
                     units=self._n_units[i],
                     activation=self._activation[i],
                     return_sequences=True,
                 ),
                 name=f"decoder_bgru_{i+1}",
             )(x)
-        decoder_outputs = TimeDistributed(Dense(input_shape[1]), name="decoder_output")(
-            x
-        )
-        decoder_model = Model(
+        decoder_outputs = tf.keras.layers.TimeDistributed(
+            tf.keras.layers.Dense(input_shape[1]), name="decoder_output"
+        )(x)
+        decoder_model = tf.keras.models.Model(
             inputs=decoder_inputs, outputs=decoder_outputs, name="decoder"
         )
 
