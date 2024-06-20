@@ -15,6 +15,7 @@ contains algorithms and tools for time series segmentation.
 
     BaseSegmenter
     ClaSPSegmenter
+    FLUSSSegmenter
     InformationGainSegmenter
     GreedyGaussianSegmenter
     DummySegmenter

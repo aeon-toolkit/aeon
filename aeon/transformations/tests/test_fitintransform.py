@@ -10,7 +10,7 @@ from aeon.transformations.series._boxcox import BoxCoxTransformer
 
 
 def test_transform_fitintransform():
-    """Test fit/transform against BoxCoxTransformer."""
+    """Test fit/transform against _BoxCoxTransformer."""
     X_train = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     X_test = np.array([5, 4, 5, 4, 5, 4, 5, 4, 5, 4])
     fitintransform = FitInTransform(BoxCoxTransformer())
