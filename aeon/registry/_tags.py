@@ -54,6 +54,12 @@ ESTIMATOR_TAG_REGISTER = [
         "belongs to.",
     ),
     (
+        "auto-encoder",
+        "network",
+        "bool",
+        "signifies if the network is an auto-encoder or not",
+    ),
+    (
         "ignores-exogeneous-X",
         "forecaster",
         "bool",
