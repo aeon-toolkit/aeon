@@ -35,7 +35,7 @@ def test_aedrnnnetwork_init(
         temporal_latent_space=temporal_latent_space,
         activation_encoder=random.choice(["relu", "tanh"]),
         activation_decoder=random.choice(["relu", "tanh"]),
-        n_units=[random.choice([50, 25, 100]) for _ in range(n_layers_encoder)],
+        n_units_encoder=[random.choice([50, 25, 100]) for _ in range(n_layers_encoder)],
     )
     encoder, decoder = aedrnn.build_network((150, 5))
     assert encoder is not None
@@ -59,7 +59,7 @@ def test_aedrnnnetwork_activations(activation_encoder, activation_decoder):
         temporal_latent_space=True,
         activation_encoder=activation_encoder,
         activation_decoder=activation_decoder,
-        n_units=[50, 50],
+        n_units_encoder=[50, 50],
     )
     encoder, decoder = aedrnn.build_network((150, 5))
     assert encoder is not None

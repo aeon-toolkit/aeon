@@ -29,9 +29,12 @@ class AEDRNNNetwork(BaseDeepNetwork):
     activation_decoder : Union[str, List[str]], default=None
         Activation function of the single GRU layer in the decoder.
         If None, defaults to relu.
-    n_units : List[int], default="None"
-        Number of units in each GRU layer, by default None.
+    n_units_encoder : List[int], default="None"
+        Number of units in each GRU layer of the encoder, by default None.
         If None, default to [100, 50, 50].
+    n_units_decoder : List[int], default="None"
+        Number of units in each GRU layer of the decoder, by default None.
+        If None, default to two times sum of units of the encoder.
     """
 
     _tags = {"auto-encoder": True}
