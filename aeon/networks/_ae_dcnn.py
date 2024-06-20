@@ -157,7 +157,7 @@ class AEDCNNNetwork(BaseDeepNetwork):
             assert len(self._dilation_rate_decoder) == self.num_layers_decoder
 
         if self.kernel_size_decoder is None:
-            self._kernel_size_decoder = self._kernel_size_decoder[::-1]
+            self._kernel_size_decoder = self._kernel_size_encoder[::-1]
         elif isinstance(self.kernel_size_decoder, int):
             self._kernel_size_decoder = [
                 self.kernel_size_decoder for _ in range(self.num_layers_decoder)
