@@ -61,7 +61,7 @@ class BaseDeepLearningNetwork(ABC):
     _config = {
         "python_dependencies": "tensorflow",
         "python_version": "<3.12",
-        "auto_encoder": False,
+        "auto-encoder": False,
     }
 
     @abstractmethod
