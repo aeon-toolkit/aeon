@@ -37,9 +37,9 @@ class _StatsModelsAdapter(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -86,7 +86,7 @@ class _StatsModelsAdapter(BaseForecaster):
             The forecasters horizon with the steps ahead to to predict.
             Default is one-step ahead forecast,
             i.e. np.array([1])
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
 
         Returns

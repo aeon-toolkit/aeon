@@ -15,7 +15,7 @@ from github import Github
 context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
 
 repo = context_dict["repository"]
-g = Github(sys.argv[1])
+g = Github(os.getenv("GITHUB_TOKEN"))
 repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
@@ -49,7 +49,6 @@ title_labels_to_add = list(set(title_labels) - set(labels))
 paths = [file.filename for file in pr.get_files()]
 
 content_paths_to_labels = [
-    ("aeon/annotation/", "annotation"),
     ("aeon/anomaly_detection/", "anomaly detection"),
     ("aeon/benchmarking/", "benchmarking"),
     ("aeon/classification/", "classification"),

@@ -16,7 +16,6 @@ CLASSES_WITHOUT_TAGS = [
     "series-annotator",
     "object",
     "splitter",
-    "network",
     "collection-transformer",
     "collection-estimator",
     "series-estimator",

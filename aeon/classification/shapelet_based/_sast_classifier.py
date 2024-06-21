@@ -38,13 +38,13 @@ class SASTClassifier(BaseClassifier):
         Number of threads to use for the transform.
 
 
-    Reference
-    ---------
+    References
+    ----------
     .. [1] Mbouopda, Michael Franklin, and Engelbert Mephu Nguifo.
-    "Scalable and accurate subsequence transform for time series classification."
-    Pattern Recognition 147 (2023): 110121.
-    https://www.sciencedirect.com/science/article/abs/pii/S003132032300818X,
-    https://uca.hal.science/hal-03087686/document
+           "Scalable and accurate subsequence transform for time series classification."
+           Pattern Recognition 147 (2023): 110121.
+           https://www.sciencedirect.com/science/article/abs/pii/S003132032300818X,
+           https://uca.hal.science/hal-03087686/document
 
     Examples
     --------
@@ -67,12 +67,12 @@ class SASTClassifier(BaseClassifier):
     def __init__(
         self,
         length_list=None,
-        stride=1,
-        nb_inst_per_class=1,
-        seed=None,
+        stride: int = 1,
+        nb_inst_per_class: int = 1,
+        seed: int = None,
         classifier=None,
-        n_jobs=-1,
-    ):
+        n_jobs: int = -1,
+    ) -> None:
         super().__init__()
         self.length_list = length_list
         self.stride = stride
@@ -92,8 +92,8 @@ class SASTClassifier(BaseClassifier):
         y: array-like or list
             The class values for X.
 
-        Return
-        ------
+        Returns
+        -------
         self : SASTClassifier
             This pipeline classifier
 
@@ -129,8 +129,8 @@ class SASTClassifier(BaseClassifier):
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
-        Return
-        ------
+        Returns
+        -------
         array-like or list
             Predicted class labels.
         """
@@ -144,8 +144,8 @@ class SASTClassifier(BaseClassifier):
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
-        Return
-        ------
+        Returns
+        -------
         dists : np.ndarray shape (n_cases, n_timepoints)
             Predicted class probabilities.
         """
@@ -159,7 +159,7 @@ class SASTClassifier(BaseClassifier):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
         return dists
 
-    def plot_most_important_feature_on_ts(self, ts, feature_importance, limit=5):
+    def plot_most_important_feature_on_ts(self, ts, feature_importance, limit: int = 5):
         """Plot the most important features on ts.
 
         Parameters

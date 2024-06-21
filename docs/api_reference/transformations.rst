@@ -355,6 +355,7 @@ Binning and segmentation
 
     IntervalSegmenter
     RandomIntervalSegmenter
+    SlidingWindowSegmenter
 
 Missing value imputation
 ~~~~~~~~~~~~~~~~~~~~~~~~

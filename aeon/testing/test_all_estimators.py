@@ -14,6 +14,7 @@ from inspect import getfullargspec, isclass, signature
 import joblib
 import numpy as np
 import pytest
+from sklearn.exceptions import NotFittedError
 from sklearn.utils._testing import set_random_state
 from sklearn.utils.estimator_checks import (
     check_get_params_invariance as _check_get_params_invariance,
@@ -21,7 +22,6 @@ from sklearn.utils.estimator_checks import (
 
 from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.exceptions import NotFittedError
 from aeon.forecasting.base import BaseForecaster
 from aeon.registry import all_estimators
 from aeon.regression.deep_learning.base import BaseDeepRegressor
