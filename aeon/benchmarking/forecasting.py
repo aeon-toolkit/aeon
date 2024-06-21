@@ -84,7 +84,7 @@ class ForecastingBenchmark(BaseBenchmark):
             Splitter used for generating validation folds.
         scorers : a list of Callable scoring functions
             Each scoring function output will be included in the results.
-        task_id : str, optional (default=None)
+        task_id : str, default=None
             Identifier for the benchmark task. If none given then uses dataset loader
             name combined with cv_splitter class name.
 

@@ -62,7 +62,7 @@ class RSTSF(BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import RSTSF
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = RSTSF(n_estimators=10, n_intervals=5, random_state=0)  # doctest: +SKIP
@@ -95,10 +95,10 @@ class RSTSF(BaseClassifier):
         self.random_state = random_state
         self.n_jobs = n_jobs
 
+        super().__init__()
+
         if use_pyfftw:
             self.set_tags(**{"python_dependencies": ["statsmodels", "pyfftw"]})
-
-        super().__init__()
 
     def _fit(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape

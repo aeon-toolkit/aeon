@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class MLPNetwork(BaseDeepNetwork):
+class MLPNetwork(BaseDeepLearningNetwork):
     """Establish the network structure for a MLP.
 
     Adapted from the implementation used in [1]_
@@ -24,7 +24,6 @@ class MLPNetwork(BaseDeepNetwork):
     def __init__(
         self,
     ):
-
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):

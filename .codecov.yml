@@ -30,3 +30,5 @@ ignore:
   - "docs/"
   - "examples/"
   - "extension_templates/"
+  # specific files
+  - "aeon/registry/_tag_deprecation.py"

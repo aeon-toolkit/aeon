@@ -139,7 +139,14 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "X_inner_type",
-        ["forecaster", "classifier", "regressor", "transformer", "clusterer"],
+        [
+            "forecaster",
+            "classifier",
+            "regressor",
+            "transformer",
+            "clusterer",
+            "anomaly-detector",
+        ],
         (
             "list",
             [
@@ -298,42 +305,6 @@ ESTIMATOR_TAG_REGISTER = [
         ),
         "Which type the estimator falls under in the taxonomy of time series "
         "machine learning algorithms.",
-    ),
-    (
-        "requires-y-train",
-        "metric",
-        "bool",
-        "Does metric require y-train data to be passed?",
-    ),
-    (
-        "requires-y-pred-benchmark",
-        "metric",
-        "bool",
-        "Does metric require a predictive benchmark?",
-    ),
-    (
-        "univariate-metric",
-        "metric",
-        "bool",
-        "Does the metric only work on univariate y data?",
-    ),
-    (
-        "y_input_type_pred",
-        "metric",
-        "str",
-        "What is the type of y_pred: quantiles, proba, interval?",
-    ),
-    (
-        "lower_is_better",
-        "metric",
-        "bool",
-        "Is a lower value better for the metric? True=yes, False=higher is better",
-    ),
-    (
-        "inner_implements_multilevel",
-        "metric",
-        "bool",
-        "whether inner _evaluate can deal with multilevel (Panel/Hierarchical)",
     ),
     (
         "python_version",

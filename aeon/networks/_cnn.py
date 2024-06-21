@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class CNNNetwork(BaseDeepNetwork):
+class CNNNetwork(BaseDeepLearningNetwork):
     """Establish the network structure for a CNN.
 
     Adapted from the implementation used in [1]_.

@@ -253,9 +253,14 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
         incompatible with the system python version. If package is given,
         error message gives package as the reason for incompatibility.
     """
-    est_specifier_tag = obj.get_class_tag("python_version", tag_value_default="None")
-    if est_specifier_tag in ["None", None]:
-        return True
+    if isinstance(obj, str):
+        est_specifier_tag = obj
+    else:
+        est_specifier_tag = obj.get_class_tag(
+            "python_version", tag_value_default="None"
+        )
+        if est_specifier_tag in ["None", None]:
+            return True
 
     try:
         est_specifier = SpecifierSet(est_specifier_tag)
@@ -270,7 +275,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
     # python sys version, e.g., "3.8.12"
     sys_version = sys.version.split(" ")[0]
 
-    if sys_version in est_specifier:
+    if est_specifier.contains(sys_version, prereleases=True):
         return True
     # now we know that est_version is not compatible with sys_version
 

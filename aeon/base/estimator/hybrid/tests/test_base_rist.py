@@ -8,7 +8,7 @@ from sklearn.preprocessing import FunctionTransformer
 
 from aeon.classification.hybrid import RISTClassifier
 from aeon.regression.hybrid import RISTRegressor
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection import (
     ARCoefficientTransformer,
     PeriodogramTransformer,
