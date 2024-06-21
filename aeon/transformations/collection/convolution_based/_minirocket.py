@@ -106,7 +106,7 @@ class MiniRocket(BaseCollectionTransformer):
                 X, self.num_kernels, self.max_dilations_per_kernel, random_state
             )
         else:
-            X = X.squeeze()
+            X = X.reshape(X.shape[0], X.shape[2])
             self.parameters = _fit_uni(
                 X, self.num_kernels, self.max_dilations_per_kernel, random_state
             )
@@ -138,7 +138,7 @@ class MiniRocket(BaseCollectionTransformer):
         if n_channels > 1:
             X_ = _transform_multi(X, self.parameters)
         else:
-            X = X.squeeze()
+            X = X.reshape(X.shape[0], X.shape[2])
             X_ = _transform_uni(X, self.parameters)
         return X_
 
