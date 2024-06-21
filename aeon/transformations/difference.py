@@ -172,7 +172,7 @@ def _inverse_diff(X, lags, X_diff_seq=None):
 # TODO: remove v0.10.0
 @deprecated(
     version="0.9.0",
-    reason="The Differencer class will be removed in C0.10.0, see issue #1534",
+    reason="The Differencer class will be removed in v0.10.0, see issue #1534",
     category=FutureWarning,
 )
 class Differencer(BaseTransformer):

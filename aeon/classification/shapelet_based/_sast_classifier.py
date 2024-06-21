@@ -38,13 +38,13 @@ class SASTClassifier(BaseClassifier):
         Number of threads to use for the transform.
 
 
-    Reference
-    ---------
+    References
+    ----------
     .. [1] Mbouopda, Michael Franklin, and Engelbert Mephu Nguifo.
-    "Scalable and accurate subsequence transform for time series classification."
-    Pattern Recognition 147 (2023): 110121.
-    https://www.sciencedirect.com/science/article/abs/pii/S003132032300818X,
-    https://uca.hal.science/hal-03087686/document
+           "Scalable and accurate subsequence transform for time series classification."
+           Pattern Recognition 147 (2023): 110121.
+           https://www.sciencedirect.com/science/article/abs/pii/S003132032300818X,
+           https://uca.hal.science/hal-03087686/document
 
     Examples
     --------
@@ -92,8 +92,8 @@ class SASTClassifier(BaseClassifier):
         y: array-like or list
             The class values for X.
 
-        Return
-        ------
+        Returns
+        -------
         self : SASTClassifier
             This pipeline classifier
 
@@ -129,8 +129,8 @@ class SASTClassifier(BaseClassifier):
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
-        Return
-        ------
+        Returns
+        -------
         array-like or list
             Predicted class labels.
         """
@@ -144,8 +144,8 @@ class SASTClassifier(BaseClassifier):
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
 
-        Return
-        ------
+        Returns
+        -------
         dists : np.ndarray shape (n_cases, n_timepoints)
             Predicted class probabilities.
         """

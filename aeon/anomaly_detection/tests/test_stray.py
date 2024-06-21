@@ -3,7 +3,7 @@
 __maintainer__ = []
 
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler, RobustScaler
+from sklearn.preprocessing import MinMaxScaler
 
 from aeon.anomaly_detection import STRAY
 
@@ -87,7 +87,7 @@ def test_default_1D():
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X.reshape(-1, 1))
     model = STRAY()
-    y_actual = model.fit_transform(X)
+    y_actual = model.fit_predict(X, axis=0)
     assert np.allclose(y_actual, y_expected)
 
 
@@ -134,50 +134,8 @@ def test_default_2D():
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X)
     model = STRAY()
-    y_actual = model.fit_transform(X)
+    y_actual = model.fit_predict(X, axis=0)
     assert np.allclose(y_actual, y_expected)
-
-
-def test_1D_score_with_na():
-    """Test score with 1D input array with missing values."""
-    X = np.array(
-        [
-            np.nan,
-            -5.72257076,
-            -4.91555882,
-            -8.3456977,
-            -5.57087531,
-            0.0,
-            6.50605589,
-            5.42526004,
-            5.45336814,
-            5.435548,
-            5.10996217,
-        ]
-    )
-
-    y_scores_expected = np.array(
-        [
-            np.nan,
-            0.17662069,
-            0.23095851,
-            0.17662069,
-            0.18683466,
-            0.33097498,
-            0.07087969,
-            0.02122967,
-            0.02312225,
-            0.02192238,
-            0.02122967,
-        ]
-    )
-
-    scaler = MinMaxScaler()
-    X = scaler.fit_transform(X.reshape(-1, 1))
-    model = STRAY(k=3)
-    fitted_model = model.fit(X)
-    y_scores_actual = fitted_model.score_
-    assert np.allclose(y_scores_actual, y_scores_expected, equal_nan=True)
 
 
 def test_1D_bool_with_na():
@@ -198,39 +156,15 @@ def test_1D_bool_with_na():
         ]
     )
 
-    y_expected = np.array([0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0])
+    y_expected = np.array(
+        [False, False, True, False, True, True, False, False, False, False, False]
+    )
 
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X.reshape(-1, 1))
     model = STRAY(k=3)
-    fitted_model = model.fit(X)
-    y_actual = fitted_model.y_
+    y_actual = model.fit_predict(X, axis=0)
     assert np.allclose(y_actual, y_expected)
-
-
-def test_2D_score_with_na():
-    """Test score with 2D input array with missing values."""
-    X = np.array(
-        [
-            [-1.20706575, -0.57473996],
-            [0.27742924, -0.54663186],
-            [1.08444118, np.nan],
-            [-2.3456977, -0.89003783],
-            [0.42912469, -0.4771927],
-            [0.50605589, -0.99838644],
-        ]
-    )
-
-    y_scores_expected = np.array(
-        [0.43612712, 0.43612712, np.nan, 0.69004259, 0.51240831, 0.85697804]
-    )
-
-    scaler = MinMaxScaler()
-    X = scaler.fit_transform(X)
-    model = STRAY(k=2, size_threshold=4)
-    fitted_model = model.fit(X)
-    y_scores_actual = fitted_model.score_
-    assert np.allclose(y_scores_actual, y_scores_expected, equal_nan=True)
 
 
 def test_2D_bool_with_na():
@@ -246,43 +180,10 @@ def test_2D_bool_with_na():
         ]
     )
 
-    y_expected = np.array([0, 0, 0, 1, 1, 1])
+    y_expected = np.array([False, False, False, True, True, True])
 
     scaler = MinMaxScaler()
     X = scaler.fit_transform(X)
     model = STRAY(k=2, size_threshold=4)
-    fitted_model = model.fit(X)
-    y_actual = fitted_model.y_
+    y_actual = model.fit_predict(X, axis=0)
     assert np.allclose(y_actual, y_expected)
-
-
-def test_2D_score_with_standardize():
-    """Test score with 2D input array and median/IQR normalization."""
-    X = np.array(
-        [
-            [-1.20706575, -0.57473996],
-            [0.27742924, -0.54663186],
-            [1.08444118, -0.5644520],
-            [-2.3456977, -0.89003783],
-            [0.42912469, -0.4771927],
-            [0.50605589, -0.99838644],
-        ]
-    )
-
-    y_scores_expected = np.array(
-        [
-            1.1274565,
-            0.6139288,
-            0.5982989,
-            1.4866554,
-            0.5982989,
-            1.7245212,
-        ]
-    )
-
-    scaler = RobustScaler()
-    X = scaler.fit_transform(X)
-    model = STRAY(k=2, size_threshold=4)
-    fitted_model = model.fit(X)
-    y_scores_actual = fitted_model.score_
-    assert np.allclose(y_scores_actual, y_scores_expected)

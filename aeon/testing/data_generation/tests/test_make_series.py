@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation import make_series
 
 
 def test_make_series():

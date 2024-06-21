@@ -81,7 +81,7 @@ class LearningShapeletClassifier(BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.shapelet_based import LearningShapeletClassifier
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(random_state=0)
     >>> clf = LearningShapeletClassifier(max_iter=50, random_state=0) # doctest: +SKIP
     >>> clf.fit(X, y) # doctest: +SKIP
