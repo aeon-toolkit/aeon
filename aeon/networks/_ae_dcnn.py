@@ -4,10 +4,10 @@ __maintainer__ = []
 
 import numpy as np
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class AEDCNNNetwork(BaseDeepNetwork):
+class AEDCNNNetwork(BaseDeepLearningNetwork):
     """Establish the network structure for a DCNN-Model.
 
     Dilated Convolutional Neural Network based Model
@@ -53,7 +53,7 @@ class AEDCNNNetwork(BaseDeepNetwork):
     }
     """
 
-    _tags = {"auto-encoder": True}
+    _config["auto-encoder"]=True
 
     def __init__(
         self,
