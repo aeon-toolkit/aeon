@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class AEDRNNNetwork(BaseDeepNetwork):
+class AEDRNNNetwork(BaseDeepLearningNetwork):
     """Auto-Encoder based Dilated Recurrent Neural Networks (DRNN).
 
     Parameters
@@ -37,7 +37,7 @@ class AEDRNNNetwork(BaseDeepNetwork):
         If None, default to two times sum of units of the encoder.
     """
 
-    _tags = {"auto-encoder": True}
+    _config["auto-encoder"] = True
 
     def __init__(
         self,
