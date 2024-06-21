@@ -1,9 +1,9 @@
 """Implement Auto-Encoder based on Bidirectional GRUs."""
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class AEBiGRUNetwork(BaseDeepNetwork):
+class AEBiGRUNetwork(BaseDeepLearningNetwork):
     """
     A class to implement an Auto-Encoder based on Bidirectional GRUs.
 
@@ -22,7 +22,7 @@ class AEBiGRUNetwork(BaseDeepNetwork):
             Flag to choose whether the latent space is an MTS or Euclidean space.
     """
 
-    _tags = {"auto-encoder": True}
+    _config["auto-encoder"]=True
 
     def __init__(
         self,
