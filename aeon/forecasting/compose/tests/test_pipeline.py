@@ -94,7 +94,7 @@ def test_nesting_pipelines():
     from aeon.testing.utils.scenarios_forecasting import (
         ForecasterFitPredictUnivariateWithX,
     )
-    from aeon.transformations.boxcox import LogTransformer
+    from aeon.transformations._legacy._boxcox import _LogTransformer as LogTransformer
     from aeon.transformations.compose import OptionalPassthrough
     from aeon.transformations.detrend import Detrender
 

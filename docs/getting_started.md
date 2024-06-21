@@ -398,7 +398,7 @@ yourself, you will need to `pip install statsmodels` and `pip install pmdarima`)
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.datasets import load_airline
->>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.series._boxcox import BoxCoxTransformer
 >>> from aeon.transformations.detrend import Deseasonalizer
 >>> from aeon.forecasting.arima import ARIMA
 >>> from aeon.forecasting.compose import TransformedTargetForecaster
@@ -494,7 +494,7 @@ to ARIMA order values for the forecasting pipeline we created in the previous ex
 ...     ForecastingGridSearchCV,
 ... )
 >>> from aeon.forecasting.arima import ARIMA
->>> from aeon.transformations.boxcox import BoxCoxTransformer
+>>> from aeon.transformations.series._boxcox import BoxCoxTransformer
 >>> from aeon.transformations.detrend import Deseasonalizer
 ...
 >>> y = load_airline()
