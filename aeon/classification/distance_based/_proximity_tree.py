@@ -1,3 +1,10 @@
+"""Proximity Tree Time Series Classifier.
+
+A decision tree classifier where the splits based on the
+similarity of instances to chosen time series exemplars, measured using
+aeon distances.
+"""
+
 from typing import Type, Union
 
 import numpy as np
@@ -110,7 +117,7 @@ class ProximityTree(BaseClassifier):
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "algorithm_type": "distance",
-        "X_inner_type": ["numpy2D"],
+        "X_inner_type": ["numpy2D", "numpy3D"],
     }
 
     def __init__(
