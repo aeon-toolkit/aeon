@@ -11,12 +11,11 @@ from aeon.utils.validation._dependencies import (
 __maintainer__ = []
 
 
-def test_all_networks_functionality():
-    """Test the functionality of all networks."""
+def test_network_config():
+    """Tests if the config dictionary of classes is correctly configured."""
     network_classes = [
         member[1] for member in inspect.getmembers(networks, inspect.isclass)
     ]
-    input_shape = (100, 2)
 
     for i in range(len(network_classes)):
 
@@ -29,6 +28,15 @@ def test_all_networks_functionality():
         assert isinstance(network_classes[i]._config["python_version"], str)
         assert isinstance(network_classes[i]._config["auto-encoder"], bool)
 
+
+def test_all_networks_functionality():
+    """Test the functionality of all networks."""
+    network_classes = [
+        member[1] for member in inspect.getmembers(networks, inspect.isclass)
+    ]
+    input_shape = (100, 2)
+
+    for i in range(len(network_classes)):
         if "BaseDeepLearningNetwork" in str(network_classes[i]):
             continue
 
