@@ -1,10 +1,18 @@
 """Tests for distance utility function."""
 
+import itertools
+
 import numpy as np
 import pytest
 
 from aeon.distances._shape_dtw import _pad_ts_edges, _transform_subsequences
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _is_multivariate, reshape_pairwise_to_multiple
+from aeon.testing.data_generation import (
+    make_example_2d_numpy_list,
+    make_example_3d_numpy,
+    make_example_3d_numpy_list,
+    make_series,
+)
 
 SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
 
@@ -92,3 +100,64 @@ def _generate_shape_dtw_params(x: np.ndarray, y: np.ndarray):
         "transformed_y": transformed_y,
         "reach": 10,
     }
+
+
+def test_is_multvariate():
+    """Test is multivariate."""
+    # Test np.ndarray (n_timepoints,)
+    x_uni_1d = make_series(10, return_numpy=True)
+
+    # Test np.ndarray (1, n_timepoints)
+    x_uni_2d = np.array([x_uni_1d])
+
+    # Test np.ndarray (n_cases, n_timepoints)
+    x_uni_dataset_2d = make_series(10, 10, return_numpy=True)
+
+    # Test np.ndarray (n_cases, 1, n_timepoints)
+    x_uni_dataset_3d = make_example_3d_numpy(10, 1, 10, return_y=False)
+
+    # Test list of np.ndarray (n_timepoints)
+    x_unequal_dataset_uni_1d = make_example_2d_numpy_list(
+        10, 5, max_n_timepoints=10, return_y=False
+    )
+
+    # Test list of np.ndarray (1, n_timepoints)
+    x_unequal_dataset_uni_2d = make_example_3d_numpy_list(10, return_y=False)
+
+    # ==================================================================================
+
+    # Test np.ndarray (n_channels, n_timepoints)
+    x_multi_2d = make_series(2, 10, return_numpy=True)
+
+    # Test np.ndarray (n_cases, n_channels, n_timepoints)
+    x_multi_dataset_3d = make_example_3d_numpy(10, 2, 10, return_y=False)
+
+    # Test list of np.ndarray (n_channels, n_timepoints)
+    x_unequal_multi_2d = make_example_3d_numpy_list(10, 2, return_y=False)
+
+    valid_univariate_formats = [
+        x_uni_1d,
+        x_uni_2d,
+        x_uni_dataset_2d,
+        x_uni_dataset_3d,
+        x_unequal_dataset_uni_1d,
+        x_unequal_dataset_uni_2d,
+    ]
+
+    valid_multivariate_formats = [
+        x_multi_2d,
+        x_multi_dataset_3d,
+        x_unequal_multi_2d,
+    ]
+    for x, y in itertools.product(valid_univariate_formats, repeat=2):
+        assert _is_multivariate(x, y) is False
+
+    for x, y in itertools.product(valid_multivariate_formats, repeat=2):
+        try:
+            assert _is_multivariate(x, y) is True
+        except AssertionError as e:
+            # If two 2d arrays passed as this function is used for pairwise we assume
+            # it isnt two multivariate time series but two collections of univariate.
+            # As such ignore the assertion error in this specific instance.
+            if x.ndim != 2 and y.ndim != 2:
+                raise e

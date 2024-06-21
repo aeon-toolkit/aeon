@@ -1,7 +1,7 @@
 """BOSS test code."""
 
 from aeon.classification.dictionary_based import ContractableBOSS
-from aeon.testing.utils.data_gen import make_example_2d_numpy
+from aeon.testing.data_generation import make_example_2d_numpy
 
 
 def test_cboss_small_train():

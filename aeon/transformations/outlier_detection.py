@@ -20,8 +20,8 @@ class HampelFilter(BaseTransformer):
 
     Parameters
     ----------
-    window_length : int, optional (default=10)
-        Lenght of the sliding window
+    window_length : int, default=10
+        Length of the sliding window
     n_sigma : int, optional
         Defines how strong a point must outly to be an "outlier", by default 3
     k : float, optional

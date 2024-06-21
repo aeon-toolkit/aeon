@@ -16,7 +16,7 @@ y = load_airline()
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency for BaggingForecaster not available",
 )
 @pytest.mark.parametrize("transformer", [LogTransformer, NaiveForecaster])
 def test_bagging_forecaster_transformer_type_error(transformer):
@@ -35,7 +35,7 @@ def test_bagging_forecaster_transformer_type_error(transformer):
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency not available",
 )
 @pytest.mark.parametrize("forecaster", [LogTransformer])
 def test_bagging_forecaster_forecaster_type_error(forecaster):

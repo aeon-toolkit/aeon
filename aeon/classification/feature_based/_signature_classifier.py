@@ -60,7 +60,7 @@ class SignatureClassifier(BaseClassifier):
     depth : int, default=4
         Signature truncation depth.
     random_state : int, default=None
-        Random state initialisation.
+        If `int`, random_state is the seed used by the random number generator;
 
     Attributes
     ----------

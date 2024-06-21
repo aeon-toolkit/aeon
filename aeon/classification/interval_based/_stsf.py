@@ -110,7 +110,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.interval_based import SupervisedTimeSeriesForest
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = SupervisedTimeSeriesForest(n_estimators=10, random_state=0)
@@ -141,8 +141,6 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
         parallel_backend=None,
     ):
         self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
 
         series_transformers = [
             None,
@@ -177,6 +175,9 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pyfftw:
+            self.set_tags(**{"python_dependencies": "pyfftw"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)

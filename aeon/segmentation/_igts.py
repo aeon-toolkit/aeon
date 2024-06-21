@@ -154,9 +154,9 @@ class _IGTS:
        Pervasive and Mobile Computing, 38, 92-109, (2017).
        https://www.sciencedirect.com/science/article/abs/pii/S1574119217300081
 
-    Example
-    -------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    Examples
+    --------
+    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
@@ -336,7 +336,7 @@ class InformationGainSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(

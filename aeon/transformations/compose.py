@@ -7,10 +7,11 @@ import pandas as pd
 from sklearn import clone
 
 from aeon.base import _HeterogenousMetaEstimator
+from aeon.testing.mock_estimators import MockTransformer
 from aeon.transformations._delegate import _DelegatedTransformer
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.multiindex import flatten_multiindex
-from aeon.utils.sklearn import is_sklearn_regressor, is_sklearn_transformer
+from aeon.utils.sklearn import is_sklearn_transformer
 from aeon.utils.validation.series import check_series
 
 __maintainer__ = []
@@ -102,9 +103,9 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> t1 = ExponentTransformer(power=2)
-    >>> t2 = ExponentTransformer(power=0.5)
+    >>> from aeon.testing.mock_estimators import MockTransformer
+    >>> t1 = MockTransformer(power=2)
+    >>> t2 = MockTransformer(power=0.5)
 
         Example 1, option A: construct without strings (unique names are generated for
         the two components t1 and t2)
@@ -228,14 +229,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         TransformerPipeline object, concatenation of `self` (first) with `other` (last).
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
-        from aeon.regression.compose import SklearnRegressorPipeline
-
         other = _coerce_to_aeon(other)
-
-        # if sklearn regressor, use sklearn regressor pipeline
-        if is_sklearn_regressor(other):
-            return SklearnRegressorPipeline(regressor=other, transformers=self.steps)
-
         return self._dunder_concat(
             other=other,
             base_class=BaseTransformer,
@@ -329,7 +323,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of type y_inner_type, optional (default=None)
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -388,11 +382,11 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # imports
-        from aeon.transformations.exponent import ExponentTransformer
+        from aeon.testing.mock_estimators import MockTransformer
 
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-        t3 = ExponentTransformer(power=1)
+        t1 = MockTransformer(power=2)
+        t2 = MockTransformer(power=0.5)
+        t3 = MockTransformer(power=1)
 
         # construct without names
         params1 = {"steps": [t1, t2]}
@@ -422,7 +416,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     transformer_list : list of (string, transformer) tuples
         List of transformer objects to be applied to the data. The first
         half of each tuple is the name of the transformer.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         Number of jobs to run in parallel.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend`
         context.
@@ -430,7 +424,7 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     transformer_weights : dict, optional
         Multiplicative weights for features per transformer.
         Keys are transformer names, values the weights.
-    flatten_transform_index : bool, optional (default=True)
+    flatten_transform_index : bool, default=True
         if True, columns of return DataFrame are flat, by "transformer__variablename"
         if False, columns are MultiIndex (transformer, variablename)
         has no effect if return type is one without column names
@@ -616,26 +610,12 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Test parameters for FeatureUnion."""
-        from aeon.transformations.boxcox import BoxCoxTransformer
-        from aeon.transformations.exponent import ExponentTransformer
-
         # with name and estimator tuple, all transformers don't have fit
         TRANSFORMERS = [
-            ("transformer1", ExponentTransformer(power=4)),
-            ("transformer2", ExponentTransformer(power=0.25)),
+            ("transformer1", MockTransformer(power=4)),
+            ("transformer2", MockTransformer(power=0.25)),
         ]
-        params1 = {"transformer_list": TRANSFORMERS}
-
-        # only with estimators, some transformers have fit, some not
-        params2 = {
-            "transformer_list": [
-                ExponentTransformer(power=4),
-                ExponentTransformer(power=0.25),
-                BoxCoxTransformer(),
-            ]
-        }
-
-        return [params1, params2]
+        return {"transformer_list": TRANSFORMERS}
 
 
 class FitInTransform(BaseTransformer):
@@ -729,7 +709,7 @@ class FitInTransform(BaseTransformer):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of type y_inner_type, optional (default=None)
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -1052,9 +1032,9 @@ class InvertTransform(_DelegatedTransformer):
     --------
     >>> from aeon.datasets import load_airline
     >>> from aeon.transformations.compose import InvertTransform
-    >>> from aeon.transformations.exponent import ExponentTransformer
+    >>> from aeon.testing.mock_estimators import MockTransformer
     >>>
-    >>> inverse_exponent = InvertTransform(ExponentTransformer(power=3))
+    >>> inverse_exponent = InvertTransform(MockTransformer(power=3))
     >>> X = load_airline()
     >>> Xt = inverse_exponent.fit_transform(X)  # computes 3rd square root
     """
@@ -1177,10 +1157,8 @@ class InvertTransform(_DelegatedTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         from aeon.transformations.boxcox import BoxCoxTransformer
-        from aeon.transformations.exponent import ExponentTransformer
 
-        # ExponentTransformer skips fit
-        params1 = {"transformer": ExponentTransformer()}
+        params1 = {"transformer": MockTransformer()}
         # BoxCoxTransformer has fit
         params2 = {"transformer": BoxCoxTransformer()}
 
@@ -1729,7 +1707,7 @@ class YtoX(BaseTransformer):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be inverse transformed
-        y : Series or Panel of type y_inner_type, optional (default=None)
+        y : Series or Panel of type y_inner_type, default=None
             Additional data, e.g., labels for transformation
 
         Returns

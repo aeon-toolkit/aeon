@@ -113,7 +113,7 @@ class DynamicFactor(_StatsModelsAdapter):
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_series
+    >>> from aeon.testing.data_generation import make_series
     >>> from aeon.forecasting.dynamic_factor import DynamicFactor
     >>> y = make_series(n_columns=4)
     >>> forecaster = DynamicFactor()  # doctest: +SKIP
@@ -196,7 +196,7 @@ class DynamicFactor(_StatsModelsAdapter):
             The forecasters horizon with the steps ahead to to predict.
             Default is one-step ahead forecast,
             i.e. np.array([1])
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
 
         Returns
@@ -238,7 +238,7 @@ class DynamicFactor(_StatsModelsAdapter):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -344,7 +344,7 @@ class DynamicFactor(_StatsModelsAdapter):
         ----------
         y:pd.Series
           Target time series to which forcaster is fit.
-        X:pd.DataFrame , optional (default=None)
+        X:pd.DataFrame , default=None
           Exogenous variables
         """
         from statsmodels.tsa.statespace.dynamic_factor import (

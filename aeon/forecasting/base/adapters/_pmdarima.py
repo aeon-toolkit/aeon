@@ -34,9 +34,9 @@ class _PmdArimaAdapter(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
+        fh : int, list, np.array or ForecastingHorizon, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -56,7 +56,7 @@ class _PmdArimaAdapter(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -240,7 +240,7 @@ class _PmdArimaAdapter(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon, default = y.index (in-sample forecast)
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

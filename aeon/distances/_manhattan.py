@@ -1,11 +1,12 @@
 __maintainer__ = []
 
-from typing import Optional
+from typing import List, Optional, Union
 
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
 
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -72,23 +73,22 @@ def _univariate_manhattan_distance(x: np.ndarray, y: np.ndarray) -> float:
     return distance
 
 
-@njit(cache=True, fastmath=True)
 def manhattan_pairwise_distance(
-    X: np.ndarray, y: Optional[np.ndarray] = None
+    X: Union[np.ndarray, List[np.ndarray]],
+    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
 ) -> np.ndarray:
     """Compute the manhattan pairwise distance between a set of time series.
 
     Parameters
     ----------
-    X : np.ndarray
+    X : np.ndarray or List of np.ndarray
         A collection of time series instances  of shape ``(n_cases, n_timepoints)``
         or ``(n_cases, n_channels, n_timepoints)``.
-    y : np.ndarray or None, default=None
+    y : np.ndarray or List of np.ndarray or None, default=None
         A single series or a collection of time series of shape ``(m_timepoints,)`` or
         ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the manhattan pairwise distance between the instances of X is
         calculated.
-
 
     Returns
     -------
@@ -125,22 +125,25 @@ def manhattan_pairwise_distance(
            [21.],
            [12.]])
 
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> manhattan_pairwise_distance(X)
+    array([[ 0.,  9., 21.],
+           [ 9.,  0., 16.],
+           [21., 16.,  0.]])
     """
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, _ = _convert_to_list(X, "X", multivariate_conversion)
     if y is None:
         # To self
-        if X.ndim == 3:
-            return _manhattan_pairwise_distance(X)
-        elif X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _manhattan_pairwise_distance(_X)
-        raise ValueError("X must be 2D or 3D array")
-    _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _manhattan_from_multiple_to_multiple_distance(_x, _y)
+        return _manhattan_pairwise_distance(_X)
+    _y, _ = _convert_to_list(y, "y", multivariate_conversion)
+    return _manhattan_from_multiple_to_multiple_distance(_X, _y)
 
 
 @njit(cache=True, fastmath=True)
-def _manhattan_pairwise_distance(X: np.ndarray) -> np.ndarray:
-    n_cases = X.shape[0]
+def _manhattan_pairwise_distance(X: NumbaList[np.ndarray]) -> np.ndarray:
+    n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
     for i in range(n_cases):
@@ -153,10 +156,10 @@ def _manhattan_pairwise_distance(X: np.ndarray) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def _manhattan_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray
+    x: NumbaList[np.ndarray], y: NumbaList[np.ndarray]
 ) -> np.ndarray:
-    n_cases = x.shape[0]
-    m_cases = y.shape[0]
+    n_cases = len(x)
+    m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
     for i in range(n_cases):
