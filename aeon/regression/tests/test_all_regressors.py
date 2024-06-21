@@ -2,6 +2,7 @@
 
 __maintainer__ = []
 
+from sys import platform
 
 import numpy as np
 from sklearn.utils._testing import set_random_state
@@ -43,6 +44,10 @@ class TestAllRegressors(RegressorFixtureGenerator, QuickTester):
         """Test classifier against stored results."""
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
+
+        # We cannot guarantee same results on ARM mMacOS
+        if platform == "darwin":
+            return None
 
         for data_name, data_dict, data_loader, data_seed in [
             ["Covid3Month", covid_3month_preds, load_covid_3month, 0],
