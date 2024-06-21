@@ -20,12 +20,23 @@ def test_all_networks_functionality():
 
     for i in range(len(network_classes)):
 
+        assert "python_dependencies" in network_classes[i]._config.keys()
+        assert "python_version" in network_classes[i]._config.keys()
+        assert "auto-encoder" in network_classes[i]._config.keys()
+        assert isinstance(network_classes[i]._config["python_dependencies"], str) and (
+            "tensorflow" in network_classes[i]._config["python_dependencies"]
+        )
+        assert isinstance(network_classes[i]._config["python_version"], str)
+        assert isinstance(network_classes[i]._config["auto-encoder"], bool)
+
         if "BaseDeepLearningNetwork" in str(network_classes[i]):
             continue
 
         if _check_soft_dependencies(
-            ["tensorflow", "tensorflow-addons"], severity="none"
-        ) and _check_python_version(network_classes[i], severity="none"):
+            network_classes[i]._config["python_dependencies"], severity="none"
+        ) and _check_python_version(
+            network_classes[i]._config["python_version"], severity="none"
+        ):
             if "EncoderNetwork" in str(network_classes[i]):
                 if _check_soft_dependencies(["tensorflow-addons"], severity="none"):
                     my_network = network_classes[i]()
@@ -34,7 +45,7 @@ def test_all_networks_functionality():
         else:
             continue
 
-        if network_classes[i]._tags["auto_encoder"]:
+        if network_classes[i]._config["auto_encoder"]:
             encoder, decoder = my_network.build_network(input_shape=input_shape)
             assert encoder.layers[-1].output_shape[1:] == (my_network.latent_space_dim,)
             assert encoder.layers[0].input_shape[0] == decoder.layers[-1].output_shape

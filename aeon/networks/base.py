@@ -58,9 +58,10 @@ class BaseDeepLearningNetwork(ABC):
         _check_python_version(python_version)
         super().__init__()
 
-    _tags = {
+    _config = {
         "python_dependencies": "tensorflow",
         "python_version": "<3.12",
+        "auto_encoder": False,
     }
 
     @abstractmethod
