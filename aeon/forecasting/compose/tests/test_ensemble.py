@@ -10,7 +10,7 @@ from aeon.forecasting.compose import EnsembleForecaster
 from aeon.forecasting.compose._ensemble import VALID_AGG_FUNCS
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.testing.utils.data_gen import make_forecasting_problem
+from aeon.testing.data_generation import make_forecasting_problem
 
 
 @pytest.mark.parametrize(

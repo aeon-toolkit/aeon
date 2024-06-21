@@ -11,6 +11,9 @@ fit & transform - fit_transform(self, X, y=None)
 from abc import ABCMeta, abstractmethod
 from typing import final
 
+import numpy as np
+import pandas as pd
+
 from aeon.base import BaseSeriesEstimator
 from aeon.transformations.base import BaseTransformer
 
@@ -22,7 +25,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
-        "X_inner_type": "ndarray",
+        "X_inner_type": "np.ndarray",
         "fit_is_empty": False,
         "requires_y": False,
         "capability:inverse_transform": False,
@@ -33,7 +36,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         super().__init__(axis=axis)
 
     @final
-    def fit(self, X, y=None, axis=None):
+    def fit(self, X, y=None, axis=1):
         """Fit transformer to X, optionally using y if supervised.
 
         State change:
@@ -46,9 +49,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             ``pd.DataFrame``.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
-        axis : int, default = None
-            Axis along which to segment if passed a multivariate X series (2D input).
-            If axis is 0, it is assumed each column is a time series and each row is
+        axis : int, default = 1
+            Axis of time in the input series.
+            If ``axis == 0``, it is assumed each column is a time series and each row is
             a time point. i.e. the shape of the data is ``(n_timepoints,
             n_channels)``.
             ``axis == 1`` indicates the time series are in rows, i.e. the shape of
@@ -59,17 +62,15 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         -------
         self : a fitted instance of the estimator
         """
-        if self.get_tag("requires_y"):
-            if y is None:
-                raise ValueError("Tag requires_y is true, but fit called with y=None")
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
             return self
+        if self.get_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
         # reset estimator at the start of fit
         self.reset()
-        if axis is None:  # If none given, assume it is correct.
-            axis = self.axis
         X = self._preprocess_series(X, axis=axis, store_metadata=True)
         if y is not None:
             self._check_y(y)
@@ -78,7 +79,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         return self
 
     @final
-    def transform(self, X, axis=None):
+    def transform(self, X, y=None, axis=1):
         """Transform X and return a transformed version.
 
         State required:
@@ -90,9 +91,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             Data to fit transform to, of valid collection type.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
-        axis : int, default = None
-            Axis along which to segment if passed a multivariate X series (2D input).
-            If axis is 0, it is assumed each column is a time series and each row is
+        axis : int, default = 1
+            Axis of time in the input series.
+            If ``axis == 0``, it is assumed each column is a time series and each row is
             a time point. i.e. the shape of the data is ``(n_timepoints,
             n_channels)``.
             ``axis == 1`` indicates the time series are in rows, i.e. the shape of
@@ -106,9 +107,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # check whether is fitted
         self.check_is_fitted()
-
-        if axis is None:
-            axis = self.axis
         X = self._preprocess_series(
             X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
         )
@@ -116,7 +114,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         return self._postprocess_series(Xt, axis=axis)
 
     @final
-    def fit_transform(self, X, y=None, axis=None):
+    def fit_transform(self, X, y=None, axis=1):
         """
         Fit to data, then transform it.
 
@@ -131,9 +129,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             Data to fit transform to, of valid collection type.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
-        axis : int, default = None
-            Axis along which to segment if passed a multivariate X series (2D input).
-            If axis is 0, it is assumed each column is a time series and each row is
+        axis : int, default = 1
+            Axis of time in the input series.
+            If ``axis == 0``, it is assumed each column is a time series and each row is
             a time point. i.e. the shape of the data is ``(n_timepoints,
             n_channels)``.
             ``axis == 1`` indicates the time series are in rows, i.e. the shape of
@@ -153,7 +151,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         return self._postprocess_series(Xt, axis=axis)
 
     @final
-    def inverse_transform(self, X, y=None, axis=None):
+    def inverse_transform(self, X, y=None, axis=1):
         """Inverse transform X and return an inverse transformed version.
 
         State required:
@@ -165,6 +163,14 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             Data to fit transform to, of valid collection type.
         y : Target variable, default=None
              Additional data, e.g., labels for transformation
+        axis : int, default = 1
+            Axis of time in the input series.
+            If ``axis == 0``, it is assumed each column is a time series and each row is
+            a time point. i.e. the shape of the data is ``(n_timepoints,
+            n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
 
         Returns
         -------
@@ -310,3 +316,48 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             Parameters to create testing instances of the class.
         """
         return {}
+
+    def _postprocess_series(self, Xt, axis):
+        """Postprocess data Xt to revert to original shape.
+
+        Parameters
+        ----------
+        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            Intended for algorithms which have another series as output.
+        axis: int
+            The axids of time in the series.
+            If  ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
+            If None, the default class axis is used.
+
+        Returns
+        -------
+        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
+            New time series input reshaped to match the original input.
+        """
+        if axis is None:
+            axis = self.axis
+
+        # If a univariate only transformer, return a univariate series
+        if not self.get_tag("capability:multivariate"):
+            Xt = Xt.squeeze()
+
+        # return with input axis
+        if Xt.ndim == 1 or axis == self.axis:
+            return Xt
+        else:
+            return Xt.T
+
+    def _check_y(self, y):
+        # Check y valid input for supervised transform
+        if not isinstance(y, (pd.Series, np.ndarray)):
+            raise TypeError(
+                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
+            )
+        if isinstance(y, np.ndarray) and y.ndim > 1:
+            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")

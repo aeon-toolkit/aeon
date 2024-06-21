@@ -318,7 +318,7 @@ class NaiveForecaster(_BaseWindowForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         """
         y_pred = super()._predict(fh=fh, X=X)
@@ -347,9 +347,9 @@ class NaiveForecaster(_BaseWindowForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
-        alpha : float or list of float, optional (default=0.5)
+        alpha : float or list of float, default=0.5
             A probability or list of, at which quantile forecasts are computed.
 
         Returns
@@ -392,9 +392,9 @@ class NaiveForecaster(_BaseWindowForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             If True, return the covariance matrix.
             If False, return the marginal variance.
 
@@ -636,9 +636,9 @@ class NaiveVariance(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        alpha : float or list of float, optional (default=0.5)
+        alpha : float or list of float, default=0.5
             A probability or list of, at which quantile forecasts are computed.
 
         Returns
@@ -678,9 +678,9 @@ class NaiveVariance(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             If True, return the covariance matrix.
             If False, return the marginal variance.
 

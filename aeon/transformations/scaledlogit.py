@@ -159,7 +159,7 @@ class ScaledLogitTransformer(BaseTransformer):
         ----------
         X : 2D np.ndarray
             Data to be inverse transformed
-        y : data of y_inner_type, optional (default=None)
+        y : data of y_inner_type, default=None
             Ignored argument for interface compatibility
 
         Returns

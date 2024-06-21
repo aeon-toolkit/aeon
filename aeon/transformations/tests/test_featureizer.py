@@ -6,8 +6,8 @@ from numpy.testing import assert_array_equal
 
 from aeon.datasets import load_longley
 from aeon.forecasting.model_selection import temporal_train_test_split
+from aeon.testing.mock_estimators import MockTransformer
 from aeon.transformations.compose import YtoX
-from aeon.transformations.exponent import ExponentTransformer
 from aeon.transformations.lag import Lag
 
 y, X = load_longley()
@@ -21,11 +21,11 @@ def test_featurized_values():
     is done without YtoX.
     """
     lags = len(y_test)
-    featurizer = YtoX() * ExponentTransformer() * Lag(lags)
+    featurizer = YtoX() * MockTransformer() * Lag(lags)
     featurizer.fit(X_train, y_train)
     X_hat = featurizer.transform(X_test, y_test)
 
-    exp_transformer = ExponentTransformer()
+    exp_transformer = MockTransformer()
     expected_len = lags + len(y_test)
     y_hat = exp_transformer.fit_transform(y[-expected_len:])
     assert_array_equal(X_hat[f"lag_{lags}__TOTEMP"].values, y_hat.values)

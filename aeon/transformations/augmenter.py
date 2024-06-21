@@ -11,6 +11,7 @@ __all__ = [
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from scipy.stats import norm
 from sklearn.utils import check_random_state
 
@@ -33,6 +34,12 @@ class _AugmenterTags:
     }
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="WhiteNoiseAugmenter will be removed in version 0.10.0.",
+    category=FutureWarning,
+)
 class WhiteNoiseAugmenter(_AugmenterTags, BaseTransformer):
     r"""Augmenter adding Gaussian (i.e. white) noise to the time series.
 
@@ -79,6 +86,12 @@ class WhiteNoiseAugmenter(_AugmenterTags, BaseTransformer):
         return X[0] + norm.rvs(0, scale, size=len(X), random_state=self.random_state)
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="ReverseAugmenter will be removed in version 0.10.0.",
+    category=FutureWarning,
+)
 class ReverseAugmenter(_AugmenterTags, BaseTransformer):
     r"""Augmenter reversing the time series.
 
@@ -113,6 +126,12 @@ class ReverseAugmenter(_AugmenterTags, BaseTransformer):
         return X.loc[::-1].reset_index(drop=True, inplace=False)
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="InvertAugmenter will be removed in version 0.10.0.",
+    category=FutureWarning,
+)
 class InvertAugmenter(_AugmenterTags, BaseTransformer):
     r"""Augmenter inverting the time series by multiplying it by -1.
 
@@ -140,6 +159,12 @@ class InvertAugmenter(_AugmenterTags, BaseTransformer):
         return X.mul(-1)
 
 
+# TODO: remove in v0.10.0
+@deprecated(
+    version="0.9.0",
+    reason="RandomSamplesAugmenter will be removed in version 0.10.0.",
+    category=FutureWarning,
+)
 class RandomSamplesAugmenter(_AugmenterTags, BaseTransformer):
     r"""Draw random samples from time series.
 

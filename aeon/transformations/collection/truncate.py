@@ -17,12 +17,13 @@ class TruncationTransformer(BaseCollectionTransformer):
 
     Parameters
     ----------
-    truncated_length : int, optional (default=None) bottom range of the values to
-                truncate can also be used to truncate to a specific length
-                if None, will find the shortest sequence and use instead.
+    truncated_length : int, default=None
+        bottom range of the values to truncate can also be used to truncate
+        to a specific length.
+        if None, will find the shortest sequence and use instead.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.transformations.collection import TruncationTransformer
     >>> import numpy as np
     >>> X = []

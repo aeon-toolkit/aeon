@@ -43,7 +43,7 @@ class ForecastByLevel(_DelegatedForecaster):
     --------
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.compose import ForecastByLevel
-    >>> from aeon.testing.utils.data_gen import _make_hierarchical
+    >>> from aeon.testing.data_generation import _make_hierarchical
     >>> y = _make_hierarchical()
     >>> f = ForecastByLevel(NaiveForecaster(), groupby="local")
     >>> f.fit(y)

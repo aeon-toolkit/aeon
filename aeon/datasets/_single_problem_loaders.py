@@ -51,7 +51,7 @@ def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
     return_X_y: bool, default=True
         If True, returns (features, target) separately instead of as single data
         structure.
-    return_type: string, optional (default="numpy3d")
+    return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
     Raises
@@ -97,7 +97,7 @@ def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
     return_X_y: bool, default=True
         If True, returns (features, target) separately instead of as single data
         structure.
-    return_type: string, optional (default="numpy3d")
+    return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
     Raises
@@ -143,7 +143,7 @@ def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
     return_X_y: bool, default=True
         If True, returns (features, target) separately instead of as single data
         structure.
-    return_type: string, optional (default="numpy3d")
+    return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
     Raises
@@ -196,7 +196,7 @@ def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
     return_X_y: bool, default=True
         If True, returns (features, target) separately instead of as single data
         structure.
-    return_type: string, optional (default="numpy3d")
+    return_type: string, default="numpy3d"
         Data structure containing series, should be either "numpy2d" or "numpy3d".
 
     Raises
@@ -245,7 +245,7 @@ def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
     return_X_y: bool, default=True
         If True, returns (features, target) separately instead of as single data
         structure.
-    return_type: string, optional (default="numpy3d")
+    return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
     Raises
@@ -293,7 +293,7 @@ def load_acsf1(split=None, return_X_y=True, return_type="numpy3d"):
     return_X_y: bool, default=True
         If True, returns (features, target) separately instead of as single data
         structure.
-    return_type: string, optional (default="numpy3d")
+    return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
     Raises
@@ -342,7 +342,7 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
     return_X_y: bool, default=True
         If True, returns (features, target) separately instead of as single data
         structure.
-    return_type: string, optional (default="numpy3d")
+    return_type: string, default="numpy3d"
         Data structure to use for time series, should be "numpy3d" or "np-list".
 
     Raises
@@ -430,10 +430,10 @@ def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
 
     Parameters
     ----------
-    split: None or one of "TRAIN", "TEST", optional (default=None)
+    split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, optional (default=True)
+    return_X_y: bool, default=True
         If True, returns (features, target) separately instead of a single
         dataframe with columns for features and the target.
     return_type: string, default="np-list"
@@ -510,7 +510,7 @@ def load_longley(y_name="TOTEMP"):
 
     Parameters
     ----------
-    y_name: str, optional (default="TOTEMP")
+    y_name: str, default="TOTEMP"
         Name of target variable (y)
 
     Returns
@@ -950,8 +950,8 @@ def load_solar(
     api_version : string or None, default="v4"
         API version to call. If None then a stored sample of the data is loaded.
 
-    Return
-    ------
+    Returns
+    -------
     pd.Series
 
     References
@@ -1029,14 +1029,14 @@ def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):
 
     Parameters
     ----------
-    split: None or str{"train", "test"}, optional (default=None)
+    split: None or str{"train", "test"}, default=None
         Whether to load the train or test partition of the problem. By
         default, it loads both.
-    return_X_y: bool, optional (default=True)
+    return_X_y: bool, default=True
         If True, returns (features, target) separately instead of a single
         dataframe with columns for
         features and the target.
-    return_type: string, optional (default="numpy3d")
+    return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
     Returns
@@ -1084,14 +1084,14 @@ def load_cardano_sentiment(split=None, return_X_y=True, return_type="numpy3d"):
 
     Parameters
     ----------
-    split: None or str{"train", "test"}, optional (default=None)
+    split: None or str{"train", "test"}, default=None
         Whether to load the train or test partition of the problem. By
         default, it loads both.
-    return_X_y: bool, optional (default=True)
+    return_X_y: bool, default=True
         If True, returns (features, target) separately instead of a single
         dataframe with columns for
         features and the target.
-    return_type: string, optional (default="numpy3d")
+    return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
     Returns
