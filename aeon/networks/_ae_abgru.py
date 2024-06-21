@@ -1,6 +1,6 @@
 """Implements an Auto-Encoder based on Attention Bidirectional GRUs."""
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies("tensorflow", severity="none"):
@@ -35,7 +35,7 @@ if _check_soft_dependencies("tensorflow", severity="none"):
             return output
 
 
-class AEAttentionBiGRUNetwork(BaseDeepNetwork):
+class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     """
     A class to implement an Auto-Encoder based on Attention Bidirectional GRUs.
 
@@ -57,7 +57,7 @@ class AEAttentionBiGRUNetwork(BaseDeepNetwork):
             Can be a single string or a list.
     """
 
-    _tags = {"auto-encoder": True}
+    _config["auto-encoder"]=True
 
     def __init__(
         self,
