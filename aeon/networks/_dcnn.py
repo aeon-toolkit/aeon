@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class DCNNNetwork(BaseDeepNetwork):
+class DCNNNetwork(BaseDeepLearningNetwork):
     """Establish the network structure for a DCNN-Model.
 
     Dilated Convolutional Neural Network based Model
