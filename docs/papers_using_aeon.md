@@ -11,7 +11,6 @@ the paper and a link to the code in your personal GitHub or other repository.
   Data Mining and Knowledge Discovery, online first, open access.
   [Paper](https://link.springer.com/article/10.1007/s10618-024-01022-1) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/tsc_bakeoff/tsc_bakeoff_2023.html)
 
-
 ## Clustering
 
 - Holder, C., Middlehurst, M. and Bagnall, A., 2024. A review and evaluation of elastic
@@ -25,8 +24,9 @@ the paper and a link to the code in your personal GitHub or other repository.
 
 ## Regression
 
-- Guijo-Rubio, D., Middlehurst, M., Arcencio, G., Silva, D. and Bagnall, A. (2023).
-  Unsupervised Feature Based Algorithms for Time Series Extrinsic Regression. ArXiv.
+- Guijo-Rubio, D., Middlehurst, M., Arcencio, G., Silva, D. and Bagnall, A. (2024).
+  Unsupervised Feature Based Algorithms for Time Series Extrinsic Regression. Data
+  Mining and Knowledge Discovery, online first, open access.
   [Paper](https://arxiv.org/abs/2305.01429) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/tser_archive_expansion/tser_archive_expansion.html)
 - Middlehurst, M. and Bagnall, A., 2023, September. Extracting Features from Random
   Subseries: A Hybrid Pipeline for Time Series Classification and Extrinsic Regression.
@@ -34,9 +34,16 @@ the paper and a link to the code in your personal GitHub or other repository.
   (pp. 113-126).
   [Paper](https://link.springer.com/chapter/10.1007/978-3-031-49896-1_8) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/rist_pipeline/rist_pipeline.html)
 
+## Ordinal classification
+
+- Ayllón-Gavilán, R., Guijo-Rubio, D., Gutiérrez, P.A., Bagnall, A., and Hervás-Martínez, C. Convolutional and Deep Learning based techniques for Time Series Ordinal Classification. [ArXiV](https://arxiv.org/abs/2306.10084).
+- Ayllón-Gavilán, R., Guijo-Rubio, D., Gutiérrez, P. A., and Hervás-Martínez, C. (2024). O-Hydra: A Hybrid Convolutional and Dictionary-Based Approach to Time Series Ordinal Classification. In Conference of the Spanish Association for Artificial Intelligence (pp. 50-60). [Paper](https://link.springer.com/chapter/10.1007/978-3-031-62799-6_6).
+- Ayllón-Gavilán, R., Guijo-Rubio, D., Gutiérrez, P.A., and Hervás-Martínez, C. (2023). A Dictionary-Based Approach to Time Series Ordinal Classification. In: Rojas, I., Joya, G., Catala, A. (eds) Advances in Computational Intelligence. IWANN 2023. Lecture Notes in Computer Science, vol 14135. [Paper](https://link.springer.com/chapter/10.1007/978-3-031-43078-7_44).
+
 ## Prototyping
 
 - Ismail-Fawaz, A. and Ismail Fawaz, H. and Petitjean, F. and Devanne, M. and Weber, J. and Berretti, S. and Webb, GI. and Forestier, G. 2023 December "ShapeDBA: Generating Effective Time Series Prototypes Using ShapeDTW Barycenter Averaging." ECML/PKDD Workshop on Advanced Analytics and Learning on Temporal Data. [Paper](https://doi.org/10.1007/978-3-031-49896-1_9) [code](https://github.com/MSD-IRIMAS/ShapeDBA)
+- Holder, C., Guijo-Rubio, D., & Bagnall, A. J. (2023). Barycentre Averaging for the Move-Split-Merge Time Series Distance Measure. In Proceedings of the 15th International Joint Conference on Knowledge Discovery, Knowledge Engineering and Knowledge Management-Volume 1:, 51-62, pp. 51-62. [Paper](https://www.scitepress.org/Link.aspx?doi=10.5220/0012164900003598)
 
 ## Generation Evaluation
 
