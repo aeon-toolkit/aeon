@@ -103,15 +103,18 @@ class MiniRocket(BaseCollectionTransformer):
                 " zero pad shorter series so that n_timepoints == 9"
             )
         X = X.astype(np.float32)
-        if n_channels > 1:
-            self.parameters = _fit_multi(
-                X, self.num_kernels, self.max_dilations_per_kernel, random_state
-            )
-        else:
-            X = X.reshape(X.shape[0], X.shape[2])
-            self.parameters = _fit_uni(
-                X, self.num_kernels, self.max_dilations_per_kernel, random_state
-            )
+        self.parameters = _fit_multi(
+            X, self.num_kernels, self.max_dilations_per_kernel, random_state
+        )
+        # if n_channels > 1:
+        #     self.parameters = _fit_multi(
+        #         X, self.num_kernels, self.max_dilations_per_kernel, random_state
+        #     )
+        # else:
+        #     X = X.reshape(X.shape[0], X.shape[2])
+        #     self.parameters = _fit_uni(
+        #         X, self.num_kernels, self.max_dilations_per_kernel, random_state
+        #     )
         return self
 
     def _transform(self, X, y=None):
@@ -137,11 +140,12 @@ class MiniRocket(BaseCollectionTransformer):
         else:
             n_jobs = self.n_jobs
         set_num_threads(n_jobs)
-        if n_channels > 1:
-            X_ = _transform_multi(X, self.parameters)
-        else:
-            X = X.reshape(X.shape[0], X.shape[2])
-            X_ = _transform_uni(X, self.parameters)
+        X_ = _transform_multi(X, self.parameters, MiniRocket._indices)
+        # if n_channels > 1:
+        #     X_ = _transform_multi(X, self.parameters, MiniRocket._indices)
+        # else:
+        #     X = X.reshape(X.shape[0], X.shape[2])
+        #     X_ = _transform_uni(X, self.parameters, MiniRocket._indices)
         return X_
 
         set_num_threads(prev_threads)
@@ -244,6 +248,7 @@ def _fit_multi(X, num_features=10_000, max_dilations_per_kernel=32, seed=None):
         dilations,
         num_features_per_dilation,
         quantiles,
+        MiniRocket._indices,
         seed,
     )
 
