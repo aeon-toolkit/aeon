@@ -2,12 +2,24 @@
 
 import numpy as np
 
+from aeon.datasets import load_unit_test
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
     MultiRocketMultivariate,
     Rocket,
+)
+
+expected_unit_test = {}
+expected_unit_test["MiniRocket"] = np.array(
+    [
+        [0.5833333, 0.7083333, 0.16666667, 0.5833333, 0.8333333],
+        [0.5416667, 0.7083333, 0.16666667, 0.5416667, 0.7916667],
+        [0.5833333, 0.7083333, 0.20833333, 0.5833333, 0.7916667],
+        [0.45833334, 0.6666667, 0.16666667, 0.5, 0.75],
+        [0.5416667, 0.7916667, 0.125, 0.5416667, 0.8333333],
+    ]
 )
 
 
@@ -38,3 +50,11 @@ def test_datatype_input():
             r.fit_transform(X)
             r.fit(X)
             r.transform(X)
+
+
+def test_expected_unit_test():
+    """Test MiniRocket on unit test data."""
+    X, _ = load_unit_test(split="train")
+    mr = MiniRocket(random_state=0)
+    X2 = mr.fit_transform(X)
+    np.testing.assert_allclose(X2[:5, :5], expected_unit_test["MiniRocket"], rtol=1e-6)
