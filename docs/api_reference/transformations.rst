@@ -495,7 +495,7 @@ Outlier detection, changepoint detection
 
     HampelFilter
 
-.. currentmodule:: aeon.transformations.clasp
+.. currentmodule:: aeon.transformations.series._clasp
 
 .. autosummary::
     :toctree: auto_generated/
