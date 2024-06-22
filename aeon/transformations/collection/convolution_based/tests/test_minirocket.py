@@ -29,11 +29,6 @@ def test_minirocket_short_series():
         mini.fit(X)
 
 
-def test_minirocket_dilations():
-    "Explicitly test minirocket dilations fun" ""
-    pass
-
-
 def test_minirocket_multivariate_variable_on_japanese_vowels():
     """Test of MiniRocketMultivariate on japanese vowels."""
     # load training data
@@ -117,6 +112,9 @@ def test__fit_dilations():
     assert np.array_equal(features_per_dilation, np.array([11, 6, 3]))
     assert _PPV(np.float32(10.0), np.float32(0.0)) == 1
     assert _PPV(np.float32(-110.0), np.float32(0.0)) == 0
+    a, b = _fit_dilations(101, 509, 5)
+    assert np.array_equal(a, np.array([1, 3, 6, 12]))
+    assert np.array_equal(b, np.array([3, 1, 1, 1]))
 
 
 def test_wrong_input():
