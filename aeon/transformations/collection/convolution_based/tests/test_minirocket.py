@@ -21,6 +21,19 @@ from aeon.transformations.collection.convolution_based._minirocket_mv import (
 )
 
 
+def test_minirocket_short_series():
+    """Test of MiniRocket raises error when n_timepoints < 9."""
+    X = np.random.random(size=(10, 1, 8))
+    mini = MiniRocket()
+    with pytest.raises(ValueError, match="n_timepoints must be >= 9"):
+        mini.fit(X)
+
+
+def test_minirocket_dilations():
+    "Explicitly test minirocket dilations fun" ""
+    pass
+
+
 def test_minirocket_multivariate_variable_on_japanese_vowels():
     """Test of MiniRocketMultivariate on japanese vowels."""
     # load training data
