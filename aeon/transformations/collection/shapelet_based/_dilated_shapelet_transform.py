@@ -826,8 +826,6 @@ def compute_shapelet_features(X_subs, values, length, threshold):
         The value array of the shapelet
     length : int
         Length of the shapelet
-    values : array, shape (n_channels, length)
-        The resulting subsequence
     threshold : float
         The threshold parameter of the shapelet
 
@@ -872,17 +870,11 @@ def compute_shapelet_dist_vector(X_subs, values, length):
         The value array of the shapelet
     length : int
         Length of the shapelet
-    dilation : int
-        Dilation of the shapelet
-    values : array, shape (n_channels, length)
-        The resulting subsequence
-    threshold : float
-        The threshold parameter of the shapelet
 
     Returns
     -------
-    min, argmin, shapelet occurence
-        The three computed features as float dtypes
+    dist_vector : array, shape = (n_timestamps-(length-1)*dilation)
+        The distance vector between the shapelets and candidate subsequences
     """
     n_subsequences = X_subs.shape[0]
     dist_vector = np.zeros(n_subsequences)
