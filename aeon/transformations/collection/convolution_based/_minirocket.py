@@ -4,12 +4,12 @@ __maintainer__ = []
 __all__ = ["MiniRocket"]
 
 import multiprocessing
+from itertools import combinations
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
 
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.utils.numba.general import generate_combinations
 
 
 class MiniRocket(BaseCollectionTransformer):
@@ -62,6 +62,7 @@ class MiniRocket(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "algorithm_type": "convolution",
     }
+    _indices = np.array([_ for _ in combinations(np.arange(9), 3)], dtype=np.int32)
 
     def __init__(
         self,
@@ -129,18 +130,19 @@ class MiniRocket(BaseCollectionTransformer):
         else:
             n_jobs = self.n_jobs
         set_num_threads(n_jobs)
-        X_ = _transform(X, self.parameters)
+
+        X_ = _transform(X, self.parameters, MiniRocket._indices)
         set_num_threads(prev_threads)
         return X_
 
 
 @njit(
-    "float32[:](float32[:,:],int32[:],int32[:],float32[:],optional(int32))",
+    "float32[:](float32[:,:],int32[:],int32[:],float32[:],int32[:,:],optional(int32))",
     fastmath=True,
     parallel=False,
     cache=True,
 )
-def _fit_biases(X, dilations, num_features_per_dilation, quantiles, seed):
+def _fit_biases(X, dilations, num_features_per_dilation, quantiles, indices, seed):
     if seed is not None:
         np.random.seed(seed)
 
@@ -149,7 +151,6 @@ def _fit_biases(X, dilations, num_features_per_dilation, quantiles, seed):
     # equivalent to:
     # >>> from itertools import combinations
     # >>> indices = np.array([_ for _ in combinations(np.arange(9), 3)])
-    indices = generate_combinations(9, 3)
     num_kernels = len(indices)
     num_dilations = len(dilations)
 
@@ -255,8 +256,9 @@ def _fit(X, num_features=10_000, max_dilations_per_kernel=32, seed=None):
     num_features_per_kernel = np.sum(num_features_per_dilation)
 
     quantiles = _quantiles(num_kernels * num_features_per_kernel)
-
-    biases = _fit_biases(X, dilations, num_features_per_dilation, quantiles, seed)
+    biases = _fit_biases(
+        X, dilations, num_features_per_dilation, quantiles, MiniRocket._indices, seed
+    )
 
     return dilations, num_features_per_dilation, biases
 
@@ -270,16 +272,16 @@ def _PPV(a, b):
 
 
 @njit(
-    "float32[:,:](float32[:,:],Tuple((int32[:],int32[:],float32[:])))",
+    "float32[:,:](float32[:,:],Tuple((int32[:],int32[:],float32[:])), int32[:,:])",
     fastmath=True,
     parallel=True,
     cache=True,
 )
-def _transform(X, parameters):
+def _transform(X, parameters, indices):
     n_cases, n_timepoints = X.shape
 
     dilations, num_features_per_dilation, biases = parameters
-    indices = generate_combinations(9, 3)
+    #    indices = generate_combinations(9, 3)
     num_kernels = len(indices)
     num_dilations = len(dilations)
     num_features = num_kernels * np.sum(num_features_per_dilation)
