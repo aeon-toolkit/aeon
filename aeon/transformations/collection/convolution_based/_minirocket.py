@@ -169,7 +169,6 @@ def _fit_biases(X, dilations, num_features_per_dilation, quantiles, indices, see
         dilation = dilations[dilation_index]
         padding = ((9 - 1) * dilation) // 2
         num_features_this_dilation = num_features_per_dilation[dilation_index]
-
         for kernel_index in range(num_kernels):
             feature_index_end = feature_index_start + num_features_this_dilation
             _X = X[np.random.randint(n_cases)]
@@ -189,16 +188,12 @@ def _fit_biases(X, dilations, num_features_per_dilation, quantiles, indices, see
                 C_alpha[:-start] = C_alpha[:-start] + A[start:]
                 C_gamma[gamma_index, :-start] = G[start:]
                 start += dilation
-
             index_0, index_1, index_2 = indices[kernel_index]
             C = C_alpha + C_gamma[index_0] + C_gamma[index_1] + C_gamma[index_2]
-
             biases[feature_index_start:feature_index_end] = np.quantile(
                 C, quantiles[feature_index_start:feature_index_end]
             )
-
             feature_index_start = feature_index_end
-
     return biases
 
 
@@ -240,13 +235,10 @@ def _fit_uni(X, num_features=10_000, max_dilations_per_kernel=32, seed=None):
     _, n_timepoints = X.shape
 
     num_kernels = 84
-
     dilations, num_features_per_dilation = _fit_dilations(
         n_timepoints, num_features, max_dilations_per_kernel
     )
-
     num_features_per_kernel = np.sum(num_features_per_dilation)
-
     quantiles = _quantiles(num_kernels * num_features_per_kernel)
 
     biases = _fit_biases(
@@ -343,42 +335,28 @@ def _transform_uni(X, parameters, indices):
 
         for dilation_index in range(num_dilations):
             _padding0 = dilation_index % 2
-
             dilation = dilations[dilation_index]
             padding = ((9 - 1) * dilation) // 2
-
             num_features_this_dilation = num_features_per_dilation[dilation_index]
-
             C_alpha = np.zeros(n_timepoints, dtype=np.float32)
             C_alpha[:] = A
-
             C_gamma = np.zeros((9, n_timepoints), dtype=np.float32)
             C_gamma[9 // 2] = G
-
             start = dilation
             end = n_timepoints - padding
-
             for gamma_index in range(9 // 2):
                 C_alpha[-end:] = C_alpha[-end:] + A[:end]
                 C_gamma[gamma_index, -end:] = G[:end]
-
                 end += dilation
-
             for gamma_index in range(9 // 2 + 1, 9):
                 C_alpha[:-start] = C_alpha[:-start] + A[start:]
                 C_gamma[gamma_index, :-start] = G[start:]
-
                 start += dilation
-
             for kernel_index in range(num_kernels):
                 feature_index_end = feature_index_start + num_features_this_dilation
-
                 _padding1 = (_padding0 + kernel_index) % 2
-
                 index_0, index_1, index_2 = indices[kernel_index]
-
                 C = C_alpha + C_gamma[index_0] + C_gamma[index_1] + C_gamma[index_2]
-
                 if _padding1 == 0:
                     for feature_count in range(num_features_this_dilation):
                         features[example_index, feature_index_start + feature_count] = (
@@ -392,9 +370,7 @@ def _transform_uni(X, parameters, indices):
                                 biases[feature_index_start + feature_count],
                             ).mean()
                         )
-
                 feature_index_start = feature_index_end
-
     return features
 
 
