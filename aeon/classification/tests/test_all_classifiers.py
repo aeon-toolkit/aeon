@@ -73,7 +73,7 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
 
-        # We cannot guarantee same results on ARM mMacOS
+        # We cannot guarantee same results on ARM macOS
         if platform == "darwin":
             return None
 
