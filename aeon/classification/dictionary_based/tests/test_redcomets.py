@@ -36,7 +36,7 @@ def test_redcomets_score_univariate():
         assert isinstance(score, float)
 
         # We cannot guarantee same results on ARM macOS
-        if platform == "darwin":
+        if platform != "darwin":
             np.testing.assert_almost_equal(score, 0.818181, decimal=4)
 
     test_variant(1)
@@ -68,7 +68,7 @@ def test_redcomets_score_multivariate():
         assert isinstance(score, float)
 
         # We cannot guarantee same results on ARM macOS
-        if platform == "darwin":
+        if platform != "darwin":
             np.testing.assert_almost_equal(score, expected_result, decimal=4)
 
     test_variant(1, 0.95)

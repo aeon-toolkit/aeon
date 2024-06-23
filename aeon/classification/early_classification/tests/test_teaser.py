@@ -30,7 +30,7 @@ def test_teaser_with_different_decision_maker():
     full_probas, _ = teaser.predict_proba(X_test)
 
     # We cannot guarantee same results on ARM macOS
-    if platform == "darwin":
+    if platform != "darwin":
         testing.assert_array_almost_equal(
             full_probas, teaser_if_unit_test_probas, decimal=2
         )
@@ -52,7 +52,7 @@ def test_teaser_with_different_decision_maker():
             break
 
     # We cannot guarantee same results on ARM macOS
-    if platform == "darwin":
+    if platform != "darwin":
         testing.assert_array_almost_equal(
             final_probas, teaser_if_unit_test_probas, decimal=2
         )
@@ -100,7 +100,7 @@ def test_teaser_default():
     _, acc, earl = teaser.score(X_test[indices], y_test)
 
     # We cannot guarantee same results on ARM macOS
-    if platform == "darwin":
+    if platform != "darwin":
         testing.assert_allclose(acc, 0.6, rtol=0.01)
         testing.assert_allclose(earl, 0.766, rtol=0.01)
 
