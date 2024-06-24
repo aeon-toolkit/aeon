@@ -174,7 +174,7 @@ class Catch22(BaseCollectionTransformer):
 
         Returns
         -------
-        Xt : array-like, shape = [n_cases, num_features*n_channels]
+        Xt : array-like, shape = [n_cases, n_features*n_channels]
             The catch22 features for each dimension.
         """
         n_cases = len(X)

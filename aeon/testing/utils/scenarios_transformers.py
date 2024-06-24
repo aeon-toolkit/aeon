@@ -16,10 +16,11 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.base import BaseObject
-from aeon.testing.data_generation import _make_hierarchical, make_series
+from aeon.testing.data_generation import _make_hierarchical
 from aeon.testing.data_generation._legacy import (
     _make_classification_y,
     _make_collection_X,
+    make_series,
 )
 from aeon.testing.utils.scenarios import TestScenario
 from aeon.transformations.collection.base import BaseCollectionTransformer
