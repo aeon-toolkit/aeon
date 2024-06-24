@@ -10,7 +10,10 @@ __all__ = [
 import pytest
 from numpy.testing import assert_array_almost_equal
 
-from aeon.testing.data_generation import make_example_2d_numpy, make_example_3d_numpy
+from aeon.testing.data_generation import (
+    make_example_2d_numpy_collection,
+    make_example_3d_numpy,
+)
 from aeon.transformations.collection.convolution_based._rocket import Rocket
 from aeon.transformations.collection.convolution_based.rocketGPU._rocket_gpu import (
     ROCKETGPU,
@@ -92,7 +95,7 @@ class DummyROCKETGPU(BaseROCKETGPU):
 )
 def test_base_rocketGPU_univariate():
     """Test base rocket GPU functionality univariate."""
-    X, _ = make_example_2d_numpy()
+    X, _ = make_example_2d_numpy_collection()
 
     dummy_transform = DummyROCKETGPU(n_filters=1)
     dummy_transform.fit(X)

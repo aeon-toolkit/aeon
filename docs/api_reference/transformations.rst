@@ -137,7 +137,6 @@ Shapelets, wavelets and convolution
 
     Rocket
     MiniRocket
-    MiniRocketMultivariate
     MiniRocketMultivariateVariable
     MultiRocket
     MultiRocketMultivariate
