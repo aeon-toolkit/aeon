@@ -21,6 +21,7 @@ __all__ = [
     "slope_derivative",
     "slope_derivative_2d",
     "slope_derivative_3d",
+    "generate_combinations",
 ]
 
 
@@ -795,3 +796,61 @@ def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
     for i in range(X.shape[0]):
         arr[i] = slope_derivative_2d(X[i])
     return arr
+
+
+@njit(fastmath=True, cache=True)
+def _comb(n, k):
+    if k > n - k:  # Take advantage of symmetry
+        k = n - k
+    c = 1
+    for i in range(k):
+        c = c * (n - i) // (i + 1)
+    return c
+
+
+@njit(fastmath=True, cache=True)
+def _next_combination(comb, n, k):
+    for i in range(k - 1, -1, -1):
+        if comb[i] != i + n - k:
+            break
+    else:
+        return False
+    comb[i] += 1
+    for j in range(i + 1, k):
+        comb[j] = comb[j - 1] + 1
+    return True
+
+
+@njit(fastmath=True, cache=True)
+def generate_combinations(n, k):
+    """Generate combination for n rows of k.
+
+    numba alternative to
+    from itertools import combinations
+    indices = np.array([_ for _ in combinations(np.arange(9), 3)])
+
+    Parameters
+    ----------
+    n: number of integers
+    k: number of combinations
+
+    Returns
+    -------
+    array
+        where each row is a unique length k permutation from n.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import generate_combinations
+    >>> combos=generate_combinations(3,2)
+    """
+    comb_array = np.arange(k)
+    num_combinations = _comb(n, k)  # Using our efficient comb function
+    combinations = np.empty((num_combinations, k), dtype=np.int32)
+
+    for idx in range(num_combinations):
+        combinations[idx, :] = comb_array
+        _next_combination(comb_array, n, k)
+
+    return combinations
