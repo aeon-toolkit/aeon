@@ -71,6 +71,9 @@ class LearningShapeletClassifier(BaseClassifier):
         the data.  If int, random_state is the seed used by the random number
         generator; If None, the random number generator is the RandomState
         instance used by `np.random`.
+    save_transformed_data: bool = False,
+        Whether to save the transformed data for later use in the internal variable
+        ``self.transformed_data_``.
 
     References
     ----------
@@ -109,6 +112,7 @@ class LearningShapeletClassifier(BaseClassifier):
         max_size: Union[int, None] = None,
         scale: bool = False,
         random_state: Union[int, None] = None,
+        save_transformed_data: bool = False,
     ) -> None:
         self.n_shapelets_per_size = n_shapelets_per_size
         self.max_iter = max_iter
@@ -121,6 +125,7 @@ class LearningShapeletClassifier(BaseClassifier):
         self.max_size = max_size
         self.scale = scale
         self.random_state = random_state
+        self.save_transformed_data = save_transformed_data
 
         super().__init__()
 
@@ -140,49 +145,68 @@ class LearningShapeletClassifier(BaseClassifier):
             scale=self.scale,
             random_state=self.random_state,
         )
-        _X_transformed = _X_transformed_tslearn(X)
-        self.clf_.fit(_X_transformed, y)
+        X_t = _X_transformed_tslearn(X)
+        self.clf_.fit(X_t, y)
+        if self.save_transformed_data:
+            self.transformed_data_ = X_t
+
         return self
 
     def _predict(self, X) -> np.ndarray:
-        _X_transformed = _X_transformed_tslearn(X)
-        return self.clf_.predict(_X_transformed)
+        X_t = _X_transformed_tslearn(X)
+        return self.clf_.predict(X_t)
 
     def _predict_proba(self, X) -> np.ndarray:
-        _X_transformed = _X_transformed_tslearn(X)
-        return self.clf_.predict_proba(_X_transformed)
+        X_t = _X_transformed_tslearn(X)
+        return self.clf_.predict_proba(X_t)
 
-    # def transform(self, X):
-    #     """Generate shapelet transform for a set of time series.
-    #
-    #     Parameters
-    #     ----------
-    #     X : array-like of shape=(n_ts, sz, d)
-    #         Time series dataset.
-    #
-    #     Returns
-    #     -------
-    #     array of shape=(n_ts, n_shapelets)
-    #         Shapelet-Transform of the provided time series.
-    #     """
-    #     _X_transformed = _X_transformed_tslearn(X)
-    #     return self.clf_.transform(_X_transformed)
-    #
-    # def locate(self, X):
-    #     """Compute shapelet match location for a set of time series.
-    #
-    #     Parameters
-    #     ----------
-    #     X : array-like of shape=(n_ts, sz, d)
-    #         Time series dataset.
-    #
-    #     Returns
-    #     -------
-    #     array of shape=(n_ts, n_shapelets)
-    #         Location of the shapelet matches for the provided time series.
-    #     """
-    #     _X_transformed = _X_transformed_tslearn(X)
-    #     return self.clf_.locate(_X_transformed)
+    def get_transform(self, X):
+        """Return shapelet transform for a set of time series.
+
+        Parameters
+        ----------
+        X : array-like of shape=(n_ts, sz, d)
+            Time series dataset.
+
+        Returns
+        -------
+        array of shape=(n_ts, n_shapelets)
+            Shapelet-Transform of the provided time series.
+        """
+        if not self._is_fitted:
+            raise ValueError(
+                "You must fit the classifier before recovering the transform"
+            )
+        if not self.save_transformed_data:
+            raise ValueError(
+                "Set save_transformed_data=True in the constructor to save the "
+                "transformed data for later use"
+            )
+        return self.transformed_data_
+
+    def get_locations(self, X):
+        """Compute shapelet match location for a set of time series.
+
+        Parameters
+        ----------
+        X : array-like of shape=(n_ts, sz, d)
+            Time series dataset.
+
+        Returns
+        -------
+        array of shape=(n_ts, n_shapelets)
+            Location of the shapelet matches for the provided time series.
+        """
+        if not self._is_fitted:
+            raise ValueError(
+                "You must fit the classifier before recovering the transform"
+            )
+        if not self.save_transformed_data:
+            raise ValueError(
+                "Set save_transformed_data=True in the constructor to save the "
+                "transformed data for later use"
+            )
+        return self.clf_.locate(self.transformed_data_)
 
     @classmethod
     def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:

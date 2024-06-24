@@ -21,10 +21,10 @@ if os.environ.get("CICD_RUNNING") == "1":
     import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 
 EXCLUDE_ESTIMATORS = [
-    "BoxCoxTransformer",
+    "_BoxCoxTransformer",
     "TimeBinAggregate",
     "PartialAutoCorrelationTransformer",
-    "LogTransformer",
+    "_LogTransformer",
     "ReverseAugmenter",
     "RandomSamplesAugmenter",
     "SqrtTransformer",

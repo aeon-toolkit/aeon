@@ -38,13 +38,12 @@ classifiers = [
     "Operating System :: Unix",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.8,<3.13"
+requires-python = ">=3.9,<3.13"
 dependencies = [
     "deprecated>=1.2.13",
     "numba>=0.55,<0.60.0",
@@ -60,7 +59,6 @@ dependencies = [
 all_extras = [
     "cloudpickle",
     "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
-    "filterpy>=1.4.5",
     "gluonts>=0.12.4",
     "h5py",
     "imbalanced-learn",
@@ -76,8 +74,8 @@ all_extras = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tbats>=1.1.0",
-    "tensorflow>=2.12; python_version < '3.12' and python_version >= '3.9'",
-    "tensorflow-addons; python_version < '3.12' and python_version >= '3.9'",
+    "tensorflow>=2.12; python_version < '3.12'",
+    "tensorflow-addons; python_version < '3.12'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
@@ -92,8 +90,8 @@ all_extras = [
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow>=2.12; python_version < '3.12' and python_version >= '3.9'",
-    "tensorflow-addons; python_version < '3.12' and python_version >= '3.9'",
+    "tensorflow>=2.12; python_version < '3.12'",
+    "tensorflow-addons; python_version < '3.12'",
 ]
 unstable_extras = [
     "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
@@ -184,7 +182,6 @@ addopts = '''
     --durations 20
     --timeout 600
     --showlocals
-    --numprocesses logical
     --dist worksteal
     --reruns 2
     --only-rerun "crashed while running"

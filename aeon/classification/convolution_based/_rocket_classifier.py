@@ -15,7 +15,6 @@ from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
-    MiniRocketMultivariate,
     MultiRocket,
     MultiRocketMultivariate,
     Rocket,
@@ -150,20 +149,12 @@ class RocketClassifier(BaseClassifier):
                 random_state=self.random_state,
             )
         elif rocket_transform == "minirocket":
-            if self.n_channels_ > 1:
-                self._transformer = MiniRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
-            else:
-                self._transformer = MiniRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
+            self._transformer = MiniRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+                n_jobs=self.n_jobs,
+                random_state=self.random_state,
+            )
         elif rocket_transform == "multirocket":
             if self.n_channels_ > 1:
                 self._transformer = MultiRocketMultivariate(

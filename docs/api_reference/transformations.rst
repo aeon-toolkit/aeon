@@ -137,7 +137,6 @@ Shapelets, wavelets and convolution
 
     Rocket
     MiniRocket
-    MiniRocketMultivariate
     MiniRocketMultivariateVariable
     MultiRocket
     MultiRocketMultivariate
@@ -218,14 +217,14 @@ Lagging
 
     Lag
 
-Element-wise transforms
+Series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 These transformations apply a function element-wise.
 
 Depending on the transformer, the transformation parameters can be fitted.
 
-.. currentmodule:: aeon.transformations.boxcox
+.. currentmodule:: aeon.transformations.series._boxcox
 
 .. autosummary::
     :toctree: auto_generated/
@@ -242,14 +241,6 @@ Depending on the transformer, the transformation parameters can be fitted.
 
     ScaledLogitTransformer
 
-.. currentmodule:: aeon.transformations.cos
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    CosineTransformer
-
 .. currentmodule:: aeon.transformations.exponent
 
 .. autosummary::
@@ -257,7 +248,6 @@ Depending on the transformer, the transformation parameters can be fitted.
     :template: class.rst
 
     ExponentTransformer
-    SqrtTransformer
 
 Detrending
 ~~~~~~~~~~
@@ -273,7 +263,7 @@ Detrending
     ConditionalDeseasonalizer
     STLTransformer
 
-.. currentmodule:: aeon.transformations.clear_sky
+.. currentmodule:: aeon.transformations.series._clear_sky
 
 .. autosummary::
     :toctree: auto_generated/
@@ -292,14 +282,6 @@ Filtering and denoising
     :template: class.rst
 
     BKFilter
-
-.. currentmodule:: aeon.transformations.kalman_filter
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    KalmanFilterTransformer
 
 .. currentmodule:: aeon.transformations.theta
 
@@ -320,16 +302,8 @@ Slope
 
     SlopeTransformer
 
-Binning and segmentation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.binning
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeBinAggregate
+Segmentation
+~~~~~~~~~~~~
 
 .. currentmodule:: aeon.transformations.collection.interpolate
 
@@ -370,14 +344,6 @@ Seasonality and Date-Time Features
     :template: class.rst
 
     DateTimeFeatures
-
-.. currentmodule:: aeon.transformations.time_since
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeSince
 
 .. currentmodule:: aeon.transformations.fourier
 
@@ -424,20 +390,6 @@ These transformers convert multivariate series to univariate.
     :template: class.rst
 
     ColumnConcatenator
-
-Augmentation
-~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.augmenter
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    InvertAugmenter
-    RandomSamplesAugmenter
-    ReverseAugmenter
-    WhiteNoiseAugmenter
 
 FeatureSelection
 ~~~~~~~~~~~~~~~~
@@ -507,7 +459,7 @@ These transformations ensure all series in a panel have equal length
 Dimension reduction
 ~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.pca
+.. currentmodule:: aeon.transformations.series._pca
 
 .. autosummary::
     :toctree: auto_generated/
@@ -543,7 +495,7 @@ Outlier detection, changepoint detection
 
     HampelFilter
 
-.. currentmodule:: aeon.transformations.clasp
+.. currentmodule:: aeon.transformations.series._clasp
 
 .. autosummary::
     :toctree: auto_generated/
