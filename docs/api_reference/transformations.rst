@@ -218,14 +218,14 @@ Lagging
 
     Lag
 
-Element-wise transforms
+Series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 These transformations apply a function element-wise.
 
 Depending on the transformer, the transformation parameters can be fitted.
 
-.. currentmodule:: aeon.transformations.boxcox
+.. currentmodule:: aeon.transformations.series._boxcox
 
 .. autosummary::
     :toctree: auto_generated/
@@ -264,7 +264,7 @@ Detrending
     ConditionalDeseasonalizer
     STLTransformer
 
-.. currentmodule:: aeon.transformations.clear_sky
+.. currentmodule:: aeon.transformations.series._clear_sky
 
 .. autosummary::
     :toctree: auto_generated/
@@ -283,14 +283,6 @@ Filtering and denoising
     :template: class.rst
 
     BKFilter
-
-.. currentmodule:: aeon.transformations.kalman_filter
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    KalmanFilterTransformer
 
 .. currentmodule:: aeon.transformations.theta
 
@@ -353,14 +345,6 @@ Seasonality and Date-Time Features
     :template: class.rst
 
     DateTimeFeatures
-
-.. currentmodule:: aeon.transformations.time_since
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeSince
 
 .. currentmodule:: aeon.transformations.fourier
 
@@ -476,7 +460,7 @@ These transformations ensure all series in a panel have equal length
 Dimension reduction
 ~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.pca
+.. currentmodule:: aeon.transformations.series._pca
 
 .. autosummary::
     :toctree: auto_generated/
@@ -512,7 +496,7 @@ Outlier detection, changepoint detection
 
     HampelFilter
 
-.. currentmodule:: aeon.transformations.clasp
+.. currentmodule:: aeon.transformations.series._clasp
 
 .. autosummary::
     :toctree: auto_generated/
