@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score
 
 from aeon.classification.distance_based import ProximityTree
 from aeon.classification.distance_based._proximity_tree import gini, gini_gain
-from aeon.testing.data_generation import make_example_2d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 
 
 @pytest.fixture
@@ -14,7 +14,8 @@ def time_series_dataset():
     """Generate time series dataset for testing."""
     n_samples = 100  # Total number of samples (should be even)
     n_timepoints = 24  # Length of each time series
-    data, labels = make_example_2d_numpy(n_samples, n_timepoints)
+    n_channels = 1
+    data, labels = make_example_3d_numpy(n_samples, n_channels, n_timepoints)
     return data, labels
 
 
