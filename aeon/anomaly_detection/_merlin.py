@@ -18,7 +18,7 @@ class MERLIN(BaseAnomalyDetector):
     """MERLIN anomaly detector.
 
     MERLIN is a discord discovery algorithm that uses a sliding window to find the
-    most anomalous subsequence in a time series. The algorithm is based on the
+    most anomalous subsequence in a time series [1]_. The algorithm is based on the
     Euclidean distance between subsequences of the time series.
 
     .. list-table:: Capabilities
@@ -42,6 +42,13 @@ class MERLIN(BaseAnomalyDetector):
         Maximum number of DRAG iterations to find an anomalous sequence for each
         length. If no anomaly is found, the algorithm will move to the next length
         and reset ``r``.
+
+    References
+    ----------
+    .. [1] Nakamura, M. Imamura, R. Mercer and E. Keogh, "MERLIN: Parameter-Free
+           Discovery of Arbitrary Length Anomalies in Massive Time Series
+           Archives," 2020 IEEE International Conference on Data Mining (ICDM),
+           Sorrento, Italy, 2020, pp. 1190-1195.
 
     Examples
     --------

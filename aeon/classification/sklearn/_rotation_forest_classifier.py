@@ -8,22 +8,23 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestClassifier"]
 
 import time
-import warnings
-from typing import Type, Union
+from typing import Optional, Type, Union
 
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator
+from scipy.sparse import issparse
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.decomposition import PCA
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import check_random_state
+from sklearn.utils.multiclass import check_classification_targets
 
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation import check_n_jobs
 
 
-class RotationForestClassifier(BaseEstimator):
+class RotationForestClassifier(ClassifierMixin, BaseEstimator):
     """
     A rotation forest (RotF) vector classifier.
 
@@ -52,11 +53,6 @@ class RotationForestClassifier(BaseEstimator):
         Default of `0` means ``n_estimators`` is used.
     contract_max_n_estimators : int, default=500
         Max number of estimators to build when ``time_limit_in_minutes`` is set.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit.
-
-        Deprecated and will be removed in v0.10.0. Use fit_predict and fit_predict_proba
-        to generate train estimates instead. transformed_data_ will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
@@ -107,10 +103,9 @@ class RotationForestClassifier(BaseEstimator):
         min_group: int = 3,
         max_group: int = 3,
         remove_proportion: float = 0.5,
-        base_estimator: Union[Type[BaseEstimator], None] = None,
-        time_limit_in_minutes: int = 0.0,
+        base_estimator: Optional[Type[BaseEstimator]] = None,
+        time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
-        save_transformed_data: bool = "deprecated",
         n_jobs: int = 1,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
     ):
@@ -123,15 +118,6 @@ class RotationForestClassifier(BaseEstimator):
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
         self.random_state = random_state
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.10.0
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.10.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -170,12 +156,8 @@ class RotationForestClassifier(BaseEstimator):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        rng = check_random_state(self.random_state)
         return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self.predict_proba(X)
-            ]
+            [self.classes_[int(np.argmax(prob))] for prob in self.predict_proba(X)]
         )
 
     def predict_proba(self, X) -> np.ndarray:
@@ -191,7 +173,7 @@ class RotationForestClassifier(BaseEstimator):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        if not self._is_fitted:
+        if not hasattr(self, "_is_fitted") or not self._is_fitted:
             from sklearn.exceptions import NotFittedError
 
             raise NotFittedError(
@@ -203,17 +185,9 @@ class RotationForestClassifier(BaseEstimator):
         if self.n_classes_ == 1:
             return np.repeat([[1]], X.shape[0], axis=0)
 
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
-            X = X.to_numpy()
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "RotationForestClassifier is not a time series classifier. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X = self._validate_data(X=X, reset=False)
+        # data processing
+        X = self._check_X(X)
+        X = self._validate_data(X=X, reset=False, accept_sparse=False)
 
         # replace missing values with 0 and remove useless attributes
         X = X[:, self._useful_atts]
@@ -258,10 +232,9 @@ class RotationForestClassifier(BaseEstimator):
         -----
         Changes state by creating a fitted model that updates attributes ending in "_".
         """
-        rng = check_random_state(self.random_state)
         return np.array(
             [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+                self.classes_[int(np.argmax(prob))]
                 for prob in self.fit_predict_proba(X, y)
             ]
         )
@@ -319,17 +292,10 @@ class RotationForestClassifier(BaseEstimator):
         return results
 
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
-            X = X.to_numpy()
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "RotationForestClassifier is not a time series classifier. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2)
+        # data processing
+        X = self._check_X(X)
+        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2, accept_sparse=False)
+        check_classification_targets(y)
 
         self._n_jobs = check_n_jobs(self.n_jobs)
 
@@ -559,3 +525,27 @@ class RotationForestClassifier(BaseEstimator):
                 current_attribute += 1
 
         return groups
+
+    def _check_X(self, X):
+        if issparse(X):
+            return X
+
+        msg = (
+            "RotationForestClassifier is not a time series classifier. "
+            "A valid sklearn input such as a 2d numpy array is required."
+            "Sparse input formats are currently not supported."
+        )
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+        else:
+            try:
+                X = np.array(X)
+            except Exception:
+                raise ValueError(msg)
+
+        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
+            X = np.reshape(X, (X.shape[0], -1))
+        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
+            raise ValueError(msg)
+
+        return X

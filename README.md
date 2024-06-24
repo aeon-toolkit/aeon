@@ -32,7 +32,7 @@ does not apply:
 
 ## ⚙️ Installation
 
-`aeon` requires a Python version of 3.8 or greater. Our full installation guide is
+`aeon` requires a Python version of 3.9 or greater. Our full installation guide is
 available in our [documentation](https://www.aeon-toolkit.org/en/stable/installation.html).
 
 The easiest way to install `aeon` is via pip:

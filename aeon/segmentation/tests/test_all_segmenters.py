@@ -49,7 +49,11 @@ def _assert_output(output, dense, length):
 @pytest.mark.parametrize("segmenter", ALL_SEGMENTERS)
 def test_segmenter_instance(segmenter):
     """Test segmenters."""
-    instance = segmenter.create_test_instance()
+    try:
+        instance = segmenter.create_test_instance()
+    except ModuleNotFoundError:
+        return
+
     multivariate = segmenter.get_class_tag(tag_name="capability:multivariate")
     X = np.random.random(size=(5, 20))
     # Also tests does not fail if y is passed

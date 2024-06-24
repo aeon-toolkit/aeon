@@ -9,7 +9,6 @@ from aeon.testing.data_generation import (
 )
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
-    MiniRocketMultivariate,
     MultiRocket,
     MultiRocketMultivariate,
     Rocket,
@@ -65,7 +64,7 @@ def test_arsenal():
     )
     afc.fit(X_train, y_train)
     for i in range(afc.n_estimators):
-        assert isinstance(afc.estimators_[i].steps[0][1], MiniRocketMultivariate)
+        assert isinstance(afc.estimators_[i].steps[0][1], MiniRocket)
     afc = Arsenal(
         num_kernels=100,
         rocket_transform="multirocket",

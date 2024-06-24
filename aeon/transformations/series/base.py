@@ -31,8 +31,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         "capability:inverse_transform": False,
     }
 
-    def __init__(self, axis=1):
-        self.axis = axis
+    def __init__(self, axis):
         super().__init__(axis=axis)
 
     @final
@@ -108,7 +107,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         # check whether is fitted
         self.check_is_fitted()
         X = self._preprocess_series(X, axis=axis, store_metadata=False)
-        Xt = self._transform(X)
+        Xt = self._transform(X, y)
         return self._postprocess_series(Xt, axis=axis)
 
     @final
@@ -190,7 +189,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         return self._postprocess_series(Xt, axis=axis)
 
     @final
-    def update(self, X, y=None, update_params=True, axis=None):
+    def update(self, X, y=None, update_params=True, axis=1):
         """Update transformer with X, optionally y.
 
         Parameters
@@ -293,25 +292,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             f"{self.__class__.__name__} does not support inverse_transform"
         )
 
-    def _update(self, X, y=None):
+    def _update(self, X, y=None, update_params=True):
         # standard behaviour: no update takes place, new data is ignored
         return self
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """
-        Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class.
-        """
-        return {}
 
     def _postprocess_series(self, Xt, axis):
         """Postprocess data Xt to revert to original shape.
