@@ -74,21 +74,6 @@ np2 = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])
 np_examples = [np1, np2]
 
 
-def get_hierarchical_examples():
-    """Get hierarchical for tests."""
-    return mih_examples
-
-
-def get_series_examples():
-    """Get single series examples."""
-    return [series_examples, dataframe_examples]
-
-
-def get_collection_examples():
-    """Get example collections."""
-    return [mih1]
-
-
 def get_examples(datatype: str):
     """Create two examples of each possible type."""
     if datatype == "pd.Series":

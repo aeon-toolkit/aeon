@@ -22,12 +22,12 @@ from aeon.forecasting.tests import (
     VALID_INDEX_FH_COMBINATIONS,
 )
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
-from aeon.testing.data_generation import (
+from aeon.testing.data_generation import _make_hierarchical
+from aeon.testing.data_generation._legacy import (
     _assert_correct_columns,
     _assert_correct_pred_time_index,
     _get_n_columns,
     _make_fh,
-    _make_hierarchical,
     make_forecasting_problem,
     make_series,
 )
