@@ -6,50 +6,15 @@ from sklearn.metrics import accuracy_score
 
 from aeon.classification.distance_based import ProximityTree
 from aeon.classification.distance_based._proximity_tree import gini, gini_gain
+from aeon.testing.data_generation import make_example_2d_numpy
 
 
 @pytest.fixture
 def time_series_dataset():
     """Generate time series dataset for testing."""
     n_samples = 100  # Total number of samples (should be even)
-    length = 50  # Length of each time series
-    data, labels = create_time_series_dataset(n_samples, length)
-    return data, labels
-
-
-def generate_time_series(length, mean, std, noise_level=0.5):
-    """Generate random time series of given length."""
-    signal = np.random.normal(mean, std, length)
-    noise = noise_level * np.random.randn(length)
-    return signal + noise
-
-
-def create_time_series_dataset(n_samples, length):
-    """Generate time series dataset with labels."""
-    data = []
-    labels = []
-
-    half_samples = n_samples // 2
-
-    for _ in range(half_samples):
-        # Generate time series with larger values for class 0
-        larger_values = generate_time_series(length, mean=5, std=1)
-        data.append(larger_values)
-        labels.append(0)
-
-        # Generate time series with smaller values for class 1
-        smaller_values = generate_time_series(length, mean=0, std=1)
-        data.append(smaller_values)
-        labels.append(1)
-
-    data = np.array(data)
-    labels = np.array(labels)
-
-    # Shuffle the dataset
-    indices = np.random.permutation(n_samples)
-    data = data[indices]
-    labels = labels[indices]
-
+    n_timepoints = 24  # Length of each time series
+    data, labels = make_example_2d_numpy(n_samples, n_timepoints)
     return data, labels
 
 

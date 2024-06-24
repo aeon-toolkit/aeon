@@ -371,9 +371,14 @@ class ProximityTree(BaseClassifier):
         return mode_value
 
     def _fit(self, X, y):
+        # Check dimension of X
+        if X.ndim == 3:
+            if X.shape[1] == 1:
+                X = np.squeeze(X, axis=1)
+            else:
+                raise ValueError("X should be univariate.")
+
         # Set the unique class labels
-        if (X.ndim != 2) or (y.ndim != 1):
-            raise ValueError("X should be of shape (n_cases, n_timepoints).")
         self.classes_ = list(np.unique(y))
 
         self.root = self._build_tree(
@@ -386,6 +391,12 @@ class ProximityTree(BaseClassifier):
         return np.array([self.classes_[pred] for pred in predictions])
 
     def _predict_proba(self, X):
+        # Check dimension of X
+        if X.ndim == 3:
+            if X.shape[1] == 1:
+                X = np.squeeze(X, axis=1)
+            else:
+                raise ValueError("X should be univariate.")
         # Get the unique class labels
         classes = self.classes_
         class_count = len(classes)
