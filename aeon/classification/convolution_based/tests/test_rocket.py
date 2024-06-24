@@ -3,7 +3,10 @@
 import pytest
 
 from aeon.classification.convolution_based import RocketClassifier
-from aeon.testing.data_generation import make_example_2d_numpy, make_example_3d_numpy
+from aeon.testing.data_generation import (
+    make_example_2d_numpy_collection,
+    make_example_3d_numpy,
+)
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MultiRocket,
@@ -14,7 +17,7 @@ from aeon.transformations.collection.convolution_based import (
 
 def test_rocket():
     """Test correct rocket variant is selected."""
-    X_train, y_train = make_example_2d_numpy(n_cases=20, n_timepoints=50)
+    X_train, y_train = make_example_2d_numpy_collection(n_cases=20, n_timepoints=50)
     rocket = RocketClassifier(num_kernels=20)
     rocket.fit(X_train, y_train)
     assert isinstance(rocket._transformer, Rocket)

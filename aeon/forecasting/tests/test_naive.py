@@ -9,7 +9,7 @@ import pytest
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.tests import TEST_OOS_FHS, TEST_SPS, TEST_WINDOW_LENGTHS_INT
-from aeon.testing.data_generation import _assert_correct_pred_time_index
+from aeon.testing.data_generation._legacy import _assert_correct_pred_time_index
 from aeon.utils.index_functions import get_cutoff
 from aeon.utils.validation.forecasting import check_fh
 
