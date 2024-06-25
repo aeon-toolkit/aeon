@@ -1,18 +1,17 @@
 """Shapelet plotting tools."""
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 
-__all__ = []
+__all__ = ["ShapeletClassifierVisualizer", "ShapeletTransformerVisualizer"]
 
 
 import numpy as np
-import seaborn as sns
 from matplotlib import pyplot as plt
 
 from aeon.classification.shapelet_based._ls import LearningShapeletClassifier
 from aeon.classification.shapelet_based._rdst import RDSTClassifier
-from aeon.classification.shapelet_based._rsast_classifier import RSASTClassifier
-from aeon.classification.shapelet_based._sast_classifier import SASTClassifier
+from aeon.classification.shapelet_based._rsast import RSASTClassifier
+from aeon.classification.shapelet_based._sast import SASTClassifier
 from aeon.classification.shapelet_based._stc import ShapeletTransformClassifier
 from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
     RandomDilatedShapeletTransform,
@@ -28,7 +27,7 @@ from aeon.transformations.collection.shapelet_based._shapelet_transform import (
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
-class _Shapelet:
+class ShapeletVisualizer:
     """
     A Shapelet object to use for ploting operations.
 
@@ -36,8 +35,6 @@ class _Shapelet:
     ----------
     values : array, shape=(n_channels, length)
         Values of the shapelet.
-    length : int
-        Length of the shapelet.
     normalize : bool
         Wheter the shapelet use a normalized distance.
     dilation : int
@@ -46,23 +43,42 @@ class _Shapelet:
     threshold : float
         Lambda threshold for Shapelet Occurrence feature. The default value is None
         if it is not used (used in RDST).
+    length : int
+        Length of the shapelet. The default values is None, meaning length is infered
+        from the values array. Otherwise, the values array 2nd axis will be set to this
+        length.
+
+    Examples
+    --------
+    >>> from aeon.visualisation import ShapeletVisualizer
+    >>> from aeon.datasets import load_classification
+    >>> X, y = load_classification("GunPoint")
+    >>> shp = ShapeletVisualizer(X[0,:,50:75])
+    >>> shp.plot()
+    >>> shp.plot_distance_vector(X[1])
+    >>> shp.plot_on_X(X[1])
     """
 
     def __init__(
         self,
         values,
-        length,
-        normalize,
+        normalize=False,
         dilation=1,
         threshold=None,
+        length=None,
     ):
         self.values = np.asarray(values)
-        self.length = length
+        if length is None:
+            self.length = values.shape[1]
+        else:
+            self.values = self.values[:, :length]
+            self.length = length
+        self.n_channels = self.values.shape[0]
         self.normalize = normalize
         self.threshold = threshold
         self.dilation = dilation
 
-    def plot(self, figsize=(10, 5), seaborn_context="talk", ax=None):
+    def plot(self, figsize=(10, 5), ax=None, font_size=22):
         """
         Plot the shapelet values.
 
@@ -70,47 +86,60 @@ class _Shapelet:
         ----------
         figsize : tuple, optional
             2D size of the figure. The default is (10,5).
-        seaborn_context : str, optional
-            Seaborn module context. The default is 'talk'.
         ax : matplotlib axe, optional
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
+        font_size : float, optional
+            Size of the font used in the plot.
 
         Returns
         -------
         fig : matplotlib figure
             The resulting figure
         """
-        title_string = ""
+        title_string = "Shapelet params:"
         if self.dilation > 1:
-            title_string += f"dil={self.dilation}"
+            title_string += f" dilation={self.dilation}"
         if self.threshold is not None:
-            title_string += f"threshold={np.round(self.threshold, decimals=2)}"
-        title_string += f"normalize={self.normalize}"
+            title_string += f" threshold={np.round(self.threshold, decimals=2)}"
+        title_string += f" normalize={self.normalize}"
 
         if ax is None:
-            sns.set()
-            sns.set_context(seaborn_context)
+            plt.style.use("seaborn-v0_8")
+            plt.rcParams.update(
+                {
+                    "font.size": font_size,  # controls default text sizes
+                }
+            )
+
             fig = plt.figure(figsize=(figsize))
-            plt.plot(self.values)
+            for i in range(self.n_channels):
+                plt.plot(self.values[i], label=f"channel {i}")
+            plt.ylabel("shapelet values")
+            plt.xlabel("timepoint")
             plt.title(title_string)
+            plt.legend()
             return fig
         else:
-            ax.plot(self.values)
+            for i in range(self.n_channels):
+                ax.plot(self.values[i], label=f"channel {i}")
             ax.set_title(title_string)
+            ax.set_ylabel("shapelet values")
+            ax.set_xlabel("timepoint")
+            ax.legend()
             return ax
 
     def plot_on_X(
         self,
         X,
         figsize=(10, 5),
-        seaborn_context="talk",
         alpha=0.9,
         shp_dot_size=40,
         shp_c="purple",
         ax=None,
-        label=None,
+        label="",
         x_linewidth=2,
+        font_size=22,
     ):
         """
         Plot the shapelet on its best match on the time series X.
@@ -121,8 +150,6 @@ class _Shapelet:
             Input time series
         figsize : tuple, optional
             Size of the figure. The default is (10,5).
-        seaborn_context : str, optional
-            Seaborn context. The default is 'talk'.
         alpha : float, optional
             Alpha parameter for plotting X. The default is 0.9.
         shp_dot_size : float, optional
@@ -134,9 +161,11 @@ class _Shapelet:
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
         label : str, optional
-            Custom label to plot as legend for X. The default is None.
+            Custom label to plot as legend for X. The default is "".
         x_linewidth : float, optional
             The linewidth of X plot. The default is 2.
+        font_size : float, optional
+            Size of the font used in the plot.
 
         Returns
         -------
@@ -147,53 +176,83 @@ class _Shapelet:
         """
         if len(X.shape) == 1:
             X = X[np.newaxis, :]
+
         # Get candidate subsequences in X
         X_subs = get_all_subsequences(X, self.length, self.dilation)
+
         # Normalize candidates and shapelet values
         if self.normalize:
             X_means, X_stds = sliding_mean_std_one_series(X, self.length, self.dilation)
             X_subs = normalize_subsequences(X_subs, X_means, X_stds)
-            _values = (self.values - self.values.mean(axis=-1)) / self.values.std(
-                axis=1
-            )
+            _values = (
+                self.values - self.values.mean(axis=-1, keepdims=True)
+            ) / self.values.std(axis=-1, keepdims=True)
         else:
             _values = self.values
 
         # Compute distance vector
-        c = compute_shapelet_dist_vector(X, _values, self.length)
+        c = compute_shapelet_dist_vector(X_subs, _values, self.length)
 
         # Get best match index
+        idx_best = c.argmin()
         idx_match = np.asarray(
-            [(c.argmin() + i * self.dilation) % X.shape[0] for i in range(self.length)]
+            [(idx_best + i * self.dilation) % X.shape[1] for i in range(self.length)]
         ).astype(int)
 
         # If normalize, scale back the values of the shapelet to the scale of the match
-        if self.norm:
-            _values = (_values * X[idx_match].std()) + X[idx_match].mean()
+        if self.normalize:
+            _values = (_values * X[:, idx_match].std(axis=-1, keepdims=True)) + X[
+                :, idx_match
+            ].mean(axis=-1, keepdims=True)
 
         if ax is None:
-            sns.set()
-            sns.set_context(seaborn_context)
-            fig = plt.figure(figsize=(figsize))
-            plt.plot(X, label=label, linewidth=x_linewidth, alpha=alpha)
-            plt.scatter(
-                idx_match, _values, s=shp_dot_size, c=shp_c, zorder=3, alpha=alpha
+            plt.style.use("seaborn-v0_8")
+            plt.rcParams.update(
+                {
+                    "font.size": font_size,  # controls default text sizes
+                }
             )
+
+            fig = plt.figure(figsize=(figsize))
+            for i in range(self.n_channels):
+                plt.plot(X[i], label=label + f" channel {i}")
+                plt.scatter(
+                    idx_match,
+                    _values[i],
+                    s=shp_dot_size,
+                    c=shp_c,
+                    zorder=3,
+                    alpha=alpha,
+                )
+            plt.title("Best match of shapelet on X")
+            plt.ylabel("shapelet values")
+            plt.xlabel("timepoint")
             return fig
         else:
-            ax.plot(X, label=label, linewidth=x_linewidth, alpha=alpha)
-            ax.scatter(
-                idx_match, _values, s=shp_dot_size, c=shp_c, zorder=3, alpha=alpha
-            )
+            for i in range(self.n_channels):
+                ax.plot(
+                    X, label=label + f" channel {i}", linewidth=x_linewidth, alpha=alpha
+                )
+                ax.scatter(
+                    idx_match,
+                    _values[i],
+                    s=shp_dot_size,
+                    c=shp_c,
+                    zorder=3,
+                    alpha=alpha,
+                )
+            ax.set_ylabel("values")
+            ax.set_xlabel("timepoint")
+            return ax
 
     def plot_distance_vector(
         self,
         X,
         figsize=(10, 5),
-        seaborn_context="talk",
         c_threshold="purple",
         ax=None,
-        label=None,
+        label="",
+        font_size=22,
     ):
         """
         Plot the shapelet distance vector computed between itself and X.
@@ -204,8 +263,6 @@ class _Shapelet:
             Input time series
         figsize : tuple, optional
             Size of the figure. The default is (10,5).
-        seaborn_context : str, optional
-            Seaborn context. The default is 'talk'.
         c_threshold : float, optional
             Color used to represent a line on the y-axis to visualize the lambda
             threshold. The default is 'purple'.
@@ -214,6 +271,8 @@ class _Shapelet:
             and will create a new figure of size figsize.
         label : str, optional
             Custom label to plot as legend. The default is None.
+        font_size : float, optional
+            Size of the font used in the plot.
 
         Returns
         -------
@@ -236,20 +295,32 @@ class _Shapelet:
             _values = self.values
 
         # Compute distance vector
-        c = compute_shapelet_dist_vector(X, _values, self.length)
+        c = compute_shapelet_dist_vector(X_subs, _values, self.length)
 
         if ax is None:
-            sns.set()
-            sns.set_context(seaborn_context)
+            plt.style.use("seaborn-v0_8")
+            plt.rcParams.update(
+                {
+                    "font.size": font_size,  # controls default text sizes
+                }
+            )
+
             fig = plt.figure(figsize=(figsize))
             plt.plot(c, label=label)
             if self.threshold is not None:
-                plt.hlines(self.threshold, 0, c.shape[0], color=c_threshold)
+                plt.hlines(
+                    self.threshold, 0, c.shape[0], color=c_threshold, label="threshold"
+                )
+            plt.title("Distance vector between shapelet and X")
+            plt.legend()
             return fig
         else:
             ax.plot(c, label=label)
             if self.threshold is not None:
-                ax.hlines(self.threshold, 0, c.shape[0], color=c_threshold)
+                ax.hlines(
+                    self.threshold, 0, c.shape[0], color=c_threshold, label="threshold"
+                )
+            ax.legend()
             return ax
 
 
@@ -262,10 +333,20 @@ class ShapeletTransformerVisualizer:
     estimator : object
         A fitted shapelet transformer.
 
-    Returns
-    -------
-    None.
-
+    Examples
+    --------
+    >>> from aeon.visualisation import ShapeletTransformerVisualizer
+    >>> from aeon.transformations.collection.shapelet_based import (
+        RandomDilatedShapeletTransform
+    )
+    >>> from aeon.datasets import load_classification
+    >>> X, y = load_classification("GunPoint")
+    >>> rdst = RandomDilatedShapeletTransform(max_shapelets=10).fit(X, y)
+    >>> shp = ShapeletTransformerVisualizer(rdst)
+    >>> id_shp = 0
+    >>> shpt.plot(id_shp)
+    >>> shpt.plot_on_X(id_shp, X[1])
+    >>> shpt.plot_distance_vector(id_shp, X[1])
     """
 
     def __init__(self, estimator):
@@ -274,7 +355,7 @@ class ShapeletTransformerVisualizer:
     def _get_shapelet(self, id_shapelet):
         if isinstance(self.estimator, RandomDilatedShapeletTransform):
             length_ = self.estimator.shapelets_[1][id_shapelet]
-            values_ = self.estimator.shapelets_[0][id_shapelet, :length_]
+            values_ = self.estimator.shapelets_[0][id_shapelet]
             dilation_ = self.estimator.shapelets_[2][id_shapelet]
             threshold_ = self.estimator.shapelets_[3][id_shapelet]
             normalize_ = self.estimator.shapelets_[4][id_shapelet]
@@ -304,8 +385,12 @@ class ShapeletTransformerVisualizer:
                 "The provided estimator of class {} is not supported. Is it a shapelet"
                 " transformer ?"
             )
-        return _Shapelet(
-            values_, length_, normalize_, dilation=dilation_, threshold=threshold_
+        return ShapeletVisualizer(
+            values_,
+            normalize=normalize_,
+            dilation=dilation_,
+            threshold=threshold_,
+            length=length_,
         )
 
     def plot_on_X(
@@ -313,11 +398,10 @@ class ShapeletTransformerVisualizer:
         id_shapelet,
         X,
         figsize=(10, 5),
-        seaborn_context="talk",
         shp_dot_size=40,
         shp_c="purple",
         ax=None,
-        label=None,
+        label="",
         x_linewidth=2.0,
     ):
         """
@@ -327,12 +411,10 @@ class ShapeletTransformerVisualizer:
         ----------
         id_shapelet : int
             ID of the shapelet to plot.
-        X : array, shape=(n_timestamps) or shape=(n_features, n_timestamps)
+        X : shape=(n_channels, n_timepoints)
             Input time series
         figsize : tuple, optional
             Size of the figure. The default is (10,5).
-        seaborn_context : str, optional
-            Seaborn context. The default is 'talk'.
         alpha : float, optional
             Alpha parameter for plotting X. The default is 0.9.
         shp_dot_size : float, optional
@@ -358,7 +440,6 @@ class ShapeletTransformerVisualizer:
         return self._get_shapelet(id_shapelet).plot_on_X(
             X,
             figsize=figsize,
-            seaborn_context=seaborn_context,
             shp_dot_size=shp_dot_size,
             shp_c=shp_c,
             ax=ax,
@@ -371,10 +452,9 @@ class ShapeletTransformerVisualizer:
         id_shapelet,
         X,
         figsize=(10, 5),
-        seaborn_context="talk",
         c_threshold="purple",
         ax=None,
-        label=None,
+        label="",
     ):
         """
         Plot the shapelet distance vector computed between itself and X.
@@ -387,8 +467,6 @@ class ShapeletTransformerVisualizer:
             Input time series
         figsize : tuple, optional
             Size of the figure. The default is (10,5).
-        seaborn_context : str, optional
-            Seaborn context. The default is 'talk'.
         c_threshold : float, optional
             Color used to represent a line on the y-axis to visualize the lambda
             threshold. The default is 'purple'.
@@ -407,13 +485,12 @@ class ShapeletTransformerVisualizer:
         return self._get_shapelet(id_shapelet).plot_distance_vector(
             X,
             figsize=figsize,
-            seaborn_context=seaborn_context,
             c_threshold=c_threshold,
             ax=ax,
             label=label,
         )
 
-    def plot(self, id_shapelet, figsize=(10, 5), seaborn_context="talk", ax=None):
+    def plot(self, id_shapelet, figsize=(10, 5), ax=None):
         """
         Plot the shapelet values.
 
@@ -423,8 +500,6 @@ class ShapeletTransformerVisualizer:
             ID of the shapelet to plot.
         figsize : tuple, optional
             2D size of the figure. The default is (10,5).
-        seaborn_context : str, optional
-            Seaborn module context. The default is 'talk'.
         ax : matplotlib axe, optional
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
@@ -434,9 +509,7 @@ class ShapeletTransformerVisualizer:
         fig : matplotlib figure
             The resulting figure
         """
-        return self._get_shapelet(id_shapelet).plot(
-            figsize=figsize, seaborn_context=seaborn_context, ax=ax
-        )
+        return self._get_shapelet(id_shapelet).plot(figsize=figsize, ax=ax)
 
 
 class ShapeletClassifierVisualizer:
@@ -447,6 +520,19 @@ class ShapeletClassifierVisualizer:
     ----------
     estimator : object
         A fitted shapelet classifier.
+
+    Examples
+    --------
+    >>> from aeon.visualisation import ShapeletClassifierVisualizer
+    >>> from aeon.datasets import load_classification
+    >>> from aeon.classification.shapelet_based import RDSTClassifier
+    >>> X, y = load_classification("GunPoint")
+    >>> rdst = RDSTClassifier(max_shapelets=10).fit(X, y)
+    >>> shpt = ShapeletClassifierVisualizer(rdst)
+    >>> id_shp = 0
+    >>> shpt.plot(id_shp)
+    >>> shpt.plot_on_X(id_shp, X[1])
+    >>> shpt.plot_distance_vector(id_shp, X[1])
     """
 
     def __init__(self, estimator):
@@ -461,10 +547,8 @@ class ShapeletClassifierVisualizer:
             n_classes = coefs.shape[0]
             if n_classes == 1:
                 coefs = np.append(-coefs, coefs, axis=0)
-            c_ = np.zeros(self.RDST_Ridge.transformer.shapelets_[1].shape[0] * 3)
-            c_[self.estimator._estimator["c_standardscaler"].usefull_atts] = coefs[
-                class_id
-            ]
+            c_ = np.zeros(self.estimator._transformer.shapelets_[1].shape[0] * 3)
+            c_ = coefs[class_id]
             return c_
         elif isinstance(self.estimator, RSASTClassifier):
             raise NotImplementedError()
@@ -482,7 +566,7 @@ class ShapeletClassifierVisualizer:
         return c_
 
     def visualize_best_shapelets_one_class(
-        self, X, y, class_id, n_shp=1, figsize=(16, 12), seaborn_context="talk"
+        self, X, y, class_id, n_shp=1, figsize=(16, 12), font_size=22
     ):
         """
         Plot the n_shp best candidates for the class_id.
@@ -506,17 +590,25 @@ class ShapeletClassifierVisualizer:
             for class_id). The default is 1.
         figsize : tuple, optional
             Size of the figure. The default is (16,12).
-        seaborn_context : str, optional
-            Seaborn context. The default is 'talk'.
+        font_size : float, optional
+            Size of the font used in the plot.
 
         Returns
         -------
         None.
 
         """
-        # TODO : adapt this method to all shapelet classifiers
-        sns.set()
-        sns.set_context(seaborn_context)
+        from sklearn.preprocessing import LabelEncoder
+
+        # TODO: store labels for re-usage in other functions
+        y = LabelEncoder().fit_transform(y)
+
+        plt.style.use("seaborn-v0_8")
+        plt.rcParams.update(
+            {
+                "font.size": font_size,  # controls default text sizes
+            }
+        )
 
         coefs = self._get_shp_importance(class_id)
         idx = (coefs.argsort() // 3)[::-1]
@@ -534,17 +626,17 @@ class ShapeletClassifierVisualizer:
         y_copy = (y == class_id).astype(int)
         for i_shp in shp_ids:
             fig, ax = plt.subplots(nrows=2, ncols=3, figsize=figsize)
-
+            # TODO : fix boxplot method for matplotlib different than seaborn
             ax[0, 0].set_title("Boxplot of min")
-            sns.boxplot(x=y_copy, y=X_new[:, (i_shp * 3)], ax=ax[0, 0])
+            plt.boxplot(x=y_copy, y=X_new[:, (i_shp * 3)], ax=ax[0, 0])
             ax[0, 0].set_xticklabels(["Other classes", f"Class {class_id}"])
 
             ax[0, 1].set_title("Boxplot of argmin")
-            sns.boxplot(x=y_copy, y=X_new[:, 1 + (i_shp * 3)], ax=ax[0, 1])
+            plt.boxplot(x=y_copy, y=X_new[:, 1 + (i_shp * 3)], ax=ax[0, 1])
 
             ax[0, 1].set_xticklabels(["Other classes", f"Class {class_id}"])
             ax[0, 2].set_title("Boxplot of Shapelet Occurence")
-            sns.boxplot(x=y_copy, y=X_new[:, 2 + (i_shp * 3)], ax=ax[0, 2])
+            plt.boxplot(x=y_copy, y=X_new[:, 2 + (i_shp * 3)], ax=ax[0, 2])
 
             ax[0, 2].set_xticklabels(["Other classes", f"Class {class_id}"])
 
@@ -575,11 +667,10 @@ class ShapeletClassifierVisualizer:
         id_shapelet,
         X,
         figsize=(10, 5),
-        seaborn_context="talk",
         shp_dot_size=40,
         shp_c="purple",
         ax=None,
-        label=None,
+        label="",
         x_linewidth=2.0,
     ):
         """
@@ -593,8 +684,6 @@ class ShapeletClassifierVisualizer:
             Input time series
         figsize : tuple, optional
             Size of the figure. The default is (10,5).
-        seaborn_context : str, optional
-            Seaborn context. The default is 'talk'.
         alpha : float, optional
             Alpha parameter for plotting X. The default is 0.9.
         shp_dot_size : float, optional
@@ -621,7 +710,6 @@ class ShapeletClassifierVisualizer:
             id_shapelet,
             X,
             figsize=figsize,
-            seaborn_context=seaborn_context,
             shp_dot_size=shp_dot_size,
             shp_c=shp_c,
             ax=ax,
@@ -634,10 +722,9 @@ class ShapeletClassifierVisualizer:
         id_shapelet,
         X,
         figsize=(10, 5),
-        seaborn_context="talk",
         c_threshold="purple",
         ax=None,
-        label=None,
+        label="",
     ):
         """
         Plot the shapelet distance vector computed between itself and X.
@@ -650,8 +737,6 @@ class ShapeletClassifierVisualizer:
             Input time series
         figsize : tuple, optional
             Size of the figure. The default is (10,5).
-        seaborn_context : str, optional
-            Seaborn context. The default is 'talk'.
         c_threshold : float, optional
             Color used to represent a line on the y-axis to visualize the lambda
             threshold. The default is 'purple'.
@@ -671,13 +756,12 @@ class ShapeletClassifierVisualizer:
             id_shapelet,
             X,
             figsize=figsize,
-            seaborn_context=seaborn_context,
             c_threshold=c_threshold,
             ax=ax,
             label=label,
         )
 
-    def plot(self, id_shapelet, figsize=(10, 5), seaborn_context="talk", ax=None):
+    def plot(self, id_shapelet, figsize=(10, 5), ax=None):
         """
         Plot the shapelet values.
 
@@ -687,8 +771,6 @@ class ShapeletClassifierVisualizer:
             ID of the shapelet to plot.
         figsize : tuple, optional
             2D size of the figure. The default is (10,5).
-        seaborn_context : str, optional
-            Seaborn module context. The default is 'talk'.
         ax : matplotlib axe, optional
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
@@ -698,6 +780,4 @@ class ShapeletClassifierVisualizer:
         fig : matplotlib figure
             The resulting figure
         """
-        self.transformer_vis.plot_distance_vector(
-            id_shapelet, figsize=figsize, seaborn_context=seaborn_context, ax=ax
-        )
+        self.transformer_vis.plot(id_shapelet, figsize=figsize, ax=ax)
