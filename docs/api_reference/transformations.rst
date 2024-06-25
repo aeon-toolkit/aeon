@@ -413,20 +413,6 @@ These transformers select features in `X` based on `y`.
     ElbowClassSum
     ElbowClassPairwise
 
-Subsetting time points and variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These transformers subset `X` by time points (`pandas` index or index level) or variables (`pandas` columns).
-
-.. currentmodule:: aeon.transformations.subset
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ColumnSelect
-    IndexSubset
-
 Panel transformers
 ------------------
 
