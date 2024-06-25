@@ -39,10 +39,10 @@ class MultiRocket(BaseCollectionTransformer):
     Attributes
     ----------
     parameter : tuple
-        Parameter (dilations, num_features_per_dilation, biases) for
+        Parameter (dilations, n_features_per_dilation, biases) for
         transformation of input `X`.
     parameter1 : tuple
-        Parameter (dilations, num_features_per_dilation, biases) for
+        Parameter (dilations, n_features_per_dilation, biases) for
         transformation of input ``X1 = np.diff(X, 1)``.
 
 
