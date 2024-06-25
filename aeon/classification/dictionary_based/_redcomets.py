@@ -583,7 +583,8 @@ class REDCOMETS(BaseClassifier):
         ----------
         sax_transforms : list
             List of ``SAX()`` instances
-        X : 2D np.ndarray, shape = [n_instances, n_timepoint]
+        X : np.ndarray
+            2D np.ndarray of shape (n_cases, n_timepoints)
             The data to transform.
         """
 
