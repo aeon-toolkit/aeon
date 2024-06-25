@@ -36,34 +36,12 @@ Pipelines can also be constructed using ``*``, ``+``, and ``|`` dunders.
 
     make_pipeline
 
-.. currentmodule:: aeon.forecasting.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TransformedTargetForecaster
-    ForecastingPipeline
-    ColumnEnsembleForecaster
-    MultiplexForecaster
-    ForecastX
-    ForecastByLevel
-    Permute
-    HierarchyEnsembleForecaster
 
 Reduction
 ---------
 
 Reduction forecasters that use ``sklearn`` regressors or ``aeon`` time series regressors to make forecasts.
 Use ``make_reduction`` for easy specification.
-
-.. currentmodule:: aeon.forecasting.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    make_reduction
 
 .. autosummary::
     :toctree: auto_generated/
@@ -117,14 +95,6 @@ Wrappers that add prediction intervals to any forecaster.
     :template: class.rst
 
     ConformalIntervals
-
-.. currentmodule:: aeon.forecasting.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    BaggingForecaster
 
 
 Trend forecasters
@@ -264,7 +234,6 @@ Structural time series models
     :template: class.rst
 
     DynamicFactor
-
 
 Hierarchical reconciliation
 ---------------------------
