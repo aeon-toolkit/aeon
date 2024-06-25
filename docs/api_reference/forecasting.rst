@@ -246,18 +246,8 @@ Hierarchical reconciliation
 
     ReconcilerForecaster
 
-Online and stream forecasting
------------------------------
-
-.. currentmodule:: aeon.forecasting.online_learning
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    OnlineEnsembleForecaster
-    NormalHedgeEnsemble
-    NNLSEnsemble
+Stream forecasting
+------------------
 
 .. currentmodule:: aeon.forecasting.stream
 
