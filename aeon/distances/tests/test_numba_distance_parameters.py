@@ -8,7 +8,7 @@ import pytest
 from aeon.distances import distance
 from aeon.distances._distance import DISTANCES
 from aeon.distances.tests.test_utils import _generate_shape_dtw_params
-from aeon.testing.data_generation import make_series
+from aeon.testing.data_generation._legacy import make_series
 from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results_params,
 )

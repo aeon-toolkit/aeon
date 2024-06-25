@@ -2,7 +2,7 @@
 
 __maintainer__ = ["TonyBagnall"]
 
-from aeon.testing.data_generation import make_series
+from aeon.testing.data_generation._legacy import make_series
 from aeon.transformations.series._pca import PCASeriesTransformer
 
 

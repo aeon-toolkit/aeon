@@ -45,7 +45,7 @@ def paa_sax_mindist(
     >>> from aeon.transformations.collection.dictionary_based import SAX
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> transform = SAX(n_segments=16, alphabet_size=8)
+    >>> transform = SAX(n_segments=8, alphabet_size=8)
     >>> x_sax = transform.fit_transform(x).squeeze()
     >>> x_paa = transform._get_paa(x).squeeze()
     >>> y_sax = transform.transform(y).squeeze()

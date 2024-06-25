@@ -7,11 +7,12 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 from aeon.datasets import load_airline, load_basic_motions
-from aeon.testing.data_generation import get_examples
+from aeon.testing.data_generation._legacy import get_examples
 from aeon.testing.mock_estimators import MockTransformer
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
-from aeon.transformations.boxcox import LogTransformer
+from aeon.transformations._legacy._boxcox import _LogTransformer
+from aeon.transformations._legacy.subset import _ColumnSelect
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.compose import (
     ColumnConcatenator,
@@ -21,7 +22,6 @@ from aeon.transformations.compose import (
     TransformerPipeline,
 )
 from aeon.transformations.impute import Imputer
-from aeon.transformations.subset import ColumnSelect
 from aeon.transformations.summarize import SummaryTransformer
 from aeon.transformations.theta import ThetaLinesTransformer
 
@@ -175,7 +175,7 @@ def test_pipeline_column_vectorization():
     """Test that pipelines vectorize properly over columns."""
     X = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
 
-    t = ColumnSelect([0, 1]) * ThetaLinesTransformer()
+    t = _ColumnSelect([0, 1]) * ThetaLinesTransformer()
 
     X_theta = t.fit_transform(X)
 
@@ -185,9 +185,9 @@ def test_pipeline_column_vectorization():
 def test_pipeline_inverse():
     """Tests that inverse composition works, with inverse skips. Also see #3084."""
     X = load_airline()
-    t = LogTransformer() * Imputer()
+    t = _LogTransformer() * Imputer()
 
-    # LogTransformer has inverse_transform, and does not skip inverse transform
+    # _LogTransformer has inverse_transform, and does not skip inverse transform
     # therefore, pipeline should also not skip inverse transform, and have capability
     assert t.get_tag("capability:inverse_transform")
     assert not t.get_tag("skip-inverse-transform")
