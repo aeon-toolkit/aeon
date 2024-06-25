@@ -5,6 +5,7 @@ __all__ = ["Imputer"]
 
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.utils import check_random_state
 
 from aeon.forecasting.base import ForecastingHorizon
@@ -12,6 +13,12 @@ from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="Imputer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class Imputer(BaseTransformer):
     """Missing value imputation.
 

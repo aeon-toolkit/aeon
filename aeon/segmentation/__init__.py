@@ -3,6 +3,7 @@
 __all__ = [
     "BaseSegmenter",
     "BinSegSegmenter",
+    "FLUSSSegmenter",
     "ClaSPSegmenter",
     "find_dominant_window_sizes",
     "GreedyGaussianSegmenter",
@@ -17,6 +18,7 @@ __all__ = [
 from aeon.segmentation._binseg import BinSegSegmenter
 from aeon.segmentation._clasp import ClaSPSegmenter, find_dominant_window_sizes
 from aeon.segmentation._eagglo import EAggloSegmenter
+from aeon.segmentation._fluss import FLUSSSegmenter
 from aeon.segmentation._ggs import GreedyGaussianSegmenter
 from aeon.segmentation._hidalgo import HidalgoSegmenter
 from aeon.segmentation._hmm import HMMSegmenter

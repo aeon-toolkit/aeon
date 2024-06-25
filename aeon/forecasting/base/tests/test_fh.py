@@ -25,7 +25,11 @@ from aeon.forecasting.tests import (
     TEST_FHS_TIMEDELTA,
     VALID_INDEX_FH_COMBINATIONS,
 )
-from aeon.testing.data_generation import _make_fh, _make_index, make_forecasting_problem
+from aeon.testing.data_generation._legacy import (
+    _make_fh,
+    _make_index,
+    make_forecasting_problem,
+)
 from aeon.testing.mock_estimators import MockForecaster
 from aeon.utils.datetime import (
     _coerce_duration_to_int,

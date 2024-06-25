@@ -3,10 +3,12 @@
 import pytest
 
 from aeon.classification.convolution_based import Arsenal
-from aeon.testing.data_generation import make_example_2d_numpy, make_example_3d_numpy
+from aeon.testing.data_generation import (
+    make_example_2d_numpy_collection,
+    make_example_3d_numpy,
+)
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
-    MiniRocketMultivariate,
     MultiRocket,
     MultiRocketMultivariate,
     Rocket,
@@ -29,7 +31,7 @@ def test_contracted_arsenal():
 
 def test_arsenal():
     """Test correct rocket variant is selected."""
-    X_train, y_train = make_example_2d_numpy(n_cases=20, n_timepoints=50)
+    X_train, y_train = make_example_2d_numpy_collection(n_cases=20, n_timepoints=50)
     afc = Arsenal(num_kernels=20, n_estimators=2)
     afc.fit(X_train, y_train)
     for i in range(afc.n_estimators):
@@ -62,7 +64,7 @@ def test_arsenal():
     )
     afc.fit(X_train, y_train)
     for i in range(afc.n_estimators):
-        assert isinstance(afc.estimators_[i].steps[0][1], MiniRocketMultivariate)
+        assert isinstance(afc.estimators_[i].steps[0][1], MiniRocket)
     afc = Arsenal(
         num_kernels=100,
         rocket_transform="multirocket",
