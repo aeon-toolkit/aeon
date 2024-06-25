@@ -18,7 +18,7 @@ class BinSegSegmenter(BaseSegmenter):
     implemented in Binseg. It is a sequential approach: first, one change point is
     detected in the complete input signal, then series is split around this change point
     then the operation is repeated on the two resulting sub-signals. For a theoretical
-    and algorithmic analysis of Binseg, see for instance [Bai1997] and [Fryzlewicz2014].
+    and algorithmic analysis of Binseg, see for instance [1] and [2].
     The benefits of binary segmentation includes low complexity (of the order of , where
     is the number of samples and  the complexity of calling the considered cost function
     on one sub-signal), the fact that it can extend any single change point detection
@@ -39,10 +39,10 @@ class BinSegSegmenter(BaseSegmenter):
 
     References
     ----------
-    .. [Bai1997] Bai, J. (1997). Estimating multiple breaks one at a time.
+    .. [1] Bai, J. (1997). Estimating multiple breaks one at a time.
     Econometric Theory, 13(3), 315–352.
 
-    .. [Fryzlewicz2014] Fryzlewicz, P. (2014). Wild binary segmentation for multiple
+    .. [2] Fryzlewicz, P. (2014). Wild binary segmentation for multiple
     change-point detection. The Annals of Statistics, 42(6), 2243–2281.
 
     Examples
