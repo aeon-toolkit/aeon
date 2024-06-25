@@ -11,8 +11,8 @@ from aeon.testing.data_generation import (
     make_example_2d_numpy_list,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
-    make_series,
 )
+from aeon.testing.data_generation._legacy import make_series
 
 SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
 

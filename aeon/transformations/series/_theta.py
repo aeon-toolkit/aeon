@@ -63,7 +63,7 @@ class ThetaTransformer(BaseSeriesTransformer):
 
     def __init__(self, theta=(0, 2)):
         self.theta = theta
-        super().__init__()
+        super().__init__(axis=1)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

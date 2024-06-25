@@ -7,11 +7,11 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.testing.data_generation import (
-    make_example_2d_numpy,
+    make_example_2d_numpy_collection,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
-    make_series,
 )
+from aeon.testing.data_generation._legacy import make_series
 from aeon.transformations.collection import (
     BaseCollectionTransformer,
     CollectionToSeriesWrapper,
@@ -20,7 +20,11 @@ from aeon.transformations.collection import (
 
 @pytest.mark.parametrize(
     "data_gen",
-    [make_example_3d_numpy, make_example_2d_numpy, make_example_3d_numpy_list],
+    [
+        make_example_3d_numpy,
+        make_example_2d_numpy_collection,
+        make_example_3d_numpy_list,
+    ],
 )
 def test_collection_transformer_valid_input(data_gen):
     """Test that BaseCollectionTransformer works with collection input."""
