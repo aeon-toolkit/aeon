@@ -46,23 +46,6 @@ Composition
 Pipeline building
 ~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TransformerPipeline
-    FeatureUnion
-    ColumnwiseTransformer
-    ColumnTransformer
-    FitInTransform
-    MultiplexTransformer
-    OptionalPassthrough
-    InvertTransform
-    Id
-    YtoX
-
 .. currentmodule:: aeon.transformations.func_transform
 
 .. autosummary::
@@ -81,15 +64,6 @@ Sklearn and pandas adapters
     :template: class.rst
 
     Tabularizer
-
-.. currentmodule:: aeon.transformations.adapt
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TabularToSeriesAdaptor
-    PandasTransformAdaptor
 
 Series-to-tabular transformers
 -------------------------------
