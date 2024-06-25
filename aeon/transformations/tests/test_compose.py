@@ -12,7 +12,7 @@ from aeon.testing.mock_estimators import MockTransformer
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations._legacy._boxcox import _LogTransformer
-from aeon.transformations._legacy.theta import _ThetaLinesTransformer
+from aeon.transformations._legacy.subset import _ColumnSelect
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.compose import (
     ColumnConcatenator,
@@ -22,8 +22,8 @@ from aeon.transformations.compose import (
     TransformerPipeline,
 )
 from aeon.transformations.impute import Imputer
-from aeon.transformations.subset import ColumnSelect
 from aeon.transformations.summarize import SummaryTransformer
+from aeon.transformations.theta import ThetaLinesTransformer
 
 
 def test_dunder_mul():
@@ -175,7 +175,7 @@ def test_pipeline_column_vectorization():
     """Test that pipelines vectorize properly over columns."""
     X = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
 
-    t = ColumnSelect([0, 1]) * _ThetaLinesTransformer()
+    t = _ColumnSelect([0, 1]) * ThetaLinesTransformer()
 
     X_theta = t.fit_transform(X)
 
@@ -203,7 +203,7 @@ def test_subset_getitem():
     """Test subsetting using the [ ] dunder, __getitem__."""
     X = pd.DataFrame({"a": [1, 2], "b": [3, 4], "c": [5, 6]})
 
-    t = _ThetaLinesTransformer()
+    t = ThetaLinesTransformer()
 
     t_before = t["a"]
     t_before_with_colon = t[["a", "b"], :]
@@ -215,7 +215,7 @@ def test_subset_getitem():
     assert isinstance(t_after_with_colon, TransformerPipeline)
     assert isinstance(t_before_with_colon, TransformerPipeline)
     assert isinstance(t_both, TransformerPipeline)
-    assert isinstance(t_none, _ThetaLinesTransformer)
+    assert isinstance(t_none, ThetaLinesTransformer)
 
     X_theta = t.fit_transform(X)
 

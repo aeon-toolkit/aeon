@@ -11,6 +11,12 @@ import pandas as pd
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ExponentTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class ExponentTransformer(BaseTransformer):
     """Apply element-wise exponentiation transformation to a time series.
 
