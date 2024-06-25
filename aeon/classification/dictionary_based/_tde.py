@@ -15,7 +15,7 @@ from collections import defaultdict
 
 import numpy as np
 from joblib import Parallel, delayed
-from numba import njit, types
+from numba import types
 from numba.typed import Dict
 from sklearn import preprocessing
 from sklearn.kernel_ridge import KernelRidge
@@ -1034,7 +1034,7 @@ def histogram_intersection(first, second):
         )
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _histogram_intersection_dict(first, second):
     sim = 0
     for word, val_a in first.items():

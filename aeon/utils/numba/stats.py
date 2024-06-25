@@ -67,7 +67,7 @@ def mean(X: np.ndarray) -> float:
     return s / X.shape[0]
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_mean(X: np.ndarray) -> np.ndarray:
     """Numba mean function for a 2d numpy array.
 
@@ -94,7 +94,7 @@ def row_mean(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def count_mean_crossing(X: np.ndarray) -> float:
     """Numba count above mean of first order differences for a 1d numpy array.
 
@@ -124,7 +124,7 @@ def count_mean_crossing(X: np.ndarray) -> float:
     return count
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_count_mean_crossing(X: np.ndarray) -> np.ndarray:
     """Numba count above mean of first order differences for a 2d numpy array.
 
@@ -151,7 +151,7 @@ def row_count_mean_crossing(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def count_above_mean(X: np.ndarray) -> float:
     """Numba count above mean for a 1d numpy array.
 
@@ -181,7 +181,7 @@ def count_above_mean(X: np.ndarray) -> float:
     return count
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_count_above_mean(X: np.ndarray) -> np.ndarray:
     """Numba count above mean for a 2d numpy array.
 
@@ -208,7 +208,7 @@ def row_count_above_mean(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def quantile(X: np.ndarray, q: float) -> float:
     """Numba quantile function for a 1d numpy array.
 
@@ -243,7 +243,7 @@ def quantile(X: np.ndarray, q: float) -> float:
         return 0.5 * (s[idx - 1] + s[idx])
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_quantile(X: np.ndarray, q: float) -> np.ndarray:
     """Numba quantile function for a 2d numpy array.
 
@@ -272,7 +272,7 @@ def row_quantile(X: np.ndarray, q: float) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def median(X: np.ndarray) -> float:
     """Numba median function for a 1d numpy array.
 
@@ -296,7 +296,7 @@ def median(X: np.ndarray) -> float:
     return quantile(X, 0.5)
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_median(X: np.ndarray) -> np.ndarray:
     """Numba median function for a 2d numpy array.
 
@@ -320,7 +320,7 @@ def row_median(X: np.ndarray) -> np.ndarray:
     return row_quantile(X, 0.5)
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def quantile25(X: np.ndarray) -> float:
     """Numba 0.25 quantile function for a 1d numpy array.
 
@@ -344,7 +344,7 @@ def quantile25(X: np.ndarray) -> float:
     return quantile(X, 0.25)
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_quantile25(X: np.ndarray) -> np.ndarray:
     """Numba 0.25 quantile function for a 2d numpy array.
 
@@ -368,7 +368,7 @@ def row_quantile25(X: np.ndarray) -> np.ndarray:
     return row_quantile(X, 0.25)
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def quantile75(X: np.ndarray) -> float:
     """Numba 0.75 quantile function for a 1d numpy array.
 
@@ -392,7 +392,7 @@ def quantile75(X: np.ndarray) -> float:
     return quantile(X, 0.75)
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_quantile75(X: np.ndarray) -> np.ndarray:
     """Numba 0.75 quantile function for a 2d numpy array.
 
@@ -444,7 +444,7 @@ def std(X: np.ndarray) -> float:
     return (s / X.shape[0]) ** 0.5
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def std2(X: np.ndarray, X_mean: float) -> float:
     """Numba standard deviation function for a 1d numpy array with pre-calculated mean.
 
@@ -473,7 +473,7 @@ def std2(X: np.ndarray, X_mean: float) -> float:
     return (s / X.shape[0]) ** 0.5
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_std(X: np.ndarray) -> np.ndarray:
     """Numba standard deviation function for a 2d numpy array.
 
@@ -500,7 +500,7 @@ def row_std(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def numba_min(X: np.ndarray) -> float:
     """Numba min function for a 1d numpy array.
 
@@ -528,7 +528,7 @@ def numba_min(X: np.ndarray) -> float:
     return m
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_numba_min(X: np.ndarray) -> np.ndarray:
     """Numba min function for a 2d numpy array.
 
@@ -555,7 +555,7 @@ def row_numba_min(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def numba_max(X: np.ndarray) -> float:
     """Numba max function for a 1d numpy array.
 
@@ -583,7 +583,7 @@ def numba_max(X: np.ndarray) -> float:
     return m
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_numba_max(X: np.ndarray) -> np.ndarray:
     """Numba max function for a 2d numpy array.
 
@@ -610,7 +610,7 @@ def row_numba_max(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def slope(X: np.ndarray) -> float:
     """Numba slope function for a 1d numpy array.
 
@@ -645,7 +645,7 @@ def slope(X: np.ndarray) -> float:
     return 0 if denom == 0 else slope / denom
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_slope(X: np.ndarray) -> np.ndarray:
     """Numba slope function for a 2d numpy array.
 
@@ -672,7 +672,7 @@ def row_slope(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def iqr(X: np.ndarray) -> float:
     """Numba interquartile range function for a 1d numpy array.
 
@@ -697,7 +697,7 @@ def iqr(X: np.ndarray) -> float:
     return p75 - p25
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_iqr(X: np.ndarray) -> np.ndarray:
     """Numba interquartile range function for a 2d numpy array.
 
@@ -724,7 +724,7 @@ def row_iqr(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def ppv(X: np.ndarray) -> float:
     """Numba proportion of positive values function for a 1d numpy array.
 
@@ -752,7 +752,7 @@ def ppv(X: np.ndarray) -> float:
     return count / X.shape[0]
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def row_ppv(X: np.ndarray) -> np.ndarray:
     """Numba proportion of positive values function for a 2d numpy array.
 
@@ -779,7 +779,7 @@ def row_ppv(X: np.ndarray) -> np.ndarray:
     return arr
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def fisher_score(X: np.ndarray, y: np.ndarray) -> float:
     """Numba Fisher score function.
 
@@ -824,7 +824,7 @@ def fisher_score(X: np.ndarray, y: np.ndarray) -> float:
         return accum_numerator / accum_denominator
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def prime_up_to(n: int) -> np.ndarray:
     """Check if any number from 1 to n is a prime number and return the ones which are.
 
@@ -849,7 +849,7 @@ def prime_up_to(n: int) -> np.ndarray:
     return np.where(is_p)[0]
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def is_prime(n: int) -> bool:
     """Check if the input number is a prime number.
 
