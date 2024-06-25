@@ -5,7 +5,7 @@ classifier.
 """
 
 __maintainer__ = ["zy18811"]
-__all__ = ["REDCOMETSv1"]
+__all__ = ["REDCOMETS"]
 
 from collections import Counter
 
@@ -22,7 +22,7 @@ from aeon.transformations.collection.dictionary_based import SAX, SFA
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class REDCOMETSv1(BaseClassifier):
+class REDCOMETS(BaseClassifier):
     """
     Random EnhanceD Co-eye for Multivariate Time Series (RED CoMETS).
 
