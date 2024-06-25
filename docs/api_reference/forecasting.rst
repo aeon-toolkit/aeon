@@ -265,18 +265,6 @@ Structural time series models
 
     DynamicFactor
 
-Ensembles and stacking
-----------------------
-
-.. currentmodule:: aeon.forecasting.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    EnsembleForecaster
-    AutoEnsembleForecaster
-    StackingForecaster
 
 Hierarchical reconciliation
 ---------------------------

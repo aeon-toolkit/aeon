@@ -129,6 +129,7 @@ docs = [
     "jupyter",
     "furo",
     "tabulate",
+    "matplotlib",
 ]
 
 [project.urls]
