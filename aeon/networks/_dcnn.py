@@ -126,8 +126,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
                 kernel_size=1,
             )(x)
 
-        model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
-        return model
+        return input_layer, output_layer
 
     def _dcnn_layer(
         self, _inputs, _num_filters, _dilation_rate, _activation, _kernel_size
