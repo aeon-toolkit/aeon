@@ -330,7 +330,6 @@ class REDCOMETS(BaseClassifier):
             List of lists ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
         """
-
         sfa_transforms = []
         sfa_clfs = []
         sax_transforms = []
