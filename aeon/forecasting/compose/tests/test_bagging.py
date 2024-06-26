@@ -7,8 +7,8 @@ from aeon.datasets import load_airline
 from aeon.forecasting.compose import BaggingForecaster
 from aeon.forecasting.compose._bagging import _calculate_data_quantiles
 from aeon.forecasting.naive import NaiveForecaster
+from aeon.transformations._legacy._boxcox import _LogTransformer
 from aeon.transformations.bootstrap import STLBootstrapTransformer
-from aeon.transformations.boxcox import LogTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 y = load_airline()
@@ -18,7 +18,7 @@ y = load_airline()
     not _check_soft_dependencies("statsmodels", severity="none"),
     reason="skip test if required soft dependency for BaggingForecaster not available",
 )
-@pytest.mark.parametrize("transformer", [LogTransformer, NaiveForecaster])
+@pytest.mark.parametrize("transformer", [_LogTransformer, NaiveForecaster])
 def test_bagging_forecaster_transformer_type_error(transformer):
     """Test that the right exception is raised for invalid transformer."""
     with pytest.raises(TypeError) as ex:
@@ -37,7 +37,7 @@ def test_bagging_forecaster_transformer_type_error(transformer):
     not _check_soft_dependencies("statsmodels", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("forecaster", [LogTransformer])
+@pytest.mark.parametrize("forecaster", [_LogTransformer])
 def test_bagging_forecaster_forecaster_type_error(forecaster):
     """Test that the right exception is raised for invalid forecaster."""
     with pytest.raises(TypeError) as ex:

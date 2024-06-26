@@ -6,8 +6,6 @@ Pipeline regressor using the ROCKET transformer and RidgeCV estimator.
 __maintainer__ = []
 __all__ = ["RocketRegressor"]
 
-import warnings
-
 import numpy as np
 from sklearn.linear_model import RidgeCV
 from sklearn.pipeline import make_pipeline
@@ -17,7 +15,6 @@ from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
-    MiniRocketMultivariate,
     MultiRocket,
     MultiRocketMultivariate,
     Rocket,
@@ -101,7 +98,6 @@ class RocketRegressor(BaseRegressor):
         rocket_transform="rocket",
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
-        use_multivariate="deprecated",
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -113,14 +109,6 @@ class RocketRegressor(BaseRegressor):
         self.random_state = random_state
         self.estimator = estimator
         self.n_jobs = n_jobs
-
-        self.use_multivariate = use_multivariate
-        if use_multivariate != "deprecated":
-            warnings.warn(
-                "the use_multivariate parameter is deprecated and will be "
-                "removed in v0.9.0. Datatype will be automatically detected.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -154,20 +142,12 @@ class RocketRegressor(BaseRegressor):
                 random_state=self.random_state,
             )
         elif rocket_transform == "minirocket":
-            if self.n_channels_ > 1:
-                self._transformer = MiniRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
-            else:
-                self._transformer = MiniRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
+            self._transformer = MiniRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+                n_jobs=self.n_jobs,
+                random_state=self.random_state,
+            )
         elif rocket_transform == "multirocket":
             if self.n_channels_ > 1:
                 self._transformer = MultiRocketMultivariate(
