@@ -7,6 +7,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
