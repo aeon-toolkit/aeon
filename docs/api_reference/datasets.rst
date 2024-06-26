@@ -3,6 +3,10 @@
 Datasets
 ========
 
+.. automodule:: aeon.datasets
+    :no-members:
+    :no-inherited-members:
+
 .. currentmodule:: aeon.datasets
 
 .. autosummary::
@@ -36,6 +40,6 @@ Datasets
     load_uschange
     load_macroeconomic
     load_solar
-    load_kdd_tsad_135
-    load_daphnet_s06r02e0
-    load_ecg_diff_count_3
+    load_dodgers
+    load_calit2
+    load_rmj_2_short_2_diff_channel
