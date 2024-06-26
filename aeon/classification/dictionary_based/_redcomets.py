@@ -615,6 +615,6 @@ class REDCOMETS(BaseClassifier):
             `params``.
         """
         return {
-            "variant": 1,
-            "n_trees": 1,
+            "variant": 3,
+            "n_trees": 3,
         }
