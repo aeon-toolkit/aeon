@@ -185,7 +185,6 @@ class TimeSeriesKMeans(BaseClusterer):
 
         self._random_state = None
         self._init_algorithm = None
-        self._fit_method = None
         self._averaging_method = None
         self._average_params = None
 
