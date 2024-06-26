@@ -309,7 +309,7 @@ class BaseTransformer(BaseEstimator):
             where `columns1` is first or only item in `key`, and `columns2` is the last
             if only one item is passed in `key`, only `columns1` is applied to input
         """
-        from aeon.transformations.subset import ColumnSelect
+        from aeon.transformations._legacy.subset import _ColumnSelect
 
         def is_noneslice(obj):
             res = isinstance(obj, slice)
@@ -327,13 +327,13 @@ class BaseTransformer(BaseEstimator):
             if is_noneslice(columns1) and is_noneslice(columns2):
                 return self
             elif is_noneslice(columns2):
-                return ColumnSelect(columns1) * self
+                return _ColumnSelect(columns1) * self
             elif is_noneslice(columns1):
-                return self * ColumnSelect(columns2)
+                return self * _ColumnSelect(columns2)
             else:
-                return ColumnSelect(columns1) * self * ColumnSelect(columns2)
+                return _ColumnSelect(columns1) * self * _ColumnSelect(columns2)
         else:
-            return ColumnSelect(key) * self
+            return _ColumnSelect(key) * self
 
     def fit(self, X, y=None):
         """Fit transformer to X, optionally to y.
