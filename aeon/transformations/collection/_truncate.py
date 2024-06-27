@@ -1,6 +1,6 @@
 """Truncation transformer - truncate unequal length panels to lower/upper bounds."""
 
-__all__ = ["TruncationTransformer"]
+__all__ = ["Truncator"]
 __maintainer__ = []
 
 import numpy as np
@@ -8,7 +8,7 @@ import numpy as np
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class TruncationTransformer(BaseCollectionTransformer):
+class Truncator(BaseCollectionTransformer):
     """Truncate unequal length time series to a lower bounds.
 
     Truncates all series in panel between lower/upper range bounds. This transformer
@@ -24,11 +24,11 @@ class TruncationTransformer(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import TruncationTransformer
+    >>> from aeon.transformations.collection import Truncator
     >>> import numpy as np
     >>> X = []
     >>> for i in range(10): X.append(np.random.random((4, 75 + i)))
-    >>> truncator = TruncationTransformer(truncated_length=10)
+    >>> truncator = Truncator(truncated_length=10)
     >>> X2 = truncator.fit_transform(X)
     >>> X2.shape
     (10, 4, 10)

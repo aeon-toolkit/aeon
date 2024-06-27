@@ -1,6 +1,6 @@
 """Padding transformer, pad unequal length time series to max length or fixed length."""
 
-__all__ = ["PaddingTransformer"]
+__all__ = ["Padder"]
 __maintainer__ = []
 
 import numpy as np
@@ -17,7 +17,7 @@ def _get_max_length(X):
     return max_length
 
 
-class PaddingTransformer(BaseCollectionTransformer):
+class Padder(BaseCollectionTransformer):
     """Pad unequal length time series to equal, fixed length.
 
     Pads the input dataset to either fixed length (at least as long as the longest
@@ -38,11 +38,11 @@ class PaddingTransformer(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import PaddingTransformer
+    >>> from aeon.transformations.collection import Padder
     >>> import numpy as np
     >>> X = []
     >>> for i in range(10): X.append(np.random.random((4, 75 + i)))
-    >>> padder = PaddingTransformer(pad_length=200, fill_value =42)
+    >>> padder = Padder(pad_length=200, fill_value =42)
     >>> X2 = padder.fit_transform(X)
     >>> X2.shape
     (10, 4, 200)

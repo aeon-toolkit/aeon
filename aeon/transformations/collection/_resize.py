@@ -1,6 +1,6 @@
-"""Time series interpolator/re-sampler."""
+"""Time series resizer."""
 
-__all__ = ["TSInterpolator"]
+__all__ = ["Resizer"]
 __maintainer__ = []
 
 import numpy as np
@@ -8,12 +8,13 @@ import numpy as np
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class TSInterpolator(BaseCollectionTransformer):
+class Resizer(BaseCollectionTransformer):
     """Time series interpolator/re-sampler.
 
-    Transformer that rescales series for another number of points.
-    For each series, np.interp  is fitted on each channel independently.
-    After transformation each series will be a 2D numpy array (n_channels, length).
+    Transformer that resizes series using np.linspace  is fitted on each channel
+    independently. After transformation the collection will be a numpy array shape (
+    n_cases, n_channels, length). It is not capable of sensibly handling missing
+    values.
 
     Parameters
     ----------
@@ -22,13 +23,13 @@ class TSInterpolator(BaseCollectionTransformer):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection import Resizer
     >>> # Unequal length collection of time series
     >>> X_list = []
     >>> for i in range(10): X_list.append(np.random.rand(5,10+i))
     >>> # Equal length collection of time series
     >>> X_array = np.random.rand(10,3,30)
-    >>> trans = TSInterpolator(length = 50)
+    >>> trans = Resizer(length = 50)
     >>> X_new = trans.fit_transform(X_list)
     >>> X_new.shape
     (10, 5, 50)
@@ -58,7 +59,7 @@ class TSInterpolator(BaseCollectionTransformer):
         super().__init__()
 
     def _transform(self, X, y=None):
-        """Take series in each cell, train linear interpolation and samples n.
+        """Fit a linear function on each channel of each series, then resample.
 
         Parameters
         ----------

@@ -21,7 +21,7 @@ from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
-    PaddingTransformer,
+    Padder,
     Tabularizer,
     TimeSeriesScaler,
 )
@@ -31,15 +31,15 @@ from aeon.transformations.collection.feature_based import SevenNumberSummaryTran
 @pytest.mark.parametrize(
     "transformers",
     [
-        PaddingTransformer(pad_length=15),
+        Padder(pad_length=15),
         SevenNumberSummaryTransformer(),
         TabularToSeriesAdaptor(StandardScaler()),
-        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
+        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
         [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
         [
             TabularToSeriesAdaptor(StandardScaler()),
-            PaddingTransformer(pad_length=15),
+            Padder(pad_length=15),
             SevenNumberSummaryTransformer(),
         ],
     ],
@@ -71,15 +71,15 @@ def test_regressor_pipeline(transformers):
 @pytest.mark.parametrize(
     "transformers",
     [
-        [PaddingTransformer(pad_length=15), Tabularizer()],
+        [Padder(pad_length=15), Tabularizer()],
         SevenNumberSummaryTransformer(),
         [Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
+        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
         [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
         [
             TabularToSeriesAdaptor(StandardScaler()),
-            PaddingTransformer(pad_length=15),
+            Padder(pad_length=15),
             SevenNumberSummaryTransformer(),
         ],
     ],
@@ -114,7 +114,7 @@ def test_unequal_tag_inference():
     )
 
     t1 = SevenNumberSummaryTransformer()
-    t2 = PaddingTransformer()
+    t2 = Padder()
     t3 = TimeSeriesScaler()
     t4 = AutocorrelationFunctionTransformer(n_lags=5)
     t5 = StandardScaler()
