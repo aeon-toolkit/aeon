@@ -46,23 +46,6 @@ Composition
 Pipeline building
 ~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TransformerPipeline
-    FeatureUnion
-    ColumnwiseTransformer
-    ColumnTransformer
-    FitInTransform
-    MultiplexTransformer
-    OptionalPassthrough
-    InvertTransform
-    Id
-    YtoX
-
 .. currentmodule:: aeon.transformations.func_transform
 
 .. autosummary::
@@ -81,15 +64,6 @@ Sklearn and pandas adapters
     :template: class.rst
 
     Tabularizer
-
-.. currentmodule:: aeon.transformations.adapt
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TabularToSeriesAdaptor
-    PandasTransformAdaptor
 
 Series-to-tabular transformers
 -------------------------------
@@ -137,7 +111,6 @@ Shapelets, wavelets and convolution
 
     Rocket
     MiniRocket
-    MiniRocketMultivariate
     MiniRocketMultivariateVariable
     MultiRocket
     MultiRocketMultivariate
@@ -218,14 +191,14 @@ Lagging
 
     Lag
 
-Element-wise transforms
+Series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 These transformations apply a function element-wise.
 
 Depending on the transformer, the transformation parameters can be fitted.
 
-.. currentmodule:: aeon.transformations.boxcox
+.. currentmodule:: aeon.transformations.series._boxcox
 
 .. autosummary::
     :toctree: auto_generated/
@@ -242,14 +215,6 @@ Depending on the transformer, the transformation parameters can be fitted.
 
     ScaledLogitTransformer
 
-.. currentmodule:: aeon.transformations.cos
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    CosineTransformer
-
 .. currentmodule:: aeon.transformations.exponent
 
 .. autosummary::
@@ -257,7 +222,6 @@ Depending on the transformer, the transformation parameters can be fitted.
     :template: class.rst
 
     ExponentTransformer
-    SqrtTransformer
 
 Detrending
 ~~~~~~~~~~
@@ -273,7 +237,7 @@ Detrending
     ConditionalDeseasonalizer
     STLTransformer
 
-.. currentmodule:: aeon.transformations.clear_sky
+.. currentmodule:: aeon.transformations.series._clear_sky
 
 .. autosummary::
     :toctree: auto_generated/
@@ -293,14 +257,6 @@ Filtering and denoising
 
     BKFilter
 
-.. currentmodule:: aeon.transformations.kalman_filter
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    KalmanFilterTransformer
-
 .. currentmodule:: aeon.transformations.theta
 
 .. autosummary::
@@ -309,16 +265,8 @@ Filtering and denoising
 
     ThetaLinesTransformer
 
-Differencing and slope
+Slope
 ~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.difference
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Differencer
 
 .. currentmodule:: aeon.transformations.collection.slope
 
@@ -328,16 +276,8 @@ Differencing and slope
 
     SlopeTransformer
 
-Binning and segmentation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.binning
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeBinAggregate
+Segmentation
+~~~~~~~~~~~~
 
 .. currentmodule:: aeon.transformations.collection.interpolate
 
@@ -379,14 +319,6 @@ Seasonality and Date-Time Features
 
     DateTimeFeatures
 
-.. currentmodule:: aeon.transformations.time_since
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeSince
-
 .. currentmodule:: aeon.transformations.fourier
 
 .. autosummary::
@@ -394,18 +326,6 @@ Seasonality and Date-Time Features
     :template: class.rst
 
     FourierFeatures
-
-Auto-correlation series
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.acf
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    AutoCorrelationTransformer
-    PartialAutoCorrelationTransformer
 
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -433,20 +353,6 @@ These transformers convert multivariate series to univariate.
 
     ColumnConcatenator
 
-Augmentation
-~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.augmenter
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    InvertAugmenter
-    RandomSamplesAugmenter
-    ReverseAugmenter
-    WhiteNoiseAugmenter
-
 FeatureSelection
 ~~~~~~~~~~~~~~~~
 
@@ -468,20 +374,6 @@ These transformers select features in `X` based on `y`.
 
     ElbowClassSum
     ElbowClassPairwise
-
-Subsetting time points and variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These transformers subset `X` by time points (`pandas` index or index level) or variables (`pandas` columns).
-
-.. currentmodule:: aeon.transformations.subset
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ColumnSelect
-    IndexSubset
 
 Panel transformers
 ------------------
@@ -515,7 +407,7 @@ These transformations ensure all series in a panel have equal length
 Dimension reduction
 ~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.pca
+.. currentmodule:: aeon.transformations.series._pca
 
 .. autosummary::
     :toctree: auto_generated/
@@ -551,7 +443,7 @@ Outlier detection, changepoint detection
 
     HampelFilter
 
-.. currentmodule:: aeon.transformations.clasp
+.. currentmodule:: aeon.transformations.series._clasp
 
 .. autosummary::
     :toctree: auto_generated/

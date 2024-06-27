@@ -31,7 +31,8 @@ from aeon.performance_metrics.forecasting import (
     mean_absolute_percentage_error,
     mean_absolute_scaled_error,
 )
-from aeon.testing.data_generation import _make_hierarchical, make_forecasting_problem
+from aeon.testing.data_generation import _make_hierarchical
+from aeon.testing.data_generation._legacy import make_forecasting_problem
 from aeon.testing.test_config import PR_TESTING
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 

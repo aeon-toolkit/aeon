@@ -60,16 +60,16 @@ def subsample_by_version_os(x):
     Ensures each estimator is tested at least once on every OS and python version,
     if combined with a matrix of OS/versions.
 
-    Currently assumes that matrix includes py3.8-3.12, and win/ubuntu/mac.
+    Currently assumes that matrix includes py3.9-3.12, and win/ubuntu/mac.
     """
     import platform
     import sys
 
     # only use 3 Python versions in PR
     ix = sys.version_info.minor
-    if ix == 8:
+    if ix == 9:
         ix = 0
-    elif ix == 10:
+    elif ix == 11:
         ix = 1
     elif ix == 12:
         ix = 2

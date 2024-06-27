@@ -34,20 +34,6 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     upper_bound : float, optional, default=None
         upper bound of inverse transform function
 
-    See Also
-    --------
-    aeon.transformations.boxcox.LogTransformer :
-        Transformer input data using natural log. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.boxcox.BoxCoxTransformer :
-        Applies Box-Cox power transformation. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.exponent.ExponentTransformer :
-        Transform input data by raising it to an exponent. Can help compress
-        variance of series if a fractional exponent is supplied.
-    aeon.transformations.exponent.SqrtTransformer :
-        Transform input data by taking its square root. Can help compress
-        variance of input series.
 
     Notes
     -----
@@ -103,7 +89,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
 
-        super().__init__()
+        super().__init__(axis=1)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
