@@ -5,7 +5,7 @@ __maintainer__ = ["CodeLionX"]
 import numpy as np
 
 from aeon.anomaly_detection import KMeansAD
-from aeon.testing.data_generation import make_series
+from aeon.testing.data_generation._legacy import make_series
 
 
 def test_kmeansad_univariate():
