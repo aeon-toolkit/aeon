@@ -73,6 +73,7 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
+    ProximityTree
 
 Feature-based
 -------------
