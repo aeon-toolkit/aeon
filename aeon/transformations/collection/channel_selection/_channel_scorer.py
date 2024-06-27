@@ -40,14 +40,6 @@ class ChannelScorer(BaseChannelSelector):
         classifier: BaseClassifier = None,
         proportion: float = 0.4,
     ):
-        if proportion <= 0 or proportion > 1:
-            raise ValueError("proportion must be in the range 0-1")
-        if classifier is not None and not isinstance(classifier, BaseClassifier):
-            raise ValueError(
-                "parameter classifier must be None or an instance of a  "
-                "BaseClassifier. If None, a RocketClassifier is used"
-            )
-
         self.proportion = proportion
         self.classifier = classifier
         super().__init__()
@@ -67,9 +59,17 @@ class ChannelScorer(BaseChannelSelector):
         -------
         self : reference to self.
         """
+        if self.proportion <= 0 or self.proportion > 1:
+            raise ValueError("proportion must be in the range 0-1")
+
         if self.classifier is None:
             self.classifier_ = RocketClassifier(
                 rocket_transform="minirocket", num_kernels=5000
+            )
+        elif not isinstance(self.classifier, BaseClassifier):
+            raise ValueError(
+                "parameter classifier must be None or an instance of a  "
+                "BaseClassifier."
             )
         else:
             self.classifier_ = self.classifier

@@ -2,8 +2,8 @@
 
 import pytest
 
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.testing.mock_estimators import MockClassifierFullTags
-from aeon.testing.utils.data_gen import make_example_3d_numpy
 from aeon.transformations.collection.channel_selection import ChannelScorer
 
 
