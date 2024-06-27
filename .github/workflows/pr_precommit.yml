@@ -1,10 +1,7 @@
 name: PR pre-commit
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  pull_request_target:
     branches:
       - main
 
@@ -17,8 +14,18 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Create app token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
@@ -26,7 +33,7 @@ jobs:
           python-version: "3.10"
 
       - name: Get changed files
-        uses: tj-actions/changed-files@v44.4.0
+        uses: tj-actions/changed-files@v44
         id: changed-files
 
       - name: List changed files
@@ -43,6 +50,9 @@ jobs:
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
 
-      - if: ${{ failure() && github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+      - if: ${{ failure() && github.event_name == 'pull_request' && github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'stop pre-commit fixes')}}
         name: Push pre-commit fixes
-        uses: pre-commit-ci/lite-action@v1.0.2
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Automatic `pre-commit` fixes
+          commit_user_name: aeon-actions-bot[bot]

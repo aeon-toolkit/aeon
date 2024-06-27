@@ -113,7 +113,7 @@ class DynamicFactor(_StatsModelsAdapter):
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import make_series
+    >>> from aeon.testing.data_generation._legacy import make_series
     >>> from aeon.forecasting.dynamic_factor import DynamicFactor
     >>> y = make_series(n_columns=4)
     >>> forecaster = DynamicFactor()  # doctest: +SKIP

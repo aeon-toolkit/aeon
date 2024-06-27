@@ -14,10 +14,10 @@ __all__ = [
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.exceptions import FitFailedWarning
 from sklearn.linear_model import LinearRegression
 
 from aeon.datasets import load_airline, load_longley
-from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.compose._reduce import DirectReductionForecaster
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.model_evaluation import evaluate
@@ -31,8 +31,9 @@ from aeon.performance_metrics.forecasting import (
     mean_absolute_percentage_error,
     mean_absolute_scaled_error,
 )
+from aeon.testing.data_generation import _make_hierarchical
+from aeon.testing.data_generation._legacy import make_forecasting_problem
 from aeon.testing.test_config import PR_TESTING
-from aeon.testing.utils.data_gen import _make_hierarchical, make_forecasting_problem
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if PR_TESTING:

@@ -18,8 +18,18 @@ class MERLIN(BaseAnomalyDetector):
     """MERLIN anomaly detector.
 
     MERLIN is a discord discovery algorithm that uses a sliding window to find the
-    most anomalous subsequence in a time series. The algorithm is based on the
+    most anomalous subsequence in a time series [1]_. The algorithm is based on the
     Euclidean distance between subsequences of the time series.
+
+    .. list-table:: Capabilities
+       :stub-columns: 1
+
+       * - Input data format
+         - univariate
+       * - Output data format
+         - binary classification
+       * - Learning Type
+         - unsupervised
 
     Parameters
     ----------
@@ -28,6 +38,17 @@ class MERLIN(BaseAnomalyDetector):
     max_length : int, default=50
         Maximum length of the subsequence to search for. Must be at half the length
         of the time series or less.
+    max_iterations : int, default=500
+        Maximum number of DRAG iterations to find an anomalous sequence for each
+        length. If no anomaly is found, the algorithm will move to the next length
+        and reset ``r``.
+
+    References
+    ----------
+    .. [1] Nakamura, M. Imamura, R. Mercer and E. Keogh, "MERLIN: Parameter-Free
+           Discovery of Arbitrary Length Anomalies in Massive Time Series
+           Archives," 2020 IEEE International Conference on Data Mining (ICDM),
+           Sorrento, Italy, 2020, pp. 1190-1195.
 
     Examples
     --------
@@ -40,9 +61,10 @@ class MERLIN(BaseAnomalyDetector):
            False, False, False, False, False, False, False])
     """
 
-    def __init__(self, min_length=5, max_length=50):
+    def __init__(self, min_length=5, max_length=50, max_iterations=500):
         self.min_length = min_length
         self.max_length = max_length
+        self.max_iterations = max_iterations
 
         super().__init__(axis=1)
 
@@ -86,34 +108,45 @@ class MERLIN(BaseAnomalyDetector):
         r = 2 * np.sqrt(self.min_length)
         distances = np.full(len(lengths), -1.0)
         indicies = np.full(len(lengths), -1)
-        while distances[0] < 0:
-            indicies[0], distances[0] = self._drag(X, lengths[0], r)
-            r = r * 0.5
+
+        indicies[0], distances[0] = self._find_index(X, lengths[0], r, np.multiply, 0.5)
 
         for i in range(1, min(5, len(lengths))):
             r = distances[i - 1] * 0.99
-            while distances[i] < 0:
-                indicies[i], distances[i] = self._drag(X, lengths[i], r)
-                r = r * 0.99
+            indicies[i], distances[i] = self._find_index(
+                X, lengths[i], r, np.multiply, 0.99
+            )
 
         for i in range(min(5, len(lengths)), len(lengths)):
             m = mean(distances[i - 5 : i])
             s = std(distances[i - 5 : i])
             r = m - 2 * s
-            indicies[i], distances[i] = self._drag(X, lengths[i], r)
-            while distances[i] < 0:
-                indicies[i], distances[i] = self._drag(X, lengths[i], r)
-                r = r - s
-
-        if np.all(distances == -1):
-            raise ValueError("No discord found in the series.")
+            indicies[i], distances[i] = self._find_index(
+                X, lengths[i], r, np.subtract, s
+            )
 
         anomalies = np.zeros(X.shape[0], dtype=bool)
         for i in indicies:
-            if i != np.nan:
+            if i > -1:
                 anomalies[i] = True
 
         return anomalies
+
+    def _find_index(self, X, length, r, mod_func, mod_val):
+        it = 0
+        distance = -1.0
+        index = -1
+
+        while distance < 0:
+            # If the algorithm is taking too long, move to the next length and reset r
+            if it > self.max_iterations:
+                return -1, 2 * np.sqrt(length)
+
+            index, distance = self._drag(X, length, r)
+            r = mod_func(r, mod_val)
+            it += 1
+
+        return index, distance
 
     @staticmethod
     @njit(cache=True, fastmath=True)
@@ -169,7 +202,7 @@ class MERLIN(BaseAnomalyDetector):
                 all_inf = False
 
         if all_inf:
-            return np.nan, np.nan
+            return -1, -1
 
         d_max = int(np.argmax(np.array(D)))
         return C[d_max], np.sqrt(D[d_max])

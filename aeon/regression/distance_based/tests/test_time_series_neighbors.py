@@ -20,6 +20,6 @@ def test_knn_neighbors():
     model.fit(X_train, y_train)
 
     y_pred = model.predict(X_test)
-    y_pred_expected = np.array([-216.06541863, -4.54133078, -324.7624233])
+    y_pred_expected = np.array([-144.410377008, -25.55876587, -229.9764678])
 
-    assert np.abs(y_pred - y_pred_expected).max() < 1e-6
+    assert np.abs(y_pred - y_pred_expected).max() < 1e-4

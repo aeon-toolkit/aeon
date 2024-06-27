@@ -1,29 +1,38 @@
 """Tests for STRAY (Search TRace AnomalY) outlier estimator."""
 
-import warnings
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["STRAY"]
+
 from typing import Dict
 
 import numpy as np
 import numpy.typing as npt
 from sklearn.neighbors import NearestNeighbors
 
-from aeon.transformations.base import BaseTransformer
-
-__maintainer__ = []
-__all__ = ["STRAY"]
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 
 
-class STRAY(BaseTransformer):
+class STRAY(BaseAnomalyDetector):
     """STRAY: robust anomaly detection in data streams with concept drift.
 
     This is based on STRAY (Search TRace AnomalY) [1]_, which is a modification
     of HDoutliers [2]_. HDoutliers is a powerful algorithm for the detection of
     anomalous observations in a dataset, which has (among other advantages) the
-    ability to detect clusters of outliers in multi-dimensional data without
+    ability to detect clusters of outliers in multidimensional data without
     requiring a model of the typical behavior of the system. However, it suffers
     from some limitations that affect its accuracy. STRAY is an extension of
     HDoutliers that uses extreme value theory for the anomolous threshold
     calculation, to deal with data streams that exhibit non-stationary behavior.
+
+    .. list-table:: Capabilities
+       :stub-columns: 1
+
+       * - Input data format
+         - univariate and multivariate
+       * - Output data format
+         - binary classification
+       * - Learning Type
+         - unsupervised
 
     Parameters
     ----------
@@ -45,21 +54,14 @@ class STRAY(BaseTransformer):
     outlier_tail : str {"min", "max"}, default="max"
         Direction of the outlier tail.
 
-    Attributes
-    ----------
-    score_ : pd.Series
-        Outlier score of each data point in X.
-    y_ : pd.Series
-        Outlier boolean flag for each data point in X.
-
     References
     ----------
     .. [1] Talagala, Priyanga Dilini, Rob J. Hyndman, and Kate Smith-Miles.
-    "Anomaly detection in high-dimensional data." Journal of Computational
-    and Graphical Statistics 30.2 (2021): 360-374.
+           "Anomaly detection in high-dimensional data." Journal of Computational
+           and Graphical Statistics 30.2 (2021): 360-374.
     .. [2] Wilkinson, Leland. "Visualizing big data outliers through
-    distributed aggregation." IEEE transactions on visualization and
-    computer graphics 24.1 (2017): 256-266.
+           distributed aggregation." IEEE transactions on visualization and
+           computer graphics 24.1 (2017): 256-266.
 
     Examples
     --------
@@ -70,17 +72,16 @@ class STRAY(BaseTransformer):
     >>> X = load_airline().to_frame().to_numpy()
     >>> scaler = MinMaxScaler()
     >>> X = scaler.fit_transform(X)
-    >>> model = STRAY(k=3)
-    >>> y = model.fit_transform(X)
+    >>> detector = STRAY(k=3)
+    >>> y = detector.fit_predict(X, axis=0)
     >>> y[:5]
     array([False, False, False, False, False])
     """
 
     _tags = {
+        "capability:multivariate": True,
         "capability:missing_values": True,
         "X_inner_type": "np.ndarray",
-        "fit_is_empty": False,
-        "skip-inverse-transform": True,
     }
 
     def __init__(
@@ -98,7 +99,54 @@ class STRAY(BaseTransformer):
         self.p = p
         self.size_threshold = size_threshold
         self.outlier_tail = outlier_tail
-        super().__init__()
+
+        super().__init__(axis=0)
+
+    def _predict(self, X, y=None) -> npt.ArrayLike:
+        idx_dropna = np.array(
+            [i for i in range(X.shape[0]) if not np.isnan(X[i]).any()]
+        )
+        X_dropna = X[idx_dropna,]
+
+        outliers = self._find_outliers_kNN(X_dropna, X_dropna.shape[0])
+
+        # adjusted back to length r, for missing data
+        slice_ = [i in outliers["idx_outliers"] for i in range(X_dropna.shape[0])]
+        idx_outliers = idx_dropna[slice_]  # index values from 1:r
+        outlier_bool = np.array(
+            [1 if i in idx_outliers else 0 for i in range(X.shape[0])]
+        )
+
+        return outlier_bool.astype(bool)
+
+    def _find_outliers_kNN(self, X: np.ndarray, n: int) -> Dict:
+        """Find outliers using kNN distance with maximum gap.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Data for anomaly detection (time series).
+        n : int
+            The number of rows remaining in X when NA's are removed.
+
+        Returns
+        -------
+        dict of index of outliers and the outlier scores
+        """
+        nbrs = NearestNeighbors(
+            n_neighbors=n if self.k >= n else self.k + 1,
+            algorithm=self.knn_algorithm,
+        ).fit(X)
+        distances, _ = nbrs.kneighbors(X)
+
+        if self.k == 1:
+            d = distances[:, 1]
+        else:
+            diff = np.apply_along_axis(np.diff, 1, distances)
+            d = distances[range(n), np.apply_along_axis(np.argmax, 1, diff) + 1]
+
+        out_index = self._find_threshold(d, n)
+        return {"idx_outliers": out_index, "out_scores": d}
 
     def _find_threshold(self, outlier_score: npt.ArrayLike, n: int) -> npt.ArrayLike:
         """Find Outlier Threshold.
@@ -106,7 +154,7 @@ class STRAY(BaseTransformer):
         Parameters
         ----------
         outlier_score : np.ArrayLike
-            The outlier scores determined by k nearast neighbours distance
+            The outlier scores determined by k nearest neighbours distance
         n : int
             The number of rows remaining in X when NA's are removed.
 
@@ -138,127 +186,3 @@ class STRAY(BaseTransformer):
                 break
 
         return np.where(outlier_score > bound)[0]
-
-    def _find_outliers_kNN(self, X: npt.ArrayLike, n: int) -> Dict:
-        """Find outliers using kNN distance with maximum gap.
-
-        Parameters
-        ----------
-        X : np.ArrayLike
-            Data for anomaly detection (time series).
-        n : int
-            The number of rows remaining in X when NA's are removed.
-
-        Returns
-        -------
-        dict of index of outliers and the outlier scores
-        """
-        if len(X.shape) == 1:
-            nbrs = NearestNeighbors(n_neighbors=self.k + 1).fit(X.reshape(-1, 1))
-            distances, _ = nbrs.kneighbors(X.reshape(-1, 1))
-        else:
-            nbrs = NearestNeighbors(
-                n_neighbors=n if self.k >= n else self.k + 1,
-                algorithm=self.knn_algorithm,
-            ).fit(X)
-            distances, _ = nbrs.kneighbors(X)
-
-        if self.k == 1:
-            d = distances[:, 1]
-        else:
-            diff = np.apply_along_axis(np.diff, 1, distances)
-            d = distances[range(n), np.apply_along_axis(np.argmax, 1, diff) + 1]
-
-        out_index = self._find_threshold(d, n)
-        return {"idx_outliers": out_index, "out_scores": d}
-
-    def _find_outliers(self, X):
-        """Detect Anomalies in High Dimensional Data.
-
-        Parameters
-        ----------
-        X : np.ArrayLike
-            Data for anomaly detection (time series).
-
-        Returns
-        -------
-        dict of anomalies and their corresponding scores
-        """
-        r = np.shape(X)[0]
-        idx_dropna = np.array([i for i in range(r) if not np.isnan(X[i]).any()])
-        X_dropna = X[idx_dropna,]
-
-        n = np.shape(X_dropna)[0]
-        outliers = self._find_outliers_kNN(X_dropna, n)
-
-        # adjusted back to length r, for missing data
-        slice_ = [i in outliers["idx_outliers"] for i in range(n)]
-        idx_outliers = idx_dropna[slice_]  # index values from 1:r
-        outlier_bool = np.array([1 if i in idx_outliers else 0 for i in range(r)])
-
-        list_scores = outliers["out_scores"].tolist()
-        outlier_scores = np.array(
-            [list_scores.pop(0) if i in idx_dropna else np.nan for i in range(r)]
-        )
-
-        return {
-            "outlier_scores": outlier_scores,
-            "outlier_bool": outlier_bool,
-        }
-
-    def _fit(self, X: npt.ArrayLike, y: npt.ArrayLike = None):
-        """Find outliers using STRAY (Search TRace AnomalY).
-
-        Parameters
-        ----------
-        X : np.ArrayLike
-            Data for anomaly detection (time series).
-        y : pd.Series, optional
-            Not used for this unsupervsed method.
-
-        Returns
-        -------
-        self :
-            Reference to self.
-        """
-        # remember X for transform
-        self._X = X
-
-        info_dict = self._find_outliers(X)
-        self.score_ = info_dict["outlier_scores"]
-        self.y_ = info_dict["outlier_bool"]
-
-        return self
-
-    def _transform(self, X: npt.ArrayLike, y: npt.ArrayLike = None) -> npt.ArrayLike:
-        """Return anomaly detection.
-
-        Parameters
-        ----------
-        X : np.ArrayLike
-            Data for anomaly detection (time series).
-
-        Returns
-        -------
-        y_ : np.ArrayLike
-            Anomaly detection, boolean.
-        """
-        # fit again if data is different to fit, but don't store anything
-        if not np.allclose(X, self._X, equal_nan=True):
-            new_obj = STRAY(
-                alpha=self.alpha,
-                k=self.k,
-                knn_algorithm=self.knn_algorithm,
-                p=self.p,
-                size_threshold=self.size_threshold,
-                outlier_tail=self.outlier_tail,
-            ).fit(X)
-            warnings.warn(
-                "Warning: Input data X differs from that given to fit(). "
-                "Refitting with new input data, not storing updated public class "
-                "attributes. For this, explicitly use fit(X) or fit_transform(X).",
-                stacklevel=2,
-            )
-            return new_obj.y_.astype(bool)
-
-        return self.y_.astype(bool)

@@ -8,7 +8,7 @@ import pytest
 from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.registry import all_estimators
-from aeon.testing.utils.data_gen import make_forecasting_problem, make_series
+from aeon.testing.data_generation._legacy import make_forecasting_problem, make_series
 
 FH0 = 1
 
