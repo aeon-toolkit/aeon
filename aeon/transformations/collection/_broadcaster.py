@@ -106,7 +106,7 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
         # Need to make it a valid collection
         for i in range(n_cases):
             if isinstance(Xt[i], np.ndarray) and Xt[i].ndim == 1:
-                Xt[i] = Xt[i].reshape(1, -11)
+                Xt[i] = Xt[i].reshape(1, -1)
         return Xt
 
     def _inverse_transform(self, X, y=None):
