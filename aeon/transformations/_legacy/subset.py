@@ -3,19 +3,12 @@
 __maintainer__ = []
 
 import pandas as pd
-from deprecated.sphinx import deprecated
 from pandas.api.types import is_integer_dtype
 
 from aeon.transformations.base import BaseTransformer
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="IndexSubset will be removed in version 0.10.0.",
-    category=FutureWarning,
-)
-class IndexSubset(BaseTransformer):
+class _IndexSubset(BaseTransformer):
     r"""Index subsetting transformer.
 
     In transform, subsets `X` to the indices in `y.index`.
@@ -115,13 +108,7 @@ class IndexSubset(BaseTransformer):
         return [params1, params2]
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="ColumnSelect will be removed in version 0.10.0.",
-    category=FutureWarning,
-)
-class ColumnSelect(BaseTransformer):
+class _ColumnSelect(BaseTransformer):
     r"""Column selection transformer.
 
     In transform, subsets `X` to `columns` provided as hyper-parameters.

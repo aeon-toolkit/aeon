@@ -1,4 +1,4 @@
-"""Implemenents Box-Cox and Log Transformations."""
+"""Implements Box-Cox and Log Transformations."""
 
 __maintainer__ = []
 __all__ = ["_BoxCoxTransformer", "_LogTransformer"]
