@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -114,7 +114,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest
+        run: python -m pytest -n logical
 
       - name: Save new cache
         uses: actions/cache/save@v4
@@ -130,10 +130,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macOS-13, windows-2022 ]
-        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -160,7 +160,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest
+        run: python -m pytest -n logical
 
       - name: Save new cache
         uses: actions/cache/save@v4
@@ -173,7 +173,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -195,7 +195,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
+        run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

@@ -14,10 +14,10 @@ from aeon.distances._distance import (
     _resolve_key_from_distance,
 )
 from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+from aeon.testing.data_generation._legacy import make_series
 from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results,
 )
-from aeon.testing.utils.data_gen import make_series
 
 
 def _validate_distance_result(

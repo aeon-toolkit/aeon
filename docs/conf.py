@@ -94,7 +94,13 @@ numpydoc_show_class_members = True
 # see https://github.com/numpy/numpydoc/issues/69
 numpydoc_class_members_toctree = False
 
-numpydoc_validation_checks = {"all"}
+numpydoc_validation_checks = {
+    "all",
+    "GL01",  # docstring starts after opening quotes
+    "ES01",  # no extended summary
+    "SA01",  # no see also section
+    "EX01",  # no examples
+}
 
 # generate autosummary even if no references
 autosummary_generate = True

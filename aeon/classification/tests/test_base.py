@@ -11,7 +11,7 @@ from aeon.testing.mock_estimators import (
     MockClassifierFullTags,
     MockClassifierPredictProba,
 )
-from aeon.testing.utils.data_gen._collection import (
+from aeon.testing.testing_data import (
     EQUAL_LENGTH_MULTIVARIATE,
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,

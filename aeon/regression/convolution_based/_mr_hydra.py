@@ -49,7 +49,7 @@ class MultiRocketHydraRegressor(BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.convolution_based import MultiRocketHydraRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              regression_target=True, random_state=0)
     >>> clf = MultiRocketHydraRegressor(random_state=0)  # doctest: +SKIP

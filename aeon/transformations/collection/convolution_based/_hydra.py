@@ -52,7 +52,7 @@ class HydraTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.convolution_based import HydraTransformer
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, _ = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              random_state=0)
     >>> clf = HydraTransformer(random_state=0)  # doctest: +SKIP

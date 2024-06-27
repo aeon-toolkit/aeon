@@ -6,10 +6,17 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="Aggregator will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class Aggregator(BaseTransformer):
     """Prepare hierarchical data, including aggregate levels, from bottom level.
 
@@ -36,7 +43,7 @@ class Aggregator(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
+    >>> from aeon.testing.data_generation import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,

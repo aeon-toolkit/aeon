@@ -2,8 +2,8 @@
 
 import pytest
 
-from aeon.testing.utils.data_gen import get_examples
-from aeon.testing.utils.data_gen._collection import EQUAL_LENGTH_UNIVARIATE
+from aeon.testing.data_generation._legacy import get_examples
+from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE
 from aeon.utils.validation._input import (
     COLLECTIONS,
     HIERARCHICAL,

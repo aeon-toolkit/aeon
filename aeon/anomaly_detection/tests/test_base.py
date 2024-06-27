@@ -7,12 +7,12 @@ import pandas as pd
 import pytest
 from numpy.testing import assert_almost_equal
 
+from aeon.testing.data_generation._legacy import make_series
 from aeon.testing.mock_estimators._mock_anomaly_detectors import (
     MockAnomalyDetector,
     MockAnomalyDetectorRequiresFit,
     MockAnomalyDetectorRequiresY,
 )
-from aeon.testing.utils.data_gen import make_series
 
 test_series = make_series(n_timepoints=10, return_numpy=True)
 test_series_2d = make_series(n_timepoints=10, n_columns=2, return_numpy=True).T
