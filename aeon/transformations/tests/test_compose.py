@@ -13,6 +13,9 @@ from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations._legacy._boxcox import _LogTransformer
 from aeon.transformations._legacy.subset import _ColumnSelect
+from aeon.transformations._legacy.theta import (
+    _ThetaLinesTransformer as ThetaLinesTransformer,
+)
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.compose import (
     ColumnConcatenator,
@@ -23,7 +26,6 @@ from aeon.transformations.compose import (
 )
 from aeon.transformations.impute import Imputer
 from aeon.transformations.summarize import SummaryTransformer
-from aeon.transformations.theta import ThetaLinesTransformer
 
 
 def test_dunder_mul():
