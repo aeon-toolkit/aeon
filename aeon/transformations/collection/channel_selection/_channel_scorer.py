@@ -72,7 +72,7 @@ class ChannelScorer(BaseChannelSelector):
                 "BaseClassifier."
             )
         else:
-            self.classifier_ = self.classifier
+            self.classifier_ = self.classifier.clone()
         n_channels = X.shape[1]
         scores = np.zeros(n_channels)
         # Evaluate each channel with the classifier
