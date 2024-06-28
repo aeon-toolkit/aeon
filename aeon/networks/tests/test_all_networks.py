@@ -42,6 +42,9 @@ def test_all_networks_functionality(network):
             if "EncoderNetwork" == str(network):
                 if _check_soft_dependencies(["tensorflow-addons"], severity="none"):
                     my_network = network()
+                else:
+                    with pytest.raises(ModuleNotFoundError):
+                        my_network = network()
             else:
                 my_network = network()
 
