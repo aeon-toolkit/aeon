@@ -45,7 +45,7 @@ def test_all_networks_functionality(network):
             else:
                 my_network = network()
 
-        if network._config["auto_encoder"]:
+        if network._config["auto-encoder"]:
             encoder, decoder = my_network.build_network(input_shape=input_shape)
             assert encoder.layers[-1].output_shape[1:] == (my_network.latent_space_dim,)
             assert encoder.layers[0].input_shape[0] == decoder.layers[-1].output_shape
