@@ -17,13 +17,16 @@ def test_channel_scorer():
     X, y = make_example_3d_numpy(n_channels=9)
     assert len(cs.channels_selected_) == 5
     with pytest.raises(ValueError, match="proportion must be in the range 0-1"):
-        ChannelScorer(classifier=MockClassifierFullTags(), proportion=1.1)
+        cs = ChannelScorer(classifier=MockClassifierFullTags(), proportion=1.1)
+        cs.fit(X, y)
     with pytest.raises(ValueError, match="proportion must be in the range 0-1"):
         ChannelScorer(classifier=MockClassifierFullTags(), proportion=-1)
+        cs.fit(X, y)
     cs = ChannelScorer(classifier=MockClassifierFullTags(), proportion=1.0)
     cs.fit(X, y)
     assert len(cs.channels_selected_) == 9
     with pytest.raises(
         ValueError, match="parameter classifier must be None or an instance of"
     ):
-        ChannelScorer(classifier="FOOBAR", proportion=0.5)
+        cs = ChannelScorer(classifier="FOOBAR", proportion=0.5)
+        cs.fit(X, y)
