@@ -22,12 +22,12 @@ def test_network_config(network):
     """Tests if the config dictionary of classes is correctly configured."""
     assert "python_dependencies" in network._config.keys()
     assert "python_version" in network._config.keys()
-    assert "auto-encoder" in network._config.keys()
+    assert "structure" in network._config.keys()
     assert isinstance(network._config["python_dependencies"], str) and (
         "tensorflow" in network._config["python_dependencies"]
     )
     assert isinstance(network._config["python_version"], str)
-    assert isinstance(network._config["auto-encoder"], bool)
+    assert isinstance(network._config["structure"], str)
 
 
 @pytest.mark.parametrize("network", _networks)
@@ -48,7 +48,7 @@ def test_all_networks_functionality(network):
             else:
                 my_network = network()
 
-        if network._config["auto-encoder"]:
+        if network._config["structure"] == "auto-encoder":
             encoder, decoder = my_network.build_network(input_shape=input_shape)
             assert encoder.layers[-1].output_shape[1:] == (my_network.latent_space_dim,)
             assert encoder.layers[0].input_shape[0] == decoder.layers[-1].output_shape
