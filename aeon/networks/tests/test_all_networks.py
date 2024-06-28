@@ -23,7 +23,7 @@ def test_network_config(network):
     assert "python_dependencies" in network._config.keys()
     assert "python_version" in network._config.keys()
     assert "structure" in network._config.keys()
-    assert isinstance(network._config["python_dependencies"], str) and (
+    assert isinstance(network._config["python_dependencies"], list) and (
         "tensorflow" in network._config["python_dependencies"]
     )
     assert isinstance(network._config["python_version"], str)
@@ -56,7 +56,7 @@ def test_all_networks_functionality(network):
                 assert (
                     encoder.layers[0].input_shape[0] == decoder.layers[-1].output_shape
                 )
-            else:
+            elif network._config["structure"] == "encoder":
                 import tensorflow as tf
 
                 input_layer, output_layer = my_network.build_network(
@@ -64,8 +64,8 @@ def test_all_networks_functionality(network):
                 )
                 assert input_layer is not None
                 assert output_layer is not None
-                assert issubclass(type(input_layer), tf.keras.layers.Layer)
-                assert issubclass(type(output_layer), tf.keras.layers.Layer)
+                assert isinstance(input_layer, tf.keras.KerasTensor)
+                assert isinstance(output_layer, tf.keras.KerasTensor)
         else:
             pytest.skip(
                 f"{network.__name__} dependencies not satisfied or invalid \

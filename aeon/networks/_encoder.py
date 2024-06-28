@@ -45,7 +45,7 @@ class EncoderNetwork(BaseDeepLearningNetwork):
 
     """
 
-    _tags = {"python_dependencies": ["tensorflow", "tensorflow_addons"]}
+    _config["python_dependencies"] = ["tensorflow", "tensorflow_addons"]
 
     def __init__(
         self,
