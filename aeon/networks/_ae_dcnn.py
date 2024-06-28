@@ -53,7 +53,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
     }
     """
 
-    _config["auto-encoder"]=True
+    _config["structure"]="auto-encoder"
 
     def __init__(
         self,
