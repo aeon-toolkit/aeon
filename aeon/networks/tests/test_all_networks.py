@@ -48,18 +48,21 @@ def test_all_networks_functionality(network):
             else:
                 my_network = network()
 
-        if network._config["structure"] == "auto-encoder":
-            encoder, decoder = my_network.build_network(input_shape=input_shape)
-            assert encoder.layers[-1].output_shape[1:] == (my_network.latent_space_dim,)
-            assert encoder.layers[0].input_shape[0] == decoder.layers[-1].output_shape
-        else:
-            input_layer, output_layer = my_network.build_network(
-                input_shape=input_shape
-            )
-            assert input_layer is not None
-            assert output_layer is not None
-            if _check_soft_dependencies(["tensorflow"], severity="none"):
+            if network._config["structure"] == "auto-encoder":
+                encoder, decoder = my_network.build_network(input_shape=input_shape)
+                assert encoder.layers[-1].output_shape[1:] == (
+                    my_network.latent_space_dim,
+                )
+                assert (
+                    encoder.layers[0].input_shape[0] == decoder.layers[-1].output_shape
+                )
+            else:
                 import tensorflow as tf
 
+                input_layer, output_layer = my_network.build_network(
+                    input_shape=input_shape
+                )
+                assert input_layer is not None
+                assert output_layer is not None
                 assert isinstance(input_layer, tf.keras.layers.Layer)
                 assert isinstance(output_layer, tf.keras.layers.Layer)
