@@ -5,14 +5,14 @@ __maintainer__ = ["baraline"]
 import pytest
 from numpy.testing import assert_array_almost_equal
 
+from aeon.testing.data_generation import (
+    make_example_3d_numpy,
+    make_example_unequal_length,
+)
 from aeon.testing.mock_estimators._mock_series_transformers import (
     MockMultivariateSeriesTransformer,
     MockSeriesTransformerNoFit,
     MockUnivariateSeriesTransformer,
-)
-from aeon.testing.utils.data_gen import (
-    make_example_3d_numpy,
-    make_example_unequal_length,
 )
 from aeon.transformations.collection._broadcaster import SeriesToCollectionBroadcaster
 
