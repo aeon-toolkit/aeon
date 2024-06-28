@@ -64,5 +64,12 @@ def test_all_networks_functionality(network):
                 )
                 assert input_layer is not None
                 assert output_layer is not None
-                assert issubclass(input_layer, tf.keras.layers.Layer)
-                assert issubclass(output_layer, tf.keras.layers.Layer)
+                assert issubclass(type(input_layer), tf.keras.layers.Layer)
+                assert issubclass(type(output_layer), tf.keras.layers.Layer)
+        else:
+            pytest.skip(
+                f"{network.__name__} dependencies not satisfied or invalid \
+                Python version."
+            )
+    else:
+        pytest.skip(f"{network.__name__} not to be tested since its a base class.")
