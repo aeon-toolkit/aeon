@@ -16,7 +16,7 @@ from aeon.transformations._legacy.subset import _ColumnSelect
 from aeon.transformations._legacy.theta import (
     _ThetaLinesTransformer as ThetaLinesTransformer,
 )
-from aeon.transformations.collection.pad import PaddingTransformer
+from aeon.transformations.collection import Padder
 from aeon.transformations.compose import (
     ColumnConcatenator,
     FeatureUnion,
@@ -107,7 +107,7 @@ def test_mul_sklearn_autoadapt():
 
 def test_missing_unequal_tag_inference():
     """Test that TransformerPipeline infers missing/unequal tags correctly."""
-    t1 = MockTransformer() * PaddingTransformer() * MockTransformer()
+    t1 = MockTransformer() * Padder() * MockTransformer()
     t2 = MockTransformer() * MockTransformer()
     t3 = Imputer() * MockTransformer()
     t4 = MockTransformer() * Imputer()

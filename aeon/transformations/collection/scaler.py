@@ -12,8 +12,8 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 class TimeSeriesScaler(BaseCollectionTransformer):
     """StandardScaler for time series.
 
-    This class wraps the sklearn StandardScaler so that is standardises time series
-    rather than ove rtime points. We need this because we store collections of time
+    This class wraps the sklearn StandardScaler so that is standardises time series.
+    We need this because we store collections of time
     series in arrays of shape (n_cases, n_channels, n_timepoints). Standard scaler would
     transform a single series (n_channels, n_timepoints) so that each time point is zero
     mean, unit std dev. We want each channel to be zero mean, unit std dev. This is
