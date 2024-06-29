@@ -37,7 +37,11 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         If None, default to two times sum of units of the encoder.
     """
 
-    _config["auto-encoder"] = True
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.12",
+        "structure": "auto-encoder",
+    }
 
     def __init__(
         self,
