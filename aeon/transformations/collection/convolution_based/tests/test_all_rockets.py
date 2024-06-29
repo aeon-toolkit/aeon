@@ -6,7 +6,6 @@ import pytest
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
-    MiniRocketMultivariate,
     MultiRocket,
     Rocket,
 )
@@ -36,33 +35,33 @@ expected_uni = {
 }
 expected_features = {
     "Rocket": 200,
-    "MultiRocket": 672,
     "MiniRocket": 84,
-    "MiniRocketMultivariate": 84,
+    "MultiRocket": 672,
 }
 expected_multi = {
     "Rocket": [0.6363636, 0.74931127, 0.0],
-    "MiniRocketMultivariate": [0.27272728, 0.33333334, 0.8181818],
+    "MiniRocket": [0.27272728, 0.33333334, 0.8181818],
+    "MultiRocket": [0.2727273, 0.3333333, 0.8181818],
 }
 
 
 @pytest.mark.parametrize(
     "transform",
-    ["Rocket", "MiniRocket"],
+    ["Rocket", "MiniRocket", "MultiRocket"],
 )
 def test_rocket_on_univariate(transform):
     """Test of Rocket on gun point."""
     # Create random univariate training data
     X = uni_test_data
     if transform == "Rocket":
-        ROCKET = Rocket(num_kernels=100, random_state=0)
+        rocket = Rocket(num_kernels=100, random_state=0)
     elif transform == "MiniRocket":
-        ROCKET = MiniRocket(num_kernels=100, random_state=0)
-    # elif transform == "MultiRocket":
-    #     ROCKET = MultiRocket(num_kernels=100, random_state=0)
-    ROCKET.fit(X)
+        rocket = MiniRocket(num_kernels=100, random_state=0)
+    elif transform == "MultiRocket":
+        rocket = MultiRocket(num_kernels=100, random_state=0)
+    rocket.fit(X)
     # transform training data
-    X_trans = ROCKET.transform(X)
+    X_trans = rocket.transform(X)
     # test shape of transformed training data -> (number of training
     # examples, num_kernels * 2)
     np.testing.assert_equal(X_trans.shape, (len(X), expected_features[transform]))
@@ -71,24 +70,28 @@ def test_rocket_on_univariate(transform):
         np.array([X_trans[0][0], X_trans[1][5], X_trans[3][80]]),
     )
     # Test fit_transform the same
-    X_trans2 = ROCKET.fit_transform(X)
+    X_trans2 = rocket.fit_transform(X)
     assert X_trans[2][3] == X_trans2[2][3]
     assert X_trans[0][80] == X_trans2[0][80]
     assert X_trans[3][55] == X_trans2[3][55]
 
 
-@pytest.mark.parametrize("transform", ["Rocket", "MiniRocketMultivariate"])
+#
+@pytest.mark.parametrize("transform", ["Rocket", "MiniRocket", "MultiRocket"])  #
 def test_rocket_on_multivariate(transform):
     """Test of Rocket on gun point."""
     # Create random univariate training data
     X = multi_test_data
     if transform == "Rocket":
-        ROCKET = Rocket(num_kernels=100, random_state=0)
-    elif transform == "MiniRocketMultivariate":
-        ROCKET = MiniRocketMultivariate(num_kernels=100, random_state=0)
-    ROCKET.fit(X)
+        rocket = Rocket(num_kernels=100, random_state=0)
+    elif transform == "MiniRocket":
+        rocket = MiniRocket(num_kernels=100, random_state=0)
+    else:
+        rocket = MultiRocket(num_kernels=100, random_state=0)
+
+    rocket.fit(X)
     # transform training data
-    X_trans = ROCKET.transform(X)
+    X_trans = rocket.transform(X)
     # test shape of transformed training data -> (number of training
     # examples, num_kernels * 2)
     np.testing.assert_equal(X_trans.shape, (len(X), expected_features[transform]))
@@ -97,7 +100,7 @@ def test_rocket_on_multivariate(transform):
         np.array([X_trans[0][0], X_trans[1][5], X_trans[3][80]]),
     )
     # Test fit_transform the same
-    X_trans2 = ROCKET.fit_transform(X)
+    X_trans2 = rocket.fit_transform(X)
     assert X_trans[2][3] == X_trans2[2][3]
     assert X_trans[0][80] == X_trans2[0][80]
     assert X_trans[3][55] == X_trans2[3][55]

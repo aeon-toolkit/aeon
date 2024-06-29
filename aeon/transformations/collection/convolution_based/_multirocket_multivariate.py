@@ -65,20 +65,6 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
     for fast and effective time series classification",2022,
     https://link.springer.com/article/10.1007/s10618-022-00844-1
     https://arxiv.org/abs/2102.00457
-
-    Examples
-    --------
-    >>> from aeon.transformations.collection.convolution_based import (
-    ...     MultiRocketMultivariate
-    ... )
-     >>> from aeon.datasets import load_basic_motions
-     >>> X_train, y_train = load_basic_motions(split="train")
-     >>> X_test, y_test = load_basic_motions(split="test")
-     >>> trf = MultiRocketMultivariate(num_kernels=512)
-     >>> trf.fit(X_train)
-     MultiRocketMultivariate(num_kernels=512)
-     >>> X_train = trf.transform(X_train)
-     >>> X_test = trf.transform(X_test)
     """
 
     _tags = {

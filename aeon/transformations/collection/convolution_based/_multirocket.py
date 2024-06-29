@@ -1,10 +1,10 @@
 import multiprocessing
+from itertools import combinations
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.utils.numba.general import generate_combinations
 
 
 class MultiRocket(BaseCollectionTransformer):
@@ -15,8 +15,7 @@ class MultiRocket(BaseCollectionTransformer):
     set of dilations and used for each representation. In addition to percentage of
     positive values (PPV), MultiRocket adds 3 pooling operators: Mean of Positive
     Values (MPV); Mean of Indices of Positive Values (MIPV); and Longest Stretch of
-    Positive Values (LSPV). This version is for univariate time series only. Use class
-    MultiRocketMultivariate for multivariate input.
+    Positive Values (LSPV).
 
     Parameters
     ----------
@@ -48,7 +47,7 @@ class MultiRocket(BaseCollectionTransformer):
 
     See Also
     --------
-    MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
+    MiniRocket, Rocket
 
     References
     ----------
@@ -76,6 +75,8 @@ class MultiRocket(BaseCollectionTransformer):
         "algorithm_type": "convolution",
         "capability:multivariate": True,
     }
+    # indices for the 84 kernels used by MiniRocket
+    _indices = np.array([_ for _ in combinations(np.arange(9), 3)], dtype=np.int32)
 
     def __init__(
         self,
@@ -93,8 +94,7 @@ class MultiRocket(BaseCollectionTransformer):
 
         self.normalise = normalise
         self.n_jobs = n_jobs
-        self.random_state = random_state if isinstance(random_state, int) else None
-
+        self.random_state = random_state
         self.parameter = None
         self.parameter1 = None
 
@@ -113,6 +113,12 @@ class MultiRocket(BaseCollectionTransformer):
         -------
         self
         """
+        self.random_state_ = (
+            np.int32(self.random_state) if isinstance(self.random_state, int) else None
+        )
+        if self.random_state_ is not None:
+            np.random.seed(self.random_state_)
+
         _, n_channels, n_timepoints = X.shape
         if n_timepoints < 9:
             raise ValueError(
@@ -171,6 +177,8 @@ class MultiRocket(BaseCollectionTransformer):
                 self.parameter,
                 self.parameter1,
                 self.n_features_per_kernel,
+                MultiRocket._indices,
+                self.random_state_,
             )
         else:
             X = X.reshape(X.shape[0], X.shape[2])
@@ -181,6 +189,8 @@ class MultiRocket(BaseCollectionTransformer):
                 self.parameter,
                 self.parameter1,
                 self.n_features_per_kernel,
+                MultiRocket._indices,
+                self.random_state_,
             )
 
         X = np.nan_to_num(X)  # not sure about this!
@@ -202,7 +212,12 @@ class MultiRocket(BaseCollectionTransformer):
         quantiles = _quantiles(num_kernels * num_features_per_kernel)
 
         biases = _fit_biases_univariate(
-            X, dilations, num_features_per_dilation, quantiles, self.random_state
+            X,
+            dilations,
+            num_features_per_dilation,
+            quantiles,
+            MultiRocket._indices,
+            self.random_state_,
         )
 
         return dilations, num_features_per_dilation, biases
@@ -251,7 +266,8 @@ class MultiRocket(BaseCollectionTransformer):
             dilations,
             num_features_per_dilation,
             quantiles,
-            self.random_state,
+            MultiRocket._indices,
+            self.random_state_,
         )
 
         return (
@@ -265,19 +281,20 @@ class MultiRocket(BaseCollectionTransformer):
 
 @njit(
     "float32[:,:](float32[:,:],float32[:,:],Tuple((int32[:],int32[:],float32[:])),"
-    "Tuple((int32[:],int32[:],float32[:])),int32)",
+    "Tuple((int32[:],int32[:],float32[:])),int32, int32[:,:],optional(int32))",
     fastmath=True,
     parallel=True,
     cache=True,
 )
-def _transform_uni(X, X1, parameters, parameters1, n_features_per_kernel):
+def _transform_uni(
+    X, X1, parameters, parameters1, n_features_per_kernel, indices, seed
+):
+    if seed is not None:
+        np.random.seed(seed)
     n_cases, n_timepoints = X.shape
 
     dilations, num_features_per_dilation, biases = parameters
     dilations1, num_features_per_dilation1, biases1 = parameters1
-
-    indices = generate_combinations(9, 3)
-
     num_kernels = len(indices)
     num_dilations = len(dilations)
     num_dilations1 = len(dilations1)
@@ -539,12 +556,15 @@ def _transform_uni(X, X1, parameters, parameters1, n_features_per_kernel):
 @njit(
     "float32[:,:](float32[:,:,:],float32[:,:,:],"
     "Tuple((int32[:],int32[:],int32[:],int32[:],float32[:])),"
-    "Tuple((int32[:],int32[:],int32[:],int32[:],float32[:])),int32)",
+    "Tuple((int32[:],int32[:],int32[:],int32[:],float32[:])),int32, int32[:,:],"
+    "optional(int32))",
     fastmath=True,
     parallel=True,
     cache=True,
 )
-def _transform_multi(X, X1, parameters, parameters1, n_features_per_kernel=4):
+def _transform_multi(
+    X, X1, parameters, parameters1, n_features_per_kernel, indices, seed
+):
     n_cases, n_channels, n_timepoints = X.shape
     (
         num_channels_per_combination,
@@ -553,8 +573,10 @@ def _transform_multi(X, X1, parameters, parameters1, n_features_per_kernel=4):
         num_features_per_dilation,
         biases,
     ) = parameters
+    if seed is not None:
+        np.random.seed(seed)
+
     _, _, dilations1, num_features_per_dilation1, biases1 = parameters1
-    indices = generate_combinations(9, 3)
     num_kernels = len(indices)
     num_dilations = len(dilations)
     num_dilations1 = len(dilations1)
@@ -854,24 +876,18 @@ def _transform_multi(X, X1, parameters, parameters1, n_features_per_kernel=4):
 
 
 @njit(
-    "float32[:](float32[:,:],int32[:],int32[:],float32[:],optional(int64))",
+    "float32[:](float32[:,:],int32[:],int32[:],float32[:], int32[:,:],optional(int32))",
     fastmath=True,
     parallel=False,
     cache=True,
 )
-def _fit_biases_univariate(X, dilations, num_features_per_dilation, quantiles, seed):
+def _fit_biases_univariate(
+    X, dilations, num_features_per_dilation, quantiles, indices, seed
+):
     if seed is not None:
         np.random.seed(seed)
 
     num_examples, input_length = X.shape
-
-    # equivalent to:
-    # >>> from itertools import combinations
-    # >>> indices = np.array(
-    #   [_ for _ in combinations(np.arange(9), 3)], dtype = np.int32
-    # )
-    indices = generate_combinations(9, 3)
-
     num_kernels = len(indices)
     num_dilations = len(dilations)
 
@@ -930,8 +946,8 @@ def _fit_biases_univariate(X, dilations, num_features_per_dilation, quantiles, s
 
 
 @njit(
-    "float32[:](float32[:,:,:],int32[:],int32[:],int32[:],int32[:],float32[:],"
-    "optional(int64))",
+    "float32[:](float32[:,:,:],int32[:],int32[:],int32[:],int32[:],float32[:], "
+    "int32[:,:],optional(int32))",
     fastmath=True,
     parallel=False,
     cache=True,
@@ -943,274 +959,13 @@ def _fit_biases_multivariate(
     dilations,
     num_features_per_dilation,
     quantiles,
+    indices,
     seed,
 ):
     if seed is not None:
         np.random.seed(seed)
-    num_examples, num_channels, input_length = X.shape
 
-    # equivalent to:
-    # >>> from itertools import combinations
-    # >>> indices = np.array(
-    #   [_ for _ in combinations(np.arange(9), 3)], dtype = np.int32
-    # )
-    indices = np.array(
-        (
-            0,
-            1,
-            2,
-            0,
-            1,
-            3,
-            0,
-            1,
-            4,
-            0,
-            1,
-            5,
-            0,
-            1,
-            6,
-            0,
-            1,
-            7,
-            0,
-            1,
-            8,
-            0,
-            2,
-            3,
-            0,
-            2,
-            4,
-            0,
-            2,
-            5,
-            0,
-            2,
-            6,
-            0,
-            2,
-            7,
-            0,
-            2,
-            8,
-            0,
-            3,
-            4,
-            0,
-            3,
-            5,
-            0,
-            3,
-            6,
-            0,
-            3,
-            7,
-            0,
-            3,
-            8,
-            0,
-            4,
-            5,
-            0,
-            4,
-            6,
-            0,
-            4,
-            7,
-            0,
-            4,
-            8,
-            0,
-            5,
-            6,
-            0,
-            5,
-            7,
-            0,
-            5,
-            8,
-            0,
-            6,
-            7,
-            0,
-            6,
-            8,
-            0,
-            7,
-            8,
-            1,
-            2,
-            3,
-            1,
-            2,
-            4,
-            1,
-            2,
-            5,
-            1,
-            2,
-            6,
-            1,
-            2,
-            7,
-            1,
-            2,
-            8,
-            1,
-            3,
-            4,
-            1,
-            3,
-            5,
-            1,
-            3,
-            6,
-            1,
-            3,
-            7,
-            1,
-            3,
-            8,
-            1,
-            4,
-            5,
-            1,
-            4,
-            6,
-            1,
-            4,
-            7,
-            1,
-            4,
-            8,
-            1,
-            5,
-            6,
-            1,
-            5,
-            7,
-            1,
-            5,
-            8,
-            1,
-            6,
-            7,
-            1,
-            6,
-            8,
-            1,
-            7,
-            8,
-            2,
-            3,
-            4,
-            2,
-            3,
-            5,
-            2,
-            3,
-            6,
-            2,
-            3,
-            7,
-            2,
-            3,
-            8,
-            2,
-            4,
-            5,
-            2,
-            4,
-            6,
-            2,
-            4,
-            7,
-            2,
-            4,
-            8,
-            2,
-            5,
-            6,
-            2,
-            5,
-            7,
-            2,
-            5,
-            8,
-            2,
-            6,
-            7,
-            2,
-            6,
-            8,
-            2,
-            7,
-            8,
-            3,
-            4,
-            5,
-            3,
-            4,
-            6,
-            3,
-            4,
-            7,
-            3,
-            4,
-            8,
-            3,
-            5,
-            6,
-            3,
-            5,
-            7,
-            3,
-            5,
-            8,
-            3,
-            6,
-            7,
-            3,
-            6,
-            8,
-            3,
-            7,
-            8,
-            4,
-            5,
-            6,
-            4,
-            5,
-            7,
-            4,
-            5,
-            8,
-            4,
-            6,
-            7,
-            4,
-            6,
-            8,
-            4,
-            7,
-            8,
-            5,
-            6,
-            7,
-            5,
-            6,
-            8,
-            5,
-            7,
-            8,
-            6,
-            7,
-            8,
-        ),
-        dtype=np.int32,
-    ).reshape(84, 3)
+    num_examples, num_channels, input_length = X.shape
 
     num_kernels = len(indices)
     num_dilations = len(dilations)

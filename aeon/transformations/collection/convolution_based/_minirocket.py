@@ -18,8 +18,7 @@ class MiniRocket(BaseCollectionTransformer):
     MiniRocket [1]_ is an almost deterministic version of Rocket. It creates
     convolutions of length 9 with weights restricted to two values, and uses 84 fixed
     convolutions with six of one weight, three of the second weight to seed dilations.
-    MiniRocket is for unviariate time series only. Use class MiniRocketMultivariate
-    for multivariate time series.
+
 
     Parameters
     ----------
@@ -35,7 +34,7 @@ class MiniRocket(BaseCollectionTransformer):
 
     See Also
     --------
-    MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
+    MiniRocket, Rocket
 
     References
     ----------
