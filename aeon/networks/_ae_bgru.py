@@ -22,7 +22,11 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
             Flag to choose whether the latent space is an MTS or Euclidean space.
     """
 
-    _config["auto-encoder"]=True
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.12",
+        "structure": "encoder",
+    }
 
     def __init__(
         self,
