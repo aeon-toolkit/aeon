@@ -82,11 +82,11 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
                     self._n_units[-1] = self.latent_space_dim // 2
 
         if isinstance(self.activation, str):
-            self._activation = [self.activation for _ in range(self.n_layers)]
+            self._activation = [self.activation for _ in range(self._n_layers)]
         else:
             self._activation = self.activation
             assert isinstance(self.activation, list)
-            assert len(self.activation) == self.n_layers
+            assert len(self.activation) == self._n_layers
 
         encoder_inputs = tf.keras.layers.Input(shape=input_shape, name="encoder_input")
         x = encoder_inputs
