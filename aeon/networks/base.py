@@ -28,9 +28,10 @@ class BaseDeepNetwork(BaseObject, ABC):
         super().__init__()
         _check_estimator_deps(self)
 
-    _tags = {
-        "python_dependencies": "tensorflow",
+    _config = {
+        "python_dependencies": ["tensorflow"],
         "python_version": "<3.12",
+        "structure": "encoder",
     }
 
     @abstractmethod
