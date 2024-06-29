@@ -74,6 +74,7 @@ class MultiRocket(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "algorithm_type": "convolution",
+        "capability:multivariate": True,
     }
 
     def __init__(
@@ -130,7 +131,7 @@ class MultiRocket(BaseCollectionTransformer):
             self.parameter1 = self._fit_univariate(_X1)
         else:
             self.parameter = self._fit_multivariate(X)
-            _X1 = np.diff(X, 2)
+            _X1 = np.diff(X, 1)
             self.parameter1 = self._fit_multivariate(_X1)
 
         return self
@@ -164,7 +165,7 @@ class MultiRocket(BaseCollectionTransformer):
         X = X.astype(np.float32)
         if n_channels > 1:
             X1 = np.diff(X, 1)
-            X = _transform_uni(
+            X = _transform_multi(
                 X,
                 X1,
                 self.parameter,
@@ -172,9 +173,9 @@ class MultiRocket(BaseCollectionTransformer):
                 self.n_features_per_kernel,
             )
         else:
-            X = X.resize(X.shape[0], X.shape[2])
+            X = X.reshape(X.shape[0], X.shape[2])
             X1 = np.diff(X, 1)
-            X = _transform_multi(
+            X = _transform_uni(
                 X,
                 X1,
                 self.parameter,

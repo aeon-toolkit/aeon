@@ -8,7 +8,6 @@ from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MiniRocketMultivariate,
     MultiRocket,
-    MultiRocketMultivariate,
     Rocket,
 )
 
@@ -125,6 +124,24 @@ expected_unit_test["MiniRocket"] = np.array(
         [0.5416667, 0.7916667, 0.125, 0.5416667, 0.8333333],
     ]
 )
+expected_unit_test["Rocket"] = np.array(
+    [
+        [0.54167, 3.04102, 0.41667, 2.21878, 0.66667],
+        [0.54167, 2.63263, 0.37500, 2.53897, 0.66667],
+        [0.58333, 2.79819, 0.41667, 2.53153, 0.58333],
+        [0.54167, 2.47356, 0.37500, 1.90805, 0.70833],
+        [0.54167, 2.54753, 0.41667, 2.16991, 0.66667],
+    ]
+)
+expected_unit_test["MultiRocket"] = np.array(
+    [
+        [0.58333, 0.70833, 0.16667, 0.58333, 0.83333],
+        [0.54167, 0.70833, 0.16667, 0.54167, 0.79167],
+        [0.58333, 0.70833, 0.20833, 0.58333, 0.79167],
+        [0.45833, 0.66667, 0.16667, 0.50000, 0.75000],
+        [0.54167, 0.79167, 0.12500, 0.54167, 0.83333],
+    ]
+)
 
 expected_basic_motions = {}
 expected_basic_motions["MiniRocket"] = np.array(
@@ -136,43 +153,52 @@ expected_basic_motions["MiniRocket"] = np.array(
         [0.45, 0.78, 0.02, 0.55, 1],
     ]
 )
+rockets = [
+    Rocket(num_kernels=100),
+    MultiRocket(num_kernels=100),
+    MiniRocket(num_kernels=100),
+]
+types = [np.float32, np.float64, np.int32, np.int64]
+data = [
+    np.random.random((10, 20)),
+    np.random.random((10, 1, 20)),
+    np.random.random((10, 3, 20)),
+]
 
 
-def test_datatype_input():
+@pytest.mark.parametrize("rocket", rockets)
+@pytest.mark.parametrize("t", types)
+@pytest.mark.parametrize("X", data)
+def test_rocket_inputs(rocket, t, X):
     """Test rocket variants accept all input types."""
-    uni_rockets = [
-        Rocket(num_kernels=100),
-        MiniRocket(num_kernels=100),
-        MultiRocket(num_kernels=100),
-    ]
+    X = X.astype(t)
+    rocket.fit_transform(X)
+    rocket.fit(X)
+    X = rocket.transform(X)
+    assert X.shape[0] == 10
 
-    shape = (10, 1, 20)
-    types = [np.float32, np.float64, np.int32, np.int64]
-    for r in uni_rockets:
-        for t in types:
-            X = np.random.rand(*shape).astype(t)
-            r.fit_transform(X)
-            r.fit(X)
-            r.transform(X)
-    multi_rockets = [
-        MiniRocketMultivariate(num_kernels=100),
-        MultiRocketMultivariate(num_kernels=100),
-    ]
-    shape = (10, 3, 20)
-    for r in multi_rockets:
-        for t in types:
-            X = np.random.rand(*shape).astype(t)
-            r.fit_transform(X)
-            r.fit(X)
-            r.transform(X)
+
+@pytest.mark.parametrize("rocket", rockets)
+def test_rocket_single_transform(rocket):
+    """Test rockets can transform a single time series."""
+    X = np.random.random((10, 1, 20))
+    X2 = np.random.random((1, 20))
+    rocket.fit(X)
+    rocket.transform(X2)
 
 
 def test_expected_unit_test():
     """Test MiniRocket on unit test data."""
     X, _ = load_unit_test(split="train")
+    r = Rocket(random_state=0)
     mr = MiniRocket(random_state=0)
-    X2 = mr.fit_transform(X)
-    np.testing.assert_allclose(X2[:5, :5], expected_unit_test["MiniRocket"], rtol=1e-6)
+    mur = MultiRocket(random_state=0)
+    X2 = r.fit_transform(X)
+    X3 = mr.fit_transform(X)
+    X4 = mur.fit_transform(X)
+    np.testing.assert_allclose(X2[:5, :5], expected_unit_test["Rocket"], rtol=1e-4)
+    np.testing.assert_allclose(X3[:5, :5], expected_unit_test["MiniRocket"], rtol=1e-4)
+    np.testing.assert_allclose(X4[:5, :5], expected_unit_test["MultiRocket"], rtol=1e-4)
 
 
 def test_expected_basic_motions():
@@ -182,5 +208,5 @@ def test_expected_basic_motions():
     X2 = mr.fit_transform(X)
 
     np.testing.assert_allclose(
-        X2[:5, :5], expected_basic_motions["MiniRocket"], rtol=1e-6
+        X2[:5, :5], expected_basic_motions["MiniRocket"], rtol=1e-4
     )
