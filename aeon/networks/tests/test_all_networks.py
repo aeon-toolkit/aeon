@@ -35,7 +35,7 @@ def test_all_networks_functionality(network):
     """Test the functionality of all networks."""
     input_shape = (100, 2)
 
-    if "BaseDeepLearningNetwork" != str(network):
+    if "BaseDeepLearningNetwork" != network.__name__:
         if _check_soft_dependencies(
             network._config["python_dependencies"], severity="none"
         ) and _check_python_version(network._config["python_version"], severity="none"):
@@ -64,8 +64,8 @@ def test_all_networks_functionality(network):
                 )
                 assert input_layer is not None
                 assert output_layer is not None
-                assert isinstance(input_layer, tf.keras.KerasTensor)
-                assert isinstance(output_layer, tf.keras.KerasTensor)
+                assert tf.keras.backend.is_keras_tensor(input_layer)
+                assert tf.keras.backend.is_keras_tensor(output_layer)
         else:
             pytest.skip(
                 f"{network.__name__} dependencies not satisfied or invalid \
