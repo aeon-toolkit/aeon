@@ -2,11 +2,20 @@ import multiprocessing
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="MultiRocketMultivariate will be removed in version "
+    "0.11.0, please use MultiRocket which now has the capability to handle "
+    "multivariate time series.",
+    category=FutureWarning,
+)
 class MultiRocketMultivariate(BaseCollectionTransformer):
     """Multi RandOm Convolutional KErnel Transform (MultiRocket).
 
