@@ -49,15 +49,6 @@ class ShapeletVisualizer:
         from the values array. Otherwise, the values array 2nd axis will be set to this
         length.
 
-    Examples
-    --------
-    >>> from aeon.visualisation import ShapeletVisualizer
-    >>> from aeon.datasets import load_classification
-    >>> X, y = load_classification("GunPoint")
-    >>> shp = ShapeletVisualizer(X[0,:,50:75])
-    >>> shp.plot()
-    >>> shp.plot_distance_vector(X[1])
-    >>> shp.plot_on_X(X[1])
     """
 
     def __init__(
@@ -386,20 +377,6 @@ class ShapeletTransformerVisualizer:
     estimator : object
         A fitted shapelet transformer.
 
-    Examples
-    --------
-    >>> from aeon.visualisation import ShapeletTransformerVisualizer
-    >>> from aeon.transformations.collection.shapelet_based import (
-        RandomDilatedShapeletTransform
-    )
-    >>> from aeon.datasets import load_classification
-    >>> X, y = load_classification("GunPoint")
-    >>> rdst = RandomDilatedShapeletTransform(max_shapelets=10).fit(X, y)
-    >>> shp = ShapeletTransformerVisualizer(rdst)
-    >>> id_shp = 0
-    >>> shpt.plot(id_shp)
-    >>> shpt.plot_on_X(id_shp, X[1])
-    >>> shpt.plot_distance_vector(id_shp, X[1])
     """
 
     def __init__(self, estimator):
@@ -646,19 +623,6 @@ class ShapeletClassifierVisualizer:
     ----------
     estimator : object
         A fitted shapelet classifier.
-
-    Examples
-    --------
-    >>> from aeon.visualisation import ShapeletClassifierVisualizer
-    >>> from aeon.datasets import load_classification
-    >>> from aeon.classification.shapelet_based import RDSTClassifier
-    >>> X, y = load_classification("GunPoint")
-    >>> rdst = RDSTClassifier(max_shapelets=10).fit(X, y)
-    >>> shpt = ShapeletClassifierVisualizer(rdst)
-    >>> id_shp = 0
-    >>> shpt.plot(id_shp)
-    >>> shpt.plot_on_X(id_shp, X[1])
-    >>> shpt.plot_distance_vector(id_shp, X[1])
     """
 
     def __init__(self, estimator):
@@ -833,7 +797,6 @@ class ShapeletClassifierVisualizer:
         _check_soft_dependencies("matplotlib")
         import matplotlib.pyplot as plt
 
-        # TODO: store labels for re-usage in other functions
         y = LabelEncoder().fit_transform(y)
 
         plt.style.use(matplotlib_style)
