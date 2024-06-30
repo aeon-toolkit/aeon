@@ -7,7 +7,6 @@ __all__ = ["ShapeletClassifierVisualizer", "ShapeletTransformerVisualizer"]
 import copy
 
 import numpy as np
-from matplotlib import pyplot as plt
 
 from aeon.classification.shapelet_based._ls import LearningShapeletClassifier
 from aeon.classification.shapelet_based._rdst import RDSTClassifier
@@ -26,6 +25,7 @@ from aeon.transformations.collection.shapelet_based._shapelet_transform import (
     RandomShapeletTransform,
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class ShapeletVisualizer:
@@ -130,6 +130,9 @@ class ShapeletVisualizer:
         fig : matplotlib figure
             The resulting figure
         """
+        _check_soft_dependencies("matplotlib")
+        import matplotlib.pyplot as plt
+
         if "label" not in plot_options.keys():
             plot_options["label"] = ""
         if custom_title_string is None:
@@ -219,6 +222,9 @@ class ShapeletVisualizer:
             shapelet will be scalled to macth the scale of X.
 
         """
+        _check_soft_dependencies("matplotlib")
+        import matplotlib.pyplot as plt
+
         if len(X.shape) == 1:
             X = X[np.newaxis, :]
         if "label" not in x_plot_options.keys():
@@ -331,6 +337,9 @@ class ShapeletVisualizer:
             The resulting figure with the distance vector obtained by d(S,X)
 
         """
+        _check_soft_dependencies("matplotlib")
+        import matplotlib.pyplot as plt
+
         if len(X.shape) == 1:
             X = X[np.newaxis, :]
         # Get candidate subsequences in X
@@ -693,12 +702,20 @@ class ShapeletClassifierVisualizer:
                 ]
                 yield titles[i], box_data
 
-        elif isinstance(self.estimator, RSASTClassifier):
-            raise NotImplementedError()
-        elif isinstance(self.estimator, SASTClassifier):
-            raise NotImplementedError()
-        elif isinstance(self.estimator, ShapeletTransformClassifier):
-            raise NotImplementedError()
+        elif (
+            isinstance(self.estimator, RSASTClassifier)
+            or isinstance(self.estimator, SASTClassifier)
+            or isinstance(self.estimator, ShapeletTransformClassifier)
+        ):
+            titles = [
+                "Boxplot of min",
+            ]
+            box_data = [
+                X[mask_other_class_id, id_shp],
+                X[mask_class_id, id_shp],
+            ]
+            yield titles[0], box_data
+
         elif isinstance(self.estimator, LearningShapeletClassifier):
             raise NotImplementedError()
         else:
@@ -812,6 +829,9 @@ class ShapeletClassifierVisualizer:
             The resulting figures for each selected shapelets (list of size n_shp)
         """
         from sklearn.preprocessing import LabelEncoder
+
+        _check_soft_dependencies("matplotlib")
+        import matplotlib.pyplot as plt
 
         # TODO: store labels for re-usage in other functions
         y = LabelEncoder().fit_transform(y)

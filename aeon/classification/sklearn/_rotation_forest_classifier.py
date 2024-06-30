@@ -317,6 +317,34 @@ class RotationForestClassifier(BaseEstimator):
 
         return results
 
+    @property
+    def feature_importances_(self):
+        """
+        The impurity-based feature importances.
+
+        The higher, the more important the feature.
+        The importance of a feature is computed as the (normalized)
+        total reduction of the criterion brought by that feature.  It is also
+        known as the Gini importance.
+
+        Warning: impurity-based feature importances can be misleading for
+        high cardinality features (many unique values). See
+        :func:`sklearn.inspection.permutation_importance` as an alternative.
+
+        Returns
+        -------
+        feature_importances_ : ndarray of shape (n_features,)
+            The values of this array sum to 1, unless all trees are single node
+            trees consisting of only the root node, in which case it will be an
+            array of zeros.
+        """
+        all_importances = [
+            self.estimators_[i].feature_importances_
+            for i in range(len(self.estimators_))
+        ]
+        all_importances = np.mean(all_importances, axis=0, dtype=np.float64)
+        return all_importances / np.sum(all_importances)
+
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
         if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
             X = np.reshape(X, (X.shape[0], -1))
