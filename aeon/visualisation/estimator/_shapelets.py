@@ -4,6 +4,7 @@ __maintainer__ = ["baraline"]
 
 __all__ = ["ShapeletClassifierVisualizer", "ShapeletTransformerVisualizer"]
 
+import copy
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -78,43 +79,80 @@ class ShapeletVisualizer:
         self.threshold = threshold
         self.dilation = dilation
 
-    def plot(self, figsize=(10, 5), ax=None, font_size=22):
+    def plot(
+        self,
+        ax=None,
+        scatter_options={  # noqa: B006
+            "s": 70,
+            "alpha": 0.6,
+            "zorder": 3,
+            "edgecolor": "black",
+            "linewidths": 2,
+        },
+        plot_options={  # noqa: B006
+            "linewidth": 2,
+            "alpha": 0.9,
+            "linestyle": "--",
+        },
+        figure_options={  # noqa: B006
+            "figsize": (10, 5),
+            "dpi": 100,
+        },
+        rc_Params_options={"font.size": 22},  # noqa: B006
+        matplotlib_style="seaborn-v0_8",
+        custom_title_string=None,
+    ):
         """
         Plot the shapelet values.
 
         Parameters
         ----------
-        figsize : tuple, optional
-            2D size of the figure. The default is (10,5).
-        ax : matplotlib axe, optional
+        ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        font_size : float, optional
-            Size of the font used in the plot.
+        plot_options : dict
+            Options to apply to plot of the shapelet values.
+        scatter_options : dict
+            Options to apply to scatter plot of the shapelet values.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure. Only used if ax is None.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            None.
+        matplotlib_style: str
+            Matplotlib style to be used. Only used if ax is None.
+        custom_title_string : str
+            If not None, use this string as title for the plot instead of the default
+            one based on the shapelet parametres.
 
         Returns
         -------
         fig : matplotlib figure
             The resulting figure
         """
-        title_string = "Shapelet params:"
-        if self.dilation > 1:
-            title_string += f" dilation={self.dilation}"
-        if self.threshold is not None:
-            title_string += f" threshold={np.round(self.threshold, decimals=2)}"
-        title_string += f" normalize={self.normalize}"
-
+        if "label" not in plot_options.keys():
+            plot_options["label"] = ""
+        if custom_title_string is None:
+            title_string = "Shapelet params:"
+            if self.dilation > 1:
+                title_string += f" dilation={self.dilation}"
+            if self.threshold is not None:
+                title_string += f" threshold={np.round(self.threshold, decimals=2)}"
+            title_string += f" normalize={self.normalize}"
+        else:
+            title_string = custom_title_string
         if ax is None:
-            plt.style.use("seaborn-v0_8")
-            plt.rcParams.update(
-                {
-                    "font.size": font_size,  # controls default text sizes
-                }
-            )
+            plt.style.use(matplotlib_style)
+            plt.rcParams.update(rc_Params_options)
 
-            fig = plt.figure(figsize=(figsize))
+            fig = plt.figure(**figure_options)
             for i in range(self.n_channels):
-                plt.plot(self.values[i], label=f"channel {i}")
+                if self.n_channels > 1:
+                    plot_options.update(
+                        {"label": str(plot_options["label"]) + f" channel {i}"}
+                    )
+                plt.plot(self.values[i], **plot_options)
+                plt.scatter(np.arange(self.length), self.values[i], **scatter_options)
             plt.ylabel("shapelet values")
             plt.xlabel("timepoint")
             plt.title(title_string)
@@ -122,7 +160,12 @@ class ShapeletVisualizer:
             return fig
         else:
             for i in range(self.n_channels):
-                ax.plot(self.values[i], label=f"channel {i}")
+                if self.n_channels > 1:
+                    plot_options.update(
+                        {"label": str(plot_options["label"]) + f" channel {i}"}
+                    )
+                ax.plot(self.values[i], **plot_options)
+                ax.scatter(np.arange(self.length), self.values[i], **scatter_options)
             ax.set_title(title_string)
             ax.set_ylabel("shapelet values")
             ax.set_xlabel("timepoint")
@@ -132,14 +175,20 @@ class ShapeletVisualizer:
     def plot_on_X(
         self,
         X,
-        figsize=(10, 5),
-        alpha=0.9,
-        shp_dot_size=40,
-        shp_c="purple",
         ax=None,
-        label="",
-        x_linewidth=2,
-        font_size=22,
+        shp_scatter_options={  # noqa: B006
+            "s": 40,
+            "c": "purple",
+            "alpha": 0.9,
+            "zorder": 3,
+        },
+        x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        figure_options={  # noqa: B006
+            "figsize": (10, 5),
+            "dpi": 100,
+        },
+        rc_Params_options={"font.size": 22},  # noqa: B006
+        matplotlib_style="seaborn-v0_8",
     ):
         """
         Plot the shapelet on its best match on the time series X.
@@ -148,24 +197,20 @@ class ShapeletVisualizer:
         ----------
         X : array, shape=(n_features, n_timestamps)
             Input time series
-        figsize : tuple, optional
-            Size of the figure. The default is (10,5).
-        alpha : float, optional
-            Alpha parameter for plotting X. The default is 0.9.
-        shp_dot_size : float, optional
-            Size of the scatter plot to represent the shapelet on X.
-            The default is 40.
-        shp_c : str, optional
-            Color of the shapelet scatter plot. The default is 'purple'.
-        ax : matplotlib axe, optional
+        ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        label : str, optional
-            Custom label to plot as legend for X. The default is "".
-        x_linewidth : float, optional
-            The linewidth of X plot. The default is 2.
-        font_size : float, optional
-            Size of the font used in the plot.
+        shp_scatter_options : dict
+            Dictionnary of options passed to the scatter plot of the shapelet values.
+        x_plot_options : dict
+            Dictionnary of options passed to the plot of the time series values.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure. Only used if ax is None.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            None.
+        matplotlib_style: str
+            Matplotlib style to be used. Only used if ax is None.
 
         Returns
         -------
@@ -176,7 +221,8 @@ class ShapeletVisualizer:
         """
         if len(X.shape) == 1:
             X = X[np.newaxis, :]
-
+        if "label" not in x_plot_options.keys():
+            x_plot_options["label"] = ""
         # Get candidate subsequences in X
         X_subs = get_all_subsequences(X, self.length, self.dilation)
 
@@ -206,53 +252,52 @@ class ShapeletVisualizer:
             ].mean(axis=-1, keepdims=True)
 
         if ax is None:
-            plt.style.use("seaborn-v0_8")
-            plt.rcParams.update(
-                {
-                    "font.size": font_size,  # controls default text sizes
-                }
-            )
+            plt.style.use(matplotlib_style)
+            plt.rcParams.update(rc_Params_options)
 
-            fig = plt.figure(figsize=(figsize))
+            fig = plt.figure(**figure_options)
             for i in range(self.n_channels):
-                plt.plot(X[i], label=label + f" channel {i}")
-                plt.scatter(
-                    idx_match,
-                    _values[i],
-                    s=shp_dot_size,
-                    c=shp_c,
-                    zorder=3,
-                    alpha=alpha,
-                )
-            plt.title("Best match of shapelet on X")
+                if self.n_channels > 1:
+                    x_plot_options.update(
+                        {"label": str(x_plot_options["label"]) + f" channel {i}"}
+                    )
+                plt.plot(X[i], **x_plot_options)
+                plt.scatter(idx_match, _values[i], **shp_scatter_options)
+                plt.title("Best match of shapelet on X")
             plt.ylabel("shapelet values")
             plt.xlabel("timepoint")
             return fig
         else:
             for i in range(self.n_channels):
-                ax.plot(
-                    X, label=label + f" channel {i}", linewidth=x_linewidth, alpha=alpha
-                )
-                ax.scatter(
-                    idx_match,
-                    _values[i],
-                    s=shp_dot_size,
-                    c=shp_c,
-                    zorder=3,
-                    alpha=alpha,
-                )
-            ax.set_ylabel("values")
+                if self.n_channels > 1:
+                    x_plot_options.update(
+                        {"label": str(x_plot_options["label"]) + f" channel {i}"}
+                    )
+                ax.plot(X[i], **x_plot_options)
+                ax.scatter(idx_match, _values[i], **shp_scatter_options)
+            ax.set_ylabel("shapelet values")
             ax.set_xlabel("timepoint")
             return ax
 
     def plot_distance_vector(
         self,
         X,
-        figsize=(10, 5),
-        c_threshold="purple",
         ax=None,
-        label="",
-        font_size=22,
+        show_legend=True,
+        show_threshold=True,
+        dist_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        threshold_plot_options={  # noqa: B006
+            "linewidth": 2,
+            "alpha": 0.9,
+            "color": "purple",
+            "label": "threshold",
+        },
+        figure_options={  # noqa: B006
+            "figsize": (10, 5),
+            "dpi": 100,
+        },
+        rc_Params_options={"font.size": 22},  # noqa: B006
+        matplotlib_style="seaborn-v0_8",
     ):
         """
         Plot the shapelet distance vector computed between itself and X.
@@ -261,18 +306,24 @@ class ShapeletVisualizer:
         ----------
         X : array, shape=(n_features, n_timestamps)
             Input time series
-        figsize : tuple, optional
-            Size of the figure. The default is (10,5).
-        c_threshold : float, optional
-            Color used to represent a line on the y-axis to visualize the lambda
-            threshold. The default is 'purple'.
-        ax : matplotlib axe, optional
+        ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        label : str, optional
-            Custom label to plot as legend. The default is None.
-        font_size : float, optional
-            Size of the font used in the plot.
+        show_legend : bool, optional
+            Wheter to show legend. Default is True
+        show_threshold: bool, optional
+            Wheter to show threshold (if it is not set to None). Default is True.
+        threshold_plot_options : dict
+            Dictionnary of options passed to the line plot of the threshold.
+        dist_plot_options : dict
+            Dictionnary of options passed to the plot of the distance vector values.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure. Only used if ax is None.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            None.
+        matplotlib_style: str
+            Matplotlib style to be used. Only used if ax is None.
 
         Returns
         -------
@@ -295,32 +346,25 @@ class ShapeletVisualizer:
             _values = self.values
 
         # Compute distance vector
+        # TODO : make distance a parameter here ?
         c = compute_shapelet_dist_vector(X_subs, _values, self.length)
 
         if ax is None:
-            plt.style.use("seaborn-v0_8")
-            plt.rcParams.update(
-                {
-                    "font.size": font_size,  # controls default text sizes
-                }
-            )
+            plt.style.use(matplotlib_style)
+            plt.rcParams.update(rc_Params_options)
+            fig = plt.figure(**figure_options)
 
-            fig = plt.figure(figsize=(figsize))
-            plt.plot(c, label=label)
-            if self.threshold is not None:
-                plt.hlines(
-                    self.threshold, 0, c.shape[0], color=c_threshold, label="threshold"
-                )
+            plt.plot(c, **dist_plot_options)
+            if self.threshold is not None and show_threshold:
+                plt.hlines(self.threshold, 0, c.shape[0], **threshold_plot_options)
             plt.title("Distance vector between shapelet and X")
-            plt.legend()
+            if show_legend:
+                plt.legend()
             return fig
         else:
-            ax.plot(c, label=label)
-            if self.threshold is not None:
-                ax.hlines(
-                    self.threshold, 0, c.shape[0], color=c_threshold, label="threshold"
-                )
-            ax.legend()
+            ax.plot(c, **dist_plot_options)
+            if self.threshold is not None and show_threshold:
+                ax.hlines(self.threshold, 0, c.shape[0], **threshold_plot_options)
             return ax
 
 
@@ -397,12 +441,20 @@ class ShapeletTransformerVisualizer:
         self,
         id_shapelet,
         X,
-        figsize=(10, 5),
-        shp_dot_size=40,
-        shp_c="purple",
         ax=None,
-        label="",
-        x_linewidth=2.0,
+        shp_scatter_options={  # noqa: B006
+            "s": 40,
+            "c": "purple",
+            "alpha": 0.9,
+            "zorder": 3,
+        },
+        x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        figure_options={  # noqa: B006
+            "figsize": (10, 5),
+            "dpi": 100,
+        },
+        rc_Params_options={"font.size": 22},  # noqa: B006
+        matplotlib_style="seaborn-v0_8",
     ):
         """
         Plot the shapelet on its best match on the time series X.
@@ -411,24 +463,22 @@ class ShapeletTransformerVisualizer:
         ----------
         id_shapelet : int
             ID of the shapelet to plot.
-        X : shape=(n_channels, n_timepoints)
+        X : array, shape=(n_features, n_timestamps)
             Input time series
-        figsize : tuple, optional
-            Size of the figure. The default is (10,5).
-        alpha : float, optional
-            Alpha parameter for plotting X. The default is 0.9.
-        shp_dot_size : float, optional
-            Size of the scatter plot to represent the shapelet on X.
-            The default is 40.
-        shp_c : str, optional
-            Color of the shapelet scatter plot. The default is 'purple'.
-        ax : matplotlib axe, optional
+        ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        label : str, optional
-            Custom label to plot as legend for X. The default is None.
-        x_linewidth : float, optional
-            The linewidth of X plot. The default is 2.
+        shp_scatter_options : dict
+            Dictionnary of options passed to the scatter plot of the shapelet values.
+        x_plot_options : dict
+            Dictionnary of options passed to the plot of the time series values.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure. Only used if ax is None.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            None.
+        matplotlib_style: str
+            Matplotlib style to be used. Only used if ax is None.
 
         Returns
         -------
@@ -439,22 +489,34 @@ class ShapeletTransformerVisualizer:
         """
         return self._get_shapelet(id_shapelet).plot_on_X(
             X,
-            figsize=figsize,
-            shp_dot_size=shp_dot_size,
-            shp_c=shp_c,
             ax=ax,
-            label=label,
-            x_linewidth=x_linewidth,
+            shp_scatter_options=shp_scatter_options,
+            x_plot_options=x_plot_options,
+            figure_options=figure_options,
+            rc_Params_options=rc_Params_options,
+            matplotlib_style=matplotlib_style,
         )
 
     def plot_distance_vector(
         self,
         id_shapelet,
         X,
-        figsize=(10, 5),
-        c_threshold="purple",
         ax=None,
-        label="",
+        show_legend=True,
+        show_threshold=True,
+        dist_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        threshold_plot_options={  # noqa: B006
+            "linewidth": 2,
+            "alpha": 0.9,
+            "color": "purple",
+            "label": "threshold",
+        },
+        figure_options={  # noqa: B006
+            "figsize": (10, 5),
+            "dpi": 100,
+        },
+        rc_Params_options={"font.size": 22},  # noqa: B006
+        matplotlib_style="seaborn-v0_8",
     ):
         """
         Plot the shapelet distance vector computed between itself and X.
@@ -465,16 +527,24 @@ class ShapeletTransformerVisualizer:
             ID of the shapelet to plot.
         X : array, shape=(n_timestamps) or shape=(n_features, n_timestamps)
             Input time series
-        figsize : tuple, optional
-            Size of the figure. The default is (10,5).
-        c_threshold : float, optional
-            Color used to represent a line on the y-axis to visualize the lambda
-            threshold. The default is 'purple'.
-        ax : matplotlib axe, optional
+        ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        label : str, optional
-            Custom label to plot as legend. The default is None.
+        show_legend : bool, optional
+            Wheter to show legend. Default is True
+        show_threshold: bool, optional
+            Wheter to show threshold (if it is not set to None). Default is True.
+        threshold_plot_options : dict
+            Dictionnary of options passed to the line plot of the threshold.
+        dist_plot_options : dict
+            Dictionnary of options passed to the plot of the distance vector values.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure. Only used if ax is None.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            None.
+        matplotlib_style: str
+            Matplotlib style to be used. Only used if ax is None.
 
         Returns
         -------
@@ -484,13 +554,40 @@ class ShapeletTransformerVisualizer:
         """
         return self._get_shapelet(id_shapelet).plot_distance_vector(
             X,
-            figsize=figsize,
-            c_threshold=c_threshold,
             ax=ax,
-            label=label,
+            show_legend=show_legend,
+            show_threshold=show_threshold,
+            threshold_plot_options=threshold_plot_options,
+            dist_plot_options=dist_plot_options,
+            figure_options=figure_options,
+            rc_Params_options=rc_Params_options,
+            matplotlib_style=matplotlib_style,
         )
 
-    def plot(self, id_shapelet, figsize=(10, 5), ax=None):
+    def plot(
+        self,
+        id_shapelet,
+        ax=None,
+        scatter_options={  # noqa: B006
+            "s": 70,
+            "alpha": 0.6,
+            "zorder": 3,
+            "edgecolor": "black",
+            "linewidths": 2,
+        },
+        plot_options={  # noqa: B006
+            "linewidth": 2,
+            "alpha": 0.9,
+            "linestyle": "--",
+        },
+        figure_options={  # noqa: B006
+            "figsize": (10, 5),
+            "dpi": 100,
+        },
+        rc_Params_options={"font.size": 22},  # noqa: B006
+        matplotlib_style="seaborn-v0_8",
+        custom_title_string=None,
+    ):
         """
         Plot the shapelet values.
 
@@ -498,18 +595,38 @@ class ShapeletTransformerVisualizer:
         ----------
         id_shapelet : int
             ID of the shapelet to plot.
-        figsize : tuple, optional
-            2D size of the figure. The default is (10,5).
-        ax : matplotlib axe, optional
+        ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
+         scatter_options : dict
+             Options to apply to scatter plot of the shapelet values.
+         figure_options : dict
+             Dictionnary of options passed to plt.figure. Only used if ax is None.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure. Only used if ax is None.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            None.
+        matplotlib_style: str
+            Matplotlib style to be used. Only used if ax is None.
+        custom_title_string : str
+            If not None, use this string as title for the plot instead of the default
+            one based on the shapelet parametres.
 
         Returns
         -------
         fig : matplotlib figure
             The resulting figure
         """
-        return self._get_shapelet(id_shapelet).plot(figsize=figsize, ax=ax)
+        return self._get_shapelet(id_shapelet).plot(
+            ax=ax,
+            plot_options=plot_options,
+            scatter_options=scatter_options,
+            figure_options=figure_options,
+            rc_Params_options=rc_Params_options,
+            matplotlib_style=matplotlib_style,
+            custom_title_string=custom_title_string,
+        )
 
 
 class ShapeletClassifierVisualizer:
@@ -547,9 +664,7 @@ class ShapeletClassifierVisualizer:
             n_classes = coefs.shape[0]
             if n_classes == 1:
                 coefs = np.append(-coefs, coefs, axis=0)
-            c_ = np.zeros(self.estimator._transformer.shapelets_[1].shape[0] * 3)
-            c_ = coefs[class_id]
-            return c_
+            return coefs[class_id]
         elif isinstance(self.estimator, RSASTClassifier):
             raise NotImplementedError()
         elif isinstance(self.estimator, SASTClassifier):
@@ -563,10 +678,89 @@ class ShapeletClassifierVisualizer:
                 "The provided estimator of class {} is not supported. Is it a shapelet"
                 " transformer ?"
             )
-        return c_
+
+    def _get_boxplot_data(self, X, mask_class_id, mask_other_class_id, id_shp):
+        if isinstance(self.estimator, RDSTClassifier):
+            titles = [
+                "Boxplot of min",
+                "Boxplot of argmin",
+                "Boxplot of Shapelet Occurence",
+            ]
+            for i in range(3):
+                box_data = [
+                    X[mask_other_class_id, i + (id_shp * 3)],
+                    X[mask_class_id, i + (id_shp * 3)],
+                ]
+                yield titles[i], box_data
+
+        elif isinstance(self.estimator, RSASTClassifier):
+            raise NotImplementedError()
+        elif isinstance(self.estimator, SASTClassifier):
+            raise NotImplementedError()
+        elif isinstance(self.estimator, ShapeletTransformClassifier):
+            raise NotImplementedError()
+        elif isinstance(self.estimator, LearningShapeletClassifier):
+            raise NotImplementedError()
+        else:
+            raise NotImplementedError(
+                "The provided estimator of class {} is not supported. Is it a shapelet"
+                " transformer ?"
+            )
 
     def visualize_best_shapelets_one_class(
-        self, X, y, class_id, n_shp=1, figsize=(16, 12), font_size=22
+        self,
+        X,
+        y,
+        class_id,
+        n_shp=1,
+        id_example_other=None,
+        id_example_class=None,
+        class_colors=("tab:green", "tab:orange"),
+        shp_scatter_options={  # noqa: B006
+            "s": 80,
+            "alpha": 0.6,
+            "zorder": 3,
+            "edgecolor": "black",
+            "linewidths": 2,
+        },
+        x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        shp_plot_options={  # noqa: B006
+            "linewidth": 2,
+            "alpha": 0.9,
+            "linestyle": "--",
+        },
+        dist_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        threshold_plot_options={  # noqa: B006
+            "linewidth": 2,
+            "alpha": 0.9,
+            "color": "purple",
+            "label": "threshold",
+        },
+        boxplot_options={  # noqa: B006
+            "patch_artist": True,
+            "widths": 0.6,
+            "showmeans": True,
+            "meanline": True,
+            "boxprops": {"linewidth": 1.5},
+            "whiskerprops": {"linewidth": 1.5},
+            "medianprops": {"linewidth": 1.5, "color": "black"},
+            "meanprops": {"linewidth": 1.5, "color": "black"},
+            "flierprops": {"linewidth": 1.5},
+        },
+        figure_options={  # noqa: B006
+            "figsize": (20, 12),
+            "nrows": 2,
+            "ncols": 3,
+            "dpi": 200,
+        },
+        rc_Params_options={  # noqa: B006
+            "legend.fontsize": 14,
+            "xtick.labelsize": 13,
+            "ytick.labelsize": 13,
+            "axes.titlesize": 15,
+            "axes.labelsize": 15,
+        },
+        matplotlib_style="seaborn-v0_8",
     ):
         """
         Plot the n_shp best candidates for the class_id.
@@ -588,27 +782,42 @@ class ShapeletClassifierVisualizer:
         n_shp : int, optional
             Number of plots to output, one per shapelet (i.e. the n_shp best shapelets
             for class_id). The default is 1.
-        figsize : tuple, optional
-            Size of the figure. The default is (16,12).
-        font_size : float, optional
-            Size of the font used in the plot.
+        id_example_other : int
+            Sample ID to use for sample of other class. If None, a random one is
+            selected.
+        id_example_class : int
+            Sample ID to use for sample of class_id. If None, a random one is selected.
+        shp_scatter_options : dict
+            Dictionnary of options passed to the scatter plot of the shapelet values.
+        x_plot_options : dict
+            Dictionnary of options passed to the plot of the time series values.
+        shp_plot_options : dict
+            Dictionnary of options passed to the plot of the shapelet values.
+        threshold_plot_options : dict
+            Dictionnary of options passed to the line plot of the threshold.
+        dist_plot_options : dict
+            Dictionnary of options passed to the plot of the distance vector values.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure.
+        boxplot_options : dict
+            Dictionnary of options passed to features boxplot.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update.
+        matplotlib_style: str
+            Matplotlib style to be used.
 
         Returns
         -------
-        None.
-
+        figures : list of matplotlib figure
+            The resulting figures for each selected shapelets (list of size n_shp)
         """
         from sklearn.preprocessing import LabelEncoder
 
         # TODO: store labels for re-usage in other functions
         y = LabelEncoder().fit_transform(y)
 
-        plt.style.use("seaborn-v0_8")
-        plt.rcParams.update(
-            {
-                "font.size": font_size,  # controls default text sizes
-            }
-        )
+        plt.style.use(matplotlib_style)
+        plt.rcParams.update(**rc_Params_options)
 
         coefs = self._get_shp_importance(class_id)
         idx = (coefs.argsort() // 3)[::-1]
@@ -621,57 +830,134 @@ class ShapeletClassifierVisualizer:
             i += 1
 
         X_new = self.estimator._transformer.transform(X)
-        i_example = np.random.choice(np.where(y == class_id)[0])
-        i_example2 = np.random.choice(np.where(y != class_id)[0])
-        y_copy = (y == class_id).astype(int)
+        mask_class_id = np.where(y == class_id)[0]
+        mask_other_class_id = np.where(y != class_id)[0]
+        if id_example_class is None:
+            id_example_class = np.random.choice(mask_class_id)
+        if id_example_other is None:
+            id_example_other = np.random.choice(mask_other_class_id)
+        figures = []
         for i_shp in shp_ids:
-            fig, ax = plt.subplots(nrows=2, ncols=3, figsize=figsize)
-            # TODO : fix boxplot method for matplotlib different than seaborn
-            ax[0, 0].set_title("Boxplot of min")
-            plt.boxplot(x=y_copy, y=X_new[:, (i_shp * 3)], ax=ax[0, 0])
-            ax[0, 0].set_xticklabels(["Other classes", f"Class {class_id}"])
+            fig, ax = plt.subplots(**figure_options)
+            if len(ax.shape) == 1:
+                n_cols = ax.shape[0]
+            else:
+                n_cols = ax.shape[1]
 
-            ax[0, 1].set_title("Boxplot of argmin")
-            plt.boxplot(x=y_copy, y=X_new[:, 1 + (i_shp * 3)], ax=ax[0, 1])
+            # Plots of features boxplots
+            i_ax = 0
+            for title, box_data in self._get_boxplot_data(
+                X_new, mask_class_id, mask_other_class_id, i_shp
+            ):
+                ax[i_ax // n_cols, i_ax % n_cols].set_title(title)
+                bplot = ax[i_ax // n_cols, i_ax % n_cols].boxplot(
+                    box_data, **boxplot_options
+                )
+                ax[i_ax // n_cols, i_ax % n_cols].set_xticklabels(
+                    ["Other classes", f"Class {class_id}"]
+                )
+                for patch, color in zip(bplot["boxes"], class_colors):
+                    patch.set_facecolor(color)
+                i_ax += 1
 
-            ax[0, 1].set_xticklabels(["Other classes", f"Class {class_id}"])
-            ax[0, 2].set_title("Boxplot of Shapelet Occurence")
-            plt.boxplot(x=y_copy, y=X_new[:, 2 + (i_shp * 3)], ax=ax[0, 2])
-
-            ax[0, 2].set_xticklabels(["Other classes", f"Class {class_id}"])
-
-            ax[1, 0].set_title("Best match")
-            ax[1, 2].set_title("Distance vectors")
-
-            self.transformer_vis.plot(i_shp, ax=ax[1, 1])
-
-            self.transformer_vis.plot_on_X(
-                i_shp, X[i_example2], ax=ax[1, 0], label="Other class"
+            # Plots of shapelet on X
+            x0_plot_options = copy.deepcopy(x_plot_options)
+            x0_plot_options.update(
+                {
+                    "label": f"Sample of class {y[id_example_other]}",
+                    "c": class_colors[0],
+                }
             )
-            self.transformer_vis.plot_on_X(
-                i_shp, X[i_example], ax=ax[1, 0], label=f"Class {class_id}"
+            shp0_scatter_options = copy.deepcopy(shp_scatter_options)
+            shp0_scatter_options.update({"c": class_colors[0]})
+            self.plot_on_X(
+                i_shp,
+                X[id_example_other],
+                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                x_plot_options=x0_plot_options,
+                shp_scatter_options=shp0_scatter_options,
             )
 
-            self.transformer_vis.plot_distance_vector(
-                i_shp, X[i_example2], ax=ax[1, 2], label="Other class"
+            x1_plot_options = copy.deepcopy(x_plot_options)
+            x1_plot_options.update(
+                {
+                    "label": f"Sample of class {y[id_example_class]}",
+                    "c": class_colors[1],
+                }
             )
-            self.transformer_vis.plot_distance_vector(
-                i_shp, X[i_example], ax=ax[1, 2], label=f"Class {class_id}"
+            shp1_scatter_options = copy.deepcopy(shp_scatter_options)
+            shp1_scatter_options.update({"c": class_colors[1]})
+            self.plot_on_X(
+                i_shp,
+                X[id_example_class],
+                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                x_plot_options=x1_plot_options,
+                shp_scatter_options=shp1_scatter_options,
+            )
+            ax[i_ax // n_cols, i_ax % n_cols].set_title("Best match on examples")
+            ax[i_ax // n_cols, i_ax % n_cols].legend()
+
+            # Plots of shapelet values
+            i_ax += 1
+            self.plot(
+                i_shp,
+                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                plot_options=shp_plot_options,
+                scatter_options=shp_scatter_options,
             )
 
-            ax[1, 0].legend()
-            plt.show()
+            # Plots of distance vectors
+            i_ax += 1
+            d0_plot_options = copy.deepcopy(dist_plot_options)
+            d0_plot_options.update(
+                {
+                    "c": class_colors[0],
+                    "label": f"Distance vector of class {y[id_example_other]}",
+                }
+            )
+            self.plot_distance_vector(
+                i_shp,
+                X[id_example_other],
+                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                show_legend=False,
+                show_threshold=False,
+                dist_plot_options=d0_plot_options,
+            )
+            d1_plot_options = copy.deepcopy(dist_plot_options)
+            d1_plot_options.update(
+                {
+                    "c": class_colors[1],
+                    "label": f"Distance vector of class {y[id_example_class]}",
+                }
+            )
+            self.plot_distance_vector(
+                i_shp,
+                X[id_example_class],
+                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                dist_plot_options=d1_plot_options,
+            )
+            ax[i_ax // n_cols, i_ax % n_cols].legend()
+            figures.append(fig)
+        return figures
 
     def plot_on_X(
         self,
         id_shapelet,
         X,
-        figsize=(10, 5),
-        shp_dot_size=40,
-        shp_c="purple",
         ax=None,
-        label="",
-        x_linewidth=2.0,
+        shp_scatter_options={  # noqa: B006
+            "s": 40,
+            "c": "purple",
+            "alpha": 0.9,
+            "zorder": 3,
+        },
+        x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        figure_options={  # noqa: B006
+            "figsize": (10, 5),
+            "dpi": 100,
+        },
+        rc_Params_options={"font.size": 22},  # noqa: B006
+        matplotlib_style="seaborn-v0_8",
     ):
         """
         Plot the shapelet on its best match on the time series X.
@@ -680,24 +966,22 @@ class ShapeletClassifierVisualizer:
         ----------
         id_shapelet : int
             ID of the shapelet to plot.
-        X : array, shape=(n_timestamps) or shape=(n_features, n_timestamps)
+        X : array, shape=(n_features, n_timestamps)
             Input time series
-        figsize : tuple, optional
-            Size of the figure. The default is (10,5).
-        alpha : float, optional
-            Alpha parameter for plotting X. The default is 0.9.
-        shp_dot_size : float, optional
-            Size of the scatter plot to represent the shapelet on X.
-            The default is 40.
-        shp_c : str, optional
-            Color of the shapelet scatter plot. The default is 'purple'.
-        ax : matplotlib axe, optional
+        ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        label : str, optional
-            Custom label to plot as legend for X. The default is None.
-        x_linewidth : float, optional
-            The linewidth of X plot. The default is 2.
+        shp_scatter_options : dict
+            Dictionnary of options passed to the scatter plot of the shapelet values.
+        x_plot_options : dict
+            Dictionnary of options passed to the plot of the time series values.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure. Only used if ax is None.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            None.
+        matplotlib_style: str
+            Matplotlib style to be used. Only used if ax is None.
 
         Returns
         -------
@@ -706,25 +990,37 @@ class ShapeletClassifierVisualizer:
             shapelet will be scalled to macth the scale of X.
 
         """
-        self.transformer_vis.plot_on_X(
+        return self.transformer_vis.plot_on_X(
             id_shapelet,
             X,
-            figsize=figsize,
-            shp_dot_size=shp_dot_size,
-            shp_c=shp_c,
             ax=ax,
-            label=label,
-            x_linewidth=x_linewidth,
+            shp_scatter_options=shp_scatter_options,
+            x_plot_options=x_plot_options,
+            figure_options=figure_options,
+            rc_Params_options=rc_Params_options,
+            matplotlib_style=matplotlib_style,
         )
 
     def plot_distance_vector(
         self,
         id_shapelet,
         X,
-        figsize=(10, 5),
-        c_threshold="purple",
         ax=None,
-        label="",
+        show_legend=True,
+        show_threshold=True,
+        dist_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        threshold_plot_options={  # noqa: B006
+            "linewidth": 2,
+            "alpha": 0.9,
+            "color": "purple",
+            "label": "threshold",
+        },
+        figure_options={  # noqa: B006
+            "figsize": (10, 5),
+            "dpi": 100,
+        },
+        rc_Params_options={"font.size": 22},  # noqa: B006
+        matplotlib_style="seaborn-v0_8",
     ):
         """
         Plot the shapelet distance vector computed between itself and X.
@@ -735,16 +1031,24 @@ class ShapeletClassifierVisualizer:
             ID of the shapelet to plot.
         X : array, shape=(n_timestamps) or shape=(n_features, n_timestamps)
             Input time series
-        figsize : tuple, optional
-            Size of the figure. The default is (10,5).
-        c_threshold : float, optional
-            Color used to represent a line on the y-axis to visualize the lambda
-            threshold. The default is 'purple'.
-        ax : matplotlib axe, optional
+        ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        label : str, optional
-            Custom label to plot as legend. The default is None.
+        show_legend : bool, optional
+            Wheter to show legend. Default is True
+        show_threshold: bool, optional
+            Wheter to show threshold (if it is not set to None). Default is True.
+        threshold_plot_options : dict
+            Dictionnary of options passed to the line plot of the threshold.
+        dist_plot_options : dict
+            Dictionnary of options passed to the plot of the distance vector values.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure. Only used if ax is None.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            None.
+        matplotlib_style: str
+            Matplotlib style to be used. Only used if ax is None.
 
         Returns
         -------
@@ -752,16 +1056,43 @@ class ShapeletClassifierVisualizer:
             The resulting figure with the distance vector obtained by d(S,X)
 
         """
-        self.transformer_vis.plot_distance_vector(
+        return self.transformer_vis.plot_distance_vector(
             id_shapelet,
             X,
-            figsize=figsize,
-            c_threshold=c_threshold,
             ax=ax,
-            label=label,
+            show_legend=show_legend,
+            show_threshold=show_threshold,
+            threshold_plot_options=threshold_plot_options,
+            dist_plot_options=dist_plot_options,
+            figure_options=figure_options,
+            rc_Params_options=rc_Params_options,
+            matplotlib_style=matplotlib_style,
         )
 
-    def plot(self, id_shapelet, figsize=(10, 5), ax=None):
+    def plot(
+        self,
+        id_shapelet,
+        ax=None,
+        scatter_options={  # noqa: B006
+            "s": 70,
+            "alpha": 0.6,
+            "zorder": 3,
+            "edgecolor": "black",
+            "linewidths": 2,
+        },
+        plot_options={  # noqa: B006
+            "linewidth": 2,
+            "alpha": 0.9,
+            "linestyle": "--",
+        },
+        figure_options={  # noqa: B006
+            "figsize": (10, 5),
+            "dpi": 100,
+        },
+        rc_Params_options={"font.size": 22},  # noqa: B006
+        matplotlib_style="seaborn-v0_8",
+        custom_title_string=None,
+    ):
         """
         Plot the shapelet values.
 
@@ -769,15 +1100,36 @@ class ShapeletClassifierVisualizer:
         ----------
         id_shapelet : int
             ID of the shapelet to plot.
-        figsize : tuple, optional
-            2D size of the figure. The default is (10,5).
-        ax : matplotlib axe, optional
+        ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
+         scatter_options : dict
+             Options to apply to scatter plot of the shapelet values.
+         figure_options : dict
+             Dictionnary of options passed to plt.figure. Only used if ax is None.
+        figure_options : dict
+            Dictionnary of options passed to plt.figure. Only used if ax is None.
+        rc_Params_options: dict
+            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            None.
+        matplotlib_style: str
+            Matplotlib style to be used. Only used if ax is None.
+        custom_title_string : str
+            If not None, use this string as title for the plot instead of the default
+            one based on the shapelet parametres.
 
         Returns
         -------
         fig : matplotlib figure
             The resulting figure
         """
-        self.transformer_vis.plot(id_shapelet, figsize=figsize, ax=ax)
+        return self.transformer_vis.plot(
+            id_shapelet,
+            ax=ax,
+            plot_options=plot_options,
+            scatter_options=scatter_options,
+            figure_options=figure_options,
+            rc_Params_options=rc_Params_options,
+            matplotlib_style=matplotlib_style,
+            custom_title_string=custom_title_string,
+        )
