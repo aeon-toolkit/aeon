@@ -7,6 +7,10 @@ __all__ = ["ShapeletClassifierVisualizer", "ShapeletTransformerVisualizer"]
 import copy
 
 import numpy as np
+from sklearn.ensemble._forest import BaseForest
+from sklearn.linear_model._base import LinearClassifierMixin
+from sklearn.pipeline import Pipeline
+from sklearn.tree import BaseDecisionTree
 
 from aeon.classification.shapelet_based._ls import LearningShapeletClassifier
 from aeon.classification.shapelet_based._rdst import RDSTClassifier
@@ -390,14 +394,7 @@ class ShapeletTransformerVisualizer:
             threshold_ = self.estimator.shapelets_[3][id_shapelet]
             normalize_ = self.estimator.shapelets_[4][id_shapelet]
 
-        elif isinstance(self.estimator, RSAST):
-            values_ = self.estimator._kernel_orig[id_shapelet][np.newaxis, :]
-            length_ = values_.shape[1]
-            dilation_ = 1
-            normalize_ = True
-            threshold_ = None
-
-        elif isinstance(self.estimator, SAST):
+        elif isinstance(self.estimator, (RSAST, SAST)):
             values_ = self.estimator._kernel_orig[id_shapelet][np.newaxis, :]
             length_ = values_.shape[1]
             dilation_ = 1
@@ -412,8 +409,8 @@ class ShapeletTransformerVisualizer:
             threshold_ = None
         else:
             raise NotImplementedError(
-                "The provided estimator of class {} is not supported. Is it a shapelet"
-                " transformer ?"
+                "The provided estimator of type {type(self.estimator)} is not supported"
+                ". Is it a shapelet transformer ?"
             )
         return ShapeletVisualizer(
             values_,
@@ -632,25 +629,69 @@ class ShapeletClassifierVisualizer:
         )
 
     def _get_shp_importance(self, class_id):
-        if isinstance(self.estimator, RDSTClassifier):
-            coefs = self.estimator._estimator["ridgeclassifiercv"].coef_
-            n_classes = coefs.shape[0]
-            if n_classes == 1:
-                coefs = np.append(-coefs, coefs, axis=0)
-            return coefs[class_id]
-        elif isinstance(self.estimator, RSASTClassifier):
-            raise NotImplementedError()
-        elif isinstance(self.estimator, SASTClassifier):
-            raise NotImplementedError()
-        elif isinstance(self.estimator, ShapeletTransformClassifier):
-            raise NotImplementedError()
+        """
+        Return the shapelet importance for a speficied class.
+
+        Parameters
+        ----------
+        class_id : int
+            Class identifier used. If the computation method used for importance is
+            independent of the class, this will be ignored.
+
+        Raises
+        ------
+        NotImplementedError
+            Raise this error when an estimator given in init is not supported.
+
+        Returns
+        -------
+        idx : array, shape = (n_shapelets)
+            Sorted shapelet index from best to worse
+        coefs : array, shape = (n_shapelets)
+            Importance values linked to each shapelets.
+
+        """
+        if isinstance(self.estimator, (RDSTClassifier, ShapeletTransformClassifier)):
+            classifier = self.estimator._estimator
+        elif isinstance(self.estimator, (RSASTClassifier, SASTClassifier)):
+            classifier = self.estimator._classifier
         elif isinstance(self.estimator, LearningShapeletClassifier):
             raise NotImplementedError()
         else:
             raise NotImplementedError(
-                "The provided estimator of class {} is not supported. Is it a shapelet"
-                " transformer ?"
+                f"The provided estimator of type {type(self.estimator)} is not"
+                " supported. Is it a shapelet classifier ?"
             )
+        # If classifier is a pipeline, get the last step (i.e. the classifier)
+        if isinstance(classifier, Pipeline):
+            classifier = classifier[-1]
+
+        # This suppose that the higher the coef linked to each feature, the most
+        # impact this feature makes on classification for the given class_id
+        if isinstance(classifier, LinearClassifierMixin):
+            coefs = classifier.coef_
+            n_classes = coefs.shape[0]
+            if n_classes == 1:
+                coefs = np.append(-coefs, coefs, axis=0)
+            coefs = coefs[class_id]
+            idx = coefs.argsort()[::-1]
+
+        elif isinstance(classifier, (BaseForest, BaseDecisionTree)):
+            coefs = classifier.feature_importances_
+            idx = coefs.argsort()[::-1]
+        else:
+            raise NotImplementedError(
+                f"The classifier linked to the estimator is not supported. We expect a "
+                "classifier inheriting from LinearClassifierMixin, BaseForest or "
+                f"BaseDecisionTree but got {type(classifier)}"
+            )
+
+        coefs = coefs[idx]
+        if isinstance(self.estimator, RDSTClassifier):
+            # As each shapelet generate 3 features, divide feature id by 3 so all
+            # features generated by one shapelet share the same ID
+            idx = idx // 3
+        return idx, coefs
 
     def _get_boxplot_data(self, X, mask_class_id, mask_other_class_id, id_shp):
         if isinstance(self.estimator, RDSTClassifier):
@@ -666,10 +707,9 @@ class ShapeletClassifierVisualizer:
                 ]
                 yield titles[i], box_data
 
-        elif (
-            isinstance(self.estimator, RSASTClassifier)
-            or isinstance(self.estimator, SASTClassifier)
-            or isinstance(self.estimator, ShapeletTransformClassifier)
+        elif isinstance(
+            self.estimator,
+            (RSASTClassifier, SASTClassifier, ShapeletTransformClassifier),
         ):
             titles = [
                 "Boxplot of min",
@@ -684,8 +724,8 @@ class ShapeletClassifierVisualizer:
             raise NotImplementedError()
         else:
             raise NotImplementedError(
-                "The provided estimator of class {} is not supported. Is it a shapelet"
-                " transformer ?"
+                f"The provided estimator of type {type(self.estimator)} is not"
+                " supported. Is it a shapelet classifier ?"
             )
 
     def visualize_best_shapelets_one_class(
@@ -698,9 +738,9 @@ class ShapeletClassifierVisualizer:
         id_example_class=None,
         class_colors=("tab:green", "tab:orange"),
         shp_scatter_options={  # noqa: B006
-            "s": 80,
-            "alpha": 0.6,
-            "zorder": 3,
+            "s": 70,
+            "alpha": 0.4,
+            "zorder": 1,
             "edgecolor": "black",
             "linewidths": 2,
         },
@@ -799,11 +839,13 @@ class ShapeletClassifierVisualizer:
 
         y = LabelEncoder().fit_transform(y)
 
+        if not isinstance(self.estimator, RDSTClassifier):
+            figure_options["ncols"] = 2
+
         plt.style.use(matplotlib_style)
         plt.rcParams.update(**rc_Params_options)
 
-        coefs = self._get_shp_importance(class_id)
-        idx = (coefs.argsort() // 3)[::-1]
+        idx, _ = self._get_shp_importance(class_id)
 
         shp_ids = []
         i = 0
