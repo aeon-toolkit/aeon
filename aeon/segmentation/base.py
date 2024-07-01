@@ -87,15 +87,16 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
 
     Parameters
     ----------
-    n_segments : int, default = 2
-        Number of segments to split the time series into. If None, then the number of
-        segments needs to be found in fit.
-    axis : int, default = 1
+    axis : int
         Axis along which to segment if passed a multivariate series (2D input). If axis
         is 0, it is assumed each column is a time series and each row is a
         timepoint. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
         ``axis == 1`` indicates the time series are in rows, i.e. the shape of the data
-        is ``(n_channels, n_timepoints)`.
+        is ``(n_channels, n_timepoints)`. Each segmenter must specify the axis it
+        assumes in the constructor and pass it to the base class.
+    n_segments : int, default = 2
+        Number of segments to split the time series into. If None, then the number of
+        segments needs to be found in fit.
 
     """
 
