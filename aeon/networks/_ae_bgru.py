@@ -1,9 +1,9 @@
 """Implement Auto-Encoder based on Bidirectional GRUs."""
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class AEBiGRUNetwork(BaseDeepNetwork):
+class AEBiGRUNetwork(BaseDeepLearningNetwork):
     """
     A class to implement an Auto-Encoder based on Bidirectional GRUs.
 
@@ -22,7 +22,11 @@ class AEBiGRUNetwork(BaseDeepNetwork):
             Flag to choose whether the latent space is an MTS or Euclidean space.
     """
 
-    _tags = {"auto-encoder": True}
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.12",
+        "structure": "encoder",
+    }
 
     def __init__(
         self,
@@ -78,11 +82,11 @@ class AEBiGRUNetwork(BaseDeepNetwork):
                     self._n_units[-1] = self.latent_space_dim // 2
 
         if isinstance(self.activation, str):
-            self._activation = [self.activation for _ in range(self.n_layers)]
+            self._activation = [self.activation for _ in range(self._n_layers)]
         else:
             self._activation = self.activation
             assert isinstance(self.activation, list)
-            assert len(self.activation) == self.n_layers
+            assert len(self.activation) == self._n_layers
 
         encoder_inputs = tf.keras.layers.Input(shape=input_shape, name="encoder_input")
         x = encoder_inputs

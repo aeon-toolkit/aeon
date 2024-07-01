@@ -2,10 +2,10 @@
 
 __maintainer__ = []
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class ResNetNetwork(BaseDeepNetwork):
+class ResNetNetwork(BaseDeepLearningNetwork):
     """
     Establish the network structure for a ResNet.
 

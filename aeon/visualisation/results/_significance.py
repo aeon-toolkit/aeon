@@ -78,8 +78,8 @@ def plot_significance(
     .. [1] Demsar J., "Statistical comparisons of classifiers over multiple data sets."
     Journal of Machine Learning Research 7:1-30, 2006.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.visualisation import plot_significance
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]

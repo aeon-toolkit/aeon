@@ -128,7 +128,7 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.interval_based import CanonicalIntervalForestRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -164,8 +164,6 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         parallel_backend=None,
     ):
         self.use_pycatch22 = use_pycatch22
-        if use_pycatch22:
-            self.set_tags(**{"python_dependencies": "pycatch22"})
 
         interval_features = [
             Catch22(outlier_norm=True, use_pycatch22=use_pycatch22),
@@ -191,6 +189,9 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pycatch22:
+            self.set_tags(**{"python_dependencies": "pycatch22"})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

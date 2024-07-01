@@ -13,7 +13,6 @@ Deprecation warnings should be included for at least one full minor version cycl
 
 Note that the deprecation policy does not necessarily apply to modules we class as still experimental. Currently experimental modules are:
 
-- `annotation`
 - `anomaly_detection`
 - `benchmarking`
 - `segmentation`

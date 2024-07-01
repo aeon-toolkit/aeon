@@ -11,10 +11,11 @@ from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.classification.dictionary_based import ContractableBOSS
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_3d_numpy,
-    make_example_unequal_length,
+    make_example_3d_numpy_list,
 )
+from aeon.testing.mock_estimators import MockCollectionTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import (
@@ -25,7 +26,6 @@ from aeon.transformations.collection import (
     TimeSeriesScaler,
 )
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
-from aeon.transformations.impute import Imputer
 
 
 @pytest.mark.parametrize(
@@ -109,7 +109,7 @@ def test_sklearn_classifier_pipeline(transformers):
 
 def test_unequal_tag_inference():
     """Test that ClassifierPipeline infers unequal length tag correctly."""
-    X, y = make_example_unequal_length(
+    X, y = make_example_3d_numpy_list(
         n_cases=10, min_n_timepoints=8, max_n_timepoints=12
     )
 
@@ -180,7 +180,10 @@ def test_missing_tag_inference():
     """Test that ClassifierPipeline infers missing data tag correctly."""
     X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
-    t1 = Imputer()
+    t1 = MockCollectionTransformer()
+    t1.set_tags(
+        **{"capability:missing_values": True, "capability:missing_values:removes": True}
+    )
     t2 = TimeSeriesScaler()
     t3 = StandardScaler()
     t4 = Tabularizer()

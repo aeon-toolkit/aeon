@@ -20,7 +20,31 @@ PR_TESTING = False
 if os.environ.get("CICD_RUNNING") == "1":
     import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 
-EXCLUDE_ESTIMATORS = ["SklearnRegressorPipeline"]  # To be deprecated in 0.9.0
+EXCLUDE_ESTIMATORS = [
+    "BoxCoxTransformer",
+    "TimeBinAggregate",
+    "PartialAutoCorrelationTransformer",
+    "LogTransformer",
+    "ReverseAugmenter",
+    "RandomSamplesAugmenter",
+    "SqrtTransformer",
+    "PinballLoss",
+    "ColumnSelect",
+    "IndexSubset",
+    "TimeSince",
+    "Differencer",
+    "CosineTransformer",
+    "ThetaLinesTransformer",
+    "InvertAugmenter",
+    "BKFilter",
+    "AutoCorrelationTransformer",
+    "PCATransformer",
+    "EmpiricalCoverage",
+    "WhiteNoiseAugmenter",
+    "KalmanFilterTransformer",
+    "BaseKalmanFilter",
+    "ClearSky",
+]  # Exclude deprecated estimators to reduce warnings
 
 # the test currently fails when numba is disabled. See issue #622
 if os.environ.get("NUMBA_DISABLE_JIT") == "1":
@@ -47,9 +71,7 @@ EXCLUDED_TESTS = {
     # test fails several variants of inversion, see
     # https://github.com/aeon-toolkit/aeon/issues/700
     "Differencer": ["test_transform_inverse_transform_equivalent"],
-    # Test fails, see https://github.com/aeon-toolkit/aeon/issues/1067
-    "MockUnivariateForecasterLogger": ["test_non_state_changing_method_contract"],
-    # has a keras fail, unknown reason
+    # has a keras fail, unknown reason, see #1387
     "LearningShapeletClassifier": ["test_fit_deterministic"],
 }
 

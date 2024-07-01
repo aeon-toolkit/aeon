@@ -7,6 +7,7 @@ transform then builds (by default) a rotation forest classifier on the output.
 __maintainer__ = []
 __all__ = ["ShapeletTransformClassifier"]
 
+from typing import List, Type, Union
 
 import numpy as np
 from sklearn.model_selection import cross_val_predict
@@ -132,17 +133,17 @@ class ShapeletTransformClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_shapelet_samples=10000,
-        max_shapelets=None,
-        max_shapelet_length=None,
+        n_shapelet_samples: int = 10000,
+        max_shapelets: Union[int, None] = None,
+        max_shapelet_length: Union[int, None] = None,
         estimator=None,
-        transform_limit_in_minutes=0,
-        time_limit_in_minutes=0,
-        contract_max_n_shapelet_samples=np.inf,
-        n_jobs=1,
-        batch_size=100,
-        random_state=None,
-    ):
+        transform_limit_in_minutes: int = 0,
+        time_limit_in_minutes: int = 0,
+        contract_max_n_shapelet_samples: int = np.inf,
+        n_jobs: int = 1,
+        batch_size: Union[int, None] = 100,
+        random_state: Union[int, Type[np.random.RandomState], None] = None,
+    ) -> None:
         self.n_shapelet_samples = n_shapelet_samples
         self.max_shapelets = max_shapelets
         self.max_shapelet_length = max_shapelet_length
@@ -187,8 +188,8 @@ class ShapeletTransformClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        self._fit_stc(X, y)
-
+        X_t = self._fit_stc_shared(X, y)
+        self._estimator.fit(X_t, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -243,13 +244,15 @@ class ShapeletTransformClassifier(BaseClassifier):
         )
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
-        Xt = self._fit_stc(X, y, save_rotf_data=True)
+        X_t = self._fit_stc_shared(X, y)
 
         if (isinstance(self.estimator, RotationForestClassifier)) or (
             self.estimator is None
         ):
-            return self._estimator._get_train_probs(Xt, y)
+            return self._estimator.fit_predict_proba(X_t, y)
         else:
+            self._estimator.fit(X_t, y)
+
             m = getattr(self._estimator, "predict_proba", None)
             if not callable(m):
                 raise ValueError("Estimator must have a predict_proba method.")
@@ -269,14 +272,14 @@ class ShapeletTransformClassifier(BaseClassifier):
 
             return cross_val_predict(
                 estimator,
-                X=Xt,
+                X=X_t,
                 y=y,
                 cv=cv_size,
                 method="predict_proba",
                 n_jobs=self._n_jobs,
             )
 
-    def _fit_stc(self, X, y, save_rotf_data=False):
+    def _fit_stc_shared(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         if self.time_limit_in_minutes > 0:
@@ -304,9 +307,6 @@ class ShapeletTransformClassifier(BaseClassifier):
             self.random_state,
         )
 
-        if isinstance(self._estimator, RotationForestClassifier):
-            self._estimator.save_transformed_data = save_rotf_data
-
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
             self._estimator.n_jobs = self._n_jobs
@@ -315,14 +315,10 @@ class ShapeletTransformClassifier(BaseClassifier):
         if m is not None and self.time_limit_in_minutes > 0:
             self._estimator.time_limit_in_minutes = self._classifier_limit_in_minutes
 
-        Xt = self._transformer.fit_transform(X, y)
-
-        self._estimator.fit(Xt, y)
-
-        return Xt
+        return self._transformer.fit_transform(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

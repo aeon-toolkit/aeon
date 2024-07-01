@@ -61,7 +61,7 @@ class ReconcilerForecaster(BaseForecaster):
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.reconcile import ReconcilerForecaster
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
+    >>> from aeon.testing.data_generation import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -121,7 +121,7 @@ class ReconcilerForecaster(BaseForecaster):
         ----------
         y : pd.DataFrame
             Time series to which to fit the forecaster.
-        fh : ForecastingHorizon or None, optional (default=None)
+        fh : ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
         X : pd.DataFrame, default=None
             Exogenous variables for the base forecaster
@@ -189,9 +189,9 @@ class ReconcilerForecaster(BaseForecaster):
 
         Parameters
         ----------
-        fh : ForecastingHorizon or None, optional (default=None)
+        fh : ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             Exogeneous time series for the forecast
 
         Returns
@@ -240,7 +240,7 @@ class ReconcilerForecaster(BaseForecaster):
             Time series to which to fit the forecaster.
         X : pd.DataFrame, default=None
             Exogenous variables based to the base forecaster
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -293,10 +293,10 @@ class ReconcilerForecaster(BaseForecaster):
 
         Parameters
         ----------
-        shrink:  bool, optional (default=False)
+        shrink:  bool, default=False
             Shrink the off diagonal elements of the sample covariance matrix.
             according to the method in [2]_
-        diag_only: bool, optional (default=False)
+        diag_only: bool, default=False
             Remove the off-diagonal elements of the sample covariance matrix.
 
         Returns
