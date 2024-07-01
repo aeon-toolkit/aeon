@@ -12,21 +12,23 @@ from sklearn.linear_model._base import LinearClassifierMixin
 from sklearn.pipeline import Pipeline
 from sklearn.tree import BaseDecisionTree
 
-from aeon.classification.shapelet_based._ls import LearningShapeletClassifier
-from aeon.classification.shapelet_based._rdst import RDSTClassifier
-from aeon.classification.shapelet_based._rsast import RSASTClassifier
-from aeon.classification.shapelet_based._sast import SASTClassifier
-from aeon.classification.shapelet_based._stc import ShapeletTransformClassifier
-from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
+from aeon.classification.shapelet_based import (
+    RDSTClassifier,
+    RSASTClassifier,
+    SASTClassifier,
+    ShapeletTransformClassifier,
+)
+from aeon.distances import get_distance_function
+from aeon.transformations.collection.shapelet_based import (
+    RSAST,
+    SAST,
     RandomDilatedShapeletTransform,
+    RandomShapeletTransform,
+)
+from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
     compute_shapelet_dist_vector,
     get_all_subsequences,
     normalize_subsequences,
-)
-from aeon.transformations.collection.shapelet_based._rsast import RSAST
-from aeon.transformations.collection.shapelet_based._sast import SAST
-from aeon.transformations.collection.shapelet_based._shapelet_transform import (
-    RandomShapeletTransform,
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -62,10 +64,13 @@ class ShapeletVisualizer:
         dilation=1,
         threshold=None,
         length=None,
+        distance="euclidean",
     ):
         self.values = np.asarray(values)
+        if self.values.ndim == 1:
+            self.values = self.values[np.newaxis, :]
         if length is None:
-            self.length = values.shape[1]
+            self.length = self.values.shape[1]
         else:
             self.values = self.values[:, :length]
             self.length = length
@@ -73,13 +78,14 @@ class ShapeletVisualizer:
         self.normalize = normalize
         self.threshold = threshold
         self.dilation = dilation
+        self.distance_func = get_distance_function(distance)
 
     def plot(
         self,
         ax=None,
         scatter_options={  # noqa: B006
             "s": 70,
-            "alpha": 0.6,
+            "alpha": 0.75,
             "zorder": 3,
             "edgecolor": "black",
             "linewidths": 2,
@@ -238,7 +244,9 @@ class ShapeletVisualizer:
             _values = self.values
 
         # Compute distance vector
-        c = compute_shapelet_dist_vector(X_subs, _values, self.length)
+        c = compute_shapelet_dist_vector(
+            X_subs, _values, self.length, self.distance_func
+        )
 
         # Get best match index
         idx_best = c.argmin()
@@ -349,9 +357,9 @@ class ShapeletVisualizer:
         else:
             _values = self.values
 
-        # Compute distance vector
-        # TODO : make distance a parameter here ?
-        c = compute_shapelet_dist_vector(X_subs, _values, self.length)
+        c = compute_shapelet_dist_vector(
+            X_subs, _values, self.length, self.distance_func
+        )
 
         if ax is None:
             plt.style.use(matplotlib_style)
@@ -393,13 +401,15 @@ class ShapeletTransformerVisualizer:
             dilation_ = self.estimator.shapelets_[2][id_shapelet]
             threshold_ = self.estimator.shapelets_[3][id_shapelet]
             normalize_ = self.estimator.shapelets_[4][id_shapelet]
+            distance = self.estimator.distance
 
         elif isinstance(self.estimator, (RSAST, SAST)):
-            values_ = self.estimator._kernel_orig[id_shapelet][np.newaxis, :]
-            length_ = values_.shape[1]
+            values_ = self.estimator._kernel_orig[id_shapelet]
+            length_ = values_.shape[0]
             dilation_ = 1
             normalize_ = True
             threshold_ = None
+            distance = "euclidean"
 
         elif isinstance(self.estimator, RandomShapeletTransform):
             values_ = self.estimator.shapelets[id_shapelet][6]
@@ -407,6 +417,7 @@ class ShapeletTransformerVisualizer:
             dilation_ = 1
             normalize_ = True
             threshold_ = None
+            distance = "euclidean"
         else:
             raise NotImplementedError(
                 "The provided estimator of type {type(self.estimator)} is not supported"
@@ -418,6 +429,7 @@ class ShapeletTransformerVisualizer:
             dilation=dilation_,
             threshold=threshold_,
             length=length_,
+            distance=distance,
         )
 
     def plot_on_X(
@@ -553,7 +565,7 @@ class ShapeletTransformerVisualizer:
         ax=None,
         scatter_options={  # noqa: B006
             "s": 70,
-            "alpha": 0.6,
+            "alpha": 0.75,
             "zorder": 3,
             "edgecolor": "black",
             "linewidths": 2,
@@ -655,8 +667,6 @@ class ShapeletClassifierVisualizer:
             classifier = self.estimator._estimator
         elif isinstance(self.estimator, (RSASTClassifier, SASTClassifier)):
             classifier = self.estimator._classifier
-        elif isinstance(self.estimator, LearningShapeletClassifier):
-            raise NotImplementedError()
         else:
             raise NotImplementedError(
                 f"The provided estimator of type {type(self.estimator)} is not"
@@ -720,8 +730,6 @@ class ShapeletClassifierVisualizer:
             ]
             yield titles[0], box_data
 
-        elif isinstance(self.estimator, LearningShapeletClassifier):
-            raise NotImplementedError()
         else:
             raise NotImplementedError(
                 f"The provided estimator of type {type(self.estimator)} is not"
@@ -739,7 +747,7 @@ class ShapeletClassifierVisualizer:
         class_colors=("tab:green", "tab:orange"),
         shp_scatter_options={  # noqa: B006
             "s": 70,
-            "alpha": 0.4,
+            "alpha": 0.75,
             "zorder": 1,
             "edgecolor": "black",
             "linewidths": 2,
@@ -799,7 +807,8 @@ class ShapeletClassifierVisualizer:
         class_id : int
             ID of the class we want to visualize. The n_shp best shapelet for
             this class will be selected based on the feature coefficients
-            inside the ridge classifier.
+            inside the ridge classifier. The original labels are given to a
+            LabelEncoder, hence why we ask for an integer ID.
         n_shp : int, optional
             Number of plots to output, one per shapelet (i.e. the n_shp best shapelets
             for class_id). The default is 1.
@@ -962,6 +971,7 @@ class ShapeletClassifierVisualizer:
                 dist_plot_options=d1_plot_options,
             )
             ax[i_ax // n_cols, i_ax % n_cols].legend()
+            ax[i_ax // n_cols, i_ax % n_cols].set_title("Distance vectors of examples")
             figures.append(fig)
         return figures
 
@@ -1100,7 +1110,7 @@ class ShapeletClassifierVisualizer:
         ax=None,
         scatter_options={  # noqa: B006
             "s": 70,
-            "alpha": 0.6,
+            "alpha": 0.75,
             "zorder": 3,
             "edgecolor": "black",
             "linewidths": 2,
