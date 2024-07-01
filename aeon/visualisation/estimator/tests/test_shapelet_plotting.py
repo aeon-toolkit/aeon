@@ -94,7 +94,7 @@ def test_ShapeletVisualizer_plot_distance_vector():
     not _check_soft_dependencies(["matplotlib"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("transformer", TRANSFORMERS)
+@pytest.mark.parametrize("transformer_class", TRANSFORMERS)
 def test_ShapeletTransformerVisualizer(transformer_class):
     """Test whether plot_cluster_algorithm runs without error."""
     import matplotlib.pyplot as plt
@@ -123,7 +123,7 @@ def test_ShapeletTransformerVisualizer(transformer_class):
     not _check_soft_dependencies(["matplotlib"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("transformer", CLASSIFIERS)
+@pytest.mark.parametrize("classifier_class", CLASSIFIERS)
 def test_ShapeletClassifierVisualizer(classifier_class):
     """Test whether plot_cluster_algorithm runs without error."""
     import matplotlib.pyplot as plt
