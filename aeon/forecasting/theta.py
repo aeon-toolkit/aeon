@@ -16,8 +16,8 @@ from aeon.forecasting.compose._ensemble import _aggregate
 from aeon.forecasting.compose._pipeline import TransformedTargetForecaster
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.trend import PolynomialTrendForecaster
+from aeon.transformations._legacy.theta import _ThetaLinesTransformer
 from aeon.transformations.detrend import Deseasonalizer
-from aeon.transformations.theta import ThetaLinesTransformer
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_sp
 
@@ -334,7 +334,7 @@ class ThetaModularForecaster(BaseForecaster):
     Also see auto-theta method as described in [2]_ *not contained in this estimator).
 
     Overview: Input :term:`univariate series <Univariate time series>` of length
-    "n" and decompose with :class:`ThetaLinesTransformer
+    "n" and decompose with :class:`_ThetaLinesTransformer
     <aeon.transformations.theta>` by modifying the local curvature of
     the time series using Theta-coefficient values - `theta_values` parameter.
     Thansformation gives a pd.DataFrame of shape `len(input series) * len(theta)`.
@@ -378,7 +378,7 @@ class ThetaModularForecaster(BaseForecaster):
 
     See Also
     --------
-    ThetaForecaster, ThetaLinesTransformer
+    ThetaForecaster, _ThetaLinesTransformer
 
     Examples
     --------
@@ -424,7 +424,7 @@ class ThetaModularForecaster(BaseForecaster):
 
         self.pipe_ = TransformedTargetForecaster(
             steps=[
-                ("transformer", ThetaLinesTransformer(theta=self.theta_values)),
+                ("transformer", _ThetaLinesTransformer(theta=self.theta_values)),
                 ("forecaster", self._colens),
             ]
         )

@@ -9,12 +9,19 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from numpy.linalg import inv
 
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.hierarchical.aggregate import _check_index_no_total
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="Reconciler will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class Reconciler(BaseTransformer):
     """Hierarchical reconcilation transformer.
 
