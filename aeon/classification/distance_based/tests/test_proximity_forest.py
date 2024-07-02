@@ -21,7 +21,7 @@ def test_univariate(time_series_dataset):
     """Test that the function gives appropriate error message."""
     X, y = time_series_dataset
     X_multivariate = X.reshape((100, 2, 12))
-    clf = ProximityForest(n_trees=5, random_state=42, n_jobs=2)
+    clf = ProximityForest(n_trees=5, random_state=42, n_jobs=-1)
     with pytest.raises(ValueError, match="X should be univariate"):
         clf.fit(X_multivariate, y)
 

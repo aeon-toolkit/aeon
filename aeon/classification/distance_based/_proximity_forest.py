@@ -10,7 +10,7 @@ from typing import Type, Union
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
-from aeon.classification.distance_based import ProximityTree
+from aeon.classification.distance_based._proximity_tree import ProximityTree
 
 
 class ProximityForest(BaseClassifier):
