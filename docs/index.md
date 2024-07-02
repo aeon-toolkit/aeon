@@ -2,7 +2,7 @@
 hide-toc: true
 ---
 
-<h1 style="text-align: center;">Welcome to <b>aeon</b></h1>
+# Welcome to __aeon__
 
 `aeon` is a scikit-learn compatible toolkit for time series tasks such as
 classification, clustering, segmentation and anomaly detection.</p>
@@ -100,8 +100,10 @@ Get started with time series clustering.
 Clustering
 ```
 
+:::
+
 :::{grid-item-card}
-:img-top: ?
+:img-top: examples/anomaly_detection/img/anomaly_detection.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -109,7 +111,7 @@ Get started with anomaly detection.
 
 +++
 
-```{button-ref} ?
+```{button-ref} /examples/anomaly_detection/anomaly_detection.ipynb
 :color: primary
 :click-parent:
 :expand:
@@ -135,8 +137,6 @@ Segmentation
 
 Segmentation
 ```
-
-:::
 
 :::
 
@@ -250,44 +250,6 @@ Benchmarking
 :expand:
 
 Networks
-```
-
-:::
-
-:::{grid-item-card}
-:img-top: ?
-:class-img-top: aeon-card-image
-:text-align: center
-
-Visualising time series data and `aeon` estimators.
-
-+++
-
-```{button-ref} ?
-:color: primary
-:click-parent:
-:expand:
-
-Visualisation
-```
-
-:::
-
-:::{grid-item-card}
-:img-top: ?
-:class-img-top: aeon-card-image
-:text-align: center
-
-`aeon` utilities.
-
-+++
-
-```{button-ref} ?
-:color: primary
-:click-parent:
-:expand:
-
-Utilities
 ```
 
 :::
