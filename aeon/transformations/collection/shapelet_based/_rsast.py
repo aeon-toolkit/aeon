@@ -179,7 +179,6 @@ class RSAST(BaseCollectionTransformer):
         # 2--calculate PACF and ACF for each TS chosen in each class
 
         for i, c in enumerate(classes):
-
             X_c = X_[y == c]
 
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
@@ -313,7 +312,7 @@ class RSAST(BaseCollectionTransformer):
 
         Returns
         -------
-        X_transformed: np.ndarray shape (n_cases, n_timepoints),
+        X_transformed: np.ndarray shape (n_cases, n_kernels),
             The transformed data
         """
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))

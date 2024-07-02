@@ -144,7 +144,9 @@ def test_compute_shapelet_features(dtype):
     dilation = 1
     threshold = 0.01
     X_subs = get_all_subsequences(X, length, dilation)
-    _min, _argmin, SO = compute_shapelet_features(X_subs, values, length, threshold)
+    _min, _argmin, SO = compute_shapelet_features(
+        X_subs, values, length, threshold, manhattan_distance
+    )
 
     # On some occasion, float32 precision with fasmath retruns things like
     # 2.1835059227370834e-07 instead of 0
@@ -155,7 +157,9 @@ def test_compute_shapelet_features(dtype):
     dilation = 2
     threshold = 0.1
     X_subs = get_all_subsequences(X, length, dilation)
-    _min, _argmin, SO = compute_shapelet_features(X_subs, values, length, threshold)
+    _min, _argmin, SO = compute_shapelet_features(
+        X_subs, values, length, threshold, manhattan_distance
+    )
 
     assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 7.0
@@ -164,7 +168,9 @@ def test_compute_shapelet_features(dtype):
     dilation = 4
     threshold = 2
     X_subs = get_all_subsequences(X, length, dilation)
-    _min, _argmin, SO = compute_shapelet_features(X_subs, values, length, threshold)
+    _min, _argmin, SO = compute_shapelet_features(
+        X_subs, values, length, threshold, manhattan_distance
+    )
 
     assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 3.0
@@ -179,7 +185,9 @@ def test_compute_shapelet_dist_vector(dtype):
         for dilation in [1, 3, 5]:
             values = np.random.rand(3, length).astype(dtype)
             X_subs = get_all_subsequences(X, length, dilation)
-            d_vect = compute_shapelet_dist_vector(X_subs, values, length)
+            d_vect = compute_shapelet_dist_vector(
+                X_subs, values, length, manhattan_distance
+            )
             true_vect = np.zeros(X.shape[1] - (length - 1) * dilation)
             for i_sub in range(true_vect.shape[0]):
                 _idx = [i_sub + j * dilation for j in range(length)]

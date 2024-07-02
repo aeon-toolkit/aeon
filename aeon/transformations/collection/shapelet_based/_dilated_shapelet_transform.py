@@ -14,7 +14,7 @@ from numba import njit, prange, set_num_threads
 from numba.typed import List
 from sklearn.preprocessing import LabelEncoder
 
-from aeon.distances import manhattan_distance
+from aeon.distances import get_distance_function
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
@@ -83,6 +83,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         If True, restrict the value of the shapelet dilation parameter to be prime
         values. This can greatly speed up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
+    distance: str="manhattan"
+        Name of the distance function to be used. By default this is the
+        manhattan distance. Other distances from the aeon distance modules can be used.
     n_jobs : int, default=1
         The number of threads used for both `fit` and `transform`.
     random_state : int or None, default=None
@@ -153,6 +156,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         alpha_similarity=0.5,
         use_prime_dilations=False,
         random_state=None,
+        distance="manhattan",
         n_jobs=1,
     ):
         self.max_shapelets = max_shapelets
@@ -162,6 +166,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self.alpha_similarity = alpha_similarity
         self.use_prime_dilations = use_prime_dilations
         self.random_state = random_state
+        self.distance = distance
         self.n_jobs = n_jobs
 
         super().__init__()
@@ -183,7 +188,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         self : RandomDilatedShapeletTransform
             This estimator.
         """
-        # Numba does not yet support new random numpy API with generator
+        self.distance_func = get_distance_function(self.distance)
+
         if isinstance(self.random_state, int):
             self._random_state = np.int32(self.random_state)
         else:
@@ -218,6 +224,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self.alpha_similarity,
             self.use_prime_dilations,
             self._random_state,
+            self.distance_func,
         )
         if len(self.shapelets_[0]) == 0:
             raise RuntimeError(
@@ -259,7 +266,11 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                     "calling transform."
                 )
 
-        X_new = dilated_shapelet_transform(X, self.shapelets_)
+        X_new = dilated_shapelet_transform(
+            X,
+            self.shapelets_,
+            self.distance_func,
+        )
         if np.isinf(X_new).any() or np.isnan(X_new).any():
             warnings.warn(
                 "Some invalid values (inf or nan) where converted from to 0 during the"
@@ -482,6 +493,7 @@ def random_dilated_shapelet_extraction(
     alpha_similarity,
     use_prime_dilations,
     seed,
+    distance,
 ):
     """Randomly generate a set of shapelets given the input parameters.
 
@@ -518,6 +530,10 @@ def random_dilated_shapelet_extraction(
         short shapelet length, possibly at the cost of some accuracy.
     seed : int
         Seed for random number generation.
+    distance: CPUDispatcher
+        A Numba function used to compute the distance between two multidimensional
+        time series of shape (n_channels, length). Used as distance function between
+        shapelets and candidate subsequences
 
     Returns
     -------
@@ -641,7 +657,7 @@ def random_dilated_shapelet_extraction(
                         X[id_test], length, dilation
                     )
                     X_subs = normalize_subsequences(X_subs, X_means, X_stds)
-                x_dist = compute_shapelet_dist_vector(X_subs, _val, length)
+                x_dist = compute_shapelet_dist_vector(X_subs, _val, length, distance)
 
                 lower_bound = np.percentile(x_dist, threshold_percentiles[0])
                 upper_bound = np.percentile(x_dist, threshold_percentiles[1])
@@ -669,7 +685,7 @@ def random_dilated_shapelet_extraction(
 
 
 @njit(fastmath=True, cache=True, parallel=True)
-def dilated_shapelet_transform(X, shapelets):
+def dilated_shapelet_transform(X, shapelets, distance):
     """Perform the shapelet transform with a set of shapelets and a set of time series.
 
     Parameters
@@ -692,6 +708,10 @@ def dilated_shapelet_transform(X, shapelets):
             Means of the shapelets
         - stds : array, shape (n_shapelets, n_channels)
             Standard deviation of the shapelets
+    distance: CPUDispatcher
+        A Numba function used to compute the distance between two multidimensional
+        time series of shape (n_channels, length).
+
 
     Returns
     -------
@@ -728,7 +748,7 @@ def dilated_shapelet_transform(X, shapelets):
             for i_shp in idx_no_norm:
                 X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
                     compute_shapelet_features(
-                        X_subs, values[i_shp], length, threshold[i_shp]
+                        X_subs, values[i_shp], length, threshold[i_shp], distance
                     )
                 )
 
@@ -739,7 +759,7 @@ def dilated_shapelet_transform(X, shapelets):
                 for i_shp in idx_norm:
                     X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
                         compute_shapelet_features(
-                            X_subs, values[i_shp], length, threshold[i_shp]
+                            X_subs, values[i_shp], length, threshold[i_shp], distance
                         )
                     )
     return X_new
@@ -808,7 +828,7 @@ def get_all_subsequences(X, length, dilation):
 
 
 @njit(fastmath=True, cache=True)
-def compute_shapelet_features(X_subs, values, length, threshold):
+def compute_shapelet_features(X_subs, values, length, threshold, distance):
     """Extract the features from a shapelet distance vector.
 
     Given a shapelet and a time series, extract three features from the resulting
@@ -826,10 +846,11 @@ def compute_shapelet_features(X_subs, values, length, threshold):
         The value array of the shapelet
     length : int
         Length of the shapelet
-    values : array, shape (n_channels, length)
-        The resulting subsequence
     threshold : float
         The threshold parameter of the shapelet
+    distance: CPUDispatcher
+        A Numba function used to compute the distance between two multidimensional
+        time series of shape (n_channels, length).
 
     Returns
     -------
@@ -843,7 +864,7 @@ def compute_shapelet_features(X_subs, values, length, threshold):
     n_subsequences = X_subs.shape[0]
 
     for i_sub in prange(n_subsequences):
-        _dist = manhattan_distance(X_subs[i_sub], values[:, :length])
+        _dist = distance(X_subs[i_sub], values[:, :length])
         if _dist < _min:
             _min = _dist
             _argmin = i_sub
@@ -854,7 +875,7 @@ def compute_shapelet_features(X_subs, values, length, threshold):
 
 
 @njit(fastmath=True, cache=True)
-def compute_shapelet_dist_vector(X_subs, values, length):
+def compute_shapelet_dist_vector(X_subs, values, length, distance):
     """Extract the features from a shapelet distance vector.
 
     Given a shapelet and a time series, extract three features from the resulting
@@ -872,20 +893,17 @@ def compute_shapelet_dist_vector(X_subs, values, length):
         The value array of the shapelet
     length : int
         Length of the shapelet
-    dilation : int
-        Dilation of the shapelet
-    values : array, shape (n_channels, length)
-        The resulting subsequence
-    threshold : float
-        The threshold parameter of the shapelet
+    distance: CPUDispatcher
+        A Numba function used to compute the distance between two multidimensional
+        time series of shape (n_channels, length).
 
     Returns
     -------
-    min, argmin, shapelet occurence
-        The three computed features as float dtypes
+    dist_vector : array, shape = (n_timestamps-(length-1)*dilation)
+        The distance vector between the shapelets and candidate subsequences
     """
     n_subsequences = X_subs.shape[0]
     dist_vector = np.zeros(n_subsequences)
     for i_sub in prange(n_subsequences):
-        dist_vector[i_sub] = manhattan_distance(X_subs[i_sub], values[:, :length])
+        dist_vector[i_sub] = distance(X_subs[i_sub], values[:, :length])
     return dist_vector
