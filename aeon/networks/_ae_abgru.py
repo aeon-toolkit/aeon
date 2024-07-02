@@ -5,7 +5,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies("tensorflow", severity="none"):
     import tensorflow as tf
-    from tf.keras import backend as K
+    from tensorflow.keras import backend as K
 
     class _AttentionLayer(tf.keras.layers.Layer):
         def __init__(self, n_units, att_size, **kwargs):
