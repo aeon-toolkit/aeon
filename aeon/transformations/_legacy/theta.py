@@ -1,31 +1,23 @@
 """Implements Theta-lines transformation for use with Theta forecasting."""
 
 __maintainer__ = []
-__all__ = ["ThetaLinesTransformer"]
+__all__ = ["_ThetaLinesTransformer"]
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.transformations.base import BaseTransformer
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="ThetaLinesTransformer will be removed in version 0.10 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class ThetaLinesTransformer(BaseTransformer):
+class _ThetaLinesTransformer(BaseTransformer):
     """Decompose the original data into two or more Theta-lines.
 
     Implementation of decomposition for Theta-method [1]_ as described in [2]_.
 
     Overview: Input :term:`univariate series <Univariate time series>` of length
-    "n" and ThetaLinesTransformer modifies the local curvature of the time series
+    "n" and _ThetaLinesTransformer modifies the local curvature of the time series
     using Theta-coefficient values passed through the parameter `theta`.
 
     Each Theta-coefficient is applied directly to the second differences of the input
