@@ -42,14 +42,7 @@ def test_all_networks_functionality(network):
         if _check_soft_dependencies(
             network._config["python_dependencies"], severity="none"
         ) and _check_python_version(network._config["python_version"], severity="none"):
-            if "EncoderNetwork" == str(network):
-                if _check_soft_dependencies(["tensorflow-addons"], severity="none"):
-                    my_network = network()
-                else:
-                    with pytest.raises(ModuleNotFoundError):
-                        my_network = network()
-            else:
-                my_network = network()
+            my_network = network()
 
             if network._config["structure"] == "auto-encoder":
                 encoder, decoder = my_network.build_network(input_shape=input_shape)
