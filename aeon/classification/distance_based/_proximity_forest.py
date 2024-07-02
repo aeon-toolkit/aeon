@@ -3,6 +3,8 @@
 The Proximity Forest is an ensemble of Proximity Trees.
 """
 
+__all__ = ["ProximityForest"]
+
 from typing import Type, Union
 
 import numpy as np
@@ -16,6 +18,14 @@ class ProximityForest(BaseClassifier):
 
     The Proximity Forest is an ensemble of Proximity Trees.
     """
+
+    _tags = {
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "capability:multithreading": True,
+        "algorithm_type": "distance",
+        "X_inner_type": ["np-list", "numpy3D"],
+    }
 
     def __init__(
         self,
@@ -40,7 +50,7 @@ class ProximityForest(BaseClassifier):
             if X.shape[1] == 1:
                 X = np.squeeze(X, axis=1)
             else:
-                raise ValueError("X should be univariate.")
+                raise ValueError("X should be univariate")
 
         self.classes_ = list(np.unique(y))
         self.trees_ = []
