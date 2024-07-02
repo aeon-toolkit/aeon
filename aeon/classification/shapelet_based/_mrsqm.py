@@ -7,6 +7,7 @@ from typing import List, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.classification import BaseClassifier
 
@@ -30,6 +31,13 @@ def _from_numpy3d_to_nested_dataframe(X):
     return df
 
 
+# TODO: Move in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="MrSQMClassifier will be moved to the dictionary_based package in version "
+    "0.11.0 at the request of the author.",
+    category=FutureWarning,
+)
 class MrSQMClassifier(BaseClassifier):
     """
     Multiple Representations Sequence Miner (MrSQM) classifier.
