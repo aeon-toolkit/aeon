@@ -161,7 +161,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         if not fit_empty:
             self.check_is_fitted()
 
-        X = self._preprocess_series(X, axis, fit_empty)
+        X = self._preprocess_series(X, axis, False)
 
         return self._predict(X)
 

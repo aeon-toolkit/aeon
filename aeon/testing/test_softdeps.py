@@ -25,7 +25,7 @@ from aeon.utils.validation._dependencies import (
 modules = pkgutil.walk_packages(aeon.__path__, aeon.__name__ + ".")
 modules = [x[1] for x in modules]
 
-if PR_TESTING:
+if PR_TESTING:  # pragma: no cover
     # exclude test modules
     modules = [x for x in modules if not any(part == "tests" for part in x.split("."))]
 
@@ -46,7 +46,7 @@ def test_module_soft_deps(module):
     """
     try:
         import_module(module)
-    except ModuleNotFoundError as e:
+    except ModuleNotFoundError as e:  # pragma: no cover
         dependency = "unknown"
         match = re.search(r"\'(.+?)\'", str(e))
         if match:

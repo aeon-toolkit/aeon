@@ -1,12 +1,11 @@
 """Estimator checker for extension."""
 
-__maintainer__ = []
-__all__ = ["check_estimator"]
+__all__ = ["check_estimator_legacy"]
 
 from inspect import isclass
 
 
-def check_estimator(
+def check_estimator_legacy(
     estimator,
     raise_exceptions=False,
     tests_to_run=None,
@@ -61,20 +60,20 @@ def check_estimator(
     Examples
     --------
     >>> from aeon.testing.mock_estimators import MockTransformer
-    >>> from aeon.testing.estimator_checks import check_estimator
+    >>> from aeon.testing.estimator_checks import check_estimator_legacy
 
     Running all tests for ExponentTransformer class,
     this uses all instances from get_test_params and compatible scenarios
-    >>> results = check_estimator(MockTransformer)
+    >>> results = check_estimator_legacy(MockTransformer)
     All tests PASSED!
 
     Running all tests for a specific MockTransformer
     this uses the instance that is passed and compatible scenarios
-    >>> results = check_estimator(MockTransformer(42))
+    >>> results = check_estimator_legacy(MockTransformer(42))
     All tests PASSED!
 
     Running specific test (all fixtures) for MockTransformer
-    >>> results = check_estimator(MockTransformer, tests_to_run="test_clone")
+    >>> results = check_estimator_legacy(MockTransformer, tests_to_run="test_clone")
     All tests PASSED!
 
     {'test_clone[MockTransformer-0]': 'PASSED',

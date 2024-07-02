@@ -43,7 +43,7 @@ class BaseCollectionEstimator(BaseEstimator):
         super().__init__()
         _check_estimator_deps(self)
 
-    def _preprocess_collection(self, X):
+    def _preprocess_collection(self, X, store_metadata=True):
         """Preprocess input X prior to call to fit.
 
         1. Checks the characteristics of X, store metadata, checks self can handle
@@ -77,7 +77,7 @@ class BaseCollectionEstimator(BaseEstimator):
         (10, 1, 20)
         """
         meta = self._check_X(X)
-        if len(self.metadata_) == 0:
+        if len(self.metadata_) == 0 and store_metadata:
             self.metadata_ = meta
 
         X = self._convert_X(X)
