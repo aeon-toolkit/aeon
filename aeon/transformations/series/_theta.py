@@ -15,7 +15,7 @@ class ThetaTransformer(BaseSeriesTransformer):
     Implementation of decomposition for Theta-method [1]_ as described in [2]_.
 
     Overview: Input :term:`univariate series <Univariate time series>` of length
-    "n" and ThetaLinesTransformer modifies the local curvature of the time series
+    "n" and ThetaTransformer modifies the local curvature of the time series
     using Theta-coefficient values passed through the parameter `theta`.
 
     Each Theta-coefficient is applied directly to the second differences of the input
