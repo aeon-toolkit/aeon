@@ -6,7 +6,31 @@ __all__ = [
     "check_estimator",
 ]
 
+import re
+import warnings
+from functools import partial, wraps
+from inspect import isclass
+from typing import Callable, List, Type, Union
 
+from sklearn import config_context
+from sklearn.utils._testing import SkipTest
+
+from aeon.base import BaseEstimator
+from aeon.forecasting.base import BaseForecaster
+from aeon.testing.estimator_checking._legacy._legacy_estimator_checks import (
+    check_estimator_legacy,
+)
+from aeon.testing.estimator_checking._yield_estimator_checks import (
+    _yield_all_aeon_checks,
+)
+from aeon.testing.test_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
+from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.series import BaseSeriesTransformer
+from aeon.utils.validation._dependencies import (
+    _check_estimator_deps,
+    _check_soft_dependencies,
+)
 
 
 def _is_legacy_estimator(estimator):
@@ -64,7 +88,7 @@ def parametrize_with_checks(
 
     Examples
     --------
-    >>> from aeon.testing.estimator_checks import parametrize_with_checks
+    >>> from aeon.testing.estimator_checking import parametrize_with_checks
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> @parametrize_with_checks([TimeSeriesForestClassifier, NaiveForecaster])

@@ -6,7 +6,7 @@ import pytest
 
 from aeon.base import BaseEstimator
 from aeon.clustering import TimeSeriesKMeans
-from aeon.testing.estimator_checks import check_estimator, parametrize_with_checks
+from aeon.testing.estimator_checking import check_estimator, parametrize_with_checks
 from aeon.testing.mock_estimators import (
     MockClassifier,
     MockClassifierMultiTestParams,
