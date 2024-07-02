@@ -16,7 +16,56 @@ from aeon.classification.distance_based import ProximityTree
 class ProximityForest(BaseClassifier):
     """Proximity Forest Classifier.
 
-    The Proximity Forest is an ensemble of Proximity Trees.
+    The Proximity Forest is a distance-based classifier that creates an
+    ensemble of decision trees, where the splits are based on the
+    similarity between time series measured using various parameterised
+    distance measures.
+
+    Parameters
+    ----------
+    n_trees: int, default = 100
+        The number of trees, by default an ensemble of 100 trees is formed.
+    n_splitters: int, default = 5
+        The number of candidate splitters to be evaluated at each node.
+    max_depth: int, default = None
+        The maximum depth of the tree. If None, then nodes are expanded until all
+        leaves are pure or until all leaves contain less than min_samples_split samples.
+    min_samples_split: int, default = 2
+        The minimum number of samples required to split an internal node.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+    n_jobs : int, default = 1
+        The number of parallel jobs to run for neighbors search.
+        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        for more details. Parameter for compatibility purposes, still unimplemented.
+
+    Notes
+    -----
+    For the Java version, see
+    `ProximityForest
+    <https://github.com/fpetitjean/ProximityForest>`_.
+
+    References
+    ----------
+    .. [1] Lucas, B., Shifaz, A., Pelletier, C., O’Neill, L., Zaidi, N., Goethals, B.,
+    Petitjean, F. and Webb, G.I., 2019. Proximity forest: an effective and scalable
+    distance-based classifier for time series. Data Mining and Knowledge Discovery,
+    33(3), pp.607-635.
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.classification.distance_based import ProximityForest
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> classifier = ProximityForest(n_trees = 10, n_splitters = 3)
+    >>> classifier.fit(X_train, y_train)
+    ProximityForest(...)
+    >>> y_pred = classifier.predict(X_test)
     """
 
     _tags = {
@@ -29,7 +78,7 @@ class ProximityForest(BaseClassifier):
 
     def __init__(
         self,
-        n_trees=10,
+        n_trees=100,
         n_splitters: int = 5,
         max_depth: int = None,
         min_samples_split: int = 2,
