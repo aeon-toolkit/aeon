@@ -20,7 +20,6 @@ from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MultiRocket,
-    MultiRocketMultivariate,
     Rocket,
 )
 
@@ -275,18 +274,11 @@ class Arsenal(BaseClassifier):
                 max_dilations_per_kernel=self.max_dilations_per_kernel,
             )
         elif self.rocket_transform == "multirocket":
-            if self.n_channels_ > 1:
-                base_rocket = MultiRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                )
-            else:
-                base_rocket = MultiRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                )
+            base_rocket = MultiRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+                n_features_per_kernel=self.n_features_per_kernel,
+            )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 

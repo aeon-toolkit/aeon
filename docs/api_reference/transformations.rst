@@ -113,7 +113,6 @@ Shapelets, wavelets and convolution
     MiniRocket
     MiniRocketMultivariateVariable
     MultiRocket
-    MultiRocketMultivariate
 
 .. currentmodule:: aeon.transformations.collection.dwt
 

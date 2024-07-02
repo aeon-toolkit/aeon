@@ -38,7 +38,7 @@ class Rocket(BaseCollectionTransformer):
 
     See Also
     --------
-    MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate
+    MiniRocket, MultiRocket
 
     References
     ----------
