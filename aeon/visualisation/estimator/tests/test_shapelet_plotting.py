@@ -52,7 +52,6 @@ def test_ShapeletVisualizer_plot():
     fig = shp.plot()
     plt.gcf().canvas.draw_idle()
     assert isinstance(fig, plt.Figure)
-
     plt.close()
 
 
@@ -69,7 +68,6 @@ def test_ShapeletVisualizer_plot_on_X():
     fig = shp.plot_on_X(X)
     plt.gcf().canvas.draw_idle()
     assert isinstance(fig, plt.Figure)
-
     plt.close()
 
 
@@ -86,7 +84,6 @@ def test_ShapeletVisualizer_plot_distance_vector():
     fig = shp.plot_distance_vector(X)
     plt.gcf().canvas.draw_idle()
     assert isinstance(fig, plt.Figure)
-
     plt.close()
 
 
