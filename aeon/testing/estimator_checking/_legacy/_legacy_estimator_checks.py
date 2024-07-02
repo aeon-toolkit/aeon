@@ -60,7 +60,7 @@ def check_estimator_legacy(
     Examples
     --------
     >>> from aeon.testing.mock_estimators import MockTransformer
-    >>> from aeon.testing.estimator_checks import check_estimator_legacy
+    >>> from aeon.testing.estimator_checking import check_estimator_legacy
 
     Running all tests for ExponentTransformer class,
     this uses all instances from get_test_params and compatible scenarios
