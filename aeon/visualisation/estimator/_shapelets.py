@@ -848,9 +848,6 @@ class ShapeletClassifierVisualizer:
 
         y = LabelEncoder().fit_transform(y)
 
-        if not isinstance(self.estimator, RDSTClassifier):
-            figure_options["ncols"] = 2
-
         plt.style.use(matplotlib_style)
         plt.rcParams.update(**rc_Params_options)
 
@@ -873,7 +870,7 @@ class ShapeletClassifierVisualizer:
         figures = []
         for i_shp in shp_ids:
             fig, ax = plt.subplots(**figure_options)
-            if len(ax.shape) == 1:
+            if ax.ndim == 1:
                 n_cols = ax.shape[0]
             else:
                 n_cols = ax.shape[1]
@@ -883,11 +880,15 @@ class ShapeletClassifierVisualizer:
             for title, box_data in self._get_boxplot_data(
                 X_new, mask_class_id, mask_other_class_id, i_shp
             ):
-                ax[i_ax // n_cols, i_ax % n_cols].set_title(title)
-                bplot = ax[i_ax // n_cols, i_ax % n_cols].boxplot(
+                if ax.ndim == 1:
+                    current_ax = ax[i_ax % n_cols]
+                else:
+                    current_ax = ax[i_ax // n_cols, i_ax % n_cols]
+                current_ax.set_title(title)
+                bplot = current_ax.boxplot(
                     box_data, **boxplot_options
                 )
-                ax[i_ax // n_cols, i_ax % n_cols].set_xticklabels(
+                current_ax.set_xticklabels(
                     ["Other classes", f"Class {class_id}"]
                 )
                 for patch, color in zip(bplot["boxes"], class_colors):
@@ -902,12 +903,16 @@ class ShapeletClassifierVisualizer:
                     "c": class_colors[0],
                 }
             )
+            if ax.ndim == 1:
+                current_ax = ax[i_ax % n_cols]
+            else:
+                current_ax = ax[i_ax // n_cols, i_ax % n_cols]
             shp0_scatter_options = copy.deepcopy(shp_scatter_options)
             shp0_scatter_options.update({"c": class_colors[0]})
             self.plot_on_X(
                 i_shp,
                 X[id_example_other],
-                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                ax=current_ax,
                 x_plot_options=x0_plot_options,
                 shp_scatter_options=shp0_scatter_options,
             )
@@ -924,24 +929,32 @@ class ShapeletClassifierVisualizer:
             self.plot_on_X(
                 i_shp,
                 X[id_example_class],
-                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                ax=current_ax,
                 x_plot_options=x1_plot_options,
                 shp_scatter_options=shp1_scatter_options,
             )
-            ax[i_ax // n_cols, i_ax % n_cols].set_title("Best match on examples")
-            ax[i_ax // n_cols, i_ax % n_cols].legend()
+            current_ax.set_title("Best match on examples")
+            current_ax.legend()
 
             # Plots of shapelet values
             i_ax += 1
+            if ax.ndim == 1:
+                current_ax = ax[i_ax % n_cols]
+            else:
+                current_ax = ax[i_ax // n_cols, i_ax % n_cols]
             self.plot(
                 i_shp,
-                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                ax=current_ax,
                 plot_options=shp_plot_options,
                 scatter_options=shp_scatter_options,
             )
 
             # Plots of distance vectors
             i_ax += 1
+            if ax.ndim == 1:
+                current_ax = ax[i_ax % n_cols]
+            else:
+                current_ax = ax[i_ax // n_cols, i_ax % n_cols]
             d0_plot_options = copy.deepcopy(dist_plot_options)
             d0_plot_options.update(
                 {
@@ -952,7 +965,7 @@ class ShapeletClassifierVisualizer:
             self.plot_distance_vector(
                 i_shp,
                 X[id_example_other],
-                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                ax=current_ax,
                 show_legend=False,
                 show_threshold=False,
                 dist_plot_options=d0_plot_options,
@@ -967,11 +980,11 @@ class ShapeletClassifierVisualizer:
             self.plot_distance_vector(
                 i_shp,
                 X[id_example_class],
-                ax=ax[i_ax // n_cols, i_ax % n_cols],
+                ax=current_ax,
                 dist_plot_options=d1_plot_options,
             )
-            ax[i_ax // n_cols, i_ax % n_cols].legend()
-            ax[i_ax // n_cols, i_ax % n_cols].set_title("Distance vectors of examples")
+            current_ax.legend()
+            current_ax.set_title("Distance vectors of examples")
             figures.append(fig)
         return figures
 

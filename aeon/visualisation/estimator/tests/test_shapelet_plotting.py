@@ -33,7 +33,7 @@ _test_shapelet_values = np.array([[1, 2, 3, 4, 3, 2, 1]])
 
 
 def test_ShapeletVisualizer_init():
-    """Test whether plot_cluster_algorithm runs without error."""
+    """Test whether ShapeletVisualizer initialize without error."""
     shp = ShapeletVisualizer(_test_shapelet_values)
     assert_array_equal(shp.values, _test_shapelet_values)
     shp = ShapeletVisualizer(_test_shapelet_values, length=3)
@@ -45,7 +45,7 @@ def test_ShapeletVisualizer_init():
     reason="skip test if required soft dependency not available",
 )
 def test_ShapeletVisualizer_plot():
-    """Test whether plot_cluster_algorithm runs without error."""
+    """Test whether ShapeletVisualizer plot shapelets without error."""
     import matplotlib.pyplot as plt
 
     shp = ShapeletVisualizer(_test_shapelet_values)
@@ -61,7 +61,7 @@ def test_ShapeletVisualizer_plot():
     reason="skip test if required soft dependency not available",
 )
 def test_ShapeletVisualizer_plot_on_X():
-    """Test whether plot_cluster_algorithm runs without error."""
+    """Test whether ShapeletVisualizer plot shapelets on X without error."""
     import matplotlib.pyplot as plt
 
     shp = ShapeletVisualizer(_test_shapelet_values)
@@ -78,7 +78,7 @@ def test_ShapeletVisualizer_plot_on_X():
     reason="skip test if required soft dependency not available",
 )
 def test_ShapeletVisualizer_plot_distance_vector():
-    """Test whether plot_cluster_algorithm runs without error."""
+    """Test whether ShapeletVisualizer plot distance vectors runs without error."""
     import matplotlib.pyplot as plt
 
     shp = ShapeletVisualizer(_test_shapelet_values)
@@ -96,7 +96,7 @@ def test_ShapeletVisualizer_plot_distance_vector():
 )
 @pytest.mark.parametrize("transformer_class", TRANSFORMERS)
 def test_ShapeletTransformerVisualizer(transformer_class):
-    """Test whether plot_cluster_algorithm runs without error."""
+    """Test whether ShapeletTransformerVisualizer runs without error."""
     import matplotlib.pyplot as plt
 
     X, y = make_example_3d_numpy()
@@ -125,7 +125,7 @@ def test_ShapeletTransformerVisualizer(transformer_class):
 )
 @pytest.mark.parametrize("classifier_class", CLASSIFIERS)
 def test_ShapeletClassifierVisualizer(classifier_class):
-    """Test whether plot_cluster_algorithm runs without error."""
+    """Test whether ShapeletClassifierVisualizer runs without error."""
     import matplotlib.pyplot as plt
 
     X, y = make_example_3d_numpy()
