@@ -29,10 +29,10 @@ from typing import final
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
-from deprecated.sphinx import deprecated
 
 
 class BaseCollectionTransformer(
