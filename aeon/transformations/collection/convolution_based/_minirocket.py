@@ -61,6 +61,8 @@ class MiniRocket(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "algorithm_type": "convolution",
         "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "X_inner_type": ["numpy3D", "np-list"],
     }
     # indices for the 84 kernels used by MiniRocket
     _indices = np.array([_ for _ in combinations(np.arange(9), 3)], dtype=np.int32)
@@ -94,7 +96,7 @@ class MiniRocket(BaseCollectionTransformer):
         random_state = (
             np.int32(self.random_state) if isinstance(self.random_state, int) else None
         )
-        _, n_channels, n_timepoints = X.shape
+        n_channels, n_timepoints = X[0].shape
         if n_timepoints < 9:
             raise ValueError(
                 f"n_timepoints must be >= 9, but found {n_timepoints};"
@@ -120,7 +122,7 @@ class MiniRocket(BaseCollectionTransformer):
         pandas DataFrame, transformed features
         """
         X = X.astype(np.float32)
-        _, n_channels, n_timepoints = X.shape
+        n_channels, n_timepoints = X[0].shape
         # change n_jobs dependend on value and existing cores
         prev_threads = get_num_threads()
         if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
@@ -166,7 +168,7 @@ def _quantiles(n):
 def _static_fit(X, n_features=10_000, max_dilations_per_kernel=32, seed=None):
     if seed is not None:
         np.random.seed(seed)
-    _, n_channels, n_timepoints = X.shape
+    n_channels, n_timepoints = X[0].shape
     n_kernels = 84
     dilations, n_features_per_dilation = _fit_dilations(
         n_timepoints, n_features, max_dilations_per_kernel
@@ -223,7 +225,8 @@ def _PPV(a, b):
     cache=True,
 )
 def _static_transform(X, parameters, indices):
-    n_cases, n_columns, n_timepoints = X.shape
+    n_cases = len(X)
+    n_columns, n_timepoints = X[0].shape
     (
         n_channels_per_combination,
         channel_indices,
@@ -319,7 +322,8 @@ def _fit_biases(
 ):
     if seed is not None:
         np.random.seed(seed)
-    n_cases, n_columns, n_timepoints = X.shape
+    n_cases = len(X)
+    n_columns, n_timepoints = X[0].shape
     n_kernels = len(indices)
     n_dilations = len(dilations)
     n_features = n_kernels * np.sum(n_features_per_dilation)

@@ -9,11 +9,20 @@ from typing import List, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
 
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="MiniRocketMultivariateVariable will be removed in version "
+    "0.11.0, please use MiniRocket which now has the capability to handle "
+    "unequal length time series.",
+    category=FutureWarning,
+)
 class MiniRocketMultivariateVariable(BaseCollectionTransformer):
     """MINIROCKET (Multivariate, unequal length).
 
@@ -45,22 +54,6 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
         processors.
     random_state : None or int, default = None
         Seed for random number generation.
-
-    Examples
-    --------
-    >>> from aeon.transformations.collection.convolution_based import (
-    ...     MiniRocketMultivariateVariable
-    ... )
-    >>> from aeon.datasets import load_japanese_vowels
-    >>> # load multivariate and unequal length dataset
-    >>> X_train, _ = load_japanese_vowels(split="train")
-    >>> X_test, _ = load_japanese_vowels(split="test")
-    >>> pre_clf = MiniRocketMultivariateVariable(pad_value_short_series=0.0)
-    >>> pre_clf.fit(X_train, y=None)
-    MiniRocketMultivariateVariable(pad_value_short_series=0.0)
-    >>> X_transformed = pre_clf.transform(X_test)
-    >>> X_transformed.shape
-    (370, 9996)
 
     Raises
     ------
