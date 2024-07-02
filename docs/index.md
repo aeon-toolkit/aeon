@@ -2,39 +2,48 @@
 hide-toc: true
 ---
 
-<h1 style="text-align: center;">Welcome to <b>aeon</b></h1>
+# Welcome to __aeon__
 
 `aeon` is a scikit-learn compatible toolkit for time series tasks such as
-forecasting, classification, regression, clustering and anomaly detection.</p>
+classification, clustering, segmentation and anomaly detection.</p>
 
 - Provides a broad library of time series algorithms, including the latest advances.
-- Efficient implementation of time series algorithms using numba.
+- Efficient implementation of time series algorithms using `numba`.
 - Interfaces with other time series packages to provide a single framework for algorithm
 comparison.
+- Built on top of `scikit-learn`, allowing for easy integration with other machine
+learning libraries.
 
-Please visit our [GitHub repository](https://github.com/aeon-toolkit/aeon).
+```{admonition} Large scale changes for aeon v1.0.0
+We are currently working on v1.0.0 of aeon, which includes a number of large changes
+to better support the maintainability of the library and the direction the developer
+community wish to take the package.
+
+This includes the removal of current modules such as forecasting (to be reintroduced
+under a different interface), datatypes and the legacy BaseTransformer interface. We
+will also be making large changes to the base class API, removing `BaseObject` various
+functions associated with the base module currently.
+
+We hope these changes and the removal of long-untouched legacy code will allow aeon to
+grow and develop in a more sustainable way without the need for such large breaking
+changes in the future. Some of these changes will not come with a deprecation warning,
+so be wary of this when updating to v1.0.0 when it is released.
+```
+
+## Community Channels
+
+**GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
+
+**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
+
+**Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
+
+**LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
+
+## Modules
 
 ::::{grid} 1 2 2 2
 :gutter: 3
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Get started with time series forecasting.
-
-+++
-
-```{button-ref} /examples/forecasting/forecasting.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Forecasting
-```
-
-:::
 
 :::{grid-item-card}
 :img-top: examples/img/tsc.png
@@ -94,6 +103,44 @@ Clustering
 :::
 
 :::{grid-item-card}
+:img-top: examples/anomaly_detection/img/anomaly_detection.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Get started with anomaly detection.
+
++++
+
+```{button-ref} /examples/anomaly_detection/anomaly_detection.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Anomaly Detection
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/segmentation/img/segmentation.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Segmentation
+
++++
+
+```{button-ref} /examples/segmentation/segmentation.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Segmentation
+```
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/transformations/img/transformations.png
 :class-img-top: aeon-card-image
 :text-align: center
@@ -127,25 +174,6 @@ Get started with time series distances.
 :expand:
 
 Distances
-```
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/segmentation/img/segmentation.png
-:class-img-top: aeon-card-image
-:text-align: center
-
-Segmentation
-
-+++
-
-```{button-ref} /examples/segmentation/segmentation.ipynb
-:color: primary
-:click-parent:
-:expand:
-
-Segmentation
 ```
 
 :::
@@ -228,15 +256,6 @@ Networks
 
 ::::
 
-## Community Channels
-
-**GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
-
-**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
-
-**Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
-
-**LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
 
 ```{toctree}
 :caption: Using aeon

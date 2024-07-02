@@ -3,15 +3,15 @@
   "projectOwner": "aeon-toolkit",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "commitConvention": "none",
-  "files": [
-    "CONTRIBUTORS.md"
-  ],
+  "files": ["CONTRIBUTORS.md"],
   "imageSize": 80,
+  "commit": "false"
+  "commitConvention": "atom",
   "contributorsPerLine": 8,
   "contributorsSortAlphabetically": true,
-  "linkToUsage": true,
   "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors)",
+  "linkToUsage": true,
+  "skipCi": true,
   "contributors": [
     {
       "login": "fkiraly",
@@ -2437,5 +2437,4 @@
       ]
     }
   ],
-  "commitType": "docs"
 }
