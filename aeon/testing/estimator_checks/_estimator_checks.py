@@ -6,29 +6,7 @@ __all__ = [
     "check_estimator",
 ]
 
-import re
-import warnings
-from functools import partial, wraps
-from inspect import isclass
-from typing import Callable, List, Type, Union
 
-from sklearn import config_context
-from sklearn.utils._testing import SkipTest
-
-from aeon.base import BaseEstimator
-from aeon.forecasting.base import BaseForecaster
-from aeon.testing.estimator_checks._legacy._legacy_estimator_checks import (
-    check_estimator_legacy,
-)
-from aeon.testing.estimator_checks._yield_estimator_checks import _yield_all_aeon_checks
-from aeon.testing.test_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
-from aeon.transformations.base import BaseTransformer
-from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.series import BaseSeriesTransformer
-from aeon.utils.validation._dependencies import (
-    _check_estimator_deps,
-    _check_soft_dependencies,
-)
 
 
 def _is_legacy_estimator(estimator):
@@ -57,6 +35,42 @@ def parametrize_with_checks(
     estimators: List[Union[BaseEstimator, Type[BaseEstimator]]],
     use_first_parameter_set: bool = False,
 ) -> Callable:
+    """Pytest specific decorator for parametrizing aeon estimator checks.
+
+    The `id` of each check is set to be a pprint version of the estimator
+    and the name of the check with its keyword arguments.
+
+    This allows to use `pytest -k` to specify which tests to run::
+        pytest test_check_estimators.py -k check_estimators_fit_returns_self
+
+    Based on the `scikit-learn``parametrize_with_checks` function.
+
+    Parameters
+    ----------
+    estimators : list of aeon aseEstimator instances or classesB
+        Estimators to generated checks for. If item is a class, an instance will
+        be created using BaseEstimator.create_test_instance().
+    use_first_parameter_set : bool, default=False
+        If True, only the first parameter set from get_test_params will be used if a
+        class is passed.
+
+    Returns
+    -------
+    decorator : `pytest.mark.parametrize`
+
+    See Also
+    --------
+    check_estimator : Check if estimator adheres to tsml or scikit-learn conventions.
+
+    Examples
+    --------
+    >>> from aeon.testing.estimator_checks import parametrize_with_checks
+    >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
+    >>> from aeon.forecasting.naive import NaiveForecaster
+    >>> @parametrize_with_checks([TimeSeriesForestClassifier, NaiveForecaster])
+    ... def test_aeon_compatible_estimator(estimator, check):
+    ...     check(estimator)
+    """
     _check_soft_dependencies("pytest")
 
     import pytest
@@ -102,6 +116,34 @@ def check_estimator(
     full_checks_to_exclude: List[str] = None,
     verbose: bool = True,
 ):
+    """Check if estimator adheres to scikit-learn conventions.
+
+    This function will run an extensive test-suite for input validation,
+    shapes, etc, making sure that the estimator complies with `scikit-learn`
+    conventions as detailed in :ref:`rolling_your_own_estimator`.
+    Additional tests for classifiers, regressors, clustering or transformers
+    will be run if the Estimator class inherits from the corresponding mixin
+    from sklearn.base.
+
+    Setting `generate_only=True` returns a generator that yields (estimator,
+    check) tuples where the check can be called independently from each
+    other, i.e. `check(estimator)`. This allows all checks to be run
+    independently and report the checks that are failing.
+
+    scikit-learn provides a pytest specific decorator,
+    :func:`~sklearn.utils.estimator_checks.parametrize_with_checks`, making it
+    easier to test multiple estimators.
+
+    Parameters
+    ----------
+    estimator : BaseEstimator instance or classe
+        Estimator instance or class to check.
+
+    See Also
+    --------
+    parametrize_with_checks : Pytest specific decorator for parametrizing estimator
+        checks.
+    """
     warnings.warn(
         "check_estimator is currently being reworked and does not cover"
         "the whole testing suite. For full coverage, use check_estimator_legacy.",
