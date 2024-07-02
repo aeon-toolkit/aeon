@@ -56,6 +56,8 @@ class BaseCollectionEstimator(BaseEstimator):
         X : collection
             See aeon.registry.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
+        store_metadata : bool, default=True
+            Whether to store metadata about X in self.metadata_.
 
         Returns
         -------

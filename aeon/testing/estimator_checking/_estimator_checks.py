@@ -64,15 +64,15 @@ def parametrize_with_checks(
     The `id` of each check is set to be a pprint version of the estimator
     and the name of the check with its keyword arguments.
 
-    This allows to use `pytest -k` to specify which tests to run::
-        pytest test_check_estimators.py -k check_estimators_fit_returns_self
+    This allows to use `pytest -k` to specify which tests to run i.e.
+        pytest -k check_fit_updates_state
 
     Based on the `scikit-learn``parametrize_with_checks` function.
 
     Parameters
     ----------
-    estimators : list of aeon aseEstimator instances or classesB
-        Estimators to generated checks for. If item is a class, an instance will
+    estimators : list of aeon BaseEstimator instances or classes
+        Estimators to generate checks for. If an item is a class, an instance will
         be created using BaseEstimator.create_test_instance().
     use_first_parameter_set : bool, default=False
         If True, only the first parameter set from get_test_params will be used if a
@@ -138,35 +138,93 @@ def check_estimator(
     checks_to_exclude: List[str] = None,
     full_checks_to_run: List[str] = None,
     full_checks_to_exclude: List[str] = None,
-    verbose: bool = True,
+    verbose: bool = False,
 ):
     """Check if estimator adheres to scikit-learn conventions.
 
-    This function will run an extensive test-suite for input validation,
-    shapes, etc, making sure that the estimator complies with `scikit-learn`
-    conventions as detailed in :ref:`rolling_your_own_estimator`.
-    Additional tests for classifiers, regressors, clustering or transformers
-    will be run if the Estimator class inherits from the corresponding mixin
-    from sklearn.base.
-
-    Setting `generate_only=True` returns a generator that yields (estimator,
-    check) tuples where the check can be called independently from each
-    other, i.e. `check(estimator)`. This allows all checks to be run
-    independently and report the checks that are failing.
-
-    scikit-learn provides a pytest specific decorator,
-    :func:`~sklearn.utils.estimator_checks.parametrize_with_checks`, making it
-    easier to test multiple estimators.
+    This function will run an extensive test-suite to make sure that the estimator
+    complies with `aeon` conventions.
+    The checks run will differ based on the estimator input. There is a set of
+    general checks for all estimators, and module-specific tests for classifiers,
+    anomaly detectors, transformer, etc.
+    Some checks may be skipped if the estimator has certain tags i.e.
+    `non-deterministic`.
 
     Parameters
     ----------
-    estimator : BaseEstimator instance or classe
-        Estimator instance or class to check.
+    estimator : aeon BaseEstimator instances or classes
+        Estimator to run checks on. If estimator is a class, an instance will
+        be created using BaseEstimator.create_test_instance().
+    raise_exceptions : bool, optional, default=False
+        Whether to return exceptions/failures in the results dict, or raise them
+            if False: returns exceptions in returned `results` dict
+            if True: raises exceptions as they occur
+    use_first_parameter_set : bool, default=False
+        If True, only the first parameter set from get_test_params will be used if a
+        class is passed.
+    checks_to_run : str or list of str, default=None
+        Name(s) of checks to run. This should include the function name of the check to
+        run without parameterization, i.e. "test_clone" or "test_fit_updates_state".
+
+        Checks not passed will be excluded from testing. If None, all checks are run
+        (unless excluded elsewhere).
+    checks_to_exclude : str or list of str, default=None
+        Name(s) of checks to exclude. This should include the function name of the
+        check to exclude without parameterization, i.e. "test_clone" or
+        "test_fit_updates_state".
+
+        If None, no checks are excluded (unless excluded elsewhere).
+    full_checks_to_run : str or list of str, default=None
+        Full check name string(s) of checks to run. This should include the function
+        name of the check to with parameterization, i.e. "test_clone[MockClassifier]"
+        or "test_fit_updates_state[MockClassifier]".
+
+        Checks not passed will be excluded from testing. If None, all checks are run
+        (unless excluded elsewhere).
+    full_checks_to_exclude : str or list of str, default=None
+        Full check name string(s) of checks to exclude. This should include the
+        function name of the check to exclude with parameterization, i.e.
+        "test_clone[MockClassifier]" or "test_fit_updates_state[MockClassifier]".
+
+        If None, no checks are excluded (unless excluded elsewhere).
+    verbose : str, optional, default=False.
+        Whether to print out informative summary of tests run.
+
+    Returns
+    -------
+    results : dict of test results
+        The test results. Keys are parameterized check strings. The `id` of each check
+        is set to be a pprint version of the estimator and the name of the check with
+        its keyword arguments.
+
+        Entries are the string "PASSED" if the test passed, the exception raised if
+        the test did not pass, or the reason for skipping the test.
+
+        If `raise_exceptions` is True, this is only returned if all tests pass.
 
     See Also
     --------
     parametrize_with_checks : Pytest specific decorator for parametrizing estimator
         checks.
+
+    Examples
+    --------
+    >>> from aeon.testing.mock_estimators import MockClassifier
+    >>> from aeon.testing.estimator_checking import check_estimator
+
+    Running all tests for MockClassifier class
+    >>> results = check_estimator(MockClassifier)
+    All tests PASSED!
+
+    Running all tests for a MockClassifier instance
+    >>> results = check_estimator_legacy(MockClassifier())
+    All tests PASSED!
+
+    Running specific check for MockClassifier
+    >>> results = check_estimator_legacy(MockClassifier, tests_to_run="test_clone")
+    All tests PASSED!
+
+    {'test_clone[MockClassifier]': 'PASSED'}
     """
     warnings.warn(
         "check_estimator is currently being reworked and does not cover"
@@ -207,6 +265,24 @@ def check_estimator(
             for check in _yield_all_aeon_checks(e):
                 yield _check_if_skip(e, check)
 
+    if not isinstance(checks_to_run, (list, tuple)) and checks_to_run is not None:
+        checks_to_run = [checks_to_run]
+    if (
+        not isinstance(checks_to_exclude, (list, tuple))
+        and checks_to_exclude is not None
+    ):
+        checks_to_exclude = [checks_to_exclude]
+    if (
+        not isinstance(full_checks_to_run, (list, tuple))
+        and full_checks_to_run is not None
+    ):
+        full_checks_to_run = [full_checks_to_run]
+    if (
+        not isinstance(full_checks_to_exclude, (list, tuple))
+        and full_checks_to_exclude is not None
+    ):
+        full_checks_to_exclude = [full_checks_to_exclude]
+
     passed = 0
     skipped = 0
     failed = 0
@@ -228,19 +304,19 @@ def check_estimator(
         try:
             check(est)
             if verbose:
-                print(f"PASSED: {check_name}[{est_name}]")  # noqa T001
+                print(f"PASSED: {name}")  # noqa T001
             results[name] = "PASSED"
             passed += 1
         except SkipTest as skip:
             if verbose:
-                print(f"SKIPPED: {check_name}[{est_name}]")  # noqa T001
+                print(f"SKIPPED: {name}")  # noqa T001
             results[name] = "SKIPPED: " + str(skip)
             skipped += 1
         except Exception as exception:
             if raise_exceptions:
                 raise exception
             elif verbose:
-                print(f"FAILED: {check_name}[{est_name}]")  # noqa T001
+                print(f"FAILED: {name}")  # noqa T001
             results[name] = "FAILED: " + str(exception)
             failed += 1
 
