@@ -17,10 +17,10 @@ learning libraries.
 ```{admonition} Large scale changes for aeon v1.0.0
 We are currently working on v1.0.0 of aeon, which includes a number of large changes
 to better support the maintainability of the library and the direction the developer
-community wished to take the package.
+community wish to take the package.
 
 This includes the removal of current modules such as forecasting (to be reintroduced
-under a differnt interface!), datatypes and the legacy BaseTransformer interface. We
+under a different interface), datatypes and the legacy BaseTransformer interface. We
 will also be making large changes to the base class API, removing `BaseObject` various
 functions associated with the base module currently.
 
