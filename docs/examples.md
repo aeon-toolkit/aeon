@@ -195,7 +195,7 @@ TSFresh transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/catch22.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/catch22.ipynb
 :link-type: ref
@@ -217,7 +217,7 @@ Rocket transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/mini_rocket.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/minirocket.ipynb
 :link-type: ref
@@ -228,7 +228,7 @@ MiniRocket transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/sast.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/sast.ipynb
 :link-type: ref
