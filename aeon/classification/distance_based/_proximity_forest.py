@@ -69,11 +69,11 @@ class ProximityForest(BaseClassifier):
     """
 
     _tags = {
-        "capability:multivariate": True,
-        "capability:unequal_length": True,
+        "capability:multivariate": False,
+        "capability:unequal_length": False,
         "capability:multithreading": True,
         "algorithm_type": "distance",
-        "X_inner_type": ["np-list", "numpy3D"],
+        "X_inner_type": ["numpy2D", "numpy3D"],
     }
 
     def __init__(
