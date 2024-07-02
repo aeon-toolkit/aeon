@@ -32,6 +32,7 @@ import pandas as pd
 
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
+from deprecated.sphinx import deprecated
 
 
 class BaseCollectionTransformer(
@@ -273,6 +274,12 @@ class BaseCollectionTransformer(
 
         return Xt
 
+    # TODO: remove in v0.11.0
+    @deprecated(
+        version="0.10.0",
+        reason="The update method will be removed in version 0.11.0.",
+        category=FutureWarning,
+    )
     @final
     def update(self, X, y=None, update_params=True):
         """Update transformer with X, optionally y.
