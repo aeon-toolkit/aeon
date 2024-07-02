@@ -28,9 +28,10 @@ class BaseDeepNetwork(BaseObject, ABC):
         super().__init__()
         _check_estimator_deps(self)
 
-    _tags = {
-        "python_dependencies": "tensorflow",
+    _config = {
+        "python_dependencies": ["tensorflow"],
         "python_version": "<3.12",
+        "structure": "encoder",
     }
 
     @abstractmethod
@@ -57,6 +58,12 @@ class BaseDeepLearningNetwork(ABC):
         _check_soft_dependencies(soft_dependencies)
         _check_python_version(python_version)
         super().__init__()
+
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.12",
+        "structure": "encoder",
+    }
 
     @abstractmethod
     def build_network(self, input_shape, **kwargs):
