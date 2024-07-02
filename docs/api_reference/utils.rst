@@ -49,23 +49,6 @@ Estimator Search and Retrieval, Estimator Tags
     check_tag_is_valid
 
 
-Estimator Validity Checking
----------------------------
-
-:mod:`aeon.testing.estimator_checks`
-
-.. automodule:: aeon.testing.estimator_checks
-    :no-members:
-    :no-inherited-members:
-
-.. currentmodule:: aeon.testing.estimator_checks
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: function.rst
-
-    check_estimator
-
 Data Validation Tools
 ---------------------
 
