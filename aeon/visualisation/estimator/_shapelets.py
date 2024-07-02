@@ -228,8 +228,10 @@ class ShapeletVisualizer:
 
         if len(X.shape) == 1:
             X = X[np.newaxis, :]
+
         if "label" not in x_plot_options.keys():
             x_plot_options["label"] = ""
+
         # Get candidate subsequences in X
         X_subs = get_all_subsequences(X, self.length, self.dilation)
 
@@ -885,12 +887,8 @@ class ShapeletClassifierVisualizer:
                 else:
                     current_ax = ax[i_ax // n_cols, i_ax % n_cols]
                 current_ax.set_title(title)
-                bplot = current_ax.boxplot(
-                    box_data, **boxplot_options
-                )
-                current_ax.set_xticklabels(
-                    ["Other classes", f"Class {class_id}"]
-                )
+                bplot = current_ax.boxplot(box_data, **boxplot_options)
+                current_ax.set_xticklabels(["Other classes", f"Class {class_id}"])
                 for patch, color in zip(bplot["boxes"], class_colors):
                     patch.set_facecolor(color)
                 i_ax += 1
