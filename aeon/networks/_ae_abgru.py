@@ -5,12 +5,24 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies("tensorflow", severity="none"):
     import tensorflow as tf
+    from tf.keras import backend as K
 
     class _AttentionLayer(tf.keras.layers.Layer):
         def __init__(self, n_units, att_size, **kwargs):
             super().__init__(**kwargs)
             self.n_units = n_units
             self.att_size = att_size
+
+            self._dot = tf.keras.layers.Dot(axes=1)
+            self._add = tf.keras.layers.Add()
+            self._tanh = tf.keras.layers.Activation("tanh")
+            self._softmax = tf.keras.layers.Softmax(axis=-1)
+            self._expand_dims = tf.keras.layers.Lambda(
+                lambda x: K.expand_dims(x, axis=-1)
+            )
+            self._reduce_sum = tf.keras.layers.Lambda(
+                lambda x: tf.reduce_sum(x, axis=1)
+            )
 
         def build(self, input_shape):
             initializer = tf.keras.initializers.RandomNormal(stddev=0.1)
@@ -28,10 +40,10 @@ if _check_soft_dependencies("tensorflow", severity="none"):
             super().build(input_shape)
 
         def call(self, inputs):
-            v = tf.tanh(tf.tensordot(inputs, self.W_omega, axes=1) + self.b_omega)
-            vu = tf.tensordot(v, self.u_omega, axes=1)
-            alphas = tf.nn.softmax(vu)
-            output = tf.reduce_sum(inputs * tf.expand_dims(alphas, -1), 1)
+            v = self._tanh(self._dot([inputs, self.W_omega]) + self.b_omega)
+            vu = tf.keras.layers.Dot(axes=1)([v, self.u_omega])
+            alphas = self._softmax(vu)
+            output = self._reduce_sum(inputs * self._expand_dims(alphas))
             return output
 
 
