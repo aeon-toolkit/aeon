@@ -5,29 +5,24 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies("tensorflow", severity="none"):
     import tensorflow as tf
-    from tensorflow.keras import backend as K
+    from tensorflow.keras.backend import expand_dims
+    from tensorflow.keras.layers import Activation, Lambda, Layer, Multiply
 
-    class _AttentionLayer(tf.keras.layers.Layer):
+    class _AttentionLayer(Layer):
         def __init__(self, n_units, att_size, **kwargs):
+            if "input_shape" not in kwargs and "input_dim" in kwargs:
+                kwargs["input_shape"] = (kwargs.pop("input_dim"),)
             super().__init__(**kwargs)
             self.n_units = n_units
             self.att_size = att_size
-
-            self._dot = tf.keras.layers.Dot(axes=1)
-            self._add = tf.keras.layers.Add()
-            self._tanh = tf.keras.layers.Activation("tanh")
-            self._softmax = tf.keras.layers.Softmax(axis=-1)
-            self._expand_dims = tf.keras.layers.Lambda(
-                lambda x: K.expand_dims(x, axis=-1)
-            )
-            self._reduce_sum = tf.keras.layers.Lambda(
-                lambda x: tf.reduce_sum(x, axis=1)
-            )
+            self.W_omega = None
+            self.b_omega = None
+            self.u_omega = None
 
         def build(self, input_shape):
             initializer = tf.keras.initializers.RandomNormal(stddev=0.1)
             self.W_omega = self.add_weight(
-                shape=(self.n_units, self.att_size),
+                shape=(input_shape[-1], self.att_size),
                 initializer=initializer,
                 name="W_omega",
             )
@@ -35,16 +30,29 @@ if _check_soft_dependencies("tensorflow", severity="none"):
                 shape=(self.att_size,), initializer=initializer, name="b_omega"
             )
             self.u_omega = self.add_weight(
-                shape=(self.att_size,), initializer=initializer, name="u_omega"
+                shape=(self.att_size, 1), initializer=initializer, name="u_omega"
             )
             super().build(input_shape)
 
         def call(self, inputs):
-            v = self._tanh(self._dot([inputs, self.W_omega]) + self.b_omega)
-            vu = tf.keras.layers.Dot(axes=1)([v, self.u_omega])
-            alphas = self._softmax(vu)
-            output = self._reduce_sum(inputs * self._expand_dims(alphas))
+            v = Activation("tanh")(
+                tf.tensordot(inputs, self.W_omega, axes=1) + self.b_omega
+            )
+            vu = tf.tensordot(v, self.u_omega, axes=1)
+            alphas = Activation("softmax")(vu)
+            alphas_expanded = Lambda(lambda x: expand_dims(x, -1))(alphas)
+            output = Multiply()([inputs, alphas_expanded])
+            output = Lambda(lambda x: tf.reduce_sum(x, axis=1))(output)
+            output = Lambda(lambda x: tf.reshape(x, [-1, self.n_units]))(output)
             return output
+
+        def compute_output_shape(self, input_shape):
+            return (input_shape[0], self.n_units)
+
+        def get_config(self):
+            config = {"n_units": self.n_units, "att_size": self.att_size}
+            base_config = super().get_config()
+            return dict(list(base_config.items()) + list(config.items()))
 
 
 class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
