@@ -13,7 +13,7 @@ __maintainer__ = ["hadifawaz1999"]
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow", "typeguard"], severity="none"),
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_random_state_deep_learning_cls():
