@@ -304,7 +304,7 @@ def test_fit_predict_default():
 
 
 def test_different_shape_fit_predict():
-    """Test train and test X wehn both differing lengths."""
+    """Test train and test X when they differ in series length."""
     dummy = MockClassifier()
     X = np.random.random(size=(5, 1, 10))
     X2 = np.random.random(size=(5, 1, 20))
@@ -336,3 +336,29 @@ def test_different_shape_fit_predict():
     assert len(y_pred) == 5
     y_pred = m2.predict_proba(X3)
     assert y_pred.shape == (5, 2)
+
+
+def test_different_channels_fit_predict():
+    """Test train and test X when they differ in numbero of lengths."""
+    dummy = MockClassifierFullTags()
+    X = np.random.random(size=(5, 4, 10))
+    X2 = np.random.random(size=(5, 4, 10))
+    X3 = np.random.random(size=(5, 3, 10))
+    X4 = np.random.random(size=(5, 10))
+    X5 = np.random.random(size=(5, 5, 10))
+    y = np.array([0, 0, 1, 1, 1])
+    dummy.fit(X, y)
+    preds = dummy.predict(X2)
+    assert len(preds) == 5
+    with pytest.raises(
+        ValueError, match="X has different number of channels to the data seen in fit"
+    ):
+        dummy.predict(X3)
+    with pytest.raises(
+        ValueError, match="X has different number of channels to the data seen in fit"
+    ):
+        dummy.predict(X4)
+    with pytest.raises(
+        ValueError, match="X has different number of channels to the data seen in fit"
+    ):
+        dummy.predict(X5)
