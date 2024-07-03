@@ -16,7 +16,6 @@ from aeon.classification import BaseClassifier
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MultiRocket,
-    MultiRocketMultivariate,
     Rocket,
 )
 
@@ -156,22 +155,13 @@ class RocketClassifier(BaseClassifier):
                 random_state=self.random_state,
             )
         elif rocket_transform == "multirocket":
-            if self.n_channels_ > 1:
-                self._transformer = MultiRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
-            else:
-                self._transformer = MultiRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
+            self._transformer = MultiRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+                n_features_per_kernel=self.n_features_per_kernel,
+                n_jobs=self.n_jobs,
+                random_state=self.random_state,
+            )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 

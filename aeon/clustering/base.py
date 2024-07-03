@@ -186,6 +186,9 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
         preds = self._predict(X)
+        unique = np.unique(preds)
+        for i, u in enumerate(unique):
+            preds[preds == u] = i
         n_cases = len(preds)
         n_clusters = self.n_clusters
         if n_clusters is None:
