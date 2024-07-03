@@ -30,7 +30,6 @@ class BaseDeepNetwork(BaseObject, ABC):
 
     _config = {
         "python_dependencies": ["tensorflow"],
-        "python_version": "<3.12",
         "structure": "encoder",
     }
 
@@ -61,7 +60,6 @@ class BaseDeepLearningNetwork(ABC):
 
     _config = {
         "python_dependencies": ["tensorflow"],
-        "python_version": "<3.12",
         "structure": "encoder",
     }
 
