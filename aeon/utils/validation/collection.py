@@ -167,9 +167,17 @@ def get_n_timepoints(X):
     int
         Number of time points in the first case.
     """
-    # if isinstance(X, pd.DataFrame) and isinstance(X.index, pd.MultiIndex):
-    #     return len(X.index.get_level_values(0).unique())
-    return X[0].shape[1]
+    t = get_type(X)
+    if t in ["numpy3D", "np-list"]:
+        return X[0].shape[1]
+    if t in ["numpy2D", "df-list"]:
+        return X[0].shape[0]
+    if t == "pd-multiindex":
+        return len(X.index.get_level_values(1).unique())
+    if t == "nested_univ":
+        return X.iloc[0, 0].size
+    if t == "pd-wide":
+        return len(X.iloc[0])
 
 
 def get_type(X):
