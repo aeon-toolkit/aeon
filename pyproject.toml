@@ -65,6 +65,7 @@ all_extras = [
     "keras-self-attention",
     "kotsu>=0.3.1",
     "matplotlib>=3.3.2",
+    "mrseql; python_version < '3.12'",
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
     "pydot>=2.0.0",

@@ -1,34 +1,14 @@
 """Multiple Representations Sequence Miner (MrSQM) Classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["MrSQMClassifier"]
 
 from typing import List, Union
 
 import numpy as np
-import pandas as pd
 from deprecated.sphinx import deprecated
 
 from aeon.classification import BaseClassifier
-
-
-def _from_numpy3d_to_nested_dataframe(X):
-    """Convert numpy3D collection to a pd.DataFrame where each cell is a series."""
-    n_cases, n_channels, n_timepoints = X.shape
-    array_type = X.dtype
-    container = pd.Series
-    column_names = [f"channel_{i}" for i in range(n_channels)]
-    column_list = []
-    for j, column in enumerate(column_names):
-        nested_column = (
-            pd.DataFrame(X[:, j, :])
-            .apply(lambda x: [container(x, dtype=array_type)], axis=1)
-            .str[0]
-            .rename(column)
-        )
-        column_list.append(nested_column)
-    df = pd.concat(column_list, axis=1)
-    return df
 
 
 # TODO: Move in v0.11.0
@@ -102,8 +82,8 @@ class MrSQMClassifier(BaseClassifier):
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",  # we don't like this, but it's the only input!
-        "algorithm_type": "shapelet",
+        "X_inner_type": "numpy3D",
+        "algorithm_type": "dictionary",
         "cant-pickle": True,
         "python_dependencies": "mrsqm",
     }
@@ -133,7 +113,6 @@ class MrSQMClassifier(BaseClassifier):
     def _fit(self, X, y):
         from mrsqm import MrSQMClassifier
 
-        _X = _from_numpy3d_to_nested_dataframe(X)
         self.clf_ = MrSQMClassifier(
             strat=self.strat,
             features_per_rep=self.features_per_rep,
@@ -144,17 +123,15 @@ class MrSQMClassifier(BaseClassifier):
             custom_config=self.custom_config,
             random_state=self.random_state,
         )
-        self.clf_.fit(_X, y)
+        self.clf_.fit(X, y)
 
         return self
 
     def _predict(self, X) -> np.ndarray:
-        _X = _from_numpy3d_to_nested_dataframe(X)
-        return self.clf_.predict(_X)
+        return self.clf_.predict(X)
 
     def _predict_proba(self, X) -> np.ndarray:
-        _X = _from_numpy3d_to_nested_dataframe(X)
-        return self.clf_.predict_proba(_X)
+        return self.clf_.predict_proba(X)
 
     @classmethod
     def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
