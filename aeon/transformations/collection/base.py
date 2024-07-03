@@ -93,11 +93,11 @@ class BaseCollectionTransformer(
         if self.get_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
+        self.reset()
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self._is_fitted = True
             return self
-        self.reset()
 
         # input checks and datatype conversion
         X_inner = self._preprocess_collection(X)

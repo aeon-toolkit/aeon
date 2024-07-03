@@ -102,7 +102,11 @@ class MiniRocket(BaseCollectionTransformer):
                 f"n_timepoints must be >= 9, but found {n_timepoints};"
                 " zero pad shorter series so that n_timepoints == 9"
             )
-        X = X.astype(np.float32)
+        if isinstance(X, list):
+            # Convert each array in the list to float32
+            X = [array.astype(np.float32) for array in X]
+        else:
+            X = X.astype(np.float32)
         self.parameters = _static_fit(
             X, self.num_kernels, self.max_dilations_per_kernel, random_state
         )
@@ -121,7 +125,11 @@ class MiniRocket(BaseCollectionTransformer):
         -------
         pandas DataFrame, transformed features
         """
-        X = X.astype(np.float32)
+        if isinstance(X, list):
+            # Convert each array in the list to float32
+            X = [array.astype(np.float32) for array in X]
+        else:
+            X = X.astype(np.float32)
         n_channels, n_timepoints = X[0].shape
         # change n_jobs dependend on value and existing cores
         prev_threads = get_num_threads()
