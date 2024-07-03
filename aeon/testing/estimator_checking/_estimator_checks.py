@@ -134,10 +134,10 @@ def check_estimator(
     estimator: Union[BaseEstimator, Type[BaseEstimator]],
     raise_exceptions: bool = False,
     use_first_parameter_set: bool = False,
-    checks_to_run: List[str] = None,
-    checks_to_exclude: List[str] = None,
-    full_checks_to_run: List[str] = None,
-    full_checks_to_exclude: List[str] = None,
+    checks_to_run: Union[str, List[str]] = None,
+    checks_to_exclude: Union[str, List[str]] = None,
+    full_checks_to_run: Union[str, List[str]] = None,
+    full_checks_to_exclude: Union[str, List[str]] = None,
     verbose: bool = False,
 ):
     """Check if estimator adheres to scikit-learn conventions.
@@ -164,27 +164,27 @@ def check_estimator(
         class is passed.
     checks_to_run : str or list of str, default=None
         Name(s) of checks to run. This should include the function name of the check to
-        run without parameterization, i.e. "test_clone" or "test_fit_updates_state".
+        run without parameterization, i.e. "check_clone" or "check_fit_updates_state".
 
         Checks not passed will be excluded from testing. If None, all checks are run
         (unless excluded elsewhere).
     checks_to_exclude : str or list of str, default=None
         Name(s) of checks to exclude. This should include the function name of the
-        check to exclude without parameterization, i.e. "test_clone" or
-        "test_fit_updates_state".
+        check to exclude without parameterization, i.e. "check_clone" or
+        "check_fit_updates_state".
 
         If None, no checks are excluded (unless excluded elsewhere).
     full_checks_to_run : str or list of str, default=None
         Full check name string(s) of checks to run. This should include the function
-        name of the check to with parameterization, i.e. "test_clone[MockClassifier]"
-        or "test_fit_updates_state[MockClassifier]".
+        name of the check to with parameterization, i.e. "MockClassifier()-check_clone"
+        or "MockClassifier()-check_fit_updates_state".
 
         Checks not passed will be excluded from testing. If None, all checks are run
         (unless excluded elsewhere).
     full_checks_to_exclude : str or list of str, default=None
         Full check name string(s) of checks to exclude. This should include the
         function name of the check to exclude with parameterization, i.e.
-        "test_clone[MockClassifier]" or "test_fit_updates_state[MockClassifier]".
+        "MockClassifier()-check_clone" or "MockClassifier()-check_fit_updates_state"
 
         If None, no checks are excluded (unless excluded elsewhere).
     verbose : str, optional, default=False.
@@ -214,17 +214,13 @@ def check_estimator(
 
     Running all tests for MockClassifier class
     >>> results = check_estimator(MockClassifier)
-    All tests PASSED!
 
     Running all tests for a MockClassifier instance
-    >>> results = check_estimator_legacy(MockClassifier())
-    All tests PASSED!
+    >>> results = check_estimator(MockClassifier())
 
     Running specific check for MockClassifier
-    >>> results = check_estimator_legacy(MockClassifier, tests_to_run="test_clone")
-    All tests PASSED!
-
-    {'test_clone[MockClassifier]': 'PASSED'}
+    >>> check_estimator(MockClassifier, checks_to_run="check_clone")
+    {'MockClassifier()-check_clone': 'PASSED'}
     """
     warnings.warn(
         "check_estimator is currently being reworked and does not cover"
@@ -288,36 +284,38 @@ def check_estimator(
     failed = 0
     results = {}
     for est, check in checks_generator():
-        name = _get_check_estimator_ids(check)
-        if isclass(estimator):
-            name += f"[{_get_check_estimator_ids(est)}]"
+        check_name = _get_check_estimator_ids(check)
+        full_name = f"{_get_check_estimator_ids(est)}-{check_name}"
 
-        if checks_to_run is not None and name.split("[")[0] not in checks_to_run:
+        if checks_to_run is not None and check_name.split("(")[0] not in checks_to_run:
             continue
-        if checks_to_exclude is not None and name.split("[")[0] in checks_to_exclude:
+        if (
+            checks_to_exclude is not None
+            and check_name.split("(")[0] in checks_to_exclude
+        ):
             continue
-        if full_checks_to_run is not None and name not in full_checks_to_run:
+        if full_checks_to_run is not None and full_name not in full_checks_to_run:
             continue
-        if full_checks_to_exclude is not None and name in full_checks_to_exclude:
+        if full_checks_to_exclude is not None and full_name in full_checks_to_exclude:
             continue
 
         try:
             check(est)
             if verbose:
                 print(f"PASSED: {name}")  # noqa T001
-            results[name] = "PASSED"
+            results[full_name] = "PASSED"
             passed += 1
         except SkipTest as skip:
             if verbose:
                 print(f"SKIPPED: {name}")  # noqa T001
-            results[name] = "SKIPPED: " + str(skip)
+            results[full_name] = "SKIPPED: " + str(skip)
             skipped += 1
         except Exception as exception:
             if raise_exceptions:
                 raise exception
             elif verbose:
                 print(f"FAILED: {name}")  # noqa T001
-            results[name] = "FAILED: " + str(exception)
+            results[full_name] = "FAILED: " + str(exception)
             failed += 1
 
     if verbose:

@@ -79,7 +79,10 @@ def test_check_estimator_subset_tests():
     ]
     tests_to_exclude = ["check_set_params"]
 
-    expected_tests = set(tests_to_run).difference(tests_to_exclude)
+    expected_tests = [
+        "MockClassifier()-check_get_params",
+        "MockClassifier()-check_clone",
+    ]
 
     results = check_estimator(
         MockClassifier,
@@ -87,6 +90,6 @@ def test_check_estimator_subset_tests():
         checks_to_run=tests_to_run,
         checks_to_exclude=tests_to_exclude,
     )
-    results_tests = {x.split("[")[0] for x in results.keys()}
+    results_tests = [x for x in results.keys()]
 
     assert results_tests == expected_tests
