@@ -10,14 +10,12 @@ from aeon.testing.estimator_checking import check_estimator, parametrize_with_ch
 from aeon.testing.mock_estimators import (
     MockClassifier,
     MockClassifierMultiTestParams,
-    MockForecaster,
     MockMultivariateSeriesTransformer,
     MockRegressor,
     MockSegmenter,
 )
 from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector
 from aeon.transformations.collection import TimeSeriesScaler
-from aeon.transformations.exponent import ExponentTransformer
 
 EXAMPLE_CLASSES = [
     MockClassifier,
@@ -28,11 +26,6 @@ EXAMPLE_CLASSES = [
     MockMultivariateSeriesTransformer,
     TimeSeriesScaler,
     MockClassifierMultiTestParams,
-]
-
-EXAMPLE_CLASSES_LEGACY = EXAMPLE_CLASSES + [
-    MockForecaster,
-    ExponentTransformer,
 ]
 
 
@@ -54,7 +47,7 @@ def test_parametrize_with_checks_instances(estimator, check):
     check(estimator)
 
 
-@pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES_LEGACY)
+@pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)
 def test_check_estimator_passed(estimator_class):
     """Test that check_estimator returns only passed tests for examples we know pass."""
     estimator = estimator_class.create_test_instance()

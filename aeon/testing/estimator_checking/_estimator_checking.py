@@ -7,7 +7,6 @@ __all__ = [
 ]
 
 import re
-import warnings
 from functools import partial, wraps
 from inspect import isclass
 from typing import Callable, List, Type, Union
@@ -16,43 +15,14 @@ from sklearn import config_context
 from sklearn.utils._testing import SkipTest
 
 from aeon.base import BaseEstimator
-from aeon.forecasting.base import BaseForecaster
-from aeon.testing.estimator_checking._legacy._legacy_estimator_checks import (
-    check_estimator_legacy,
-)
 from aeon.testing.estimator_checking._yield_estimator_checks import (
     _yield_all_aeon_checks,
 )
 from aeon.testing.test_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
-from aeon.transformations.base import BaseTransformer
-from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.series import BaseSeriesTransformer
 from aeon.utils.validation._dependencies import (
     _check_estimator_deps,
     _check_soft_dependencies,
 )
-
-
-def _is_legacy_estimator(estimator):
-    if isclass(estimator):
-        if issubclass(estimator, BaseForecaster) or (
-            issubclass(estimator, BaseTransformer)
-            and not (
-                issubclass(estimator, BaseSeriesTransformer)
-                or issubclass(estimator, BaseCollectionTransformer)
-            )
-        ):
-            return True
-    else:
-        if isinstance(estimator, BaseForecaster) or (
-            isinstance(estimator, BaseTransformer)
-            and not (
-                isinstance(estimator, BaseSeriesTransformer)
-                or isinstance(estimator, BaseCollectionTransformer)
-            )
-        ):
-            return True
-    return False
 
 
 def parametrize_with_checks(
@@ -101,9 +71,6 @@ def parametrize_with_checks(
 
     def checks_generator():
         for est in estimators:
-            if _is_legacy_estimator(est):
-                continue
-
             if isclass(est):
                 if issubclass(est, BaseEstimator):
                     est = est.create_test_instance(return_first=use_first_parameter_set)
@@ -140,7 +107,7 @@ def check_estimator(
     full_checks_to_exclude: Union[str, List[str]] = None,
     verbose: bool = False,
 ):
-    """Check if estimator adheres to scikit-learn conventions.
+    """Check if estimator adheres to `aeon` conventions.
 
     This function will run an extensive test-suite to make sure that the estimator
     complies with `aeon` conventions.
@@ -222,25 +189,7 @@ def check_estimator(
     >>> check_estimator(MockClassifier, checks_to_run="check_clone")
     {'MockClassifier()-check_clone': 'PASSED'}
     """
-    warnings.warn(
-        "check_estimator is currently being reworked and does not cover"
-        "the whole testing suite. For full coverage, use check_estimator_legacy.",
-        UserWarning,
-        stacklevel=1,
-    )
-
     _check_estimator_deps(estimator)
-
-    if _is_legacy_estimator(estimator):
-        return check_estimator_legacy(
-            estimator,
-            raise_exceptions=raise_exceptions,
-            tests_to_run=checks_to_run,
-            tests_to_exclude=checks_to_exclude,
-            fixtures_to_run=full_checks_to_run,
-            fixtures_to_exclude=full_checks_to_exclude,
-            verbose=verbose,
-        )
 
     def checks_generator():
         est = estimator
