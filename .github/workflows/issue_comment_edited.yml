@@ -43,6 +43,7 @@ jobs:
         name: Push empty commit
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
+          branch: ${{ github.event.pull_request.head.ref }}
           commit_message: Empty commit for CI
           commit_user_name: aeon-actions-bot[bot]
           commit_options: --allow-empty
