@@ -87,26 +87,6 @@ def test_incorrect_input():
     with pytest.raises(ValueError, match=m6):
         dummy.fit(X, y)
 
-    # Train and test both equal length, but different lengthd
-    X2 = np.random.random(size=(5, 1, 20))
-    X3 = np.random.random(size=(5, 1, 5))
-    y = np.array([0, 0, 1, 1, 1])
-    dummy.fit(X, y)
-    with pytest.raises(
-        ValueError, match="X has different length to the data seen in fit"
-    ):
-        dummy.predict(X2)
-    with pytest.raises(
-        ValueError, match="X has different length to the data seen in fit"
-    ):
-        dummy.predict_proba(X3)
-    m2 = MockClassifierFullTags()
-    m2.fit(X, y)
-    y_pred = m2.predict(X2)
-    assert len(y_pred) == 5
-    y_pred = m2.predict_proba(X3)
-    assert y_pred.shape == (5, 2)
-
 
 def _assert_incorrect_X_input(dummy, correctX, correcty, X, y, msg):
     with pytest.raises(TypeError, match=msg):
@@ -321,3 +301,38 @@ def test_fit_predict_default():
 
     with pytest.raises(ValueError, match=r"All classes must have at least 2 values"):
         cls._fit_predict_default(X, y, "predict")
+
+
+def test_different_shape_fit_predict():
+    """Test train and test X wehn both differing lengths."""
+    dummy = MockClassifier()
+    X = np.random.random(size=(5, 1, 10))
+    X2 = np.random.random(size=(5, 1, 20))
+    X3 = np.random.random(size=(5, 1, 5))
+    X4 = np.random.random(size=(5, 10))
+    X5 = np.random.random(size=(5, 20))
+    y = np.array([0, 0, 1, 1, 1])
+    dummy.fit(X, y)
+    with pytest.raises(
+        ValueError, match="X has different length to the data seen in fit"
+    ):
+        dummy.predict(X2)
+    with pytest.raises(
+        ValueError, match="X has different length to the data seen in fit"
+    ):
+        dummy.predict_proba(X3)
+    with pytest.raises(
+        ValueError, match="X has different length to the data seen in fit"
+    ):
+        dummy.predict(X5)
+    # Should not raise error
+    preds = dummy.predict(X)
+    assert len(preds) == 5
+    preds2 = dummy.predict(X4)
+    assert len(preds2) == 5
+    m2 = MockClassifierFullTags()
+    m2.fit(X, y)
+    y_pred = m2.predict(X2)
+    assert len(y_pred) == 5
+    y_pred = m2.predict_proba(X3)
+    assert y_pred.shape == (5, 2)

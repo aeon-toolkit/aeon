@@ -36,7 +36,7 @@ from sklearn.utils.multiclass import type_of_target
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import get_n_cases
+from aeon.utils.validation.collection import get_n_cases, get_n_timepoints
 
 
 class BaseClassifier(BaseCollectionEstimator, ABC):
@@ -541,7 +541,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     def _check_n_timepoints(self, X):
         if not self.get_tag("capability:unequal_length"):
-            if X[0].shape[1] != self.metadata_["n_timepoints"]:
+            if get_n_timepoints(X) != self.metadata_["n_timepoints"]:
                 raise ValueError(
                     "X has different length to the data seen in fit but "
                     "this classifier cannot handle unequal length series."
