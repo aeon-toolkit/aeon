@@ -22,6 +22,8 @@ labels = [label.name for label in issue.get_labels()]
 #     sys.exit(0)
 pr = issue.as_pull_request()
 
+print(f"::set-output name=branch::{pr.head.label}")  # noqa: T201
+
 
 def check_label_option(label, option):
     """Add or remove a label based on a checkbox in a comment."""
