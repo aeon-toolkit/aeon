@@ -59,6 +59,7 @@ class PaddingTransformer(BaseCollectionTransformer):
     def __init__(self, pad_length=None, fill_value=0):
         self.pad_length = pad_length
         self.fill_value = fill_value
+        self.fill_value_ = fill_value
         super().__init__()
 
     def _fit(self, X, y=None):
