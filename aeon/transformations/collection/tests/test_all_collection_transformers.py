@@ -4,7 +4,10 @@ import numpy as np
 import pytest
 
 from aeon.registry import all_estimators
-from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.testing.data_generation import (
+    make_example_3d_numpy,
+    make_example_3d_numpy_list,
+)
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
 ALL_COLL_TRANS = all_estimators("collection-transformer", return_names=False)
@@ -33,3 +36,48 @@ def test_channel_selectors(trans):
         X2 = cs.transform(X)
         assert isinstance(X2, np.ndarray)
         assert X2.ndim == 3
+
+
+@pytest.mark.parametrize("trans", ALL_COLL_TRANS)
+def test_capabilities(trans):
+    """Test all transformers actual capabilities match the tags.
+
+    Test that transformers with any combination of tags capability:multivariate=True
+    and capability:unequal_length=True can actually fit and transform that type of data.
+    """
+    t = trans.create_test_instance()
+    from aeon.transformations.collection import PaddingTransformer
+    from aeon.transformations.collection.compose import CollectionTransformerPipeline
+
+    if isinstance(t, CollectionTransformerPipeline):  # TEMP: Excluded classifier #1748
+        return
+    if isinstance(t, PaddingTransformer):  # TEMP: Excluded classifier #1749
+        return
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=30)
+    t.fit(X, y)
+    t.transform(X)
+    X2 = t.fit_transform(X, y)
+    multi = t.get_tag("capability:multivariate")
+    unequal = t.get_tag("capability:unequal_length")
+    if multi:
+        X, y = make_example_3d_numpy(n_cases=10, n_channels=4, n_timepoints=30)
+        t.fit(X, y)
+        t.transform(X)
+        X2 = t.fit_transform(X, y)
+        assert len(X) == len(X2)
+        if unequal:  # Test fits multivariate, unequal length data correctly
+            X, y = make_example_3d_numpy_list(
+                n_cases=10, n_channels=5, min_n_timepoints=20, max_n_timepoints=30
+            )
+            t.fit(X, y)
+            t.transform(X)
+            X2 = t.fit_transform(X, y)
+    #         assert len(X) == len(X2)
+    # elif unequal:
+    #     X, y = make_example_3d_numpy_list(n_cases=10, n_channels=1,
+    #     min_n_timepoints=20, max_n_timepoints=30)
+    #     t.fit(X, y)
+    #     t.transform(X)
+    #     X2 = t.fit_transform(X, y)
+    #     assert len(X) == len(X2)
+    # pass
