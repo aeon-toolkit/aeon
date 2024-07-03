@@ -1,4 +1,4 @@
-name: Issue Comment Posted
+name: Issue Comment Edited
 
 on:
   issue_comment:

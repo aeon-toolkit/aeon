@@ -26,10 +26,7 @@ def get(url, auth):
     """Get a URL, retrying if the rate limit is exceeded."""
     for sleep_time in [10, 30, 0]:
         reply = requests.get(url, auth=auth)
-        api_limit = (
-            "message" in reply.json()
-            and "API rate limit exceeded" in reply.json()["message"]
-        )
+        api_limit = ("message" in reply.json() and "API rate limit exceeded" in reply.json()["message"])
         if not api_limit:
             break
         print("API rate limit exceeded, waiting..")  # noqa: T201
