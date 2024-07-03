@@ -1,4 +1,4 @@
-name: Issue Comment Posted
+name: Issue Comment Edited
 
 on:
   issue_comment:
@@ -6,6 +6,7 @@ on:
 
 jobs:
   check-pr-labels:
+    if: ${{ github.event.issue.pull_request }}
     runs-on: ubuntu-20.04
 
     steps:
@@ -19,6 +20,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.sha }}
 #          token: ${{ steps.app-token.outputs.token }}
           sparse-checkout: build_tools
 
