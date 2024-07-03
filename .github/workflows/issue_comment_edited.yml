@@ -43,4 +43,5 @@ jobs:
         with:
           commit_message: Empty commit for CI
           commit_user_name: aeon-actions-bot[bot]
-          commit_options: "--allow-empty"
+          commit_options: --allow-empty
+          skip_dirty_check: true
