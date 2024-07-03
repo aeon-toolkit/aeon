@@ -42,7 +42,7 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 3
-          command: python -m pip install .[all_extras,binder,dev]
+          command: python -m pip install .[binder,dev]
 
       - name: Run example notebooks
         run: build_tools/run_examples.sh ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full examples run') }}
