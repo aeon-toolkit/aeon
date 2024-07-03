@@ -13,7 +13,7 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest `aeon` release is `v0.8.1`. You can view the full changelog
+The latest `aeon` release is `v0.9.0`. You can view the full changelog
 [here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
@@ -21,7 +21,7 @@ Our webpage and documentation is available at https://aeon-toolkit.org.
 The following modules are still considered experimental, and the [deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html)
 does not apply:
 
-`annotation`, `anomaly_detection`, `benchmarking`, `segmentation`, `similarity_search`,
+`anomaly_detection`, `benchmarking`, `segmentation`, `similarity_search`,
 `testing`, `transformations/series`, `visualisation`
 
 | Overview      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
@@ -32,7 +32,7 @@ does not apply:
 
 ## ⚙️ Installation
 
-`aeon` requires a Python version of 3.8 or greater. Our full installation guide is
+`aeon` requires a Python version of 3.9 or greater. Our full installation guide is
 available in our [documentation](https://www.aeon-toolkit.org/en/stable/installation.html).
 
 The easiest way to install `aeon` is via pip:

@@ -3,14 +3,12 @@
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.metrics import r2_score
 
 from aeon.datasets import load_covid_3month
 from aeon.regression.base import BaseRegressor
 from aeon.regression.dummy import DummyRegressor
-from aeon.testing.utils.data_gen._collection import (
-    EQUAL_LENGTH_UNIVARIATE,
-    UNEQUAL_LENGTH_UNIVARIATE,
-)
+from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE, UNEQUAL_LENGTH_UNIVARIATE
 from aeon.utils import COLLECTIONS_DATA_TYPES
 
 
@@ -168,4 +166,8 @@ def test_score():
     x_test, y_test = load_covid_3month(split="test")
     dummy.fit(x_train, y_train)
     r = dummy.score(x_test, y_test)
-    np.testing.assert_almost_equal(r, 0.0019998715745554777, decimal=6)
+    np.testing.assert_almost_equal(r, -0.004303695576216793, decimal=6)
+    with pytest.raises(ValueError):
+        dummy.score(x_test, y_test, metric="r3")
+    r = dummy.score(x_test, y_test, metric=r2_score)  # Use callable
+    np.testing.assert_almost_equal(r, -0.004303695576216793, decimal=6)

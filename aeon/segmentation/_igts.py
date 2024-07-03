@@ -154,17 +154,17 @@ class _IGTS:
        Pervasive and Mobile Computing, 38, 92-109, (2017).
        https://www.sciencedirect.com/science/article/abs/pii/S1574119217300081
 
-    Example
-    -------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    Examples
+    --------
+    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
     >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
-    ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ... variances=0.5)
+    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
+    ...     variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> igts = InformationGainSegmenter(k_max=3, step=2)
-    >>> y = igts.fit_predict(X_scaled)
+    >>> y = igts.fit_predict(X_scaled, axis=0)
 
     """
 
@@ -336,17 +336,15 @@ class InformationGainSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
-    >>> X = piecewise_normal_multivariate(
-    ... lengths=[10, 10, 10, 10],
-    ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ... variances=0.5,
-    ... )
+    >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
+    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
+    ...     variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> igts = InformationGainSegmenter(k_max=3, step=2)
-    >>> y = igts.fit_predict(X_scaled)
+    >>> y = igts.fit_predict(X_scaled, axis=0)
     """
 
     _tags = {
@@ -366,7 +364,7 @@ class InformationGainSegmenter(BaseSegmenter):
             k_max=k_max,
             step=step,
         )
-        super().__init__(n_segments=k_max + 1, axis=0)
+        super().__init__(axis=0, n_segments=k_max + 1)
 
     def _predict(self, X, y=None) -> np.ndarray:
         """Perform segmentation.

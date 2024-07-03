@@ -10,251 +10,25 @@ __all__ = ["ContinuousIntervalTree"]
 
 import math
 import sys
+from typing import List, Tuple, Type, Union
 
 import numpy as np
+import pandas as pd
 from numba import njit
+from scipy.sparse import issparse
 from sklearn import preprocessing
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.exceptions import NotFittedError
 from sklearn.utils import check_random_state
-
-from aeon.exceptions import NotFittedError
-
-
-class ContinuousIntervalTree(BaseEstimator):
-    """Continuous interval tree (CIT) vector classifier (aka Time Series Tree).
-
-    The `Time Series Tree` described in the Time Series Forest (TSF) [1]_. A simple
-    information gain based tree for continuous attributes using a bespoke margin gain
-    metric for tie breaking.
-
-    Implemented as a bade classifier for interval based time series classifiers such as
-    `CanonicalIntervalForest` and `DrCIF`.
-
-    Parameters
-    ----------
-    max_depth : int, default=sys.maxsize
-        Maximum depth for the tree.
-    thresholds : int, default=20
-        Number of thresholds to split continous attributes on at tree nodes.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
-
-    Attributes
-    ----------
-    classes_ : list
-        The unique class labels in the training set.
-    n_classes_ : int
-        The number of unique classes in the training set.
-    n_cases_ : int
-        The number of train cases in the training set.
-    n_atts_ : int
-        The number of attributes in the training set.
-
-    See Also
-    --------
-    CanonicalIntervalForest
-    DrCIF
-
-    Notes
-    -----
-    For the Java version, see
-    `tsml <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    machine_learning/classifiers/ContinuousIntervalTree.java>`_.
-
-    References
-    ----------
-    .. [1] H.Deng, G.Runger, E.Tuv and M.Vladimir, "A time series forest for
-       classification and feature extraction",Information Sciences, 239, 2013
-
-    Examples
-    --------
-    >>> from aeon.classification.sklearn import ContinuousIntervalTree
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = ContinuousIntervalTree()
-    >>> clf.fit(X_train, y_train)
-    ContinuousIntervalTree(...)
-    >>> y_pred = clf.predict(X_test)
-    """
-
-    def __init__(
-        self,
-        max_depth=sys.maxsize,
-        thresholds=20,
-        random_state=None,
-    ):
-        self.max_depth = max_depth
-        self.thresholds = thresholds
-        self.random_state = random_state
-
-        super().__init__()
-
-    def fit(self, X, y):
-        """Fit a tree on cases (X,y), where y is the target variable.
-
-        Build an information gain based tree for continuous attributes using the
-        margin gain metric for ties.
-
-        Parameters
-        ----------
-        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
-            The training data.
-        y : array-like, shape = [n_cases]
-            The class labels.
-
-        Returns
-        -------
-        self :
-            Reference to self.
-
-        Notes
-        -----
-        Changes state by creating a fitted model that updates attributes
-        ending in "_".
-        """
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "ContinuousIntervalTree is not a time series classifier. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X, y = self._validate_data(
-            X=X, y=y, ensure_min_samples=2, force_all_finite="allow-nan"
-        )
-
-        self.n_cases_, self.n_atts_ = X.shape
-        self.classes_ = np.unique(y)
-        self.n_classes_ = self.classes_.shape[0]
-        self._class_dictionary = {}
-        for index, classVal in enumerate(self.classes_):
-            self._class_dictionary[classVal] = index
-
-        # escape if only one class seen
-        if self.n_classes_ == 1:
-            self._is_fitted = True
-            return self
-
-        le = preprocessing.LabelEncoder()
-        y = le.fit_transform(y)
-
-        rng = check_random_state(self.random_state)
-        self._root = _TreeNode(random_state=rng)
-
-        thresholds = np.linspace(np.min(X, axis=0), np.max(X, axis=0), self.thresholds)
-
-        distribution = np.zeros(self.n_classes_)
-        for i in range(len(y)):
-            distribution[y[i]] += 1
-
-        entropy = _entropy(distribution, distribution.sum())
-
-        self._root.build_tree(
-            X,
-            y,
-            thresholds,
-            entropy,
-            distribution,
-            0,
-            self.max_depth,
-            self.n_classes_,
-            False,
-        )
-
-        self._is_fitted = True
-        return self
-
-    def predict(self, X):
-        """Predict for all cases in X. Built on top of predict_proba.
-
-        Parameters
-        ----------
-        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
-            The data to make predictions for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_cases]
-            Predicted class labels.
-        """
-        rng = check_random_state(self.random_state)
-        return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self.predict_proba(X)
-            ]
-        )
-
-    def predict_proba(self, X):
-        """Probability estimates for each class for all cases in X.
-
-        Parameters
-        ----------
-        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
-            The data to make predictions for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_cases, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        if not hasattr(self, "_is_fitted") or not self._is_fitted:
-            raise NotFittedError(
-                f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
-            )
-
-        # treat case of single class seen in fit
-        if self.n_classes_ == 1:
-            return np.repeat([[1]], X.shape[0], axis=0)
-
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "ContinuousIntervalTree is not a time series classifier. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X = self._validate_data(X=X, reset=False, force_all_finite="allow-nan")
-
-        dists = np.zeros((X.shape[0], self.n_classes_))
-        for i in range(X.shape[0]):
-            dists[i] = self._root.predict_proba(X[i], self.n_classes_)
-        return dists
-
-    def tree_node_splits_and_gain(self):
-        """Recursively find the split and information gain for each tree node."""
-        splits = []
-        gains = []
-
-        if self._root.best_split > -1:
-            self._find_splits_gain(self._root, splits, gains)
-
-        return splits, gains
-
-    def _find_splits_gain(self, node, splits, gains):
-        """Recursively find the split and information gain for each tree node."""
-        splits.append(node.best_split)
-        gains.append(node.best_gain)
-
-        for next_node in node.children:
-            if next_node.best_split > -1:
-                self._find_splits_gain(next_node, splits, gains)
+from sklearn.utils.multiclass import check_classification_targets
 
 
 class _TreeNode:
     """ContinuousIntervalTree tree node."""
 
     def __init__(
-        self,
-        random_state=None,
-    ):
+        self, random_state: Union[int, Type[np.random.RandomState], None] = None
+    ) -> None:
         self.random_state = random_state
 
         self.best_split = -1
@@ -269,13 +43,13 @@ class _TreeNode:
         self,
         X,
         y,
-        thresholds,
-        entropy,
+        thresholds: int,
+        entropy: float,
         distribution,
-        depth,
-        max_depth,
-        n_classes,
-        leaf,
+        depth: int,
+        max_depth: int,
+        n_classes: int,
+        leaf: bool,
     ):
         self.depth = depth
         best_distributions = []
@@ -405,7 +179,7 @@ class _TreeNode:
 
         return self
 
-    def predict_proba(self, X, n_classes):
+    def predict_proba(self, X, n_classes: int):
         if self.best_split > -1:
             if X[self.best_split] <= self.best_threshold:
                 return self.children[0].predict_proba(X, n_classes)
@@ -418,7 +192,9 @@ class _TreeNode:
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def information_gain(X, y, attribute, threshold, parent_entropy, n_classes):
+    def information_gain(
+        X, y, attribute: int, threshold: int, parent_entropy: float, n_classes: int
+    ):
         dist_left = np.zeros(n_classes)
         dist_right = np.zeros(n_classes)
         dist_missing = np.zeros(n_classes)
@@ -460,13 +236,13 @@ class _TreeNode:
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def margin_gain(X, attribute, threshold):
+    def margin_gain(X, attribute: int, threshold: int):
         margins = np.abs(X[:, attribute] - threshold)
         return np.min(margins)
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def split_data(X, best_split, best_threshold):
+    def split_data(X, best_split: int, best_threshold: int):
         left_idx = np.zeros(len(X), dtype=np.int_)
         left_count = 0
         right_idx = np.zeros(len(X), dtype=np.int_)
@@ -492,7 +268,7 @@ class _TreeNode:
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def remaining_classes(distribution):
+    def remaining_classes(distribution) -> bool:
         remaining_classes = 0
         for d in distribution:
             if d > 0:
@@ -500,8 +276,251 @@ class _TreeNode:
         return remaining_classes > 1
 
 
+class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
+    """Continuous interval tree (CIT) vector classifier (aka Time Series Tree).
+
+    The `Time Series Tree` described in the Time Series Forest (TSF) [1]_. A simple
+    information gain based tree for continuous attributes using a bespoke margin gain
+    metric for tie breaking.
+
+    Implemented as a bade classifier for interval based time series classifiers such as
+    `CanonicalIntervalForest` and `DrCIF`.
+
+    Parameters
+    ----------
+    max_depth : int, default=sys.maxsize
+        Maximum depth for the tree.
+    thresholds : int, default=20
+        Number of thresholds to split continous attributes on at tree nodes.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+
+    Attributes
+    ----------
+    classes_ : list
+        The unique class labels in the training set.
+    n_classes_ : int
+        The number of unique classes in the training set.
+    n_cases_ : int
+        The number of train cases in the training set.
+    n_atts_ : int
+        The number of attributes in the training set.
+
+    See Also
+    --------
+    CanonicalIntervalForest
+    DrCIF
+
+    Notes
+    -----
+    For the Java version, see
+    `tsml <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
+    machine_learning/classifiers/ContinuousIntervalTree.java>`_.
+
+    References
+    ----------
+    .. [1] H.Deng, G.Runger, E.Tuv and M.Vladimir, "A time series forest for
+       classification and feature extraction",Information Sciences, 239, 2013
+
+    Examples
+    --------
+    >>> from aeon.classification.sklearn import ContinuousIntervalTree
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> clf = ContinuousIntervalTree()
+    >>> clf.fit(X_train, y_train)
+    ContinuousIntervalTree(...)
+    >>> y_pred = clf.predict(X_test)
+    """
+
+    def __init__(
+        self,
+        max_depth: int = sys.maxsize,
+        thresholds: int = 20,
+        random_state: Union[int, Type[np.random.RandomState], None] = None,
+    ) -> None:
+        self.max_depth = max_depth
+        self.thresholds = thresholds
+        self.random_state = random_state
+
+        super().__init__()
+
+    def fit(self, X, y):
+        """Fit a tree on cases (X,y), where y is the target variable.
+
+        Build an information gain based tree for continuous attributes using the
+        margin gain metric for ties.
+
+        Parameters
+        ----------
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
+            The training data.
+        y : array-like, shape = [n_cases]
+            The class labels.
+
+        Returns
+        -------
+        self :
+            Reference to self.
+
+        Notes
+        -----
+        Changes state by creating a fitted model that updates attributes
+        ending in "_".
+        """
+        # data processing
+        X = self._check_X(X)
+        X, y = self._validate_data(
+            X=X,
+            y=y,
+            ensure_min_samples=2,
+            force_all_finite="allow-nan",
+            accept_sparse=False,
+        )
+        check_classification_targets(y)
+
+        self.n_cases_, self.n_atts_ = X.shape
+        self.classes_ = np.unique(y)
+        self.n_classes_ = self.classes_.shape[0]
+        self._class_dictionary = {}
+        for index, classVal in enumerate(self.classes_):
+            self._class_dictionary[classVal] = index
+
+        # escape if only one class seen
+        if self.n_classes_ == 1:
+            self._is_fitted = True
+            return self
+
+        le = preprocessing.LabelEncoder()
+        y = le.fit_transform(y)
+
+        rng = check_random_state(self.random_state)
+        self._root = _TreeNode(random_state=rng)
+
+        thresholds = np.linspace(np.min(X, axis=0), np.max(X, axis=0), self.thresholds)
+
+        distribution = np.zeros(self.n_classes_)
+        for i in range(len(y)):
+            distribution[y[i]] += 1
+
+        entropy = _entropy(distribution, distribution.sum())
+
+        self._root.build_tree(
+            X,
+            y,
+            thresholds,
+            entropy,
+            distribution,
+            0,
+            self.max_depth,
+            self.n_classes_,
+            False,
+        )
+
+        self._is_fitted = True
+        return self
+
+    def predict(self, X):
+        """Predict for all cases in X. Built on top of predict_proba.
+
+        Parameters
+        ----------
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_cases]
+            Predicted class labels.
+        """
+        return np.array(
+            [self.classes_[int(np.argmax(prob))] for prob in self.predict_proba(X)]
+        )
+
+    def predict_proba(self, X):
+        """Probability estimates for each class for all cases in X.
+
+        Parameters
+        ----------
+        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
+            The data to make predictions for.
+
+        Returns
+        -------
+        y : array-like, shape = [n_cases, n_classes_]
+            Predicted probabilities using the ordering in classes_.
+        """
+        if not hasattr(self, "_is_fitted") or not self._is_fitted:
+            raise NotFittedError(
+                f"This instance of {self.__class__.__name__} has not "
+                f"been fitted yet; please call `fit` first."
+            )
+
+        # treat case of single class seen in fit
+        if self.n_classes_ == 1:
+            return np.repeat([[1]], X.shape[0], axis=0)
+
+        # data processing
+        X = self._check_X(X)
+        X = self._validate_data(
+            X=X, reset=False, force_all_finite="allow-nan", accept_sparse=False
+        )
+
+        dists = np.zeros((X.shape[0], self.n_classes_))
+        for i in range(X.shape[0]):
+            dists[i] = self._root.predict_proba(X[i], self.n_classes_)
+        return dists
+
+    def tree_node_splits_and_gain(self) -> Tuple[List[int], List[float]]:
+        """Recursively find the split and information gain for each tree node."""
+        splits = []
+        gains = []
+
+        if self._root.best_split > -1:
+            self._find_splits_gain(self._root, splits, gains)
+
+        return splits, gains
+
+    def _find_splits_gain(self, node: Type[_TreeNode], splits: list, gains: list):
+        """Recursively find the split and information gain for each tree node."""
+        splits.append(node.best_split)
+        gains.append(node.best_gain)
+
+        for next_node in node.children:
+            if next_node.best_split > -1:
+                self._find_splits_gain(next_node, splits, gains)
+
+    def _check_X(self, X):
+        if issparse(X):
+            return X
+
+        msg = (
+            "ContinuousIntervalTree is not a time series classifier. "
+            "A valid sklearn input such as a 2d numpy array is required."
+            "Sparse input formats are currently not supported."
+        )
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+        else:
+            try:
+                X = np.array(X)
+            except Exception:
+                raise ValueError(msg)
+
+        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
+            X = np.reshape(X, (X.shape[0], -1))
+        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
+            raise ValueError(msg)
+
+        return X
+
+
 @njit(fastmath=True, cache=True)
-def _entropy(x, s):
+def _entropy(x, s: int) -> float:
     e = 0
     for i in x:
         p = i / s if s > 0 else 0

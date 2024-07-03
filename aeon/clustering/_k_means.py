@@ -69,8 +69,13 @@ class TimeSeriesKMeans(BaseClusterer):
         convergence.
     verbose : bool, default=False
         Verbosity mode.
-    random_state : int or np.random.RandomState instance or None, default=None
+    random_state : int, np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
+        If `int`, random_state is the seed used by the random number generator;
+        If `np.random.RandomState` instance,
+        random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     averaging_method : str or Callable, default='ba'
         Averaging method to compute the average of a cluster. Any of the following
         strings are valid: ['mean', 'ba']. If a Callable is provided must take the form
@@ -180,7 +185,6 @@ class TimeSeriesKMeans(BaseClusterer):
 
         self._random_state = None
         self._init_algorithm = None
-        self._fit_method = None
         self._averaging_method = None
         self._average_params = None
 
@@ -224,7 +228,7 @@ class TimeSeriesKMeans(BaseClusterer):
         if isinstance(self._init_algorithm, Callable):
             cluster_centres = self._init_algorithm(X)
         else:
-            cluster_centres = self._init_algorithm
+            cluster_centres = self._init_algorithm.copy()
         prev_inertia = np.inf
         prev_labels = None
         for i in range(self.max_iter):

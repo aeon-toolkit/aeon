@@ -83,7 +83,7 @@ class RISTRegressor(BaseRIST, BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.hybrid import RISTRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              regression_target=True, random_state=0)
     >>> reg = RISTRegressor(random_state=0)  # doctest: +SKIP
@@ -113,8 +113,6 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         if use_pyfftw:
             d.append("pyfftw")
 
-        self.set_tags(**{"python_dependencies": d})
-
         super().__init__(
             n_intervals=n_intervals,
             n_shapelets=n_shapelets,
@@ -125,6 +123,8 @@ class RISTRegressor(BaseRIST, BaseRegressor):
             random_state=random_state,
             n_jobs=n_jobs,
         )
+
+        self.set_tags(**{"python_dependencies": d if len(d) > 1 else d[0]})
 
     _tags = {
         "capability:multivariate": True,

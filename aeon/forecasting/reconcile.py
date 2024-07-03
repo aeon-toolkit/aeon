@@ -61,7 +61,7 @@ class ReconcilerForecaster(BaseForecaster):
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.reconcile import ReconcilerForecaster
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
+    >>> from aeon.testing.data_generation import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,

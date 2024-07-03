@@ -4,10 +4,7 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.classification import BaseClassifier
 from aeon.classification.convolution_based._hydra import _SparseScaler
-from aeon.transformations.collection.convolution_based import (
-    MultiRocket,
-    MultiRocketMultivariate,
-)
+from aeon.transformations.collection.convolution_based import MultiRocket
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
 
 
@@ -56,7 +53,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.convolution_based import MultiRocketHydraClassifier
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              random_state=0)
     >>> clf = MultiRocketHydraClassifier(random_state=0)  # doctest: +SKIP
@@ -93,16 +90,9 @@ class MultiRocketHydraClassifier(BaseClassifier):
         self._scale_hydra = _SparseScaler()
         Xt_hydra = self._scale_hydra.fit_transform(Xt_hydra)
 
-        self._transform_multirocket = (
-            MultiRocket(
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-            )
-            if X.shape[1] == 1
-            else MultiRocketMultivariate(
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-            )
+        self._transform_multirocket = MultiRocket(
+            n_jobs=self.n_jobs,
+            random_state=self.random_state,
         )
         Xt_multirocket = self._transform_multirocket.fit_transform(X)
 

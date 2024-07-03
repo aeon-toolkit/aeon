@@ -115,7 +115,7 @@ class Catch22(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.feature_based import Catch22
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=10,
     ...                           random_state=0, return_y=False)
     >>> tnf = Catch22(replace_nans=True)
@@ -174,7 +174,7 @@ class Catch22(BaseCollectionTransformer):
 
         Returns
         -------
-        Xt : array-like, shape = [n_cases, num_features*n_channels]
+        Xt : array-like, shape = [n_cases, n_features*n_channels]
             The catch22 features for each dimension.
         """
         n_cases = len(X)
@@ -323,6 +323,9 @@ class Catch22(BaseCollectionTransformer):
                     if ac is None:
                         ac = _autocorr(series, fft)
                     args = [ac]
+                elif feature == 15:
+                    indices = np.argsort(series)
+                    args = [series, indices]
                 elif feature == 16 or feature == 17 or feature == 20:
                     if smean is None:
                         smean = mean(series)
@@ -549,27 +552,26 @@ class Catch22(BaseCollectionTransformer):
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _SB_MotifThree_quantile_hh(X):
+    def _SB_MotifThree_quantile_hh(X, indices):
         # Shannon entropy of two successive letters in equiprobable 3-letter
         # symbolization.
-        indicies = np.argsort(X)
         bins = np.zeros(len(X))
         q1 = int(len(X) / 3)
         q2 = q1 * 2
         l1 = np.zeros(q1, dtype=np.int_)
         for i in range(q1):
-            l1[i] = indicies[i]
+            l1[i] = indices[i]
         l2 = np.zeros(q1, dtype=np.int_)
         c1 = 0
         for i in range(q1, q2):
-            bins[indicies[i]] = 1
-            l2[c1] = indicies[i]
+            bins[indices[i]] = 1
+            l2[c1] = indices[i]
             c1 += 1
-        l3 = np.zeros(len(indicies) - q2, dtype=np.int_)
+        l3 = np.zeros(len(indices) - q2, dtype=np.int_)
         c2 = 0
-        for i in range(q2, len(indicies)):
-            bins[indicies[i]] = 2
-            l3[c2] = indicies[i]
+        for i in range(q2, len(indices)):
+            bins[indices[i]] = 2
+            l3[c2] = indices[i]
             c2 += 1
 
         found_last = False

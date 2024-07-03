@@ -2,12 +2,12 @@
 
 __maintainer__ = ["hadifawaz1999"]
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 from aeon.utils.networks import tensorflow_addons as types
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class EncoderNetwork(BaseDeepNetwork):
+class EncoderNetwork(BaseDeepLearningNetwork):
     """Establish the network structure for an Encoder.
 
     Adapted from the implementation used in [1]
@@ -48,6 +48,11 @@ class EncoderNetwork(BaseDeepNetwork):
     """
 
     _tags = {"python_dependencies": ["tensorflow", "typeguard"]}
+    _config = {
+        "python_dependencies": ["tensorflow", "tensorflow-addons"],
+        "python_version": "<3.12",
+        "structure": "encoder",
+    }
 
     def __init__(
         self,

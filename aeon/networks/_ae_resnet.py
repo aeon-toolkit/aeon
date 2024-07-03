@@ -2,10 +2,10 @@
 
 import numpy as np
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class AEResNetNetwork(BaseDeepNetwork):
+class AEResNetNetwork(BaseDeepLearningNetwork):
     """
     Establish the network structure for a AE-ResNet.
 
@@ -64,6 +64,12 @@ class AEResNetNetwork(BaseDeepNetwork):
     1578--1585}, year={2017}, organization={IEEE} }
 
     """
+
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.12",
+        "structure": "auto-encoder",
+    }
 
     def __init__(
         self,

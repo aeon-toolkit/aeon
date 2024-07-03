@@ -8,7 +8,7 @@ import pytest
 from aeon.forecasting.compose import HierarchyEnsembleForecaster
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.testing.utils.data_gen import _bottom_hier_datagen, _make_hierarchical
+from aeon.testing.data_generation import _bottom_hier_datagen, _make_hierarchical
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.utils.index_functions import get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies

@@ -84,7 +84,6 @@ class SummaryRegressor(BaseRegressor):
 
         self._transformer = None
         self._estimator = None
-        self._transform_atts = 0
 
         super().__init__()
 
@@ -126,11 +125,6 @@ class SummaryRegressor(BaseRegressor):
             self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-
-        if X_t.shape[0] > len(y):
-            X_t = X_t.to_numpy().reshape((len(y), -1))
-            self._transform_atts = X_t.shape[1]
-
         self._estimator.fit(X_t, y)
 
         return self
@@ -148,12 +142,7 @@ class SummaryRegressor(BaseRegressor):
         y : array-like, shape = [n_cases]
             Predicted labels.
         """
-        X_t = self._transformer.transform(X)
-
-        if X_t.shape[1] < self._transform_atts:
-            X_t = X_t.to_numpy().reshape((-1, self._transform_atts))
-
-        return self._estimator.predict(X_t)
+        return self._estimator.predict(self._transformer.transform(X))
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

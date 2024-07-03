@@ -4,13 +4,15 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn import clone
 
 from aeon.base import _HeterogenousMetaEstimator
-from aeon.transformations._delegate import _DelegatedTransformer
+from aeon.testing.mock_estimators import MockTransformer
+from aeon.transformations._legacy._delegate import _DelegatedTransformer
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.multiindex import flatten_multiindex
-from aeon.utils.sklearn import is_sklearn_regressor, is_sklearn_transformer
+from aeon.utils.sklearn import is_sklearn_transformer
 from aeon.utils.validation.series import check_series
 
 __maintainer__ = []
@@ -26,6 +28,7 @@ __all__ = [
     "TransformerPipeline",
     "YtoX",
 ]
+from aeon.transformations._legacy._boxcox import _BoxCoxTransformer
 from aeon.utils import ALL_TIME_SERIES_TYPES
 
 
@@ -40,6 +43,12 @@ def _coerce_to_aeon(other):
     return other
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="TransformerPipeline will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
     """
     Pipeline of transformers compositor.
@@ -99,42 +108,6 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         is always in (str, transformer) format, even if `steps` is just a list
         strings not passed in `steps` are replaced by unique generated strings
         i-th transformer in `steps_` is clone of i-th in `steps`.
-
-    Examples
-    --------
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> t1 = ExponentTransformer(power=2)
-    >>> t2 = ExponentTransformer(power=0.5)
-
-        Example 1, option A: construct without strings (unique names are generated for
-        the two components t1 and t2)
-    >>> pipe = TransformerPipeline(steps = [t1, t2])
-
-        Example 1, option B: construct with strings to give custom names to steps
-    >>> pipe = TransformerPipeline(
-    ...         steps = [
-    ...             ("trafo1", t1),
-    ...             ("trafo2", t2),
-    ...         ]
-    ...     )
-
-        Example 1, option C: for quick construction, the * dunder method can be used
-    >>> pipe = t1 * t2
-
-        Example 2: sklearn transformers can be used in the pipeline.
-        If applied to Series, sklearn transformers are applied by series instance.
-        If applied to Table, sklearn transformers are applied to the table as a whole.
-    >>> from sklearn.preprocessing import StandardScaler
-    >>> from aeon.transformations.summarize import SummaryTransformer
-
-        This applies the scaler per series, then summarizes:
-    >>> pipe = StandardScaler() * SummaryTransformer()
-
-        This applies the sumamrization, then scales the full summary table:
-    >>> pipe = SummaryTransformer() * StandardScaler()
-
-        This scales the series, then summarizes, then scales the full summary table:
-    >>> pipe = StandardScaler() * SummaryTransformer() * StandardScaler()
     """
 
     _tags = {
@@ -228,14 +201,7 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         TransformerPipeline object, concatenation of `self` (first) with `other` (last).
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
-        from aeon.regression.compose import SklearnRegressorPipeline
-
         other = _coerce_to_aeon(other)
-
-        # if sklearn regressor, use sklearn regressor pipeline
-        if is_sklearn_regressor(other):
-            return SklearnRegressorPipeline(regressor=other, transformers=self.steps)
-
         return self._dunder_concat(
             other=other,
             base_class=BaseTransformer,
@@ -388,11 +354,11 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # imports
-        from aeon.transformations.exponent import ExponentTransformer
+        from aeon.testing.mock_estimators import MockTransformer
 
-        t1 = ExponentTransformer(power=2)
-        t2 = ExponentTransformer(power=0.5)
-        t3 = ExponentTransformer(power=1)
+        t1 = MockTransformer(power=2)
+        t2 = MockTransformer(power=0.5)
+        t3 = MockTransformer(power=1)
 
         # construct without names
         params1 = {"steps": [t1, t2]}
@@ -406,6 +372,12 @@ class TransformerPipeline(_HeterogenousMetaEstimator, BaseTransformer):
         return [params1, params2, params3]
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="FeatureUnion will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     """Concatenates results of multiple transformer objects.
 
@@ -616,28 +588,20 @@ class FeatureUnion(_HeterogenousMetaEstimator, BaseTransformer):
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Test parameters for FeatureUnion."""
-        from aeon.transformations.boxcox import BoxCoxTransformer
-        from aeon.transformations.exponent import ExponentTransformer
-
         # with name and estimator tuple, all transformers don't have fit
         TRANSFORMERS = [
-            ("transformer1", ExponentTransformer(power=4)),
-            ("transformer2", ExponentTransformer(power=0.25)),
+            ("transformer1", MockTransformer(power=4)),
+            ("transformer2", MockTransformer(power=0.25)),
         ]
-        params1 = {"transformer_list": TRANSFORMERS}
-
-        # only with estimators, some transformers have fit, some not
-        params2 = {
-            "transformer_list": [
-                ExponentTransformer(power=4),
-                ExponentTransformer(power=0.25),
-                BoxCoxTransformer(),
-            ]
-        }
-
-        return [params1, params2]
+        return {"transformer_list": TRANSFORMERS}
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="FitInTransform will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class FitInTransform(BaseTransformer):
     """
     Transformer wrapper to delay fit to the transform phase.
@@ -662,30 +626,6 @@ class FitInTransform(BaseTransformer):
         transformer is the inner transformer. So the inner transformer is
         fitted on the inverse_transform data. This is required to have a non-
         state changing transform() method of FitInTransform.
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_longley
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.forecasting.base import ForecastingHorizon
-    >>> from aeon.forecasting.compose import ForecastingPipeline
-    >>> from aeon.forecasting.model_selection import temporal_train_test_split
-    >>> from aeon.transformations.compose import FitInTransform
-    >>> from aeon.transformations.impute import Imputer
-    >>> y, X = load_longley()
-    >>> y_train, y_test, X_train, X_test = temporal_train_test_split(y, X)
-    >>> fh = ForecastingHorizon(y_test.index, is_relative=False)
-    >>> # we want to fit the Imputer only on the predict (=transform) data.
-    >>> # note that NaiveForecaster cant use X data, this is just a show case.
-    >>> pipe = ForecastingPipeline(
-    ...     steps=[
-    ...         ("imputer", FitInTransform(Imputer(method="mean"))),
-    ...         ("forecaster", NaiveForecaster()),
-    ...     ]
-    ... )
-    >>> pipe.fit(y_train, X_train)
-    ForecastingPipeline(...)
-    >>> y_pred = pipe.predict(fh=fh, X=X_test)
     """
 
     def __init__(self, transformer, skip_inverse_transform=True):
@@ -766,15 +706,19 @@ class FitInTransform(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.boxcox import BoxCoxTransformer
-
         params = [
-            {"transformer": BoxCoxTransformer()},
-            {"transformer": BoxCoxTransformer(), "skip_inverse_transform": False},
+            {"transformer": _BoxCoxTransformer()},
+            {"transformer": _BoxCoxTransformer(), "skip_inverse_transform": False},
         ]
         return params
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="MultiplexTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
     """
     Facilitate an AutoML based selection of the best transformer.
@@ -818,40 +762,6 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
     _transformers : list of (name, est) tuples, where est are direct references to
         the estimators passed in transformers passed. If transformers was passed
         without names, those be auto-generated and put here.
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_shampoo_sales
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.transformations.compose import MultiplexTransformer
-    >>> from aeon.transformations.impute import Imputer
-    >>> from aeon.forecasting.compose import TransformedTargetForecaster
-    >>> from aeon.forecasting.model_selection import (
-    ...     ForecastingGridSearchCV,
-    ...     ExpandingWindowSplitter)
-    >>> # create MultiplexTransformer:
-    >>> multiplexer = MultiplexTransformer(transformers=[
-    ...     ("impute_mean", Imputer(method="mean", missing_values = -1)),
-    ...     ("impute_near", Imputer(method="nearest", missing_values = -1)),
-    ...     ("impute_rand", Imputer(method="random", missing_values = -1))])
-    >>> cv = ExpandingWindowSplitter(
-    ...     initial_window=24,
-    ...     step_length=12,
-    ...     fh=[1,2,3])
-    >>> pipe = TransformedTargetForecaster(steps = [
-    ...     ("multiplex", multiplexer),
-    ...     ("forecaster", NaiveForecaster())
-    ...     ])
-    >>> gscv = ForecastingGridSearchCV(
-    ...     cv=cv,
-    ...     param_grid={"multiplex__selected_transformer":
-    ...     ["impute_mean", "impute_near", "impute_rand"]},
-    ...     forecaster=pipe,
-    ...     )
-    >>> y = load_shampoo_sales()
-    >>> # randomly make some of the values nans:
-    >>> y.loc[y.sample(frac=0.1).index] = -1
-    >>> gscv = gscv.fit(y)
     """
 
     # tags will largely be copied from selected_transformer
@@ -1033,6 +943,12 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
         )
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="InvertTransform will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class InvertTransform(_DelegatedTransformer):
     """Invert a series-to-series transformation.
 
@@ -1047,16 +963,6 @@ class InvertTransform(_DelegatedTransformer):
     ----------
     transformer_: transformer,
         this clone is fitted when `fit` is called and provides `transform` and inverse
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.compose import InvertTransform
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>>
-    >>> inverse_exponent = InvertTransform(ExponentTransformer(power=3))
-    >>> X = load_airline()
-    >>> Xt = inverse_exponent.fit_transform(X)  # computes 3rd square root
     """
 
     _tags = {
@@ -1176,17 +1082,19 @@ class InvertTransform(_DelegatedTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.boxcox import BoxCoxTransformer
-        from aeon.transformations.exponent import ExponentTransformer
-
-        # ExponentTransformer skips fit
-        params1 = {"transformer": ExponentTransformer()}
-        # BoxCoxTransformer has fit
-        params2 = {"transformer": BoxCoxTransformer()}
+        params1 = {"transformer": MockTransformer()}
+        # _BoxCoxTransformer has fit
+        params2 = {"transformer": _BoxCoxTransformer()}
 
         return [params1, params2]
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="Id will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class Id(BaseTransformer):
     """Identity transformer, returns data unchanged in transform/inverse_transform."""
 
@@ -1250,6 +1158,12 @@ class Id(BaseTransformer):
         return {}
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="OptionalPassthrough will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class OptionalPassthrough(_DelegatedTransformer):
     """
     Wrap an existing transformer to tune whether to include it in a pipeline.
@@ -1276,41 +1190,6 @@ class OptionalPassthrough(_DelegatedTransformer):
         this clone is fitted when `fit` is called and provides `transform` and inverse
         if passthrough = False, a clone of `transformer`passed
         if passthrough = True, the identity transformer `Id`
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.transformations.compose import OptionalPassthrough
-    >>> from aeon.transformations.detrend import Deseasonalizer
-    >>> from aeon.transformations.adapt import TabularToSeriesAdaptor
-    >>> from aeon.forecasting.compose import TransformedTargetForecaster
-    >>> from aeon.forecasting.model_selection import (
-    ...     ForecastingGridSearchCV,
-    ...     SlidingWindowSplitter)
-    >>> from sklearn.preprocessing import StandardScaler
-    >>> # create pipeline
-    >>> pipe = TransformedTargetForecaster(steps=[
-    ...     ("deseasonalizer", OptionalPassthrough(Deseasonalizer())),
-    ...     ("scaler", OptionalPassthrough(TabularToSeriesAdaptor(StandardScaler()))),
-    ...     ("forecaster", NaiveForecaster())])  # doctest: +SKIP
-    >>> # putting it all together in a grid search
-    >>> cv = SlidingWindowSplitter(
-    ...     initial_window=60,
-    ...     window_length=24,
-    ...     start_with_window=True,
-    ...     step_length=48)  # doctest: +SKIP
-    >>> param_grid = {
-    ...     "deseasonalizer__passthrough" : [True, False],
-    ...     "scaler__transformer__transformer__with_mean": [True, False],
-    ...     "scaler__passthrough" : [True, False],
-    ...     "forecaster__strategy": ["drift", "mean", "last"]}  # doctest: +SKIP
-    >>> gscv = ForecastingGridSearchCV(
-    ...     forecaster=pipe,
-    ...     param_grid=param_grid,
-    ...     cv=cv,
-    ...     n_jobs=-1)  # doctest: +SKIP
-    >>> gscv_fitted = gscv.fit(load_airline())  # doctest: +SKIP
     """
 
     _tags = {
@@ -1376,11 +1255,15 @@ class OptionalPassthrough(_DelegatedTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.boxcox import BoxCoxTransformer
-
-        return {"transformer": BoxCoxTransformer(), "passthrough": False}
+        return {"transformer": _BoxCoxTransformer(), "passthrough": False}
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ColumnwiseTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class ColumnwiseTransformer(BaseTransformer):
     """Apply a transformer columnwise to multivariate series.
 
@@ -1407,15 +1290,6 @@ class ColumnwiseTransformer(BaseTransformer):
     See Also
     --------
     OptionalPassthrough
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_longley
-    >>> from aeon.transformations.detrend import Detrender
-    >>> from aeon.transformations.compose import ColumnwiseTransformer
-    >>> _, X = load_longley()
-    >>> transformer = ColumnwiseTransformer(Detrender())
-    >>> Xt = transformer.fit_transform(X)
     """
 
     _tags = {
@@ -1616,6 +1490,12 @@ def _check_is_pdseries(z):
     return z, is_series
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ColumnConcatenator will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class ColumnConcatenator(BaseTransformer):
     """Concatenate multivariate series to a long univariate series.
 
@@ -1667,6 +1547,12 @@ class ColumnConcatenator(BaseTransformer):
         return Xt
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="OptionalPassthrough will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class YtoX(BaseTransformer):
     """
     Create exogeneous features which are a copy of the endogenous data.

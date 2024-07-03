@@ -13,6 +13,7 @@ Datasets
     :toctree: auto_generated/
     :template: function.rst
 
+    load_anomaly_detection
     load_classification
     load_forecasting
     load_regression
@@ -20,6 +21,7 @@ Datasets
     load_from_tsf_file
     load_from_arff_file
     load_from_tsv_file
+    load_from_timeeval_csv_file
     download_all_regression
     write_to_tsfile
     write_results_to_uea_format
@@ -38,3 +40,6 @@ Datasets
     load_uschange
     load_macroeconomic
     load_solar
+    load_dodgers
+    load_calit2
+    load_rmj_2_short_2_diff_channel

@@ -19,9 +19,7 @@ from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
-    MiniRocketMultivariate,
     MultiRocket,
-    MultiRocketMultivariate,
     Rocket,
 )
 
@@ -56,8 +54,11 @@ class Arsenal(BaseClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -268,29 +269,16 @@ class Arsenal(BaseClassifier):
         if self.rocket_transform == "rocket":
             base_rocket = Rocket(num_kernels=self.num_kernels)
         elif self.rocket_transform == "minirocket":
-            if self.n_channels_ > 1:
-                base_rocket = MiniRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                )
-            else:
-                base_rocket = MiniRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                )
+            base_rocket = MiniRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+            )
         elif self.rocket_transform == "multirocket":
-            if self.n_channels_ > 1:
-                base_rocket = MultiRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                )
-            else:
-                base_rocket = MultiRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                )
+            base_rocket = MultiRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+                n_features_per_kernel=self.n_features_per_kernel,
+            )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.channel_selection._elbow_class import (
     ElbowClassPairwise,
     _ClassPrototype,
@@ -19,7 +19,7 @@ def test_elbow_class():
     Xt = ecp.transform(X, y)
     # test shape of transformed data should be
     # (n_samples, n_channels_selected, n_timepoints)
-    assert Xt.shape == (X.shape[0], len(ecp.channels_selected_idx), X.shape[2])
+    assert Xt.shape == (X.shape[0], len(ecp.channels_selected_), X.shape[2])
 
 
 def test_create_distance_matrix():

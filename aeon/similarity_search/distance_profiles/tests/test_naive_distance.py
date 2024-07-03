@@ -4,6 +4,7 @@ __maintainer__ = []
 
 import numpy as np
 import pytest
+from numba.typed import List
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from aeon.distances import euclidean_distance, get_distance_function
@@ -40,6 +41,35 @@ def test_naive_distance(dtype, distance_str):
         ]
     )
     assert_array_almost_equal(dist_profile, expected)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+@pytest.mark.parametrize("distance_str", DISTANCES)
+def test_naive_distance_unequal_length(dtype, distance_str):
+    """Test naive distance with unequal length."""
+    X = List(
+        [
+            np.array([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype),
+            np.array([[1, 2, 4, 4, 5, 6]], dtype=dtype),
+        ]
+    )
+    q = np.asarray([[3, 4, 5]], dtype=dtype)
+
+    mask = List(
+        [np.ones(X[i].shape[1] - q.shape[1] + 1, dtype=bool) for i in range(len(X))]
+    )
+    distance = get_distance_function(distance_str)
+    dist_profile = naive_distance_profile(X, q, mask, distance)
+    expected = [
+        [
+            distance(q, X[j][:, i : i + q.shape[-1]])
+            for i in range(X[j].shape[-1] - q.shape[-1] + 1)
+        ]
+        for j in range(len(X))
+    ]
+
+    for i in range(len(X)):
+        assert_array_almost_equal(dist_profile[i].sum(axis=0), expected[i])
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

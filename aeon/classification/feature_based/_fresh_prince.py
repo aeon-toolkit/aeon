@@ -4,9 +4,8 @@ Pipeline classifier using the full set of TSFresh features and a
 RotationForestClassifier.
 """
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["FreshPRINCEClassifier"]
-
 
 import numpy as np
 
@@ -38,8 +37,11 @@ class FreshPRINCEClassifier(BaseClassifier):
     chunksize : int or None, default=None
         Number of series processed in each parallel TSFresh job, should be optimised
         for efficient parallelisation.
-    random_state : int or None, default=None
-        Seed for random, integer.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -59,6 +61,12 @@ class FreshPRINCEClassifier(BaseClassifier):
         scalable hypothesis tests (tsfresh-a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
+    .. [2] Middlehurst, M., Bagnall, A. "The FreshPRINCE: A Simple Transformation
+        Based Pipeline Time Series Classifier." In: El Yacoubi, M., Granger, E.,
+        Yuen, P.C., Pal, U., Vincent, N. (eds) Pattern Recognition and Artificial
+        Intelligence. ICPRAI 2022. Lecture Notes in Computer Science, vol 13364.
+        Springer, Cham. (2022).
+        https://link.springer.com/chapter/10.1007/978-3-031-09282-4_13
     """
 
     _tags = {
@@ -89,7 +97,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         self.n_cases_ = 0
         self.n_channels_ = 0
         self.n_timepoints_ = 0
-        self.transformed_data_ = []
 
         self._rotf = None
         self._tsfresh = None
