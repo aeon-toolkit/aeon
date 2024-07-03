@@ -99,7 +99,7 @@ class ProximityForest(BaseClassifier):
             if X.shape[1] == 1:
                 X = np.squeeze(X, axis=1)
             else:
-                raise ValueError("X should be univariate")
+                raise ValueError("X should be univariate.")
 
         self.classes_ = list(np.unique(y))
         self.trees_ = []

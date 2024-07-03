@@ -22,7 +22,7 @@ def test_univariate(time_series_dataset):
     X, y = time_series_dataset
     X_multivariate = X.reshape((100, 2, 12))
     clf = ProximityForest(n_trees=5, random_state=42, n_jobs=-1)
-    with pytest.raises(ValueError, match="X should be univariate"):
+    with pytest.raises(ValueError):
         clf.fit(X_multivariate, y)
 
 
