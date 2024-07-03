@@ -93,7 +93,6 @@ all_extras = [
 dl = [
     "keras-self-attention",
     "tensorflow>=2.12; python_version < '3.12'",
-    "tensorflow-addons; python_version < '3.12'",
     # dependency of tensorflow, see issue #1724
     "keras<3.4",
     "tensorflow>=2.12; python_version >= '3.9'",
