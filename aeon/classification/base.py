@@ -172,6 +172,8 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return np.repeat(list(self._class_dictionary.keys()), n_cases)
 
         X = self._preprocess_collection(X)
+        # Check if X is equal length but that is different to the length seen in fit
+        self._check_n_timepoints(X)
         return self._predict(X)
 
     @final
@@ -215,6 +217,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return np.repeat([[1]], n_cases, axis=0)
 
         X = self._preprocess_collection(X)
+        self._check_n_timepoints(X)
         return self._predict_proba(X)
 
     @final
@@ -535,6 +538,18 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             estimated probability that i-th instance is of class j
         """
         return self._fit_predict_default(X, y, "predict_proba")
+
+    def _check_n_timepoints(self, X):
+        if not self.get_tag("capability:unequal_length"):
+            if X[0].shape[1] != self.metadata_["n_timepoints"]:
+                raise ValueError(
+                    "X has different length to the data seen in fit but "
+                    "this classifier cannot handle unequal length series."
+                    "length of train set was",
+                    self.metadata_["n_timepoints"],
+                    " length in predict is ",
+                    X[0].shape[1],
+                )
 
     def _fit_setup(self, X, y):
         # reset estimator at the start of fit

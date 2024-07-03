@@ -10,6 +10,7 @@ from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import (
     get_n_cases,
+    get_n_timepoints,
     has_missing,
     is_equal_length,
     is_univariate,
@@ -216,5 +217,7 @@ class BaseCollectionEstimator(BaseEstimator):
         metadata["missing_values"] = has_missing(X)
         metadata["unequal_length"] = not is_equal_length(X)
         metadata["n_cases"] = get_n_cases(X)
+        # Length of first series, used if equal length is True
+        metadata["n_timepoints"] = get_n_timepoints(X)
 
         return metadata

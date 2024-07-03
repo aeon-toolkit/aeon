@@ -87,6 +87,26 @@ def test_incorrect_input():
     with pytest.raises(ValueError, match=m6):
         dummy.fit(X, y)
 
+    # Train and test both equal length, but different lengthd
+    X2 = np.random.random(size=(5, 1, 20))
+    X3 = np.random.random(size=(5, 1, 5))
+    y = np.array([0, 0, 1, 1, 1])
+    dummy.fit(X, y)
+    with pytest.raises(
+        ValueError, match="X has different length to the data seen in fit"
+    ):
+        dummy.predict(X2)
+    with pytest.raises(
+        ValueError, match="X has different length to the data seen in fit"
+    ):
+        dummy.predict_proba(X3)
+    m2 = MockClassifierFullTags()
+    m2.fit(X, y)
+    y_pred = m2.predict(X2)
+    assert len(y_pred) == 5
+    y_pred = m2.predict_proba(X3)
+    assert y_pred.shape == (5, 2)
+
 
 def _assert_incorrect_X_input(dummy, correctX, correcty, X, y, msg):
     with pytest.raises(TypeError, match=msg):

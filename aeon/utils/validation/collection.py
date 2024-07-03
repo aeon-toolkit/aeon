@@ -152,6 +152,26 @@ def get_n_cases(X):
     return len(X)
 
 
+def get_n_timepoints(X):
+    """Return the number of timepoints in the first element of a collectiom.
+
+    Handle the single exception of multi index DataFrame.
+
+    Parameters
+    ----------
+    X : collection
+        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+
+    Returns
+    -------
+    int
+        Number of time points in the first case.
+    """
+    # if isinstance(X, pd.DataFrame) and isinstance(X.index, pd.MultiIndex):
+    #     return len(X.index.get_level_values(0).unique())
+    return X[0].shape[1]
+
+
 def get_type(X):
     """Get the string identifier associated with different data structures.
 
