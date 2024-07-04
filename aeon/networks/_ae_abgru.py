@@ -5,17 +5,25 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies("tensorflow", severity="none"):
     import tensorflow as tf
+    from tensorflow.keras import backend as K
+    from tensorflow.keras.layers import Layer
 
-    class _AttentionLayer(tf.keras.layers.Layer):
+    class _AttentionLayer(Layer):
         def __init__(self, n_units, att_size, **kwargs):
+            if "input_shape" not in kwargs and "input_dim" in kwargs:
+                kwargs["input_shape"] = (kwargs.pop("input_dim"),)
+
             super().__init__(**kwargs)
             self.n_units = n_units
             self.att_size = att_size
+            self.W_omega = None
+            self.b_omega = None
+            self.u_omega = None
 
         def build(self, input_shape):
             initializer = tf.keras.initializers.RandomNormal(stddev=0.1)
             self.W_omega = self.add_weight(
-                shape=(self.n_units, self.att_size),
+                shape=(input_shape[-1], self.att_size),
                 initializer=initializer,
                 name="W_omega",
             )
@@ -23,17 +31,29 @@ if _check_soft_dependencies("tensorflow", severity="none"):
                 shape=(self.att_size,), initializer=initializer, name="b_omega"
             )
             self.u_omega = self.add_weight(
-                shape=(self.att_size,), initializer=initializer, name="u_omega"
+                shape=(self.att_size, 1), initializer=initializer, name="u_omega"
             )
             super().build(input_shape)
 
         def call(self, inputs):
-            v = tf.tanh(tf.tensordot(inputs, self.W_omega, axes=1) + self.b_omega)
-            vu = tf.tensordot(v, self.u_omega, axes=1)
-            alphas = tf.nn.softmax(vu)
-            output = tf.reduce_sum(inputs * tf.expand_dims(alphas, -1), 1)
+            v = K.tanh(K.dot(inputs, self.W_omega) + self.b_omega)
+            vu = K.squeeze(K.dot(v, self.u_omega), axis=-1)
+            alphas = K.softmax(vu)
+            weighted_sum = K.sum(inputs * K.expand_dims(alphas, axis=-1), axis=1)
+            output = K.reshape(weighted_sum, (-1, self.n_units))
             return output
 
+        def compute_output_shape(self, input_shape):
+            return (input_shape[0], self.n_units)
+
+        def get_config(self):
+            config = super().get_config()
+            config.update({"n_units": self.n_units, "att_size": self.att_size})
+            return config
+
+        @classmethod
+        def from_config(cls, config):
+            return cls(**config)
 
 class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     """
