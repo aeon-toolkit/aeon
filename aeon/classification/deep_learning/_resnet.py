@@ -257,8 +257,8 @@ class ResNetClassifier(BaseDeepClassifier):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
@@ -268,9 +268,14 @@ class ResNetClassifier(BaseDeepClassifier):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_, self.model_checkpoint_added_ = (
+                self._get_model_checkpoint_callback(
+                    callbacks=self.callbacks,
+                    file_path=self.file_path,
+                    file_name=self.file_name_,
+                )
+            )
 
         if self.use_mini_batch_size:
             mini_batch_size = min(self.batch_size, X.shape[0] // 10)
