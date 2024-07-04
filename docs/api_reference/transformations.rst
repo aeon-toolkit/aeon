@@ -363,8 +363,10 @@ These transformers select features in `X` based on `y`.
     :toctree: auto_generated/
     :template: class.rst
 
+    ChannelScorer
     ElbowClassSum
     ElbowClassPairwise
+    RandomChannelSelector
 
 Panel transformers
 ------------------
