@@ -54,7 +54,7 @@ jobs:
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
 
-      - if: ${{ failure() && github.event_name == 'pull_request_target' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'stop pre-commit fixes')}}
+      - if: ${{ failure() && github.event_name == 'pull_request_target' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'stop pre-commit fixes') }}
         name: Push pre-commit fixes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
