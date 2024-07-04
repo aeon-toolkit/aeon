@@ -2,6 +2,7 @@
 
 __mentainer__ = ["acquayefrank"]
 
+import pytest
 import numpy as np
 
 from aeon.anomaly_detection import MADRID
@@ -61,11 +62,26 @@ TEST_DATA = np.array(
     ]
 )
 
+toy_data = np.array([1, 1, 1, 2, 2, 2, 3, 3, 3, 3])
 
-def test_madrid_contains_constant_regions():
-    mad = MADRID(3)
-    assert mad._contains_constant_regions([1, 1, 1, 2, 2, 2, 3, 3, 3, 3], 3)
+def test_min_length_predict():
+    with pytest.raises(
+        ValueError,
+        match=f"Series length of X {TEST_DATA.shape[0]} is less than min_length 500",
+    ):
+        mad = MADRID(500, 1000)
+        mad.predict(TEST_DATA)
+
+
+def test_contains_constant_regions():
+    mad = MADRID(3, 5)
+    assert mad._contains_constant_regions(toy_data, 3)
     assert not mad._contains_constant_regions(TEST_DATA, 3)
 
 
-test_madrid_contains_constant_regions()
+def test_contains_constant_regions_in_predict():
+    with pytest.raises(ValueError):
+        mad = MADRID(3, 5)
+        mad.predict(toy_data)
+    mad = MADRID(3, 5)
+    mad.predict(TEST_DATA)
