@@ -234,7 +234,7 @@ def get_available_estimators(task="classification", return_dataframe=True):
             f" task {t} is not available on tsc.com, must be one of {VALID_TASK_TYPES}"
         )
     path = (
-        f"https://timeseriesclassification.com/results/ReferenceResults/"
+        f"http://timeseriesclassification.com/results/ReferenceResults/"
         f"{t}/estimators.txt"
     )
     data = pd.read_csv(path)
