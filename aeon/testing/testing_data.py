@@ -2,7 +2,12 @@
 
 import numpy as np
 
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
+from aeon.classification import BaseClassifier
+from aeon.clustering import BaseClusterer
+from aeon.regression import BaseRegressor
+from aeon.segmentation import BaseSegmenter
 from aeon.testing.data_generation import (
     make_example_1d_numpy,
     make_example_2d_dataframe_collection,
@@ -14,6 +19,8 @@ from aeon.testing.data_generation import (
     make_example_multi_index_dataframe,
     make_example_nested_dataframe,
 )
+from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.series import BaseSeriesTransformer
 
 data_rng = np.random.RandomState(42)
 
@@ -139,6 +146,14 @@ TEST_LABEL_DICT = {
         "train": y_collection_r,
         "test": y_collection2_r,
     },
+    "Anomaly Detection": {
+        "train": None,
+        "test": None,
+    },
+    "Segmentation": {
+        "train": None,
+        "test": None,
+    },
     "UnivariateCollectionClassification": {
         "train": y_collection,
         "test": y_collection2,
@@ -170,6 +185,10 @@ TEST_LABEL_DICT = {
     "MissingValuesCollectionRegression": {
         "train": y_collection_mi_r,
         "test": y_collection_mi2_r,
+    },
+    None: {
+        "train": None,
+        "test": None,
     },
 }
 
@@ -347,22 +366,39 @@ def get_data_types_for_estimator(estimator):
     )
     datatypes = []
 
+    if (
+        isinstance(estimator, BaseClassifier)
+        or isinstance(estimator, BaseClusterer)
+        or isinstance(estimator, BaseCollectionTransformer)
+    ):
+        label_type = "Classification"
+    elif isinstance(estimator, BaseRegressor):
+        label_type = "Regression"
+    elif isinstance(estimator, BaseAnomalyDetector):
+        label_type = "Anomaly Detection"
+    elif isinstance(estimator, BaseSegmenter):
+        label_type = "Segmentation"
+    elif isinstance(estimator, BaseSeriesTransformer):
+        label_type = None
+    else:
+        raise ValueError(f"Unknown estimator type: {type(estimator)}")
+
     if isinstance(estimator, BaseCollectionEstimator):
         if univariate:
-            datatypes.append("UnivariateCollection")
+            datatypes.append(("UnivariateCollection", label_type))
         if multivariate:
-            datatypes.append("MultivariateCollection")
+            datatypes.append(("MultivariateCollection", label_type))
         if unequal_length:
-            datatypes.append("UnequalLengthCollection")
+            datatypes.append(("UnequalLengthCollection", label_type))
         if missing_values:
-            datatypes.append("MissingValuesCollection")
+            datatypes.append(("MissingValuesCollection", label_type))
     elif isinstance(estimator, BaseSeriesEstimator):
         if univariate:
-            datatypes.append("UnivariateSeries")
+            datatypes.append(("UnivariateSeries", label_type))
         if multivariate:
-            datatypes.append("MultivariateSeries")
+            datatypes.append(("MultivariateSeries", label_type))
         if missing_values:
-            datatypes.append("MissingValuesSeries")
+            datatypes.append(("MissingValuesSeries", label_type))
     else:
         raise ValueError(f"Unknown estimator type: {type(estimator)}")
 
