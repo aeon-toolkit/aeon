@@ -246,17 +246,22 @@ class EncoderRegressor(BaseDeepRegressor):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_, self.model_checkpoint_added_ = (
+                self._get_model_checkpoint_callback(
+                    callbacks=self.callbacks,
+                    file_path=self.file_path,
+                    file_name=self.file_name_,
+                )
+            )
 
         self.history = self.training_model_.fit(
             X,
