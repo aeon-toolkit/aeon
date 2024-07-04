@@ -5,13 +5,14 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies("tensorflow", severity="none"):
     import tensorflow as tf
-    from tensorflow.keras.backend import expand_dims
-    from tensorflow.keras.layers import Activation, Lambda, Layer, Multiply
+    from tensorflow.keras import backend as K
+    from tensorflow.keras.layers import Layer
 
     class _AttentionLayer(Layer):
         def __init__(self, n_units, att_size, **kwargs):
             if "input_shape" not in kwargs and "input_dim" in kwargs:
                 kwargs["input_shape"] = (kwargs.pop("input_dim"),)
+
             super().__init__(**kwargs)
             self.n_units = n_units
             self.att_size = att_size
@@ -35,24 +36,24 @@ if _check_soft_dependencies("tensorflow", severity="none"):
             super().build(input_shape)
 
         def call(self, inputs):
-            v = Activation("tanh")(
-                tf.tensordot(inputs, self.W_omega, axes=1) + self.b_omega
-            )
-            vu = tf.tensordot(v, self.u_omega, axes=1)
-            alphas = Activation("softmax")(vu)
-            alphas_expanded = Lambda(lambda x: expand_dims(x, -1))(alphas)
-            output = Multiply()([inputs, alphas_expanded])
-            output = Lambda(lambda x: tf.reduce_sum(x, axis=1))(output)
-            output = Lambda(lambda x: tf.reshape(x, [-1, self.n_units]))(output)
+            v = K.tanh(K.dot(inputs, self.W_omega) + self.b_omega)
+            vu = K.squeeze(K.dot(v, self.u_omega), axis=-1)
+            alphas = K.softmax(vu)
+            weighted_sum = K.sum(inputs * K.expand_dims(alphas, axis=-1), axis=1)
+            output = K.reshape(weighted_sum, (-1, self.n_units))
             return output
 
         def compute_output_shape(self, input_shape):
             return (input_shape[0], self.n_units)
 
         def get_config(self):
-            config = {"n_units": self.n_units, "att_size": self.att_size}
-            base_config = super().get_config()
-            return dict(list(base_config.items()) + list(config.items()))
+            config = super().get_config()
+            config.update({"n_units": self.n_units, "att_size": self.att_size})
+            return config
+
+        @classmethod
+        def from_config(cls, config):
+            return cls(**config)
 
 
 class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
