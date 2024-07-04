@@ -75,7 +75,7 @@ all_extras = [
     "stumpy>=1.5.1",
     "ruptures>=1.1.9",
     "tbats>=1.1.0",
-    "tensorflow>=2.12; python_version < '3.12'",
+    "tensorflow>2.13; python_version < '3.12'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
