@@ -151,3 +151,14 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         clusters_proba = self.clusterer.predict_proba(latent_space)
 
         return clusters_proba
+
+    def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
+        import tensorflow as tf
+
+        model_checkpoint_ = tf.keras.callbacks.ModelCheckpoint(
+            filepath=file_path + file_name + ".keras",
+            monitor="loss",
+            save_best_only=True,
+        )
+
+        return callbacks + [model_checkpoint_]
