@@ -633,8 +633,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
@@ -644,9 +644,14 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_, self.model_checkpoint_added_ = (
+                self._get_model_checkpoint_callback(
+                    callbacks=self.callbacks,
+                    file_path=self.file_path,
+                    file_name=self.file_name_,
+                )
+            )
 
         self.history = self.training_model_.fit(
             X,
