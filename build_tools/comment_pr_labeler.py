@@ -17,12 +17,11 @@ comment_body = context_dict["event"]["comment"]["body"]
 comment_user = context_dict["event"]["comment"]["user"]["login"]
 labels = [label.name for label in issue.get_labels()]
 
-# if comment_user != "aeon-actions-bot[bot]" or issue.pull_request is None:
-#     print("::set-output name=empty_commit::false")  # noqa: T201
+# if issue.pull_request is None or comment_user != "aeon-actions-bot[bot]" or "## Thank you for contributing to `aeon`" not in comment.body:
+#     with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+#         print(f"empty_commit=false", file=fh)  # noqa: T201
 #     sys.exit(0)
 pr = issue.as_pull_request()
-
-print(f"::set-output name=branch::{pr.head.label}")  # noqa: T201
 
 
 def check_label_option(label, option):
@@ -51,7 +50,10 @@ for option in label_options:
 
 if "- [x] Push an empty commit to re-run CI checks" in comment_body:
     for comment in pr.get_comments():
-        if comment.user.login == comment_user and comment_body in comment.body:
+        if (
+            comment.user.login == comment_user
+            and "## Thank you for contributing to `aeon`" in comment.body
+        ):
             comment.edit(
                 comment_body.replace(
                     "- [x] Push an empty commit to re-run CI checks",
@@ -59,6 +61,8 @@ if "- [x] Push an empty commit to re-run CI checks" in comment_body:
                 )
             )
             break
-    print("::set-output name=empty_commit::true")  # noqa: T201
+    with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+        print(f"empty_commit=true", file=fh)  # noqa: T201
 else:
-    print("::set-output name=empty_commit::false")  # noqa: T201
+    with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+        print(f"empty_commit=false", file=fh)  # noqa: T201
