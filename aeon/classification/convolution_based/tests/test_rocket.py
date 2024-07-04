@@ -10,7 +10,6 @@ from aeon.testing.data_generation import (
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MultiRocket,
-    MultiRocketMultivariate,
     Rocket,
 )
 
@@ -41,7 +40,7 @@ def test_rocket():
         num_kernels=100, rocket_transform="multirocket", max_dilations_per_kernel=2
     )
     rocket.fit(X_train, y_train)
-    assert isinstance(rocket._transformer, MultiRocketMultivariate)
+    assert isinstance(rocket._transformer, MultiRocket)
     rocket = RocketClassifier(
         num_kernels=100, rocket_transform="fobar", max_dilations_per_kernel=2
     )

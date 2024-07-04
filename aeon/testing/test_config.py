@@ -17,32 +17,31 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
-if os.environ.get("CICD_RUNNING") == "1":
+if os.environ.get("CICD_RUNNING") == "1":  # pragma: no cover
     import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 
 EXCLUDE_ESTIMATORS = [
-    "_BoxCoxTransformer",
-    "TimeBinAggregate",
-    "PartialAutoCorrelationTransformer",
-    "_LogTransformer",
-    "ReverseAugmenter",
-    "RandomSamplesAugmenter",
-    "SqrtTransformer",
-    "_ColumnSelect",
-    "_IndexSubset",
-    "TimeSince",
-    "Differencer",
-    "CosineTransformer",
-    "_ThetaLinesTransformer",
-    "InvertAugmenter",
+    "TabularToSeriesAdaptor",
+    "PandasTransformAdaptor",
     "BKFilter",
-    "AutoCorrelationTransformer",
-    "PCATransformer",
-    "EmpiricalCoverage",
-    "WhiteNoiseAugmenter",
-    "KalmanFilterTransformer",
-    "BaseKalmanFilter",
-    "ClearSky",
+    "TransformerPipeline",
+    "FeatureUnion",
+    "FitInTransform",
+    "MultiplexTransformer",
+    "InvertTransform",
+    "Id",
+    "OptionalPassthrough",
+    "ColumnwiseTransformer",
+    "ColumnConcatenator",
+    "YtoX",
+    "DateTimeFeatures",
+    "ExponentTransformer",
+    "FeatureSelection",
+    "FourierFeatures",
+    "Imputer",
+    "Lag",
+    "HampelFilter",
+    "WindowSummarizer",
 ]  # Exclude deprecated estimators to reduce warnings
 
 # the test currently fails when numba is disabled. See issue #622
