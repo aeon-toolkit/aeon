@@ -38,10 +38,10 @@ def test_all_networks_functionality(network):
     if not (
         network.__name__
         in ["BaseDeepNetwork", "BaseDeepLearningNetwork", "EncoderNetwork"]
-    ) and _check_python_version(network._config["python_version"], severity="none"):
+    ):
         if _check_soft_dependencies(
             network._config["python_dependencies"], severity="none"
-        ):
+        ) and _check_python_version(network._config["python_version"], severity="none"):
             my_network = network()
 
             if network._config["structure"] == "auto-encoder":
