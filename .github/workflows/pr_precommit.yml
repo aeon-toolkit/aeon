@@ -1,6 +1,9 @@
 name: PR pre-commit
 
 on:
+  push:
+    branches:
+      - main
   pull_request_target:
     branches:
       - main
@@ -14,19 +17,19 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Create app token
-        uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          app-id: ${{ vars.PR_APP_ID }}
-          private-key: ${{ secrets.PR_APP_KEY }}
+#      - name: Create app token
+#        uses: actions/create-github-app-token@v1
+#        id: app-token
+#        with:
+#          app-id: ${{ vars.PR_APP_ID }}
+#          private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.head_ref }}
-          token: ${{ steps.app-token.outputs.token }}
+#          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
@@ -51,7 +54,7 @@ jobs:
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
 
-      - if: ${{ failure() && github.event_name == 'pull_request_target' && github.event.pull_request.draft == false && !contains(github.event.pull_request.labels.*.name, 'stop pre-commit fixes')}}
+      - if: ${{ failure() && github.event_name == 'pull_request_target' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'stop pre-commit fixes')}}
         name: Push pre-commit fixes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:

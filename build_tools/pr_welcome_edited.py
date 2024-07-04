@@ -1,4 +1,4 @@
-"""Labels PRs based on bot comment checkboxes."""
+"""Labels PRs and process based on bot comment checkboxes."""
 
 import json
 import os
@@ -17,9 +17,13 @@ comment_body = context_dict["event"]["comment"]["body"]
 comment_user = context_dict["event"]["comment"]["user"]["login"]
 labels = [label.name for label in issue.get_labels()]
 
-# if issue.pull_request is None or comment_user != "aeon-actions-bot[bot]" or "## Thank you for contributing to `aeon`" not in comment.body:
-#     with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-#         print(f"empty_commit=false", file=fh)  # noqa: T201
+# if (
+#     issue.pull_request is None
+#     or comment_user != "aeon-actions-bot[bot]"
+#     or "## Thank you for contributing to `aeon`" not in comment_body
+# ):
+#     with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+#         print("empty_commit=false", file=fh)  # noqa: T201
 #     sys.exit(0)
 pr = issue.as_pull_request()
 
@@ -48,6 +52,12 @@ label_options = [
 for option in label_options:
     check_label_option(option[0], option[1])
 
+repo_name = pr.head.repo.full_name
+branch_name = pr.head.ref
+with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+    print(f"repo={repo_name}", file=fh)  # noqa: T201
+    print(f"branch={branch_name}", file=fh)  # noqa: T201
+
 if "- [x] Push an empty commit to re-run CI checks" in comment_body:
     for comment in pr.get_comments():
         if (
@@ -62,7 +72,7 @@ if "- [x] Push an empty commit to re-run CI checks" in comment_body:
             )
             break
     with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-        print(f"empty_commit=true", file=fh)  # noqa: T201
+        print("empty_commit=true", file=fh)  # noqa: T201
 else:
     with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
-        print(f"empty_commit=false", file=fh)  # noqa: T201
+        print("empty_commit=false", file=fh)  # noqa: T201

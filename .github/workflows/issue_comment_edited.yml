@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-pr-labels:
+  pr-welcome-edited:
     if: ${{ github.event.issue.pull_request }}
     runs-on: ubuntu-20.04
 
@@ -34,9 +34,9 @@ jobs:
       - name: Install PyGithub
         run: pip install -Uq PyGithub
 
-      - name: Label PR
+      - name: Process comment edit
         id: label_out
-        run: python build_tools/comment_pr_labeler.py
+        run: python build_tools/pr_welcome_edited.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
 #          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
@@ -45,8 +45,8 @@ jobs:
         name: Checkout head
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.head_ref }}
+          repository: ${{ steps.label_out.outputs.repo }}
+          ref: ${{ steps.label_out.outputs.branch }}
 #          token: ${{ steps.app-token.outputs.token }}
 
       - if: ${{ steps.label_out.outputs.empty_commit == 'true' }}
