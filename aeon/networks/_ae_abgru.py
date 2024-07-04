@@ -55,6 +55,7 @@ if _check_soft_dependencies("tensorflow", severity="none"):
         def from_config(cls, config):
             return cls(**config)
 
+
 class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     """
     A class to implement an Auto-Encoder based on Attention Bidirectional GRUs.
