@@ -140,4 +140,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
             save_best_only=True,
         )
 
-        return callbacks + [model_checkpoint_]
+        if isinstance(callbacks, list):
+            return callbacks + [model_checkpoint_]
+        else:
+            return [callbacks] + [model_checkpoint_]

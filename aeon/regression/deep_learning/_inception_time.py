@@ -645,12 +645,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
                 ),
             ]
         else:
-            self.callbacks_, self.model_checkpoint_added_ = (
-                self._get_model_checkpoint_callback(
-                    callbacks=self.callbacks,
-                    file_path=self.file_path,
-                    file_name=self.file_name_,
-                )
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
             )
 
         self.history = self.training_model_.fit(
