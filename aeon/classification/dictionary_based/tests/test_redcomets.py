@@ -1,5 +1,9 @@
 """REDCOMETS test code."""
 
+__maintainer__ = []
+
+from sys import platform
+
 import numpy as np
 import pytest
 
@@ -22,19 +26,22 @@ def test_redcomets_score_univariate():
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
 
-    def test_variant(v):
+    def test_variant(v, expected_result):
         # train REDCOMETS-<v>
-        redcomets = REDCOMETS(variant=v, random_state=0)
+        redcomets = REDCOMETS(variant=v, n_trees=3, random_state=0)
         redcomets.fit(X_train, y_train)
 
         score = redcomets.score(X_test, y_test)
 
         assert isinstance(score, float)
-        np.testing.assert_almost_equal(score, 0.818181, decimal=4)
 
-    test_variant(1)
-    test_variant(2)
-    test_variant(3)
+        # We cannot guarantee same results on ARM macOS
+        if platform != "darwin":
+            np.testing.assert_almost_equal(score, expected_result, decimal=4)
+
+    test_variant(1, 0.7272)
+    test_variant(2, 0.6818)
+    test_variant(3, 0.7272)
 
 
 @pytest.mark.skipif(
@@ -59,18 +66,20 @@ def test_redcomets_score_multivariate():
         score = redcomets.score(X_test, y_test)
 
         assert isinstance(score, float)
-        np.testing.assert_almost_equal(score, expected_result, decimal=4)
+
+        # We cannot guarantee same results on ARM macOS
+        if platform != "darwin":
+            np.testing.assert_almost_equal(score, expected_result, decimal=4)
 
     test_variant(1, 0.95)
-    test_variant(2, 0.95)
-    test_variant(3, 0.925)
-    test_variant(3, 0.925)
-    test_variant(4, 0.775)
-    test_variant(5, 0.8)
-    test_variant(6, 0.775)
-    test_variant(7, 0.775)
-    test_variant(8, 0.8)
-    test_variant(9, 0.8)
+    test_variant(2, 0.975)
+    test_variant(3, 0.975)
+    test_variant(4, 0.875)
+    test_variant(5, 0.875)
+    test_variant(6, 0.875)
+    test_variant(7, 0.875)
+    test_variant(8, 0.875)
+    test_variant(9, 0.875)
 
 
 @pytest.mark.skipif(

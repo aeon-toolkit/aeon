@@ -58,7 +58,7 @@ dependencies = [
 [project.optional-dependencies]
 all_extras = [
     "cloudpickle",
-    "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
+    "esig>=0.9.7; platform_system != 'Darwin' and python_version < '3.11'",
     "gluonts>=0.12.4",
     "h5py",
     "imbalanced-learn",
@@ -76,7 +76,6 @@ all_extras = [
     "ruptures>=1.1.9",
     "tbats>=1.1.0",
     "tensorflow>=2.12; python_version < '3.12'",
-    "tensorflow-addons; python_version < '3.12'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
@@ -93,13 +92,12 @@ all_extras = [
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow>=2.12; python_version < '3.12'",
-    "tensorflow-addons; python_version < '3.12'",
     # dependency of tensorflow, see issue #1724
     "keras<3.4",
+    "tensorflow>=2.12; python_version < '3.12'",
 ]
 unstable_extras = [
-    "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
+    "mrsqm>=0.0.1,<0.1.0; platform_system == 'Darwin' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
     "pycatch22<=0.4.3",  # known to fail installation on some setups
     "pyfftw>=0.12.0; python_version < '3.12'",  # requires fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
 ]
@@ -134,6 +132,7 @@ docs = [
     "jupyter",
     "furo",
     "tabulate",
+    "matplotlib",
 ]
 
 [project.urls]

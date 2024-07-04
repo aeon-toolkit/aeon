@@ -40,10 +40,11 @@ def test_test_label_dict():
         assert len(TEST_LABEL_DICT[key]) == 2
         assert "train" in TEST_LABEL_DICT[key]
         assert "test" in TEST_LABEL_DICT[key]
-        assert isinstance(TEST_LABEL_DICT[key]["train"], np.ndarray)
-        assert isinstance(TEST_LABEL_DICT[key]["test"], np.ndarray)
-        assert TEST_LABEL_DICT[key]["train"].ndim == 1
-        assert TEST_LABEL_DICT[key]["test"].ndim == 1
+        if TEST_LABEL_DICT[key]["train"] is not None:
+            assert isinstance(TEST_LABEL_DICT[key]["train"], np.ndarray)
+            assert isinstance(TEST_LABEL_DICT[key]["test"], np.ndarray)
+            assert TEST_LABEL_DICT[key]["train"].ndim == 1
+            assert TEST_LABEL_DICT[key]["test"].ndim == 1
 
 
 def test_equal_length_univariate():

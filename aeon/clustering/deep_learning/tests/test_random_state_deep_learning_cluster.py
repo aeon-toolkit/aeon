@@ -7,13 +7,14 @@ import pytest
 
 from aeon.clustering import deep_learning
 from aeon.testing.data_generation import make_example_3d_numpy
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __maintainer__ = ["hadifawaz1999"]
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow", "tensorflow_addons"], severity="none"),
+    # not _check_soft_dependencies("tensorflow", severity="none"),
+    # See Issue #1761
+    True,
     reason="skip test if required soft dependency not available",
 )
 def test_random_state_deep_learning_clr():

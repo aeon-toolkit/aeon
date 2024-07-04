@@ -1,6 +1,6 @@
 """Encoder Classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["EncoderClassifier"]
 
 import gc
@@ -83,7 +83,7 @@ class EncoderClassifier(BaseDeepClassifier):
     """
 
     _tags = {
-        "python_dependencies": ["tensorflow", "tensorflow_addons"],
+        "python_dependencies": ["tensorflow"],
     }
 
     def __init__(
@@ -255,7 +255,8 @@ class EncoderClassifier(BaseDeepClassifier):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")

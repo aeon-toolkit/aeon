@@ -59,6 +59,7 @@ class Padder(BaseCollectionTransformer):
     def __init__(self, pad_length=None, fill_value=0):
         self.pad_length = pad_length
         self.fill_value = fill_value
+        self.fill_value_ = fill_value
         super().__init__()
 
     def _fit(self, X, y=None):
@@ -89,25 +90,25 @@ class Padder(BaseCollectionTransformer):
 
         if isinstance(self.fill_value, str):
             if self.fill_value == "mean":
-                self.fill_value = np.zeros((len(X), X[0].shape[0]))
+                self.fill_value_ = np.zeros((len(X), X[0].shape[0]))
                 for i, series in enumerate(X):
                     for j, channel in enumerate(series):
-                        self.fill_value[i][j] = np.mean(channel)
+                        self.fill_value_[i][j] = np.mean(channel)
             elif self.fill_value == "median":
-                self.fill_value = np.zeros((len(X), X[0].shape[0]))
+                self.fill_value_ = np.zeros((len(X), X[0].shape[0]))
                 for i, series in enumerate(X):
                     for j, channel in enumerate(series):
-                        self.fill_value[i][j] = np.median(channel)
+                        self.fill_value_[i][j] = np.median(channel)
             elif self.fill_value == "min":
-                self.fill_value = np.zeros((len(X), X[0].shape[0]))
+                self.fill_value_ = np.zeros((len(X), X[0].shape[0]))
                 for i, series in enumerate(X):
                     for j, channel in enumerate(series):
-                        self.fill_value[i][j] = np.min(channel)
+                        self.fill_value_[i][j] = np.min(channel)
             elif self.fill_value == "max":
-                self.fill_value = np.zeros((len(X), X[0].shape[0]))
+                self.fill_value_ = np.zeros((len(X), X[0].shape[0]))
                 for i, series in enumerate(X):
                     for j, channel in enumerate(series):
-                        self.fill_value[i][j] = np.max(channel)
+                        self.fill_value_[i][j] = np.max(channel)
             else:
                 raise ValueError(
                     "Supported modes are mean, median, min, max. \
@@ -126,7 +127,7 @@ class Padder(BaseCollectionTransformer):
                                 each `n_channel` for `n_cases` series."""
                 )
         else:
-            self.fill_value = self.fill_value * np.ones((len(X), X[0].shape[0]))
+            self.fill_value_ = self.fill_value * np.ones((len(X), X[0].shape[0]))
 
         return self
 
@@ -165,7 +166,7 @@ class Padder(BaseCollectionTransformer):
                     channel,
                     pad_width,
                     mode="constant",
-                    constant_values=self.fill_value[i][j],
+                    constant_values=self.fill_value_[i][j],
                 )
                 temp_array.append(padded_array)
             Xt.append(temp_array)

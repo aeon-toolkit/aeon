@@ -113,7 +113,6 @@ Shapelets, wavelets and convolution
     MiniRocket
     MiniRocketMultivariateVariable
     MultiRocket
-    MultiRocketMultivariate
 
 .. currentmodule:: aeon.transformations.collection.dwt
 
@@ -356,8 +355,10 @@ These transformers select features in `X` based on `y`.
     :toctree: auto_generated/
     :template: class.rst
 
+    ChannelScorer
     ElbowClassSum
     ElbowClassPairwise
+    RandomChannelSelector
 
 Panel transformers
 ------------------
