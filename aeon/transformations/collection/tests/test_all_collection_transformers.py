@@ -24,7 +24,8 @@ def test_channel_selectors(trans):
     if issubclass(trans, BaseChannelSelector):
         # Need fit for channel selection
         # Must select at least one channel
-        X, y = make_example_3d_numpy(n_cases=10, n_channels=6, n_timepoints=30)
+        X, _ = make_example_3d_numpy(n_cases=10, n_channels=6, n_timepoints=30)
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
         cs = trans()
         assert not cs.get_tag("fit_is_empty")
         cs.fit(X, y)
