@@ -9,6 +9,7 @@ from aeon.datasets import (
     load_human_activity_segmentation_datasets,
     load_time_series_segmentation_benchmark,
 )
+from aeon.segmentation import ClaSPSegmenter
 
 
 def test_load_tssb(mocker):
@@ -36,6 +37,12 @@ def test_load_tssb(mocker):
         assert isinstance(metadata, list)
         assert len(y) == 75
 
+        # test that segmentation works
+        ts, cps, _, window_size = X[0], y[0], *metadata[0]
+        clasp = ClaSPSegmenter(period_length=window_size, n_cps=cps.shape[0])
+        found_cps = clasp.fit_predict(ts)
+        assert cps.shape[0] == found_cps.shape[0]
+
 
 def test_load_has_datasets(mocker):
     """Test load human activity segmentation data sets."""
@@ -61,3 +68,9 @@ def test_load_has_datasets(mocker):
 
         assert isinstance(metadata, list)
         assert len(y) == 250
+
+        # test that segmentation works
+        ts, cps, sample_rate = X[0], y[0], 50
+        clasp = ClaSPSegmenter(period_length=sample_rate, n_cps=cps.shape[0])
+        found_cps = clasp.fit_predict(ts[:, 0])
+        assert cps.shape[0] == found_cps.shape[0]

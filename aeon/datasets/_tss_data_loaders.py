@@ -80,7 +80,7 @@ def load_time_series_segmentation_benchmark(
 
     References
     ----------
-    .. [1] Arik Ermshaus, Patrick Schäfer, Ulfer Leser: ClaSP: parameter-free
+    .. [1] Arik Ermshaus, Patrick Schäfer, Ulf Leser: ClaSP: parameter-free
            time series segmentation. Data Mining and Knowledge Discovery, 2023,
            DOI:10.1007/s10618-023-00923-x.
     """
