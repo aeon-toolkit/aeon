@@ -73,7 +73,7 @@ class ProximityForest(BaseClassifier):
         "capability:unequal_length": False,
         "capability:multithreading": True,
         "algorithm_type": "distance",
-        "X_inner_type": ["numpy2D", "numpy3D"],
+        "X_inner_type": ["numpy2D"],
     }
 
     def __init__(
@@ -94,13 +94,6 @@ class ProximityForest(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
-        # Check dimension of X
-        if X.ndim == 3:
-            if X.shape[1] == 1:
-                X = np.squeeze(X, axis=1)
-            else:
-                raise ValueError("X should be univariate.")
-
         self.classes_ = list(np.unique(y))
         self.trees_ = []
         for _ in range(self.n_trees):
@@ -114,16 +107,7 @@ class ProximityForest(BaseClassifier):
             clf.fit(X, y)
             self.trees_.append(clf)
 
-        self._is_fitted = True
-
     def _predict_proba(self, X):
-        # Check dimension of X
-        if X.ndim == 3:
-            if X.shape[1] == 1:
-                X = np.squeeze(X, axis=1)
-            else:
-                raise ValueError("X should be univariate.")
-
         output_probas = []
         for i in range(self.n_trees):
             proba = self.trees_[i].predict_proba(X)
