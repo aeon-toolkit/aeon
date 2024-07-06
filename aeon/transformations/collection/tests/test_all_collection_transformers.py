@@ -47,12 +47,9 @@ def test_capabilities(trans):
     and capability:unequal_length=True can actually fit and transform that type of data.
     """
     t = trans.create_test_instance()
-    from aeon.transformations.collection import PaddingTransformer
     from aeon.transformations.collection.compose import CollectionTransformerPipeline
 
     if isinstance(t, CollectionTransformerPipeline):  # TEMP: Excluded classifier #1748
-        return
-    if isinstance(t, PaddingTransformer):  # TEMP: Excluded classifier #1749
         return
     X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=30)
     t.fit(X, y)
