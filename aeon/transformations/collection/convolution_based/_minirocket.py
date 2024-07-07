@@ -23,7 +23,9 @@ class MiniRocket(BaseCollectionTransformer):
     Parameters
     ----------
     num_kernels : int, default=10,000
-       Number of random convolutional kernels.
+       Number of random convolutional kernels. The number of kernels used is rounded
+       down to the nearest multiple of 84, unless a value of less than 84 is passec,
+       in which case it is set to 84.
     max_dilations_per_kernel : int, default=32
         Maximum number of dilations per kernel.
     n_jobs : int, default=1
@@ -31,6 +33,11 @@ class MiniRocket(BaseCollectionTransformer):
         processors.
     random_state : None or int, default = None
         Seed for random number generation.
+
+    Attributes
+    ----------
+    self.parameters : Tuple (int32[:], int32[:], int32[:], int32[:], float32[:])
+        n_channels_per_comb, channel_indices, dilations, n_features_per_dilation, biases
 
     See Also
     --------
@@ -90,9 +97,10 @@ class MiniRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            panel of time series to transform
-        y : ignored argument for interface compatibility
+        X : np.ndarray or list
+            Time series collection.
+        y : None
+            Ignored argument for interface compatibility.
 
         Returns
         -------
@@ -122,13 +130,15 @@ class MiniRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            panel of time series to transform
-        y : ignored argument for interface compatibility
+        X : np.ndarray or list
+            Time series collection.
+        y : None
+            Ignored argument for interface compatibility.
 
         Returns
         -------
-        pandas DataFrame, transformed features
+        np.ndarray
+            Transformed features.
         """
         if isinstance(X, list):
             # Convert each array in the list to float32
@@ -149,11 +159,15 @@ class MiniRocket(BaseCollectionTransformer):
 
 
 def _fit_dilations(n_timepoints, n_features, max_dilations_per_kernel):
+    """Fit dilations for MiniRocket."""
     n_kernels = 84
-    n_features_per_kernel = n_features // n_kernels
+    if n_features < n_kernels:
+        n_features = n_kernels
+    else:
+        n_features_per_kernel = n_features // n_kernels
     true_max_dilations_per_kernel = min(n_features_per_kernel, max_dilations_per_kernel)
     multiplier = n_features_per_kernel / true_max_dilations_per_kernel
-    max_exponent = np.log2((n_timepoints - 1) / (9 - 1))
+    max_exponent = np.log2((n_timepoints - 1) / 8)
     dilations, n_features_per_dilation = np.unique(
         np.logspace(0, max_exponent, true_max_dilations_per_kernel, base=2).astype(
             np.int32
@@ -181,9 +195,28 @@ def _quantiles(n):
 def _set_kernel_parameters(
     X, n_features=10_000, max_dilations_per_kernel=32, seed=None
 ):
+    """Set the parameters for mini rocket.
+
+    Parameters
+    ----------
+    X : np.ndarray or list
+        The time series data to transform, either 3D numpy of list of 2D numpy.
+    n_features : int, default=10_000
+        Number of features to extract
+    max_dilations_per_kernel : int, default=32
+        Maximum number of dilations per kernel
+    seed : int, default=None
+
+    Returns
+    -------
+    Tuple (int32[:], int32[:], int32[:], int32[:], float32[:])
+        n_channels_per_comb, channel_indices, dilations, n_features_per_dilation, biases
+    """
     if seed is not None:
         np.random.seed(seed)
     n_channels, n_timepoints = X[0].shape
+    if isinstance(X, list):  # possibly variable, find min length
+        n_timepoints = min([x.shape[1] for x in X])
     n_kernels = 84
     dilations, n_features_per_dilation = _fit_dilations(
         n_timepoints, n_features, max_dilations_per_kernel
@@ -194,13 +227,13 @@ def _set_kernel_parameters(
     n_combinations = n_kernels * n_dilations
     max_n_channels = min(n_channels, 9)
     max_exponent = np.log2(max_n_channels + 1)
-    n_channels_per_combination = (
+    n_channels_per_comb = (
         2 ** np.random.uniform(0, max_exponent, n_combinations)
     ).astype(np.int32)
-    channel_indices = np.zeros(n_channels_per_combination.sum(), dtype=np.int32)
+    channel_indices = np.zeros(n_channels_per_comb.sum(), dtype=np.int32)
     n_channels_start = 0
     for combination_index in range(n_combinations):
-        n_channels_this_combination = n_channels_per_combination[combination_index]
+        n_channels_this_combination = n_channels_per_comb[combination_index]
         n_channels_end = n_channels_start + n_channels_this_combination
         channel_indices[n_channels_start:n_channels_end] = np.random.choice(
             n_channels, n_channels_this_combination, replace=False
@@ -209,7 +242,7 @@ def _set_kernel_parameters(
     if isinstance(X, np.ndarray):
         biases = _fit_biases_numpy(
             X,
-            n_channels_per_combination,
+            n_channels_per_comb,
             channel_indices,
             dilations,
             n_features_per_dilation,
@@ -220,7 +253,7 @@ def _set_kernel_parameters(
     elif isinstance(X, list):
         biases = _fit_biases_list(
             X,
-            n_channels_per_combination,
+            n_channels_per_comb,
             channel_indices,
             dilations,
             n_features_per_dilation,
@@ -229,7 +262,7 @@ def _set_kernel_parameters(
             seed,
         )
     return (
-        n_channels_per_combination,
+        n_channels_per_comb,
         channel_indices,
         dilations,
         n_features_per_dilation,
@@ -266,7 +299,7 @@ def _static_transform(X, parameters, indices):
     n_features = n_kernels * np.sum(n_features_per_dilation)
     features = np.zeros((n_cases, n_features), dtype=np.float32)
     for i in prange(n_cases):
-        features[i] = _single_case_transform(
+        _single_case_transform(
             X[i],
             features[i],
             n_channels,
@@ -283,15 +316,10 @@ def _static_transform(X, parameters, indices):
     return features
 
 
-# @njit(
-#     "float32[:,:](float32[:,:],float32[:], int32,int32,int32,int32,int32[:],int32[:],"
-#     ""
-#     "Tuple((int32[:],int32[:],int32[:],int32[:],float32["
-#     ":])), int32[:,:])",
-#     fastmath=True,
-#     parallel=True,
-#     cache=True,
-# )
+@njit(
+    "float32[:,:],float32[:], int32,int32,int32, int32[:], int32[:],int32[:],"
+    "int32[:], float32[:], int32, int32[:,:]",
+)
 def _single_case_transform(
     _X,
     features,
@@ -362,7 +390,9 @@ def _single_case_transform(
             feature_index_start = feature_index_end
             combination_index += 1
             n_channels_start = num_channels_end
-    return features
+
+
+#    return features
 
 
 @njit(
