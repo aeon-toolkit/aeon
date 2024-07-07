@@ -54,32 +54,43 @@ def test_capabilities(trans):
     softdeps = trans.get_class_tag("python_dependencies")
     if softdeps is not None:  # Temp, skip soft deps
         return
-
-    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=30)
+    y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
+    X = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=30, return_y=False)
     t.fit(X, y)
     t.transform(X)
     X2 = t.fit_transform(X, y)
     multi = t.get_tag("capability:multivariate")
     unequal = t.get_tag("capability:unequal_length")
     if multi:
-        X, y = make_example_3d_numpy(n_cases=10, n_channels=4, n_timepoints=30)
+        X = make_example_3d_numpy(
+            n_cases=10, n_channels=4, n_timepoints=30, return_y=False
+        )
         t.fit(X, y)
         t.transform(X)
         X2 = t.fit_transform(X, y)
         assert len(X) == len(X2)
         if unequal:  # Test fits multivariate, unequal length data correctly
-            X, y = make_example_3d_numpy_list(
-                n_cases=10, n_channels=5, min_n_timepoints=20, max_n_timepoints=30
+            X = make_example_3d_numpy_list(
+                n_cases=10,
+                n_channels=5,
+                min_n_timepoints=20,
+                max_n_timepoints=30,
+                return_y=False,
             )
             t.fit(X, y)
             t.transform(X)
             X2 = t.fit_transform(X, y)
-    #         assert len(X) == len(X2)
-    # elif unequal:
-    #     X, y = make_example_3d_numpy_list(n_cases=10, n_channels=1,
-    #     min_n_timepoints=20, max_n_timepoints=30)
-    #     t.fit(X, y)
-    #     t.transform(X)
-    #     X2 = t.fit_transform(X, y)
-    #     assert len(X) == len(X2)
+            assert len(X) == len(X2)
+    elif unequal:
+        X = make_example_3d_numpy_list(
+            n_cases=10,
+            n_channels=1,
+            min_n_timepoints=20,
+            max_n_timepoints=30,
+            return_y=False,
+        )
+        t.fit(X, y)
+        t.transform(X)
+        X2 = t.fit_transform(X, y)
+        assert len(X) == len(X2)
     # pass

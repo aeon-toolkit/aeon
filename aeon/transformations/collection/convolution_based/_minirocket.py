@@ -44,6 +44,11 @@ class MiniRocket(BaseCollectionTransformer):
         https://dl.acm.org/doi/abs/10.1145/3447548.3467231,
         https://arxiv.org/abs/2012.08791
 
+    Notes
+    -----
+    Directly adapted from the original implementation
+    https://github.com/angus924/minirocket.
+
     Examples
     --------
      >>> from aeon.transformations.collection.convolution_based import MiniRocket
