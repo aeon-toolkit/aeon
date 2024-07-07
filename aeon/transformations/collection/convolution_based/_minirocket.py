@@ -265,7 +265,7 @@ def _static_transform(X, parameters, indices):
             X[i],
             features[i],
             n_channels,
-            n_timepoints,
+            X[i].shape[1],
             n_dilations,
             n_features_per_dilation,
             dilations,
@@ -367,9 +367,6 @@ def _single_case_transform(
 )
 def _fit_biases_numpy(
     X,
-    n_cases,
-    n_channels,
-    n_timepoints,
     n_channels_per_combination,
     channel_indices,
     dilations,
@@ -380,7 +377,7 @@ def _fit_biases_numpy(
 ):
     if seed is not None:
         np.random.seed(seed)
-    n_cases, n_columns, n_timepoints = X.shape
+    n_cases, n_channels, n_timepoints = X.shape
     n_kernels = len(indices)
     n_dilations = len(dilations)
     n_features = n_kernels * np.sum(n_features_per_dilation)
@@ -432,9 +429,6 @@ def _fit_biases_numpy(
 
 def _fit_biases_list(
     X,
-    n_cases,
-    n_channels,
-    n_timepoints,
     n_channels_per_combination,
     channel_indices,
     dilations,
@@ -446,7 +440,6 @@ def _fit_biases_list(
     if seed is not None:
         np.random.seed(seed)
     n_cases = len(X)
-    n_columns, n_timepoints = X[0].shape
     n_kernels = len(indices)
     n_dilations = len(dilations)
     n_features = n_kernels * np.sum(n_features_per_dilation)
@@ -466,6 +459,7 @@ def _fit_biases_list(
             _X = X[np.random.randint(n_cases)][channels_this_combination]
             A = -_X  # A = alpha * X = -X
             G = _X + _X + _X  # G = gamma * X = 3X
+            n_timepoints = _X.shape[1]
             C_alpha = np.zeros(
                 (n_channels_this_combination, n_timepoints), dtype=np.float32
             )
