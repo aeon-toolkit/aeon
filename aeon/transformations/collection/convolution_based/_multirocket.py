@@ -905,9 +905,7 @@ def _fit_biases_univariate(
 
         for kernel_index in range(num_kernels):
             feature_index_end = feature_index_start + num_features_this_dilation
-
             _X = X[np.random.randint(num_examples)]
-
             A = -_X  # A = alpha * X = -X
             G = _X + _X + _X  # G = gamma * X = 3X
 

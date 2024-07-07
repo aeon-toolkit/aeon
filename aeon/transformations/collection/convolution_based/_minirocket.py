@@ -279,7 +279,9 @@ def _static_transform(X, parameters, indices):
 
 
 # @njit(
-#     "float32[:,:](float32[:,:,:],Tuple((int32[:],int32[:],int32[:],int32[:],float32["
+#     "float32[:,:](float32[:,:],float32[:], int32,int32,int32,int32,int32[:],int32[:],"
+#     ""
+#     "Tuple((int32[:],int32[:],int32[:],int32[:],float32["
 #     ":])), int32[:,:])",
 #     fastmath=True,
 #     parallel=True,

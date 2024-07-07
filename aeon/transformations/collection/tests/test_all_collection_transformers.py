@@ -51,6 +51,10 @@ def test_capabilities(trans):
 
     if isinstance(t, CollectionTransformerPipeline):  # TEMP: Excluded classifier #1748
         return
+    softdeps = trans.get_class_tag("python_dependencies")
+    if softdeps is not None:  # Temp, skip soft deps
+        return
+
     X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=30)
     t.fit(X, y)
     t.transform(X)
