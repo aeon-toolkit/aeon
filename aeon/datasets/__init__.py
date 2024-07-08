@@ -12,6 +12,8 @@ __all__ = [
     "load_forecasting",
     "load_regression",
     "download_all_regression",
+    "load_time_series_segmentation_benchmark",
+    "load_human_activity_segmentation_datasets",
     # Write functions
     "write_to_tsfile",
     "write_to_tsf_file",
@@ -103,4 +105,8 @@ from aeon.datasets._tsad_data_loaders import (
     load_ecg_diff_count_3,
     load_from_timeeval_csv_file,
     load_kdd_tsad_135,
+)
+from aeon.datasets._tss_data_loaders import (
+    load_human_activity_segmentation_datasets,
+    load_time_series_segmentation_benchmark,
 )
