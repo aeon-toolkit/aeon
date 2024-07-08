@@ -4,14 +4,22 @@ import tempfile
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from aeon.datasets import (
     load_human_activity_segmentation_datasets,
     load_time_series_segmentation_benchmark,
 )
+from aeon.datasets.tests.test_data_loaders import CONNECTION_ERRORS
 from aeon.segmentation import ClaSPSegmenter
+from aeon.testing.test_config import PR_TESTING
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of slow read.",
+)
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_tssb(mocker):
     """Test load time series segmentation benchmark."""
     with tempfile.TemporaryDirectory() as tmp:
@@ -44,6 +52,11 @@ def test_load_tssb(mocker):
         assert cps.shape[0] == found_cps.shape[0]
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of slow read.",
+)
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_has_datasets(mocker):
     """Test load human activity segmentation data sets."""
     with tempfile.TemporaryDirectory() as tmp:
