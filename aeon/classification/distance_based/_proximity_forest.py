@@ -97,33 +97,44 @@ class ProximityForest(BaseClassifier):
     def _fit(self, X, y):
         self.classes_ = list(np.unique(y))
         self.trees_ = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._fit_tree)(X, y) for _ in range(self.n_trees)
+            delayed(_fit_tree)(
+                X,
+                y,
+                self.n_splitters,
+                self.max_depth,
+                self.min_samples_split,
+                self.random_state,
+                self.n_jobs,
+            )
+            for _ in range(self.n_trees)
         )
-
-    def _fit_tree(self, X, y):
-        clf = ProximityTree(
-            n_splitters=self.n_splitters,
-            max_depth=self.max_depth,
-            min_samples_split=self.min_samples_split,
-            random_state=self.random_state,
-            n_jobs=self.n_jobs,
-        )
-        clf.fit(X, y)
-        return clf
 
     def _predict_proba(self, X):
         output_probas = Parallel(n_jobs=self.n_jobs)(
-            delayed(self._predict_proba_tree)(tree, X) for tree in self.trees_
+            delayed(_predict_proba_tree)(tree, X) for tree in self.trees_
         )
         output_probas = np.sum(output_probas, axis=0)
         output_probas = np.divide(output_probas, self.n_trees)
         return output_probas
-
-    def _predict_proba_tree(self, tree, X):
-        return tree.predict_proba(X)
 
     def _predict(self, X):
         probas = self._predict_proba(X)
         idx = np.argmax(probas, axis=1)
         preds = np.asarray([self.classes_[x] for x in idx])
         return preds
+
+
+def _fit_tree(X, y, n_splitters, max_depth, min_samples_split, random_state, n_jobs):
+    clf = ProximityTree(
+        n_splitters=n_splitters,
+        max_depth=max_depth,
+        min_samples_split=min_samples_split,
+        random_state=random_state,
+        n_jobs=n_jobs,
+    )
+    clf.fit(X, y)
+    return clf
+
+
+def _predict_proba_tree(tree, X):
+    return tree.predict_proba(X)
