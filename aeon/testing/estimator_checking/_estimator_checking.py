@@ -71,24 +71,29 @@ def parametrize_with_checks(
 
     def checks_generator():
         for est in estimators:
-            if isclass(est):
-                if issubclass(est, BaseEstimator):
-                    est = est.create_test_instance(return_first=use_first_parameter_set)
-                else:
+            has_dependencies = _check_estimator_deps(est, severity="none")
+
+            if has_dependencies:
+                if isclass(est):
+                    if issubclass(est, BaseEstimator):
+                        est = est.create_test_instance(
+                            return_first=use_first_parameter_set
+                        )
+                    else:
+                        raise TypeError(
+                            f"Passed class {est} is not a subclass of BaseEstimator."
+                        )
+                elif not isinstance(est, BaseEstimator):
                     raise TypeError(
-                        f"Passed class {est} is not a subclass of BaseEstimator."
+                        f"Passed object {est} is not an instance of BaseEstimator."
                     )
-            elif not isinstance(est, BaseEstimator):
-                raise TypeError(
-                    f"Passed object {est} is not an instance of BaseEstimator."
-                )
 
             if not isinstance(est, list):
                 est = [est]
 
             for e in est:
                 for check in _yield_all_aeon_checks(e):
-                    yield _check_if_xfail(e, check)
+                    yield _check_if_xfail(e, check, has_dependencies)
 
     return pytest.mark.parametrize(
         "estimator, check",
@@ -119,7 +124,7 @@ def check_estimator(
 
     Parameters
     ----------
-    estimator : aeon BaseEstimator instances or classes
+    estimator : aeon BaseEstimator instance or class
         Estimator to run checks on. If estimator is a class, an instance will
         be created using BaseEstimator.create_test_instance().
     raise_exceptions : bool, optional, default=False
@@ -193,22 +198,27 @@ def check_estimator(
 
     def checks_generator():
         est = estimator
-        if isclass(est):
-            if issubclass(est, BaseEstimator):
-                est = est.create_test_instance(return_first=use_first_parameter_set)
-            else:
-                raise TypeError(
-                    f"Passed class {est} is not a subclass of BaseEstimator."
-                )
-        elif not isinstance(est, BaseEstimator):
-            raise TypeError(f"Passed object {est} is not an instance of BaseEstimator.")
+        has_dependencies = _check_estimator_deps(est, severity="none")
 
-        if not isinstance(est, list):
-            est = [est]
+        if has_dependencies:
+            if isclass(est):
+                if issubclass(est, BaseEstimator):
+                    est = est.create_test_instance(return_first=use_first_parameter_set)
+                else:
+                    raise TypeError(
+                        f"Passed class {est} is not a subclass of BaseEstimator."
+                    )
+            elif not isinstance(est, BaseEstimator):
+                raise TypeError(
+                    f"Passed object {est} is not an instance of BaseEstimator."
+                )
+
+            if not isinstance(est, list):
+                est = [est]
 
         for e in est:
             for check in _yield_all_aeon_checks(e):
-                yield _check_if_skip(e, check)
+                yield _check_if_skip(e, check, has_dependencies)
 
     if not isinstance(checks_to_run, (list, tuple)) and checks_to_run is not None:
         checks_to_run = [checks_to_run]
@@ -276,46 +286,50 @@ def check_estimator(
     return results
 
 
-def _check_if_xfail(estimator, check):
+def _check_if_xfail(estimator, check, has_dependencies):
     """Check if a check should be xfailed."""
     import pytest
 
-    skip, reason, _ = _should_be_skipped(estimator, check)
+    skip, reason, _ = _should_be_skipped(estimator, check, has_dependencies)
     if skip:
         return pytest.param(estimator, check, marks=pytest.mark.xfail(reason=reason))
 
     return estimator, check
 
 
-def _check_if_skip(estimator, check):
+def _check_if_skip(estimator, check, has_dependencies):
     """Check if a check should be skipped by raising a SkipTest exception."""
-    skip, reason, name = _should_be_skipped(estimator, check)
+    skip, reason, check_name = _should_be_skipped(estimator, check, has_dependencies)
     if skip:
 
         @wraps(check)
         def wrapped(*args, **kwargs):
-            raise SkipTest(
-                f"Skipping {name} for {estimator.__class__.__name__}: {reason}"
+            est_name = (
+                estimator.__name__
+                if isclass(estimator)
+                else estimator.__class__.__name__
             )
+            raise SkipTest(f"Skipping {check_name} for {est_name}: {reason}")
 
         return estimator, wrapped
     return estimator, check
 
 
-def _should_be_skipped(estimator, check):
-    est_name = estimator.__class__.__name__
+def _should_be_skipped(estimator, check, has_dependencies):
+    est_name = (
+        estimator.__name__ if isclass(estimator) else estimator.__class__.__name__
+    )
+    check_name = check.func.__name__ if isinstance(check, partial) else check.__name__
 
     # check estimator dependencies
-    if not _check_estimator_deps(estimator, severity=None):
-        return True, "Incompatible dependencies or Python version"
-
-    check_name = check.func.__name__ if isinstance(check, partial) else check.__name__
+    if not has_dependencies:
+        return True, "Incompatible dependencies or Python version", check_name
 
     # check aeon exclude lists
     if est_name in EXCLUDE_ESTIMATORS:
-        return True, "In aeon estimator exclude list"
+        return True, "In aeon estimator exclude list", check_name
     elif check_name in EXCLUDED_TESTS.get(est_name, []):
-        return True, "In aeon test exclude list for estimator"
+        return True, "In aeon test exclude list for estimator", check_name
 
     return False, "", check_name
 

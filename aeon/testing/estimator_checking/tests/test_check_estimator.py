@@ -15,6 +15,7 @@ from aeon.testing.mock_estimators import (
     MockSegmenter,
 )
 from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector
+from aeon.testing.utils.deep_equals import deep_equals
 from aeon.transformations.collection import TimeSeriesScaler
 
 EXAMPLE_CLASSES = [
@@ -34,7 +35,9 @@ def test_parametrize_with_checks_classes(estimator, check):
     """Test parametrize_with_checks with class input."""
     assert isinstance(estimator, BaseEstimator)
     assert callable(check)
+    dict_before = estimator.__dict__.copy()
     check(estimator)
+    assert deep_equals(estimator.__dict__, dict_before)
 
 
 @parametrize_with_checks(
@@ -44,7 +47,9 @@ def test_parametrize_with_checks_instances(estimator, check):
     """Test parametrize_with_checks with estimator instance input."""
     assert isinstance(estimator, BaseEstimator)
     assert callable(check)
+    dict_before = estimator.__dict__.copy()
     check(estimator)
+    assert deep_equals(estimator.__dict__, dict_before)
 
 
 @pytest.mark.parametrize("estimator_class", EXAMPLE_CLASSES)
@@ -60,7 +65,10 @@ def test_check_estimator_passed(estimator_class):
 
     # test that no exceptions are raised
     check_estimator(estimator_class, raise_exceptions=True, verbose=False)
+
+    dict_before = estimator.__dict__.copy()
     check_estimator(estimator, raise_exceptions=True, verbose=False)
+    assert deep_equals(estimator.__dict__, dict_before)
 
 
 def test_check_estimator_subset_tests():

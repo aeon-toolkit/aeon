@@ -1,7 +1,6 @@
 """Unit tests for classifier base class functionality."""
 
 import numpy as np
-import numpy.random
 import pandas as pd
 import pytest
 from sklearn.metrics import accuracy_score
@@ -12,9 +11,9 @@ from aeon.testing.mock_estimators import (
     MockClassifierPredictProba,
 )
 from aeon.testing.testing_data import (
-    EQUAL_LENGTH_MULTIVARIATE,
-    EQUAL_LENGTH_UNIVARIATE,
-    UNEQUAL_LENGTH_UNIVARIATE,
+    EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
+    EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
+    UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
 )
 from aeon.utils import COLLECTIONS_DATA_TYPES
 
@@ -132,11 +131,11 @@ def test_check_y():
         cls._check_y(y, 10)
 
 
-@pytest.mark.parametrize("data", UNEQUAL_LENGTH_UNIVARIATE.keys())
+@pytest.mark.parametrize("data", UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys())
 def test_unequal_length_input(data):
     """Test with unequal length failures and passes."""
-    X = UNEQUAL_LENGTH_UNIVARIATE[data]
-    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    X = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+    y = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][1]
 
     # Unable to handle unequal length series
     dummy = MockClassifier()
@@ -151,8 +150,8 @@ def test_unequal_length_input(data):
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_univariate_equal_length_input(data):
     """Test with unequal length failures and passes."""
-    X = EQUAL_LENGTH_UNIVARIATE[data]
-    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+    y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][1]
 
     # Default capabilities
     dummy = MockClassifier()
@@ -163,11 +162,11 @@ def test_univariate_equal_length_input(data):
     _assert_fit_and_predict(dummy, X, y)
 
 
-@pytest.mark.parametrize("data", EQUAL_LENGTH_MULTIVARIATE.keys())
+@pytest.mark.parametrize("data", EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.keys())
 def test_multivariate_equal_length_input(data):
     """Test with unequal length failures and passes."""
-    X = EQUAL_LENGTH_MULTIVARIATE[data]
-    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    X = EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]
+    y = EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][1]
 
     # Unable to handle multivariate series
     dummy = MockClassifier()

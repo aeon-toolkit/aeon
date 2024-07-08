@@ -3,7 +3,7 @@ import pickle
 import types
 from copy import deepcopy
 from functools import partial
-from inspect import getfullargspec, signature
+from inspect import getfullargspec, isclass, signature
 
 import joblib
 import numpy as np
@@ -13,24 +13,25 @@ from sklearn.utils.estimator_checks import check_get_params_invariance
 
 from aeon.base import BaseEstimator, BaseObject
 from aeon.base._base import _clone_estimator
+from aeon.classification import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+from aeon.testing.estimator_checking._yield_classification_checks import (
+    _yield_classification_checks,
+)
 from aeon.testing.test_config import (
     NON_STATE_CHANGING_METHODS,
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
 )
-from aeon.testing.testing_data import (
-    TEST_DATA_DICT,
-    TEST_LABEL_DICT,
-    get_data_types_for_estimator,
-)
+from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import (
     _assert_array_almost_equal,
     _get_args,
+    _get_tag,
     _list_required_methods,
     _run_estimator_method,
 )
@@ -38,12 +39,21 @@ from aeon.transformations.base import BaseTransformer
 
 
 def _yield_all_aeon_checks(estimator):
-    datatypes = get_data_types_for_estimator(estimator)
+    """Yield all checks for an aeon estimator."""
+    # if a class is passed, all tests are going to be skipped as we could not
+    # instantiate the class
+    datatypes = (
+        _get_datatypes_for_estimator(estimator) if not isclass(estimator) else [None]
+    )
 
     yield from _yield_estimator_checks(estimator, datatypes)
 
+    if isinstance(estimator, BaseClassifier):
+        yield from _yield_classification_checks(estimator, datatypes)
+
 
 def _yield_estimator_checks(estimator, datatypes):
+    """Yield all general checks for an aeon estimator."""
     # no data needed
     yield check_create_test_instance
     yield check_create_test_instances_and_names
@@ -70,17 +80,13 @@ def _yield_estimator_checks(estimator, datatypes):
     yield partial(check_non_state_changing_method, datatype=datatypes[0])
     yield partial(check_fit_updates_state, datatype=datatypes[0])
 
-    if not estimator.get_tag(
-        "fit_is_empty", tag_value_default=False, raise_error=False
-    ):
+    if not _get_tag(estimator, "fit_is_empty", default=False):
         yield partial(check_raises_not_fitted_error, datatype=datatypes[0])
 
-    if not estimator.get_tag("cant-pickle", tag_value_default=False, raise_error=False):
+    if not _get_tag(estimator, "cant-pickle", default=False):
         yield partial(test_persistence_via_pickle, datatype=datatypes[0])
 
-    if not estimator.get_tag(
-        "non-deterministic", tag_value_default=False, raise_error=False
-    ):
+    if not _get_tag(estimator, "non-deterministic", default=False):
         yield partial(check_fit_deterministic, datatype=datatypes[0])
 
 
@@ -452,25 +458,25 @@ def check_non_state_changing_method(estimator, datatype):
     """
     estimator = _clone_estimator(estimator)
 
-    X = deepcopy(TEST_DATA_DICT[datatype[0]]["train"])
-    y = deepcopy(TEST_LABEL_DICT[datatype[1]]["train"])
+    X = deepcopy(FULL_TEST_DATA_DICT[datatype]["train"][0])
+    y = deepcopy(FULL_TEST_DATA_DICT[datatype]["train"][1])
     _run_estimator_method(estimator, "fit", datatype, "train")
 
-    assert deep_equals(X, TEST_DATA_DICT[datatype[0]]["train"]) and deep_equals(
-        y, TEST_LABEL_DICT[datatype[1]]["train"]
+    assert deep_equals(X, FULL_TEST_DATA_DICT[datatype]["train"][0]) and deep_equals(
+        y, FULL_TEST_DATA_DICT[datatype]["train"][1]
     ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
 
     # dict_before = copy of dictionary of estimator before predict, post fit
     dict_before = estimator.__dict__.copy()
-    X = deepcopy(TEST_DATA_DICT[datatype[0]]["test"])
-    y = deepcopy(TEST_LABEL_DICT[datatype[1]]["test"])
+    X = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    y = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][1])
 
     for method in NON_STATE_CHANGING_METHODS:
         if hasattr(estimator, method):
             _run_estimator_method(estimator, method, datatype, "test")
 
-        assert deep_equals(X, TEST_DATA_DICT[datatype[0]]["test"]) and deep_equals(
-            y, TEST_LABEL_DICT[datatype[1]]["test"]
+        assert deep_equals(X, FULL_TEST_DATA_DICT[datatype]["test"][0]) and deep_equals(
+            y, FULL_TEST_DATA_DICT[datatype]["test"][1]
         ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
 
         # dict_after = dictionary of estimator after predict and fit

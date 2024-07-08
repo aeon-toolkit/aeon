@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from aeon.testing.data_generation import make_example_nested_dataframe
-from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE
+from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_COLLECTION
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.collection import (
     _is_pd_wide,
@@ -21,9 +21,9 @@ from aeon.utils.validation.collection import (
 def test_is_nested_univ_dataframe(data):
     """Test is_nested_univ_dataframe function for different datatypes."""
     if data == "nested_univ":
-        assert is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
+        assert is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE_COLLECTION[data])
     else:
-        assert not is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
+        assert not is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE_COLLECTION[data])
 
 
 def test_nested_univ_is_equal():
@@ -49,9 +49,9 @@ def test_nested_univ_is_equal():
 def test_is_pd_wide(data):
     """Test _is_pd_wide function for different datatypes."""
     if data == "pd-wide":
-        assert _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
+        assert _is_pd_wide(EQUAL_LENGTH_UNIVARIATE_COLLECTION[data])
     else:
-        assert not _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
+        assert not _is_pd_wide(EQUAL_LENGTH_UNIVARIATE_COLLECTION[data])
 
 
 def test_is_tabular():

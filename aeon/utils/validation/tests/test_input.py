@@ -3,7 +3,7 @@
 import pytest
 
 from aeon.testing.data_generation._legacy import get_examples
-from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE
+from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_COLLECTION
 from aeon.utils.validation._input import (
     COLLECTIONS,
     HIERARCHICAL,
@@ -42,9 +42,9 @@ def test_abstract_types():
 @pytest.mark.parametrize("data", COLLECTIONS)
 def test_input_collections(data):
     """Test is_collection with correct input."""
-    assert is_collection(EQUAL_LENGTH_UNIVARIATE[data])
-    assert not is_single_series(EQUAL_LENGTH_UNIVARIATE[data])
-    assert not is_hierarchical(EQUAL_LENGTH_UNIVARIATE[data])
+    assert is_collection(EQUAL_LENGTH_UNIVARIATE_COLLECTION[data])
+    assert not is_single_series(EQUAL_LENGTH_UNIVARIATE_COLLECTION[data])
+    assert not is_hierarchical(EQUAL_LENGTH_UNIVARIATE_COLLECTION[data])
 
 
 @pytest.mark.parametrize("data_type", HIERARCHICAL)
@@ -81,7 +81,7 @@ def test_input_series(data_type):
 @pytest.mark.parametrize("data_type", COLLECTIONS)
 def test_input_collection(data_type):
     """Test is_collection with correct input."""
-    d = EQUAL_LENGTH_UNIVARIATE[data_type]
+    d = EQUAL_LENGTH_UNIVARIATE_COLLECTION[data_type]
     assert is_collection(d)
     assert not is_single_series(d)
     assert not is_hierarchical(d)
