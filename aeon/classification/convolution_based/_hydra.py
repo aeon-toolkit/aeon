@@ -88,11 +88,11 @@ class HydraClassifier(BaseClassifier):
     }
 
     def __init__(
-        self, n_kernels=8, n_groups=64, n_jobs=1, class_weigth=None, random_state=None
+        self, n_kernels=8, n_groups=64, n_jobs=1, class_weight=None, random_state=None
     ):
         self.n_kernels = n_kernels
         self.n_groups = n_groups
-        self.class_weight = class_weigth
+        self.class_weight = class_weight
         self.n_jobs = n_jobs
         self.random_state = random_state
 
