@@ -76,6 +76,17 @@ class Arsenal(BaseClassifier):
         The collections of estimators trained in fit.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     n_estimators_ : int
         The number of estimators in the ensemble.
 
@@ -125,6 +136,7 @@ class Arsenal(BaseClassifier):
         n_features_per_kernel=4,
         time_limit_in_minutes=0.0,
         contract_max_n_estimators=100,
+        class_weight=None,
         n_jobs=1,
         random_state=None,
     ):
@@ -135,6 +147,7 @@ class Arsenal(BaseClassifier):
         self.n_features_per_kernel = n_features_per_kernel
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
+        self.class_weight = class_weight
 
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -355,7 +368,9 @@ class Arsenal(BaseClassifier):
         transformed_x = rocket.fit_transform(X)
         scaler = StandardScaler(with_mean=False)
         scaler.fit(transformed_x, y)
-        ridge = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+        ridge = RidgeClassifierCV(
+            alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+        )
         ridge.fit(scaler.transform(transformed_x), y)
         return [
             make_pipeline(rocket, scaler, ridge),
@@ -380,7 +395,9 @@ class Arsenal(BaseClassifier):
 
         clf = make_pipeline(
             StandardScaler(with_mean=False),
-            RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)),
+            RidgeClassifierCV(
+                alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+            ),
         )
         clf.fit(Xt[idx][subsample], y[subsample])
         preds = clf.predict(Xt[idx][oob])

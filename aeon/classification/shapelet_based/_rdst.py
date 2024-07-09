@@ -60,9 +60,24 @@ class RDSTClassifier(BaseClassifier):
         If True, restrict the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
+    distance: str="manhattan"
+        Name of the distance function to be used. By default this is the
+        manhattan distance. Other distances from the aeon distance modules can be used.
     estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
         `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        Only applies if estimator is None, and the default is used.
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     save_transformed_data : bool, default=False
         If True, the transformed training dataset for all classifiers will be saved.
     n_jobs : int, default=1
@@ -134,6 +149,8 @@ class RDSTClassifier(BaseClassifier):
         use_prime_dilations: bool = False,
         estimator=None,
         save_transformed_data: bool = False,
+        class_weight=None,
+        distance: str = "manhattan",
         n_jobs: int = 1,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
     ) -> None:
@@ -143,7 +160,8 @@ class RDSTClassifier(BaseClassifier):
         self.threshold_percentiles = threshold_percentiles
         self.alpha_similarity = alpha_similarity
         self.use_prime_dilations = use_prime_dilations
-
+        self.class_weight = class_weight
+        self.distance = distance
         self.estimator = estimator
         self.save_transformed_data = save_transformed_data
         self.random_state = random_state
@@ -184,12 +202,14 @@ class RDSTClassifier(BaseClassifier):
             use_prime_dilations=self.use_prime_dilations,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
+            distance=self.distance,
         )
         if self.estimator is None:
             self._estimator = make_pipeline(
                 StandardScaler(with_mean=True),
                 RidgeClassifierCV(
                     alphas=np.logspace(-4, 4, 20),
+                    class_weight=self.class_weight,
                 ),
             )
         else:
