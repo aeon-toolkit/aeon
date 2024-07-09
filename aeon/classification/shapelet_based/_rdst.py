@@ -60,6 +60,9 @@ class RDSTClassifier(BaseClassifier):
         If True, restrict the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
+    distance: str="manhattan"
+        Name of the distance function to be used. By default this is the
+        manhattan distance. Other distances from the aeon distance modules can be used.
     estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
         `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
@@ -134,6 +137,7 @@ class RDSTClassifier(BaseClassifier):
         use_prime_dilations: bool = False,
         estimator=None,
         save_transformed_data: bool = False,
+        distance: str = "manhattan",
         n_jobs: int = 1,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
     ) -> None:
@@ -143,7 +147,7 @@ class RDSTClassifier(BaseClassifier):
         self.threshold_percentiles = threshold_percentiles
         self.alpha_similarity = alpha_similarity
         self.use_prime_dilations = use_prime_dilations
-
+        self.distance = distance
         self.estimator = estimator
         self.save_transformed_data = save_transformed_data
         self.random_state = random_state
@@ -184,6 +188,7 @@ class RDSTClassifier(BaseClassifier):
             use_prime_dilations=self.use_prime_dilations,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
+            distance=self.distance,
         )
         if self.estimator is None:
             self._estimator = make_pipeline(
