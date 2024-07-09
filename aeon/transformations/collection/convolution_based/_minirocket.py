@@ -146,7 +146,35 @@ class MiniRocket(BaseCollectionTransformer):
             X_ = _static_transform_uni(X, self.parameters, MiniRocket._indices)
         else:
             X_ = _static_transform_multi(X, self.parameters, MiniRocket._indices)
+        set_num_threads(prev_threads)
+        return X_
 
+    def _fit_transform(self, X, y=None):
+        """Fit to data, then transform it."""
+        X = X.astype(np.float32)
+        random_state = (
+            np.int32(self.random_state) if isinstance(self.random_state, int) else None
+        )
+        _, n_channels, n_timepoints = X.shape
+        if n_timepoints < 9:
+            raise ValueError(
+                f"n_timepoints must be >= 9, but found {n_timepoints};"
+                " zero pad shorter series so that n_timepoints == 9"
+            )
+        self.parameters = _static_fit(
+            X, self.num_kernels, self.max_dilations_per_kernel, random_state
+        )
+        prev_threads = get_num_threads()
+        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
+            n_jobs = multiprocessing.cpu_count()
+        else:
+            n_jobs = self.n_jobs
+        set_num_threads(n_jobs)
+        if n_channels == 1:
+            X = X.squeeze(1)
+            X_ = _static_transform_uni(X, self.parameters, MiniRocket._indices)
+        else:
+            X_ = _static_transform_multi(X, self.parameters, MiniRocket._indices)
         set_num_threads(prev_threads)
         return X_
 
