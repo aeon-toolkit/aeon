@@ -160,7 +160,8 @@ class ShapeletVisualizer:
             plt.ylabel("shapelet values")
             plt.xlabel("timepoint")
             plt.title(title_string)
-            plt.legend()
+            if self.n_channels > 1:
+                plt.legend()
             return fig
         else:
             for i in range(self.n_channels):
@@ -173,7 +174,8 @@ class ShapeletVisualizer:
             ax.set_title(title_string)
             ax.set_ylabel("shapelet values")
             ax.set_xlabel("timepoint")
-            ax.legend()
+            if self.n_channels > 1:
+                ax.legend()
             return ax
 
     def plot_on_X(
@@ -183,8 +185,8 @@ class ShapeletVisualizer:
         shp_scatter_options={  # noqa: B006
             "s": 40,
             "c": "purple",
-            "alpha": 0.9,
-            "zorder": 3,
+            "alpha": 0.75,
+            "zorder": 1,
         },
         x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
         figure_options={  # noqa: B006
@@ -372,7 +374,7 @@ class ShapeletVisualizer:
             if self.threshold is not None and show_threshold:
                 plt.hlines(self.threshold, 0, c.shape[0], **threshold_plot_options)
             plt.title("Distance vector between shapelet and X")
-            if show_legend:
+            if show_legend and self.n_channels > 1:
                 plt.legend()
             return fig
         else:
