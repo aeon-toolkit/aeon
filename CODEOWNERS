@@ -44,6 +44,8 @@ aeon/transformations/theta.py @GuzalBulatova
 
 aeon/utils/numba/ @baraline @MatthewMiddlehurst
 
+aeon/visualisation/ @baraline
+
 .github/ @aeon-toolkit/aeon-infrastructure-workgroup
 build_tools/ @aeon-toolkit/aeon-infrastructure-workgroup
 
