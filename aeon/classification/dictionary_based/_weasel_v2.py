@@ -80,6 +80,17 @@ class WEASEL_V2(BaseClassifier):
     max_feature_count : int, default=30_000
        size of the dictionary - number of words to use - if feature_selection set to
        "chi2" or "random". Else ignored.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     random_state : int or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
@@ -128,6 +139,7 @@ class WEASEL_V2(BaseClassifier):
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
+        class_weight=None,
         n_jobs=4,
     ):
         self.norm_options = norm_options
@@ -140,6 +152,7 @@ class WEASEL_V2(BaseClassifier):
         self.max_feature_count = max_feature_count
         self.use_first_differences = use_first_differences
         self.feature_selection = feature_selection
+        self.class_weight = class_weight
 
         self.clf = None
         self.n_jobs = n_jobs
@@ -178,7 +191,9 @@ class WEASEL_V2(BaseClassifier):
         words = self.transform.fit_transform(X, y)
 
         # use RidgeClassifierCV for classification
-        self.clf = RidgeClassifierCV(alphas=np.logspace(-1, 5, 10))
+        self.clf = RidgeClassifierCV(
+            alphas=np.logspace(-1, 5, 10), class_weight=self.class_weight
+        )
         self.clf.fit(words, y)
 
         if hasattr(self.clf, "best_score_"):

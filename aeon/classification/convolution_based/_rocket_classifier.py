@@ -45,6 +45,18 @@ class RocketClassifier(BaseClassifier):
     estimator : sklearn compatible classifier or None, default=None
         The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
         is used.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        Only applies if estimator is None and the default is used.
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -104,6 +116,7 @@ class RocketClassifier(BaseClassifier):
         rocket_transform="rocket",
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
+        class_weight=None,
         estimator=None,
         random_state=None,
         n_jobs=1,
@@ -113,6 +126,7 @@ class RocketClassifier(BaseClassifier):
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
         self.random_state = random_state
+        self.class_weight = class_weight
         self.estimator = estimator
         self.n_jobs = n_jobs
 
@@ -168,7 +182,9 @@ class RocketClassifier(BaseClassifier):
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
             (
-                RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+                RidgeClassifierCV(
+                    alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+                )
                 if self.estimator is None
                 else self.estimator
             ),
