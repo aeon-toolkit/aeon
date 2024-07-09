@@ -15,34 +15,47 @@ from aeon.transformations.collection import BaseCollectionTransformer
 class MiniRocket(BaseCollectionTransformer):
     """MINImally RandOm Convolutional KErnel Transform (MiniRocket).
 
-    MiniRocket [1]_ is an almost deterministic version of Rocket. It creates
-    convolutions of length 9 with weights restricted to two values, and uses 84 fixed
-    convolutions with six of one weight, three of the second weight to seed dilations.
+     MiniRocket [1]_ is an almost deterministic version of Rocket. It creates
+     convolutions of length 9 with weights restricted to two values, and uses 84 fixed
+     convolutions with six of one weight, three of the second weight to seed dilations.
 
 
     Parameters
     ----------
-    num_kernels : int, default=10,000
-       Number of random convolutional kernels.
-    max_dilations_per_kernel : int, default=32
-        Maximum number of dilations per kernel.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for `transform`. ``-1`` means using all
-        processors.
-    random_state : None or int, default = None
-        Seed for random number generation.
+     num_kernels : int, default=10,000
+        Number of random convolutional kernels. The number of kernels used is rounded
+        down to the nearest multiple of 84, unless a value of less than 84 is passec,
+        in which case it is set to 84.
+     max_dilations_per_kernel : int, default=32
+         Maximum number of dilations per kernel.
+     n_jobs : int, default=1
+         The number of jobs to run in parallel for `transform`. ``-1`` means using all
+         processors.
+     random_state : None or int, default = None
+         Seed for random number generation.
+
+    Attributes
+    ----------
+     self.parameters : Tuple (int32[:], int32[:], int32[:], int32[:], float32[:])
+         n_channels_per_comb, channel_indices, dilations, n_features_per_dilation,
+         biases
 
     See Also
     --------
-    MiniRocket, Rocket
+     MiniRocket, Rocket
 
     References
     ----------
-    .. [1] Dempster, Angus and Schmidt, Daniel F and Webb, Geoffrey I,
-        "MINIROCKET: A Very Fast (Almost) Deterministic Transform for Time Series
-        Classification",2020,
-        https://dl.acm.org/doi/abs/10.1145/3447548.3467231,
-        https://arxiv.org/abs/2012.08791
+     .. [1] Dempster, Angus and Schmidt, Daniel F and Webb, Geoffrey I,
+         "MINIROCKET: A Very Fast (Almost) Deterministic Transform for Time Series
+         Classification",2020,
+         https://dl.acm.org/doi/abs/10.1145/3447548.3467231,
+         https://arxiv.org/abs/2012.08791
+
+    Notes
+    -----
+     Directly adapted from the original implementation
+     https://github.com/angus924/minirocket.
 
     Examples
     --------
