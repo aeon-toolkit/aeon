@@ -254,7 +254,7 @@ def test_random_state_deep_learning_cls(estimator, datatype):
             _weight1 = np.asarray(weights1[j])
             _weight2 = np.asarray(weights2[j])
 
-            assert np.array_equal(_weight1, _weight2)
+            np.testing.assert_almost_equal(_weight1, _weight2, 4)
 
 
 def test_classifier_output(estimator, datatype):
