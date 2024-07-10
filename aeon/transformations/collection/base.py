@@ -205,7 +205,6 @@ class BaseCollectionTransformer(
         self.reset()
         X_inner = self._preprocess_collection(X)
         y_inner = y
-
         Xt = self._fit_transform(X=X_inner, y=y_inner)
 
         self._is_fitted = True
