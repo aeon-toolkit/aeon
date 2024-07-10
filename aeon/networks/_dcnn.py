@@ -15,8 +15,6 @@ class DCNNNetwork(BaseDeepLearningNetwork):
     ----------
     latent_space_dim: int, default=128
         Dimension of the models's latent space.
-    temporal_latent_space : bool, default = False
-        Flag to choose whether the latent space is an MTS or Euclidean space.
     num_layers: int, default=4
         Number of convolution layers.
     kernel_size: int, default=3
@@ -44,7 +42,6 @@ class DCNNNetwork(BaseDeepLearningNetwork):
     def __init__(
         self,
         latent_space_dim=128,
-        temporal_latent_space=False,
         num_layers=4,
         kernel_size=3,
         activation="relu",
@@ -59,7 +56,6 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         self.num_layers = num_layers
         self.dilation_rate = dilation_rate
         self.activation = activation
-        self.temporal_latent_space = temporal_latent_space
 
     def build_network(self, input_shape):
         """Construct a network and return its input and output layers.
@@ -116,15 +112,8 @@ class DCNNNetwork(BaseDeepLearningNetwork):
                 _kernel_size=self._kernel_size[i],
             )
 
-        if not self.temporal_latent_space:
-            x = tf.keras.layers.GlobalMaxPool1D()(x)
-            output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
-
-        elif self.temporal_latent_space:
-            output_layer = tf.keras.layers.Conv1D(
-                filters=self.latent_space_dim,
-                kernel_size=1,
-            )(x)
+        x = tf.keras.layers.GlobalMaxPool1D()(x)
+        output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
 
         return input_layer, output_layer
 
