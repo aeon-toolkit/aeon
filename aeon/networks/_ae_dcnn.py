@@ -203,8 +203,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             )
 
         if not self.temporal_latent_space:
-            shape_before_flattent = x.shape[1:]
-            x = tf.keras.layers.GlobalMaxPool1D()(x)
+            shape_before_flatten = x.shape[1:]
+            x = tf.keras.layers.Flatten()(x)
             output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
 
         elif self.temporal_latent_space:
@@ -219,11 +219,11 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             input_layer_decoder = tf.keras.layers.Input(x.shape[1:])
         elif not self.temporal_latent_space:
             input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
-            dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flattent))(
+            dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flatten))(
                 input_layer_decoder
             )
 
-            reshape_layer = tf.keras.layers.Reshape(target_shape=shape_before_flattent)(
+            reshape_layer = tf.keras.layers.Reshape(target_shape=shape_before_flatten)(
                 dense_layer
             )
             input_layer_decoder = reshape_layer
