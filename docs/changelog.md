@@ -1,15 +1,15 @@
 # Changelog
 
 All notable changes to this project will be documented in this file. The format is
-based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and we adhere
+based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and we adhere
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The source code for
 all [releases](https://github.com/aeon-toolkit/aeon/releases) is available on GitHub.
 
-To stay up-to-date with aeon releases, subscribe to aeon
+To stay up to date with aeon releases, subscribe to aeon
 [here](https://libraries.io/pypi/aeon) or follow us on
 [Twitter](https://twitter.com/aeon_toolbox).
 
-- [Version 0.109.0](changelogs/v0.10.md)
+- [Version 0.10.0](changelogs/v0.10.md)
 - [Version 0.9.0](changelogs/v0.9.md)
 - [Version 0.8.0](changelogs/v0.8.md)
 - [Version 0.7.0](changelogs/v0.7.md)
