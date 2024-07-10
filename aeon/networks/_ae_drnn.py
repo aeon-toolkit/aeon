@@ -16,7 +16,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         Flag to choose whether the latent space is an MTS or Euclidean space.
     n_layers_encoder : int, default = 3
         Number of GRU layers in the encoder.
-    n_layers_decoder : int, default = 3
+    n_layers_decoder : int, default = 1
         Number of GRU layers in the decoder.
     dilation_rate_encoder : Union[int, List[int]], default = None
         List of dilation rates for each layer of the encoder.
@@ -122,9 +122,9 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
             assert len(self.n_units_encoder) == self.n_layers_encoder
 
         if self.n_units_decoder is None:
-            self._n_units_decoder = sum(self._n_units_encoder) * 2
+            self._n_units_decoder_ = sum(self._n_units_encoder) * 2
             self._n_units_decoder = [
-                self._n_units_decoder for _ in range(self.n_layers_decoder)
+                self._n_units_decoder_ for _ in range(self.n_layers_decoder)
             ]
         else:
             self._n_units_decoder = self.n_units_decoder
