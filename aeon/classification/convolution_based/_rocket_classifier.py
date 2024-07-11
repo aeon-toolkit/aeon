@@ -57,14 +57,14 @@ class RocketClassifier(BaseClassifier):
         For multi-output, the weights of each column of y will be multiplied.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for both `fit` and `predict`.
+        ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
 
     Attributes
     ----------
@@ -116,19 +116,20 @@ class RocketClassifier(BaseClassifier):
         rocket_transform="rocket",
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
-        class_weight=None,
         estimator=None,
-        random_state=None,
+        class_weight=None,
         n_jobs=1,
+        random_state=None,
     ):
         self.num_kernels = num_kernels
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
-        self.random_state = random_state
-        self.class_weight = class_weight
         self.estimator = estimator
+
+        self.class_weight = class_weight
         self.n_jobs = n_jobs
+        self.random_state = random_state
 
         super().__init__()
 

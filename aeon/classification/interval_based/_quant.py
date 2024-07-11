@@ -91,14 +91,14 @@ class QUANTClassifier(BaseClassifier):
         interval_depth=6,
         quantile_divisor=4,
         estimator=None,
-        random_state=None,
         class_weight=None,
+        random_state=None,
     ):
         self.interval_depth = interval_depth
         self.quantile_divisor = quantile_divisor
         self.estimator = estimator
-        self.random_state = random_state
         self.class_weight = class_weight
+        self.random_state = random_state
         super().__init__()
 
     def _fit(self, X, y):

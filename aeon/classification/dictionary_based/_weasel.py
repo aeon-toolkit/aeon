@@ -144,10 +144,10 @@ class WEASEL(BaseClassifier):
         window_inc=2,
         p_threshold=0.05,
         alphabet_size=4,
-        n_jobs=1,
         feature_selection="chi2",
         support_probabilities=False,
         class_weight=None,
+        n_jobs=1,
         random_state=None,
     ):
         self.alphabet_size = alphabet_size
@@ -158,7 +158,6 @@ class WEASEL(BaseClassifier):
         self.word_lengths = [4, 6]
         self.bigrams = bigrams
         self.binning_strategy = binning_strategy
-        self.random_state = random_state
         self.min_window = 6
         self.max_window = 100
         self.feature_selection = feature_selection
@@ -169,10 +168,14 @@ class WEASEL(BaseClassifier):
         self.n_cases = 0
         self.SFA_transformers = []
         self.clf = None
-        self.n_jobs = n_jobs
         self.support_probabilities = support_probabilities
+
+        self.random_state = random_state
+        self.n_jobs = n_jobs
         self.class_weight = class_weight
+
         set_num_threads(n_jobs)
+
         super().__init__()
 
     def _fit(self, X, y):
