@@ -3,9 +3,11 @@
   "projectOwner": "aeon-toolkit",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "files": ["CONTRIBUTORS.md"],
+  "files": [
+    "CONTRIBUTORS.md"
+  ],
   "imageSize": 80,
-  "commit": "false"
+  "commit": "false",
   "commitConvention": "atom",
   "contributorsPerLine": 8,
   "contributorsSortAlphabetically": true,
@@ -2349,7 +2351,7 @@
         "code",
         "doc",
         "research",
-        "tests",
+        "test",
         "review",
         "data"
       ]
@@ -2436,5 +2438,5 @@
         "doc"
       ]
     }
-  ],
+  ]
 }
