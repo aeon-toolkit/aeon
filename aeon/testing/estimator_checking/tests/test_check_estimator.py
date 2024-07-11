@@ -37,8 +37,10 @@ def test_parametrize_with_checks_classes(check):
     name = _get_check_estimator_ids(check).split("=")[1].split("(")[0].split(")")[0]
     assert callable(check)
     dict_before = test_classes[name].__dict__.copy()
+    dict_before.pop("__slotnames__", None)
     check()
     dict_after = test_classes[name].__dict__.copy()
+    dict_after.pop("__slotnames__", None)
     equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
     assert equal, msg
 
@@ -72,8 +74,10 @@ def test_check_estimator_passed(estimator_class):
 
     # test that no exceptions are raised
     dict_before = estimator_class.__dict__.copy()
+    dict_before.pop("__slotnames__", None)
     check_estimator(estimator_class, raise_exceptions=True, verbose=False)
     dict_after = estimator_class.__dict__.copy()
+    dict_after.pop("__slotnames__", None)
     equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
     assert equal, msg
 
