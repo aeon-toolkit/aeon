@@ -62,8 +62,8 @@ def parametrize_with_checks(
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> @parametrize_with_checks([TimeSeriesForestClassifier, NaiveForecaster])
-    ... def test_aeon_compatible_estimator(estimator, check):
-    ...     check(estimator)
+    ... def test_aeon_compatible_estimator(check):
+    ...     check()
     """
     _check_soft_dependencies("pytest")
 
@@ -73,7 +73,11 @@ def parametrize_with_checks(
     for est in estimators:
         has_dependencies = _check_estimator_deps(est, severity="none")
 
-        for check in _yield_all_aeon_checks(est, use_first_parameter_set=use_first_parameter_set, has_dependencies=has_dependencies):
+        for check in _yield_all_aeon_checks(
+            est,
+            use_first_parameter_set=use_first_parameter_set,
+            has_dependencies=has_dependencies,
+        ):
             checks.append(_check_if_xfail(est, check, has_dependencies))
 
     return pytest.mark.parametrize(
@@ -129,15 +133,17 @@ def check_estimator(
         If None, no checks are excluded (unless excluded elsewhere).
     full_checks_to_run : str or list of str, default=None
         Full check name string(s) of checks to run. This should include the function
-        name of the check to with parameterization, i.e. "MockClassifier()-check_clone"
-        or "MockClassifier()-check_fit_updates_state".
+        name of the check to run with parameterization, i.e.
+        "check_clone(estimator=MockClassifier())" or
+        "check_fit_updates_state(estimator=MockClassifier())".
 
         Checks not passed will be excluded from testing. If None, all checks are run
         (unless excluded elsewhere).
     full_checks_to_exclude : str or list of str, default=None
         Full check name string(s) of checks to exclude. This should include the
         function name of the check to exclude with parameterization, i.e.
-        "MockClassifier()-check_clone" or "MockClassifier()-check_fit_updates_state"
+        "check_clone(estimator=MockClassifier())" or
+        "check_fit_updates_state(estimator=MockClassifier())".
 
         If None, no checks are excluded (unless excluded elsewhere).
     verbose : str, optional, default=False.
@@ -147,8 +153,8 @@ def check_estimator(
     -------
     results : dict of test results
         The test results. Keys are parameterized check strings. The `id` of each check
-        is set to be a pprint version of the estimator and the name of the check with
-        its keyword arguments.
+        is set to be the name of the check with its keyword arguments, including a
+        pprint version of the estimator.
 
         Entries are the string "PASSED" if the test passed, the exception raised if
         the test did not pass, or the reason for skipping the test.
@@ -173,12 +179,16 @@ def check_estimator(
 
     Running specific check for MockClassifier
     >>> check_estimator(MockClassifier, checks_to_run="check_clone")
-    {'MockClassifier()-check_clone': 'PASSED'}
+    {'check_clone(estimator=MockClassifier())': 'PASSED'}
     """
     _check_estimator_deps(estimator)
 
     checks = []
-    for check in _yield_all_aeon_checks(estimator, use_first_parameter_set=use_first_parameter_set, has_dependencies=True):
+    for check in _yield_all_aeon_checks(
+        estimator,
+        use_first_parameter_set=use_first_parameter_set,
+        has_dependencies=True,
+    ):
         checks.append(_check_if_skip(estimator, check, True))
 
     if not isinstance(checks_to_run, (list, tuple)) and checks_to_run is not None:
@@ -203,9 +213,8 @@ def check_estimator(
     skipped = 0
     failed = 0
     results = {}
-    for est, check in checks:
+    for check in checks:
         check_name = _get_check_estimator_ids(check)
-        full_name = f"{_get_check_estimator_ids(est)}-{check_name}"
 
         if checks_to_run is not None and check_name.split("(")[0] not in checks_to_run:
             continue
@@ -214,28 +223,28 @@ def check_estimator(
             and check_name.split("(")[0] in checks_to_exclude
         ):
             continue
-        if full_checks_to_run is not None and full_name not in full_checks_to_run:
+        if full_checks_to_run is not None and check_name not in full_checks_to_run:
             continue
-        if full_checks_to_exclude is not None and full_name in full_checks_to_exclude:
+        if full_checks_to_exclude is not None and check_name in full_checks_to_exclude:
             continue
 
         try:
-            check(est)
+            check()
             if verbose:
                 print(f"PASSED: {name}")  # noqa T001
-            results[full_name] = "PASSED"
+            results[check_name] = "PASSED"
             passed += 1
         except SkipTest as skip:
             if verbose:
                 print(f"SKIPPED: {name}")  # noqa T001
-            results[full_name] = "SKIPPED: " + str(skip)
+            results[check_name] = "SKIPPED: " + str(skip)
             skipped += 1
         except Exception as exception:
             if raise_exceptions:
                 raise exception
             elif verbose:
                 print(f"FAILED: {name}")  # noqa T001
-            results[full_name] = "FAILED: " + str(exception)
+            results[check_name] = "FAILED: " + str(exception)
             failed += 1
 
     if verbose:
@@ -253,9 +262,9 @@ def _check_if_xfail(estimator, check, has_dependencies):
 
     skip, reason, _ = _should_be_skipped(estimator, check, has_dependencies)
     if skip:
-        return pytest.param(estimator, check, marks=pytest.mark.xfail(reason=reason))
+        return pytest.param(check, marks=pytest.mark.xfail(reason=reason))
 
-    return estimator, check
+    return check
 
 
 def _check_if_skip(estimator, check, has_dependencies):
@@ -272,8 +281,8 @@ def _check_if_skip(estimator, check, has_dependencies):
             )
             raise SkipTest(f"Skipping {check_name} for {est_name}: {reason}")
 
-        return estimator, wrapped
-    return estimator, check
+        return wrapped
+    return check
 
 
 def _should_be_skipped(estimator, check, has_dependencies):
@@ -325,11 +334,15 @@ def _get_check_estimator_ids(obj):
         if not obj.keywords:
             return obj.func.__name__
 
-        kwstring = ",".join([f"{k}={v}" for k, v in obj.keywords.items()])
+        kwstring = ",".join(
+            [f"{k}={_get_check_estimator_ids(v)}" for k, v in obj.keywords.items()]
+        )
         return f"{obj.func.__name__}({kwstring})"
+    elif isclass(obj):
+        return obj.__name__
     elif hasattr(obj, "get_params"):
         with config_context(print_changed_only=True):
             s = re.sub(r"\s", "", str(obj))
             return re.sub(r"<function[^)]*>", "func", s)
     else:
-        raise ValueError(f"Unexpected object: {obj}")
+        return obj

@@ -19,34 +19,49 @@ from aeon.utils.validation import get_n_cases
 
 def _yield_classification_checks(estimator_class, estimator_instances, datatypes):
     """Yield all classification checks for an aeon classifier."""
-    # no data needed
-    yield test_classifier_against_expected_results
-    yield test_classifier_tags_consistent
-    yield test_does_not_override_final_methods
+    # only class required
+    yield partial(
+        test_classifier_against_expected_results, estimator_class=estimator_class
+    )
+    yield partial(test_classifier_tags_consistent, estimator_class=estimator_class)
+    yield partial(test_does_not_override_final_methods, estimator_class=estimator_class)
 
     # data type irrelevant
-    if _get_tag(estimator, "capability:contractable"):
-        yield partial(test_contracted_classifier, datatype=datatypes[0])
+    if _get_tag(estimator_class, "capability:contractable", raise_error=True):
+        yield partial(
+            test_contracted_classifier,
+            estimator_class=estimator_class,
+            datatype=datatypes[0][0],
+        )
 
-    if _get_tag(estimator, "capability:train_estimate"):
-        yield partial(test_classifier_train_estimate, datatype=datatypes[0])
+    # test class instances
+    for i, estimator in enumerate(estimator_instances):
+        # data type irrelevant
+        if _get_tag(estimator_class, "capability:train_estimate", raise_error=True):
+            yield partial(
+                test_classifier_train_estimate,
+                estimator=estimator,
+                datatype=datatypes[0][0],
+            )
 
-    if isinstance(estimator, BaseDeepClassifier):
-        yield partial(test_random_state_deep_learning_cls, datatype=datatypes[0])
+        if isinstance(estimator, BaseDeepClassifier):
+            yield partial(
+                check_random_state_deep_learning,
+                estimator=estimator,
+                datatype=datatypes[i][0],
+            )
 
-    # test all data types
-    for datatype in datatypes:
-        yield partial(test_classifier_output, datatype=datatype)
+        # test all data types
+        for datatype in datatypes[i]:
+            yield partial(
+                test_classifier_output, estimator=estimator, datatype=datatype
+            )
 
 
-def test_classifier_against_expected_results(estimator):
+def test_classifier_against_expected_results(estimator_class):
     """Test classifier against stored results."""
     # we only use the first estimator instance for testing
-
-    #todo remove
-    return None
-
-    class_name = type(estimator).__name__
+    class_name = estimator_class.__name__
 
     # We cannot guarantee same results on ARM macOS
     if platform == "darwin":
@@ -70,7 +85,7 @@ def test_classifier_against_expected_results(estimator):
             continue
 
         # we only use the first estimator instance for testing
-        estimator_instance = estimator.create_test_instance(
+        estimator_instance = estimator_class.create_test_instance(
             parameter_set="results_comparison"
         )
         # set random seed if possible
@@ -96,9 +111,8 @@ def test_classifier_against_expected_results(estimator):
         )
 
 
-def test_classifier_tags_consistent(estimator):
+def test_classifier_tags_consistent(estimator_class):
     """Test the tag X_inner_type is consistent with capability:unequal_length."""
-    estimator_class = type(estimator)
     valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
     unequal = estimator_class.get_class_tag("capability:unequal_length")
     if unequal:  # one of X_inner_types must be capable of storing unequal length
@@ -118,9 +132,8 @@ def test_classifier_tags_consistent(estimator):
         inst.predict_proba(X)
 
 
-def test_does_not_override_final_methods(estimator):
+def test_does_not_override_final_methods(estimator_class):
     """Test does not override final methods."""
-    estimator_class = type(estimator)
     final_methods = [
         "fit",
         "predict",
@@ -136,9 +149,11 @@ def test_does_not_override_final_methods(estimator):
             )
 
 
-def test_contracted_classifier(estimator, datatype):
+def test_contracted_classifier(estimator_class, datatype):
     """Test classifiers that can be contracted."""
-    estimator_class = type(estimator)
+    estimator_instance = estimator_class.create_test_instance(
+        parameter_set="contracting"
+    )
 
     default_params = inspect.signature(estimator_class.__init__).parameters
 
@@ -162,7 +177,7 @@ def test_contracted_classifier(estimator, datatype):
         )
 
     # too short of a contract time can lead to test failures
-    if vars(estimator).get("time_limit_in_minutes", None) < 0.5:
+    if vars(estimator_instance).get("time_limit_in_minutes", None) < 0.5:
         raise ValueError(
             "Test parameters for test_contracted_classifier must set "
             "time_limit_in_minutes to 0.5 or more. It is recommended to make "
@@ -171,11 +186,11 @@ def test_contracted_classifier(estimator, datatype):
         )
 
     # run fit and predict
-    estimator.fit(
+    estimator_instance.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
         FULL_TEST_DATA_DICT[datatype]["train"][1],
     )
-    y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    y_pred = estimator_instance.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
 
     # check predict
     assert isinstance(y_pred, np.ndarray)
@@ -226,7 +241,7 @@ def test_classifier_train_estimate(estimator, datatype):
     np.testing.assert_almost_equal(train_proba.sum(axis=1), 1, decimal=4)
 
 
-def test_random_state_deep_learning_cls(estimator, datatype):
+def check_random_state_deep_learning(estimator, datatype):
     """Test Deep Classifier seeding."""
     random_state = 42
 

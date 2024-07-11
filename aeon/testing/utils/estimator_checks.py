@@ -36,8 +36,12 @@ def _run_estimator_method(estimator, method_name, datatype, split):
 
 
 def _get_tag(estimator, tag_name, default=None, raise_error=False):
-    if isclass(estimator):
-        return estimator.get_class_tag(tag_name=tag_name, tag_value_default=default)
+    if estimator is None:
+        return None
+    elif isclass(estimator):
+        return estimator.get_class_tag(
+            tag_name=tag_name, tag_value_default=default, raise_error=raise_error
+        )
     else:
         return estimator.get_tag(
             tag_name=tag_name, tag_value_default=default, raise_error=raise_error

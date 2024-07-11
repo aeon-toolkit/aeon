@@ -10,6 +10,6 @@ ALL_ESTIMATORS = all_estimators(
 
 
 @parametrize_with_checks(ALL_ESTIMATORS)
-def test_all_estimators(estimator, check):
+def test_all_estimators(check):
     """Run general estimator checks on all aeon estimators."""
-    check(estimator)
+    check()
