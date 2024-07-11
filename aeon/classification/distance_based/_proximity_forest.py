@@ -96,7 +96,7 @@ class ProximityForest(BaseClassifier):
 
     def _fit(self, X, y):
         self.classes_ = list(np.unique(y))
-        self.trees_ = Parallel(n_jobs=self.n_jobs)(
+        self.trees_ = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(_fit_tree)(
                 X,
                 y,
@@ -110,7 +110,7 @@ class ProximityForest(BaseClassifier):
         )
 
     def _predict_proba(self, X):
-        output_probas = Parallel(n_jobs=self.n_jobs)(
+        output_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(_predict_proba_tree)(tree, X) for tree in self.trees_
         )
         output_probas = np.sum(output_probas, axis=0)
