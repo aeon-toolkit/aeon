@@ -31,8 +31,8 @@ def parametrize_with_checks(
 ) -> Callable:
     """Pytest specific decorator for parametrizing aeon estimator checks.
 
-    The `id` of each check is set to be a pprint version of the estimator
-    and the name of the check with its keyword arguments.
+    The `id` of each check is set to be the name of the check with its keyword
+    arguments, including a pprint version of the estimator.
 
     This allows to use `pytest -k` to specify which tests to run i.e.
         pytest -k check_fit_updates_state
@@ -69,35 +69,16 @@ def parametrize_with_checks(
 
     import pytest
 
-    def checks_generator():
-        for est in estimators:
-            has_dependencies = _check_estimator_deps(est, severity="none")
+    checks = []
+    for est in estimators:
+        has_dependencies = _check_estimator_deps(est, severity="none")
 
-            if has_dependencies:
-                if isclass(est):
-                    if issubclass(est, BaseEstimator):
-                        est = est.create_test_instance(
-                            return_first=use_first_parameter_set
-                        )
-                    else:
-                        raise TypeError(
-                            f"Passed class {est} is not a subclass of BaseEstimator."
-                        )
-                elif not isinstance(est, BaseEstimator):
-                    raise TypeError(
-                        f"Passed object {est} is not an instance of BaseEstimator."
-                    )
-
-            if not isinstance(est, list):
-                est = [est]
-
-            for e in est:
-                for check in _yield_all_aeon_checks(e):
-                    yield _check_if_xfail(e, check, has_dependencies)
+        for check in _yield_all_aeon_checks(est, use_first_parameter_set=use_first_parameter_set, has_dependencies=has_dependencies):
+            checks.append(_check_if_xfail(est, check, has_dependencies))
 
     return pytest.mark.parametrize(
-        "estimator, check",
-        checks_generator(),
+        "check",
+        checks,
         ids=_get_check_estimator_ids,
     )
 
@@ -196,29 +177,9 @@ def check_estimator(
     """
     _check_estimator_deps(estimator)
 
-    def checks_generator():
-        est = estimator
-        has_dependencies = _check_estimator_deps(est, severity="none")
-
-        if has_dependencies:
-            if isclass(est):
-                if issubclass(est, BaseEstimator):
-                    est = est.create_test_instance(return_first=use_first_parameter_set)
-                else:
-                    raise TypeError(
-                        f"Passed class {est} is not a subclass of BaseEstimator."
-                    )
-            elif not isinstance(est, BaseEstimator):
-                raise TypeError(
-                    f"Passed object {est} is not an instance of BaseEstimator."
-                )
-
-            if not isinstance(est, list):
-                est = [est]
-
-        for e in est:
-            for check in _yield_all_aeon_checks(e):
-                yield _check_if_skip(e, check, has_dependencies)
+    checks = []
+    for check in _yield_all_aeon_checks(estimator, use_first_parameter_set=use_first_parameter_set, has_dependencies=True):
+        checks.append(_check_if_skip(estimator, check, True))
 
     if not isinstance(checks_to_run, (list, tuple)) and checks_to_run is not None:
         checks_to_run = [checks_to_run]
@@ -242,7 +203,7 @@ def check_estimator(
     skipped = 0
     failed = 0
     results = {}
-    for est, check in checks_generator():
+    for est, check in checks:
         check_name = _get_check_estimator_ids(check)
         full_name = f"{_get_check_estimator_ids(est)}-{check_name}"
 

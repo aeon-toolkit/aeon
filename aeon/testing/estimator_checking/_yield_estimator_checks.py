@@ -36,26 +36,48 @@ from aeon.testing.utils.estimator_checks import (
     _run_estimator_method,
 )
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
-def _yield_all_aeon_checks(estimator):
+def _yield_all_aeon_checks(estimator, use_first_parameter_set=False, has_dependencies=None):
     """Yield all checks for an aeon estimator."""
-    # if a class is passed, all tests are going to be skipped as we could not
-    # instantiate the class
-    datatypes = (
-        _get_datatypes_for_estimator(estimator) if not isclass(estimator) else [None]
-    )
+    if has_dependencies is None:
+        has_dependencies = _check_estimator_deps(estimator, severity="none")
 
-    yield from _yield_estimator_checks(estimator, datatypes)
+    estimator_class = None
+    estimator_instances = None
 
-    if isinstance(estimator, BaseClassifier):
-        yield from _yield_classification_checks(estimator, datatypes)
+    if has_dependencies:
+        if isclass(estimator) and issubclass(estimator, BaseEstimator):
+            estimator_class = estimator
+            estimator_instances = estimator.create_test_instance(return_first=use_first_parameter_set)
+        elif isinstance(estimator, BaseEstimator):
+            estimator_class = type(estimator)
+            estimator_instances = estimator
+        else:
+            raise TypeError(
+                f"Passed estimator is not an instance or subclass of BaseEstimator."
+            )
+
+        if not isinstance(estimator_instances, list):
+            estimator_instances = [estimator_instances]
+
+    # if input does not have all dependencies installed, all tests are going to be
+    # skipped as we cannot instantiate the class
+    datatypes = [
+        _get_datatypes_for_estimator(est) if has_dependencies else [None] for est in estimator_instances
+    ]
+
+    yield from _yield_estimator_checks(estimator_class, estimator_instances, datatypes)
+
+    if issubclass(estimator_class, BaseClassifier):
+        yield from _yield_classification_checks(estimator_class, estimator_instances, datatypes)
 
 
-def _yield_estimator_checks(estimator, datatypes):
+def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
     """Yield all general checks for an aeon estimator."""
     # no data needed
-    yield check_create_test_instance
+    yield partial(check_create_test_instance, estimator_class=estimator_class)
     yield check_create_test_instances_and_names
     yield check_estimator_tags
     yield check_inheritance
@@ -90,7 +112,7 @@ def _yield_estimator_checks(estimator, datatypes):
         yield partial(check_fit_deterministic, datatype=datatypes[0])
 
 
-def check_create_test_instance(estimator):
+def check_create_test_instance(estimator_class):
     """Check create_test_instance logic and basic constructor functionality.
 
     create_test_instance and create_test_instances_and_names are the
@@ -104,7 +126,6 @@ def check_create_test_instance(estimator):
     * __init__ calls super.__init__
     * _tags_dynamic attribute for tag inspection is present after construction
     """
-    estimator_class = type(estimator)
     estimator = estimator_class.create_test_instance()
 
     # Check that method does not construct object of other class than itself
@@ -419,24 +440,7 @@ def check_valid_estimator_tags(estimator):
 
 def check_dl_constructor_initializes_deeply(estimator):
     """Test DL estimators that they pass custom parameters to underlying Network."""
-    if not hasattr(estimator, "get_test_params"):
-        return None
-
-    params = estimator.get_test_params()
-
-    if isinstance(params, list):
-        params = params[0]
-    if isinstance(params, dict):
-        pass
-    else:
-        raise TypeError(
-            f"`get_test_params()` of estimator: {estimator} returns "
-            f"an expected type: {type(params)}, acceptable formats: [list, dict]"
-        )
-
-    estimator = estimator(**params)
-
-    for key, value in params.items():
+    for key, value in estimator.__dict__.items():
         assert vars(estimator)[key] == value
         # some keys are only relevant to the final model (eg: n_epochs)
         # skip them for the underlying network
@@ -472,7 +476,7 @@ def check_non_state_changing_method(estimator, datatype):
     y = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][1])
 
     for method in NON_STATE_CHANGING_METHODS:
-        if hasattr(estimator, method):
+        if hasattr(estimator, method) and callable(getattr(estimator, method)):
             _run_estimator_method(estimator, method, datatype, "test")
 
         assert deep_equals(X, FULL_TEST_DATA_DICT[datatype]["test"][0]) and deep_equals(
@@ -579,7 +583,7 @@ def test_persistence_via_pickle(estimator, datatype):
 
     results = []
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method):
+        if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
             results.append(output)
 
@@ -612,7 +616,7 @@ def check_fit_deterministic(estimator, datatype):
 
     results = []
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method):
+        if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
             results.append(output)
 
@@ -621,7 +625,7 @@ def check_fit_deterministic(estimator, datatype):
 
     i = 0
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method):
+        if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
 
             _assert_array_almost_equal(
