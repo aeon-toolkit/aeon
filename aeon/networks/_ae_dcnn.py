@@ -239,7 +239,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
                 _kernel_size=self._kernel_size_decoder[i],
             )
 
-        decoder = tf.keras.Model(inputs=input_layer_decoder, outputs=y)
+        last_layer = tf.keras.layers.Conv1D(filters=input_shape[-1], kernel_size=1)(y)
+        decoder = tf.keras.Model(inputs=input_layer_decoder, outputs=last_layer)
 
         return encoder, decoder
 
