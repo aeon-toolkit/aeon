@@ -162,18 +162,19 @@ class MUSE(BaseClassifier):
         self.word_lengths = [4, 6]
         self.bigrams = bigrams
         self.binning_strategies = ["equi-width", "equi-depth"]
-        self.random_state = random_state
         self.min_window = 6
         self.max_window = 100
         self.window_inc = window_inc
         self.window_sizes = []
         self.SFA_transformers = []
         self.clf = None
-        self.n_jobs = n_jobs
         self.support_probabilities = support_probabilities
         self.total_features_count = 0
-        self.class_weight = class_weight
         self.feature_selection = feature_selection
+
+        self.class_weight = class_weight
+        self.n_jobs = n_jobs
+        self.random_state = random_state
 
         super().__init__()
 

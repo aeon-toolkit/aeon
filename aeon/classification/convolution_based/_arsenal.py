@@ -51,6 +51,17 @@ class Arsenal(BaseClassifier):
         Default of 0 means n_estimators is used.
     contract_max_n_estimators : int, default=100
         Max number of estimators when time_limit_in_minutes is set.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -76,17 +87,6 @@ class Arsenal(BaseClassifier):
         The collections of estimators trained in fit.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
-        From sklearn documentation:
-        If not given, all classes are supposed to have weight one.
-        The “balanced” mode uses the values of y to automatically adjust weights
-        inversely proportional to class frequencies in the input data as
-        n_samples / (n_classes * np.bincount(y))
-        The “balanced_subsample” mode is the same as “balanced” except that weights
-        are computed based on the bootstrap sample for every tree grown.
-        For multi-output, the weights of each column of y will be multiplied.
-        Note that these weights will be multiplied with sample_weight (passed through
-        the fit method) if sample_weight is specified.
     n_estimators_ : int
         The number of estimators in the ensemble.
 
@@ -147,10 +147,10 @@ class Arsenal(BaseClassifier):
         self.n_features_per_kernel = n_features_per_kernel
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
-        self.class_weight = class_weight
 
-        self.random_state = random_state
+        self.class_weight = class_weight
         self.n_jobs = n_jobs
+        self.random_state = random_state
 
         self.n_cases_ = 0
         self.n_channels_ = 0

@@ -138,24 +138,21 @@ class WEASEL_V2(BaseClassifier):
         use_first_differences=(True, False),
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
-        random_state=None,
         class_weight=None,
-        n_jobs=4,
+        n_jobs=1,
+        random_state=None,
     ):
         self.norm_options = norm_options
         self.word_lengths = word_lengths
-
-        self.random_state = random_state
-
         self.min_window = min_window
-
         self.max_feature_count = max_feature_count
         self.use_first_differences = use_first_differences
         self.feature_selection = feature_selection
-        self.class_weight = class_weight
-
         self.clf = None
+
+        self.class_weight = class_weight
         self.n_jobs = n_jobs
+        self.random_state = random_state
 
         super().__init__()
 

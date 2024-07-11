@@ -66,6 +66,8 @@ class RDSTClassifier(BaseClassifier):
     estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
         `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
+    save_transformed_data : bool, default=False
+        If True, the transformed training dataset for all classifiers will be saved.
     class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
         Only applies if estimator is None, and the default is used.
         From sklearn documentation:
@@ -78,8 +80,6 @@ class RDSTClassifier(BaseClassifier):
         For multi-output, the weights of each column of y will be multiplied.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
-    save_transformed_data : bool, default=False
-        If True, the transformed training dataset for all classifiers will be saved.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
@@ -147,10 +147,10 @@ class RDSTClassifier(BaseClassifier):
         threshold_percentiles=None,
         alpha_similarity: float = 0.5,
         use_prime_dilations: bool = False,
+        distance: str = "manhattan",
         estimator=None,
         save_transformed_data: bool = False,
         class_weight=None,
-        distance: str = "manhattan",
         n_jobs: int = 1,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
     ) -> None:
@@ -160,12 +160,13 @@ class RDSTClassifier(BaseClassifier):
         self.threshold_percentiles = threshold_percentiles
         self.alpha_similarity = alpha_similarity
         self.use_prime_dilations = use_prime_dilations
-        self.class_weight = class_weight
         self.distance = distance
         self.estimator = estimator
         self.save_transformed_data = save_transformed_data
+        self.class_weight = class_weight
         self.random_state = random_state
         self.n_jobs = n_jobs
+
         self.transformed_data_ = []
 
         self._transformer = None
