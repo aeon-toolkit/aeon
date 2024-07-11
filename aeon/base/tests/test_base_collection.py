@@ -5,8 +5,8 @@ import pytest
 
 from aeon.base import BaseCollectionEstimator
 from aeon.testing.testing_data import (
-    EQUAL_LENGTH_UNIVARIATE_COLLECTION,
-    UNEQUAL_LENGTH_UNIVARIATE_COLLECTION,
+    EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
+    UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
 )
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_type
@@ -15,7 +15,7 @@ from aeon.utils.validation import get_type
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test__get_metadata(data):
     """Test get meta data."""
-    X = EQUAL_LENGTH_UNIVARIATE_COLLECTION[data]
+    X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     meta = BaseCollectionEstimator._get_metadata(X)
     assert not meta["multivariate"]
     assert not meta["missing_values"]
@@ -71,7 +71,7 @@ def test__convert_X(internal_type, data):
     """
     cls = BaseCollectionEstimator()
     # Equal length should default to numpy3D
-    X = EQUAL_LENGTH_UNIVARIATE_COLLECTION[data]
+    X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     cls.metadata_ = cls._check_X(X)
     X2 = cls._convert_X(X)
     assert get_type(X2) == cls.get_tag("X_inner_type")
@@ -91,11 +91,11 @@ def test__convert_X(internal_type, data):
     cls.set_tags(**{"X_inner_type": ["nested_univ", internal_type]})
     X2 = cls._convert_X(X)
     assert get_type(X2) == internal_type
-    if data in UNEQUAL_LENGTH_UNIVARIATE_COLLECTION.keys():
-        if internal_type in UNEQUAL_LENGTH_UNIVARIATE_COLLECTION.keys():
+    if data in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys():
+        if internal_type in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys():
             cls.set_tags(**{"capability:unequal_length": True})
             cls.set_tags(**{"X_inner_type": ["nested_univ", "np-list", internal_type]})
-            X = UNEQUAL_LENGTH_UNIVARIATE_COLLECTION[data]
+            X = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
             X2 = cls._convert_X(X)
             assert get_type(X2) == "np-list"
 
@@ -103,7 +103,7 @@ def test__convert_X(internal_type, data):
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_preprocess_collection(data):
     """Test the functionality for preprocessing fit."""
-    data = EQUAL_LENGTH_UNIVARIATE_COLLECTION[data]
+    data = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     cls = BaseCollectionEstimator()
     X = cls._preprocess_collection(data)
     assert cls._n_jobs == 1

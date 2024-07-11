@@ -60,8 +60,9 @@ def parametrize_with_checks(
     --------
     >>> from aeon.testing.estimator_checking import parametrize_with_checks
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> @parametrize_with_checks([TimeSeriesForestClassifier, NaiveForecaster])
+    >>> from aeon.regression.interval_based import TimeSeriesForestRegressor
+    >>> @parametrize_with_checks(
+    ...                     [TimeSeriesForestClassifier, TimeSeriesForestRegressor])
     ... def test_aeon_compatible_estimator(check):
     ...     check()
     """
