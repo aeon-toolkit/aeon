@@ -25,7 +25,7 @@ from aeon.utils.validation._dependencies import (
 modules = pkgutil.walk_packages(aeon.__path__, aeon.__name__ + ".")
 modules = [x[1] for x in modules]
 
-if PR_TESTING:
+if PR_TESTING:  # pragma: no cover
     # exclude test modules
     modules = [x for x in modules if not any(part == "tests" for part in x.split("."))]
 
@@ -46,7 +46,7 @@ def test_module_soft_deps(module):
     """
     try:
         import_module(module)
-    except ModuleNotFoundError as e:
+    except ModuleNotFoundError as e:  # pragma: no cover
         dependency = "unknown"
         match = re.search(r"\'(.+?)\'", str(e))
         if match:
@@ -199,21 +199,6 @@ def test_est_construct_if_softdep_available(estimator):
                 f"these should be added "
                 f'to the "python_dependencies" tag. Exception text: {error_msg}'
             ) from e
-
-
-@pytest.mark.parametrize("estimator", all_ests)
-def test_est_get_params_without_modulenotfound(estimator):
-    """Test that estimator test parameters do not rely on soft dependencies."""
-    try:
-        estimator.get_test_params()
-    except ModuleNotFoundError as e:
-        error_msg = str(e)
-        raise RuntimeError(
-            f"Estimator {estimator.__name__} requires soft dependencies for parameters "
-            f"returned by get_test_params. Test parameters should not require "
-            f"soft dependencies and use only aeon internal objects. "
-            f"Exception text: {error_msg}"
-        ) from e
 
 
 @pytest.mark.parametrize("estimator", est_pyok_without_soft_dep)

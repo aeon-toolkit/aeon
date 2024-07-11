@@ -168,7 +168,7 @@ tools, practices and systems used. This project will help members of the `aeon`
 team who are currently researching techniques for EEG classification [1] and
 developing an aeon sister toolkit, [``aeon-neuro``](https://github.com/aeon-toolkit/aeon-neuro). We will work together to
 improve the structure and documentation for aeon-neuro, help integrate the
-toolkit with existing EEG toolkits such as NM [2], provide interfaces to standard data
+toolkit with existing EEG toolkits such as MNE [2], provide interfaces to standard data
 formats such as BIDS [3] and help develop and assess a range of EEG classification
 algorithms.
 

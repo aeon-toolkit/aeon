@@ -9,7 +9,7 @@ import pytest
 
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.forecasting.naive import NaiveForecaster
-from aeon.testing.data_generation import make_forecasting_problem
+from aeon.testing.data_generation._legacy import make_forecasting_problem
 from aeon.transformations.impute import Imputer
 
 y, X = make_forecasting_problem(make_X=True)
