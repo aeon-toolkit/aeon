@@ -163,7 +163,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
             n_layers_encoder=self.n_layers_encoder,
             n_layers_decoder=self.n_layers_decoder,
             dilation_rate_encoder=self.dilation_rate_encoder,
-            dilation_rate_encoder=self.dilation_rate_decoder,
+            dilation_rate_decoder=self.dilation_rate_decoder,
             activation_encoder=self.activation_encoder,
             activation_decoder=self.activation_decoder,
             n_units_decoder=self.n_units_encoder,
