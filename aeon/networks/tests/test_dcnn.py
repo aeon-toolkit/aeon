@@ -13,20 +13,19 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="Tensorflow soft dependency unavailable.",
 )
 @pytest.mark.parametrize(
-    "latent_space_dim,num_layers,temporal_latent_space",
+    "latent_space_dim,num_layers",
     [
-        (32, 1, True),
-        (128, 2, False),
-        (256, 3, True),
-        (64, 4, False),
+        (32, 1),
+        (128, 2),
+        (256, 3),
+        (64, 4),
     ],
 )
-def test_dcnnnetwork_init(latent_space_dim, num_layers, temporal_latent_space):
+def test_dcnnnetwork_init(latent_space_dim, num_layers):
     """Test whether DCNNNetwork initializes correctly for various parameters."""
     dcnnnet = DCNNNetwork(
         latent_space_dim=latent_space_dim,
         num_layers=num_layers,
-        temporal_latent_space=temporal_latent_space,
         activation=random.choice(["relu", "tanh"]),
         num_filters=[random.choice([50, 25, 100]) for _ in range(num_layers)],
     )
@@ -44,7 +43,6 @@ def test_dcnnnetwork_activations(activation):
     dcnnnet = DCNNNetwork(
         latent_space_dim=64,
         num_layers=2,
-        temporal_latent_space=True,
         activation=activation,
         num_filters=[50, 50],
     )
