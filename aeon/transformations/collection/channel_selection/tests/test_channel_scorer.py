@@ -1,5 +1,6 @@
 """Test channel scorer channel selector."""
 
+import numpy as np
 import pytest
 
 from aeon.testing.data_generation import make_example_3d_numpy
@@ -11,10 +12,11 @@ def test_channel_scorer():
     """Test the channel scorer."""
     # Test selects the correct number of channels
     cs = ChannelScorer(classifier=MockClassifierFullTags(), proportion=0.5)
-    X, y = make_example_3d_numpy(n_channels=10)
+    X, _ = make_example_3d_numpy(n_cases=20, n_channels=10)
+    y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
     cs.fit(X, y)
     assert len(cs.channels_selected_) == 5
-    X, y = make_example_3d_numpy(n_channels=9)
+    X, _ = make_example_3d_numpy(n_cases=20, n_channels=9)
     assert len(cs.channels_selected_) == 5
     with pytest.raises(ValueError, match="proportion must be in the range 0-1"):
         cs = ChannelScorer(classifier=MockClassifierFullTags(), proportion=1.1)
