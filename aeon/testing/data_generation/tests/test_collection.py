@@ -1,4 +1,4 @@
-"""Tests for datagen functions."""
+"""Tests for collection data generation functions."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
 
@@ -7,8 +7,8 @@ import pandas as pd
 import pytest
 
 from aeon.testing.data_generation import (
-    make_example_2d_dataframe,
-    make_example_2d_numpy,
+    make_example_2d_dataframe_collection,
+    make_example_2d_numpy_collection,
     make_example_2d_numpy_list,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
@@ -60,7 +60,7 @@ def test_make_example_3d_numpy(
 @pytest.mark.parametrize("regression", REGRESSION)
 def test_make_example_2d_numpy(n_cases, n_timepoints, n_classes, regression):
     """Test generated numpy2d data is in the correct format."""
-    X, y = make_example_2d_numpy(
+    X, y = make_example_2d_numpy_collection(
         n_cases=n_cases,
         n_timepoints=n_timepoints,
         n_labels=n_classes,
@@ -203,7 +203,7 @@ def test_make_example_dataframe_list(
 @pytest.mark.parametrize("regression", REGRESSION)
 def test_make_example_2d_dataframe(n_cases, n_timepoints, n_classes, regression):
     """Test generated pd-wide data is in the correct format."""
-    X, y = make_example_2d_dataframe(
+    X, y = make_example_2d_dataframe_collection(
         n_cases=n_cases,
         n_timepoints=n_timepoints,
         n_labels=n_classes,

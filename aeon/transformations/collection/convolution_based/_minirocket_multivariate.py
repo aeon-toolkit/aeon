@@ -6,11 +6,20 @@ __all__ = ["MiniRocketMultivariate"]
 import multiprocessing
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
 
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="MiniRocketMultivariate will be removed in version "
+    "0.11.0, please use MiniRocket which now has the capability to handle "
+    "multivariate time series.",
+    category=FutureWarning,
+)
 class MiniRocketMultivariate(BaseCollectionTransformer):
     """MINImally RandOm Convolutional KErnel Transform (MiniRocket) multivariate.
 
@@ -33,7 +42,7 @@ class MiniRocketMultivariate(BaseCollectionTransformer):
 
     See Also
     --------
-    MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate, Rocket
+    MiniRocket, Rocket
 
     References
     ----------

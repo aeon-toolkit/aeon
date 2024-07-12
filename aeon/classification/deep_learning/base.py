@@ -45,7 +45,6 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         "non-deterministic": True,
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
-        "python_version": "<3.12",
     }
 
     def __init__(
@@ -189,3 +188,17 @@ class BaseDeepClassifier(BaseClassifier, ABC):
 
         self.classes_ = classes
         self.n_classes_ = len(self.classes_)
+
+    def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
+        import tensorflow as tf
+
+        model_checkpoint_ = tf.keras.callbacks.ModelCheckpoint(
+            filepath=file_path + file_name + ".keras",
+            monitor="loss",
+            save_best_only=True,
+        )
+
+        if isinstance(callbacks, list):
+            return callbacks + [model_checkpoint_]
+        else:
+            return [callbacks] + [model_checkpoint_]
