@@ -4,13 +4,29 @@ import numpy as np
 from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_cardano_sentiment, load_covid_3month
-from aeon.regression.convolution_based import HydraRegressor, MultiRocketHydraRegressor, RocketRegressor
+from aeon.regression.convolution_based import (
+    HydraRegressor,
+    MultiRocketHydraRegressor,
+    RocketRegressor
+)
 from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
 from aeon.regression.feature_based import (
     Catch22Regressor,
     FreshPRINCERegressor,
     SummaryRegressor,
     TSFreshRegressor,
+)
+from aeon.regression.hybrid import RISTRegressor
+from aeon.regression.interval_based import (
+    CanonicalIntervalForestRegressor,
+    DrCIFRegressor,
+    IntervalForestRegressor,
+    RandomIntervalRegressor,
+    RandomIntervalSpectralEnsembleRegressor,
+    TimeSeriesForestRegressor,
+)
+from aeon.regression.shapelet_based import (
+    RDSTRegressor,
 )
 
 def _reproduce_regression_covid_3month(estimator):
@@ -76,10 +92,40 @@ def _print_results_for_regressor(regressor_name, dataset_name):
         regressor = KNeighborsTimeSeriesRegressor.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif regressor_name == "RISTRegressor":
+        regressor = RISTRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif regressor_name == "CanonicalIntervalForestRegressor":
+        regressor = CanonicalIntervalForestRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif regressor_name == "DrCIFRegressor":
+        regressor = DrCIFRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif regressor_name == "IntervalForestRegressor":
+        regressor = IntervalForestRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif regressor_name == "RandomIntervalRegressor":
+        regressor = RandomIntervalRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif regressor_name == "RandomIntervalSpectralEnsembleRegressor":
+        regressor = RandomIntervalSpectralEnsembleRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif regressor_name == "TimeSeriesForestRegressor":
+        regressor = TimeSeriesForestRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif regressor_name == "RDSTRegressor":
+        regressor = RDSTRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
     else:
         raise ValueError(f"Unknown regressor: {regressor_name}")
-    
-    
     if dataset_name == "Covid3Month":
         data_function = _reproduce_regression_covid_3month
     elif dataset_name == "CardanoSentiment":
@@ -97,4 +143,4 @@ def _print_results_for_regressor(regressor_name, dataset_name):
 
 if __name__ == "__main__":
     # change as required when adding new classifiers, datasets or updating results
-    _print_results_for_regressor("KNeighborsTimeSeriesRegressor", "CardanoSentiment")
+    _print_results_for_regressor("FreshPRINCERegressor", "Covid3Month")
