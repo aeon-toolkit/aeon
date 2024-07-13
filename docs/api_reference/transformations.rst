@@ -299,24 +299,6 @@ Missing value imputation
 
     Imputer
 
-Seasonality and Date-Time Features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.date
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DateTimeFeatures
-
-.. currentmodule:: aeon.transformations.fourier
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FourierFeatures
 
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
