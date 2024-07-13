@@ -113,7 +113,6 @@ Shapelets, wavelets and convolution
     MiniRocket
     MiniRocketMultivariateVariable
     MultiRocket
-    MultiRocketMultivariate
 
 .. currentmodule:: aeon.transformations.collection.dwt
 
@@ -257,14 +256,6 @@ Filtering and denoising
 
     BKFilter
 
-.. currentmodule:: aeon.transformations.theta
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ThetaLinesTransformer
-
 Slope
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -372,8 +363,10 @@ These transformers select features in `X` based on `y`.
     :toctree: auto_generated/
     :template: class.rst
 
+    ChannelScorer
     ElbowClassSum
     ElbowClassPairwise
+    RandomChannelSelector
 
 Panel transformers
 ------------------

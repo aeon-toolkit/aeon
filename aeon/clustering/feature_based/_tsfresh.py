@@ -182,8 +182,15 @@ class TSFreshClusterer(BaseClusterer):
             return self._estimator.predict_proba(self._transformer.transform(X))
         else:
             preds = self._estimator.predict(self._transformer.transform(X))
-            dists = np.zeros((X.shape[0], np.unique(preds).shape[0]))
-            for i in range(0, X.shape[0]):
+            unique = np.unique(preds)
+            for i, u in enumerate(unique):
+                preds[preds == u] = i
+            n_cases = len(preds)
+            n_clusters = self.n_clusters
+            if n_clusters is None:
+                n_clusters = int(max(preds)) + 1
+            dists = np.zeros((X.shape[0], n_clusters))
+            for i in range(n_cases):
                 dists[i, preds[i]] = 1
             return dists
 
