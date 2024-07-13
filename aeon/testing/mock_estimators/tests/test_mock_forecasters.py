@@ -22,7 +22,7 @@ from aeon.testing.mock_estimators._mock_forecasters import (
 )
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.boxcox import BoxCoxTransformer
+from aeon.transformations.series._boxcox import BoxCoxTransformer
 
 y_series = load_airline().iloc[:-5]
 y_frame = y_series.to_frame()
