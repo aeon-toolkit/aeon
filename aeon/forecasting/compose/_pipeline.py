@@ -414,8 +414,8 @@ class ForecastingPipeline(_Pipeline):
             concatenation of `other` (first) with `self` (last).
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
+        from aeon.transformations._legacy.compose import TransformerPipeline
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.compose import TransformerPipeline
 
         _, ests = zip(*self.steps_)
         names = tuple(self._get_estimator_names(self.steps))
@@ -855,8 +855,8 @@ class TransformedTargetForecaster(_Pipeline):
             concatenation of `self` (first) with `other` (last).
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
+        from aeon.transformations._legacy.compose import TransformerPipeline
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.compose import TransformerPipeline
 
         # we don't use names but _get_estimator_names to get the *original* names
         #   to avoid multiple "make unique" calls which may grow strings too much
@@ -900,8 +900,8 @@ class TransformedTargetForecaster(_Pipeline):
             concatenation of `other` (first) with `self` (last).
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
+        from aeon.transformations._legacy.compose import TransformerPipeline
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.compose import TransformerPipeline
 
         _, ests = zip(*self.steps_)
         names = tuple(self._get_estimator_names(self.steps))
