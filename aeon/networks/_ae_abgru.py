@@ -107,8 +107,6 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
         elif self.latent_space_dim is not None:
             self.n_filters_RNN = self.latent_space_dim
 
-        self._gate = tf.keras.layers.Dense(self.n_filters_RNN, activation="sigmoid")
-
         for i in range(self.n_layers_encoder):
             forward_layer = tf.keras.layers.GRU(
                 self.n_filters_RNN,
@@ -127,7 +125,8 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
             value = tf.keras.layers.Dense(self.n_filters_RNN)(backward_layer)
 
             attention_layer = tf.keras.layers.Attention()([query, key, value])
-            x = self._gate(attention_layer) * attention_layer
+            x = tf.keras.layers.Dense(self.n_filters_RNN, activation="sigmoid")(x)
+            x = x * attention_layer
 
         if not self.temporal_latent_space:
             shape_before_flatten = x.shape[1:]
