@@ -246,15 +246,10 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
             callbacks=self.callbacks_,
         )
 
-        from aeon.networks._ae_abgru import _AttentionLayer
-
-        _custom_objects = {"_AttentionLayer": _AttentionLayer}
-
         try:
             self.model_ = tf.keras.models.load_model(
                 self.file_path + self.file_name_ + ".keras",
                 compile=False,
-                custom_objects=_custom_objects,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
