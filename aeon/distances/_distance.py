@@ -59,6 +59,7 @@ from aeon.distances._shape_dtw import (
     shape_dtw_pairwise_distance,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
+from aeon.distances._swale import swale_distance, swale_pairwise_distance
 from aeon.distances._twe import (
     twe_alignment_path,
     twe_cost_matrix,
@@ -249,6 +250,14 @@ def distance(
         )
     elif metric == "sbd":
         return sbd_distance(x, y, kwargs.get("standardize", True))
+    elif metric == "swale":
+        return swale_distance(
+            x,
+            y,
+            kwargs.get("gapc", 1.0),
+            kwargs.get("rewardm", 1.0),
+            kwargs.get("epsilon", 1.0),
+        )
     else:
         if isinstance(metric, Callable):
             return metric(x, y, **kwargs)
@@ -419,6 +428,14 @@ def pairwise_distance(
         )
     elif metric == "sbd":
         return sbd_pairwise_distance(x, y, kwargs.get("standardize", True))
+    elif metric == "swale":
+        return swale_pairwise_distance(
+            x,
+            y,
+            kwargs.get("gapc", 1.0),
+            kwargs.get("rewardm", 1.0),
+            kwargs.get("epsilon", 1.0),
+        )
     else:
         if isinstance(metric, Callable):
             return _custom_func_pairwise(x, y, metric, **kwargs)
@@ -804,6 +821,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
     'manhattan'     distances.manhattan_distance
     'minkowski'     distances.minkowski_distance
     'sbd'           distances.sbd_distance
+    'swale          distances.swale_distance
     =============== ========================================
 
     Parameters
@@ -861,6 +879,7 @@ def get_pairwise_distance_function(
     'manhattan'     distances.manhattan_pairwise_distance
     'minkowski'     distances.minkowski_pairwise_distance
     'sbd'           distances.sbd_pairwise_distance
+    'swale'         disrances.swale_pairwise_distance
     =============== ========================================
 
     Parameters
@@ -1113,6 +1132,11 @@ DISTANCES = [
         "name": "sbd",
         "distance": sbd_distance,
         "pairwise_distance": sbd_pairwise_distance,
+    },
+    {
+        "name": "swale",
+        "distance": swale_distance,
+        "pairwise_distance": swale_pairwise_distance,
     },
 ]
 
