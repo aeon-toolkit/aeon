@@ -218,3 +218,34 @@ cardano_sentiment_preds["RocketRegressor"] = np.array(
         0.1844,
     ]
 )
+
+covid_3month_preds["KNeighborsTimeSeriesRegressor"] = np.array(
+    [
+        0.0081,
+        0.1111,
+        0.0408,
+        0.0212,
+        0.0557,
+        0.0408,
+        0.0818,
+        0.1111,
+        0.1111,
+        0.0,
+    ]
+)
+
+cardano_sentiment_preds["KNeighborsTimeSeriesRegressor"] = np.array(
+    [
+        0.3503,
+        -0.101,
+        0.3847,
+        0.0,
+        0.3847,
+        0.0,
+        0.178,
+        0.0,
+        0.0,
+        0.3847,
+    ]
+)
+

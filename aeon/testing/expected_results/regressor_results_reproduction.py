@@ -4,8 +4,15 @@ import numpy as np
 from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_cardano_sentiment, load_covid_3month
-from aeon.regression.feature_based import FreshPRINCERegressor, Catch22Regressor, SummaryRegressor, TSFreshRegressor
+from aeon.regression.feature_based import (
+    Catch22Regressor,
+    FreshPRINCERegressor,
+    SummaryRegressor,
+    TSFreshRegressor,
+)
 from aeon.regression.convolution_based import HydraRegressor, MultiRocketHydraRegressor, RocketRegressor
+from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
+
 
 def _reproduce_regression_covid_3month(estimator):
     X_train, y_train = load_covid_3month(split="train")
@@ -66,9 +73,13 @@ def _print_results_for_regressor(regressor_name, dataset_name):
         regressor = RocketRegressor.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif regressor_name == "KNeighborsTimeSeriesRegressor":
+        regressor = KNeighborsTimeSeriesRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
     else:
         raise ValueError(f"Unknown regressor: {regressor_name}")
-        
+    
     if dataset_name == "Covid3Month":
         data_function = _reproduce_regression_covid_3month
     elif dataset_name == "CardanoSentiment":
@@ -86,4 +97,4 @@ def _print_results_for_regressor(regressor_name, dataset_name):
 
 if __name__ == "__main__":
     # change as required when adding new classifiers, datasets or updating results
-    _print_results_for_regressor("RocketRegressor", "Covid3Month")
+    _print_results_for_regressor("KNeighborsTimeSeriesRegressor", "CardanoSentiment")
