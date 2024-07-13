@@ -4,18 +4,11 @@ __maintainer__ = []
 __all__ = ["TabularToSeriesAdaptor"]
 
 import numpy as np
-from deprecated.sphinx import deprecated
 from sklearn.base import clone
 
 from aeon.transformations.base import BaseTransformer
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="TabularToSeriesAdaptor will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class TabularToSeriesAdaptor(BaseTransformer):
     """
     Adapt scikit-learn transformation interface to time series setting.
