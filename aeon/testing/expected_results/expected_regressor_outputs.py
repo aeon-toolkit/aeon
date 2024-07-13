@@ -128,3 +128,93 @@ cardano_sentiment_preds["TSFreshRegressor"] = np.array(
         0.2973,
     ]
 )
+
+covid_3month_preds["HydraRegressor"] = np.array(
+    [
+        -0.0073,
+        0.0516,
+        0.0378,
+        0.0439,
+        0.0247,
+        0.0426,
+        0.0272,
+        0.054,
+        0.0484,
+        0.044,
+    ]
+)
+
+cardano_sentiment_preds["HydraRegressor"] = np.array(
+    [
+        0.5925,
+        0.2068,
+        0.5268,
+        0.2383,
+        0.4586,
+        0.1701,
+        0.2336,
+        0.1333,
+        0.0025,
+        0.4788,
+    ]
+)
+
+covid_3month_preds["MultiRocketHydraRegressor"] = np.array(
+    [
+        -0.0751,
+        0.0604,
+        0.0315,
+        0.0376,
+        0.022,
+        0.0337,
+        0.0249,
+        0.0835,
+        0.1012,
+        0.029,
+    ]
+)
+
+cardano_sentiment_preds["MultiRocketHydraRegressor"] = np.array(
+    [
+        0.423,
+        0.2261,
+        0.5539,
+        0.1887,
+        0.4114,
+        0.0997,
+        0.1863,
+        0.0313,
+        -0.1093,
+        0.4305,
+    ]
+)
+
+covid_3month_preds["RocketRegressor"] = np.array(
+    [
+        0.0381,
+        0.0379,
+        0.0379,
+        0.0368,
+        0.04,
+        0.0375,
+        0.0387,
+        0.0419,
+        0.0371,
+        0.0371,
+    ]
+)
+
+cardano_sentiment_preds["RocketRegressor"] = np.array(
+    [
+        0.1841,
+        0.1884,
+        0.1882,
+        0.1879,
+        0.1862,
+        0.1817,
+        0.1858,
+        0.1894,
+        0.1845,
+        0.1844,
+    ]
+)

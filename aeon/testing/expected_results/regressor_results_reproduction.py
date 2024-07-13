@@ -5,7 +5,7 @@ from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_cardano_sentiment, load_covid_3month
 from aeon.regression.feature_based import FreshPRINCERegressor, Catch22Regressor, SummaryRegressor, TSFreshRegressor
-
+from aeon.regression.convolution_based import HydraRegressor, MultiRocketHydraRegressor, RocketRegressor
 
 def _reproduce_regression_covid_3month(estimator):
     X_train, y_train = load_covid_3month(split="train")
@@ -54,6 +54,18 @@ def _print_results_for_regressor(regressor_name, dataset_name):
         regressor = TSFreshRegressor.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif regressor_name == "HydraRegressor":
+        regressor = HydraRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif regressor_name == "MultiRocketHydraRegressor":
+        regressor = MultiRocketHydraRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif regressor_name == "RocketRegressor":
+        regressor = RocketRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
     else:
         raise ValueError(f"Unknown regressor: {regressor_name}")
         
@@ -74,4 +86,4 @@ def _print_results_for_regressor(regressor_name, dataset_name):
 
 if __name__ == "__main__":
     # change as required when adding new classifiers, datasets or updating results
-    _print_results_for_regressor("TSFreshRegressor", "CardanoSentiment")
+    _print_results_for_regressor("RocketRegressor", "Covid3Month")
