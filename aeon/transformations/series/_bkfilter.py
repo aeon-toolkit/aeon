@@ -49,8 +49,9 @@ class BKFilter(BaseSeriesTransformer):
     >>> from aeon.transformations.series._bkfilter import BKFilter
     >>> X = np.random.random((1,100)) # Random series length 100
     >>> bk = BKFilter()
-    # >>> X2 = bk.fit_transform(X)
-    # >>> X2.shape
+    >>> X2 = bk.fit_transform(X)
+    >>> X2.shape
+    (1, 76)
     """
 
     _tags = {
