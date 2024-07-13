@@ -7,7 +7,7 @@ import pytest
 
 from aeon.datasets import load_gunpoint
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
-from aeon.transformations.summarize import FittedParamExtractor
+from aeon.transformations._legacy.summarize import FittedParamExtractor
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 X_train, y_train = load_gunpoint("train", return_type="nested_univ")

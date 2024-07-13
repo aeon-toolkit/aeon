@@ -22,7 +22,6 @@ from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.detrend import Detrender
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.impute import Imputer
-from aeon.transformations.outlier_detection import HampelFilter
 from aeon.utils.index_functions import get_window
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -73,8 +72,7 @@ def test_skip_inverse_transform():
     y_train, y_test = temporal_train_test_split(y)
     forecaster = TransformedTargetForecaster(
         [
-            ("t1", HampelFilter(window_length=12)),
-            ("t2", Imputer(method="mean")),
+            ("t1", Imputer(method="mean")),
             ("forecaster", NaiveForecaster()),
         ]
     )
