@@ -125,7 +125,7 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
             value = tf.keras.layers.Dense(self.n_filters_RNN)(backward_layer)
 
             attention_layer = tf.keras.layers.Attention()([query, key, value])
-            x = tf.keras.layers.Dense(self.n_filters_RNN, activation="sigmoid")(x)
+            x = tf.keras.layers.Dense(self.n_filters_RNN, activation="sigmoid")(attention_layer)
             x = x * attention_layer
 
         if not self.temporal_latent_space:
