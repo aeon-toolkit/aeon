@@ -68,3 +68,33 @@ cardano_sentiment_preds["Catch22Regressor"] = np.array(
         0.3773,
     ]
 )
+
+covid_3month_preds["RandomForestRegressor"] = np.array(
+    [
+        0.0319,
+        0.0505,
+        0.0082,
+        0.0291,
+        0.028,
+        0.0266,
+        0.0239,
+        0.0946,
+        0.0946,
+        0.0251,
+    ]
+)
+
+cardano_sentiment_preds["SummaryRegressor"] = np.array(
+    [
+        0.3172,
+        0.5002,
+        0.3072,
+        0.4486,
+        0.1765,
+        0.4664,
+        0.0828,
+        0.251,
+        0.0402,
+        0.2641,
+    ]
+)

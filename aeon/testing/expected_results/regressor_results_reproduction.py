@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.utils._testing import set_random_state
 
 from aeon.datasets import load_cardano_sentiment, load_covid_3month
-from aeon.regression.feature_based import FreshPRINCERegressor, Catch22Regressor
+from aeon.regression.feature_based import FreshPRINCERegressor, Catch22Regressor, SummaryRegressor
 
 
 def _reproduce_regression_covid_3month(estimator):
@@ -46,6 +46,10 @@ def _print_results_for_regressor(regressor_name, dataset_name):
         regressor = Catch22Regressor.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif regressor_name == "SummaryRegressor":
+        regressor = SummaryRegressor.create_test_instance(
+            parameter_set="results_comparison"
+        )
     else:
         raise ValueError(f"Unknown regressor: {regressor_name}")
         
@@ -66,4 +70,4 @@ def _print_results_for_regressor(regressor_name, dataset_name):
 
 if __name__ == "__main__":
     # change as required when adding new classifiers, datasets or updating results
-    _print_results_for_regressor("Catch22Regressor", "CardanoSentiment")
+    _print_results_for_regressor("SummaryRegressor", "Covid3Month")
