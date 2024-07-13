@@ -2,11 +2,20 @@ import multiprocessing
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="MultiRocketMultivariate will be removed in version "
+    "0.11.0, please use MultiRocket which now has the capability to handle "
+    "multivariate time series.",
+    category=FutureWarning,
+)
 class MultiRocketMultivariate(BaseCollectionTransformer):
     """Multi RandOm Convolutional KErnel Transform (MultiRocket).
 
@@ -38,10 +47,10 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
     Attributes
     ----------
     parameter : tuple
-        Parameter (dilations, num_features_per_dilation, biases) for
+        Parameter (dilations, n_features_per_dilation, biases) for
         transformation of input `X`.
     parameter1 : tuple
-        Parameter (dilations, num_features_per_dilation, biases) for
+        Parameter (dilations, n_features_per_dilation, biases) for
         transformation of input ``X1 = np.diff(X, 1)``.
 
 
@@ -56,20 +65,6 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
     for fast and effective time series classification",2022,
     https://link.springer.com/article/10.1007/s10618-022-00844-1
     https://arxiv.org/abs/2102.00457
-
-    Examples
-    --------
-    >>> from aeon.transformations.collection.convolution_based import (
-    ...     MultiRocketMultivariate
-    ... )
-     >>> from aeon.datasets import load_basic_motions
-     >>> X_train, y_train = load_basic_motions(split="train")
-     >>> X_test, y_test = load_basic_motions(split="test")
-     >>> trf = MultiRocketMultivariate(num_kernels=512)
-     >>> trf.fit(X_train)
-     MultiRocketMultivariate(num_kernels=512)
-     >>> X_train = trf.transform(X_train)
-     >>> X_test = trf.transform(X_test)
     """
 
     _tags = {
@@ -112,6 +107,9 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
         -------
         self
         """
+        if self.random_state is not None:
+            np.random.seed(self.random_state)
+
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
@@ -125,7 +123,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
             X = _X1
             del _X1
 
-        X = X.astype(np.float64)
+        X = X.astype(np.float32)
 
         self.parameter = self._get_parameter(X)
         _X1 = np.diff(X, 1)
@@ -151,7 +149,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
-
+        X = X.astype(np.float32)
         _X1 = np.diff(X, 1)
 
         # change n_jobs dependend on value and existing cores
@@ -232,7 +230,7 @@ class MultiRocketMultivariate(BaseCollectionTransformer):
 
 
 @njit(
-    "float32[:](float64[:,:,:],int32[:],int32[:],int32[:],int32[:],float32[:],"
+    "float32[:](float32[:,:,:],int32[:],int32[:],int32[:],int32[:],float32[:],"
     "optional(int64))",
     fastmath=True,
     parallel=False,
@@ -630,7 +628,7 @@ def _quantiles(n):
 
 
 @njit(
-    "float32[:,:](float64[:,:,:],float64[:,:,:],"
+    "float32[:,:](float32[:,:,:],float32[:,:,:],"
     "Tuple((int32[:],int32[:],int32[:],int32[:],float32[:])),"
     "Tuple((int32[:],int32[:],int32[:],int32[:],float32[:])),int32)",
     fastmath=True,

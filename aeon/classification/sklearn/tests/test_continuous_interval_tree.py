@@ -2,16 +2,19 @@
 
 import numpy as np
 import pytest
+from sklearn.exceptions import NotFittedError
 
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.classification.sklearn._continuous_interval_tree import _TreeNode
-from aeon.exceptions import NotFittedError
-from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
+from aeon.testing.data_generation import (
+    make_example_2d_numpy_collection,
+    make_example_3d_numpy,
+)
 
 
 def test_predict_proba():
     """Test ContinuousIntervalTree predict_proba."""
-    X, y = make_example_2d_numpy(n_cases=5, n_labels=1)
+    X, y = make_example_2d_numpy_collection(n_cases=5, n_labels=1)
     cit = ContinuousIntervalTree(max_depth=1)
     with pytest.raises(NotFittedError, match="please call `fit` first"):
         cit.predict_proba(X)
@@ -20,7 +23,7 @@ def test_predict_proba():
     preds = cit.predict(X)
     assert np.all(preds == 0)
     # Should predict all 0
-    X, y = make_example_2d_numpy(n_cases=5)
+    X, y = make_example_2d_numpy_collection(n_cases=5)
     cit = ContinuousIntervalTree(max_depth=1)
     cit.fit(X, y)
     node = cit._root

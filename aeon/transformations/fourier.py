@@ -6,10 +6,17 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="FourierFeatures will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class FourierFeatures(BaseTransformer):
     r"""Fourier Features for time series seasonality.
 
@@ -76,7 +83,7 @@ class FourierFeatures(BaseTransformer):
         # what is the abstract type of y: None (not needed), Primitives, Series, Panel
         "instancewise": True,
         "capability:inverse_transform": False,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "X_inner_type": "pd.DataFrame",
         "y_inner_type": "None",
         "requires_y": False,  # does y need to be passed in fit?

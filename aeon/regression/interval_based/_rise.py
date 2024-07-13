@@ -103,7 +103,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     >>> from aeon.regression.interval_based import (
     ...     RandomIntervalSpectralEnsembleRegressor
     ... )
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -140,10 +140,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     ):
         self.acf_lag = acf_lag
         self.acf_min_values = acf_min_values
-
         self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
 
         interval_features = [
             PeriodogramTransformer(use_pyfftw=use_pyfftw, pad_with="mean"),
@@ -168,6 +165,9 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pyfftw:
+            self.set_tags(**{"python_dependencies": "pyfftw"})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

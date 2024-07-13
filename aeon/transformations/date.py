@@ -7,6 +7,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
@@ -31,6 +32,12 @@ _RAW_DUMMIES = [
 ]
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="DateTimeFeatures will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class DateTimeFeatures(BaseTransformer):
     """DateTime feature extraction for use in e.g. tree based models.
 
@@ -39,7 +46,7 @@ class DateTimeFeatures(BaseTransformer):
 
     Parameters
     ----------
-    ts_freq : str, optional (default="day")
+    ts_freq : str, default="day"
         Restricts selection of items to those with a frequency lower than
         the frequency of the time series given by ts_freq.
         E.g. if monthly data is provided and ts_freq = ("M"), it does not make
@@ -61,14 +68,14 @@ class DateTimeFeatures(BaseTransformer):
         * T - minute
         * S - second
         * L - millisecond
-    feature_scope: str, optional (default="minimal")
+    feature_scope: str, default="minimal"
         Specify how many calendar features you want to be returned.
         E.g., rarely used features like week of quarter will only be returned
         with feature_scope =  "comprehensive".
         * "minimal"
         * "efficient"
         * "comprehensive"
-    manual_selection: str, optional (default=None)
+    manual_selection: str, default=None
         Manual selection of dummys. Notation is child of parent for precise notation.
         Will ignore specified feature_scope, but will still check with warning against
         a specified ts_freq.
@@ -122,7 +129,7 @@ class DateTimeFeatures(BaseTransformer):
             "pd_multiindex_hier",
         ],
         "y_inner_type": "None",
-        "univariate-only": False,
+        "capability:multivariate": True,
         "fit_is_empty": True,
         "transform-returns-same-time-index": True,
         "enforce_index_type": [pd.DatetimeIndex, pd.PeriodIndex],

@@ -44,7 +44,7 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
     def __init__(self, window_length=3):
         self.window_length = window_length
         self.matrix_profile_ = None
-        super().__init__()
+        super().__init__(axis=1)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -66,6 +66,8 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
         """
         _check_soft_dependencies("stumpy", severity="error")
         import stumpy
+
+        X = X.squeeze()
 
         self.matrix_profile_ = stumpy.stump(X, self.window_length)
         return self.matrix_profile_[:, 0].astype("float")

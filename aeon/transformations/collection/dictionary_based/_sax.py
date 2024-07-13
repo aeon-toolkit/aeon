@@ -36,7 +36,7 @@ class SAX(BaseCollectionTransformer):
         then the default setup is {"scale" : 1.0}
     znormalized : bool, default = True,
         this parameter is set to True when the input time series
-        are assume to be be z-normalized, i.e. the mean of each
+        are assume to be z-normalized, i.e. the mean of each
         time series should be 0 and the standard deviation should be
         equal to 1. If this parameter is set to False, the z-normalization
         is applied before the transformation.
@@ -114,7 +114,13 @@ class SAX(BaseCollectionTransformer):
             The output of the PAA transformation
         """
         if not self.znormalized:
-            X = scipy.stats.zscore(X, axis=-1)
+            # Safe, if std is 0
+            X = (X - np.mean(X, axis=-1, keepdims=True)) / (
+                np.std(X, axis=-1, keepdims=True) + 1e-8
+            )
+
+            # Non-Safe is std is 0
+            # X = scipy.stats.zscore(X, axis=-1)
 
         paa = PAA(n_segments=self.n_segments)
         X_paa = paa.fit_transform(X=X)

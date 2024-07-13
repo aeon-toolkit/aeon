@@ -7,11 +7,18 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.forecasting.model_selection import SlidingWindowSplitter
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="HampelFilter will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class HampelFilter(BaseTransformer):
     """Use HampelFilter to detect outliers based on a sliding window.
 
@@ -20,8 +27,8 @@ class HampelFilter(BaseTransformer):
 
     Parameters
     ----------
-    window_length : int, optional (default=10)
-        Lenght of the sliding window
+    window_length : int, default=10
+        Length of the sliding window
     n_sigma : int, optional
         Defines how strong a point must outly to be an "outlier", by default 3
     k : float, optional
@@ -60,7 +67,7 @@ class HampelFilter(BaseTransformer):
         "fit_is_empty": True,
         "capability:missing_values": True,
         "skip-inverse-transform": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
     }
 
     def __init__(self, window_length=10, n_sigma=3, k=1.4826, return_bool=False):

@@ -1,13 +1,13 @@
 """Unit tests for classifiers deep learning base class functionality."""
 
 import gc
-import os
+import tempfile
 import time
 
 import pytest
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.testing.utils.data_gen import make_example_2d_numpy
+from aeon.testing.data_generation import make_example_2d_numpy_collection
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __maintainer__ = []
@@ -16,7 +16,7 @@ __maintainer__ = []
 class _DummyDeepClassifier(BaseDeepClassifier):
     """Dummy Deep Classifier for testing empty base deep class save utilities."""
 
-    def __init__(self, last_file_name):
+    def __init__(self, last_file_name="last_model"):
         self.last_file_name = last_file_name
         super().__init__(last_file_name=last_file_name)
 
@@ -59,21 +59,35 @@ class _DummyDeepClassifier(BaseDeepClassifier):
 )
 def test_dummy_deep_classifier():
     """Test dummy deep classifier."""
-    last_file_name = str(time.time_ns())
+    with tempfile.TemporaryDirectory() as tmp:
+        import numpy as np
 
-    # create a dummy deep classifier
-    dummy_deep_clf = _DummyDeepClassifier(last_file_name=last_file_name)
+        last_file_name = str(time.time_ns())
 
-    # generate random data
-    X, y = make_example_2d_numpy()
+        # create a dummy deep classifier
+        dummy_deep_clf = _DummyDeepClassifier(last_file_name=last_file_name)
 
-    # test fit function on random data
-    dummy_deep_clf.fit(X=X, y=y)
+        # generate random data
+        X, y = make_example_2d_numpy_collection()
 
-    # test save last model to file than delete it
-    dummy_deep_clf.save_last_model_to_file()
+        # test fit function on random data
+        dummy_deep_clf.fit(X=X, y=y)
 
-    os.remove("./" + last_file_name + ".keras")
+        # test save last model to file than delete it
+        dummy_deep_clf.save_last_model_to_file(file_path=tmp)
 
-    # test summary of model
-    assert dummy_deep_clf.summary() is not None
+        # create a new dummy deep classifier
+        dummy_deep_clf2 = _DummyDeepClassifier()
+
+        # load without fitting
+        dummy_deep_clf2.load_model(
+            model_path=tmp + last_file_name + ".keras", classes=np.unique(y)
+        )
+
+        # predict
+        ypred = dummy_deep_clf2.predict(X=X)
+
+        assert len(ypred) == len(y)
+
+        # test summary of model
+        assert dummy_deep_clf.summary() is not None

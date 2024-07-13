@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -73,7 +73,7 @@ jobs:
           command: python -m pip install .[all_extras,binder,dev]
 
       - name: Run example notebooks
-        run: build_tools/run_examples.sh
+        run: build_tools/run_examples.sh false
         shell: bash
 
       - name: Save new cache
@@ -83,11 +83,11 @@ jobs:
           # Save cache with the current date (ENV set in numba_cache action)
           key: numba-run-notebook-examples-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
 
-  test-nosoftdeps:
+  test-no-soft-deps:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -98,7 +98,7 @@ jobs:
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
         with:
-          cache_name: "test-nosoftdeps"
+          cache_name: "test-no-soft-deps"
           runner_os: ${{ runner.os }}
           python_version: "3.10"
           restore_cache: "false"
@@ -114,57 +114,14 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: |
-          python -m pytest -k 'test_all_estimators' --pyargs aeon.registry
-          python -m pytest -k 'test_check_estimator_does_not_raise' --pyargs aeon.utils
-          python -m pytest --pyargs aeon.testing.test_softdeps
+        run: python -m pytest -n logical
 
       - name: Save new cache
         uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-test-nosoftdeps-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
-
-  test-nosoftdeps-full:
-    runs-on: ubuntu-20.04
-
-    steps:
-      - name: Checkout main
-        uses: actions/checkout@v4
-
-      - name: Setup Python 3.10
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Use numba cache to set env variables but not restore cache
-        uses: ./.github/actions/numba_cache
-        with:
-          cache_name: "test-nosoftdeps-full"
-          runner_os: ${{ runner.os }}
-          python_version: "3.10"
-          restore_cache: "false"
-
-      - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 30
-          max_attempts: 3
-          command: python -m pip install .[dev]
-
-      - name: Show dependencies
-        run: python -m pip list
-
-      - name: Run tests
-        run: python -m pytest -k 'not TestAll'
-
-      - name: Save new cache
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ github.workspace }}/.numba_cache
-          # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-test-nosoftdeps-full-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
+          key: numba-test-no-soft-deps-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
 
   pytest:
     runs-on: ${{ matrix.os }}
@@ -172,11 +129,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macOS-13, windows-2022 ]
-        python-version: [ "3.8", "3.9", "3.10", "3.11", "3.12" ]
+        os: [ ubuntu-20.04, macOS-14, windows-2022 ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python
@@ -203,7 +160,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest
+        run: python -m pytest -n logical
 
       - name: Save new cache
         uses: actions/cache/save@v4
@@ -216,7 +173,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -238,7 +195,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest --cov=aeon --cov-report=xml --timeout 1800
+        run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

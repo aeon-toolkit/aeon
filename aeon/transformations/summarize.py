@@ -5,12 +5,19 @@ __all__ = ["SummaryTransformer", "WindowSummarizer"]
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from joblib import Parallel, delayed
 
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.multiindex import flatten_multiindex
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="WindowSummarizer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class WindowSummarizer(BaseTransformer):
     """
     Transformer for extracting time series features.
@@ -21,7 +28,7 @@ class WindowSummarizer(BaseTransformer):
 
     Parameters
     ----------
-    n_jobs : int, optional (default=-1)
+    n_jobs : int, default=-1
         The number of jobs to run in parallel for applying the window functions.
         ``-1`` means using all processors.
     target_cols : list of str, optional (default = None)
@@ -188,7 +195,7 @@ class WindowSummarizer(BaseTransformer):
             "pd_multiindex_hier",
         ],
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "capability:missing_values": True,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
@@ -587,6 +594,12 @@ def _check_quantiles(quantiles):
     return quantiles
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="SummaryTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class SummaryTransformer(BaseTransformer):
     """Calculate summary value of a time series.
 
@@ -606,7 +619,7 @@ class SummaryTransformer(BaseTransformer):
     quantiles : str, list, tuple or None, default=(0.1, 0.25, 0.5, 0.75, 0.9)
         Optional list of series quantiles to calculate. If None, no quantiles
         are calculated, and summary_function must be non-None.
-    flatten_transform_index : bool, optional (default=True)
+    flatten_transform_index : bool, default=True
         if True, columns of return DataFrame are flat, by "variablename__feature"
         if False, columns are MultiIndex (variablename__feature)
         has no effect if return type is one without column names
@@ -729,6 +742,12 @@ class SummaryTransformer(BaseTransformer):
         return [params1, params2, params3]
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="PlateauFinder will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class PlateauFinder(BaseTransformer):
     """
     Plateau finder transformer.
@@ -748,7 +767,7 @@ class PlateauFinder(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "output_data_type": "Series",
         "instancewise": False,
         "X_inner_type": "numpy3D",
@@ -814,6 +833,12 @@ class PlateauFinder(BaseTransformer):
         return Xt
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="FittedParamExtractor will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class FittedParamExtractor(BaseTransformer):
     """Fitted parameter extractor.
 
@@ -830,7 +855,7 @@ class FittedParamExtractor(BaseTransformer):
         An aeon estimator to extract features from.
     param_names : str
         Name of parameters to extract from the forecaster.
-    n_jobs : int, optional (default=None)
+    n_jobs : int, default=None
         Number of jobs to run in parallel.
         None means 1 unless in a joblib.parallel_backend context.
         -1 means using all processors.
@@ -838,7 +863,7 @@ class FittedParamExtractor(BaseTransformer):
 
     _tags = {
         "fit_is_empty": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "input_data_type": "Series",
         # what is the abstract type of X: Series, or Panel
         "output_data_type": "Primitives",

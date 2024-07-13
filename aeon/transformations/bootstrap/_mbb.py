@@ -7,12 +7,19 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from sklearn.utils import check_random_state
 
+from aeon.transformations._legacy._boxcox import _BoxCoxTransformer
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.boxcox import BoxCoxTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="STLBootstrapTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class STLBootstrapTransformer(BaseTransformer):
     """Creates a population of similar time series.
 
@@ -172,7 +179,7 @@ class STLBootstrapTransformer(BaseTransformer):
         "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "capability:missing_values": False,
         "X-y-must-have-same-index": False,
         "enforce_index_type": None,
@@ -265,7 +272,7 @@ class STLBootstrapTransformer(BaseTransformer):
         )
 
         # fit boxcox to get lambda and transform X
-        self.box_cox_transformer_ = BoxCoxTransformer(
+        self.box_cox_transformer_ = _BoxCoxTransformer(
             sp=self.sp, bounds=self.lambda_bounds, method=self.lambda_method
         )
         self.box_cox_transformer_.fit(X)
@@ -399,6 +406,12 @@ class STLBootstrapTransformer(BaseTransformer):
         return params
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="MovingBlockBootstrapTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class MovingBlockBootstrapTransformer(BaseTransformer):
     """Moving Block Bootstrapping method for synthetic time series generation.
 
@@ -482,7 +495,7 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
         "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": True,  # can the transformer handle multivariate X?
+        "capability:multivariate": False,  # can the transformer handle multivariate X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y

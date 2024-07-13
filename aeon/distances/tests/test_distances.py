@@ -14,10 +14,10 @@ from aeon.distances._distance import (
     _resolve_key_from_distance,
 )
 from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+from aeon.testing.data_generation._legacy import make_series
 from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results,
 )
-from aeon.testing.utils.data_gen import make_series
 
 
 def _validate_distance_result(
@@ -178,5 +178,5 @@ def test_incorrect_inputs():
         cost_matrix(x, y, metric="FOO")
 
     x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    with pytest.raises(ValueError, match="x and y must be 1D, 2D, or 3D arrays"):
-        _custom_func_pairwise(x, dist_func=lambda x, y: 0)
+    with pytest.raises(ValueError, match="dist_func must be a callable"):
+        _custom_func_pairwise(x, dist_func=None)

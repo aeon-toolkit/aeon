@@ -6,6 +6,7 @@ adapted from scikit-learn's estimator_checks
 __maintainer__ = []
 
 import numbers
+import pickle
 import types
 from copy import deepcopy
 from inspect import getfullargspec, isclass, signature
@@ -13,14 +14,14 @@ from inspect import getfullargspec, isclass, signature
 import joblib
 import numpy as np
 import pytest
+from sklearn.exceptions import NotFittedError
 from sklearn.utils._testing import set_random_state
 from sklearn.utils.estimator_checks import (
     check_get_params_invariance as _check_get_params_invariance,
 )
 
-from aeon.base import BaseEstimator, BaseObject, load
+from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.exceptions import NotFittedError
 from aeon.forecasting.base import BaseForecaster
 from aeon.registry import all_estimators
 from aeon.regression.deep_learning.base import BaseDeepRegressor
@@ -59,16 +60,16 @@ def subsample_by_version_os(x):
     Ensures each estimator is tested at least once on every OS and python version,
     if combined with a matrix of OS/versions.
 
-    Currently assumes that matrix includes py3.8-3.12, and win/ubuntu/mac.
+    Currently assumes that matrix includes py3.9-3.12, and win/ubuntu/mac.
     """
     import platform
     import sys
 
     # only use 3 Python versions in PR
     ix = sys.version_info.minor
-    if ix == 8:
+    if ix == 9:
         ix = 0
-    elif ix == 10:
+    elif ix == 11:
         ix = 1
     elif ix == 12:
         ix = 2
@@ -1267,9 +1268,8 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         vanilla_result = scenario.run(estimator, method_sequence=[method_nsc])
 
         # Serialize and deserialize
-        serialized_estimator = estimator.save()
-        deserialized_estimator = load(serialized_estimator)
-
+        serialized_estimator = pickle.dumps(estimator)
+        deserialized_estimator = pickle.loads(serialized_estimator)
         deserialized_result = scenario.run(
             deserialized_estimator, method_sequence=[method_nsc]
         )

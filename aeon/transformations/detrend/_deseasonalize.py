@@ -7,6 +7,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.datetime import _get_duration, _get_freq
@@ -65,6 +66,12 @@ def autocorrelation_seasonality_test(y, sp):
         return np.abs(coef) > limit
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="Deseasonalizer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class Deseasonalizer(BaseTransformer):
     """Remove seasonal components from a time series.
 
@@ -124,7 +131,7 @@ class Deseasonalizer(BaseTransformer):
         "fit_is_empty": False,
         "capability:inverse_transform": True,
         "transform-returns-same-time-index": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "python_dependencies": "statsmodels",
     }
 
@@ -284,6 +291,12 @@ class Deseasonalizer(BaseTransformer):
         return [params, params2]
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ConditionalDeseasonalizer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class ConditionalDeseasonalizer(Deseasonalizer):
     """Remove seasonal components from time series, conditional on seasonality test.
 
@@ -410,6 +423,12 @@ class ConditionalDeseasonalizer(Deseasonalizer):
         return self
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="STLTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class STLTransformer(BaseTransformer):
     """Remove seasonal components from a time-series using STL.
 
@@ -509,7 +528,7 @@ class STLTransformer(BaseTransformer):
         "X_inner_type": "pd.Series",
         "y_inner_type": "pd.Series",
         "transform-returns-same-time-index": True,
-        "univariate-only": True,
+        "capability:multivariate": False,
         "fit_is_empty": False,
         "python_dependencies": "statsmodels",
     }

@@ -7,10 +7,17 @@ from copy import deepcopy
 from warnings import warn
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ScaledLogitTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class ScaledLogitTransformer(BaseTransformer):
     r"""Scaled logit transform or Log transform.
 
@@ -36,10 +43,10 @@ class ScaledLogitTransformer(BaseTransformer):
 
     See Also
     --------
-    aeon.transformations.boxcox.LogTransformer :
+    aeon.transformations.boxcox._LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.boxcox.BoxCoxTransformer :
+    aeon.transformations.boxcox._BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.ExponentTransformer :
@@ -98,7 +105,7 @@ class ScaledLogitTransformer(BaseTransformer):
         "y_inner_type": "None",
         "transform-returns-same-time-index": True,
         "fit_is_empty": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
         "capability:inverse_transform": True,
         "skip-inverse-transform": False,
     }
@@ -159,7 +166,7 @@ class ScaledLogitTransformer(BaseTransformer):
         ----------
         X : 2D np.ndarray
             Data to be inverse transformed
-        y : data of y_inner_type, optional (default=None)
+        y : data of y_inner_type, default=None
             Ignored argument for interface compatibility
 
         Returns

@@ -5,7 +5,7 @@ __maintainer__ = []
 import numpy as np
 import pandas as pd
 
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation._legacy import make_series
 
 # We here define the parameter values for unit testing.
 TEST_CUTOFFS_INT_LIST = [[21, 22], [3, 7, 10]]

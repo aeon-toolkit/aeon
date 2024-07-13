@@ -144,7 +144,7 @@ class HMMSegmenter(BaseSegmenter):
         self.emission_funcs = emission_funcs
         self.transition_prob_mat = transition_prob_mat
         self._validate_init()
-        super().__init__()
+        super().__init__(axis=1)
 
     def _validate_init(self):
         """Verify the parameters passed to init.
@@ -363,6 +363,7 @@ class HMMSegmenter(BaseSegmenter):
         annotated_x : array-like, shape = [num_observations]
             Array of predicted class labels, same size as input.
         """
+        X = X.squeeze()
         self.num_states = len(self.emission_funcs)
         self.states = list(range(self.num_states))
         self.num_obs = len(X)

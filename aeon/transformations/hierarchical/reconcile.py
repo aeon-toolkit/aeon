@@ -9,12 +9,19 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from numpy.linalg import inv
 
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.hierarchical.aggregate import _check_index_no_total
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="Reconciler will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class Reconciler(BaseTransformer):
     """Hierarchical reconcilation transformer.
 
@@ -53,7 +60,7 @@ class Reconciler(BaseTransformer):
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.transformations.hierarchical.reconcile import Reconciler
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
+    >>> from aeon.testing.data_generation import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -84,7 +91,7 @@ class Reconciler(BaseTransformer):
         "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": True,  # can the transformer handle multivariate X?
+        "capability:multivariate": False,  # can the transformer handle multivariate X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True

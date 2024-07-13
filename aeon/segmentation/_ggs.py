@@ -82,8 +82,11 @@ class _GGS:
         Maximum number of shuffles
     verbose: bool, default=False
         If ``True`` verbose output is enabled.
-    random_state: int or np.random.RandomState, default=None
-        Either random seed or an instance of ``np.random.RandomState``
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -432,17 +435,15 @@ class GreedyGaussianSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import GreedyGaussianSegmenter
-    >>> X = piecewise_normal_multivariate(
-    ... lengths=[10, 10, 10, 10],
-    ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ... variances=0.5,
-    ... )
+    >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
+    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
+    ...     variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> ggs = GreedyGaussianSegmenter(k_max=3, max_shuffles=5)
-    >>> y = ggs.fit_predict(X_scaled)
+    >>> y = ggs.fit_predict(X_scaled, axis=0)
     """
 
     _tags = {
@@ -471,7 +472,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             verbose=verbose,
             random_state=random_state,
         )
-        super().__init__(n_segments=k_max + 1, axis=0)
+        super().__init__(axis=0, n_segments=k_max + 1)
 
     def _fit(self, X: np.ndarray, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.

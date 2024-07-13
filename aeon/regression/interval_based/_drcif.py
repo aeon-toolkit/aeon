@@ -144,7 +144,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
     Examples
     --------
     >>> from aeon.regression.interval_based import DrCIFRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -188,9 +188,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         if use_pyfftw:
             d.append("pyfftw")
 
-        if d:
-            self.set_tags(**{"python_dependencies": d})
-
         series_transformers = [
             None,
             FunctionTransformer(func=first_order_differences_3d, validate=False),
@@ -225,6 +222,9 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if d:
+            self.set_tags(**{"python_dependencies": d})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

@@ -29,14 +29,18 @@ from typing import final
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import get_n_cases
+from aeon.utils.validation.collection import (
+    get_n_cases,
+    get_n_channels,
+    get_n_timepoints,
+)
 
 
 class BaseClassifier(BaseCollectionEstimator, ABC):
@@ -172,6 +176,8 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return np.repeat(list(self._class_dictionary.keys()), n_cases)
 
         X = self._preprocess_collection(X)
+        # Check if X is equal length but that is different to the length seen in fit
+        self._check_shape(X)
         return self._predict(X)
 
     @final
@@ -215,6 +221,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return np.repeat([[1]], n_cases, axis=0)
 
         X = self._preprocess_collection(X)
+        self._check_shape(X)
         return self._predict_proba(X)
 
     @final
@@ -334,7 +341,9 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return y_proba
 
-    def score(self, X, y) -> float:
+    def score(
+        self, X, y, metric="accuracy", use_proba=False, metric_params=None
+    ) -> float:
         """Scores predicted labels against ground truth labels on X.
 
         Parameters
@@ -360,6 +369,14 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         y : np.ndarray
             1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
+        metric : Union[str, callable], default="accuracy",
+            Defines the scoring metric to test the fit of the model. For supported
+            strings arguments, check `sklearn.metrics.get_scorer_names`.
+        use_proba : bool, default=False,
+            Argument to check if scorer works on probability estimates or not.
+        metric_params : dict, default=None,
+            Contains parameters to be passed to the scoring function. If None, no
+            parameters are passed.
 
         Returns
         -------
@@ -368,7 +385,30 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         """
         self.check_is_fitted()
         self._check_y(y, len(X), update_classes=False)
-        return accuracy_score(y, self.predict(X), normalize=True)
+        _metric_params = metric_params
+        if metric_params is None:
+            _metric_params = {}
+        if isinstance(metric, str):
+            __names = get_scorer_names()
+            if metric not in __names:
+                raise ValueError(
+                    f"Metric {metric} is incompatible with `sklearn.metrics.get_scorer`"
+                    "function. Valid list of metrics can be obtained using "
+                    "the `sklearn.metrics.get_scorer_names` function."
+                )
+            scorer = get_scorer(metric)
+            if use_proba:
+                return scorer._score_func(y, self.predict_proba(X), **_metric_params)
+            return scorer._score_func(y, self.predict(X), **_metric_params)
+        elif callable(metric):
+            if use_proba:
+                return metric(y, self.predict_proba(X), **_metric_params)
+            return metric(y, self.predict(X), **_metric_params)
+        else:
+            raise ValueError(
+                "The metric parameter should be either a string or a callable"
+                f", but got {metric} of type {type(metric)}"
+            )
 
     @abstractmethod
     def _fit(self, X, y):
@@ -577,3 +617,23 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             method=method,
             n_jobs=self._n_jobs,
         )
+
+    def _check_shape(self, X):
+        if not self.get_tag("capability:unequal_length"):
+            if get_n_timepoints(X) != self.metadata_["n_timepoints"]:
+                raise ValueError(
+                    "X has different length to the data seen in fit but "
+                    "this classifier cannot handle unequal length series."
+                    "length of train set was",
+                    self.metadata_["n_timepoints"],
+                    " length in predict is ",
+                )
+        if self.get_tag("capability:multivariate"):
+            if get_n_channels(X) != self.metadata_["n_channels"]:
+                raise ValueError(
+                    "X has different number of channels to the data seen in fit "
+                    "number of channels in train set was",
+                    self.metadata_["n_channels"],
+                    "but in predict it is ",
+                    get_n_timepoints(X),
+                )

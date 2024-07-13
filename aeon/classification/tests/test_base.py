@@ -4,13 +4,14 @@ import numpy as np
 import numpy.random
 import pandas as pd
 import pytest
+from sklearn.metrics import accuracy_score
 
 from aeon.testing.mock_estimators import (
     MockClassifier,
     MockClassifierFullTags,
     MockClassifierPredictProba,
 )
-from aeon.testing.utils.data_gen._collection import (
+from aeon.testing.testing_data import (
     EQUAL_LENGTH_MULTIVARIATE,
     EQUAL_LENGTH_UNIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
@@ -205,6 +206,9 @@ def test_classifier_score():
     dummy.fit(X, y2)
     assert dummy.score(X, y) == 0.5
     assert dummy.score(X, y2) == 0.5
+    with pytest.raises(ValueError):
+        dummy.score(X, y, metric="log_loss")
+    assert dummy.score(X, y, metric=accuracy_score) == 0.5  # Use callable
 
 
 def test_predict_single_class():
@@ -297,3 +301,64 @@ def test_fit_predict_default():
 
     with pytest.raises(ValueError, match=r"All classes must have at least 2 values"):
         cls._fit_predict_default(X, y, "predict")
+
+
+def test_different_shape_fit_predict():
+    """Test train and test X when they differ in series length."""
+    dummy = MockClassifier()
+    X = np.random.random(size=(5, 1, 10))
+    X2 = np.random.random(size=(5, 1, 20))
+    X3 = np.random.random(size=(5, 1, 5))
+    X4 = np.random.random(size=(5, 10))
+    X5 = np.random.random(size=(5, 20))
+    y = np.array([0, 0, 1, 1, 1])
+    dummy.fit(X, y)
+    with pytest.raises(
+        ValueError, match="X has different length to the data seen in fit"
+    ):
+        dummy.predict(X2)
+    with pytest.raises(
+        ValueError, match="X has different length to the data seen in fit"
+    ):
+        dummy.predict_proba(X3)
+    with pytest.raises(
+        ValueError, match="X has different length to the data seen in fit"
+    ):
+        dummy.predict(X5)
+    # Should not raise error
+    preds = dummy.predict(X)
+    assert len(preds) == 5
+    preds2 = dummy.predict(X4)
+    assert len(preds2) == 5
+    m2 = MockClassifierFullTags()
+    m2.fit(X, y)
+    y_pred = m2.predict(X2)
+    assert len(y_pred) == 5
+    y_pred = m2.predict_proba(X3)
+    assert y_pred.shape == (5, 2)
+
+
+def test_different_channels_fit_predict():
+    """Test train and test X when they differ in numbero of lengths."""
+    dummy = MockClassifierFullTags()
+    X = np.random.random(size=(5, 4, 10))
+    X2 = np.random.random(size=(5, 4, 10))
+    X3 = np.random.random(size=(5, 3, 10))
+    X4 = np.random.random(size=(5, 10))
+    X5 = np.random.random(size=(5, 5, 10))
+    y = np.array([0, 0, 1, 1, 1])
+    dummy.fit(X, y)
+    preds = dummy.predict(X2)
+    assert len(preds) == 5
+    with pytest.raises(
+        ValueError, match="X has different number of channels to the data seen in fit"
+    ):
+        dummy.predict(X3)
+    with pytest.raises(
+        ValueError, match="X has different number of channels to the data seen in fit"
+    ):
+        dummy.predict(X4)
+    with pytest.raises(
+        ValueError, match="X has different number of channels to the data seen in fit"
+    ):
+        dummy.predict(X5)

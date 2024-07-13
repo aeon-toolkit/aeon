@@ -6,11 +6,18 @@ __all__ = ["FeatureSelection"]
 import math
 
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation.forecasting import check_regressor
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="DateTimeFeatures will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class FeatureSelection(BaseTransformer):
     """
     Select exogenous features.
@@ -79,7 +86,7 @@ class FeatureSelection(BaseTransformer):
         "fit_is_empty": False,
         "transform-returns-same-time-index": True,
         "skip-inverse-transform": True,
-        "univariate-only": False,
+        "capability:multivariate": True,
     }
 
     def __init__(

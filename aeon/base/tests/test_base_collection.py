@@ -4,10 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
-from aeon.testing.utils.data_gen._collection import (
-    EQUAL_LENGTH_UNIVARIATE,
-    UNEQUAL_LENGTH_UNIVARIATE,
-)
+from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE, UNEQUAL_LENGTH_UNIVARIATE
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_type
 
@@ -20,6 +17,8 @@ def test__get_metadata(data):
     assert not meta["multivariate"]
     assert not meta["missing_values"]
     assert not meta["unequal_length"]
+    assert meta["n_channels"] == 1
+    assert meta["n_timepoints"] == 20
     assert meta["n_cases"] == 10
 
 
@@ -105,7 +104,7 @@ def test_preprocess_collection(data):
     cls = BaseCollectionEstimator()
     X = cls._preprocess_collection(data)
     assert cls._n_jobs == 1
-    assert len(cls.metadata_) == 4
+    assert len(cls.metadata_) == 6
     assert get_type(X) == "numpy3D"
     tags = {"capability:multithreading": True}
     cls = BaseCollectionEstimator()

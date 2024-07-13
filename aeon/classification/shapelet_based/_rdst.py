@@ -4,8 +4,10 @@ A Random Dilated Shapelet Transform classifier pipeline that simply performs a r
 shapelet dilated transform and build (by default) a ridge classifier on the output.
 """
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 __all__ = ["RDSTClassifier"]
+
+from typing import List, Type, Union
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
@@ -58,11 +60,26 @@ class RDSTClassifier(BaseClassifier):
         If True, restrict the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
+    distance: str="manhattan"
+        Name of the distance function to be used. By default this is the
+        manhattan distance. Other distances from the aeon distance modules can be used.
     estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
         `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
     save_transformed_data : bool, default=False
         If True, the transformed training dataset for all classifiers will be saved.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        Only applies if estimator is None, and the default is used.
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
@@ -124,28 +141,32 @@ class RDSTClassifier(BaseClassifier):
 
     def __init__(
         self,
-        max_shapelets=10000,
+        max_shapelets: int = 10000,
         shapelet_lengths=None,
-        proba_normalization=0.8,
+        proba_normalization: float = 0.8,
         threshold_percentiles=None,
-        alpha_similarity=0.5,
-        use_prime_dilations=False,
+        alpha_similarity: float = 0.5,
+        use_prime_dilations: bool = False,
+        distance: str = "manhattan",
         estimator=None,
-        save_transformed_data=False,
-        n_jobs=1,
-        random_state=None,
-    ):
+        save_transformed_data: bool = False,
+        class_weight=None,
+        n_jobs: int = 1,
+        random_state: Union[int, Type[np.random.RandomState], None] = None,
+    ) -> None:
         self.max_shapelets = max_shapelets
         self.shapelet_lengths = shapelet_lengths
         self.proba_normalization = proba_normalization
         self.threshold_percentiles = threshold_percentiles
         self.alpha_similarity = alpha_similarity
         self.use_prime_dilations = use_prime_dilations
-
+        self.distance = distance
         self.estimator = estimator
         self.save_transformed_data = save_transformed_data
+        self.class_weight = class_weight
         self.random_state = random_state
         self.n_jobs = n_jobs
+
         self.transformed_data_ = []
 
         self._transformer = None
@@ -182,12 +203,14 @@ class RDSTClassifier(BaseClassifier):
             use_prime_dilations=self.use_prime_dilations,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
+            distance=self.distance,
         )
         if self.estimator is None:
             self._estimator = make_pipeline(
                 StandardScaler(with_mean=True),
                 RidgeClassifierCV(
                     alphas=np.logspace(-4, 4, 20),
+                    class_weight=self.class_weight,
                 ),
             )
         else:
@@ -248,7 +271,7 @@ class RDSTClassifier(BaseClassifier):
             return dists
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

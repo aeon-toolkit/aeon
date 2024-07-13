@@ -6,10 +6,17 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="Aggregator will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class Aggregator(BaseTransformer):
     """Prepare hierarchical data, including aggregate levels, from bottom level.
 
@@ -36,7 +43,7 @@ class Aggregator(BaseTransformer):
     Examples
     --------
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.testing.utils.data_gen import _bottom_hier_datagen
+    >>> from aeon.testing.data_generation import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -60,7 +67,7 @@ class Aggregator(BaseTransformer):
         "y_inner_type": "None",
         "capability:inverse_transform": False,  # does transformer have inverse
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": False,  # can the transformer handle multivariate X?
+        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True

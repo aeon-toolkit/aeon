@@ -19,9 +19,7 @@ from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
-    MiniRocketMultivariate,
     MultiRocket,
-    MultiRocketMultivariate,
     Rocket,
 )
 
@@ -53,11 +51,25 @@ class Arsenal(BaseClassifier):
         Default of 0 means n_estimators is used.
     contract_max_n_estimators : int, default=100
         Max number of estimators when time_limit_in_minutes is set.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -124,6 +136,7 @@ class Arsenal(BaseClassifier):
         n_features_per_kernel=4,
         time_limit_in_minutes=0.0,
         contract_max_n_estimators=100,
+        class_weight=None,
         n_jobs=1,
         random_state=None,
     ):
@@ -135,8 +148,9 @@ class Arsenal(BaseClassifier):
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
 
-        self.random_state = random_state
+        self.class_weight = class_weight
         self.n_jobs = n_jobs
+        self.random_state = random_state
 
         self.n_cases_ = 0
         self.n_channels_ = 0
@@ -268,29 +282,16 @@ class Arsenal(BaseClassifier):
         if self.rocket_transform == "rocket":
             base_rocket = Rocket(num_kernels=self.num_kernels)
         elif self.rocket_transform == "minirocket":
-            if self.n_channels_ > 1:
-                base_rocket = MiniRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                )
-            else:
-                base_rocket = MiniRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                )
+            base_rocket = MiniRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+            )
         elif self.rocket_transform == "multirocket":
-            if self.n_channels_ > 1:
-                base_rocket = MultiRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                )
-            else:
-                base_rocket = MultiRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                )
+            base_rocket = MultiRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+                n_features_per_kernel=self.n_features_per_kernel,
+            )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 
@@ -367,7 +368,9 @@ class Arsenal(BaseClassifier):
         transformed_x = rocket.fit_transform(X)
         scaler = StandardScaler(with_mean=False)
         scaler.fit(transformed_x, y)
-        ridge = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+        ridge = RidgeClassifierCV(
+            alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+        )
         ridge.fit(scaler.transform(transformed_x), y)
         return [
             make_pipeline(rocket, scaler, ridge),
@@ -392,7 +395,9 @@ class Arsenal(BaseClassifier):
 
         clf = make_pipeline(
             StandardScaler(with_mean=False),
-            RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)),
+            RidgeClassifierCV(
+                alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+            ),
         )
         clf.fit(Xt[idx][subsample], y[subsample])
         preds = clf.predict(Xt[idx][oob])

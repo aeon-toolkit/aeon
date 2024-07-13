@@ -239,9 +239,9 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
 
         from aeon.forecasting.compose._reduce import DirectReductionForecaster
         from aeon.forecasting.naive import NaiveForecaster
+        from aeon.testing.mock_estimators import MockTransformer
         from aeon.transformations.adapt import TabularToSeriesAdaptor
         from aeon.transformations.detrend import Detrender
-        from aeon.transformations.exponent import ExponentTransformer
 
         # StandardScaler does not skip fit, NaiveForecaster is not probabilistic
         STEPS1 = [
@@ -252,7 +252,7 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
 
         # ARIMA has probabilistic methods, ExponentTransformer skips fit
         STEPS2 = [
-            ("transformer", ExponentTransformer()),
+            ("transformer", MockTransformer()),
             ("forecaster", DirectReductionForecaster.create_test_instance()),
         ]
         params2 = {"steps": STEPS2}
@@ -448,7 +448,7 @@ class ForecastingPipeline(_Pipeline):
         ----------
         y : pd.Series, pd.DataFrame
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
         X : pd.DataFrame, required
             Exogenous variables are ignored
@@ -508,7 +508,7 @@ class ForecastingPipeline(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
@@ -543,7 +543,7 @@ class ForecastingPipeline(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -572,12 +572,12 @@ class ForecastingPipeline(_Pipeline):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             if True, computes covariance matrix forecast.
             if False, computes marginal variance forecasts.
 
@@ -607,10 +607,10 @@ class ForecastingPipeline(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        marginal : bool, optional (default=True)
+        marginal : bool, default=True
             whether returned distribution is marginal by time index
 
         Returns
@@ -637,7 +637,7 @@ class ForecastingPipeline(_Pipeline):
         ----------
         y : pd.Series
         X : pd.DataFrame, required
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
 
         Returns
         -------
@@ -761,8 +761,7 @@ class TransformedTargetForecaster(_Pipeline):
     ...     ("detrender", Detrender()),
     ...     ("forecaster", NaiveForecaster(strategy="drift")),
     ... ])
-    >>> pipe.fit(y)
-    TransformedTargetForecaster(...)
+    >>> t = pipe.fit(y)
     >>> y_pred = pipe.predict(fh=[1,2,3])
 
         Example 2: without strings
@@ -935,9 +934,9 @@ class TransformedTargetForecaster(_Pipeline):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -968,7 +967,7 @@ class TransformedTargetForecaster(_Pipeline):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -992,8 +991,8 @@ class TransformedTargetForecaster(_Pipeline):
         Parameters
         ----------
         y : pd.Series
-        X : pd.DataFrame, optional (default=None)
-        update_params : bool, optional (default=True)
+        X : pd.DataFrame, default=None
+        update_params : bool, default=True
 
         Returns
         -------
@@ -1071,7 +1070,7 @@ class TransformedTargetForecaster(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
@@ -1109,7 +1108,7 @@ class TransformedTargetForecaster(_Pipeline):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
@@ -1242,7 +1241,7 @@ class ForecastX(BaseForecaster):
         ----------
         y : time series in aeon compatible format
             Target time series to which to fit the forecaster
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
         X : time series in aeon compatible format, optional, default=None
             Exogenous time series to which to fit the forecaster
@@ -1344,7 +1343,7 @@ class ForecastX(BaseForecaster):
             Target time series to which to fit the forecaster
         X : time series in aeon compatible format, optional, default=None
             Exogenous time series to which to fit the forecaster
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
 
         Returns
         -------
@@ -1366,10 +1365,10 @@ class ForecastX(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        coverage : float or list, optional (default=0.95)
+        coverage : float or list, default=0.95
            nominal coverage(s) of predictive interval(s)
 
         Returns
@@ -1401,10 +1400,10 @@ class ForecastX(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        alpha : list of float, optional (default=[0.5])
+        alpha : list of float, default=[0.5]
             A list of probabilities at which quantile forecasts are computed.
 
         Returns
@@ -1430,10 +1429,10 @@ class ForecastX(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        cov : bool, optional (default=False)
+        cov : bool, default=False
             if True, computes covariance matrix forecast.
             if False, computes marginal variance forecasts.
 
@@ -1470,10 +1469,10 @@ class ForecastX(BaseForecaster):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to predict from.
-        marginal : bool, optional (default=True)
+        marginal : bool, default=True
             whether returned distribution is marginal by time index
 
         Returns
@@ -1558,7 +1557,7 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     >>> from aeon.forecasting.base import ForecastingHorizon
     >>> from aeon.forecasting.compose import ForecastingPipeline, Permute
     >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.transformations.boxcox import BoxCoxTransformer
+    >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
     >>> from aeon.transformations.exponent import ExponentTransformer
 
     Simple example: permute sequence of estimator in forecasting pipeline
@@ -1682,33 +1681,17 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         from aeon.forecasting.naive import NaiveForecaster
-        from aeon.transformations.boxcox import BoxCoxTransformer
-        from aeon.transformations.exponent import ExponentTransformer
+        from aeon.testing.mock_estimators import MockTransformer
 
         # transformers mixed with-without fit, ForecastingPipeline
         # steps are (str, estimator)
         params1 = {
             "estimator": ForecastingPipeline(
                 [
-                    ("foo", BoxCoxTransformer()),
-                    ("bar", ExponentTransformer(3)),
+                    ("foo", MockTransformer(3)),
                     ("foobar", NaiveForecaster()),
                 ]
             ),
-            "permutation": ["bar", "foo", "foobar"],
+            "permutation": ["foo", "foobar"],
         }
-
-        # transformers have no fit, TransformedTargetForecaster
-        # steps are only estimator
-        params2 = {
-            "estimator": TransformedTargetForecaster(
-                [ExponentTransformer(0.5), NaiveForecaster(), ExponentTransformer(3)]
-            ),
-            "permutation": [
-                "NaiveForecaster",
-                "ExponentTransformer_1",
-                "ExponentTransformer_2",
-            ],
-        }
-
-        return [params1, params2]
+        return params1

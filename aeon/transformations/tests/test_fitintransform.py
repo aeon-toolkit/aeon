@@ -3,22 +3,19 @@
 __maintainer__ = []
 __all__ = []
 
-from pandas.testing import assert_series_equal
+import numpy as np
 
-from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.testing.utils.data_gen import make_forecasting_problem
-from aeon.transformations.boxcox import BoxCoxTransformer
 from aeon.transformations.compose import FitInTransform
-
-X = make_forecasting_problem()
-X_train, X_test = temporal_train_test_split(X)
+from aeon.transformations.series._boxcox import BoxCoxTransformer
 
 
 def test_transform_fitintransform():
-    """Test fit/transform against BoxCoxTransformer."""
+    """Test fit/transform against _BoxCoxTransformer."""
+    X_train = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    X_test = np.array([5, 4, 5, 4, 5, 4, 5, 4, 5, 4])
     fitintransform = FitInTransform(BoxCoxTransformer())
     fitintransform.fit(X=X_train)
     y_hat = fitintransform.transform(X=X_test)
 
     y_hat_expected = BoxCoxTransformer().fit_transform(X_test)
-    assert_series_equal(y_hat, y_hat_expected)
+    np.testing.assert_array_equal(y_hat, y_hat_expected)

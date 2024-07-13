@@ -57,8 +57,8 @@ class VECM(_StatsModelsAdapter):
         2D ndarray/pd.DataFrame of size (any, neqs)
         Forcasted value of exog_coint
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.forecasting.vecm import VECM
     >>> from aeon.forecasting.model_selection import temporal_train_test_split
     >>> from aeon.forecasting.base import ForecastingHorizon
@@ -125,7 +125,7 @@ class VECM(_StatsModelsAdapter):
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogeneous time series to fit to.
 
         Returns
@@ -162,7 +162,7 @@ class VECM(_StatsModelsAdapter):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
 
@@ -224,7 +224,7 @@ class VECM(_StatsModelsAdapter):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
+        X : default=None
             guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)

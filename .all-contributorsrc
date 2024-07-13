@@ -3,15 +3,17 @@
   "projectOwner": "aeon-toolkit",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "commitConvention": "none",
   "files": [
     "CONTRIBUTORS.md"
   ],
   "imageSize": 80,
+  "commit": "false",
+  "commitConvention": "atom",
   "contributorsPerLine": 8,
   "contributorsSortAlphabetically": true,
-  "linkToUsage": true,
   "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors)",
+  "linkToUsage": true,
+  "skipCi": true,
   "contributors": [
     {
       "login": "fkiraly",
@@ -168,11 +170,17 @@
         "doc",
         "design",
         "example",
+        "ideas",
         "infra",
         "maintenance",
+        "mentoring",
+        "promotion",
+        "question",
+        "research",
+        "review",
         "test",
         "tutorial",
-        "review"
+        "talk"
       ]
     },
     {
@@ -2342,7 +2350,10 @@
         "bug",
         "code",
         "doc",
-        "research"
+        "research",
+        "test",
+        "review",
+        "data"
       ]
     },
     {
@@ -2372,7 +2383,60 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "wayneadams",
+      "name": "Wayne Adams",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15034841?v=4",
+      "profile": "https://github.com/wayneadams",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "griegner",
+      "name": "Gabriel Riegner",
+      "avatar_url": "https://avatars.githubusercontent.com/u/54326829?v=4",
+      "profile": "https://github.com/griegner",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "RishavKumarSinha",
+      "name": "Rishav Kumar Sinha",
+      "avatar_url": "https://avatars.githubusercontent.com/u/136772607?s=400&v=4",
+      "profile": "https://github.com/RishavKumarSinha",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "nileenagp",
+      "name": "nileenagp",
+      "avatar_url": "https://avatars.githubusercontent.com/u/48993630?v=4",
+      "profile": "https://github.com/nileenagp",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "jasonmokk",
+      "name": "Jason Mok",
+      "avatar_url": "https://avatars.githubusercontent.com/u/106209849?v=4",
+      "profile": "https://github.com/jasonmokk",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "futuer-szd",
+      "name": "Futuer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/57895730?v=4",
+      "profile": "https://github.com/futuer-szd",
+      "contributions": [
+        "doc"
+      ]
     }
-  ],
-  "commitType": "docs"
+  ]
 }

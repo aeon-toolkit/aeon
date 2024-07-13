@@ -44,7 +44,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         convergence.
     verbose: bool, default=False
         Verbosity mode.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         The number of jobs to run in parallel for GAK cross-similarity matrix
         computations.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
@@ -64,11 +64,11 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     n_iter_: int
         Number of iterations run.
 
-    Reference
-    ---------
-        .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
-        Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
-        .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
+    References
+    ----------
+    .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
+           Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
+    .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
 
     Examples
     --------

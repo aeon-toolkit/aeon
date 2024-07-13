@@ -4,10 +4,10 @@ __maintainer__ = []
 
 import numpy as np
 
-from aeon.networks.base import BaseDeepNetwork
+from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class AEFCNNetwork(BaseDeepNetwork):
+class AEFCNNetwork(BaseDeepLearningNetwork):
     """Establish the network structure for a AE-FCN.
 
     Auto-Encoder based Fully Convolutional Netwwork (AE-FCN),
@@ -55,6 +55,12 @@ class AEFCNNetwork(BaseDeepNetwork):
       organization={IEEE}
     }
     """
+
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.12",
+        "structure": "auto-encoder",
+    }
 
     def __init__(
         self,

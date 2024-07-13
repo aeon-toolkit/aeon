@@ -74,7 +74,7 @@ def _sliding_window_transform(
         Window length for transformed feature variables
     fh : ForecastingHorizon
         Forecasting horizon for transformed target variable
-    X : pd.DataFrame, optional (default=None)
+    X : pd.DataFrame, default=None
         Exogenous series.
     transformers: list of transformers (default = None)
         A suitable list of transformers that allows for using an en-bloc approach with
@@ -446,9 +446,9 @@ class _DirectReducer(_Reducer):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
              The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -565,7 +565,7 @@ class _DirectReducer(_Reducer):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         return_pred_int : bool
         alpha : float or array-like
@@ -653,9 +653,9 @@ class _MultioutputReducer(_Reducer):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
              The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -688,7 +688,7 @@ class _MultioutputReducer(_Reducer):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         return_pred_int : bool
         alpha : float or array-like
@@ -754,9 +754,9 @@ class _RecursiveReducer(_Reducer):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
              The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -857,7 +857,7 @@ class _RecursiveReducer(_Reducer):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         return_pred_int : bool
         alpha : float or array-like
@@ -984,9 +984,9 @@ class _DirRecReducer(_Reducer):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
              The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -1043,7 +1043,7 @@ class _DirRecReducer(_Reducer):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         return_pred_int : bool
         alpha : float or array-like
@@ -1098,7 +1098,7 @@ class DirectTabularRegressionForecaster(_DirectReducer):
     ----------
     estimator : Estimator
         A tabular regression estimator as provided by scikit-learn.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1148,7 +1148,7 @@ class MultioutputTabularRegressionForecaster(_MultioutputReducer):
     ----------
     estimator : Estimator
         A tabular regression estimator as provided by scikit-learn.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1166,7 +1166,7 @@ class RecursiveTabularRegressionForecaster(_RecursiveReducer):
     ----------
     estimator : Estimator
         A tabular regression estimator as provided by scikit-learn.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     transformers: list of transformers (default = None)
@@ -1231,7 +1231,7 @@ class DirRecTabularRegressionForecaster(_DirRecReducer):
     ----------
     estimator : sklearn estimator object
         Tabular regressor.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix
     """
@@ -1249,7 +1249,7 @@ class DirectTimeSeriesRegressionForecaster(_DirectReducer):
     ----------
     estimator : Estimator
         A time-series regression estimator as provided by aeon.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1267,7 +1267,7 @@ class MultioutputTimeSeriesRegressionForecaster(_MultioutputReducer):
     ----------
     estimator : Estimator
         A time-series regression estimator as provided by aeon.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1285,7 +1285,7 @@ class RecursiveTimeSeriesRegressionForecaster(_RecursiveReducer):
     ----------
     estimator : Estimator
         A time-series regression estimator as provided by aeon.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1310,7 +1310,7 @@ class DirRecTimeSeriesRegressionForecaster(_DirRecReducer):
     ----------
     estimator : aeon estimator object
         Time-series regressor.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix
     """
@@ -1339,12 +1339,12 @@ def make_reduction(
     estimator : an estimator instance
         Either a tabular regressor from scikit-learn or a time series regressor from
         aeon.
-    strategy : str, optional (default="recursive")
+    strategy : str, default="recursive"
         The strategy to generate forecasts. Must be one of "direct", "recursive" or
         "multioutput".
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         Window length used in sliding window transformation.
-    scitype : str, optional (default="infer")
+    scitype : str, default="infer"
         Legacy argument for downwards compatibility, should not be used.
         `make_reduction` will automatically infer the correct type of `estimator`.
         This internal inference can be force-overridden by the `scitype` argument.
@@ -2166,11 +2166,11 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         y : pd.DataFrame
             pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Time series to which to fit the forecaster.
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : pd.DataFrame optional (default=None)
+        X : pd.DataFrame default=None
             pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Exogeneous time series to fit to.
 
@@ -2226,10 +2226,10 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Exogeneous time series for the forecast
 

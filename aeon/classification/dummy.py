@@ -51,10 +51,10 @@ class DummyClassifier(BaseClassifier):
           the user. This is useful for metrics that evaluate a non-majority
           class.
     random_state : int, RandomState instance or None, default=None
-        Controls the randomness to generate the predictions when
-        ``strategy='stratified'`` or ``strategy='uniform'``.
-        Pass an int for reproducible output across multiple function calls.
-        See :term:`Glossary <random_state>`.
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     constant : int or str or array-like of shape (n_outputs,), default=None
         The explicit constant as predicted by the "constant" strategy. This
         parameter is useful only for the "constant" strategy.
