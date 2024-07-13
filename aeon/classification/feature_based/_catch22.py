@@ -97,7 +97,7 @@ class Catch22Classifier(BaseClassifier):
     --------
     >>> from aeon.classification.feature_based import Catch22Classifier
     >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = Catch22Classifier(

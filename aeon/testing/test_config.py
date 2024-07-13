@@ -17,10 +17,32 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
-if os.environ.get("CICD_RUNNING") == "1":
+if os.environ.get("CICD_RUNNING") == "1":  # pragma: no cover
     import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 
-EXCLUDE_ESTIMATORS = []
+EXCLUDE_ESTIMATORS = [
+    "TabularToSeriesAdaptor",
+    "PandasTransformAdaptor",
+    "BKFilter",
+    "TransformerPipeline",
+    "FeatureUnion",
+    "FitInTransform",
+    "MultiplexTransformer",
+    "InvertTransform",
+    "Id",
+    "OptionalPassthrough",
+    "ColumnwiseTransformer",
+    "ColumnConcatenator",
+    "YtoX",
+    "DateTimeFeatures",
+    "ExponentTransformer",
+    "FeatureSelection",
+    "FourierFeatures",
+    "Imputer",
+    "Lag",
+    "HampelFilter",
+    "WindowSummarizer",
+]  # Exclude deprecated estimators to reduce warnings
 
 # the test currently fails when numba is disabled. See issue #622
 if os.environ.get("NUMBA_DISABLE_JIT") == "1":
@@ -44,12 +66,7 @@ EXCLUDED_TESTS = {
         "test_persistence_via_pickle",
         "test_save_estimators_to_file",
     ],
-    # test fails several variants of inversion, see
-    # https://github.com/aeon-toolkit/aeon/issues/700
-    "Differencer": ["test_transform_inverse_transform_equivalent"],
-    # Test fails, see https://github.com/aeon-toolkit/aeon/issues/1067
-    "MockUnivariateForecasterLogger": ["test_non_state_changing_method_contract"],
-    # has a keras fail, unknown reason
+    # has a keras fail, unknown reason, see #1387
     "LearningShapeletClassifier": ["test_fit_deterministic"],
 }
 

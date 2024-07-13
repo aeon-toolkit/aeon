@@ -5,12 +5,19 @@ __all__ = ["SummaryTransformer", "WindowSummarizer"]
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from joblib import Parallel, delayed
 
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.multiindex import flatten_multiindex
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="WindowSummarizer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class WindowSummarizer(BaseTransformer):
     """
     Transformer for extracting time series features.
@@ -587,6 +594,12 @@ def _check_quantiles(quantiles):
     return quantiles
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="SummaryTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class SummaryTransformer(BaseTransformer):
     """Calculate summary value of a time series.
 
@@ -729,6 +742,12 @@ class SummaryTransformer(BaseTransformer):
         return [params1, params2, params3]
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="PlateauFinder will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class PlateauFinder(BaseTransformer):
     """
     Plateau finder transformer.
@@ -814,6 +833,12 @@ class PlateauFinder(BaseTransformer):
         return Xt
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="FittedParamExtractor will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class FittedParamExtractor(BaseTransformer):
     """Fitted parameter extractor.
 

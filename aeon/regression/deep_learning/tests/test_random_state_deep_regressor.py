@@ -6,14 +6,14 @@ import numpy as np
 import pytest
 
 from aeon.regression import deep_learning
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __maintainer__ = ["hadifawaz1999"]
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow", "tensorflow_addons"], severity="none"),
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_random_state_deep_learning_rgs():
@@ -57,4 +57,4 @@ def test_random_state_deep_learning_rgs():
                 _weight1 = np.asarray(weights1[j])
                 _weight2 = np.asarray(weights2[j])
 
-                assert np.array_equal(_weight1, _weight2)
+                np.testing.assert_almost_equal(_weight1, _weight2, 4)

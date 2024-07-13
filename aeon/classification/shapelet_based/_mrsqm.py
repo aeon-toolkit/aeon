@@ -6,10 +6,38 @@ __all__ = ["MrSQMClassifier"]
 from typing import List, Union
 
 import numpy as np
+import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.classification import BaseClassifier
 
 
+def _from_numpy3d_to_nested_dataframe(X):
+    """Convert numpy3D collection to a pd.DataFrame where each cell is a series."""
+    n_cases, n_channels, n_timepoints = X.shape
+    array_type = X.dtype
+    container = pd.Series
+    column_names = [f"channel_{i}" for i in range(n_channels)]
+    column_list = []
+    for j, column in enumerate(column_names):
+        nested_column = (
+            pd.DataFrame(X[:, j, :])
+            .apply(lambda x: [container(x, dtype=array_type)], axis=1)
+            .str[0]
+            .rename(column)
+        )
+        column_list.append(nested_column)
+    df = pd.concat(column_list, axis=1)
+    return df
+
+
+# TODO: Move in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="MrSQMClassifier will be moved to the dictionary_based package in version "
+    "0.11.0 at the request of the author.",
+    category=FutureWarning,
+)
 class MrSQMClassifier(BaseClassifier):
     """
     Multiple Representations Sequence Miner (MrSQM) classifier.
@@ -65,13 +93,20 @@ class MrSQMClassifier(BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.shapelet_based import MrSQMClassifier
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(random_state=0)
     >>> clf = MrSQMClassifier(random_state=0) # doctest: +SKIP
     >>> clf.fit(X, y) # doctest: +SKIP
     MrSQMClassifier(...)
     >>> clf.predict(X) # doctest: +SKIP
     """
+
+    _tags = {
+        "X_inner_type": "numpy3D",  # we don't like this, but it's the only input!
+        "algorithm_type": "shapelet",
+        "cant-pickle": True,
+        "python_dependencies": "mrsqm",
+    }
 
     def __init__(
         self,
@@ -95,16 +130,10 @@ class MrSQMClassifier(BaseClassifier):
 
         super().__init__()
 
-    _tags = {
-        "X_inner_type": "nested_univ",  # we don't like this, but it's the only input!
-        "algorithm_type": "shapelet",
-        "cant-pickle": True,
-        "python_dependencies": "mrsqm",
-    }
-
     def _fit(self, X, y):
         from mrsqm import MrSQMClassifier
 
+        _X = _from_numpy3d_to_nested_dataframe(X)
         self.clf_ = MrSQMClassifier(
             strat=self.strat,
             features_per_rep=self.features_per_rep,
@@ -115,15 +144,17 @@ class MrSQMClassifier(BaseClassifier):
             custom_config=self.custom_config,
             random_state=self.random_state,
         )
-        self.clf_.fit(X, y)
+        self.clf_.fit(_X, y)
 
         return self
 
     def _predict(self, X) -> np.ndarray:
-        return self.clf_.predict(X)
+        _X = _from_numpy3d_to_nested_dataframe(X)
+        return self.clf_.predict(_X)
 
     def _predict_proba(self, X) -> np.ndarray:
-        return self.clf_.predict_proba(X)
+        _X = _from_numpy3d_to_nested_dataframe(X)
+        return self.clf_.predict_proba(_X)
 
     @classmethod
     def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:

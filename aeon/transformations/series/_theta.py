@@ -15,7 +15,7 @@ class ThetaTransformer(BaseSeriesTransformer):
     Implementation of decomposition for Theta-method [1]_ as described in [2]_.
 
     Overview: Input :term:`univariate series <Univariate time series>` of length
-    "n" and ThetaLinesTransformer modifies the local curvature of the time series
+    "n" and ThetaTransformer modifies the local curvature of the time series
     using Theta-coefficient values passed through the parameter `theta`.
 
     Each Theta-coefficient is applied directly to the second differences of the input
@@ -63,7 +63,7 @@ class ThetaTransformer(BaseSeriesTransformer):
 
     def __init__(self, theta=(0, 2)):
         self.theta = theta
-        super().__init__()
+        super().__init__(axis=1)
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.

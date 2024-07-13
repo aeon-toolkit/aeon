@@ -6,10 +6,14 @@ __all__ = [
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
+    "load_from_timeeval_csv_file",
+    "load_anomaly_detection",
     "load_classification",
     "load_forecasting",
     "load_regression",
     "download_all_regression",
+    "load_time_series_segmentation_benchmark",
+    "load_human_activity_segmentation_datasets",
     # Write functions
     "write_to_tsfile",
     "write_to_tsf_file",
@@ -39,12 +43,16 @@ __all__ = [
     "load_solar",
     "load_cardano_sentiment",
     "load_covid_3month",
+    "load_kdd_tsad_135",
+    "load_daphnet_s06r02e0",
+    "load_ecg_diff_count_3",
     # legacy load functions
     "load_from_arff_to_dataframe",
     "load_from_ucr_tsv_to_dataframe",
     "load_from_tsfile_to_dataframe",
     "get_dataset_meta_data",
 ]
+
 from aeon.datasets._data_loaders import (
     download_all_regression,
     get_dataset_meta_data,
@@ -90,4 +98,15 @@ from aeon.datasets._single_problem_loaders import (
     load_unit_test,
     load_unit_test_tsf,
     load_uschange,
+)
+from aeon.datasets._tsad_data_loaders import (
+    load_anomaly_detection,
+    load_daphnet_s06r02e0,
+    load_ecg_diff_count_3,
+    load_from_timeeval_csv_file,
+    load_kdd_tsad_135,
+)
+from aeon.datasets._tss_data_loaders import (
+    load_human_activity_segmentation_datasets,
+    load_time_series_segmentation_benchmark,
 )

@@ -7,12 +7,12 @@ import pytest
 
 from aeon.distances._shape_dtw import _pad_ts_edges, _transform_subsequences
 from aeon.distances._utils import _is_multivariate, reshape_pairwise_to_multiple
-from aeon.testing.utils.data_gen import (
-    make_example_2d_unequal_length,
+from aeon.testing.data_generation import (
+    make_example_2d_numpy_list,
     make_example_3d_numpy,
-    make_example_unequal_length,
-    make_series,
+    make_example_3d_numpy_list,
 )
+from aeon.testing.data_generation._legacy import make_series
 
 SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
 
@@ -117,12 +117,12 @@ def test_is_multvariate():
     x_uni_dataset_3d = make_example_3d_numpy(10, 1, 10, return_y=False)
 
     # Test list of np.ndarray (n_timepoints)
-    x_unequal_dataset_uni_1d = make_example_2d_unequal_length(
+    x_unequal_dataset_uni_1d = make_example_2d_numpy_list(
         10, 5, max_n_timepoints=10, return_y=False
     )
 
     # Test list of np.ndarray (1, n_timepoints)
-    x_unequal_dataset_uni_2d = make_example_unequal_length(10, return_y=False)
+    x_unequal_dataset_uni_2d = make_example_3d_numpy_list(10, return_y=False)
 
     # ==================================================================================
 
@@ -133,7 +133,7 @@ def test_is_multvariate():
     x_multi_dataset_3d = make_example_3d_numpy(10, 2, 10, return_y=False)
 
     # Test list of np.ndarray (n_channels, n_timepoints)
-    x_unequal_multi_2d = make_example_unequal_length(10, 2, return_y=False)
+    x_unequal_multi_2d = make_example_3d_numpy_list(10, 2, return_y=False)
 
     valid_univariate_formats = [
         x_uni_1d,

@@ -3,15 +3,17 @@
   "projectOwner": "aeon-toolkit",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "commitConvention": "none",
   "files": [
     "CONTRIBUTORS.md"
   ],
   "imageSize": 80,
+  "commit": "false",
+  "commitConvention": "atom",
   "contributorsPerLine": 8,
   "contributorsSortAlphabetically": true,
-  "linkToUsage": true,
   "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors)",
+  "linkToUsage": true,
+  "skipCi": true,
   "contributors": [
     {
       "login": "fkiraly",
@@ -2348,7 +2350,10 @@
         "bug",
         "code",
         "doc",
-        "research"
+        "research",
+        "test",
+        "review",
+        "data"
       ]
     },
     {
@@ -2423,7 +2428,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "futuer-szd",
+      "name": "Futuer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/57895730?v=4",
+      "profile": "https://github.com/futuer-szd",
+      "contributions": [
+        "doc"
+      ]
     }
-  ],
-  "commitType": "docs"
+  ]
 }

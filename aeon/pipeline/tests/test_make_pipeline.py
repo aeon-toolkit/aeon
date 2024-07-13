@@ -13,8 +13,11 @@ from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.pipeline import make_pipeline
 from aeon.regression import DummyRegressor
+from aeon.testing.data_generation import (
+    make_example_2d_numpy_collection,
+    make_example_3d_numpy,
+)
 from aeon.testing.mock_estimators import MockTransformer
-from aeon.testing.utils.data_gen import make_example_2d_numpy, make_example_3d_numpy
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import PaddingTransformer, Tabularizer
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
@@ -62,7 +65,7 @@ def test_make_pipeline_legacy(pipeline):
         pipeline[-1], BaseForecaster
     )
 
-    X, y = make_example_2d_numpy()
+    X, y = make_example_2d_numpy_collection()
 
     est = make_pipeline(pipeline)
     est.fit(X, y)

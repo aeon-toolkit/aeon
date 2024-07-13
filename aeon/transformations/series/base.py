@@ -11,6 +11,9 @@ fit & transform - fit_transform(self, X, y=None)
 from abc import ABCMeta, abstractmethod
 from typing import final
 
+import numpy as np
+import pandas as pd
+
 from aeon.base import BaseSeriesEstimator
 from aeon.transformations.base import BaseTransformer
 
@@ -28,8 +31,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         "capability:inverse_transform": False,
     }
 
-    def __init__(self, axis=1):
-        self.axis = axis
+    def __init__(self, axis):
         super().__init__(axis=axis)
 
     @final
@@ -76,7 +78,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         return self
 
     @final
-    def transform(self, X, axis=1):
+    def transform(self, X, y=None, axis=1):
         """Transform X and return a transformed version.
 
         State required:
@@ -104,10 +106,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(
-            X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
-        )
-        Xt = self._transform(X)
+        X = self._preprocess_series(X, axis=axis, store_metadata=False)
+        Xt = self._transform(X, y)
         return self._postprocess_series(Xt, axis=axis)
 
     @final
@@ -184,14 +184,12 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
 
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(
-            X, axis=axis, store_metadata=self.get_class_tag("fit_is_empty")
-        )
+        X = self._preprocess_series(X, axis=axis, store_metadata=False)
         Xt = self._inverse_transform(X=X, y=y)
         return self._postprocess_series(Xt, axis=axis)
 
     @final
-    def update(self, X, y=None, update_params=True, axis=None):
+    def update(self, X, y=None, update_params=True, axis=1):
         """Update transformer with X, optionally y.
 
         Parameters
@@ -211,7 +209,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # check whether is fitted
         self.check_is_fitted()
-        X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
+        X = self._preprocess_series(X, axis, False)
         return self._update(X=X, y=y, update_params=update_params)
 
     def _fit(self, X, y=None):
@@ -294,25 +292,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             f"{self.__class__.__name__} does not support inverse_transform"
         )
 
-    def _update(self, X, y=None):
+    def _update(self, X, y=None, update_params=True):
         # standard behaviour: no update takes place, new data is ignored
         return self
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """
-        Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class.
-        """
-        return {}
 
     def _postprocess_series(self, Xt, axis):
         """Postprocess data Xt to revert to original shape.
@@ -349,3 +331,12 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
             return Xt
         else:
             return Xt.T
+
+    def _check_y(self, y):
+        # Check y valid input for supervised transform
+        if not isinstance(y, (pd.Series, np.ndarray)):
+            raise TypeError(
+                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
+            )
+        if isinstance(y, np.ndarray) and y.ndim > 1:
+            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
