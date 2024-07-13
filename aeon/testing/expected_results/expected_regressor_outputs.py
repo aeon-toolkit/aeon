@@ -234,21 +234,6 @@ cardano_sentiment_preds["KNeighborsTimeSeriesRegressor"] = np.array(
     ]
 )
 
-covid_3month_preds["RISTRegressor"] = np.array(
-    [
-        0.0146,
-        0.0,
-        0.0818,
-        0.0818,
-        0.0408,
-        0.0408,
-        0.0818,
-        0.1111,
-        0.1111,
-        0.0286,
-    ]
-)
-
 cardano_sentiment_preds["RISTRegressor"] = np.array(
     [
         0.3002,
@@ -371,16 +356,16 @@ covid_3month_preds["RandomIntervalRegressor"] = np.array(
 
 cardano_sentiment_preds["RandomIntervalRegressor"] = np.array(
     [
-        0.0405,
-        0.062,
-        0.0069,
-        0.032,
-        0.0258,
-        0.0478,
-        0.032,
-        0.062,
-        0.062,
-        0.0505,
+        0.2546,
+        0.1749,
+        0.5911,
+        0.1562,
+        0.3726,
+        0.228,
+        0.211,
+        0.2102,
+        0.176,
+        0.3056,
     ]
 )
 
