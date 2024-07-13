@@ -174,21 +174,6 @@ covid_3month_preds["MultiRocketHydraRegressor"] = np.array(
     ]
 )
 
-cardano_sentiment_preds["MultiRocketHydraRegressor"] = np.array(
-    [
-        0.423,
-        0.2261,
-        0.5539,
-        0.1887,
-        0.4114,
-        0.0997,
-        0.1863,
-        0.0313,
-        -0.1093,
-        0.4305,
-    ]
-)
-
 covid_3month_preds["RocketRegressor"] = np.array(
     [
         0.0381,
