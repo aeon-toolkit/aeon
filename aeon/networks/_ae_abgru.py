@@ -169,39 +169,3 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
         )
 
         return encoder, decoder
-            )
-            h_att_bw = _AttentionLayer(self.n_filters_RNN, self.n_filters_RNN)(
-                backward_layer
-            )
-            x = self._gate(h_att_fw) * h_att_fw + self._gate(h_att_bw) * h_att_bw
-
-            if not (i == self.n_layers_encoder - 1):
-                x = tf.expand_dims(x, -1)
-
-        encoder = tf.keras.models.Model(inputs=input_layer, outputs=x, name="encoder")
-
-        decoder_inputs = tf.keras.layers.Input(
-            shape=(self.latent_space_dim,), name="decoder_input"
-        )
-        x = tf.keras.layers.RepeatVector(input_shape[0], name="repeat_vector")(
-            decoder_inputs
-        )
-
-        for i in range(self.n_layers_decoder - 1, -1, -1):
-            x = tf.keras.layers.Bidirectional(
-                tf.keras.layers.GRU(
-                    units=self.n_filters_RNN // 2,
-                    activation=self._activation_decoder[i],
-                    return_sequences=True,
-                ),
-                name=f"decoder_bgru_{i+1}",
-            )(x)
-
-        decoder_outputs = tf.keras.layers.TimeDistributed(
-            tf.keras.layers.Dense(input_shape[1]), name="decoder_output"
-        )(x)
-        decoder = tf.keras.models.Model(
-            inputs=decoder_inputs, outputs=decoder_outputs, name="decoder"
-        )
-
-        return encoder, decoder
