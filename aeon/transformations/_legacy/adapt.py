@@ -73,15 +73,6 @@ class TabularToSeriesAdaptor(BaseTransformer):
         Whether transformer_ should be fitted in transform (True), or in fit (False)
         recommended setting in forecasting (single series or hierarchical): False.
         recommended setting in classification, regression, clustering: True.
-
-    Examples
-    --------
-    >>> from aeon.transformations.adapt import TabularToSeriesAdaptor
-    >>> from sklearn.preprocessing import MinMaxScaler
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = TabularToSeriesAdaptor(MinMaxScaler())
-    >>> y_hat = transformer.fit_transform(y)
     """
 
     _tags = {
