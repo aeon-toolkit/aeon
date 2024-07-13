@@ -3,11 +3,11 @@
 from deprecated.sphinx import deprecated
 
 
-# TODO: remove in v0.11.0
+# TODO: remove in v0.12.0
 @deprecated(
-    version="0.10.0",
-    reason="SplitsTimeSeries class will be removed in 0.11.0. Use the function "
-    "split_series in utils instead.",
+    version="0.11.0",
+    reason="SplitsTimeSeries class will be removed in 0.12.0 or 1.0.0. Use the "
+    "function split_series in utils instead.",
     category=FutureWarning,
 )
 class SplitsTimeSeries:
