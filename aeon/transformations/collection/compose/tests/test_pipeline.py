@@ -11,7 +11,7 @@ from aeon.testing.data_generation import (
 )
 from aeon.testing.mock_estimators import MockCollectionTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
-from aeon.transformations.adapt import TabularToSeriesAdaptor
+from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,

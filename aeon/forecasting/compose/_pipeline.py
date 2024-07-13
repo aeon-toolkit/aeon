@@ -240,7 +240,7 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
         from aeon.forecasting.compose._reduce import DirectReductionForecaster
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.testing.mock_estimators import MockTransformer
-        from aeon.transformations.adapt import TabularToSeriesAdaptor
+        from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
         from aeon.transformations.detrend import Detrender
 
         # StandardScaler does not skip fit, NaiveForecaster is not probabilistic
