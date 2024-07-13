@@ -1,59 +1,7 @@
 """Implements an Auto-Encoder based on Attention Bidirectional GRUs."""
 
 from aeon.networks.base import BaseDeepLearningNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-if _check_soft_dependencies("tensorflow", severity="none"):
-    import tensorflow as tf
-    from tensorflow.keras import backend as K
-    from tensorflow.keras.layers import Layer
-
-    class _AttentionLayer(Layer):
-        def __init__(self, n_units, att_size, **kwargs):
-            if "input_shape" not in kwargs and "input_dim" in kwargs:
-                kwargs["input_shape"] = (kwargs.pop("input_dim"),)
-
-            super().__init__(**kwargs)
-            self.n_units = n_units
-            self.att_size = att_size
-            self.W_omega = None
-            self.b_omega = None
-            self.u_omega = None
-
-        def build(self, input_shape):
-            initializer = tf.keras.initializers.RandomNormal(stddev=0.1)
-            self.W_omega = self.add_weight(
-                shape=(input_shape[-1], self.att_size),
-                initializer=initializer,
-                name="W_omega",
-            )
-            self.b_omega = self.add_weight(
-                shape=(self.att_size,), initializer=initializer, name="b_omega"
-            )
-            self.u_omega = self.add_weight(
-                shape=(self.att_size, 1), initializer=initializer, name="u_omega"
-            )
-            super().build(input_shape)
-
-        def call(self, inputs):
-            v = K.tanh(K.dot(inputs, self.W_omega) + self.b_omega)
-            vu = K.squeeze(K.dot(v, self.u_omega), axis=-1)
-            alphas = K.softmax(vu)
-            weighted_sum = K.sum(inputs * K.expand_dims(alphas, axis=-1), axis=1)
-            output = K.reshape(weighted_sum, (-1, self.n_units))
-            return output
-
-        def compute_output_shape(self, input_shape):
-            return (input_shape[0], self.n_units)
-
-        def get_config(self):
-            config = super().get_config()
-            config.update({"n_units": self.n_units, "att_size": self.att_size})
-            return config
-
-        @classmethod
-        def from_config(cls, config):
-            return cls(**config)
 
 class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     """
@@ -63,6 +11,8 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     ----------
         latent_space_dim : int, default=128
             Dimension of the latent space.
+        temporal_latent_space : bool, default=False
+            Flag to choose whether the latent space is an MTS or Euclidean space.
         n_layers_encoder : int, default=None
             Number of Attention BiGRU layers in the encoder.
             If None, one layer will be used.
@@ -86,6 +36,7 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     def __init__(
         self,
         latent_space_dim=None,
+        temporal_latent_space=False,
         n_layers_encoder=1,
         n_layers_decoder=1,
         activation_encoder="relu",
@@ -94,6 +45,7 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
         self.latent_space_dim = latent_space_dim
+        self.temporal_latent_space = temporal_latent_space
         self.activation_encoder = activation_encoder
         self.activation_decoder = activation_decoder
         self.n_layers_encoder = n_layers_encoder
@@ -115,6 +67,8 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
         encoder : a keras Model.
         decoder : a keras Model.
         """
+        import tensorflow as tf
+
         if isinstance(self.activation_encoder, str):
             self._activation_encoder = [
                 self.activation_encoder for _ in range(self.n_layers_encoder)
@@ -167,8 +121,54 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
                 return_sequences=True,
                 go_backwards=True,
             )(x)
-            h_att_fw = _AttentionLayer(self.n_filters_RNN, self.n_filters_RNN)(
-                forward_layer
+
+            query = tf.keras.layers.Dense(self.n_filters_RNN)(forward_layer)
+            key = tf.keras.layers.Dense(self.n_filters_RNN)(backward_layer)
+            value = tf.keras.layers.Dense(self.n_filters_RNN)(backward_layer)
+
+            attention_layer = tf.keras.layers.Attention()([query, key, value])
+            x = self._gate(attention_layer) * attention_layer
+
+        if not self.temporal_latent_space:
+            shape_before_flatten = x.shape[1:]
+            x = tf.keras.layers.Flatten()(x)
+            x = tf.keras.layers.Dense(self.latent_space_dim)(x)
+        elif self.temporal_latent_space:
+            x = tf.keras.layers.Conv1D(filters=self.latent_space_dim, kernel_size=1)(x)
+
+        encoder = tf.keras.models.Model(inputs=input_layer, outputs=x, name="encoder")
+
+        if not self.temporal_latent_space:
+            decoder_inputs = tf.keras.layers.Input(
+                shape=(self.latent_space_dim,), name="decoder_input"
+            )
+            x = tf.keras.layers.RepeatVector(input_shape[0], name="repeat_vector")(
+                decoder_inputs
+            )
+        else:
+            decoder_inputs = tf.keras.layers.Input(
+                shape=shape_before_flatten, name="decoder_input"
+            )
+            x = decoder_inputs
+
+        for i in range(self.n_layers_decoder - 1, -1, -1):
+            x = tf.keras.layers.Bidirectional(
+                tf.keras.layers.GRU(
+                    units=self.n_filters_RNN // 2,
+                    activation=self._activation_decoder[i],
+                    return_sequences=True,
+                ),
+                name=f"decoder_bgru_{i+1}",
+            )(x)
+
+        decoder_outputs = tf.keras.layers.TimeDistributed(
+            tf.keras.layers.Dense(input_shape[1]), name="decoder_output"
+        )(x)
+        decoder = tf.keras.models.Model(
+            inputs=decoder_inputs, outputs=decoder_outputs, name="decoder"
+        )
+
+        return encoder, decoder
             )
             h_att_bw = _AttentionLayer(self.n_filters_RNN, self.n_filters_RNN)(
                 backward_layer
