@@ -633,14 +633,6 @@ class SummaryTransformer(BaseTransformer):
     -----
     This provides a wrapper around pandas DataFrame and Series agg and
     quantile methods.
-
-    Examples
-    --------
-    >>> from aeon.transformations.summarize import SummaryTransformer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = SummaryTransformer()
-    >>> y_mean = transformer.fit_transform(y)
     """
 
     _tags = {
