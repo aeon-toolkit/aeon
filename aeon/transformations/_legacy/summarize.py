@@ -132,55 +132,6 @@ class WindowSummarizer(BaseTransformer):
         Contains all transformed columns as well as non-transformed columns.
         The raw inputs to transformed columns will be dropped.
     self: reference to self
-
-    Examples
-    --------
-    >>> import pandas as pd
-    >>> from aeon.transformations.summarize import WindowSummarizer
-    >>> from aeon.datasets import load_airline, load_longley
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.forecasting.base import ForecastingHorizon
-    >>> from aeon.forecasting.compose import ForecastingPipeline
-    >>> from aeon.forecasting.model_selection import temporal_train_test_split
-    >>> y = load_airline()
-    >>> kwargs = {
-    ...     "lag_feature": {
-    ...         "lag": [1],
-    ...         "mean": [[1, 3], [3, 6]],
-    ...         "std": [[1, 4]],
-    ...     }
-    ... }
-    >>> transformer = WindowSummarizer(**kwargs)
-    >>> y_transformed = transformer.fit_transform(y)
-
-        Example with transforming multiple columns of exogeneous features
-    >>> y, X = load_longley()
-    >>> y_train, y_test, X_train, X_test = temporal_train_test_split(y, X)
-    >>> fh = ForecastingHorizon(X_test.index, is_relative=False)
-    >>> # Example transforming only X
-    >>> pipe = ForecastingPipeline(
-    ...     steps=[
-    ...         ("a", WindowSummarizer(n_jobs=1, target_cols=["POP", "GNPDEFL"])),
-    ...         ("b", WindowSummarizer(n_jobs=1, target_cols=["GNP"], **kwargs)),
-    ...         ("forecaster", NaiveForecaster(strategy="drift")),
-    ...     ]
-    ... )
-    >>> pipe_return = pipe.fit(y_train, X_train)
-    >>> y_pred1 = pipe_return.predict(fh=fh, X=X_test)
-
-        Example with transforming multiple columns of exogeneous features
-        as well as the y column
-    >>> Z_train = pd.concat([X_train, y_train], axis=1)
-    >>> Z_test = pd.concat([X_test, y_test], axis=1)
-    >>> pipe = ForecastingPipeline(
-    ...     steps=[
-    ...         ("a", WindowSummarizer(n_jobs=1, target_cols=["POP", "TOTEMP"])),
-    ...         ("b", WindowSummarizer(**kwargs, n_jobs=1, target_cols=["GNP"])),
-    ...         ("forecaster", NaiveForecaster(strategy="drift")),
-    ...     ]
-    ... )
-    >>> pipe_return = pipe.fit(y_train, Z_train)
-    >>> y_pred2 = pipe_return.predict(fh=fh, X=Z_test)
     """
 
     _tags = {
