@@ -1,13 +1,12 @@
 """MiniRocket transformer."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["MiniRocket"]
 
-import multiprocessing
 from itertools import combinations
 
 import numpy as np
-from numba import get_num_threads, njit, prange, set_num_threads, vectorize
+from numba import njit, prange, vectorize
 
 from aeon.transformations.collection import BaseCollectionTransformer
 
@@ -96,9 +95,10 @@ class MiniRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            panel of time series to transform
-        y : ignored argument for interface compatibility
+        X : np.ndarray
+            Collection of time series of shape (= [)n_cases, n_channels, n_timepoints)
+        y : None
+            Ignored argument for interface compatibility.
 
         Returns
         -------
@@ -128,9 +128,10 @@ class MiniRocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            panel of time series to transform
-        y : ignored argument for interface compatibility
+        X : np.ndarray
+            Collection of time series of shape (= [)n_cases, n_channels, n_timepoints).
+        y : None
+            Ignored argument for interface compatibility.
 
         Returns
         -------
@@ -138,44 +139,32 @@ class MiniRocket(BaseCollectionTransformer):
         """
         X = X.astype(np.float32)
         _, n_channels, n_timepoints = X.shape
-        # change n_jobs dependend on value and existing cores
-        prev_threads = get_num_threads()
-        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
-            n_jobs = multiprocessing.cpu_count()
-        else:
-            n_jobs = self.n_jobs
-        set_num_threads(n_jobs)
         if n_channels == 1:
             X = X.squeeze(1)
             X_ = _static_transform_uni(X, self.parameters, MiniRocket._indices)
         else:
             X_ = _static_transform_multi(X, self.parameters, MiniRocket._indices)
-        set_num_threads(prev_threads)
         return X_
 
 
-def _fit_dilations(n_timepoints, n_features, max_dilations_per_kernel):
+def _fit_dilations(n_timepoints, n_features, max_dilations):
     n_kernels = 84
-    n_features_per_kernel = n_features // n_kernels
-    true_max_dilations_per_kernel = min(n_features_per_kernel, max_dilations_per_kernel)
-    multiplier = n_features_per_kernel / true_max_dilations_per_kernel
+    n_per_kernel = n_features // n_kernels
+    max_dilations_per_kernel = min(n_per_kernel, max_dilations)
+    multiplier = n_per_kernel / max_dilations_per_kernel
     max_exponent = np.log2((n_timepoints - 1) / (9 - 1))
-    dilations, n_features_per_dilation = np.unique(
-        np.logspace(0, max_exponent, true_max_dilations_per_kernel, base=2).astype(
-            np.int32
-        ),
+    dilations, n_per_dilation = np.unique(
+        np.logspace(0, max_exponent, max_dilations_per_kernel, base=2).astype(np.int32),
         return_counts=True,
     )
-    n_features_per_dilation = (n_features_per_dilation * multiplier).astype(
-        np.int32
-    )  # this is a vector
-    remainder = n_features_per_kernel - np.sum(n_features_per_dilation)
+    n_per_dilation = (n_per_dilation * multiplier).astype(np.int32)  # this is a vector
+    remainder = n_per_kernel - np.sum(n_per_dilation)
     i = 0
     while remainder > 0:
-        n_features_per_dilation[i] += 1
+        n_per_dilation[i] += 1
         remainder -= 1
-        i = (i + 1) % len(n_features_per_dilation)
-    return dilations, n_features_per_dilation
+        i = (i + 1) % len(n_per_dilation)
+    return dilations, n_per_dilation
 
 
 def _quantiles(n):
