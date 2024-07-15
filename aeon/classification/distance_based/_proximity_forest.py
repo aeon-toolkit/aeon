@@ -43,6 +43,11 @@ class ProximityForest(BaseClassifier):
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
         for more details. Parameter for compatibility purposes, still unimplemented.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
+        value of "threads" is used by default.
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
 
     Notes
     -----
@@ -85,6 +90,7 @@ class ProximityForest(BaseClassifier):
         min_samples_split: int = 2,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
         n_jobs: int = 1,
+        parallel_backend=None,
     ):
         self.n_trees = n_trees
         self.n_splitters = n_splitters
@@ -92,11 +98,14 @@ class ProximityForest(BaseClassifier):
         self.min_samples_split = min_samples_split
         self.random_state = random_state
         self.n_jobs = n_jobs
+        self.parallel_backend = parallel_backend
         super().__init__()
 
     def _fit(self, X, y):
         self.classes_ = list(np.unique(y))
-        self.trees_ = Parallel(n_jobs=self._n_jobs, prefer="threads")(
+        self.trees_ = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(
             delayed(_fit_tree)(
                 X,
                 y,
@@ -110,9 +119,9 @@ class ProximityForest(BaseClassifier):
         )
 
     def _predict_proba(self, X):
-        output_probas = Parallel(n_jobs=self._n_jobs, prefer="threads")(
-            delayed(_predict_proba_tree)(tree, X) for tree in self.trees_
-        )
+        output_probas = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(delayed(_predict_proba_tree)(tree, X) for tree in self.trees_)
         output_probas = np.sum(output_probas, axis=0)
         output_probas = np.divide(output_probas, self.n_trees)
         return output_probas
