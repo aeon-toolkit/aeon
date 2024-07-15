@@ -371,10 +371,6 @@ class ProximityTree(BaseClassifier):
         return mode_value
 
     def _fit(self, X, y):
-
-        # Set the unique class labels
-        self.classes_ = list(np.unique(y))
-
         self.root = self._build_tree(
             X, y, depth=0, node_id="0", parent_target_value=None
         )
@@ -386,7 +382,7 @@ class ProximityTree(BaseClassifier):
 
     def _predict_proba(self, X):
         # Get the unique class labels
-        classes = self.classes_
+        classes = list(self.classes_)
         class_count = len(classes)
         probas = []
 
