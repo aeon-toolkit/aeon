@@ -276,6 +276,17 @@ class ProximityTree(BaseClassifier):
             for label, count in zip(*np.unique(y, return_counts=True))
         }
 
+        # Pure node
+        if len(np.unique(y)) == 1:
+            leaf_label = target_value
+            leaf = _Node(
+                node_id=node_id,
+                _is_leaf=True,
+                label=leaf_label,
+                class_distribution=class_distribution,
+            )
+            return leaf
+
         # If min sample splits is reached
         if self.min_samples_split >= len(X):
             leaf_label = target_value
@@ -289,17 +300,6 @@ class ProximityTree(BaseClassifier):
 
         # If max depth is reached
         if (self.max_depth is not None) and (depth >= self.max_depth):
-            leaf_label = target_value
-            leaf = _Node(
-                node_id=node_id,
-                _is_leaf=True,
-                label=leaf_label,
-                class_distribution=class_distribution,
-            )
-            return leaf
-
-        # Pure node
-        if len(np.unique(y)) == 1:
             leaf_label = target_value
             leaf = _Node(
                 node_id=node_id,
