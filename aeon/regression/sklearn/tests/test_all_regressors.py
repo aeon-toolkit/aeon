@@ -1,6 +1,6 @@
 """Unit tests for sklearn regressors."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 
 from sklearn.utils.estimator_checks import parametrize_with_checks
 

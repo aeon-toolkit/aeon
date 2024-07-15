@@ -10,7 +10,12 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_MULTIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
-from aeon.utils.validation import is_collection, is_equal_length, is_univariate
+from aeon.utils.validation import (
+    is_collection,
+    is_equal_length,
+    is_single_series,
+    is_univariate,
+)
 
 
 def test_test_data_dict():
@@ -20,8 +25,12 @@ def test_test_data_dict():
         assert len(TEST_DATA_DICT[key]) == 2
         assert "train" in TEST_DATA_DICT[key]
         assert "test" in TEST_DATA_DICT[key]
-        assert is_collection(TEST_DATA_DICT[key]["train"])
-        assert is_collection(TEST_DATA_DICT[key]["test"])
+        assert is_collection(TEST_DATA_DICT[key]["train"]) or is_single_series(
+            TEST_DATA_DICT[key]["train"]
+        )
+        assert is_collection(TEST_DATA_DICT[key]["test"]) or is_single_series(
+            TEST_DATA_DICT[key]["train"]
+        )
 
 
 def test_test_label_dict():
@@ -31,10 +40,11 @@ def test_test_label_dict():
         assert len(TEST_LABEL_DICT[key]) == 2
         assert "train" in TEST_LABEL_DICT[key]
         assert "test" in TEST_LABEL_DICT[key]
-        assert isinstance(TEST_LABEL_DICT[key]["train"], np.ndarray)
-        assert isinstance(TEST_LABEL_DICT[key]["test"], np.ndarray)
-        assert TEST_LABEL_DICT[key]["train"].ndim == 1
-        assert TEST_LABEL_DICT[key]["test"].ndim == 1
+        if TEST_LABEL_DICT[key]["train"] is not None:
+            assert isinstance(TEST_LABEL_DICT[key]["train"], np.ndarray)
+            assert isinstance(TEST_LABEL_DICT[key]["test"], np.ndarray)
+            assert TEST_LABEL_DICT[key]["train"].ndim == 1
+            assert TEST_LABEL_DICT[key]["test"].ndim == 1
 
 
 def test_equal_length_univariate():

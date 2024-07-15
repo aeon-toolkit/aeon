@@ -3,6 +3,7 @@
 __all__ = [
     "Rocket",
     "MiniRocket",
+    "MultiRocketMultivariate",
     "MiniRocketMultivariate",
     "MiniRocketMultivariateVariable",
     "MultiRocket",

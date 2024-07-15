@@ -4,9 +4,8 @@ Pipeline classifier using the full set of TSFresh features and a
 RotationForestClassifier.
 """
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["FreshPRINCEClassifier"]
-
 
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
@@ -109,7 +108,6 @@ class FreshPRINCEClassifier(BaseClassifier):
         self.n_cases_ = 0
         self.n_channels_ = 0
         self.n_timepoints_ = 0
-        self.transformed_data_ = []
 
         self._rotf = None
         self._tsfresh = None

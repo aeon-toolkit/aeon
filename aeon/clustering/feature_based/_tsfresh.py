@@ -12,10 +12,7 @@ from sklearn.cluster import KMeans
 
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
-from aeon.transformations.collection.feature_based import (
-    TSFreshFeatureExtractor,
-    TSFreshRelevantFeatureExtractor,
-)
+from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 
 
 class TSFreshClusterer(BaseClusterer):
@@ -30,8 +27,6 @@ class TSFreshClusterer(BaseClusterer):
     default_fc_parameters : str, default="efficient"
         Set of TSFresh features to be extracted, options are "minimal", "efficient" or
         "comprehensive".
-    relevant_feature_extractor : bool, default=False
-        Remove irrelevant features using the FRESH algorithm.
     estimator : sklearn clusterer, default=None
         An sklearn estimator to be built using the transformed data. Defaults to a
         Random Forest with 200 trees.
@@ -52,8 +47,6 @@ class TSFreshClusterer(BaseClusterer):
     See Also
     --------
     TSFreshFeatureExtractor
-    TSFreshRelevantFeatureExtractor
-    TSFreshRegressor
 
     References
     ----------
@@ -84,7 +77,6 @@ class TSFreshClusterer(BaseClusterer):
     def __init__(
         self,
         default_fc_parameters="efficient",
-        relevant_feature_extractor=True,
         estimator=None,
         verbose=0,
         n_jobs=1,
@@ -92,7 +84,6 @@ class TSFreshClusterer(BaseClusterer):
         random_state=None,
     ):
         self.default_fc_parameters = default_fc_parameters
-        self.relevant_feature_extractor = relevant_feature_extractor
         self.estimator = estimator
 
         self.verbose = verbose
@@ -125,18 +116,10 @@ class TSFreshClusterer(BaseClusterer):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = (
-            TSFreshRelevantFeatureExtractor(
-                default_fc_parameters=self.default_fc_parameters,
-                n_jobs=self._n_jobs,
-                chunksize=self.chunksize,
-            )
-            if self.relevant_feature_extractor
-            else TSFreshFeatureExtractor(
-                default_fc_parameters=self.default_fc_parameters,
-                n_jobs=self._n_jobs,
-                chunksize=self.chunksize,
-            )
+        self._transformer = TSFreshFeatureExtractor(
+            default_fc_parameters=self.default_fc_parameters,
+            n_jobs=self._n_jobs,
+            chunksize=self.chunksize,
         )
         self._estimator = _clone_estimator(
             (KMeans() if self.estimator is None else self.estimator),
@@ -199,8 +182,15 @@ class TSFreshClusterer(BaseClusterer):
             return self._estimator.predict_proba(self._transformer.transform(X))
         else:
             preds = self._estimator.predict(self._transformer.transform(X))
-            dists = np.zeros((X.shape[0], np.unique(preds).shape[0]))
-            for i in range(0, X.shape[0]):
+            unique = np.unique(preds)
+            for i, u in enumerate(unique):
+                preds[preds == u] = i
+            n_cases = len(preds)
+            n_clusters = self.n_clusters
+            if n_clusters is None:
+                n_clusters = int(max(preds)) + 1
+            dists = np.zeros((X.shape[0], n_clusters))
+            for i in range(n_cases):
                 dists[i, preds[i]] = 1
             return dists
 
@@ -227,5 +217,4 @@ class TSFreshClusterer(BaseClusterer):
         """
         return {
             "default_fc_parameters": "minimal",
-            "relevant_feature_extractor": False,
         }

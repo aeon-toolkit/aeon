@@ -7,7 +7,10 @@ from sklearn.exceptions import NotFittedError
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.classification.sklearn._continuous_interval_tree import _TreeNode
 from aeon.datasets import load_unit_test
-from aeon.testing.data_generation import make_example_2d_numpy, make_example_3d_numpy
+from aeon.testing.data_generation import (
+    make_example_2d_numpy_collection,
+    make_example_3d_numpy,
+)
 
 
 def test_cit_output():
@@ -45,7 +48,7 @@ def test_cit_output():
 
 def test_cit_edge_cases():
     """Test ContinuousIntervalTree edge cases."""
-    X, y = make_example_2d_numpy(n_cases=5, n_labels=1)
+    X, y = make_example_2d_numpy_collection(n_cases=5, n_labels=1)
     cit = ContinuousIntervalTree(max_depth=1)
     with pytest.raises(NotFittedError, match="please call `fit` first"):
         cit.predict_proba(X)
@@ -55,7 +58,7 @@ def test_cit_edge_cases():
     # Should predict all 0
     assert np.all(preds == 0)
 
-    X, y = make_example_2d_numpy(n_cases=5)
+    X, y = make_example_2d_numpy_collection(n_cases=5)
     cit = ContinuousIntervalTree(max_depth=1)
     cit.fit(X, y)
     node = cit._root
@@ -71,7 +74,7 @@ def test_cit_edge_cases():
 
 def test_cit_nan_values():
     """Test that ContinuousIntervalTree can handle NaN values."""
-    X, y = make_example_2d_numpy()
+    X, y = make_example_2d_numpy_collection()
     X[0:3, 0] = np.nan
 
     clf = ContinuousIntervalTree()

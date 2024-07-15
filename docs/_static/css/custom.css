@@ -24,6 +24,7 @@ img.avatar {
   height: 150px;
   object-fit: contain;
   object-position: center;
+  background-color: white;
 }
 
 .aeon-card-image,
@@ -32,4 +33,10 @@ img.avatar {
   height: 200px;
   object-fit: contain;
   object-position: center;
+  background-color: white;
+}
+
+/* Removes margin issues caused by class.rst template error for some cases */
+.autosummary table {
+  margin: 0;
 }

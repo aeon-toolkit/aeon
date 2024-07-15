@@ -1,5 +1,7 @@
 """Rotation Forest test code."""
 
+__maintainer__ = ["MatthewMiddlehurst"]
+
 import numpy as np
 from sklearn.metrics import mean_squared_error
 from sklearn.tree import DecisionTreeRegressor
