@@ -149,7 +149,6 @@ class RSTSF(BaseClassifier):
             criterion="entropy",
             class_weight="balanced",
             max_features="sqrt",
-            class_weight=self.class_weight,
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
