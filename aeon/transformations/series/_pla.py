@@ -35,9 +35,26 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     ----------
     .. [1] Keogh, E., Chu, S., Hart, D. and Pazzani, M., 2001, November.
     An online algorithm for segmenting time series. (pp. 289-296).
+
+    Examples
+    --------
+    >>> from aeon.transformations.series import PiecewiseLinearApproximation
+    >>> from aeon.datasets import load_electric_devices_segmentation
+    >>> ts, period_size, true_cps = load_electric_devices_segmentation()
+    >>> ts = ts.values
+    >>> pla = PiecewiseLinearApproximation(
+    ... PiecewiseLinearApproximation.Algorithm.SWAB, 20)
+    >>> results = pla.fit_transform(ts)
+    >>> print(ts)
+    [ 573.  375.  301.  212.   55.   34.   25.   33.  113.  143.  303.  615.
+    1226. 1281. 1221. 1081.  866. 1096. 1039.  975.  746.  581.  409.  182.]
+    >>> print(results)
+    [ 538.8  423.1  307.4  191.7   48.    40.5   33.    25.5   43.6  210.2
+    376.8  543.4 1276.5 1227.  1177.5 1128.   953.5  980.5 1007.5 1034.5
+    759.1  572.7  386.3  199.9]
     """
 
-    class Transformer(Enum):
+    class Algorithm(Enum):
         """An enum class specifically for PLA."""
 
         SlidingWindow = "SlidingWindow"

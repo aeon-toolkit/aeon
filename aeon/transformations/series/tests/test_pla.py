@@ -42,7 +42,7 @@ def X():
 def test_piecewise_linear_approximation_sliding_window(X):
     """Test PLA series transformer sliding window returns correctly."""
     pla = PiecewiseLinearApproximation(
-        PiecewiseLinearApproximation.Transformer.SlidingWindow, 100
+        PiecewiseLinearApproximation.Algorithm.SlidingWindow, 100
     )
     result = pla.fit_transform(X)
     expected = np.array(
@@ -79,7 +79,7 @@ def test_piecewise_linear_approximation_sliding_window(X):
 def test_piecewise_linear_approximation_top_down(X):
     """Test PLA series transformer top down returns correctly."""
     pla = PiecewiseLinearApproximation(
-        PiecewiseLinearApproximation.Transformer.TopDown, 100
+        PiecewiseLinearApproximation.Algorithm.TopDown, 100
     )
     result = pla.fit_transform(X)
     expected = np.array(
@@ -116,7 +116,7 @@ def test_piecewise_linear_approximation_top_down(X):
 def test_piecewise_linear_approximation_bottom_up(X):
     """Test PLA series transformer bottom up returns correctly."""
     result = PiecewiseLinearApproximation(
-        PiecewiseLinearApproximation.Transformer.BottomUp, 5
+        PiecewiseLinearApproximation.Algorithm.BottomUp, 5
     ).fit_transform(X)
     expected = np.array(
         [
@@ -152,7 +152,7 @@ def test_piecewise_linear_approximation_bottom_up(X):
 def test_piecewise_linear_approximation_SWAB(X):
     """Test PLA series transformer SWAB returns correctly."""
     result = PiecewiseLinearApproximation(
-        PiecewiseLinearApproximation.Transformer.SWAB, 5
+        PiecewiseLinearApproximation.Algorithm.SWAB, 5
     ).fit_transform(X)
     expected = np.array(
         [
@@ -188,10 +188,10 @@ def test_piecewise_linear_approximation_SWAB(X):
 def test_piecewise_linear_approximation_check_diff_in_params(X):
     """Test PLA series transformer difference in parameters."""
     transformers = [
-        PiecewiseLinearApproximation.Transformer.SlidingWindow,
-        PiecewiseLinearApproximation.Transformer.TopDown,
-        PiecewiseLinearApproximation.Transformer.BottomUp,
-        PiecewiseLinearApproximation.Transformer.SWAB,
+        PiecewiseLinearApproximation.Algorithm.SlidingWindow,
+        PiecewiseLinearApproximation.Algorithm.TopDown,
+        PiecewiseLinearApproximation.Algorithm.BottomUp,
+        PiecewiseLinearApproximation.Algorithm.SWAB,
     ]
     for i in range(len(transformers)):
         low_error_pla = PiecewiseLinearApproximation(transformers[i], 1)
@@ -207,11 +207,11 @@ def test_piecewise_linear_approximation_wrong_parameters(X):
         PiecewiseLinearApproximation("Fake Transformer", 100)
     with pytest.raises(ValueError):
         PiecewiseLinearApproximation(
-            PiecewiseLinearApproximation.Transformer.SWAB, "max_error"
+            PiecewiseLinearApproximation.Algorithm.SWAB, "max_error"
         )
     with pytest.raises(ValueError):
         PiecewiseLinearApproximation(
-            PiecewiseLinearApproximation.Transformer.SWAB, 100, "buffer_size"
+            PiecewiseLinearApproximation.Algorithm.SWAB, 100, "buffer_size"
         )
 
 
@@ -219,7 +219,7 @@ def test_piecewise_linear_approximation_one_segment(X):
     """Test PLA series transformer on one segment."""
     X = X[:2]
     pla = PiecewiseLinearApproximation(
-        PiecewiseLinearApproximation.Transformer.BottomUp, 10
+        PiecewiseLinearApproximation.Algorithm.BottomUp, 10
     )
     result = pla.fit_transform(X)
     assert 0 == len(pla.segment_dense)
