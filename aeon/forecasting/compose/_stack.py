@@ -1,9 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements forecasters for combining forecasts via stacking."""
 
-__author__ = ["mloning", "fkiraly", "indinewton"]
+__maintainer__ = []
 __all__ = ["StackingForecaster"]
 
 from warnings import warn
@@ -34,7 +31,7 @@ class StackingForecaster(_HeterogenousEnsembleForecaster):
         The regressor can also be a sklearn.Pipeline().
     random_state : int, RandomState instance or None, default=None
         Used to set random_state of the default regressor.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         The number of jobs to run in parallel for fit. None means 1 unless
         in a joblib.parallel_backend context.
         -1 means using all processors.
@@ -64,18 +61,18 @@ class StackingForecaster(_HeterogenousEnsembleForecaster):
     _tags = {
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": True,
-        "handles-missing-data": True,
-        "scitype:y": "univariate",
+        "capability:missing_values": True,
+        "y_input_type": "univariate",
         "X-y-must-have-same-index": True,
     }
 
     def __init__(self, forecasters, regressor=None, random_state=None, n_jobs=None):
-        super(StackingForecaster, self).__init__(forecasters=forecasters, n_jobs=n_jobs)
+        super().__init__(forecasters=forecasters, n_jobs=n_jobs)
         self.regressor = regressor
         self.random_state = random_state
 
         self._anytagis_then_set("ignores-exogeneous-X", False, True, forecasters)
-        self._anytagis_then_set("handles-missing-data", False, True, forecasters)
+        self._anytagis_then_set("capability:missing_values", False, True, forecasters)
         self._anytagis_then_set("fit_is_empty", False, True, forecasters)
 
     def _fit(self, y, X=None, fh=None):
@@ -85,9 +82,9 @@ class StackingForecaster(_HeterogenousEnsembleForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -135,7 +132,7 @@ class StackingForecaster(_HeterogenousEnsembleForecaster):
         ----------
         y : pd.Series
         X : pd.DataFrame
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
 
         Returns
         -------
@@ -154,7 +151,7 @@ class StackingForecaster(_HeterogenousEnsembleForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns

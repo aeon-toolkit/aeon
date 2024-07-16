@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
 """Compositors that control stream and refitting behaviour of update."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pandas as pd
 
-from aeon.datatypes import ALL_TIME_SERIES_MTYPES
-from aeon.datatypes._utilities import get_window
 from aeon.forecasting.base._delegate import _DelegatedForecaster
+from aeon.utils._data_types import ALL_TIME_SERIES_TYPES
+from aeon.utils.index_functions import get_window
 
 # prepare tags to clone - exceptions are TAGS_TO_KEEP
-TAGS_TO_KEEP = ["fit_is_empty", "X_inner_mtype", "y_inner_mtype"]
+TAGS_TO_KEEP = ["fit_is_empty", "X_inner_type", "y_inner_type"]
 # fit must be executed to fit the wrapped estimator and remember the cutoff
 # mtype tags are set so X/y is passed through, conversions happen in wrapped estimator
 TAGS_TO_CLONE = _DelegatedForecaster().get_tags().keys()
@@ -29,7 +27,7 @@ class UpdateRefitsEvery(_DelegatedForecaster):
 
     Parameters
     ----------
-    refit_interval : difference of sktime time indices (int or timedelta), optional
+    refit_interval : difference of aeon time indices (int or timedelta), optional
         interval that needs to elapse after which the first update defaults to fit
         default = 0, i.e., always refits, never updates
         if index of y seen in fit is integer or y is index-free container type,
@@ -37,10 +35,10 @@ class UpdateRefitsEvery(_DelegatedForecaster):
         if index of y seen in fit is timestamp, must be int or pd.Timedelta
             if pd.Timedelta, will be interpreted as time since last refit elapsed
             if int, will be interpreted as number of time stamps seen since last refit
-    refit_window_size : difference of sktime time indices (int or timedelta), optional
+    refit_window_size : difference of aeon time indices (int or timedelta), optional
         length of the data window to refit to in case update calls fit
         default = inf, i.e., refits to entire training data seen so far
-    refit_window_lag : difference of sktime indices (int or timedelta), optional
+    refit_window_lag : difference of aeon indices (int or timedelta), optional
         lag of the data window to refit to, w.r.t. cutoff, in case update calls fit
         default = 0, i.e., refit window ends with and includes cutoff
     """
@@ -53,8 +51,8 @@ class UpdateRefitsEvery(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
     }
 
     def __init__(
@@ -67,7 +65,7 @@ class UpdateRefitsEvery(_DelegatedForecaster):
         self.refit_window_size = refit_window_size
         self.refit_window_lag = refit_window_lag
 
-        super(UpdateRefitsEvery, self).__init__()
+        super().__init__()
 
         self.clone_tags(forecaster, TAGS_TO_CLONE)
 
@@ -81,19 +79,19 @@ class UpdateRefitsEvery(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+            if self.get_tag("y_input_type")=="both": no restrictions apply
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+        X : default=None
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -124,16 +122,16 @@ class UpdateRefitsEvery(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
-        X : pd.DataFrame, optional (default=None)
+            if self.get_tag("y_input_type")=="both": no restrictions apply
+        X : pd.DataFrame, default=None
             Exogenous time series
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -220,7 +218,7 @@ class UpdateEvery(_DelegatedForecaster):
 
     Parameters
     ----------
-    update_interval : difference of sktime time indices (int or timedelta), optional
+    update_interval : difference of aeon time indices (int or timedelta), optional
         interval that needs to elapse until inner update call with update_params=True
         default = None = infinity, i.e., never updates
         if index of y seen in fit is integer or y is index-free container type,
@@ -238,8 +236,8 @@ class UpdateEvery(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
     }
 
     def __init__(self, forecaster, update_interval=None):
@@ -248,7 +246,7 @@ class UpdateEvery(_DelegatedForecaster):
 
         self.update_interval = update_interval
 
-        super(UpdateEvery, self).__init__()
+        super().__init__()
 
         self.clone_tags(forecaster, TAGS_TO_KEEP)
 
@@ -262,19 +260,19 @@ class UpdateEvery(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+            if self.get_tag("y_input_type")=="both": no restrictions apply
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+        X : default=None
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -305,16 +303,16 @@ class UpdateEvery(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
-        X : pd.DataFrame, optional (default=None)
+            if self.get_tag("y_input_type")=="both": no restrictions apply
+        X : pd.DataFrame, default=None
             Exogenous time series
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -379,7 +377,7 @@ class DontUpdate(_DelegatedForecaster):
 
     Parameters
     ----------
-    refit_interval : difference of sktime time indices (int or timedelta), optional
+    refit_interval : difference of aeon time indices (int or timedelta), optional
         interval that needs to elapse after which the first update defaults to fit
         default = 0, i.e., always refits, never updates
         if index of y seen in fit is integer or y is index-free container type,
@@ -387,10 +385,10 @@ class DontUpdate(_DelegatedForecaster):
         if index of y seen in fit is timestamp, must be int or pd.Timedelta
             if pd.Timedelta, will be interpreted as time since last refit elapsed
             if int, will be interpreted as number of time stamps seen since last refit
-    refit_window_size : difference of sktime time indices (int or timedelta), optional
+    refit_window_size : difference of aeon time indices (int or timedelta), optional
         length of the data window to refit to in case update calls fit
         default = inf, i.e., refits to entire training data seen so far
-    refit_window_lag : difference of sktime indices (int or timedelta), optional
+    refit_window_lag : difference of aeon indices (int or timedelta), optional
         lag of the data window to refit to, w.r.t. cutoff, in case update calls fit
         default = 0, i.e., refit window ends with and includes cutoff
     """
@@ -403,15 +401,15 @@ class DontUpdate(_DelegatedForecaster):
     _tags = {
         "fit_is_empty": False,
         "requires-fh-in-fit": False,
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
     }
 
     def __init__(self, forecaster):
         self.forecaster = forecaster
         self.forecaster_ = forecaster.clone()
 
-        super(DontUpdate, self).__init__()
+        super().__init__()
 
         self.clone_tags(forecaster, TAGS_TO_CLONE)
 
@@ -433,16 +431,16 @@ class DontUpdate(_DelegatedForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series with which to update the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
-        X : pd.DataFrame, optional (default=None)
+            if self.get_tag("y_input_type")=="both": no restrictions apply
+        X : pd.DataFrame, default=None
             Exogenous time series
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns

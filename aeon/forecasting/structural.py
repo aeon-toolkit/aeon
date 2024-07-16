@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Wraps the UnobservedComponents (state space) model from statsmodels."""
 
 __all__ = ["UnobservedComponents"]
-__author__ = ["juanitorduz"]
+__maintainer__ = []
 
 import pandas as pd
 
@@ -179,8 +176,8 @@ class UnobservedComponents(_StatsModelsAdapter):
 
     References
     ----------
-    .. [1] Seabold, Skipper, and Josef Perktold. “statsmodels: Econometric
-       and statistical modeling with python.” Proceedings of the 9th Python
+    .. [1] Seabold, Skipper, and Josef Perktold. "statsmodels: Econometric
+       and statistical modeling with python." Proceedings of the 9th Python
        in Science Conference. 2010.
 
     .. [2] Durbin, James, and Siem Jan Koopman. 2012.
@@ -200,7 +197,7 @@ class UnobservedComponents(_StatsModelsAdapter):
 
     _tags = {
         "capability:pred_int": True,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "ignores-exogeneous-X": False,
     }
 
@@ -276,7 +273,7 @@ class UnobservedComponents(_StatsModelsAdapter):
         self.flags = flags
         self.low_memory = low_memory
 
-        super(UnobservedComponents, self).__init__(random_state=random_state)
+        super().__init__(random_state=random_state)
 
     def _fit_forecaster(self, y, X=None):
         """Fit to training data.
@@ -285,7 +282,7 @@ class UnobservedComponents(_StatsModelsAdapter):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables.
         """
         from statsmodels.tsa.statespace.structural import (
@@ -342,7 +339,7 @@ class UnobservedComponents(_StatsModelsAdapter):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon, default = y.index (in-sample forecast)
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -413,7 +410,7 @@ class UnobservedComponents(_StatsModelsAdapter):
             time-invariant this can be any number. If the model is
             time-varying, then this number must be less than or equal to the
             number of observations.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables.
         measurement_shocks : array_like, optional
             If specified, these are the shocks to the measurement equation,

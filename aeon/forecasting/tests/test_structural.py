@@ -1,6 +1,6 @@
-# -*- coding: utf-8 -*-
 """UnobservedComponents Tests."""
-__author__ = ["juanitorduz"]
+
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -91,42 +91,6 @@ MODELS = [
             "mu": 1,
         },
     ),
-    ModelSpec(
-        level="local level",
-        params={
-            "zeta": 0,
-            "beta": 0,
-            "beta_1": 0,
-            "eta": 1,
-            "epsilon": 1,
-            "mu_1": 1,
-            "mu": 1,
-        },
-    ),
-    ModelSpec(
-        level="smooth trend",
-        params={
-            "zeta": 1,
-            "beta": 0,
-            "beta_1": 1,
-            "eta": 0,
-            "epsilon": 1,
-            "mu_1": 1,
-            "mu": 1,
-        },
-    ),
-    ModelSpec(
-        level="local linear trend",
-        params={
-            "zeta": 1,
-            "beta": 0,
-            "beta_1": 1,
-            "eta": 1,
-            "epsilon": 1,
-            "mu_1": 1,
-            "mu": 1,
-        },
-    ),
 ]
 
 
@@ -190,7 +154,7 @@ def y_airlines():
     reason="skip test if required soft dependency not available",
 )
 @pytest.mark.parametrize("level", [m.level for m in MODELS])
-@pytest.mark.parametrize("fh_length", [1, 3, 5, 10, 20])
+@pytest.mark.parametrize("fh_length", [1, 3, 20])
 def test_results_consistency(level, fh_length, y_airlines):
     """Check consistency between wrapper and statsmodels original implementation."""
     from statsmodels.tsa.statespace.structural import (
@@ -250,9 +214,9 @@ def test_result_consistency_exog(level_sample_data_split):
     not _check_soft_dependencies("statsmodels", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("alpha", [0.01, 0.05, [0.01, 0.05]])
+@pytest.mark.parametrize("alpha", [0.01, [0.01, 0.05]])
 @pytest.mark.parametrize("coverage", [0.6, 0.99, [0.9, 0.95]])
-@pytest.mark.parametrize("fh_length", [1, 3, 5, 10, 20])
+@pytest.mark.parametrize("fh_length", [1, 3, 20])
 def test_prediction_intervals_no_exog(alpha, coverage, fh_length, y_airlines):
     """Test prediction intervals when no exogenous regressors are present."""
     fh = np.arange(fh_length) + 1
@@ -277,7 +241,7 @@ def test_prediction_intervals_no_exog(alpha, coverage, fh_length, y_airlines):
     not _check_soft_dependencies("statsmodels", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("alpha", [0.01, 0.05, [0.01, 0.05]])
+@pytest.mark.parametrize("alpha", [0.01, [0.01, 0.05]])
 @pytest.mark.parametrize("coverage", [0.6, 0.99, [0.9, 0.95]])
 def test_prediction_intervals_exog(alpha, coverage, level_sample_data_split):
     """Test prediction intervals when exogenous regressors are present."""

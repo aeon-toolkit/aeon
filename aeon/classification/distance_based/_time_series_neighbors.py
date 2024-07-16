@@ -1,55 +1,54 @@
-# -*- coding: utf-8 -*-
 """KNN time series classification.
 
-This class is a KNN classifier which supports time series distance measures.
-The class has hardcoded string references to numba based distances in sktime.distances.
-It can also be used with callables, or sktime (pairwise transformer) estimators.
+A KNN classifier which supports time series distance measures.
+The class can take callables or uses string references to utilise the numba based
+distances in aeon.distances.
 """
 
-__author__ = ["TonyBagnall", "GuiArcencio"]
+__maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
+
+from typing import Callable, List, Union
 
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
-from aeon.distances import distance_factory
+from aeon.distances import get_distance_function
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 
 class KNeighborsTimeSeriesClassifier(BaseClassifier):
-    """KNN Time Series Classifier.
+    """
+    K-Nearest Neighbour Time Series Classifier.
 
-    An adapted K-Neighbors Classifier for time series data.
-
-    This class is a KNN classifier which supports time series distance measures.
-    It has hardcoded string references to numba based distances in sktime.distances,
-    and can also be used with callables, or sktime (pairwise transformer) estimators.
+    A KNN classifier which supports time series distance measures.
+    It determines distance function through string references to numba
+    based distances in aeon.distances, and can also be used with callables.
 
     Parameters
     ----------
-    n_neighbors : int, set k for knn (default =1)
-    weights : string or callable function, optional. default = 'uniform'
-        mechanism for weighting a vot
-        one of: 'uniform', 'distance', or a callable function
-    distance : str or callable, optional. default ='dtw'
-        distance measure between time series
-        if str, must be one of the following strings:
-            'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
-            'lcss', 'edr', 'erp', 'msm', 'twe', 'mpdist'
-        this will substitute a hard-coded distance metric from aeon.distances
-        When mpdist is used, the subsequence length (parameter m) must be set
-            Example: knn_mpdist = KNeighborsTimeSeriesClassifier(
-                                metric='mpdist', metric_params={'m':30})
-        if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
-    distance_params : dict, optional. default = None.
-        dictionary for metric parameters for the case that distance is a str
-    n_jobs : int, default=None
+    n_neighbors : int, default =1
+        k for knn.
+    weights : str or callable, default = 'uniform'
+        Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
+        function.
+    distance : str or callable, default ='dtw'
+        Distance measure between time series.
+        Distance metric to compute similarity between time series. A list of valid
+        strings for metrics can be found in the documentation for
+        :func:`aeon.distances.get_distance_function` or through calling
+        :func:`aeon.distances.get_distance_function_names`. If a
+        callable is passed it must be
+        a function that takes two 2d numpy arrays of shape ``(n_channels,
+        n_timepoints)`` as input and returns a float.
+    distance_params : dict, default = None
+        Dictionary for metric parameters for the case that distance is a str.
+    n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
-        Parameter for compatibility purposes, still unimplemented.
+        for more details. Parameter for compatibility purposes, still unimplemented.
 
     Examples
     --------
@@ -65,21 +64,27 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "X_inner_type": ["np-list", "numpy3D"],
         "algorithm_type": "distance",
     }
 
     def __init__(
         self,
-        distance="dtw",
-        distance_params=None,
-        n_neighbors=1,
-        weights="uniform",
-        n_jobs=1,
-    ):
+        distance: Union[str, Callable] = "dtw",
+        distance_params: dict = None,
+        n_neighbors: int = 1,
+        weights: Union[str, Callable] = "uniform",
+        n_jobs: int = 1,
+    ) -> None:
         self.distance = distance
         self.distance_params = distance_params
         self.n_neighbors = n_neighbors
         self.n_jobs = n_jobs
+
+        self._distance_params = distance_params
+        if self._distance_params is None:
+            self._distance_params = {}
 
         if weights not in WEIGHTS_SUPPORTED:
             raise ValueError(
@@ -88,25 +93,21 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             )
         self.weights = weights
 
-        super(KNeighborsTimeSeriesClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the model using X as training data and y as target values.
 
         Parameters
         ----------
-        X : sktime-compatible Panel data format, with n_samples series
-        y : {array-like, sparse matrix}
-            Class labels of shape = [n_samples]
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape [n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+        If the series are all equal length, a numpy3D will be passed. If unequal,
+        a list of 2D numpy arrays is passed, which may have different lengths.
+        y : array-like, shape = (n_cases)
+            The class labels.
         """
-        if isinstance(self.distance, str):
-            if self.distance_params is None:
-                self.metric_ = distance_factory(X[0], X[0], metric=self.distance)
-            else:
-                self.metric_ = distance_factory(
-                    X[0], X[0], metric=self.distance, **self.distance_params
-                )
-
+        self.metric_ = get_distance_function(metric=self.distance)
         self.X_ = X
         self.classes_, self.y_ = np.unique(y, return_inverse=True)
         return self
@@ -116,18 +117,22 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-compatible Panel data format, with n_samples series
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
 
         Returns
         -------
-        p : array of shape = [n_samples, n_classes]
+        p : array of shape = (n_cases, n_classes_)
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
         self.check_is_fitted()
 
-        preds = np.zeros((X.shape[0], len(self.classes_)))
-        for i in range(X.shape[0]):
+        preds = np.zeros((len(X), len(self.classes_)))
+        for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
             for id, w in zip(idx, weights):
                 predicted_class = self.y_[id]
@@ -142,17 +147,21 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-compatible Panel data format, with n_samples series
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
 
         Returns
         -------
-        y : array of shape [n_samples] or [n_samples, n_outputs]
+        y : array of shape (n_cases)
             Class labels for each data sample.
         """
         self.check_is_fitted()
 
-        preds = np.empty(X.shape[0], dtype=self.classes_.dtype)
-        for i in range(X.shape[0]):
+        preds = np.empty(len(X), dtype=self.classes_.dtype)
+        for i in range(len(X)):
             scores = np.zeros(len(self.classes_))
             idx, weights = self._kneighbors(X[i])
             for id, w in zip(idx, weights):
@@ -170,7 +179,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : sktime-compatible data format, Panel or Series, with n_samples series
+        X : np.ndarray
+            A single time series instance if shape = (n_channels, n_timepoints)
 
         Returns
         -------
@@ -180,7 +190,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             Array representing the weights of each neighbor.
         """
         distances = np.array(
-            [self.metric_(X, self.X_[j]) for j in range(self.X_.shape[0])]
+            [
+                self.metric_(X, self.X_[j], **self._distance_params)
+                for j in range(len(self.X_))
+            ]
         )
 
         # Find indices of k nearest neighbors using partitioning:
@@ -193,8 +206,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         if self.weights == "distance":
             ws = distances[closest_idx]
-            ws = ws**2
-
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)
         elif self.weights == "uniform":
@@ -205,7 +216,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """Classifier Base."""
+
 __all__ = [
     "BaseClassifier",
     "DummyClassifier",
 ]
 
-from aeon.classification._dummy import DummyClassifier
 from aeon.classification.base import BaseClassifier
+from aeon.classification.dummy import DummyClassifier

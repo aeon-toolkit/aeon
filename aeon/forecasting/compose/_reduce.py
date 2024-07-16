@@ -1,18 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-
 """Composition functionality for reduction approaches to forecasting."""
 
-__author__ = [
-    "mloning",
-    "AyushmaanSeth",
-    "kAnand77",
-    "LuisZugasti",
-    "Lovkush-A",
-    "fkiraly",
-]
-
+__maintainer__ = []
 __all__ = [
     "make_reduction",
     "DirectTimeSeriesRegressionForecaster",
@@ -33,16 +21,15 @@ import pandas as pd
 from sklearn.base import clone
 from sklearn.multioutput import MultiOutputRegressor
 
-from aeon.datatypes._utilities import get_time_index
 from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
+from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA
 from aeon.forecasting.base._fh import _index_range
-from aeon.forecasting.base._sktime import _BaseWindowForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.compose import FeatureUnion
-from aeon.transformations.series.summarize import WindowSummarizer
+from aeon.transformations.summarize import WindowSummarizer
 from aeon.utils.datetime import _shift
-from aeon.utils.estimators.dispatch import construct_dispatch
+from aeon.utils.index_functions import get_time_index
 from aeon.utils.sklearn import is_sklearn_regressor
 from aeon.utils.validation import check_window_length
 
@@ -87,7 +74,7 @@ def _sliding_window_transform(
         Window length for transformed feature variables
     fh : ForecastingHorizon
         Forecasting horizon for transformed target variable
-    X : pd.DataFrame, optional (default=None)
+    X : pd.DataFrame, default=None
         Exogenous series.
     transformers: list of transformers (default = None)
         A suitable list of transformers that allows for using an en-bloc approach with
@@ -193,12 +180,42 @@ def _sliding_window_transform(
         return yt, Xt
 
 
+def construct_dispatch(cls, params=None):
+    """Construct an estimator with an overspecified parameter dictionary.
+
+    Constructs and returns an instance of `cls`, using parameters in a dict `params`.
+    The dict `params` may contain keys that `cls` does not have, which are ignored.
+
+    This is useful in multiplexing or dispatching over multiple `cls` which have
+    different and potentially intersecting parameter sets.
+
+    Parameters
+    ----------
+    cls : aeon estimator, inheriting from `BaseObject`
+    params : dict with str keys, optional, default = None = {}
+
+    Examples
+    --------
+    >>> from aeon.forecasting.compose._reduce import construct_dispatch
+    >>> from aeon.forecasting.naive import NaiveForecaster
+    >>> params = {"strategy": "drift", "foo": "bar", "bar": "foo"}
+    >>> construct_dispatch(NaiveForecaster, params)
+    NaiveForecaster(strategy='drift')
+    """
+    cls_param_names = cls.get_param_names()
+    cls_params_in_dict = set(cls_param_names).intersection(params.keys())
+    params_for_cls = {key: params[key] for key in cls_params_in_dict}
+
+    obj = cls(**params_for_cls)
+    return obj
+
+
 class _Reducer(_BaseWindowForecaster):
     """Base class for reducing forecasting to regression."""
 
     _tags = {
         "ignores-exogeneous-X": False,  # reduction uses X in non-trivial way
-        "handles-missing-data": True,
+        "capability:missing_values": True,
     }
 
     def __init__(
@@ -208,7 +225,7 @@ class _Reducer(_BaseWindowForecaster):
         transformers=None,
         pooling="local",
     ):
-        super(_Reducer, self).__init__(window_length=window_length)
+        super().__init__(window_length=window_length)
         self.transformers = transformers
         self.transformers_ = None
         self.estimator = estimator
@@ -217,8 +234,10 @@ class _Reducer(_BaseWindowForecaster):
 
         # it seems that the sklearn tags are not fully reliable
         # see discussion in PR #3405 and issue #3402
-        # therefore this is commented out until sktime and sklearn are better aligned
-        # self.set_tags(**{"handles-missing-data": estimator._get_tags()["allow_nan"]})
+        # therefore this is commented out until aeon and sklearn are better aligned
+        # self.set_tags(
+        #     **{"capability:missing_values": estimator._get_tags()["allow_nan"]}
+        # )
 
     def _is_predictable(self, last_window):
         """Check if we can make predictions from last window."""
@@ -258,11 +277,11 @@ class _Reducer(_BaseWindowForecaster):
         from sklearn.linear_model import LinearRegression
         from sklearn.pipeline import make_pipeline
 
-        from aeon.transformations.panel.reduce import Tabularizer
+        from aeon.transformations.collection.reduce import Tabularizer
 
         # naming convention is as follows:
         #   reducers with Tabular take an sklearn estimator, e.g., LinearRegressor
-        #   reducers with TimeSeries take an sktime supervised estimator
+        #   reducers with TimeSeries take an aeon supervised estimator
         #       e.g., pipeline of Tabularizer and Linear Regression
         # which of these is the case, we check by checking substring in the class name
         est = LinearRegression()
@@ -298,17 +317,17 @@ class _Reducer(_BaseWindowForecaster):
         For`window_length = 7` and `fh = [3]` we get the following windows
 
         `shift = 0`
-        |--------------------------- |
+        |----------------------------|
         | x x x x * * * * * * * z x x|
         |----------------------------|
 
         `shift = 1`
-        |--------------------------- |
+        |----------------------------|
         | x x x x x * * * * * * * z x|
         |----------------------------|
 
         `shift = 2`
-        |--------------------------- |
+        |----------------------------|
         | x x x x x x * * * * * * * z|
         |----------------------------|
 
@@ -336,7 +355,7 @@ class _Reducer(_BaseWindowForecaster):
                 cutoff_with_freq = self._cutoff
         else:
             cutoff_with_freq = self._cutoff
-        cutoff = _shift(cutoff_with_freq, by=shift)
+        cutoff = _shift(cutoff_with_freq, by=shift, return_index=True)
 
         relative_int = pd.Index(list(map(int, range(-self.window_length_ + 1, 2))))
         # relative _int will give the integer indices of the window. Also contains the
@@ -400,7 +419,7 @@ class _DirectReducer(_Reducer):
         windows_identical=True,
     ):
         self.windows_identical = windows_identical
-        super(_DirectReducer, self).__init__(
+        super().__init__(
             estimator=estimator,
             window_length=window_length,
             transformers=transformers,
@@ -427,9 +446,9 @@ class _DirectReducer(_Reducer):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
              The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -546,7 +565,7 @@ class _DirectReducer(_Reducer):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         return_pred_int : bool
         alpha : float or array-like
@@ -634,9 +653,9 @@ class _MultioutputReducer(_Reducer):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
              The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -669,7 +688,7 @@ class _MultioutputReducer(_Reducer):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         return_pred_int : bool
         alpha : float or array-like
@@ -735,9 +754,9 @@ class _RecursiveReducer(_Reducer):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
              The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -838,7 +857,7 @@ class _RecursiveReducer(_Reducer):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         return_pred_int : bool
         alpha : float or array-like
@@ -868,7 +887,7 @@ class _RecursiveReducer(_Reducer):
         if self.pooling == "global":
             fh_max = fh.to_relative(self.cutoff)[-1]
             relative = pd.Index(list(map(int, range(1, fh_max + 1))))
-            index_range = _index_range(relative, self.cutoff[0])
+            index_range = _index_range(relative, self.cutoff)
 
             y_pred = _create_fcst_df(index_range, self._y)
 
@@ -965,9 +984,9 @@ class _DirRecReducer(_Reducer):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
              The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -975,7 +994,6 @@ class _DirRecReducer(_Reducer):
         self : Estimator
             An fitted instance of self.
         """
-        # todo: logic for X below is broken. Escape X until fixed.
         if X is not None:
             X = None
 
@@ -1025,7 +1043,7 @@ class _DirRecReducer(_Reducer):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         return_pred_int : bool
         alpha : float or array-like
@@ -1035,7 +1053,7 @@ class _DirRecReducer(_Reducer):
         y_pred = pd.Series or pd.DataFrame
         """
         # Exogenous variables are not yet support for the dirrec strategy.
-        # todo: implement this. For now, we escape.
+
         if X is not None:
             X = None
 
@@ -1080,7 +1098,7 @@ class DirectTabularRegressionForecaster(_DirectReducer):
     ----------
     estimator : Estimator
         A tabular regression estimator as provided by scikit-learn.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1114,8 +1132,8 @@ class DirectTabularRegressionForecaster(_DirectReducer):
                 ' "local", "global", "panel", '
                 f"but found {pooling}"
             )
-        self.set_tags(**{"X_inner_mtype": mtypes_x})
-        self.set_tags(**{"y_inner_mtype": mtypes_y})
+        self.set_tags(**{"X_inner_type": mtypes_x})
+        self.set_tags(**{"y_inner_type": mtypes_y})
 
     _estimator_scitype = "tabular-regressor"
 
@@ -1130,7 +1148,7 @@ class MultioutputTabularRegressionForecaster(_MultioutputReducer):
     ----------
     estimator : Estimator
         A tabular regression estimator as provided by scikit-learn.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1148,7 +1166,7 @@ class RecursiveTabularRegressionForecaster(_RecursiveReducer):
     ----------
     estimator : Estimator
         A tabular regression estimator as provided by scikit-learn.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     transformers: list of transformers (default = None)
@@ -1194,8 +1212,8 @@ class RecursiveTabularRegressionForecaster(_RecursiveReducer):
                 ' "local", "global", "panel", '
                 f"but found {pooling}"
             )
-        self.set_tags(**{"X_inner_mtype": mtypes_x})
-        self.set_tags(**{"y_inner_mtype": mtypes_y})
+        self.set_tags(**{"X_inner_type": mtypes_x})
+        self.set_tags(**{"y_inner_type": mtypes_y})
 
     _estimator_scitype = "tabular-regressor"
 
@@ -1213,7 +1231,7 @@ class DirRecTabularRegressionForecaster(_DirRecReducer):
     ----------
     estimator : sklearn estimator object
         Tabular regressor.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix
     """
@@ -1230,8 +1248,8 @@ class DirectTimeSeriesRegressionForecaster(_DirectReducer):
     Parameters
     ----------
     estimator : Estimator
-        A time-series regression estimator as provided by sktime.
-    window_length : int, optional (default=10)
+        A time-series regression estimator as provided by aeon.
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1248,8 +1266,8 @@ class MultioutputTimeSeriesRegressionForecaster(_MultioutputReducer):
     Parameters
     ----------
     estimator : Estimator
-        A time-series regression estimator as provided by sktime.
-    window_length : int, optional (default=10)
+        A time-series regression estimator as provided by aeon.
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1266,8 +1284,8 @@ class RecursiveTimeSeriesRegressionForecaster(_RecursiveReducer):
     Parameters
     ----------
     estimator : Estimator
-        A time-series regression estimator as provided by sktime.
-    window_length : int, optional (default=10)
+        A time-series regression estimator as provided by aeon.
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix.
     """
@@ -1290,9 +1308,9 @@ class DirRecTimeSeriesRegressionForecaster(_DirRecReducer):
 
     Parameters
     ----------
-    estimator : sktime estimator object
+    estimator : aeon estimator object
         Time-series regressor.
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         The length of the sliding window used to transform the series into
         a tabular matrix
     """
@@ -1320,13 +1338,13 @@ def make_reduction(
     ----------
     estimator : an estimator instance
         Either a tabular regressor from scikit-learn or a time series regressor from
-        sktime.
-    strategy : str, optional (default="recursive")
+        aeon.
+    strategy : str, default="recursive"
         The strategy to generate forecasts. Must be one of "direct", "recursive" or
         "multioutput".
-    window_length : int, optional (default=10)
+    window_length : int, default=10
         Window length used in sliding window transformation.
-    scitype : str, optional (default="infer")
+    scitype : str, default="infer"
         Legacy argument for downwards compatibility, should not be used.
         `make_reduction` will automatically infer the correct type of `estimator`.
         This internal inference can be force-overridden by the `scitype` argument.
@@ -1465,7 +1483,7 @@ def _check_scitype(scitype):
 
 def _infer_scitype(estimator):
     # We can check if estimator is an instance of scikit-learn's RegressorMixin or
-    # of sktime's BaseRegressor, otherwise we raise an error. Note that some time-series
+    # of aeon's BaseRegressor, otherwise we raise an error. Note that some time-series
     # regressor also inherit from scikit-learn classes, hence the order in which we
     # check matters and we first need to check for BaseRegressor.
     if isinstance(estimator, BaseRegressor):
@@ -1477,7 +1495,7 @@ def _infer_scitype(estimator):
             "The `scitype` of the given `estimator` cannot be inferred. "
             'Assuming "tabular-regressor" = scikit-learn regressor interface. '
             "If this warning is followed by an unexpected exception, "
-            "please consider report as a bug on the sktime issue tracker."
+            "please consider report as a bug on the aeon issue tracker."
         )
         return "tabular-regressor"
 
@@ -1583,7 +1601,7 @@ def _create_fcst_df(target_date, origin_df, fill=None):
         timeframe = pd.DataFrame(target_date, columns=[time_names])
         target_frame = idx.merge(timeframe, how="cross")
         if hasattr(target_date, "freq"):
-            freq_inferred = target_date[0].freq
+            freq_inferred = target_date.freq
             mi = (
                 target_frame.groupby(instance_names, as_index=True)
                 .apply(
@@ -1758,8 +1776,8 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
     _tags = {
         "requires-fh-in-fit": True,  # is the forecasting horizon required in fit?
         "ignores-exogeneous-X": False,
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
     }
 
     def __init__(
@@ -1779,7 +1797,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
         self.impute_method = impute_method
         self.pooling = pooling
         self._lags = list(range(window_length))
-        super(DirectReductionForecaster, self).__init__()
+        super().__init__()
 
         warn(
             "DirectReductionForecaster is experimental, and interfaces may change. "
@@ -1799,13 +1817,15 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
                 ' "local", "global", "panel", '
                 f"but found {pooling}"
             )
-        self.set_tags(**{"X_inner_mtype": mtypes})
-        self.set_tags(**{"y_inner_mtype": mtypes})
+        self.set_tags(**{"X_inner_type": mtypes})
+        self.set_tags(**{"y_inner_type": mtypes})
 
         # it seems that the sklearn tags are not fully reliable
         # see discussion in PR #3405 and issue #3402
-        # therefore this is commented out until sktime and sklearn are better aligned
-        # self.set_tags(**{"handles-missing-data": estimator._get_tags()["allow_nan"]})
+        # therefore this is commented out until aeon and sklearn are better aligned
+        # self.set_tags(
+        #     **{"capability:missing_values": estimator._get_tags()["allow_nan"]}
+        # )
 
     def _fit(self, y, X=None, fh=None):
         """Fit dispatcher based on X_treatment."""
@@ -1819,7 +1839,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _fit_shifted(self, y, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.series.lag import Lag, ReducerTransform
+        from aeon.transformations.lag import Lag, ReducerTransform
 
         impute_method = self.impute_method
         lags = self._lags
@@ -1898,7 +1918,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _fit_concurrent(self, y, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.series.lag import Lag, ReducerTransform
+        from aeon.transformations.lag import Lag, ReducerTransform
 
         impute_method = self.impute_method
 
@@ -1963,7 +1983,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _predict_concurrent(self, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.lag import Lag
 
         if X is not None and self._X is not None:
             X_pool = X.combine_first(self._X)
@@ -1978,7 +1998,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
         lagger_y_to_X = self.lagger_y_to_X_
 
         fh_rel = fh.to_relative(self.cutoff)
-        fh_abs = fh.to_absolute(self.cutoff)
+        fh_abs = fh.to_absolute(self.cutoff).to_pandas()
         y_lags = list(fh_rel)
         y_abs = list(fh_abs)
 
@@ -2097,8 +2117,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
     _tags = {
         "requires-fh-in-fit": False,  # is the forecasting horizon required in fit?
         "ignores-exogeneous-X": False,
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
     }
 
     def __init__(
@@ -2113,12 +2133,12 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         self.impute_method = impute_method
         self.pooling = pooling
         self._lags = list(range(window_length))
-        super(RecursiveReductionForecaster, self).__init__()
+        super().__init__()
 
         warn(
             "RecursiveReductionForecaster is experimental, and interfaces may change. "
             "user feedback is appreciated in issue #3224 here: "
-            "https://github.com/alan-turing-institute/sktime/issues/3224"
+            "https://github.com/sktime/sktime/issues/3224"
         )
 
         if pooling == "local":
@@ -2133,8 +2153,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
                 ' "local", "global", "panel", '
                 f"but found {pooling}"
             )
-        self.set_tags(**{"X_inner_mtype": mtypes})
-        self.set_tags(**{"y_inner_mtype": mtypes})
+        self.set_tags(**{"X_inner_type": mtypes})
+        self.set_tags(**{"y_inner_type": mtypes})
 
     def _fit(self, y, X=None, fh=None):
         """Fit forecaster to training data.
@@ -2144,23 +2164,22 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         Parameters
         ----------
         y : pd.DataFrame
-            mtype is pd.DataFrame, pd-multiindex, or pd_multiindex_hier
+            pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Time series to which to fit the forecaster.
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : pd.DataFrame optional (default=None)
-            mtype is pd.DataFrame, pd-multiindex, or pd_multiindex_hier
+        X : pd.DataFrame default=None
+            pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Exogeneous time series to fit to.
 
         Returns
         -------
         self : reference to self
         """
-        # todo: very similar to _fit_concurrent of DirectReductionForecaster - refactor?
-        from aeon.transformations.series.impute import Imputer
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.impute import Imputer
+        from aeon.transformations.lag import Lag
 
         impute_method = self.impute_method
 
@@ -2207,11 +2226,11 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
-            mtype is pd.DataFrame, pd-multiindex, or pd_multiindex_hier
+        X : pd.DataFrame, default=None
+            pd.DataFrame, pd-multiindex, or pd_multiindex_hier
             Exogeneous time series for the forecast
 
         Returns
@@ -2246,8 +2265,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
     def _predict_out_of_sample(self, X_pool, fh):
         """Recursive reducer: predict out of sample (ahead of cutoff)."""
         # very similar to _predict_concurrent of DirectReductionForecaster - refactor?
-        from aeon.transformations.series.impute import Imputer
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.impute import Imputer
+        from aeon.transformations.lag import Lag
 
         fh_idx = self._get_expected_pred_idx(fh=fh)
         y_cols = self._y.columns
@@ -2262,7 +2281,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         y_abs_no_gaps = ForecastingHorizon(
             list(y_lags_no_gaps), is_relative=True, freq=self._cutoff
         )
-        y_abs_no_gaps = y_abs_no_gaps.to_absolute(self._cutoff)
+        y_abs_no_gaps = y_abs_no_gaps.to_absolute(self._cutoff).to_pandas()
 
         # we will keep growing y_plus_preds recursively
         y_plus_preds = self._y
@@ -2313,15 +2332,15 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _predict_in_sample(self, X_pool, fh):
         """Recursive reducer: predict out of sample (in past of of cutoff)."""
-        from aeon.transformations.series.impute import Imputer
-        from aeon.transformations.series.lag import Lag
+        from aeon.transformations.impute import Imputer
+        from aeon.transformations.lag import Lag
 
         fh_idx = self._get_expected_pred_idx(fh=fh)
         y_cols = self._y.columns
 
         lagger_y_to_X = self.lagger_y_to_X_
 
-        fh_abs = fh.to_absolute(self.cutoff)
+        fh_abs = fh.to_absolute(self.cutoff).to_pandas()
         y = self._y
 
         Xt = lagger_y_to_X.transform(y)
@@ -2378,7 +2397,7 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         params1 = {
             "estimator": est,
             "window_length": 3,
-            "pooling": "global",  # all internal mtypes are tested across scenarios
+            "pooling": "global",
         }
 
         return params1

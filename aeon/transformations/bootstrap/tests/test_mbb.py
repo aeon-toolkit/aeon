@@ -1,9 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Unit tests for Bootrstapping transformers."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 import pandas as pd
 import pytest
@@ -25,7 +22,8 @@ y_index = y.index
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency for STLBootstrapTransformer not "
+    "available",
 )
 def test_bootstrapping_transformer_no_seasonal_period():
     """Tests that an exception is raised if sp<2."""
@@ -38,7 +36,8 @@ def test_bootstrapping_transformer_no_seasonal_period():
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency for STLBootstrapTransformer not "
+    "available",
 )
 def test_bootstrapping_transformer_series_shorter_than_sp():
     """Tests that an exception is raised if sp>len(y)."""
@@ -53,7 +52,7 @@ def test_bootstrapping_transformer_series_shorter_than_sp():
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency for transformer not available",
 )
 @pytest.mark.parametrize(
     "transformer_class", [STLBootstrapTransformer, MovingBlockBootstrapTransformer]
@@ -81,7 +80,7 @@ index_return_actual_false = pd.MultiIndex.from_product(
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency not available",
 )
 @pytest.mark.parametrize(
     "transformer_class, return_actual, expected_index",

@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implement dataset splitting for model evaluation and selection."""
 
 __all__ = [
@@ -10,7 +7,7 @@ __all__ = [
     "SingleWindowSplitter",
     "temporal_train_test_split",
 ]
-__author__ = ["mloning", "kkoralturk", "khrapovs", "chillerobscuro"]
+__maintainer__ = []
 
 from typing import Iterator, Optional, Tuple, Union
 
@@ -19,10 +16,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split as _train_test_split
 
 from aeon.base import BaseObject
-from aeon.datatypes import check_is_scitype, convert_to
-from aeon.datatypes._utilities import get_index_for_series, get_time_index, get_window
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._fh import VALID_FORECASTING_HORIZON_TYPES
+from aeon.utils.conversion import convert_collection, convert_series
+from aeon.utils.index_functions import get_index_for_series, get_time_index, get_window
 from aeon.utils.validation import (
     ACCEPTED_WINDOW_LENGTH_TYPES,
     NON_FLOAT_WINDOW_LENGTH_TYPES,
@@ -35,6 +32,7 @@ from aeon.utils.validation import (
     is_int,
     is_timedelta,
     is_timedelta_or_date_offset,
+    validate_input,
 )
 from aeon.utils.validation.forecasting import (
     VALID_CUTOFF_TYPES,
@@ -341,14 +339,14 @@ class BaseSplitter(BaseObject):
         self.window_length = window_length
         self.fh = fh
 
-        super(BaseSplitter, self).__init__()
+        super().__init__()
 
     def split(self, y: ACCEPTED_Y_TYPES) -> SPLIT_GENERATOR_TYPE:
         """Get iloc references to train/test splits of `y`.
 
         Parameters
         ----------
-        y : pd.Index or time series in sktime compatible time series format,
+        y : pd.Index or time series in aeon compatible time series format,
                 time series can be in any Series, Panel, or Hierarchical mtype format
             Index of time series to split, or time series to split
             If time series, considered as index of equivalent pandas type container:
@@ -378,7 +376,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Index or time series in sktime compatible time series format
+        y : pd.Index or time series in aeon compatible time series format
             Time series to split, or index of time series to split
 
         Yields
@@ -399,7 +397,7 @@ class BaseSplitter(BaseObject):
         Parameters
         ----------
         y : pd.MultiIndex, with last level time-like
-            as used in pd_multiindex and pd_multiindex_hier sktime mtypes
+            as used in pd_multiindex and pd_multiindex_hier aeon mtypes
 
         Yields
         ------
@@ -430,7 +428,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Index or time series in sktime compatible time series format,
+        y : pd.Index or time series in aeon compatible time series format,
                 time series can be in any Series, Panel, or Hierarchical mtype format
             Time series to split, or index of time series to split
 
@@ -451,16 +449,16 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : time series in sktime compatible time series format,
+        y : time series in aeon compatible time series format,
                 time series can be in any Series, Panel, or Hierarchical mtype format
             e.g., pd.Series, pd.DataFrame, np.ndarray
             Time series to split, or index of time series to split
 
         Yields
         ------
-        train : time series of same sktime mtype as `y`
+        train : time series of same aeon type as `y`
             training series in the split
-        test : time series of same sktime mtype as `y`
+        test : time series of same aeon type as `y`
             test series in the split
         """
         y, y_orig_mtype = self._check_y(y)
@@ -468,8 +466,6 @@ class BaseSplitter(BaseObject):
         for train, test in self.split(y.index):
             y_train = y.iloc[train]
             y_test = y.iloc[test]
-            y_train = convert_to(y_train, y_orig_mtype)
-            y_test = convert_to(y_test, y_orig_mtype)
             yield y_train, y_test
 
     def _coerce_to_index(self, y: ACCEPTED_Y_TYPES) -> pd.Index:
@@ -477,7 +473,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Index or time series in sktime compatible time series format (any)
+        y : pd.Index or time series in aeon compatible time series format (any)
             Index of time series to split, or time series to split
             If time series, considered as index of equivalent pandas type container:
                 pd.DataFrame, pd.Series, pd-multiindex, or pd_multiindex_hier mtype
@@ -487,23 +483,23 @@ class BaseSplitter(BaseObject):
         y_index : y, if y was pd.Index; otherwise _check_y(y).index
         """
         if not isinstance(y, pd.Index):
-            y, _ = self._check_y(y, allow_index=True)
+            y, _ = self._check_y(y)
             y_index = y.index
         else:
             y_index = y
         return y_index
 
-    def _check_y(self, y, allow_index=False):
+    def _check_y(self, y):
         """Check and coerce y to a pandas based mtype.
 
         Parameters
         ----------
-        y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D), optional (default=None)
-            Time series to check, must conform with one of the sktime type conventions.
+        y : pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
+            Time series to check, must conform with one of the aeon type conventions.
 
         Returns
         -------
-        y_inner : time series y coerced to one of the sktime pandas based mtypes:
+        y_inner : time series y as pd.Series or pd.DataFrame
             pd.DataFrame, pd.Series, pd-multiindex, pd_multiindex_hier
             returns pd.Series only if y was pd.Series, otherwise a pandas.DataFrame
         y_mtype : original mtype of y
@@ -512,57 +508,28 @@ class BaseSplitter(BaseObject):
         ------
         TypeError if y is not one of the permissible mtypes
         """
-        if allow_index and isinstance(y, pd.Index):
-            return y, "pd.Index"
-
-        ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-        ALLOWED_MTYPES = [
-            "pd.Series",
-            "pd.DataFrame",
-            "np.ndarray",
-            "nested_univ",
-            "numpy3D",
-            # "numpyflat",
-            "pd-multiindex",
-            # "pd-wide",
-            # "pd-long",
-            "df-list",
-            "pd_multiindex_hier",
-        ]
-        y_valid, _, y_metadata = check_is_scitype(
-            y, scitype=ALLOWED_SCITYPES, return_metadata=True, var_name="y"
-        )
-        if allow_index:
-            msg = (
-                "y must be a pandas.Index, or a time series in an sktime compatible "
-                "format, of scitype Series, Panel or Hierarchical, "
-                "for instance a pandas.DataFrame with sktime compatible time indices, "
-                "or with MultiIndex and last(-1) level an sktime compatible time index."
-                f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
-                "See the forecasting tutorial examples/01_forecasting.ipynb, or"
-                " the data format tutorial examples/AA_datatypes_and_datasets.ipynb, "
-                "If you think y is already in an sktime supported input format, "
-                "run sktime.datatypes.check_raise(y, mtype) to diagnose the error, "
-                "where mtype is the string of the type specification you want for y. "
-            )
-        else:
-            msg = (
-                "y must be in an sktime compatible format, "
+        valid, y_metadata = validate_input(y)
+        if not valid:
+            raise TypeError(
+                "y must be in an aeon compatible format, "
                 "of scitype Series, Panel or Hierarchical, "
-                "for instance a pandas.DataFrame with sktime compatible time indices, "
-                "or with MultiIndex and last(-1) level an sktime compatible time index."
-                f" Allowed compatible mtype format specifications are: {ALLOWED_MTYPES}"
-                "See the forecasting tutorial examples/01_forecasting.ipynb, or"
-                " the data format tutorial examples/AA_datatypes_and_datasets.ipynb, "
-                "If you think y is already in an sktime supported input format, "
-                "run sktime.datatypes.check_raise(y, mtype) to diagnose the error, "
+                "for instance a pandas.DataFrame with aeon compatible time indices, "
+                "or with MultiIndex and last(-1) level an aeon compatible time index."
+                "See  examples/forecasting, or examples/datasets, "
+                "If you think y is already in an aeon supported input format, "
+                "run aeon.datatypes.check_raise(y, mtype) to diagnose the error, "
                 "where mtype is the string of the type specification you want for y. "
             )
-        if not y_valid:
-            raise TypeError(msg)
-
-        y_inner = convert_to(y, to_type=PANDAS_MTYPES)
-
+        y_inner = y
+        if isinstance(y, np.ndarray):
+            if y_metadata["scitype"] == "Series":
+                if y_metadata["is_univariate"]:
+                    y_inner = convert_series(y, output_type="pd.Series")
+                else:
+                    y_inner = convert_series(y, output_type="pd.DataFrame")
+            elif y_metadata["scitype"] == "Panel":
+                y_inner = convert_collection(y, output_type="pd-multiindex")
+            # If hierarchical, it is already in the correct format
         mtype = y_metadata["mtype"]
 
         return y_inner, mtype
@@ -572,7 +539,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -587,7 +554,7 @@ class BaseSplitter(BaseObject):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -690,7 +657,7 @@ class CutoffSplitter(BaseSplitter):
     ) -> None:
         _check_inputs_for_compatibility([fh, cutoffs, window_length])
         self.cutoffs = cutoffs
-        super(CutoffSplitter, self).__init__(fh, window_length)
+        super().__init__(fh, window_length)
 
     def _split(self, y: pd.Index) -> SPLIT_GENERATOR_TYPE:
         n_timepoints = y.shape[0]
@@ -726,7 +693,7 @@ class CutoffSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -747,7 +714,7 @@ class CutoffSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -797,7 +764,7 @@ class BaseWindowSplitter(BaseSplitter):
         self.step_length = step_length
         self.start_with_window = start_with_window
         self.initial_window = initial_window
-        super(BaseWindowSplitter, self).__init__(fh=fh, window_length=window_length)
+        super().__init__(fh=fh, window_length=window_length)
 
     @property
     def _initial_window(self):
@@ -825,8 +792,7 @@ class BaseWindowSplitter(BaseSplitter):
         if self._initial_window is not None:
             yield self._split_for_initial_window(y)
 
-        for train, test in self._split_windows(window_length=window_length, y=y, fh=fh):
-            yield train, test
+        yield from self._split_windows(window_length=window_length, y=y, fh=fh)
 
     def _split_for_initial_window(self, y: pd.Index) -> SPLIT_ARRAY_TYPE:
         """Get train/test splits for non-empty initial window.
@@ -976,7 +942,7 @@ class BaseWindowSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -996,7 +962,7 @@ class BaseWindowSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -1066,11 +1032,11 @@ class SlidingWindowSplitter(BaseWindowSplitter):
         Forecasting horizon
     window_length : int or timedelta or pd.DateOffset
         Window length
-    step_length : int or timedelta or pd.DateOffset, optional (default=1)
+    step_length : int or timedelta or pd.DateOffset, default=1
         Step length between windows
-    initial_window : int or timedelta or pd.DateOffset, optional (default=None)
+    initial_window : int or timedelta or pd.DateOffset, default=None
         Window length of first window
-    start_with_window : bool, optional (default=True)
+    start_with_window : bool, default=True
         - If True, starts with full window.
         - If False, starts with empty window.
 
@@ -1093,7 +1059,7 @@ class SlidingWindowSplitter(BaseWindowSplitter):
         initial_window: Optional[ACCEPTED_WINDOW_LENGTH_TYPES] = None,
         start_with_window: bool = True,
     ) -> None:
-        super(SlidingWindowSplitter, self).__init__(
+        super().__init__(
             fh=fh,
             window_length=window_length,
             initial_window=initial_window,
@@ -1133,11 +1099,11 @@ class ExpandingWindowSplitter(BaseWindowSplitter):
 
     Parameters
     ----------
-    fh : int, list or np.array, optional (default=1)
+    fh : int, list or np.array, default=1
         Forecasting horizon
-    initial_window : int or timedelta or pd.DateOffset, optional (default=10)
+    initial_window : int or timedelta or pd.DateOffset, default=10
         Window length of initial training fold. If =0, initial training fold is empty.
-    step_length : int or timedelta or pd.DateOffset, optional (default=1)
+    step_length : int or timedelta or pd.DateOffset, default=1
         Step length between windows
 
     Examples
@@ -1162,7 +1128,7 @@ class ExpandingWindowSplitter(BaseWindowSplitter):
         # Note that we pass the initial window as the window_length below. This
         # allows us to use the common logic from the parent class, while at the same
         # time expose the more intuitive name for the ExpandingWindowSplitter.
-        super(ExpandingWindowSplitter, self).__init__(
+        super().__init__(
             fh=fh,
             window_length=initial_window,
             initial_window=None,
@@ -1220,7 +1186,7 @@ class SingleWindowSplitter(BaseSplitter):
         window_length: Optional[ACCEPTED_WINDOW_LENGTH_TYPES] = None,
     ) -> None:
         _check_inputs_for_compatibility(args=[fh, window_length])
-        super(SingleWindowSplitter, self).__init__(fh=fh, window_length=window_length)
+        super().__init__(fh=fh, window_length=window_length)
 
     def _split(self, y: pd.Index) -> SPLIT_GENERATOR_TYPE:
         n_timepoints = y.shape[0]
@@ -1250,7 +1216,7 @@ class SingleWindowSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -1269,7 +1235,7 @@ class SingleWindowSplitter(BaseSplitter):
 
         Parameters
         ----------
-        y : pd.Series or pd.Index, optional (default=None)
+        y : pd.Series or pd.Index, default=None
             Time series to split
 
         Returns
@@ -1327,9 +1293,9 @@ def temporal_train_test_split(
     ----------
     y : pd.Series
         Target series
-    X : pd.DataFrame, optional (default=None)
+    X : pd.DataFrame, default=None
         Exogenous data
-    test_size : float, int or None, optional (default=None)
+    test_size : float, int or None, default=None
         If float, should be between 0.0 and 1.0 and represent the proportion
         of the dataset to include in the test split. If int, represents the
         relative number of test samples. If None, the value is set to the

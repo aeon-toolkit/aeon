@@ -1,26 +1,22 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# License: BSD 3 clause
-
 """Utility methods to print system info for debugging.
 
 adapted from :func:`sklearn.show_versions`
 """
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = ["show_versions"]
 
-import importlib
 import platform
 import sys
+from importlib.metadata import PackageNotFoundError, version
 
 
 def _get_sys_info():
     """
     System information.
 
-    Return
-    ------
+    Returns
+    -------
     sys_info : dict
         system and Python version information
     """
@@ -47,7 +43,7 @@ def _get_deps_info():
     deps = [
         "pip",
         "setuptools",
-        "sklearn",
+        "scikit-learn",
         "aeon",
         "statsmodels",
         "numpy",
@@ -67,13 +63,8 @@ def _get_deps_info():
 
     for modname in deps:
         try:
-            if modname in sys.modules:
-                mod = sys.modules[modname]
-            else:
-                mod = importlib.import_module(modname)
-            ver = get_version(mod)
-            deps_info[modname] = ver
-        except ImportError:
+            deps_info[modname] = version(modname)
+        except PackageNotFoundError:
             deps_info[modname] = None
 
     return deps_info
@@ -86,8 +77,8 @@ def show_versions():
 
     print("\nSystem:")  # noqa: T001, T201
     for k, stat in sys_info.items():
-        print("{k:>10}: {stat}".format(k=k, stat=stat))  # noqa: T001, T201
+        print(f"{k:>10}: {stat}")  # noqa: T001, T201
 
     print("\nPython dependencies:")  # noqa: T001, T201
     for k, stat in deps_info.items():
-        print("{k:>13}: {stat}".format(k=k, stat=stat))  # noqa: T001, T201
+        print(f"{k:>13}: {stat}")  # noqa: T001, T201

@@ -9,11 +9,11 @@ python:
       path: .
       extra_requirements:
         - docs
+
 build:
   os: ubuntu-20.04
   tools:
-    python: "3.9"
+    python: "3.10"
 
 sphinx:
-  configuration: docs/source/conf.py
-#  fail_on_warning: True
+  configuration: docs/conf.py

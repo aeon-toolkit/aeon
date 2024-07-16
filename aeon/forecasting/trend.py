@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements trend based forecasters."""
 
-__author__ = ["tensorflow-as-tf", "mloning", "aiwalter", "fkiraly"]
+__maintainer__ = []
 __all__ = ["TrendForecaster", "PolynomialTrendForecaster", "STLForecaster"]
 
 import pandas as pd
@@ -64,13 +61,13 @@ class TrendForecaster(BaseForecaster):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(self, regressor=None):
         # for default regressor, set fit_intercept=True
         self.regressor = regressor
-        super(TrendForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -81,7 +78,7 @@ class TrendForecaster(BaseForecaster):
             Target time series with which to fit the forecaster.
         X : pd.DataFrame, default=None
             Exogenous variables are ignored
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
 
         Returns
@@ -200,7 +197,7 @@ class PolynomialTrendForecaster(BaseForecaster):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(self, regressor=None, degree=1, with_intercept=True):
@@ -208,7 +205,7 @@ class PolynomialTrendForecaster(BaseForecaster):
         self.degree = degree
         self.with_intercept = with_intercept
         self.regressor_ = self.regressor
-        super(PolynomialTrendForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -371,15 +368,15 @@ class STLForecaster(BaseForecaster):
     outer_iter: int or None, optional, default=None. Passed to `statsmodels` `STL`.
         Number of iterations to perform in the outer loop. If not provided uses 15 if
         robust is True, or 0 if not. This param goes into STL.fit() from statsmodels.
-    forecaster_trend : sktime forecaster, optional
+    forecaster_trend : aeon forecaster, optional
         Forecaster to be fitted on trend_ component of the
         STL, by default None. If None, then
         a NaiveForecaster(strategy="drift") is used.
-    forecaster_seasonal : sktime forecaster, optional
+    forecaster_seasonal : aeon forecaster, optional
         Forecaster to be fitted on seasonal_ component of the
         STL, by default None. If None, then
         a NaiveForecaster(strategy="last") is used.
-    forecaster_resid : sktime forecaster, optional
+    forecaster_resid : aeon forecaster, optional
         Forecaster to be fitted on resid_ component of the
         STL, by default None. If None, then
         a NaiveForecaster(strategy="mean") is used.
@@ -392,11 +389,11 @@ class STLForecaster(BaseForecaster):
         Seasonal component.
     resid_ : pd.Series
         Residuals component.
-    forecaster_trend_ : sktime forecaster
+    forecaster_trend_ : aeon forecaster
         Fitted trend forecaster.
-    forecaster_seasonal_ : sktime forecaster
+    forecaster_seasonal_ : aeon forecaster
         Fitted seasonal forecaster.
-    forecaster_resid_ : sktime forecaster
+    forecaster_resid_ : aeon forecaster
         Fitted residual forecaster.
 
     Examples
@@ -423,11 +420,11 @@ class STLForecaster(BaseForecaster):
     """
 
     _tags = {
-        "scitype:y": "univariate",  # which y are fine? univariate/multivariate/both
+        "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
-        "handles-missing-data": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "capability:missing_values": False,  # can estimator handle missing data?
+        "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
+        "X_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "python_dependencies": "statsmodels",
     }
@@ -467,7 +464,7 @@ class STLForecaster(BaseForecaster):
         self.forecaster_trend = forecaster_trend
         self.forecaster_seasonal = forecaster_seasonal
         self.forecaster_resid = forecaster_resid
-        super(STLForecaster, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit forecaster to training data.
@@ -476,9 +473,9 @@ class STLForecaster(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list, np.array or ForecastingHorizon, optional (default=None)
+        fh : int, list, np.array or ForecastingHorizon, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
 
         Returns
         -------
@@ -536,7 +533,7 @@ class STLForecaster(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
                 Exogenous time series
 
         Returns
@@ -557,9 +554,9 @@ class STLForecaster(BaseForecaster):
         ----------
         y : pd.Series, pd.DataFrame, or np.array
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogeneous data
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns

@@ -1,11 +1,7 @@
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-
 """VECM Forecaster."""
 
-
 __all__ = ["VECM"]
-__author__ = ["thayeylolu", "AurumnPegasus"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -61,8 +57,8 @@ class VECM(_StatsModelsAdapter):
         2D ndarray/pd.DataFrame of size (any, neqs)
         Forcasted value of exog_coint
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.forecasting.vecm import VECM
     >>> from aeon.forecasting.model_selection import temporal_train_test_split
     >>> from aeon.forecasting.base import ForecastingHorizon
@@ -71,16 +67,16 @@ class VECM(_StatsModelsAdapter):
     ... columns=list("AB"),
     ... index=pd.PeriodIndex(index))
     >>> train, test = temporal_train_test_split(df)
-    >>> sktime_model = VECM()  # doctest: +SKIP
+    >>> aeon_model = VECM()  # doctest: +SKIP
     >>> fh = ForecastingHorizon([1, 3, 4, 5, 7, 9])
-    >>> _ = sktime_model.fit(train, fh=fh)  # doctest: +SKIP
-    >>> fc2 = sktime_model.predict(fh=fh)  # doctest: +SKIP
+    >>> _ = aeon_model.fit(train, fh=fh)  # doctest: +SKIP
+    >>> fc2 = aeon_model.predict(fh=fh)  # doctest: +SKIP
     """
 
     _tags = {
-        "scitype:y": "multivariate",
-        "y_inner_mtype": "pd.DataFrame",
-        "X_inner_mtype": "pd.DataFrame",
+        "y_input_type": "multivariate",
+        "y_inner_type": "pd.DataFrame",
+        "X_inner_type": "pd.DataFrame",
         "requires-fh-in-fit": False,
         "univariate-only": False,
         "ignores-exogeneous-X": False,
@@ -113,7 +109,7 @@ class VECM(_StatsModelsAdapter):
         self.exog_coint = exog_coint
         self.exog_coint_fc = exog_coint_fc
 
-        super(VECM, self).__init__()
+        super().__init__()
 
     def _fit(self, y, fh=None, X=None):
         """
@@ -129,7 +125,7 @@ class VECM(_StatsModelsAdapter):
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogeneous time series to fit to.
 
         Returns
@@ -166,8 +162,8 @@ class VECM(_StatsModelsAdapter):
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+        X : default=None
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
 
         Returns
@@ -228,8 +224,8 @@ class VECM(_StatsModelsAdapter):
         ----------
         fh : guaranteed to be ForecastingHorizon
             The forecasting horizon with the steps ahead to to predict.
-        X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+        X : default=None
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series for the forecast
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)
@@ -242,7 +238,7 @@ class VECM(_StatsModelsAdapter):
                     in the same order as in input `coverage`.
                 Third level is string "lower" or "upper", for lower/upper interval end.
             Row index is fh, with additional (upper) levels equal to instance levels,
-                from y seen in fit, if y_inner_mtype is Panel or Hierarchical.
+                from y seen in fit, if y_inner_type is Panel or Hierarchical.
             Entries are forecasts of lower/upper interval end,
                 for var in col index, at nominal coverage in second col index,
                 lower/upper depending on third col index, for the row index.
@@ -271,10 +267,8 @@ class VECM(_StatsModelsAdapter):
             for v_idx in range(len(var_names)):
                 values.append(y_lower[0][v_idx])
                 values.append(y_upper[0][v_idx])
-                # pred_int.loc[(var_names[v_idx], c, "lower"), :] = (y_lower[0][v_idx])
-                # pred_int.loc[(var_names[v_idx], c, "upper"), :] = (y_upper[0][v_idx])
         pred_int = pd.DataFrame(
-            [values], index=fh.to_absolute(self.cutoff), columns=int_idx
+            [values], index=fh.to_absolute(self.cutoff).to_pandas(), columns=int_idx
         )
 
         return pred_int

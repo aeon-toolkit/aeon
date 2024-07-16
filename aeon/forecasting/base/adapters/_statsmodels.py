@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Implements adapter for statsmodels forecasters to be used in sktime framework."""
+"""Implements adapter for statsmodels forecasters to be used in aeon framework."""
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = ["_StatsModelsAdapter"]
 
 import inspect
@@ -23,7 +20,7 @@ class _StatsModelsAdapter(BaseForecaster):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         "python_dependencies": "statsmodels",
     }
 
@@ -31,7 +28,7 @@ class _StatsModelsAdapter(BaseForecaster):
         self._forecaster = None
         self.random_state = random_state
         self._fitted_forecaster = None
-        super(_StatsModelsAdapter, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -40,9 +37,9 @@ class _StatsModelsAdapter(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -89,7 +86,7 @@ class _StatsModelsAdapter(BaseForecaster):
             The forecasters horizon with the steps ahead to to predict.
             Default is one-step ahead forecast,
             i.e. np.array([1])
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
 
         Returns

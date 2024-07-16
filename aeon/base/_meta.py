@@ -1,12 +1,11 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements meta estimator for estimators composed of other estimators."""
 
-__author__ = ["mloning, fkiraly"]
+__maintainer__ = []
 __all__ = ["_HeterogenousMetaEstimator"]
 
 from inspect import isclass
+
+from sklearn import clone
 
 from aeon.base import BaseEstimator
 
@@ -109,7 +108,7 @@ class _HeterogenousMetaEstimator:
             for name, estimator in estimators:
                 if hasattr(estimator, "get_params"):
                     for key, value in getattr(estimator, method)(**deepkw).items():
-                        out["%s__%s" % (name, key)] = value
+                        out[f"{name}__{key}"] = value
         return out
 
     def _set_params(self, attr, **params):
@@ -140,18 +139,17 @@ class _HeterogenousMetaEstimator:
 
     def _check_names(self, names):
         if len(set(names)) != len(names):
-            raise ValueError("Names provided are not unique: {0!r}".format(list(names)))
+            raise ValueError(f"Names provided are not unique: {list(names)!r}")
+        invalid_names = [name for name in names if "__" in name]
+        if invalid_names:
+            raise ValueError(
+                "Estimator names must not contain __: got " "{!r}".format(invalid_names)
+            )
         invalid_names = set(names).intersection(self.get_params(deep=False))
         if invalid_names:
             raise ValueError(
                 "Estimator names conflict with constructor "
-                "arguments: {0!r}".format(sorted(invalid_names))
-            )
-        invalid_names = [name for name in names if "__" in name]
-        if invalid_names:
-            raise ValueError(
-                "Estimator names must not contain __: got "
-                "{0!r}".format(invalid_names)
+                "arguments: {!r}".format(sorted(invalid_names))
             )
 
     def _subset_dict_keys(self, dict_to_subset, keys, prefix=None):
@@ -189,7 +187,7 @@ class _HeterogenousMetaEstimator:
         if prefix is not None:
             keys = [f"{prefix}__{key}" for key in keys]
         keys_in_both = set(keys).intersection(dict_to_subset.keys())
-        subsetted_dict = dict((rem_prefix(k), dict_to_subset[k]) for k in keys_in_both)
+        subsetted_dict = {rem_prefix(k): dict_to_subset[k] for k in keys_in_both}
         return subsetted_dict
 
     @staticmethod
@@ -303,7 +301,7 @@ class _HeterogenousMetaEstimator:
 
         Returns
         -------
-        est_tuple : (str, stimator tuple)
+        est_tuple : (str, estimator tuple)
             obj if obj was (str, estimator) tuple
             (obj class name, obj) if obj was estimator
         """
@@ -370,7 +368,9 @@ class _HeterogenousMetaEstimator:
         """
         ests = self._get_estimator_list(estimators)
         if clone_ests:
-            ests = [e.clone() for e in ests]
+            ests = [
+                e.clone() if isinstance(e, BaseEstimator) else clone(e) for e in ests
+            ]
         unique_names = self._get_estimator_names(estimators, make_unique=True)
         est_tuples = list(zip(unique_names, ests))
         return est_tuples
@@ -452,8 +452,8 @@ class _HeterogenousMetaEstimator:
 
         Parameters
         ----------
-        self : `sktime` estimator, instance of composite_class (when this is invoked)
-        other : `sktime` estimator, should inherit from composite_class or base_class
+        self : `aeon` estimator, instance of composite_class (when this is invoked)
+        other : `aeon` estimator, should inherit from composite_class or base_class
             otherwise, `NotImplemented` is returned
         base_class : estimator base class assumed as base class for self, other,
             and estimator components of composite_class, in case of concatenation
@@ -557,8 +557,8 @@ class _HeterogenousMetaEstimator:
         value : value of the tag to check for
         estimators : list of (str, estimator) pairs to query for the tag/value
 
-        Return
-        ------
+        Returns
+        -------
         bool : True iff at least one estimator in the list has value in tag tag_name
         """
         tagis = [est.get_tag(tag_name, value) == value for _, est in estimators]
@@ -591,8 +591,8 @@ class _HeterogenousMetaEstimator:
         tag_name : str, name of the tag
         estimators : list of (str, estimator) pairs to query for the tag/value
 
-        Return
-        ------
+        Returns
+        -------
         tag_val : first non-'None' value of tag `tag_name` in estimator list.
         """
         for _, est in estimators:
@@ -711,8 +711,8 @@ def flatten(obj):
     list or tuple, tuple if obj was tuple, list otherwise
         flat iterable, containing non-list/tuple elements in obj in same order as in obj
 
-    Example
-    -------
+    Examples
+    --------
     >>> flatten([1, 2, [3, (4, 5)], 6])
     [1, 2, 3, 4, 5, 6]
     """
@@ -737,8 +737,8 @@ def unflatten(obj, template):
         has element bracketing exactly as `template`
             and elements in sequence exactly as `obj`
 
-    Example
-    -------
+    Examples
+    --------
     >>> unflatten([1, 2, 3, 4, 5, 6], [6, 3, [5, (2, 4)], 1])
     [1, 2, [3, (4, 5)], 6]
     """

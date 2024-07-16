@@ -1,9 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements functions to be used in evaluating forecasting models."""
 
-__author__ = ["aiwalter", "mloning", "fkiraly", "topher-lo"]
+__maintainer__ = []
 __all__ = ["evaluate"]
 
 import time
@@ -12,12 +9,19 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from sklearn.exceptions import FitFailedWarning
 
-from aeon.datatypes import check_is_scitype, convert_to
-from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.base import ForecastingHorizon
+from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
+from aeon.utils.conversion import convert_collection, convert_series
+from aeon.utils.validation import (
+    is_collection,
+    is_hierarchical,
+    is_single_series,
+    validate_input,
+)
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.forecasting import check_cv, check_scoring
+from aeon.utils.validation.forecasting import check_cv
 
 PANDAS_MTYPES = ["pd.DataFrame", "pd.Series", "pd-multiindex", "pd_multiindex_hier"]
 
@@ -152,16 +156,8 @@ def _evaluate_window(
         # predict
         start_pred = time.perf_counter()
 
-        if hasattr(scoring, "metric_args"):
-            metric_args = scoring.metric_args
-
-        try:
-            scitype = scoring.get_tag("scitype:y_pred")
-        except ValueError:
-            # If no scitype exists then metric is not proba and no args needed
-            scitype = None
-            metric_args = {}
-
+        scitype = None
+        metric_args = {}
         y_pred = eval(pred_type[scitype])(fh, X_test, **metric_args)
         pred_time = time.perf_counter() - start_pred
         # score
@@ -226,23 +222,23 @@ def evaluate(
 
     Parameters
     ----------
-    forecaster : sktime BaseForecaster descendant
-        sktime forecaster (concrete BaseForecaster descendant)
-    cv : sktime BaseSplitter descendant
+    forecaster : aeon BaseForecaster descendant
+        aeon forecaster (concrete BaseForecaster descendant)
+    cv : aeon BaseSplitter descendant
         Splitter of how to split the data into test data and train data
-    y : sktime time series container
+    y : aeon time series data structure
         Target (endogeneous) time series used in the evaluation experiment
-    X : sktime time series container, of same mtype as y
+    X : aeon time series data structure, of same type as y
         Exogenous time series used in the evaluation experiment
     strategy : {"refit", "update", "no-update_params"}, optional, default="refit"
         defines the ingestion mode when the forecaster sees new data when window expands
         "refit" = forecaster is refitted to each training window
         "update" = forecaster is updated with training window data, in sequence provided
         "no-update_params" = fit to first training window, re-used without fit or update
-    scoring : subclass of sktime.performance_metrics.BaseMetric or list of same,
-        default=None. Used to get a score function that takes y_pred and y_test
-        arguments and accept y_train as keyword argument.
-        If None, then uses scoring = MeanAbsolutePercentageError().
+    scoring : Callable or None, default=None
+        Function in aeon.performance_metrics. Used to get a score function that takes
+        y_pred and y_test arguments and accept y_train as keyword argument.
+        If None, then uses scoring = mean_absolute_percentage_error.
     return_data : bool, default=False
         Returns three additional columns in the DataFrame, by default False.
         The cells of the columns contain each a pd.Series for y_train,
@@ -274,8 +270,8 @@ def evaluate(
         Row index is splitter index of train/test fold in `cv`.
         Entries in the i-th row are for the i-th train/test split in `cv`.
         Columns are as follows:
-        - test_{scoring.name}: (float) Model performance score. If `scoring` is a list,
-            then there is a column withname `test_{scoring.name}` for each scorer.
+        - test_{scoring.__name__}: (float) Model performance score. If `scoring` is a
+        list, then there is a column withname `test_{scoring.__name__}` for each scorer.
         - fit_time: (float) Time in sec for `fit` or `update` on train fold.
         - pred_time: (float) Time in sec to `predict` from fitted estimator.
         - len_train_window: (int) Length of train window.
@@ -290,7 +286,7 @@ def evaluate(
     Examples
     --------
         The type of evaluation that is done by `evaluate` depends on metrics in
-        param `scoring`. Default is `MeanAbsolutePercentageError`.
+        param `scoring`. Default is `mean_absolute_percentage_error`.
     >>> from aeon.datasets import load_airline
     >>> from aeon.forecasting.model_evaluation import evaluate
     >>> from aeon.forecasting.model_selection import ExpandingWindowSplitter
@@ -304,29 +300,20 @@ def evaluate(
         Optionally, users may select other metrics that can be supplied
         by `scoring` argument. These can be forecast metrics of any kind,
         i.e., point forecast metrics, interval metrics, quantile foreast metrics.
-        https://www.sktime.org/en/stable/api_reference/performance_metrics.html?highlight=metrics
+        https://www.aeon-toolkit.org/en/stable/api_reference/performance_metrics.html?highlight=metrics
         To evaluate estimators using a specific metric, provide them to the scoring arg.
-    >>> from aeon.performance_metrics.forecasting import MeanAbsoluteError
-    >>> loss = MeanAbsoluteError()
+    >>> from aeon.performance_metrics.forecasting import mean_absolute_error as loss
     >>> results = evaluate(forecaster=forecaster, y=y, cv=cv, scoring=loss)
 
         Optionally, users can provide a list of metrics to `scoring` argument.
-    >>> from aeon.performance_metrics.forecasting import MeanSquaredError
+    >>> from aeon.performance_metrics.forecasting import mean_absolute_error as loss
+    >>> from aeon.performance_metrics.forecasting import mean_squared_error as loss2
     >>> results = evaluate(
     ...     forecaster=forecaster,
     ...     y=y,
     ...     cv=cv,
-    ...     scoring=[MeanSquaredError(square_root=True), MeanAbsoluteError()],
+    ...     scoring=[loss, loss2],
     ... )
-
-        An example of an interval metric is the `PinballLoss`.
-        It can be used with all probabilistic forecasters.
-    >>> from aeon.forecasting.naive import NaiveVariance
-    >>> from aeon.performance_metrics.forecasting.probabilistic import PinballLoss
-    >>> loss = PinballLoss()
-    >>> forecaster = NaiveForecaster(strategy="drift")
-    >>> results = evaluate(forecaster=NaiveVariance(forecaster),
-    ... y=y, cv=cv, scoring=loss)
     """
     if backend == "dask" and not _check_soft_dependencies("dask", severity="none"):
         raise RuntimeError(
@@ -336,21 +323,33 @@ def evaluate(
 
     _check_strategy(strategy)
     cv = check_cv(cv, enforce_start_with_window=True)
+
+    def _check_scoring(s):
+        if s is None:
+            return mean_absolute_percentage_error
+        if not callable(s):
+            raise TypeError("`scoring` must be a callable object")
+        return s
+
     if isinstance(scoring, List):
-        scoring = [check_scoring(s) for s in scoring]
+        scoring = [_check_scoring(s) for s in scoring]
     else:
-        scoring = check_scoring(scoring)
+        scoring = [_check_scoring(scoring)]
 
-    ALLOWED_SCITYPES = ["Series", "Panel", "Hierarchical"]
-
-    y_valid, _, _ = check_is_scitype(y, scitype=ALLOWED_SCITYPES, return_metadata=True)
-    if not y_valid:
+    valid, y_metadata = validate_input(y)
+    if not valid:
         raise TypeError(
-            f"Expected y dtype {ALLOWED_SCITYPES!r}. Got {type(y)} instead."
+            f"Expected a series, collection or hierarchy. Got {type(y)} instead."
         )
-
-    y = convert_to(y, to_type=PANDAS_MTYPES)
-
+    if isinstance(y, np.ndarray):
+        if y_metadata["scitype"] == "Series":
+            if y_metadata["is_univariate"]:
+                y = convert_series(y, output_type="pd.Series")
+            else:
+                y = convert_series(y, output_type="pd.DataFrame")
+        elif y_metadata["scitype"] == "Panel":
+            y = convert_collection(y, output_type="pd-multiindex")
+        # If hierarchical, we don't need to convert
     freq = None
     try:
         if y.index.nlevels == 1:
@@ -361,19 +360,26 @@ def evaluate(
         pass
 
     if X is not None:
-        X_valid, _, _ = check_is_scitype(
-            X, scitype=ALLOWED_SCITYPES, return_metadata=True
-        )
-        if not X_valid:
+        series = is_single_series(X)
+        hier = is_hierarchical(X)
+        collection = is_collection(X)
+        if not (series or hier or collection):
             raise TypeError(
-                f"Expected X dtype {ALLOWED_SCITYPES!r}. Got {type(X)} instead."
+                f"Expected a series, collection or hierarchy. Got {type(y)} instead."
             )
-        X = convert_to(X, to_type=PANDAS_MTYPES)
-
+        _, x_metadata = validate_input(X)
+        if isinstance(X, np.ndarray):
+            if series:
+                if x_metadata["is_univariate"]:
+                    X = convert_series(X, output_type="pd.Series")
+                else:
+                    X = convert_series(X, output_type="pd.DataFrame")
+            elif collection:
+                X = convert_collection(X, output_type="pd-multiindex")
     score_name = (
-        f"test_{scoring.name}"
+        f"test_{scoring.__name__}"
         if not isinstance(scoring, List)
-        else f"test_{scoring[0].name}"
+        else f"test_{scoring[0].__name__}"
     )
     cutoff_dtype = str(y.index.dtype)
     _evaluate_window_kwargs = {
@@ -467,9 +473,9 @@ def evaluate(
 
     if isinstance(scoring, List):
         for s in scoring[1:]:
-            results[f"test_{s.name}"] = np.nan
+            results[f"test_{s.__name__}"] = np.nan
             for row in range(len(results)):
-                results[f"test_{s.name}"].iloc[row] = s(
+                results[f"test_{s.__name__}"].iloc[row] = s(
                     results["y_test"].iloc[row],
                     results["y_pred"].iloc[row],
                     y_train=results["y_train"].iloc[row],

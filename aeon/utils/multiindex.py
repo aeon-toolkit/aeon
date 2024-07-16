@@ -1,8 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """Multiindex formatting related utilities."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = []
 
 import pandas as pd

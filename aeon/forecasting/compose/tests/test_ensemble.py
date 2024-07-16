@@ -1,9 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file).
 """Unit tests of EnsembleForecaster functionality."""
 
-__author__ = ["GuzalBulatova", "RNKuhns"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -13,7 +10,7 @@ from aeon.forecasting.compose import EnsembleForecaster
 from aeon.forecasting.compose._ensemble import VALID_AGG_FUNCS
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.utils._testing.forecasting import make_forecasting_problem
+from aeon.testing.data_generation._legacy import make_forecasting_problem
 
 
 @pytest.mark.parametrize(

@@ -1,0 +1,131 @@
+name: PR pytest
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "aeon/**"
+      - ".github/workflows/**"
+      - "pyproject.toml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-no-soft-deps:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Restore numba cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "test-no-soft-deps"
+          runner_os: ${{ runner.os }}
+          python_version: "3.10"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest -n logical -k 'not TestAll'
+
+  pytest:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04, macOS-14, windows-2022 ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+        # skip python versions unless the PR has the 'full pytest actions' label
+        pr-testing:
+          - ${{ (github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
+        exclude:
+          - pr-testing: true
+            python-version: "3.10"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Restore numba cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "pytest"
+          runner_os: ${{ runner.os }}
+          python_version: ${{ matrix.python-version }}
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        # run the full test suit if a PR has the 'full pytest actions' label
+        run: python -m pytest -n logical --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+
+  codecov:
+    # run the code coverage job if a PR has the 'codecov actions' label
+    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
+
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Disable Numba JIT
+        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,unstable_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

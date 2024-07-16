@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """Probability Threshold Early Classifier.
 
 An early classifier using a prediction probability threshold with a time series
 classifier.
 """
 
-__author__ = ["MatthewMiddlehurst"]
+__maintainer__ = []
 __all__ = ["ProbabilityThresholdEarlyClassifier"]
 
 import copy
@@ -18,11 +17,12 @@ from sklearn.utils import check_random_state
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.early_classification.base import BaseEarlyClassifier
-from aeon.classification.interval_based import DrCIF
+from aeon.classification.interval_based import DrCIFClassifier
 
 
 class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
-    """Probability Threshold Early Classifier.
+    """
+    Probability Threshold Early Classifier.
 
     An early classifier which uses a threshold of prediction probability to determine
     whether an early prediction is safe or not.
@@ -40,8 +40,8 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     consecutive_predictions : int, default=1
         The number of consecutive predictions for a class above the threshold required
         to deem a prediction as safe.
-    estimator: sktime classifier, default=None
-        An sktime estimator to be built using the transformed data. Defaults to a
+    estimator : aeon classifier, default=None
+        An aeon estimator to be built using the transformed data. Defaults to a
         default DrCIF classifier.
     classification_points : List or None, default=None
         List of integer time series time stamps to build classifiers and allow
@@ -52,18 +52,21 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
     n_classes_ : int
         The number of classes.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
-    series_length_ : int
+    n_timepoints_ : int
         The full length of each series.
     classes_ : list
         The unique class labels.
@@ -117,16 +120,18 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         self._estimators = []
         self._classification_points = []
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
 
-        super(ProbabilityThresholdEarlyClassifier, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
-        self._estimator = DrCIF() if self.estimator is None else self.estimator
+        self._estimator = (
+            DrCIFClassifier() if self.estimator is None else self.estimator
+        )
 
         m = getattr(self._estimator, "predict_proba", None)
         if not callable(m):
@@ -135,7 +140,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         self._classification_points = (
             copy.deepcopy(self.classification_points)
             if self.classification_points is not None
-            else [round(self.series_length_ / i) for i in range(1, 21)]
+            else [round(self.n_timepoints_ / i) for i in range(1, 21)]
         )
         # remove duplicates
         self._classification_points = list(set(self._classification_points))
@@ -143,8 +148,8 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         # remove classification points that are less than 3 time stamps
         self._classification_points = [i for i in self._classification_points if i >= 3]
         # make sure the full series length is included
-        if self._classification_points[-1] != self.series_length_:
-            self._classification_points.append(self.series_length_)
+        if self._classification_points[-1] != self.n_timepoints_:
+            self._classification_points.append(self.n_timepoints_)
         # create dictionary of classification point indices
         self._classification_point_dictionary = {}
         for index, classification_point in enumerate(self._classification_points):
@@ -152,13 +157,16 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
+
+        rng = check_random_state(self.random_state)
 
         self._estimators = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(len(self._classification_points))
         )
@@ -174,10 +182,10 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         return self._proba_output_to_preds(out)
 
     def _predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
-        n_instances, _, series_length = X.shape
+        n_cases, _, n_timepoints = X.shape
 
         # maybe use the largest index that is smaller than the series length
-        next_idx = self._get_next_idx(series_length) + 1
+        next_idx = self._get_next_idx(n_timepoints) + 1
 
         # if the input series length is invalid
         if next_idx == 0:
@@ -189,13 +197,16 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
+
+        rng = check_random_state(self.random_state)
 
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(0, next_idx)
         )
@@ -213,10 +224,10 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         return probas, accept_decision
 
     def _update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
-        series_length = X.shape[2]
+        n_timepoints = X.shape[2]
 
         # maybe use the largest index that is smaller than the series length
-        next_idx = self._get_next_idx(series_length) + 1
+        next_idx = self._get_next_idx(n_timepoints) + 1
 
         # remove cases where a positive decision has been made
         state_info = self.state_info[
@@ -253,13 +264,16 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
+
+        rng = check_random_state(self.random_state)
 
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(last_idx, next_idx)
         )
@@ -283,9 +297,11 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         probas = np.array(
             [
-                probas[max(0, state_info[i][0] - last_idx)][i]
-                if accept_decision[i]
-                else [-1 for _ in range(self.n_classes_)]
+                (
+                    probas[max(0, state_info[i][0] - last_idx)][i]
+                    if accept_decision[i]
+                    else [-1 for _ in range(self.n_classes_)]
+                )
                 for i in range(len(accept_decision))
             ]
         )
@@ -302,14 +318,14 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         # stores whether we have made a final decision on a prediction, if true
         # state info won't be edited in later time stamps
         finished = state_info[:, 1] >= self.consecutive_predictions
-        n_instances = len(preds)
+        n_cases = len(preds)
 
         full_length_ts = idx == len(self._classification_points) - 1
         if full_length_ts:
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
         else:
             offsets = np.argwhere(finished == 0).flatten()
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
             if len(offsets) > 0:
                 p = probas[offsets, preds[offsets]]
                 accept_decision[offsets] = p >= self.probability_threshold
@@ -317,27 +333,25 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         # record consecutive class decisions
         state_info = np.array(
             [
-                self._update_state_info(accept_decision, preds, state_info, i, idx)
-                if not finished[i]
-                else state_info[i]
-                for i in range(n_instances)
+                (
+                    self._update_state_info(accept_decision, preds, state_info, i, idx)
+                    if not finished[i]
+                    else state_info[i]
+                )
+                for i in range(n_cases)
             ]
         )
 
         # check safety of decisions
         if full_length_ts:
             # Force prediction at last time stamp
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
         else:
             accept_decision = state_info[:, 1] >= self.consecutive_predictions
 
         return accept_decision, state_info
 
-    def _fit_estimator(self, X, y, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _fit_estimator(self, X, y, i, rng):
         estimator = _clone_estimator(
             self._estimator,
             rng,
@@ -345,17 +359,13 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         m = getattr(estimator, "n_jobs", None)
         if m is not None:
-            estimator.n_jobs = self._threads_to_use
+            estimator.n_jobs = self._n_jobs
 
         estimator.fit(X[:, :, : self._classification_points[i]], y)
 
         return estimator
 
-    def _predict_proba_for_estimator(self, X, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _predict_proba_for_estimator(self, X, i, rng):
         probas = self._estimators[i].predict_proba(
             X[:, :, : self._classification_points[i]]
         )
@@ -365,11 +375,11 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
         return probas, preds
 
-    def _get_next_idx(self, series_length):
+    def _get_next_idx(self, n_timepoints):
         """Return the largest index smaller than the series length."""
         next_idx = -1
         for idx, offset in enumerate(np.sort(self._classification_points)):
-            if offset <= series_length:
+            if offset <= n_timepoints:
                 next_idx = idx
         return next_idx
 
@@ -395,11 +405,13 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         rng = check_random_state(self.random_state)
         preds = np.array(
             [
-                self.classes_[
-                    int(rng.choice(np.flatnonzero(out[0][i] == out[0][i].max())))
-                ]
-                if out[1][i]
-                else -1
+                (
+                    self.classes_[
+                        int(rng.choice(np.flatnonzero(out[0][i] == out[0][i].max())))
+                    ]
+                    if out[1][i]
+                    else -1
+                )
                 for i in range(len(out[0]))
             ]
         )
@@ -438,7 +450,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         )
         earliness = np.average(
             [
-                self._classification_points[state_info[i][0]] / self.series_length_
+                self._classification_points[state_info[i][0]] / self.n_timepoints_
                 for i in range(len(state_info))
             ]
         )

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Module exports: Series type checkers, converters and mtype inference."""
 
 from aeon.datatypes._series._check import check_dict as check_dict_Series
@@ -10,13 +9,13 @@ from aeon.datatypes._series._examples import (
 from aeon.datatypes._series._examples import (
     example_dict_metadata as example_dict_metadata_Series,
 )
-from aeon.datatypes._series._registry import MTYPE_LIST_SERIES, MTYPE_REGISTER_SERIES
+from aeon.datatypes._series._registry import TYPE_LIST_SERIES, TYPE_REGISTER_SERIES
 
 __all__ = [
     "check_dict_Series",
     "convert_dict_Series",
-    "MTYPE_LIST_SERIES",
-    "MTYPE_REGISTER_SERIES",
+    "TYPE_LIST_SERIES",
+    "TYPE_REGISTER_SERIES",
     "example_dict_Series",
     "example_dict_lossy_Series",
     "example_dict_metadata_Series",

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Machine type converters for Series to Panel.
 
 Exports conversion functions for conversions between series scitypes:
@@ -14,7 +13,7 @@ convert_Hierarchical_to_Panel(obj, store=None)
     converts to pd.DataFrame based data container in the target scitype
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd

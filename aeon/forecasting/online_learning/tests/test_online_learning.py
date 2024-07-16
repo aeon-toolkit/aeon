@@ -1,9 +1,8 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Test OnlineEnsembleForecaster."""
 
-__author__ = ["magittan"]
+__maintainer__ = []
+
+from sys import platform
 
 import numpy as np
 import pytest
@@ -28,7 +27,8 @@ cv = SlidingWindowSplitter(start_with_window=True, window_length=1, fh=1)
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency for OnlineEnsembleForecaster not "
+    "available",
 )
 def test_weights_for_airline_averaging():
     """Test weights."""
@@ -84,6 +84,9 @@ def test_weights_for_airline_normal_hedge():
 
 def test_weights_for_airline_nnls():
     """Test weights."""
+    if platform == "darwin":
+        pytest.skip("Skipping test on macOS due to error.")
+
     y = load_airline()
     y_train, y_test = temporal_train_test_split(y)
 

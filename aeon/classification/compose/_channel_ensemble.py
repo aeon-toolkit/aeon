@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 """ChannelEnsembleClassifier: For Multivariate Time Series Classification.
 
 Builds classifiers on each channel (dimension) independently.
 """
 
-__author__ = ["abostrom", "TonyBagnall"]
+__maintainer__ = []
 __all__ = ["ChannelEnsembleClassifier"]
 
 from itertools import chain
@@ -28,7 +27,7 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
         self.verbose = verbose
         self.estimators = estimators
         self.remainder = "drop"
-        super(_BaseChannelEnsembleClassifier, self).__init__()
+        super().__init__()
         self._anytagis_then_set(
             "capability:unequal_length", False, True, self._estimators
         )
@@ -117,28 +116,23 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
             estimators = chain(estimators, [self._remainder])
 
         for name, estimator, channel in estimators:
-            if replace_strings:
-                # skip in case of 'drop'
-                if estimator == "drop":
-                    continue
-                elif _is_empty_channel_selection(channel):
-                    continue
-
+            if replace_strings and (
+                estimator == "drop"
+                or estimator != "drop"
+                and _is_empty_channel_selection(channel)
+            ):
+                continue
             yield name, estimator, channel
 
     def _fit(self, X, y):
-        # the data passed in could be an array of dataframes?
         """Fit all estimators, fit the data.
 
         Parameters
         ----------
-        X : array-like or DataFrame of shape [n_samples, n_channels,
-        n_length]
-            Input data, of which specified subsets are used to fit the
-            transformations.
+        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
 
-        y : array-like, shape (n_samples, ...), optional
-            Targets for supervised learning.
+        y : array-like, shape = [n_cases]
+            The class labels.
 
         """
         if self.estimators is None or len(self.estimators) == 0:
@@ -175,8 +169,7 @@ class _BaseChannelEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for X using 'soft' voting."""
-        avg = np.average(self._collect_probas(X), axis=0)
-        return avg
+        return np.average(self._collect_probas(X), axis=0)
 
     def _predict(self, X) -> np.ndarray:
         maj = np.argmax(self.predict_proba(X), axis=1)
@@ -195,7 +188,6 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
     estimators : list of tuples
         List of (name, estimator, channel(s)) tuples specifying the transformer
         objects to be applied to subsets of the data.
-
         name : string
             Like in Pipeline and FeatureUnion, this allows the
             transformer and its parameters to be set using ``set_params`` and searched
@@ -204,9 +196,8 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
             Estimator must support `fit` and `predict_proba`. Special-cased
             strings 'drop' and 'passthrough' are accepted as well, to
             indicate to drop the channels.
-        channels(s) : array-like of int, slice, boolean mask array. Integer channels
-        are indexed from 0
-
+        channels(s) : array-like of int, slice, boolean mask array
+            Integer channels are indexed from 0.
     remainder : {'drop', 'passthrough'} or estimator, default 'drop'
         By default, only the specified channels in `transformations` are
         transformed and combined in the output, and the non-specified
@@ -218,18 +209,20 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
         By setting ``remainder`` to be an estimator, the remaining
         non-specified channels will use the ``remainder`` estimator. The
         estimator must support `fit` and `transform`.
+    verbose : bool, default=False
+        Whether to print debug info.
 
     Examples
     --------
     >>> from aeon.classification.dictionary_based import ContractableBOSS
-    >>> from aeon.classification.interval_based import CanonicalIntervalForest
+    >>> from aeon.classification.interval_based import CanonicalIntervalForestClassifier
     >>> from aeon.datasets import load_basic_motions
     >>> X_train, y_train = load_basic_motions(split="train")
     >>> X_test, y_test = load_basic_motions(split="test")
     >>> cboss = ContractableBOSS(
     ...     n_parameter_samples=4, max_ensemble_size=2, random_state=0
     ... )
-    >>> cif = CanonicalIntervalForest(
+    >>> cif = CanonicalIntervalForestClassifier(
     ...     n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
     ... )
     >>> estimators = [("cBOSS", cboss, 5), ("CIF", cif, [3, 4])]
@@ -252,7 +245,7 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
 
     def __init__(self, estimators, remainder="drop", verbose=False):
         self.remainder = remainder
-        super(ChannelEnsembleClassifier, self).__init__(estimators, verbose=verbose)
+        super().__init__(estimators, verbose=verbose)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -264,9 +257,9 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
             ChannelEnsembleClassifier provides the following special sets:
-                 "results_comparison" - used in some classifiers to compare against
-                    previously generated results where the default set of parameters
-                    cannot produce suitable probability estimates
+            - "results_comparison" - used in some classifiers to compare against
+              previously generated results where the default set of parameters
+              cannot produce suitable probability estimates
 
         Returns
         -------
@@ -277,31 +270,29 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.dictionary_based import ContractableBOSS
-        from aeon.classification.interval_based import CanonicalIntervalForest
+        from aeon.classification.interval_based import CanonicalIntervalForestClassifier
         from aeon.classification.interval_based import (
             TimeSeriesForestClassifier as TSFC,
         )
 
-        if parameter_set == "results_comparison":
-            cboss = ContractableBOSS(
-                n_parameter_samples=4, max_ensemble_size=2, random_state=0
-            )
-            cif = CanonicalIntervalForest(
-                n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
-            )
-            return {"estimators": [("cBOSS", cboss, 5), ("CIF", cif, [3, 4])]}
-        else:
+        if parameter_set != "results_comparison":
             return {
                 "estimators": [
                     ("tsf1", TSFC(n_estimators=2), 0),
                     ("tsf2", TSFC(n_estimators=2), 0),
                 ]
             }
+        cboss = ContractableBOSS(
+            n_parameter_samples=4, max_ensemble_size=2, random_state=0
+        )
+        cif = CanonicalIntervalForestClassifier(
+            n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
+        )
+        return {"estimators": [("cBOSS", cboss, 5), ("CIF", cif, [3, 4])]}
 
 
 def _get_channel(X, key):
-    """
-    Get time series channel(s) from input data X.
+    """Get time series channel(s) from input data X.
 
     Supported input types (X): numpy arrays
 
@@ -318,7 +309,6 @@ def _get_channel(X, key):
         - only supported for dataframes
         - So no keys other than strings are allowed (while in principle you
           can use any hashable object as key).
-
     """
     # check whether we have string channel names or integers
     if _check_key_type(key, int):
@@ -333,27 +323,21 @@ def _get_channel(X, key):
             "strings, or boolean mask is allowed"
         )
 
-    # ensure that pd.DataFrame is returned rather than
-    # pd.Series
     if isinstance(key, (int, str)):
         key = [key]
 
-    if channel_names:
-        if not isinstance(X, pd.DataFrame):
-            raise ValueError(
-                f"X must be a pd.DataFrame if channel names are "
-                f"specified, but found: {type(X)}"
-            )
-        return X.loc[:, key]
-    else:
-        if isinstance(X, np.ndarray):
-            return X[:, key]
-        return X.iloc[:, key]
+    if not channel_names:
+        return X[:, key] if isinstance(X, np.ndarray) else X.iloc[:, key]
+    if not isinstance(X, pd.DataFrame):
+        raise ValueError(
+            f"X must be a pd.DataFrame if channel names are "
+            f"specified, but found: {type(X)}"
+        )
+    return X.loc[:, key]
 
 
 def _check_key_type(key, superclass):
-    """
-    Check that scalar, list or slice is of a certain type.
+    """Check that scalar, list or slice is of a certain type.
 
     This is only used in _get_channel and _get_channel_indices to check
     if the `key` (channel specification) is fully integer or fully string-like.
@@ -364,7 +348,6 @@ def _check_key_type(key, superclass):
         The channel specification to check
     superclass : int or str
         The type for which to check the `key`
-
     """
     if isinstance(key, superclass):
         return True
@@ -384,11 +367,9 @@ def _check_key_type(key, superclass):
 
 
 def _get_channel_indices(X, key):
-    """
-    Get feature channel indices for input data X and key.
+    """Get feature channel indices for input data X and key.
 
     For accepted values of `key`, see the docstring of _get_channel
-
     """
     n_channels = X.shape[1]
 
@@ -403,11 +384,11 @@ def _get_channel_indices(X, key):
     elif _check_key_type(key, str):
         try:
             all_columns = list(X.columns)
-        except AttributeError:
+        except AttributeError as e:
             raise ValueError(
                 "Specifying the columns using strings is only "
                 "supported for pandas DataFrames"
-            )
+            ) from e
         if isinstance(key, str):
             columns = [key]
         elif isinstance(key, slice):

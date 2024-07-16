@@ -1,19 +1,19 @@
-# -*- coding: utf-8 -*-
 """Testing mtype/scitypes lookup."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import pytest
 
 from aeon.datatypes._registry import (
-    MTYPE_REGISTER,
+    AMBIGUOUS_MTYPES,
     MTYPE_SOFT_DEPS,
+    TYPE_REGISTER,
     mtype_to_scitype,
     scitype_to_mtype,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-MTYPE_SCITYPE_PAIRS = [(k[0], k[1]) for k in MTYPE_REGISTER]
+MTYPE_SCITYPE_PAIRS = [(k[0], k[1]) for k in TYPE_REGISTER]
 
 
 @pytest.mark.parametrize("mtype, scitype", MTYPE_SCITYPE_PAIRS)
@@ -30,6 +30,9 @@ def test_mtype_to_scitype(mtype, scitype):
     AssertionError mtype_to_scitype does not convert mtype to scitype
     Exception if any is raised by mtype_to_scitype
     """
+    if mtype in AMBIGUOUS_MTYPES:
+        return None
+
     result = mtype_to_scitype(mtype)
     msg = (
         f'mtype_to_scitype does not correctly convert mtype "{mtype}" to scitype '
@@ -51,8 +54,11 @@ def test_mtype_to_scitype_list():
     AssertionError mtype_to_scitype does not convert mtype to scitype
     Exception if any is raised by mtype_to_scitype
     """
-    mtype_list = [k[0] for k in MTYPE_REGISTER]
-    expected_scitype_list = [k[1] for k in MTYPE_REGISTER]
+    mtype_list = [k[0] for k in TYPE_REGISTER if k[0] not in AMBIGUOUS_MTYPES]
+    expected_scitype_list = [
+        k[1] for k in TYPE_REGISTER if k[0] not in AMBIGUOUS_MTYPES
+    ]
+
     result = mtype_to_scitype(mtype_list)
     msg = (
         "mtype_to_scitype does not correctly convert list of mtypes"

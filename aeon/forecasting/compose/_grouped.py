@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements compositors for performing forecasting by group."""
 
-from aeon.datatypes import ALL_TIME_SERIES_MTYPES, mtype_to_scitype
 from aeon.forecasting.base._delegate import _DelegatedForecaster
+from aeon.utils._data_types import ALL_TIME_SERIES_TYPES
+from aeon.utils.validation._input import _abstract_type
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 __all__ = ["ForecastByLevel"]
 
 
@@ -23,7 +22,7 @@ class ForecastByLevel(_DelegatedForecaster):
 
     Parameters
     ----------
-    forecaster : sktime forecaster used in ForecastByLevel
+    forecaster : aeon forecaster used in ForecastByLevel
         A "blueprint" forecaster, state does not change when `fit` is called.
     groupby : str, one of ["local", "global", "panel"], optional, default="local"
         level on which data are grouped to fit clones of `forecaster`
@@ -35,16 +34,16 @@ class ForecastByLevel(_DelegatedForecaster):
 
     Attributes
     ----------
-    forecaster_ : sktime forecaster, present only if `groupby` is "global"
+    forecaster_ : aeon forecaster, present only if `groupby` is "global"
         clone of `forecaster` used for fitting and forecasting
-    forecasters_ : pd.DataFrame of sktime forecaster, present otherwise
+    forecasters_ : pd.DataFrame of aeon forecaster, present otherwise
         entries are clones of `forecaster` used for fitting and forecasting
 
     Examples
     --------
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.compose import ForecastByLevel
-    >>> from aeon.utils._testing.hierarchical import _make_hierarchical
+    >>> from aeon.testing.data_generation import _make_hierarchical
     >>> y = _make_hierarchical()
     >>> f = ForecastByLevel(NaiveForecaster(), groupby="local")
     >>> f.fit(y)
@@ -55,10 +54,10 @@ class ForecastByLevel(_DelegatedForecaster):
 
     _tags = {
         "requires-fh-in-fit": False,
-        "handles-missing-data": True,
-        "scitype:y": "both",
-        "y_inner_mtype": ALL_TIME_SERIES_MTYPES,
-        "X_inner_mtype": ALL_TIME_SERIES_MTYPES,
+        "capability:missing_values": True,
+        "y_input_type": "both",
+        "y_inner_type": ALL_TIME_SERIES_TYPES,
+        "X_inner_type": ALL_TIME_SERIES_TYPES,
         "fit_is_empty": False,
     }
 
@@ -73,7 +72,7 @@ class ForecastByLevel(_DelegatedForecaster):
 
         self.forecaster_ = forecaster.clone()
 
-        super(ForecastByLevel, self).__init__()
+        super().__init__()
 
         self.clone_tags(self.forecaster_)
         self.set_tags(**{"fit_is_empty": False})
@@ -91,12 +90,14 @@ class ForecastByLevel(_DelegatedForecaster):
                 f"but found {groupby}"
             )
 
-        mtypes = [x for x in ALL_TIME_SERIES_MTYPES if mtype_to_scitype(x) in scitypes]
+        internal_types = [
+            x for x in ALL_TIME_SERIES_TYPES if _abstract_type(x) in scitypes
+        ]
 
         # this ensures that we convert in the inner estimator
         # but vectorization/broadcasting happens at the level of groupby
-        self.set_tags(**{"y_inner_mtype": mtypes})
-        self.set_tags(**{"X_inner_mtype": mtypes})
+        self.set_tags(**{"y_inner_type": internal_types})
+        self.set_tags(**{"X_inner_type": internal_types})
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

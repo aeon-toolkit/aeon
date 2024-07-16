@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements BATS algorithm.
 
 BATS refers to Exponential smoothing state space model with Box-Cox
@@ -9,13 +6,10 @@ transformation, ARMA errors, Trend and Seasonal components.
 Wrapping implementation in [1]_ of method proposed in [2]_.
 """
 
-__author__ = ["Martin Walter"]
+__maintainer__ = []
 __all__ = ["BATS"]
 
 from aeon.forecasting.base.adapters import _TbatsAdapter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-_check_soft_dependencies("tbats", severity="warning")
 
 
 class BATS(_TbatsAdapter):
@@ -46,36 +40,36 @@ class BATS(_TbatsAdapter):
 
     Parameters
     ----------
-    use_box_cox: bool or None, optional (default=None)
+    use_box_cox: bool or None, default=None
         If Box-Cox transformation of original series should be applied.
         When None both cases shall be considered and better is selected by AIC.
-    box_cox_bounds: tuple, shape=(2,), optional (default=(0, 1))
+    box_cox_bounds: tuple, shape=(2,), default=(0, 1)
         Minimal and maximal Box-Cox parameter values.
-    use_trend: bool or None, optional (default=None)
+    use_trend: bool or None, default=None
         Indicates whether to include a trend or not.
         When None both cases shall be considered and better is selected by AIC.
-    use_damped_trend: bool or None, optional (default=None)
+    use_damped_trend: bool or None, default=None
         Indicates whether to include a damping parameter in the trend or not.
         Applies only when trend is used.
         When None both cases shall be considered and better is selected by AIC.
-    sp: Iterable or array-like of floats, optional (default=None)
+    sp: Iterable or array-like of floats, default=None
         Abbreviation of "seasonal periods". The length of each of the periods
         (amount of observations in each period). Accepts int and float values here.
         When None or empty array, non-seasonal model shall be fitted.
-    use_arma_errors: bool, optional (default=True)
+    use_arma_errors: bool, default=True
         When True BATS will try to improve the model by modelling residuals with ARMA.
         Best model will be selected by AIC.
         If False, ARMA residuals modeling will not be considered.
-    show_warnings: bool, optional (default=True)
+    show_warnings: bool, default=True
         If warnings should be shown or not.
         Also see Model.warnings variable that contains all model related warnings.
-    n_jobs: int, optional (default=None)
+    n_jobs: int, default=None
         How many jobs to run in parallel when fitting BATS model.
         When not provided BATS shall try to utilize all available cpu cores.
-    multiprocessing_start_method: str, optional (default='spawn')
+    multiprocessing_start_method: str, default='spawn'
         How threads should be started. See also:
         https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
-    context: abstract.ContextInterface, optional (default=None)
+    context: abstract.ContextInterface, default=None
         For advanced users only. Provide this to override default behaviors
 
     See Also
@@ -144,9 +138,4 @@ class BATS(_TbatsAdapter):
             "n_jobs": 1,
         }
 
-        params2 = {
-            "use_box_cox": False,
-            "sp": [2, 12],
-        }
-
-        return [params1, params2]
+        return [params1]

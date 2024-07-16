@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """WEASEL+MUSE classifier.
 
 multivariate dictionary based classifier based on SFA transform, dictionaries
 and logistic regression.
 """
 
-__author__ = ["patrickzib", "BINAYKUMAR943"]
+__maintainer__ = []
 __all__ = ["MUSE"]
 
 import math
@@ -18,68 +17,80 @@ from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.panel.dictionary_based import SFAFast
+from aeon.transformations.collection.dictionary_based import SFAFast
 
 
 class MUSE(BaseClassifier):
-    """MUSE (MUltivariate Symbolic Extension).
+    """
+    MUSE (MUltivariate Symbolic Extension).
 
     Also known as WEASEL-MUSE: implementation of multivariate version of WEASEL,
-    referred to as just MUSE from [1].
+    referred to as just MUSE from [1]_.
 
     Overview: Input n series length m
-     WEASEL+MUSE is a multivariate  dictionary classifier that builds a
-     bag-of-patterns using SFA for different window lengths and learns a
-     logistic regression classifier on this bag.
+    WEASEL+MUSE is a multivariate  dictionary classifier that builds a
+    bag-of-patterns using SFA for different window lengths and learns a
+    logistic regression classifier on this bag.
 
-     There are these primary parameters:
-             alphabet_size: alphabet size
+    There are these primary parameters:
              chi2-threshold: used for feature selection to select best words
-             anova: select best l/2 fourier coefficients other than first ones
-             bigrams: using bigrams of SFA words
              binning_strategy: the binning strategy used to disctrtize into SFA words.
 
     Parameters
     ----------
-    anova: boolean, default=True
+    anova : bool, default=True
         If True, the Fourier coefficient selection is done via a one-way
-        ANOVA test. If False, the first Fourier coefficients are selected.
-        Only applicable if labels are given
-    variance: boolean, default = False
-            If True, the Fourier coefficient selection is done via the largest
-            variance. If False, the first Fourier coefficients are selected.
-            Only applicable if labels are given
-    bigrams: boolean, default=True
-        whether to create bigrams of SFA words
-    window_inc: int, default=2
-        WEASEL create a BoP model for each window sizes. This is the
-        increment used to determine the next window size.
+        ANOVA test to select best l/2 fourier coefficients other than first
+        one. If False, the first l/2 Fourier coefficients are selected. Only
+        applicable if labels are given.
+    variance : bool, default = False
+        If True, the Fourier coefficient selection is done via the largest
+        variance. If False, the first Fourier coefficients are selected. Only
+        applicable if labels are given.
+    bigrams : bool, default=True
+        whether to create bigrams of SFA words.
+    window_inc : int, default=2
+        WEASEL creates a BoP model for each window sizes. This is the increment used
+        to determine the next window size.
     alphabet_size : default = 4
         Number of possible letters (values) for each word.
-    p_threshold: int, default=0.05 (disabled by default)
-        Used when feature selection is applied based on the chi-squared test.
-        This is the p-value threshold to use for chi-squared test on bag-of-words
-        (lower means more strict). 1 indicates that the test
-        should not be performed.
-    use_first_order_differences: boolean, default=True
+    use_first_order_differences : bool, default = True
         If set to True will add the first order differences of each dimension
         to the data.
-    support_probabilities: bool, default: False
+    feature_selection : str, default = "chi2"
+        Sets the feature selections strategy to be used, one of
+        {"chi2", "none", "random"}. "chi2" reduces the number of words significantly
+        and is thus much faster (preferred). Random also reduces the number
+        significantly. None applies not feature selectiona and yields large
+        bag of words, e.g. much memory may be needed.
+    p_threshold : int, default=0.05
+        Used when feature selection is applied based on the chi-squared test.
+        This is the p-value threshold to use for chi-squared test on bag-of-words
+        (lower means more strict). 1 indicates that the test should not be performed.
+    support_probabilities : bool, default = False
         If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
         and is faster, yet does not support predict_proba.
         If set to True, a LogisticRegression will be trained, which does support
         predict_proba(), yet is slower and typically less accuracy. predict_proba() is
         needed for example in Early-Classification like TEASER.
-    feature_selection: {"chi2", "none", "random"}, default: chi2
-        Sets the feature selections strategy to be used. Chi2 reduces the number
-        of words significantly and is thus much faster (preferred). Random also reduces
-        the number significantly. None applies not feature selectiona and yields large
-        bag of words, e.g. much memory may be needed.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state: int or None, default=None
-        Seed for random, integer
+    random_state : int or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -91,6 +102,7 @@ class MUSE(BaseClassifier):
     See Also
     --------
     WEASEL
+        MUSE is the multivariare version of WEASEL.
 
     References
     ----------
@@ -135,6 +147,7 @@ class MUSE(BaseClassifier):
         feature_selection="chi2",
         p_threshold=0.05,
         support_probabilities=False,
+        class_weight=None,
         n_jobs=1,
         random_state=None,
     ):
@@ -149,29 +162,31 @@ class MUSE(BaseClassifier):
         self.word_lengths = [4, 6]
         self.bigrams = bigrams
         self.binning_strategies = ["equi-width", "equi-depth"]
-        self.random_state = random_state
         self.min_window = 6
         self.max_window = 100
         self.window_inc = window_inc
         self.window_sizes = []
         self.SFA_transformers = []
         self.clf = None
-        self.n_jobs = n_jobs
         self.support_probabilities = support_probabilities
         self.total_features_count = 0
         self.feature_selection = feature_selection
 
-        super(MUSE, self).__init__()
+        self.class_weight = class_weight
+        self.n_jobs = n_jobs
+        self.random_state = random_state
+
+        super().__init__()
 
     def _fit(self, X, y):
         """Build a WEASEL+MUSE classifiers from the training set (X, y).
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
-        y : array-like, shape = [n_instances]
-            The class labels.
+        X : 3D np.ndarray
+            The training data shape = (n_cases, n_channels, n_timepoints).
+        y : 1D np.ndarray
+            The training labels, shape = (n_cases).
 
         Returns
         -------
@@ -183,11 +198,11 @@ class MUSE(BaseClassifier):
         # add first order differences in each dimension to TS
         if self.use_first_order_differences:
             X = self._add_first_order_differences(X)
-        self.n_dims = X.shape[1]
+        self.n_channels = X.shape[1]
 
-        self.highest_dim_bit = (math.ceil(math.log2(self.n_dims))) + 1
+        self.highest_dim_bit = (math.ceil(math.log2(self.n_channels))) + 1
 
-        if self.n_dims == 1:
+        if self.n_channels == 1:
             warnings.warn(
                 "MUSE Warning: Input series is univariate; MUSE is designed for"
                 + " multivariate series. It is recommended WEASEL is used instead.",
@@ -217,7 +232,7 @@ class MUSE(BaseClassifier):
                 self.feature_selection,
                 self.random_state,
             )
-            for ind in range(self.n_dims)
+            for ind in range(self.n_channels)
         )
 
         self.SFA_transformers = [[] for _ in range(X.shape[1])]
@@ -237,17 +252,19 @@ class MUSE(BaseClassifier):
         if type(all_words[0]) is np.ndarray:
             all_words = np.concatenate(all_words, axis=1)
         else:
-            all_words = hstack((all_words))
+            all_words = hstack(all_words)
 
         # Ridge Classifier does not give probabilities
         if not self.support_probabilities:
-            self.clf = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+            self.clf = RidgeClassifierCV(
+                alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+            )
         else:
             self.clf = LogisticRegression(
                 max_iter=5000,
                 solver="liblinear",
                 dual=True,
-                # class_weight="balanced",
+                class_weight=self.class_weight,
                 penalty="l2",
                 random_state=self.random_state,
                 n_jobs=self.n_jobs,
@@ -262,13 +279,14 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_cases, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances]
-            Predicted class labels.
+        1D np.ndarray
+            The predicted class labels shape = (n_cases).
         """
         bag = self._transform_words(X)
         return self.clf.predict(bag)
@@ -278,13 +296,15 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        X : nested pandas DataFrame of shape [n_instances, 1]
-            Nested dataframe with univariate time-series in cells.
+        X : 3D np.ndarray
+            The data to make predictions for, shape = (n_cases, n_channels,
+            n_timepoints).
 
         Returns
         -------
-        y : array-like, shape = [n_instances, n_classes_]
-            Predicted probabilities using the ordering in classes_.
+        2D np.ndarray
+            Predicted probabilities using the ordering in classes_, shape = (
+            n_cases, n_classes_).
         """
         bag = self._transform_words(X)
         if self.support_probabilities:
@@ -299,11 +319,11 @@ class MUSE(BaseClassifier):
         if self.use_first_order_differences:
             X = self._add_first_order_differences(X)
 
-        parallel_res = Parallel(n_jobs=self._threads_to_use, prefer="threads")(
+        parallel_res = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(_parallel_transform_words)(
                 X, self.window_sizes, self.SFA_transformers, ind
             )
-            for ind in range(self.n_dims)
+            for ind in range(self.n_channels)
         )
 
         all_words = []
@@ -312,7 +332,7 @@ class MUSE(BaseClassifier):
         if type(all_words[0]) is np.ndarray:
             all_words = np.concatenate(all_words, axis=1)
         else:
-            all_words = hstack((all_words))
+            all_words = hstack(all_words)
 
         return all_words
 
@@ -329,13 +349,13 @@ class MUSE(BaseClassifier):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : str, default = "default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        dict or list of dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
@@ -351,9 +371,9 @@ class MUSE(BaseClassifier):
         }
 
 
-def _compute_window_inc(series_length, window_inc):
+def _compute_window_inc(n_timepoints, window_inc):
     win_inc = window_inc
-    if series_length < 100:
+    if n_timepoints < 100:
         win_inc = 1  # less than 100 is ok time-wise
 
     return win_inc
@@ -399,11 +419,11 @@ def _parallel_fit(
 
     # On each dimension, perform SFA
     X_dim = X[:, ind]
-    series_length = X_dim.shape[-1]
+    n_timepoints = X_dim.shape[-1]
 
     # increment window size in steps of 'win_inc'
-    win_inc = _compute_window_inc(series_length, window_inc)
-    max_window = int(min(series_length, max_window))
+    win_inc = _compute_window_inc(n_timepoints, window_inc)
+    max_window = int(min(n_timepoints, max_window))
 
     if min_window > max_window:
         raise ValueError(

@@ -1,13 +1,10 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Tests for model evaluation module.
 
 In particular, function `evaluate`, that performs time series
 cross-validation, is tested with various configurations for correct output.
 """
 
-__author__ = ["aiwalter", "mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = [
     "test_evaluate_common_configs",
     "test_evaluate_initial_window",
@@ -17,10 +14,10 @@ __all__ = [
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.exceptions import FitFailedWarning
 from sklearn.linear_model import LinearRegression
 
 from aeon.datasets import load_airline, load_longley
-from aeon.exceptions import FitFailedWarning
 from aeon.forecasting.compose._reduce import DirectReductionForecaster
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.model_evaluation import evaluate
@@ -29,14 +26,28 @@ from aeon.forecasting.model_selection import (
     SlidingWindowSplitter,
 )
 from aeon.forecasting.naive import NaiveForecaster
-from aeon.forecasting.tests._config import TEST_FHS, TEST_STEP_LENGTHS_INT
+from aeon.forecasting.tests import TEST_FHS, TEST_STEP_LENGTHS_INT
 from aeon.performance_metrics.forecasting import (
-    MeanAbsolutePercentageError,
-    MeanAbsoluteScaledError,
+    mean_absolute_percentage_error,
+    mean_absolute_scaled_error,
 )
-from aeon.utils._testing.forecasting import make_forecasting_problem
-from aeon.utils._testing.hierarchical import _make_hierarchical
+from aeon.testing.data_generation import _make_hierarchical
+from aeon.testing.data_generation._legacy import make_forecasting_problem
+from aeon.testing.test_config import PR_TESTING
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+if PR_TESTING:
+    BACKENDS = [None]
+    CV = [SlidingWindowSplitter]
+    SCORING = [mean_absolute_percentage_error]
+    LENGTHS = [7]
+    STRAT = ["update"]
+else:
+    BACKENDS = [None, "dask", "loky", "threading"]
+    CV = [SlidingWindowSplitter, ExpandingWindowSplitter]
+    SCORING = [mean_absolute_percentage_error, mean_absolute_scaled_error]
+    LENGTHS = [7, 10]
+    STRAT = ["refit", "update"]
 
 
 def _check_evaluate_output(out, cv, y, scoring):
@@ -48,7 +59,7 @@ def _check_evaluate_output(out, cv, y, scoring):
         "fit_time",
         "len_train_window",
         "pred_time",
-        f"test_{scoring.name}",
+        f"test_{scoring.__name__}",
     }
 
     # Check number of rows against number of splits.
@@ -84,19 +95,13 @@ def _check_evaluate_output(out, cv, y, scoring):
 
 # Test using MAPE and MASE scorers so that tests cover a metric that doesn't
 # use y_train (MAPE) and one that does use y_train (MASE).
-@pytest.mark.parametrize("CV", [SlidingWindowSplitter, ExpandingWindowSplitter])
+@pytest.mark.parametrize("CV", CV)
 @pytest.mark.parametrize("fh", TEST_FHS)
-@pytest.mark.parametrize("window_length", [7, 10])
+@pytest.mark.parametrize("window_length", LENGTHS)
 @pytest.mark.parametrize("step_length", TEST_STEP_LENGTHS_INT)
-@pytest.mark.parametrize("strategy", ["refit", "update"])
-@pytest.mark.parametrize(
-    "scoring",
-    [
-        MeanAbsolutePercentageError(symmetric=True),
-        MeanAbsoluteScaledError(),
-    ],
-)
-@pytest.mark.parametrize("backend", [None, "dask", "loky", "threading"])
+@pytest.mark.parametrize("strategy", STRAT)
+@pytest.mark.parametrize("scoring", SCORING)
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_evaluate_common_configs(
     CV, fh, window_length, step_length, strategy, scoring, backend
 ):
@@ -120,7 +125,7 @@ def test_evaluate_common_configs(
     _check_evaluate_output(out, cv, y, scoring)
 
     # check scoring
-    actual = out.loc[:, f"test_{scoring.name}"]
+    actual = out.loc[:, f"test_{scoring.__name__}"]
 
     n_splits = cv.get_n_splits(y)
     expected = np.empty(n_splits)
@@ -143,13 +148,13 @@ def test_scoring_list(return_data):
         y=y,
         cv=cv,
         scoring=[
-            MeanAbsolutePercentageError(symmetric=True),
-            MeanAbsoluteScaledError(),
+            mean_absolute_percentage_error,
+            mean_absolute_scaled_error,
         ],
         return_data=return_data,
     )
-    assert "test_MeanAbsolutePercentageError" in out.columns
-    assert "test_MeanAbsoluteScaledError" in out.columns
+    assert "test_mean_absolute_percentage_error" in out.columns
+    assert "test_mean_absolute_scaled_error" in out.columns
     if return_data:
         assert "y_pred" in out.columns
         assert "y_train" in out.columns
@@ -167,7 +172,7 @@ def test_evaluate_initial_window():
     forecaster = NaiveForecaster()
     fh = 1
     cv = SlidingWindowSplitter(fh=fh, initial_window=initial_window)
-    scoring = MeanAbsolutePercentageError(symmetric=True)
+    scoring = mean_absolute_percentage_error
     out = evaluate(
         forecaster=forecaster, y=y, cv=cv, strategy="update", scoring=scoring
     )
@@ -175,7 +180,7 @@ def test_evaluate_initial_window():
     assert out.loc[0, "len_train_window"] == initial_window
 
     # check scoring
-    actual = out.loc[0, f"test_{scoring.name}"]
+    actual = out.loc[0, f"test_{scoring.__name__}"]
     train, test = next(cv.split(y))
     f = forecaster.clone()
     f.fit(y.iloc[train], fh=fh)
@@ -188,12 +193,12 @@ def test_evaluate_no_exog_against_with_exog():
     y, X = load_longley()
     forecaster = DirectReductionForecaster(LinearRegression())
     cv = SlidingWindowSplitter()
-    scoring = MeanAbsolutePercentageError(symmetric=True)
+    scoring = mean_absolute_percentage_error
 
     out_exog = evaluate(forecaster, cv, y, X=X, scoring=scoring)
     out_no_exog = evaluate(forecaster, cv, y, X=None, scoring=scoring)
 
-    scoring_name = f"test_{scoring.name}"
+    scoring_name = f"test_{scoring.__name__}"
     assert np.all(out_exog[scoring_name] != out_no_exog[scoring_name])
 
 
@@ -204,7 +209,7 @@ def test_evaluate_no_exog_against_with_exog():
 @pytest.mark.parametrize("error_score", [np.nan, "raise", 1000])
 @pytest.mark.parametrize("return_data", [True, False])
 @pytest.mark.parametrize("strategy", ["refit", "update"])
-@pytest.mark.parametrize("backend", [None, "dask", "loky", "threading"])
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_evaluate_error_score(error_score, return_data, strategy, backend):
     """Test evaluate to raise warnings and exceptions according to error_score value."""
     # skip test for dask backend if dask is not installed
@@ -229,9 +234,9 @@ def test_evaluate_error_score(error_score, return_data, strategy, backend):
                 backend=backend,
             )
         if isinstance(error_score, type(np.nan)):
-            assert results["test_MeanAbsolutePercentageError"].isna().sum() > 0
+            assert results["test_mean_absolute_percentage_error"].isna().sum() > 0
         if error_score == 1000:
-            assert results["test_MeanAbsolutePercentageError"].max() == 1000
+            assert results["test_mean_absolute_percentage_error"].max() == 1000
     if error_score == "raise":
         with pytest.raises(Exception):  # noqa: B017
             evaluate(
@@ -244,7 +249,7 @@ def test_evaluate_error_score(error_score, return_data, strategy, backend):
             )
 
 
-@pytest.mark.parametrize("backend", [None, "dask", "loky", "threading"])
+@pytest.mark.parametrize("backend", BACKENDS)
 def test_evaluate_hierarchical(backend):
     """Check that adding exogenous data produces different results."""
     # skip test for dask backend if dask is not installed
@@ -262,7 +267,7 @@ def test_evaluate_hierarchical(backend):
 
     forecaster = DirectReductionForecaster(LinearRegression())
     cv = SlidingWindowSplitter()
-    scoring = MeanAbsolutePercentageError(symmetric=True)
+    scoring = mean_absolute_percentage_error
     out_exog = evaluate(
         forecaster, cv, y, X=X, scoring=scoring, error_score="raise", backend=backend
     )
@@ -270,5 +275,5 @@ def test_evaluate_hierarchical(backend):
         forecaster, cv, y, X=None, scoring=scoring, error_score="raise", backend=backend
     )
 
-    scoring_name = f"test_{scoring.name}"
+    scoring_name = f"test_{scoring.__name__}"
     assert np.all(out_exog[scoring_name] != out_no_exog[scoring_name])

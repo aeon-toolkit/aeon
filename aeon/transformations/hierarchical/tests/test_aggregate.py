@@ -1,14 +1,11 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """Tests for hierarchical aggregator."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 
-__author__ = ["ciaran-g"]
+__maintainer__ = []
 
 import pytest
 
+from aeon.testing.data_generation import _bottom_hier_datagen
 from aeon.transformations.hierarchical.aggregate import Aggregator
-from aeon.utils._testing.hierarchical import _bottom_hier_datagen
 
 
 # test for equal output with with named/unnamed indexes

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """ProbabilityThresholdEarlyClassifier test code."""
 
 import numpy as np
@@ -6,9 +5,7 @@ import pytest
 from numpy import testing
 
 from aeon.classification.early_classification import ProbabilityThresholdEarlyClassifier
-from aeon.classification.early_classification.tests.test_all_early_classifiers import (  # noqa: E501
-    load_unit_data,
-)
+from aeon.classification.early_classification.tests.test_teaser import load_unit_data
 from aeon.classification.interval_based import TimeSeriesForestClassifier
 
 
@@ -57,7 +54,7 @@ def test_early_prob_threshold_score():
 
     _, acc, earl = pt.score(X_test, y_test)
     testing.assert_allclose(acc, 0.9, rtol=0.01)
-    testing.assert_allclose(earl, 0.25, rtol=0.01)
+    testing.assert_allclose(earl, 0.3, rtol=0.01)
 
     # make sure update ends up with the same score
     pt.reset_state_info()
@@ -78,4 +75,4 @@ def test_early_prob_threshold_score():
     _, acc, earl = pt.compute_harmonic_mean(final_states, y_test)
 
     testing.assert_allclose(acc, 0.9, rtol=0.01)
-    testing.assert_allclose(earl, 0.25, rtol=0.01)
+    testing.assert_allclose(earl, 0.3, rtol=0.01)

@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Croston's Forecasting Method."""
-
 
 import numpy as np
 import pandas as pd
@@ -78,7 +74,7 @@ class Croston(BaseForecaster):
         # hyperparameter
         self.smoothing = smoothing
         self._f = None
-        super(Croston, self).__init__()
+        super().__init__()
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -87,9 +83,9 @@ class Croston(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
 
         Returns
@@ -135,9 +131,9 @@ class Croston(BaseForecaster):
 
         Parameters
         ----------
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
 
         Returns

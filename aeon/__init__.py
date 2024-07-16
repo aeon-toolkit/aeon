@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
+"""aeon toolkit."""
 
-"""aeon."""
-
-__version__ = "0.16.0"
+__version__ = "0.10.0"
 
 __all__ = ["show_versions"]
 
 from aeon.utils._maint._show_versions import show_versions
+
+AEON_DEPRECATION_WARNING = True

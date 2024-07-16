@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """TEASER early classifier.
 
 An early classifier using a one class SVM's to determine decision safety with a
 time series classifier.
 """
 
-__author__ = ["MatthewMiddlehurst", "patrickzib"]
+__maintainer__ = []
 __all__ = ["TEASER"]
 
 import copy
@@ -24,7 +23,8 @@ from aeon.classification.early_classification.base import BaseEarlyClassifier
 
 
 class TEASER(BaseEarlyClassifier):
-    """Two-tier Early and Accurate Series Classifier (TEASER).
+    """
+    Two-tier Early and Accurate Series Classifier (TEASER).
 
     An early classifier which uses one class SVM's trained on prediction probabilities
     to determine whether an early prediction is safe or not.
@@ -42,13 +42,13 @@ class TEASER(BaseEarlyClassifier):
 
     Parameters
     ----------
-    estimator: sktime classifier, default=None
-        An sktime estimator to be built at each of the classification_points time
+    estimator : aeon classifier, default=None
+        An aeon estimator to be built at each of the classification_points time
         stamps. Defaults to a WEASEL classifier.
-    one_class_classifier: one-class sklearn classifier, default=None
+    one_class_classifier : one-class sklearn classifier, default=None
         An sklearn one-class classifier used to determine whether an early decision is
         safe. Defaults to a tuned one-class SVM classifier.
-    one_class_param_grid: dict or list of dict, default=None
+    one_class_param_grid : dict or list of dict, default=None
         The hyper-parameters for the one-class classifier to learn using grid-search.
         Dictionary with parameters names (`str`) as keys and lists of parameter settings
         to try as values, or a list of such dictionaries.
@@ -61,18 +61,21 @@ class TEASER(BaseEarlyClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
     n_classes_ : int
         The number of classes.
-    n_instances_ : int
+    n_cases_ : int
         The number of train cases.
-    n_dims_ : int
+    n_channels_ : int
         The number of dimensions per case.
-    series_length_ : int
+    n_timepoints_ : int
         The full length of each series.
     classes_ : list
         The unique class labels.
@@ -131,23 +134,23 @@ class TEASER(BaseEarlyClassifier):
         self._classification_points = []
         self._consecutive_predictions = 0
 
-        self.n_instances_ = 0
-        self.n_dims_ = 0
-        self.series_length_ = 0
+        self.n_cases_ = 0
+        self.n_channels_ = 0
+        self.n_timepoints_ = 0
 
         self._svm_gammas = [100, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1.5, 1]
         self._svm_nu = 0.05
         self._svm_tol = 1e-4
 
-        super(TEASER, self).__init__()
+        super().__init__()
 
     def _fit(self, X, y):
-        self.n_instances_, self.n_dims_, self.series_length_ = X.shape
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._estimator = (
             (
                 MUSE(support_probabilities=True, alphabet_size=4)
-                if self.n_dims_ > 1
+                if self.n_channels_ > 1
                 else WEASEL(support_probabilities=True, alphabet_size=4)
             )
             if self.estimator is None
@@ -161,7 +164,7 @@ class TEASER(BaseEarlyClassifier):
         self._classification_points = (
             copy.deepcopy(self.classification_points)
             if self.classification_points is not None
-            else [round(self.series_length_ / i) for i in range(1, 21)]
+            else [round(self.n_timepoints_ / i) for i in range(1, 21)]
         )
         # remove duplicates
         self._classification_points = list(set(self._classification_points))
@@ -172,8 +175,8 @@ class TEASER(BaseEarlyClassifier):
             i for i in self._classification_points if i >= min_length
         ]
         # make sure the full series length is included
-        if self._classification_points[-1] != self.series_length_:
-            self._classification_points.append(self.series_length_)
+        if self._classification_points[-1] != self.n_timepoints_:
+            self._classification_points.append(self.n_timepoints_)
         # create dictionary of classification point indices
         self._classification_point_dictionary = {}
         for index, classification_point in enumerate(self._classification_points):
@@ -181,13 +184,16 @@ class TEASER(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
+
+        rng = check_random_state(self.random_state)
 
         fit = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(len(self._classification_points))
         )
@@ -225,10 +231,10 @@ class TEASER(BaseEarlyClassifier):
         return self._proba_output_to_preds(out)
 
     def _predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
-        n_instances, _, series_length = X.shape
+        n_cases, _, n_timepoints = X.shape
 
         # maybe use the largest index that is smaller than the series length
-        next_idx = self._get_next_idx(series_length) + 1
+        next_idx = self._get_next_idx(n_timepoints) + 1
 
         # if the input series length is invalid
         if next_idx == 0:
@@ -240,13 +246,16 @@ class TEASER(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
+
+        rng = check_random_state(self.random_state)
 
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(0, next_idx)
         )
@@ -262,10 +271,12 @@ class TEASER(BaseEarlyClassifier):
 
         probas = np.array(
             [
-                probas[new_state_info[i][0]][i]
-                if accept_decision[i]
-                else [-1 for _ in range(self.n_classes_)]
-                for i in range(n_instances)
+                (
+                    probas[new_state_info[i][0]][i]
+                    if accept_decision[i]
+                    else [-1 for _ in range(self.n_classes_)]
+                )
+                for i in range(n_cases)
             ]
         )
 
@@ -274,10 +285,10 @@ class TEASER(BaseEarlyClassifier):
         return probas, accept_decision
 
     def _update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
-        n_instances, _, series_length = X.shape
+        n_cases, _, n_timepoints = X.shape
 
         # maybe use the largest index that is smaller than the series length
-        next_idx = self._get_next_idx(series_length) + 1
+        next_idx = self._get_next_idx(n_timepoints) + 1
 
         # remove cases where a positive decision has been made
         state_info = self.state_info[
@@ -314,13 +325,16 @@ class TEASER(BaseEarlyClassifier):
 
         # avoid nested parallelism
         m = getattr(self._estimator, "n_jobs", None)
-        threads = self._threads_to_use if m is None else 1
+        threads = self._n_jobs if m is None else 1
+
+        rng = check_random_state(self.random_state)
 
         # compute all new updates since then
         out = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._predict_proba_for_estimator)(
                 X,
                 i,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for i in range(last_idx, next_idx)
         )
@@ -337,10 +351,12 @@ class TEASER(BaseEarlyClassifier):
 
         probas = np.array(
             [
-                probas[max(0, new_state_info[i][0] - last_idx)][i]
-                if accept_decision[i]
-                else [-1 for _ in range(self.n_classes_)]
-                for i in range(n_instances)
+                (
+                    probas[max(0, new_state_info[i][0] - last_idx)][i]
+                    if accept_decision[i]
+                    else [-1 for _ in range(self.n_classes_)]
+                )
+                for i in range(n_cases)
             ]
         )
 
@@ -354,19 +370,15 @@ class TEASER(BaseEarlyClassifier):
 
         return hm, acc, earl
 
-    def _get_next_idx(self, series_length):
+    def _get_next_idx(self, n_timepoints):
         """Return the largest index smaller than the series length."""
         next_idx = -1
         for idx, offset in enumerate(np.sort(self._classification_points)):
-            if offset <= series_length:
+            if offset <= n_timepoints:
                 next_idx = idx
         return next_idx
 
-    def _fit_estimator(self, X, y, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _fit_estimator(self, X, y, i, rng):
         estimator = _clone_estimator(
             self._estimator,
             rng,
@@ -374,7 +386,7 @@ class TEASER(BaseEarlyClassifier):
 
         m = getattr(estimator, "n_jobs", None)
         if m is not None:
-            estimator.n_jobs = self._threads_to_use
+            estimator.n_jobs = self._n_jobs
 
         # fit estimator for this threshold
         estimator.fit(X[:, :, : self._classification_points[i]], y)
@@ -414,7 +426,7 @@ class TEASER(BaseEarlyClassifier):
             one_class_classifier = (
                 OneClassSVM(tol=self._svm_tol, nu=self._svm_nu)
                 if self.one_class_classifier is None
-                else _clone_estimator(self.one_class_classifier, random_state=rs)
+                else _clone_estimator(self.one_class_classifier, random_state=rng)
             )
             param_grid = (
                 {"gamma": self._svm_gammas}
@@ -435,11 +447,7 @@ class TEASER(BaseEarlyClassifier):
 
         return estimator, one_class_classifier, train_probas, train_preds
 
-    def _predict_proba_for_estimator(self, X, i):
-        rs = 255 if self.random_state == 0 else self.random_state
-        rs = None if self.random_state is None else rs * 37 * (i + 1)
-        rng = check_random_state(rs)
-
+    def _predict_proba_for_estimator(self, X, i, rng):
         probas = self._estimators[i].predict_proba(
             X[:, :, : self._classification_points[i]]
         )
@@ -498,14 +506,14 @@ class TEASER(BaseEarlyClassifier):
         # stores whether we have made a final decision on a prediction, if true
         # state info won't be edited in later time stamps
         finished = state_info[:, 1] >= n_consecutive_predictions
-        n_instances = len(X_oc)
+        n_cases = len(X_oc)
 
         full_length_ts = idx == len(self._classification_points) - 1
         if full_length_ts:
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
         elif self._one_class_classifiers[idx] is not None:
             offsets = np.argwhere(finished == 0).flatten()
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
             if len(offsets) > 0:
                 decisions_subset = (
                     self._one_class_classifiers[idx].predict(X_oc[offsets]) == 1
@@ -513,24 +521,26 @@ class TEASER(BaseEarlyClassifier):
                 accept_decision[offsets] = decisions_subset
 
         else:
-            accept_decision = np.zeros(n_instances, dtype=bool)
+            accept_decision = np.zeros(n_cases, dtype=bool)
 
         # record consecutive class decisions
         state_info = np.array(
             [
-                self._update_state_info(
-                    accept_decision, estimator_preds, state_info, i, idx
+                (
+                    self._update_state_info(
+                        accept_decision, estimator_preds, state_info, i, idx
+                    )
+                    if not finished[i]
+                    else state_info[i]
                 )
-                if not finished[i]
-                else state_info[i]
-                for i in range(n_instances)
+                for i in range(n_cases)
             ]
         )
 
         # check safety of decisions
         if full_length_ts:
             # Force prediction at last time stamp
-            accept_decision = np.ones(n_instances, dtype=bool)
+            accept_decision = np.ones(n_cases, dtype=bool)
         else:
             accept_decision = state_info[:, 1] >= n_consecutive_predictions
 
@@ -558,11 +568,13 @@ class TEASER(BaseEarlyClassifier):
         rng = check_random_state(self.random_state)
         preds = np.array(
             [
-                self.classes_[
-                    int(rng.choice(np.flatnonzero(out[0][i] == out[0][i].max())))
-                ]
-                if out[1][i]
-                else -1
+                (
+                    self.classes_[
+                        int(rng.choice(np.flatnonzero(out[0][i] == out[0][i].max())))
+                    ]
+                    if out[1][i]
+                    else -1
+                )
                 for i in range(len(out[0]))
             ]
         )
@@ -600,7 +612,7 @@ class TEASER(BaseEarlyClassifier):
         )
         earliness = np.average(
             [
-                self._classification_points[state_info[i][0]] / self.series_length_
+                self._classification_points[state_info[i][0]] / self.n_timepoints_
                 for i in range(len(state_info))
             ]
         )

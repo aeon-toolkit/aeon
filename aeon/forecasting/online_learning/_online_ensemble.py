@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements framework for applying online ensembling algorithms to forecasters."""
 
-__author__ = ["magittan, mloning"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -18,7 +15,7 @@ class OnlineEnsembleForecaster(EnsembleForecaster):
     ----------
     ensemble_algorithm : ensemble algorithm
     forecasters : list of (str, estimator) tuples
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         The number of jobs to run in parallel for fit. None means 1 unless
         in a joblib.parallel_backend context.
         -1 means using all processors.
@@ -27,9 +24,9 @@ class OnlineEnsembleForecaster(EnsembleForecaster):
     _tags = {
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
-        "y_inner_mtype": ["pd.Series"],
-        "scitype:y": "univariate",
+        "capability:missing_values": False,
+        "y_inner_type": ["pd.Series"],
+        "y_input_type": "univariate",
     }
 
     def __init__(self, forecasters, ensemble_algorithm=None, n_jobs=None):
@@ -45,9 +42,9 @@ class OnlineEnsembleForecaster(EnsembleForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -70,7 +67,7 @@ class OnlineEnsembleForecaster(EnsembleForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
         """
         fh = np.arange(len(y)) + 1
@@ -86,7 +83,7 @@ class OnlineEnsembleForecaster(EnsembleForecaster):
         ----------
         y : pd.Series
         X : pd.DataFrame
-        update_params : bool, optional (default=False)
+        update_params : bool, default=False
 
         Returns
         -------

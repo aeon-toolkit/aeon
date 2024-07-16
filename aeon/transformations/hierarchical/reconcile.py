@@ -1,24 +1,27 @@
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements hierarchical reconciliation transformers.
 
 These reconcilers only depend on the structure of the hierarchy.
 """
 
-__author__ = ["ciaran-g", "eenticott-shell", "k1m190r"]
+__maintainer__ = []
 
 from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from numpy.linalg import inv
 
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.hierarchical.aggregate import _check_index_no_total
 
-# TODO: failing test which are escaped
 
-
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="Reconciler will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class Reconciler(BaseTransformer):
     """Hierarchical reconcilation transformer.
 
@@ -57,7 +60,7 @@ class Reconciler(BaseTransformer):
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster
     >>> from aeon.transformations.hierarchical.reconcile import Reconciler
     >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.utils._testing.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.data_generation import _bottom_hier_datagen
     >>> agg = Aggregator()
     >>> y = _bottom_hier_datagen(
     ...     no_bottom_nodes=3,
@@ -75,21 +78,21 @@ class Reconciler(BaseTransformer):
     """
 
     _tags = {
-        "scitype:transform-input": "Series",
-        "scitype:transform-output": "Series",
-        "scitype:transform-labels": "None",
-        "scitype:instancewise": False,  # is this an instance-wise transform?
-        "X_inner_mtype": [
+        "input_data_type": "Series",
+        "output_data_type": "Series",
+        "transform_labels": "None",
+        "instancewise": False,  # is this an instance-wise transform?
+        "X_inner_type": [
             "pd.DataFrame",
             "pd.Series",
             "pd-multiindex",
             "pd_multiindex_hier",
         ],
-        "y_inner_mtype": "None",  # which mtypes do _fit/_predict support for y?
+        "y_inner_type": "None",
         "capability:inverse_transform": False,
         "skip-inverse-transform": True,  # is inverse-transform skipped when called?
-        "univariate-only": True,  # can the transformer handle multivariate X?
-        "handles-missing-data": False,  # can estimator handle missing data?
+        "capability:multivariate": False,  # can the transformer handle multivariate X?
+        "capability:missing_values": False,  # can estimator handle missing data?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "fit_is_empty": False,  # is fit empty and can be skipped? Yes = True
         "transform-returns-same-time-index": True,
@@ -100,7 +103,7 @@ class Reconciler(BaseTransformer):
     def __init__(self, method="bu"):
         self.method = method
 
-        super(Reconciler, self).__init__()
+        super().__init__()
 
     def _add_totals(self, X):
         """Add total levels to X, using Aggregate."""
@@ -115,7 +118,7 @@ class Reconciler(BaseTransformer):
 
         Parameters
         ----------
-        X : Panel of mtype pd_multiindex_hier
+        X : hierarchical multiindex pd.DataFrame
             Data to fit transform to
         y :  Ignored argument for interface compatibility.
 
@@ -160,13 +163,13 @@ class Reconciler(BaseTransformer):
 
         Parameters
         ----------
-        X : Panel of mtype pd_multiindex_hier
+        X : hierarchical multiindex pd.DataFrame
             Data to be transformed
         y : Ignored argument for interface compatibility.
 
         Returns
         -------
-        recon_preds : multi-indexed pd.DataFrame of Panel mtype pd_multiindex
+        recon_preds : multi-indexed pd.DataFrame
         """
         # check the length of index
         if X.index.nlevels < 2:
@@ -249,7 +252,7 @@ def _get_s_matrix(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------
@@ -311,7 +314,7 @@ def _get_g_matrix_bu(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------
@@ -358,7 +361,7 @@ def _get_g_matrix_ols(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------
@@ -397,7 +400,7 @@ def _get_g_matrix_wls_str(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------
@@ -445,7 +448,7 @@ def _get_g_matrix_td_fcst(X):
 
     Parameters
     ----------
-    X :  Panel of mtype pd_multiindex_hier
+    X :  hierarchical multiindex pd.DataFrame
 
     Returns
     -------

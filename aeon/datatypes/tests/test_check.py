@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 """Testing machine type checkers for scitypes."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 import numpy as np
 
@@ -12,11 +11,6 @@ from aeon.datatypes._examples import get_examples
 from aeon.datatypes._registry import SCITYPE_LIST, scitype_to_mtype
 
 SCITYPES = SCITYPE_LIST
-
-# scitypes where mtype inference is not unique
-# alignment is excluded since mtypes can be ambiguous
-#   (indices could be both loc or iloc when integers)
-SCITYPES_AMBIGUOUS_MTYPE = ["Alignment"]
 
 
 def _generate_scitype_mtype_combinations():
@@ -79,7 +73,7 @@ def pytest_generate_tests(metafunc):
 
     fixturenames = set(metafunc.fixturenames)
 
-    if set(["scitype", "mtype", "fixture_index"]).issubset(fixturenames):
+    if {"scitype", "mtype", "fixture_index"}.issubset(fixturenames):
         keys = _generate_scitype_mtype_fixtureindex_combinations()
 
         ids = []
@@ -89,7 +83,7 @@ def pytest_generate_tests(metafunc):
         # parameterize test with from-mtpes
         metafunc.parametrize("scitype,mtype,fixture_index", keys, ids=ids)
 
-    elif set(["scitype", "mtype"]).issubset(fixturenames):
+    elif {"scitype", "mtype"}.issubset(fixturenames):
         keys = _generate_scitype_mtype_combinations()
 
         ids = []
@@ -117,8 +111,6 @@ def test_check_positive(scitype, mtype, fixture_index):
     """
     # retrieve fixture for checking
     fixture = get_examples(mtype=mtype, as_scitype=scitype).get(fixture_index)
-
-    # todo: possibly remove this once all checks are defined
     check_is_defined = (mtype, scitype) in check_dict.keys()
 
     # check fixtures that exist against checks that exist
@@ -153,7 +145,6 @@ def test_check_metadata_inference(scitype, mtype, fixture_index):
         mtype=mtype, as_scitype=scitype, return_metadata=True
     ).get(fixture_index)
 
-    # todo: possibly remove this once all checks are defined
     check_is_defined = (mtype, scitype) in check_dict.keys()
     # if the examples have no metadata to them, don't test
     metadata_provided = expected_metadata is not None
@@ -192,10 +183,6 @@ def test_check_negative(scitype, mtype):
     AssertionError if a examples are correctly identified as incompatible
     error if check itself raises an error
     """
-    # if the scitype is ambiguous, we can't assume that other mtypes are negative
-    if scitype in SCITYPES_AMBIGUOUS_MTYPE:
-        return None
-
     mtypes = scitype_to_mtype(scitype)
     fixtures = dict()
 
@@ -209,11 +196,10 @@ def test_check_negative(scitype, mtype):
 
     for i in range(n_fixtures):
         # if mtype is not ambiguous, other mtypes are negative examples
-        for wrong_mtype in list(set(mtypes).difference(set([mtype]))):
+        for wrong_mtype in list(set(mtypes).difference({mtype})):
             # retrieve fixture for checking
             fixture_wrong_type = fixtures[wrong_mtype].get(i)
 
-            # todo: possibly remove this once all checks are defined
             check_is_defined = (mtype, scitype) in check_dict.keys()
 
             # check fixtures that exist against checks that exist
@@ -239,14 +225,8 @@ def test_mtype_infer(scitype, mtype, fixture_index):
     AssertionError if mtype of examples is not correctly identified
     error if check itself raises an error
     """
-    # if mtypes are ambiguous, then this test should be skipped
-    if scitype in SCITYPES_AMBIGUOUS_MTYPE:
-        return None
-
     # retrieve fixture for checking
     fixture = get_examples(mtype=mtype, as_scitype=scitype).get(fixture_index)
-
-    # todo: possibly remove this once all checks are defined
     check_is_defined = (mtype, scitype) in check_dict.keys()
 
     # check fixtures that exist against checks that exist
@@ -258,7 +238,7 @@ def test_mtype_infer(scitype, mtype, fixture_index):
 
 # exclude these scitypes in inference of scitype test
 #  would lead to ambiguous results
-SKIP_SCITYPES = ["Alignment", "Table", "Proba"]
+SKIP_SCITYPES = ["Table", "Proba"]
 SCITYPES_FOR_INFER_TEST = list(set(SCITYPE_LIST).difference(SKIP_SCITYPES))
 
 
@@ -283,8 +263,6 @@ def test_scitype_infer(scitype, mtype, fixture_index):
 
     # retrieve fixture for checking
     fixture = get_examples(mtype=mtype, as_scitype=scitype).get(fixture_index)
-
-    # todo: possibly remove this once all checks are defined
     check_is_defined = (mtype, scitype) in check_dict.keys()
 
     # check fixtures that exist against checks that exist

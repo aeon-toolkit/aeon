@@ -1,28 +1,26 @@
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Registry of mtypes and scitypes.
 
 Note for extenders: new mtypes for an existing scitypes
     should be entered in the _registry in the module with name _[scitype].
-When adding a new scitype, add it in SCITYPE_REGISTER here.
+When adding a new scitype, add it in DATATYPE_REGISTER here.
 
 This module exports the following:
 
 ---
 
-SCITYPE_REGISTER - list of tuples
+DATATYPE_REGISTER - list of tuples
 
 each tuple corresponds to an mtype tag, elements as follows:
-    0 : string - name of the scitype as used throughout sktime and in datatypes
+    0 : string - name of the scitype as used throughout aeon and in datatypes
     1 : string - plain English description of the scitype
 
 ---
 
-MTYPE_REGISTER - list of tuples
+TYPE_REGISTER - list of tuples
 
 each tuple corresponds to an mtype, elements as follows:
-    0 : string - name of the mtype as used throughout sktime and in datatypes
-    1 : string - name of the scitype the mtype is for, must be in SCITYPE_REGISTER
+    0 : string - name of the mtype as used throughout aeon and in datatypes
+    1 : string - name of the scitype the mtype is for, must be in DATATYPE_REGISTER
     2 : string - plain English description of the scitype
 
 ---
@@ -39,75 +37,68 @@ mtype_to_scitype(mtype: str) - convenience function that returns scitype for an 
 ---
 """
 
-from aeon.datatypes._alignment._registry import (
-    MTYPE_LIST_ALIGNMENT,
-    MTYPE_REGISTER_ALIGNMENT,
-)
 from aeon.datatypes._hierarchical._registry import (
-    MTYPE_LIST_HIERARCHICAL,
-    MTYPE_REGISTER_HIERARCHICAL,
-    MTYPE_SOFT_DEPS_HIERARCHICAL,
+    TYPE_LIST_HIERARCHICAL,
+    TYPE_REGISTER_HIERARCHICAL,
+    TYPE_SOFT_DEPS_HIERARCHICAL,
 )
 from aeon.datatypes._panel._registry import (
-    MTYPE_LIST_PANEL,
-    MTYPE_REGISTER_PANEL,
-    MTYPE_SOFT_DEPS_PANEL,
+    TYPE_LIST_PANEL,
+    TYPE_REGISTER_PANEL,
+    TYPE_SOFT_DEPS_PANEL,
 )
-from aeon.datatypes._proba._registry import MTYPE_LIST_PROBA, MTYPE_REGISTER_PROBA
+from aeon.datatypes._proba._registry import TYPE_LIST_PROBA, TYPE_REGISTER_PROBA
 from aeon.datatypes._series._registry import (
-    MTYPE_LIST_SERIES,
-    MTYPE_REGISTER_SERIES,
     MTYPE_SOFT_DEPS_SERIES,
+    TYPE_LIST_SERIES,
+    TYPE_REGISTER_SERIES,
 )
-from aeon.datatypes._table._registry import MTYPE_LIST_TABLE, MTYPE_REGISTER_TABLE
+from aeon.datatypes._table._registry import TYPE_LIST_TABLE, TYPE_REGISTER_TABLE
 
-MTYPE_REGISTER = []
-MTYPE_REGISTER += MTYPE_REGISTER_SERIES
-MTYPE_REGISTER += MTYPE_REGISTER_PANEL
-MTYPE_REGISTER += MTYPE_REGISTER_HIERARCHICAL
-MTYPE_REGISTER += MTYPE_REGISTER_ALIGNMENT
-MTYPE_REGISTER += MTYPE_REGISTER_TABLE
-MTYPE_REGISTER += MTYPE_REGISTER_PROBA
+TYPE_REGISTER = []
+TYPE_REGISTER += TYPE_REGISTER_SERIES
+TYPE_REGISTER += TYPE_REGISTER_PANEL
+TYPE_REGISTER += TYPE_REGISTER_HIERARCHICAL
+TYPE_REGISTER += TYPE_REGISTER_TABLE
+TYPE_REGISTER += TYPE_REGISTER_PROBA
 
 MTYPE_SOFT_DEPS = {}
 MTYPE_SOFT_DEPS.update(MTYPE_SOFT_DEPS_SERIES)
-MTYPE_SOFT_DEPS.update(MTYPE_SOFT_DEPS_PANEL)
-MTYPE_SOFT_DEPS.update(MTYPE_SOFT_DEPS_HIERARCHICAL)
+MTYPE_SOFT_DEPS.update(TYPE_SOFT_DEPS_PANEL)
+MTYPE_SOFT_DEPS.update(TYPE_SOFT_DEPS_HIERARCHICAL)
 
 
 # mtypes to exclude in checking since they are ambiguous and rare
-AMBIGUOUS_MTYPES = ["numpyflat", "alignment_loc"]
+AMBIGUOUS_MTYPES = ["numpy2D"]
 
 # all time series mtypes excluding ambiguous ones
-ALL_TIME_SERIES_MTYPES = (
-    list(MTYPE_LIST_PANEL) + list(MTYPE_LIST_SERIES) + list(MTYPE_LIST_HIERARCHICAL)
+ALL_TIME_SERIES_TYPES = (
+    list(TYPE_LIST_PANEL) + list(TYPE_LIST_SERIES) + list(TYPE_LIST_HIERARCHICAL)
 )
-ALL_TIME_SERIES_MTYPES = list(set(ALL_TIME_SERIES_MTYPES).difference(AMBIGUOUS_MTYPES))
+ALL_TIME_SERIES_TYPES = list(set(ALL_TIME_SERIES_TYPES).difference(AMBIGUOUS_MTYPES))
 
 
 __all__ = [
-    "MTYPE_REGISTER",
-    "MTYPE_LIST_HIERARCHICAL",
-    "MTYPE_LIST_PANEL",
-    "MTYPE_LIST_SERIES",
-    "MTYPE_LIST_ALIGNMENT",
-    "MTYPE_LIST_TABLE",
-    "MTYPE_LIST_PROBA",
+    "TYPE_REGISTER",
+    "TYPE_LIST_HIERARCHICAL",
+    "TYPE_LIST_PANEL",
+    "TYPE_LIST_SERIES",
+    "TYPE_LIST_TABLE",
+    "TYPE_LIST_PROBA",
     "MTYPE_SOFT_DEPS",
-    "SCITYPE_REGISTER",
+    "DATATYPE_REGISTER",
 ]
 
 
-SCITYPE_REGISTER = [
+DATATYPE_REGISTER = [
     ("Series", "uni- or multivariate time series"),
-    ("Panel", "panel of uni- or multivariate time series"),
+    ("Panel", "collection of uni- or multivariate time series"),
     ("Hierarchical", "hierarchical panel of time series with 3 or more levels"),
-    ("Alignment", "series or sequence alignment"),
     ("Table", "data table with primitive column types"),
     ("Proba", "probability distribution or distribution statistics, return types"),
 ]
 
-SCITYPE_LIST = [x[0] for x in SCITYPE_REGISTER]
+SCITYPE_LIST = [x[0] for x in DATATYPE_REGISTER]
 
 
 def mtype_to_scitype(mtype: str, return_unique=False, coerce_to_list=False):
@@ -117,7 +108,7 @@ def mtype_to_scitype(mtype: str, return_unique=False, coerce_to_list=False):
     ----------
     mtype : str, or list of str, or nested list/str object, or None
         mtype(s) to find scitype of, a valid mtype string
-        valid mtype strings, with explanation, are in datatypes.MTYPE_REGISTER
+        valid mtype strings, with explanation, are in datatypes.TYPE_REGISTER
 
     Returns
     -------
@@ -154,7 +145,7 @@ def mtype_to_scitype(mtype: str, return_unique=False, coerce_to_list=False):
             "mtype must be str, or list of str, nested list/str object, or None"
         )
 
-    scitype = [k[1] for k in MTYPE_REGISTER if k[0] == mtype]
+    scitype = [k[1] for k in TYPE_REGISTER if k[0] == mtype]
 
     if len(scitype) > 1:
         raise ValueError("multiple scitypes match the mtype, specify scitype")
@@ -175,7 +166,7 @@ def scitype_to_mtype(scitype: str, softdeps: str = "exclude"):
     ----------
     scitype : str, or list of str
         scitype(s) to find mtypes for, a valid scitype string
-        valid scitype strings, with explanation, are in datatypes.SCITYPE_REGISTER
+        valid scitype strings, with explanation, are in datatypes.DATATYPE_REGISTER
     softdeps : str, optional, default = "exclude"
         whether to return mtypes that require soft dependencies
         "exclude" = only mtypes that do not require soft dependencies are returned
@@ -213,10 +204,10 @@ def scitype_to_mtype(scitype: str, softdeps: str = "exclude"):
     # now we know scitype is a string, check if it is in the register
     if scitype not in SCITYPE_LIST:
         raise ValueError(
-            f'"{scitype}" is not a valid scitype string, see datatypes.SCITYPE_REGISTER'
+            f'"{scitype}" is not a valid type string, see datatypes.DATATYPE_REGISTER'
         )
 
-    mtypes = [k[0] for k in MTYPE_REGISTER if k[1] == scitype]
+    mtypes = [k[0] for k in TYPE_REGISTER if k[1] == scitype]
 
     if len(mtypes) == 0:
         # if there are no mtypes, this must have been reached by mistake/bug

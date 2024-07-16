@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+""""Test for Croston Method."""
+
 import numpy as np
 import pytest
 
@@ -17,9 +18,11 @@ from aeon.forecasting.croston import Croston
     ],
 )
 def test_Croston_against_r_implementation(smoothing, fh, r_forecast):
-    """
+    """Test the Croston method against the R implementation.
+
     Testing forecasted values estimated by the R package of the Croston's method
-    against the Croston method in sktime.
+    against the Croston method in aeon.
+
     R code to generate the hardcoded value for fh=10:
     ('PBS_dataset.csv' contains the data from 'load_PBS_dataset()'):
 

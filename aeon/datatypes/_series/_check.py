@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Machine type checkers for Series scitype.
 
 Exports checkers for Series scitype:
@@ -33,7 +32,7 @@ metadata: dict - metadata about obj if valid, otherwise None
         "has_nans": bool, True iff the series contains NaN values
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["check_dict"]
 
@@ -278,7 +277,7 @@ if _check_soft_dependencies("xarray", severity="none"):
             msg = f"{var_name} must have two or less dimension, found {type(obj.dims)}"
             return ret(False, msg, None, return_metadata)
 
-        # The first dimension is the index of the time series in sktimelen
+        # The first dimension is the index of the time series in aeonlen
         index = obj.indexes[obj.dims[0]]
 
         metadata["is_empty"] = len(index) < 1 or len(obj.values) < 1
@@ -328,7 +327,7 @@ if _check_soft_dependencies("xarray", severity="none"):
 
 
 if _check_soft_dependencies("dask", severity="none"):
-    from aeon.datatypes._adapter.dask_to_pd import check_dask_frame
+    from aeon.utils.conversion.dask_converters import check_dask_frame
 
     def check_dask_series(obj, return_metadata=False, var_name="obj"):
         return check_dask_frame(

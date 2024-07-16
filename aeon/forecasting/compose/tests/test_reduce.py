@@ -1,10 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-
 """Test reduce."""
 
-__author__ = ["Lovkush-A", "mloning", "LuisZugasti", "AyushmaanSeth"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
@@ -33,12 +29,12 @@ from aeon.forecasting.model_selection import (
     temporal_train_test_split,
 )
 from aeon.forecasting.model_selection.tests.test_split import _get_windows
-from aeon.forecasting.tests._config import TEST_OOS_FHS, TEST_WINDOW_LENGTHS_INT
+from aeon.forecasting.tests import TEST_OOS_FHS, TEST_WINDOW_LENGTHS_INT
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.regression.base import BaseRegressor
 from aeon.regression.interval_based import TimeSeriesForestRegressor
-from aeon.transformations.panel.reduce import Tabularizer
-from aeon.utils._testing.forecasting import make_forecasting_problem
+from aeon.testing.data_generation._legacy import make_forecasting_problem
+from aeon.transformations.collection.reduce import Tabularizer
 from aeon.utils.validation.forecasting import check_fh
 
 N_TIMEPOINTS = [13, 17]

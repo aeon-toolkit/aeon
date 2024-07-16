@@ -1,0 +1,49 @@
+name: PR Examples
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "examples/**"
+      - "aeon/**"
+      - ".github/workflows/**"
+      - "pyproject.toml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  run-notebook-examples:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Restore numba cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "run-notebook-examples"
+          runner_os: ${{ runner.os }}
+          python_version: "3.10"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,binder,dev]
+
+      - name: Run example notebooks
+        run: build_tools/run_examples.sh ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full examples run') }}
+        shell: bash

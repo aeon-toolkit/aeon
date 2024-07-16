@@ -1,49 +1,30 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Tests for forecasting pipelines."""
 
-__author__ = ["mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = []
 
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn.svm import SVR
+from sklearn.preprocessing import MinMaxScaler
 
 from aeon.datasets import load_airline, load_longley
-from aeon.datatypes import get_examples
-from aeon.datatypes._utilities import get_window
-from aeon.forecasting.compose import (
-    ForecastingPipeline,
-    TransformedTargetForecaster,
-    make_reduction,
-)
-from aeon.forecasting.model_selection import (
-    ExpandingWindowSplitter,
-    ForecastingGridSearchCV,
-    temporal_train_test_split,
-)
+from aeon.forecasting.compose import ForecastingPipeline, TransformedTargetForecaster
+from aeon.forecasting.exp_smoothing import ExponentialSmoothing
+from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.sarimax import SARIMAX
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.transformations.compose import OptionalPassthrough
+from aeon.testing.data_generation._legacy import get_examples, make_series
+from aeon.testing.mock_estimators import MockForecaster, MockTransformer
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
+from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
+from aeon.transformations.detrend import Detrender
 from aeon.transformations.hierarchical.aggregate import Aggregator
-from aeon.transformations.series.adapt import TabularToSeriesAdaptor
-from aeon.transformations.series.boxcox import LogTransformer
-from aeon.transformations.series.detrend import Detrender
-from aeon.transformations.series.difference import Differencer
-from aeon.transformations.series.exponent import ExponentTransformer
-from aeon.transformations.series.impute import Imputer
-from aeon.transformations.series.outlier_detection import HampelFilter
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
-from aeon.utils._testing.series import _make_series
-from aeon.utils.estimators import MockForecaster
-from aeon.utils.validation._dependencies import (
-    _check_estimator_deps,
-    _check_soft_dependencies,
-)
+from aeon.transformations.impute import Imputer
+from aeon.transformations.outlier_detection import HampelFilter
+from aeon.utils.index_functions import get_window
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def test_pipeline():
@@ -53,7 +34,7 @@ def test_pipeline():
 
     forecaster = TransformedTargetForecaster(
         [
-            ("t1", ExponentTransformer()),
+            ("t1", MockTransformer()),
             ("t2", TabularToSeriesAdaptor(MinMaxScaler())),
             ("forecaster", NaiveForecaster()),
         ]
@@ -65,7 +46,7 @@ def test_pipeline():
     def compute_expected_y_pred(y_train, fh):
         # fitting
         yt = y_train.copy()
-        t1 = ExponentTransformer()
+        t1 = MockTransformer()
         yt = t1.fit_transform(yt)
         t2 = TabularToSeriesAdaptor(MinMaxScaler())
         yt = t2.fit_transform(yt)
@@ -110,12 +91,12 @@ def test_skip_inverse_transform():
 def test_nesting_pipelines():
     """Test that nesting of pipelines works."""
     from aeon.forecasting.ets import AutoETS
-    from aeon.transformations.compose import OptionalPassthrough
-    from aeon.transformations.series.boxcox import LogTransformer
-    from aeon.transformations.series.detrend import Detrender
-    from aeon.utils._testing.scenarios_forecasting import (
+    from aeon.testing.utils.scenarios_forecasting import (
         ForecasterFitPredictUnivariateWithX,
     )
+    from aeon.transformations._legacy._boxcox import _LogTransformer as LogTransformer
+    from aeon.transformations.compose import OptionalPassthrough
+    from aeon.transformations.detrend import Detrender
 
     pipe = ForecastingPipeline(
         steps=[
@@ -152,75 +133,9 @@ def test_pipeline_with_detrender():
     trans_fc.predict(1)
 
 
-def test_pipeline_with_dimension_changing_transformer():
-    """Example of pipeline with dimension changing transformer.
-
-    The code below should run without generating any errors.  Issues
-    can arise from using Differencer in the pipeline.
-    """
-    y, X = load_longley()
-
-    # split train/test both y and X
-    fh = [1, 2, 3]
-    train_model, test_model = temporal_train_test_split(y, fh=fh)
-    X_train = X[X.index.isin(train_model.index)]
-
-    # pipeline
-    pipe = TransformedTargetForecaster(
-        steps=[
-            ("log", OptionalPassthrough(LogTransformer())),
-            ("differencer", Differencer(na_handling="drop_na")),
-            ("scaler", TabularToSeriesAdaptor(StandardScaler())),
-            (
-                "myforecasterpipe",
-                ForecastingPipeline(
-                    steps=[
-                        ("logX", OptionalPassthrough(LogTransformer())),
-                        ("differencerX", Differencer(na_handling="drop_na")),
-                        ("scalerX", TabularToSeriesAdaptor(StandardScaler())),
-                        ("myforecaster", make_reduction(SVR())),
-                    ]
-                ),
-            ),
-        ]
-    )
-
-    # cv setup
-    N_cv_fold = 1
-    step_cv = 1
-    cv = ExpandingWindowSplitter(
-        initial_window=len(train_model) - (N_cv_fold - 1) * step_cv - len(fh),
-        step_length=step_cv,
-        fh=fh,
-    )
-
-    param_grid = [
-        {
-            "log__passthrough": [False],
-            "myforecasterpipe__logX__passthrough": [False],
-            "myforecasterpipe__myforecaster__window_length": [2, 3],
-            "myforecasterpipe__myforecaster__estimator__C": [10, 100],
-        },
-        {
-            "log__passthrough": [True],
-            "myforecasterpipe__logX__passthrough": [True],
-            "myforecasterpipe__myforecaster__window_length": [2, 3],
-            "myforecasterpipe__myforecaster__estimator__C": [10, 100],
-        },
-    ]
-
-    # grid search
-    gscv = ForecastingGridSearchCV(
-        forecaster=pipe, cv=cv, param_grid=param_grid, verbose=1
-    )
-
-    # fit
-    gscv.fit(train_model, X=X_train)
-
-
 @pytest.mark.skipif(
-    not _check_estimator_deps(SARIMAX, severity="none"),
-    reason="skip test if required soft dependency is not available",
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency not available",
 )
 def test_nested_pipeline_with_index_creation_y_before_X():
     """Tests a nested pipeline where y indices are created before X indices.
@@ -236,7 +151,7 @@ def test_nested_pipeline_with_index_creation_y_before_X():
     X_test = get_window(X, window_length=1)
 
     # Aggregator creates indices for y (via *), then for X (via ForecastingPipeline)
-    f = Aggregator() * ForecastingPipeline([Aggregator(), SARIMAX()])
+    f = Aggregator() * ForecastingPipeline([Aggregator(), ExponentialSmoothing(sp=12)])
 
     f.fit(y=y_train, X=X_train, fh=1)
     y_pred = f.predict(X=X_test)
@@ -248,8 +163,8 @@ def test_nested_pipeline_with_index_creation_y_before_X():
 
 
 @pytest.mark.skipif(
-    not _check_estimator_deps(SARIMAX, severity="none"),
-    reason="skip test if required soft dependency is not available",
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency not available",
 )
 def test_nested_pipeline_with_index_creation_X_before_y():
     """Tests a nested pipeline where X indices are created before y indices.
@@ -265,7 +180,7 @@ def test_nested_pipeline_with_index_creation_X_before_y():
     X_test = get_window(X, window_length=1)
 
     # Aggregator creates indices for X (via ForecastingPipeline), then for y (via *)
-    f = ForecastingPipeline([Aggregator(), Aggregator() * SARIMAX()])
+    f = ForecastingPipeline([Aggregator(), Aggregator() * ExponentialSmoothing(sp=12)])
 
     f.fit(y=y_train, X=X_train, fh=1)
     y_pred = f.predict(X=X_test)
@@ -281,10 +196,10 @@ def test_forecasting_pipeline_dunder_endog():
     y = load_airline()
     y_train, y_test = temporal_train_test_split(y)
 
-    forecaster = ExponentTransformer() * MinMaxScaler() * NaiveForecaster()
+    forecaster = MockTransformer() * MinMaxScaler() * NaiveForecaster()
 
     assert isinstance(forecaster, TransformedTargetForecaster)
-    assert isinstance(forecaster.steps[0], ExponentTransformer)
+    assert isinstance(forecaster.steps[0], MockTransformer)
     assert isinstance(forecaster.steps[1], TabularToSeriesAdaptor)
     assert isinstance(forecaster.steps[2], NaiveForecaster)
 
@@ -295,7 +210,7 @@ def test_forecasting_pipeline_dunder_endog():
     def compute_expected_y_pred(y_train, fh):
         # fitting
         yt = y_train.copy()
-        t1 = ExponentTransformer()
+        t1 = MockTransformer()
         yt = t1.fit_transform(yt)
         t2 = TabularToSeriesAdaptor(MinMaxScaler())
         yt = t2.fit_transform(yt)
@@ -313,27 +228,33 @@ def test_forecasting_pipeline_dunder_endog():
 
 
 @pytest.mark.skipif(
-    not _check_estimator_deps(SARIMAX, severity="none"),
-    reason="skip test if required soft dependency is not available",
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency not available",
 )
 def test_forecasting_pipeline_dunder_exog():
     """Test forecasting pipeline dunder for exogeneous transformation."""
-    y = _make_series()
+    y = make_series()
     y_train, y_test = temporal_train_test_split(y)
-    X = _make_series(n_columns=2)
+    X = make_series(n_columns=2)
     X_train, X_test = temporal_train_test_split(X)
 
-    forecaster = ExponentTransformer() ** MinMaxScaler() ** SARIMAX(random_state=3)
-    forecaster_alt = (ExponentTransformer() * MinMaxScaler()) ** SARIMAX(random_state=3)
+    forecaster = (
+        MockTransformer()
+        ** MinMaxScaler()
+        ** ExponentialSmoothing(sp=12, random_state=3)
+    )
+    forecaster_alt = (MockTransformer() * MinMaxScaler()) ** ExponentialSmoothing(
+        sp=12, random_state=3
+    )
 
     assert isinstance(forecaster, ForecastingPipeline)
-    assert isinstance(forecaster.steps[0], ExponentTransformer)
+    assert isinstance(forecaster.steps[0], MockTransformer)
     assert isinstance(forecaster.steps[1], TabularToSeriesAdaptor)
-    assert isinstance(forecaster.steps[2], SARIMAX)
+    assert isinstance(forecaster.steps[2], ExponentialSmoothing)
     assert isinstance(forecaster_alt, ForecastingPipeline)
-    assert isinstance(forecaster_alt.steps[0], ExponentTransformer)
+    assert isinstance(forecaster_alt.steps[0], MockTransformer)
     assert isinstance(forecaster_alt.steps[1], TabularToSeriesAdaptor)
-    assert isinstance(forecaster_alt.steps[2], SARIMAX)
+    assert isinstance(forecaster_alt.steps[2], ExponentialSmoothing)
 
     fh = np.arange(len(y_test)) + 1
     forecaster.fit(y_train, fh=fh, X=X_train)
@@ -342,15 +263,19 @@ def test_forecasting_pipeline_dunder_exog():
     forecaster_alt.fit(y_train, fh=fh, X=X_train)
     actual_alt = forecaster_alt.predict(X=X_test)
 
+    @pytest.mark.skipif(
+        not _check_soft_dependencies("statsmodels", severity="none"),
+        reason="skip test if required soft dependency not available",
+    )
     def compute_expected_y_pred(y_train, X_train, X_test, fh):
         # fitting
         yt = y_train.copy()
         Xt = X_train.copy()
-        t1 = ExponentTransformer()
+        t1 = MockTransformer()
         Xt = t1.fit_transform(Xt)
         t2 = TabularToSeriesAdaptor(MinMaxScaler())
         Xt = t2.fit_transform(Xt)
-        forecaster = SARIMAX(random_state=3)
+        forecaster = ExponentialSmoothing(sp=12, random_state=3)
         forecaster.fit(yt, fh=fh, X=Xt)
 
         # predicting
@@ -373,9 +298,9 @@ def test_tag_handles_missing_data():
     """
     forecaster = MockForecaster()
     # make sure that test forecaster cant handle missing data
-    forecaster.set_tags(**{"handles-missing-data": False})
+    forecaster.set_tags(**{"capability:missing_values": False})
 
-    y = _make_series()
+    y = make_series()
     y[10] = np.nan
 
     # test only TransformedTargetForecaster
@@ -393,19 +318,19 @@ def test_tag_handles_missing_data():
 
 
 @pytest.mark.skipif(
-    not _check_estimator_deps(SARIMAX, severity="none"),
-    reason="skip test if required soft dependency is not available",
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency not available",
 )
 def test_subset_getitem():
     """Test subsetting using the [ ] dunder, __getitem__."""
-    y = _make_series(n_columns=3)
+    y = make_series(n_columns=3)
     y.columns = ["x", "y", "z"]
     y_train, _ = temporal_train_test_split(y)
-    X = _make_series(n_columns=3)
+    X = make_series(n_columns=3)
     X.columns = ["a", "b", "c"]
     X_train, X_test = temporal_train_test_split(X)
 
-    f = SARIMAX(random_state=3)
+    f = ExponentialSmoothing(sp=12, random_state=3)
 
     f_before = f[["a", "b"]]
     f_before_with_colon = f[["a", "b"], :]
@@ -417,7 +342,7 @@ def test_subset_getitem():
     assert isinstance(f_after_with_colon, TransformedTargetForecaster)
     assert isinstance(f_before_with_colon, ForecastingPipeline)
     assert isinstance(f_both, TransformedTargetForecaster)
-    assert isinstance(f_none, SARIMAX)
+    assert isinstance(f_none, ExponentialSmoothing)
 
     y_pred = f.fit(y_train, X_train, fh=X_test.index).predict(X=X_test)
 

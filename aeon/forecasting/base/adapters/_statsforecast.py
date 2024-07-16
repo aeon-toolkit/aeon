@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Implements adapter for StatsForecast forecasters to be used in sktime framework."""
+"""Implements adapter for StatsForecast forecasters to be used in aeon framework."""
 
-__author__ = ["FedericoGarza"]
+__maintainer__ = []
 __all__ = ["_StatsForecastAdapter"]
 
 
@@ -16,21 +14,20 @@ class _StatsForecastAdapter(BaseForecaster):
     """Base class for interfacing StatsForecast."""
 
     _tags = {
-        "scitype:y": "univariate",  # which y are fine? univariate/multivariate/both
+        "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": False,  # does estimator ignore the exogeneous X?
-        "handles-missing-data": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "capability:missing_values": False,  # can estimator handle missing data?
+        "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
+        "X_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "requires-fh-in-fit": False,  # is forecasting horizon already required in fit?
         "X-y-must-have-same-index": False,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "capability:pred_int": True,  # does forecaster implement predict_quantiles?
-        "python_dependencies": "statsforecast",
     }
 
     def __init__(self):
         self._forecaster = None
-        super(_StatsForecastAdapter, self).__init__()
+        super().__init__()
 
     def _instantiate_model(self):
         raise NotImplementedError("abstract method")
@@ -45,19 +42,19 @@ class _StatsForecastAdapter(BaseForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+            if self.get_tag("y_input_type")=="both": no restrictions apply
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+        X : default=None
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -83,10 +80,10 @@ class _StatsForecastAdapter(BaseForecaster):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -171,9 +168,9 @@ class _StatsForecastAdapter(BaseForecaster):
             X=X.values if X is not None else X,
         )
 
-        fh_abs = fh.to_absolute(self.cutoff)
+        fh_abs_idx = fh.to_absolute(self.cutoff).to_pandas()
         fh_idx = fh.to_indexer(self.cutoff)
-        mean = pd.Series(result["mean"].values[fh_idx], index=fh_abs)
+        mean = pd.Series(result["mean"].values[fh_idx], index=fh_abs_idx)
         if return_pred_int:
             pred_ints = []
             for a in alpha:
@@ -184,12 +181,12 @@ class _StatsForecastAdapter(BaseForecaster):
                 )
                 pred_int = result.drop("mean", axis=1).values
                 pred_int = pd.DataFrame(
-                    pred_int[fh_idx, :], index=fh_abs, columns=["lower", "upper"]
+                    pred_int[fh_idx, :], index=fh_abs_idx, columns=["lower", "upper"]
                 )
                 pred_ints.append(pred_int)
             return mean, pred_ints
         else:
-            return pd.Series(mean, index=fh_abs)
+            return pd.Series(mean, index=fh_abs_idx)
 
     def _predict_interval(self, fh, X=None, coverage=0.90):
         """Compute/return prediction quantiles for a forecast.
@@ -206,7 +203,7 @@ class _StatsForecastAdapter(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon, default = y.index (in-sample forecast)
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

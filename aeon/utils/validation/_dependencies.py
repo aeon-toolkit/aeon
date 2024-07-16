@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
 """Utility to check soft dependency imports, and raise warnings or errors."""
 
-__author__ = ["fkiraly", "mloning"]
+__maintainer__ = ["TonyBagnall"]
 
 import io
 import sys
@@ -83,10 +82,6 @@ def _check_soft_dependencies(
         class_name = type(obj).__name__
     elif isclass(obj):
         class_name = obj.__name__
-    elif isinstance(obj, str):
-        class_name = obj
-    else:
-        raise TypeError("obj must be a class, an object, a str, or None")
 
     for package in packages:
         try:
@@ -121,25 +116,25 @@ def _check_soft_dependencies(
             if obj is None:
                 msg = (
                     f"{e}. '{package}' is a soft dependency and not included in the "
-                    f"base sktime installation. Please run: `pip install {package}` to "
+                    f"base aeon installation. Please run: `pip install {package}` to "
                     f"install the {package} package. "
                     f"To install all soft dependencies, run: `pip install "
-                    f"sktime[all_extras]`"
+                    f"aeon[all_extras]`"
                 )
             else:
                 msg = (
                     f"{class_name} requires package '{package}' to be present "
                     f"in the python environment, but '{package}' was not found. "
                     f"'{package}' is a soft dependency and not included in the base "
-                    f"sktime installation. Please run: `pip install {package}` to "
+                    f"aeon installation. Please run: `pip install {package}` to "
                     f"install the {package} package. "
                     f"To install all soft dependencies, run: `pip install "
-                    f"sktime[all_extras]`"
+                    f"aeon[all_extras]`"
                 )
             if severity == "error":
                 raise ModuleNotFoundError(msg) from e
             elif severity == "warning":
-                warnings.warn(msg)
+                warnings.warn(msg, stacklevel=2)
                 return False
             elif severity == "none":
                 return False
@@ -161,8 +156,8 @@ def _check_soft_dependencies(
             )
             if obj is not None:
                 msg = msg + (
-                    f"This version requirement is not one by sktime, but specific "
-                    f"to the module, class or object with name {obj}."
+                    f"This version requirement is not one by aeon, but specific "
+                    f"to the module, class or object with name {class_name}."
                 )
 
             # raise error/warning or return False if version is incompatible
@@ -171,7 +166,7 @@ def _check_soft_dependencies(
                 if severity == "error":
                     raise ModuleNotFoundError(msg)
                 elif severity == "warning":
-                    warnings.warn(msg)
+                    warnings.warn(msg, stacklevel=2)
                 elif severity == "none":
                     return False
                 else:
@@ -211,19 +206,17 @@ def _check_dl_dependencies(msg=None, severity="error"):
     """
     if not isinstance(msg, str):
         msg = (
-            "tensorflow and tensorflow-probability are required for "
-            "deep learning and probabilistic functionality in `sktime`. "
-            "To install these dependencies, run: `pip install sktime[dl]`"
+            "tensorflow is required for deep learning in `aeon`. "
+            "To install this dependency, run: `pip install aeon[dl]`"
         )
     try:
         import_module("tensorflow")
-        import_module("tensorflow_probability")
         return True
     except ModuleNotFoundError as e:
         if severity == "error":
             raise ModuleNotFoundError(msg) from e
         elif severity == "warning":
-            warnings.warn(msg)
+            warnings.warn(msg, stacklevel=2)
             return False
         elif severity == "none":
             return False
@@ -239,7 +232,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
 
     Parameters
     ----------
-    obj : sktime estimator, BaseObject descendant
+    obj : aeon estimator, BaseObject descendant
         used to check python version
     package : str, default = None
         if given, will be used in error message as package name
@@ -260,9 +253,14 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
         incompatible with the system python version. If package is given,
         error message gives package as the reason for incompatibility.
     """
-    est_specifier_tag = obj.get_class_tag("python_version", tag_value_default="None")
-    if est_specifier_tag in ["None", None]:
-        return True
+    if isinstance(obj, str):
+        est_specifier_tag = obj
+    else:
+        est_specifier_tag = obj.get_class_tag(
+            "python_version", tag_value_default="None"
+        )
+        if est_specifier_tag in ["None", None]:
+            return True
 
     try:
         est_specifier = SpecifierSet(est_specifier_tag)
@@ -277,7 +275,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
     # python sys version, e.g., "3.8.12"
     sys_version = sys.version.split(" ")[0]
 
-    if sys_version in est_specifier:
+    if est_specifier.contains(sys_version, prereleases=True):
         return True
     # now we know that est_version is not compatible with sys_version
 
@@ -295,7 +293,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
     if severity == "error":
         raise ModuleNotFoundError(msg)
     elif severity == "warning":
-        warnings.warn(msg)
+        warnings.warn(msg, stacklevel=2)
     elif severity == "none":
         return False
     else:
@@ -317,7 +315,7 @@ def _check_estimator_deps(obj, msg=None, severity="error"):
 
     Parameters
     ----------
-    obj : `sktime` object, `BaseObject` descendant, or list/tuple thereof
+    obj : `aeon` object, `BaseObject` descendant, or list/tuple thereof
         object(s) that this function checks compatibility of, with the python env
     msg : str, optional, default = default message (msg below)
         error message to be returned in the `ModuleNotFoundError`, overrides default

@@ -1,15 +1,14 @@
-# -*- coding: utf-8 -*-
-
 """Theta forecasters."""
 
 __all__ = ["ThetaForecaster", "ThetaModularForecaster"]
-__author__ = ["big-o", "mloning", "kejsitake", "fkiraly", "GuzalBulatova"]
+__maintainer__ = []
 
 from warnings import warn
 
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
+from sklearn.utils import check_array
 
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.compose import ColumnEnsembleForecaster
@@ -17,11 +16,52 @@ from aeon.forecasting.compose._ensemble import _aggregate
 from aeon.forecasting.compose._pipeline import TransformedTargetForecaster
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.transformations.series.detrend import Deseasonalizer
-from aeon.transformations.series.theta import ThetaLinesTransformer
-from aeon.utils.slope_and_trend import _fit_trend
+from aeon.transformations._legacy.theta import _ThetaLinesTransformer
+from aeon.transformations.detrend import Deseasonalizer
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_sp
+
+
+def _fit_trend(x, order=0):
+    """Fit linear regression with polynomial terms of given order.
+
+        x : array_like, shape=[n_samples, n_obs]
+        Time series data, each sample is fitted separately
+    order : int
+        The polynomial order of the trend, zero is constant (mean), one is
+        linear trend, two is quadratic trend, and so on.
+
+    Returns
+    -------
+    coefs : ndarray, shape=[n_samples, order + 1]
+        Fitted coefficients of polynomial order for each sample, one column
+        means order zero, two columns mean order 1
+        (linear), three columns mean order 2 (quadratic), etc
+
+    See Also
+    --------
+    add_trend
+    remove_trend
+    """
+    x = check_array(x)
+
+    if order == 0:
+        coefs = np.mean(x, axis=1).reshape(-1, 1)
+
+    else:
+        n_obs = x.shape[1]
+        index = np.arange(n_obs)
+        poly_terms = np.vander(index, N=order + 1)
+
+        # linear least squares fitting using numpy's optimised routine,
+        # assuming samples in columns
+        # coefs = np.linalg.pinv(poly_terms).dot(x.T).T
+        coefs, _, _, _ = np.linalg.lstsq(poly_terms, x.T, rcond=None)
+
+        # returning fitted coefficients in expected format with samples in rows
+        coefs = coefs.T
+
+    return coefs
 
 
 class ThetaForecaster(ExponentialSmoothing):
@@ -46,9 +86,9 @@ class ThetaForecaster(ExponentialSmoothing):
     initial_level : float, optional
         The alpha value of the simple exponential smoothing, if the value is
         set then this will be used, otherwise it will be estimated from the data.
-    deseasonalize : bool, optional (default=True)
+    deseasonalize : bool, default=True
         If True, data is seasonally adjusted.
-    sp : int, optional (default=1)
+    sp : int, default=1
         The number of observations that constitute a seasonal period for a
         multiplicative deseasonaliser, which is used if seasonality is detected in the
         training data. Ignored if a deseasonaliser transformer is provided.
@@ -88,11 +128,11 @@ class ThetaForecaster(ExponentialSmoothing):
 
     _fitted_param_names = ("initial_level", "smoothing_level")
     _tags = {
-        "scitype:y": "univariate",
+        "y_input_type": "univariate",
         "ignores-exogeneous-X": True,
         "capability:pred_int": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(self, initial_level=None, deseasonalize=True, sp=1):
@@ -103,7 +143,7 @@ class ThetaForecaster(ExponentialSmoothing):
         self.initial_level_ = None
         self.drift_ = None
         self.se_ = None
-        super(ThetaForecaster, self).__init__(initial_level=initial_level, sp=sp)
+        super().__init__(initial_level=initial_level, sp=sp)
 
     def _fit(self, y, X=None, fh=None):
         """Fit to training data.
@@ -112,9 +152,9 @@ class ThetaForecaster(ExponentialSmoothing):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored
 
         Returns
@@ -132,7 +172,7 @@ class ThetaForecaster(ExponentialSmoothing):
         self.initialization_method = "known" if self.initial_level else "estimated"
         # fit exponential smoothing forecaster
         # find theta lines: Theta lines are just SES + drift
-        super(ThetaForecaster, self)._fit(y, fh=fh)
+        super()._fit(y, fh=fh)
         self.initial_level_ = self._fitted_forecaster.params["smoothing_level"]
 
         # compute and store historical residual standard error
@@ -152,7 +192,7 @@ class ThetaForecaster(ExponentialSmoothing):
             The forecasters horizon with the steps ahead to to predict.
             Default is
             one-step ahead forecast, i.e. np.array([1]).
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -160,7 +200,7 @@ class ThetaForecaster(ExponentialSmoothing):
         y_pred : pandas.Series
             Returns series of predicted values.
         """
-        y_pred = super(ThetaForecaster, self)._predict(fh, X)
+        y_pred = super()._predict(fh, X)
 
         # Add drift.
         drift = self._compute_drift()
@@ -202,9 +242,9 @@ class ThetaForecaster(ExponentialSmoothing):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
-        alpha : list of float, optional (default=[0.5])
+        alpha : list of float, default=[0.5]
             A list of probabilities at which quantile forecasts are computed.
 
         Returns
@@ -228,16 +268,11 @@ class ThetaForecaster(ExponentialSmoothing):
         # we assume normal additive noise with sem variance
         for a in alpha:
             pred_quantiles[("Quantiles", a)] = y_pred + norm.ppf(a) * sem
-        # todo: should this not increase with the horizon?
-        # i.e., sth like norm.ppf(a) * sem * fh.to_absolute(cutoff) ?
-        # I've just refactored this so will leave it for now
 
         return pred_quantiles
 
     def _update(self, y, X=None, update_params=True):
-        super(ThetaForecaster, self)._update(
-            y, X, update_params=False
-        )  # use custom update_params routine
+        super()._update(y, X, update_params=False)  # use custom update_params routine
         if update_params:
             if self.deseasonalize:
                 y = self.deseasonalizer_.transform(self._y)  # use updated y
@@ -299,8 +334,8 @@ class ThetaModularForecaster(BaseForecaster):
     Also see auto-theta method as described in [2]_ *not contained in this estimator).
 
     Overview: Input :term:`univariate series <Univariate time series>` of length
-    "n" and decompose with :class:`ThetaLinesTransformer
-    <sktime.transformations.series.theta>` by modifying the local curvature of
+    "n" and decompose with :class:`_ThetaLinesTransformer
+    <aeon.transformations.theta>` by modifying the local curvature of
     the time series using Theta-coefficient values - `theta_values` parameter.
     Thansformation gives a pd.DataFrame of shape `len(input series) * len(theta)`.
 
@@ -322,7 +357,7 @@ class ThetaModularForecaster(BaseForecaster):
     aggfunc: str, default="mean"
         Must be one of ["mean", "median", "min", "max", "gmean"].
         Calls :func:`_aggregate` of
-        :class:`EnsembleForecaster<sktime.forecasting.compose._ensemble>` to
+        :class:`EnsembleForecaster<aeon.forecasting.compose._ensemble>` to
         apply to results of multivariate theta-lines predictions (pd.DataFrame)
         in order to get resulting univariate prediction (pd.Series).
         The aggregation takes place across different theta-lines (row-wise), for
@@ -343,7 +378,7 @@ class ThetaModularForecaster(BaseForecaster):
 
     See Also
     --------
-    ThetaForecaster, ThetaLinesTransformer
+    ThetaForecaster, _ThetaLinesTransformer
 
     Examples
     --------
@@ -366,9 +401,9 @@ class ThetaModularForecaster(BaseForecaster):
 
     _tags = {
         "univariate-only": False,
-        "y_inner_mtype": "pd.Series",
+        "y_inner_type": "pd.Series",
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     def __init__(
@@ -378,7 +413,7 @@ class ThetaModularForecaster(BaseForecaster):
         aggfunc="mean",
         weights=None,
     ):
-        super(ThetaModularForecaster, self).__init__()
+        super().__init__()
         self.forecasters = forecasters
         self.aggfunc = aggfunc
         self.weights = weights
@@ -389,7 +424,7 @@ class ThetaModularForecaster(BaseForecaster):
 
         self.pipe_ = TransformedTargetForecaster(
             steps=[
-                ("transformer", ThetaLinesTransformer(theta=self.theta_values)),
+                ("transformer", _ThetaLinesTransformer(theta=self.theta_values)),
                 ("forecaster", self._colens),
             ]
         )

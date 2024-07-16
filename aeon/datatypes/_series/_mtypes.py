@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Machine type inference for Series scitype.
 
 Exports mtype dictionaries for Series scitype:
@@ -22,7 +21,7 @@ Raises
 TypeError, if scitype cannot be inferred
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["infer_mtype_dict"]
 

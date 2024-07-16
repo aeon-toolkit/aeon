@@ -1,0 +1,42 @@
+/* teams table */
+
+.aeon-teams-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.aeon-teams-container > div {
+  width: 80px;
+  margin: 5px;
+  font-size: 0.8rem;
+}
+
+img.avatar {
+  width: 100%;
+  border-radius: 10px;
+}
+
+/* card images */
+
+.aeon-card-image-m {
+  width: 100%;
+  height: 150px;
+  object-fit: contain;
+  object-position: center;
+  background-color: white;
+}
+
+.aeon-card-image,
+.aeon-card-image-l {
+  width: 100%;
+  height: 200px;
+  object-fit: contain;
+  object-position: center;
+  background-color: white;
+}
+
+/* Removes margin issues caused by class.rst template error for some cases */
+.autosummary table {
+  margin: 0;
+}

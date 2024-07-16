@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements forecaster for applying different univariates on hierarchical data."""
 
-__author__ = ["VyomkeshVyas"]
+__maintainer__ = []
 __all__ = ["HierarchyEnsembleForecaster"]
 
 
@@ -37,7 +35,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
 
     Parameters
     ----------
-    forecasters : sktime forecaster, or list of tuples
+    forecasters : aeon forecaster, or list of tuples
                 (str, estimator, int or list of tuple/s)
         if forecaster, clones of forecaster are applied to all aggregated levels.
         if list of tuples, with name = str, estimator is forecaster, level/node
@@ -51,7 +49,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
         if 'node', applies separate univariate forecaster for each
         hierarchical node.
 
-    default : sktime forecaster {default = None}
+    default : aeon forecaster {default = None}
         if passed, applies 'default' forecaster on the nodes/levels
         not mentioned in the 'forecaster' argument.
 
@@ -60,7 +58,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
     >>> from aeon.forecasting.compose import HierarchyEnsembleForecaster
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.forecasting.trend import PolynomialTrendForecaster, TrendForecaster
-    >>> from aeon.utils._testing.hierarchical import _bottom_hier_datagen
+    >>> from aeon.testing.data_generation import _bottom_hier_datagen
     >>> y = _bottom_hier_datagen(
     ...         no_bottom_nodes=7,
     ...         no_levels=2,
@@ -95,12 +93,12 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
     """
 
     _tags = {
-        "scitype:y": "both",
+        "y_input_type": "both",
         "ignores-exogeneous-X": False,
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
     }
 
     BY_LIST = ["level", "node"]
@@ -111,20 +109,22 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
         self.forecasters = forecasters
         self.by = by
         self.default = default
-        super(HierarchyEnsembleForecaster, self).__init__(forecasters=forecasters)
+        super().__init__(forecasters=forecasters)
 
         if isinstance(forecasters, BaseForecaster):
             tags_to_clone = [
                 "requires-fh-in-fit",
                 "ignores-exogeneous-X",
-                "handles-missing-data",
+                "capability:missing_values",
             ]
             self.clone_tags(forecasters, tags_to_clone)
         else:
             l_forecasters = [(x[0], x[1]) for x in forecasters]
             self._anytagis_then_set("requires-fh-in-fit", True, False, l_forecasters)
             self._anytagis_then_set("ignores-exogeneous-X", False, True, l_forecasters)
-            self._anytagis_then_set("handles-missing-data", False, True, l_forecasters)
+            self._anytagis_then_set(
+                "capability:missing_values", False, True, l_forecasters
+            )
 
     @property
     def _forecasters(self):
@@ -164,9 +164,9 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
         ----------
         y : pd-multiindex
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables are ignored.
 
         Returns
@@ -365,10 +365,10 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns

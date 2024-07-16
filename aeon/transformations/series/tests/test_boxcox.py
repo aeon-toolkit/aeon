@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """Tests for BoxCoxTransformer."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = []
 
 import numpy as np
@@ -10,7 +8,7 @@ import pytest
 from scipy.stats import boxcox
 
 from aeon.datasets import load_airline
-from aeon.transformations.series.boxcox import BoxCoxTransformer
+from aeon.transformations.series._boxcox import BoxCoxTransformer
 
 
 def test_boxcox_against_scipy():
@@ -49,7 +47,7 @@ def test_guerrero_against_r_implementation(bounds, r_lambda):
 
     Testing lambda values estimated by the R implementation of the Guerrero method
     https://github.com/robjhyndman/forecast/blob/master/R/guerrero.R
-    against the guerrero method in BoxCoxTransformer.
+    against the guerrero method in _BoxCoxTransformer.
     R code to generate the hardcoded value for bounds=(-1, 2) used in the test
     ('Airline.csv' contains the data from 'load_airline()'):
         airline_file <- read.csv(file = 'Airline.csv')[,c('Passengers')]

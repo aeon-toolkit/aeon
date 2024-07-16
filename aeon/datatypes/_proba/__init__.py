@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Type checkers, converters and mtype inference for probabilistic return types."""
 
 from aeon.datatypes._proba._check import check_dict as check_dict_Proba
@@ -10,13 +9,13 @@ from aeon.datatypes._proba._examples import (
 from aeon.datatypes._proba._examples import (
     example_dict_metadata as example_dict_metadata_Proba,
 )
-from aeon.datatypes._proba._registry import MTYPE_LIST_PROBA, MTYPE_REGISTER_PROBA
+from aeon.datatypes._proba._registry import TYPE_LIST_PROBA, TYPE_REGISTER_PROBA
 
 __all__ = [
     "check_dict_Proba",
     "convert_dict_Proba",
-    "MTYPE_LIST_PROBA",
-    "MTYPE_REGISTER_PROBA",
+    "TYPE_LIST_PROBA",
+    "TYPE_REGISTER_PROBA",
     "example_dict_Proba",
     "example_dict_lossy_Proba",
     "example_dict_metadata_Proba",

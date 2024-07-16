@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Implements functionality for specifying forecast horizons in sktime."""
+"""Implements functionality for specifying forecast horizons in aeon."""
 
-__author__ = ["mloning", "fkiraly", "eenticott-shell", "khrapovs"]
+__maintainer__ = []
 __all__ = ["ForecastingHorizon"]
 
 from functools import lru_cache
@@ -59,7 +56,8 @@ DELEGATED_METHODS = (
 
 
 def _delegator(method):
-    """Automatically decorate ForecastingHorizon class with pandas.Index methods.
+    """
+    Automatically decorate ForecastingHorizon class with pandas.Index methods.
 
     Also delegates method calls to wrapped pandas.Index object.
     methods from pandas.Index and delegate method calls to wrapped pandas.Index
@@ -72,7 +70,8 @@ def _delegator(method):
 
 
 def _check_values(values: VALID_FORECASTING_HORIZON_TYPES) -> pd.Index:
-    """Validate forecasting horizon values.
+    """
+    Validate forecasting horizon values.
 
     Validation checks validity and also converts forecasting horizon values
     to supported pandas.Index types if possible.
@@ -142,7 +141,8 @@ def _check_values(values: VALID_FORECASTING_HORIZON_TYPES) -> pd.Index:
 
 
 def _check_freq(obj):
-    """Coerce obj to a pandas frequency offset for the ForecastingHorizon.
+    """
+    Coerce obj to a pandas frequency offset for the ForecastingHorizon.
 
     Parameters
     ----------
@@ -150,7 +150,7 @@ def _check_freq(obj):
 
     Returns
     -------
-    pd offset
+    pd.offset
 
     Raises
     ------
@@ -192,7 +192,7 @@ class ForecastingHorizon:
     ----------
     values : pd.Index, pd.TimedeltaIndex, np.array, list, pd.Timedelta, or int
         Values of forecasting horizon
-    is_relative : bool, optional (default=None)
+    is_relative : bool, default=None
         - If True, a relative ForecastingHorizon is created:
                 values are relative to end of training series.
         - If False, an absolute ForecastingHorizon is created:
@@ -200,7 +200,7 @@ class ForecastingHorizon:
         - if None, the flag is determined automatically:
             relative, if values are of supported relative index type
             absolute, if not relative and values of supported absolute index type
-    freq : str, pd.Index, pandas offset, or sktime forecaster, optional (default=None)
+    freq : str, pd.Index, pandas offset, or aeon forecaster, default=None
         object carrying frequency information on values
         ignored unless values is without inferrable freq
 
@@ -216,11 +216,11 @@ class ForecastingHorizon:
 
         List as ForecastingHorizon
     >>> ForecastingHorizon([1, 2, 3])
-    ForecastingHorizon([1, 2, 3], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3], ..., is_relative=True)
 
         Numpy as ForecastingHorizon
     >>> ForecastingHorizon(np.arange(1, 7))
-    ForecastingHorizon([1, 2, 3, 4, 5, 6], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3, 4, 5, 6], ..., is_relative=True)
 
         Absolute ForecastingHorizon with a pandas Index
     >>> ForecastingHorizon(y_test.index, is_relative=False) # doctest: +SKIP
@@ -235,7 +235,7 @@ class ForecastingHorizon:
     >>> # to_relative
     >>> fh = ForecastingHorizon(y_test.index, is_relative=False)
     >>> fh.to_relative(cutoff=cutoff)
-    ForecastingHorizon([1, 2, 3, 4, 5, 6], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3, 4, 5, 6], ..., is_relative=True)
 
     >>> # to_absolute
     >>> fh = ForecastingHorizon([1, 2, 3, 4, 5, 6], is_relative=True)
@@ -249,12 +249,12 @@ class ForecastingHorizon:
     NaiveForecaster(...)
     >>> y_pred = forecaster.predict(fh=[1,2,3])
     >>> forecaster.fh
-    ForecastingHorizon([1, 2, 3], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3], ..., is_relative=True)
 
         This is identical to give an object of ForecastingHorizon
     >>> y_pred = forecaster.predict(fh=ForecastingHorizon([1,2,3]))
     >>> forecaster.fh
-    ForecastingHorizon([1, 2, 3], dtype='int64', is_relative=True)
+    ForecastingHorizon([1, 2, 3], ..., is_relative=True)
     """
 
     def __new__(
@@ -333,7 +333,7 @@ class ForecastingHorizon:
             - If None, determined automatically: same as self.is_relative
             - If True, values are relative to end of training series.
             - If False, values are absolute.
-        freq : str, optional (default=None)
+        freq : str, default=None
             Frequency string
 
         Returns
@@ -447,7 +447,7 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, or pd.Index, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, or pd.Index, default=None
             Cutoff value required to convert a relative forecasting
             horizon to an absolute one (and vice versa).
             If pd.Index, last/latest value is considered the cutoff
@@ -485,7 +485,7 @@ class ForecastingHorizon:
         ----------
         start : pd.Period, pd.Timestamp, int
             Start value returned as zero.
-        cutoff : pd.Period, pd.Timestamp, int, or pd.Index, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, or pd.Index, default=None
             Cutoff value required to convert a relative forecasting
             horizon to an absolute one (and vice versa).
             If pd.Index, last/latest value is considered the cutoff
@@ -538,7 +538,7 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, default=None
             Cutoff value required to convert a relative forecasting
             horizon to an absolute one (and vice versa).
 
@@ -556,7 +556,7 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, default=None
             Cutoff value is required to convert a relative forecasting
             horizon to an absolute one (and vice versa).
 
@@ -599,7 +599,7 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, default=None
             Cutoff value used to check if forecasting horizon is purely
             out-of-sample.
 
@@ -616,10 +616,10 @@ class ForecastingHorizon:
 
         Parameters
         ----------
-        cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+        cutoff : pd.Period, pd.Timestamp, int, default=None
             Cutoff value required to convert a relative forecasting
             horizon to an absolute one and vice versa.
-        from_cutoff : bool, optional (default=True)
+        from_cutoff : bool, default=True
             - If True, zero-based relative to cutoff.
             - If False, zero-based relative to first value in forecasting
             horizon.
@@ -665,7 +665,7 @@ def _to_relative(fh: ForecastingHorizon, cutoff=None) -> ForecastingHorizon:
     Parameters
     ----------
     fh : ForecastingHorizon
-    cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+    cutoff : pd.Period, pd.Timestamp, int, default=None
         Cutoff value required to convert a relative forecasting
         horizon to an absolute one (and vice versa).
 
@@ -686,24 +686,7 @@ def _to_relative(fh: ForecastingHorizon, cutoff=None) -> ForecastingHorizon:
             # time deltas
             absolute = _coerce_to_period(absolute, freq=fh.freq)
             cutoff = _coerce_to_period(cutoff, freq=fh.freq)
-
-        # TODO: Replace when we upgrade our lower pandas bound
-        #  to a version where this is fixed
-        # Compute relative values
-        # The following line circumvents the bug in pandas
-        # periods = pd.period_range(start="2021-01-01", periods=3, freq="2H")
-        # periods - periods[0]
-        # Out: Index([<0 * Hours>, <4 * Hours>, <8 * Hours>], dtype = 'object')
-        # [v - periods[0] for v in periods]
-        # Out: Index([<0 * Hours>, <2 * Hours>, <4 * Hours>], dtype='object')
-        # TODO: 0.17.0: Check if this comment below can be removed,
-        # so check if pandas has released the fix to PyPI:
-        # This bug was reported: https://github.com/pandas-dev/pandas/issues/45999
-        # and fixed: https://github.com/pandas-dev/pandas/pull/46006
-        # Most likely it will be released with pandas 1.5
-        # Once the bug is fixed the line should simply be:
-        # relative = absolute - cutoff
-        relative = pd.Index([date - cutoff for date in absolute])
+        relative = absolute - cutoff
 
         # Coerce durations (time deltas) into integer values for given frequency
         if isinstance(absolute, (pd.PeriodIndex, pd.DatetimeIndex)):
@@ -769,7 +752,7 @@ def _check_cutoff(cutoff, index):
 
     Parameters
     ----------
-    cutoff : pd.Period, pd.Timestamp, int, optional (default=None)
+    cutoff : pd.Period, pd.Timestamp, int, default=None
         Cutoff value is required to convert a relative forecasting
         horizon to an absolute one and vice versa.
     index : pd.PeriodIndex or pd.DataTimeIndex
@@ -787,7 +770,7 @@ def _check_cutoff(cutoff, index):
         assert isinstance(cutoff, pd.Timestamp)
 
 
-def _coerce_to_period(x, freq=None):
+def _coerce_to_period(x, freq):
     """Coerce pandas time index to a alternative pandas time index.
 
     This coerces pd.Timestamp to pd.Period or pd.DatetimeIndex to
@@ -805,11 +788,6 @@ def _coerce_to_period(x, freq=None):
     index : pd.Period or pd.PeriodIndex
         Index or index element coerced to period based format.
     """
-    if isinstance(x, pd.Timestamp) and freq is None:
-        freq = x.freq
-        raise ValueError(
-            "_coerce_to_period requires freq argument to be passed if x is pd.Timestamp"
-        )
     try:
         return x.to_period(freq)
     except (ValueError, AttributeError) as e:
@@ -828,16 +806,18 @@ def _coerce_to_period(x, freq=None):
 def _index_range(relative, cutoff):
     """Return Index Range relative to cutoff."""
     _check_cutoff(cutoff, relative)
-    is_timestamp = isinstance(cutoff, pd.Timestamp)
-
-    if is_timestamp:
+    if isinstance(cutoff, pd.DatetimeIndex):
         # coerce to pd.Period for reliable arithmetic operations and
-        # computations of time deltas
-        cutoff = _coerce_to_period(cutoff, freq=cutoff.freqstr)
-
-    absolute = cutoff + relative
-
-    if is_timestamp:
+        cutoff = _coerce_to_period(cutoff, freq=cutoff.freq)
+        # workaround for pandas>=2.0.0 as "absolute = cutoff + relative"
+        # is not working anymore as expected
+        absolute = pd.PeriodIndex([cutoff.shift(x)[0] for x in relative])
         # coerce back to DatetimeIndex after operation
-        absolute = absolute.to_timestamp(cutoff.freqstr)
+        absolute = absolute.to_timestamp(freq=cutoff.freq)
+        # convert again to DateTimeIndex as pandas>=2.0.0 lost Timestam.freq
+        absolute = pd.DatetimeIndex(absolute, freq=cutoff.freq)
+    elif isinstance(cutoff, pd.PeriodIndex):
+        absolute = pd.PeriodIndex([cutoff.shift(x)[0] for x in relative])
+    else:
+        absolute = cutoff + relative
     return absolute

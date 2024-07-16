@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Metrics functions to assess performance on forecasting task.
 
 Functions named as ``*_score`` return a value to maximize: the higher the better.
@@ -17,10 +14,10 @@ from sklearn.metrics._regression import _check_reg_targets
 from sklearn.utils.stats import _weighted_percentile
 from sklearn.utils.validation import check_consistent_length
 
-from aeon.utils.stats import _weighted_geometric_mean
 from aeon.utils.validation.series import check_series
+from aeon.utils.weighted_metrics import _weighted_geometric_mean
 
-__author__ = ["mloning", "Tomasz Chodakowski", "RNKuhns"]
+__maintainer__ = []
 __all__ = [
     "relative_loss",
     "mean_linex_error",
@@ -1966,10 +1963,6 @@ def mean_relative_absolute_error(
              where fh is the forecasting horizon
         Forecasted values.
 
-    y_pred_benchmark : pd.Series, pd.DataFrame or np.array of shape (fh,) or \
-             (fh, n_outputs) where fh is the forecasting horizon, default=None
-        Forecasted values from benchmark method.
-
     horizon_weight : array-like of shape (fh,), default=None
         Forecast horizon weights.
 
@@ -1979,6 +1972,10 @@ def mean_relative_absolute_error(
         If array-like, values used as weights to average the errors.
         If 'raw_values', returns a full set of errors in case of multioutput input.
         If 'uniform_average', errors of all outputs are averaged with uniform weight.
+
+    y_pred_benchmark : pd.Series, pd.DataFrame or np.array of shape (fh,) or \
+             (fh, n_outputs) where fh is the forecasting horizon, default=None
+        Forecasted values from benchmark method. Passed by kwargs.
 
     Returns
     -------
@@ -2454,7 +2451,7 @@ def relative_loss(
 
     relative_loss_function : function, default=mean_absolute_error
         Function to use in calculation relative loss. The function must comply
-        with API interface of sktime forecasting performance metrics. Metrics
+        with API interface of aeon forecasting performance metrics. Metrics
         requiring y_train or y_pred_benchmark are not supported.
 
     horizon_weight : array-like of shape (fh,), default=None

@@ -1,31 +1,60 @@
-# -*- coding: utf-8 -*-
 """Main configuration file for pytest.
 
 Contents:
-adds a --matrixdesign option to pytest
-this allows to turn on/off the sub-sampling in the tests (for shorter runtime)
-"on" condition is partition/block design to ensure each estimator full tests are run
-    on each operating system at least once, and on each python version at least once,
-    but not necessarily on each operating system / python version combination
-by default, this is off, including for default local runs of pytest
+Adds a --prtesting option to pytest.
+This allows for smaller parameter matrices to be used for certain tests and enables
+sub-sampling in the tests (for shorter runtime) ensuring that each estimators full
+tests are run on each operating system at least once, and on each python version at
+least once, but not necessarily on each operating system / python version combination.
 """
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 
-__author__ = ["fkiraly"]
-
-from aeon.tests import test_all_estimators
+__maintainer__ = []
 
 
 def pytest_addoption(parser):
     """Pytest command line parser options adder."""
     parser.addoption(
-        "--matrixdesign",
+        "--prtesting",
         default=False,
-        help="sub-sample estimators in tests by os/version matrix partition design",
+        help=(
+            "Toggle for PR test configuration. Uses smaller parameter matrices for "
+            "test generation and sub-samples estimators in tests by workflow os/py "
+            "version."
+        ),
     )
 
 
 def pytest_configure(config):
     """Pytest configuration preamble."""
-    if config.getoption("--matrixdesign") in [True, "True"]:
-        test_all_estimators.MATRIXDESIGN = True
+    import os
+
+    # Must be called before any numpy imports
+    os.environ["MKL_NUM_THREADS"] = "1"
+    os.environ["NUMEXPR_NUM_THREADS"] = "1"
+    os.environ["OMP_NUM_THREADS"] = "1"
+    os.environ["OPENBLAS_NUM_THREADS"] = "1"
+    os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+
+    import numba
+
+    from aeon.testing import test_config
+    from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+    numba.set_num_threads(1)
+
+    if _check_soft_dependencies("tensorflow", severity="none"):
+        from tensorflow.config.threading import (
+            set_inter_op_parallelism_threads,
+            set_intra_op_parallelism_threads,
+        )
+
+        set_inter_op_parallelism_threads(1)
+        set_intra_op_parallelism_threads(1)
+
+    if _check_soft_dependencies("torch", severity="none"):
+        import torch
+
+        torch.set_num_threads(1)
+
+    if config.getoption("--prtesting") in [True, "True", "true"]:
+        test_config.PR_TESTING = True

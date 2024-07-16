@@ -1,6 +1,3 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Tests for Bagging Forecasters."""
 
 import pandas as pd
@@ -10,8 +7,8 @@ from aeon.datasets import load_airline
 from aeon.forecasting.compose import BaggingForecaster
 from aeon.forecasting.compose._bagging import _calculate_data_quantiles
 from aeon.forecasting.naive import NaiveForecaster
+from aeon.transformations._legacy._boxcox import _LogTransformer
 from aeon.transformations.bootstrap import STLBootstrapTransformer
-from aeon.transformations.series.boxcox import LogTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 y = load_airline()
@@ -19,9 +16,9 @@ y = load_airline()
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency for BaggingForecaster not available",
 )
-@pytest.mark.parametrize("transformer", [LogTransformer, NaiveForecaster])
+@pytest.mark.parametrize("transformer", [_LogTransformer, NaiveForecaster])
 def test_bagging_forecaster_transformer_type_error(transformer):
     """Test that the right exception is raised for invalid transformer."""
     with pytest.raises(TypeError) as ex:
@@ -38,9 +35,9 @@ def test_bagging_forecaster_transformer_type_error(transformer):
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
+    reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("forecaster", [LogTransformer])
+@pytest.mark.parametrize("forecaster", [_LogTransformer])
 def test_bagging_forecaster_forecaster_type_error(forecaster):
     """Test that the right exception is raised for invalid forecaster."""
     with pytest.raises(TypeError) as ex:
@@ -49,7 +46,7 @@ def test_bagging_forecaster_forecaster_type_error(forecaster):
             forecaster=forecaster,
         )
         f.fit(y)
-        msg = "forecaster in BaggingForecaster should be an sktime Forecaster"
+        msg = "forecaster in BaggingForecaster should be an aeon Forecaster"
         assert msg == ex.value
 
 

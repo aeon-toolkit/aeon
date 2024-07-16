@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+jobs:
+  check-manifest:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: check-manifest --hook-stage manual
+
+  build-project:
+    needs: check-manifest
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Build project
+        run: |
+          python -m pip install build
+          python -m build
+
+      - name: Store build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+          retention-days: 5
+
+  test-wheels:
+    needs: build-project
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04, macOS-14, windows-2022 ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - if: runner.os == 'Windows'
+        name: Windows wheel filename
+        run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $env:GITHUB_ENV
+      - if: runner.os != 'Windows'
+        name: Unix wheel filename
+        run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $GITHUB_ENV
+
+      - if: runner.os == 'Windows'
+        name: Windows install
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install "${env:WHEELNAME}[all_extras,dev]"
+      - if: runner.os != 'Windows'
+        name: Unix install
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
+
+      - name: Tests
+        run: python -m pytest -n logical
+
+  upload-wheels:
+    needs: test-wheels
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}

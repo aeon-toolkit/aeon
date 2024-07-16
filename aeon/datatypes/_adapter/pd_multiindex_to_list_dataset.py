@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*-
+"""Multiindex to list."""
+
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -20,6 +21,7 @@ def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
         Only fixed frequency is supported at the moment.
     startdate: str, default = "1750-01-01"
         Custom startdate for ListDataset
+
     Returns
     -------
     A ListDataset mtype type to be used as input for gluonts models/estimators
@@ -27,16 +29,15 @@ def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     """
     _check_soft_dependencies("gluonts", severity="error")
 
+    # New dependency from Gluon-ts
     import numpy as np
     import pandas as pd
-
-    # New dependency from Gluon-ts
     from gluonts.dataset.common import ListDataset
 
     from aeon.datatypes import convert_to
 
     dimension_name = trainDF.columns
-    num_dimensions = len(trainDF.columns)
+    n_channels = len(trainDF.columns)
 
     # Convert to nested_univ format
     trainDF = convert_to(trainDF, to_type="nested_univ")
@@ -61,7 +62,7 @@ def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     else:
         # If not available, class_val_list will show instance numbers
         feat_static_cat = list(np.arange(len(trainDF)))
-    if num_dimensions > 1:
+    if n_channels > 1:
         one_dim_target = False
     else:
         one_dim_target = True
@@ -69,7 +70,7 @@ def convert_from_multiindex_to_listdataset(trainDF, class_val_list=None):
     all_instance_list = []
     for instance, _dim_name in trainDF.iterrows():
         one_instance_list = []
-        for dim in range(num_dimensions):
+        for dim in range(n_channels):
             tmp = list(trainDF.loc[instance, dimension_name[dim]].to_numpy())
             one_instance_list.append(tmp)
         if one_dim_target is True:

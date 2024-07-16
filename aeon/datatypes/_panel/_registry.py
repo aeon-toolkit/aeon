@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
-"""Registry of mtypes for Panel scitype. See datatypes._registry for API."""
+"""Registry of mtypes for Collections. See datatypes._registry for API."""
 
 import pandas as pd
 
 __all__ = [
-    "MTYPE_REGISTER_PANEL",
-    "MTYPE_LIST_PANEL",
-    "MTYPE_SOFT_DEPS_PANEL",
+    "TYPE_REGISTER_PANEL",
+    "TYPE_LIST_PANEL",
+    "TYPE_SOFT_DEPS_PANEL",
 ]
 
 
-MTYPE_REGISTER_PANEL = [
+TYPE_REGISTER_PANEL = [
     (
         "nested_univ",
         "Panel",
@@ -19,12 +18,12 @@ MTYPE_REGISTER_PANEL = [
     (
         "numpy3D",
         "Panel",
-        "3D np.array of format (n_instances, n_channels, n_timepoints)",
+        "3D np.ndarray of format (n_cases, n_channels, n_timepoints)",
     ),
     (
-        "numpyflat",
+        "numpy2D",
         "Panel",
-        "2D np.array of format (n_instances, n_columns*n_timepoints)",
+        "2D np.ndarray of format (n_cases, n_timepoints)",
     ),
     ("pd-multiindex", "Panel", "pd.DataFrame with multi-index (instances, timepoints)"),
     ("pd-wide", "Panel", "pd.DataFrame in wide format, cols = (instance*timepoints)"),
@@ -39,8 +38,14 @@ MTYPE_REGISTER_PANEL = [
         "Panel",
         "dask frame with one instance and one time index, as per dask_to_pd convention",
     ),
+    (
+        "np-list",
+        "Panel",
+        "list of length [n_cases], each case a 2D np.ndarray of shape (n_channels, "
+        "n_timepoints)",
+    ),
 ]
 
-MTYPE_SOFT_DEPS_PANEL = {"xr.DataArray": "xarray", "dask_panel": "dask"}
+TYPE_SOFT_DEPS_PANEL = {"xr.DataArray": "xarray", "dask_panel": "dask"}
 
-MTYPE_LIST_PANEL = pd.DataFrame(MTYPE_REGISTER_PANEL)[0].values
+TYPE_LIST_PANEL = pd.DataFrame(TYPE_REGISTER_PANEL)[0].values

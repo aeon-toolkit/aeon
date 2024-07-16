@@ -1,5 +1,5 @@
-# -*- coding: utf-8 -*-
 """Tests for numpy metrics in _functions module."""
+
 from inspect import getmembers, isfunction
 
 import numpy as np
@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from aeon.performance_metrics.forecasting import _functions
-from aeon.utils._testing.series import _make_series
+from aeon.testing.data_generation._legacy import make_series
 
 numpy_metrics = getmembers(_functions, isfunction)
 
@@ -22,10 +22,10 @@ names, metrics = zip(*numpy_metrics)
 @pytest.mark.parametrize("metric", metrics, ids=names)
 def test_metric_output(metric, multioutput, n_columns):
     """Test output is correct class."""
-    y_pred = _make_series(n_columns=n_columns, n_timepoints=20, random_state=21)
-    y_true = _make_series(n_columns=n_columns, n_timepoints=20, random_state=42)
+    y_pred = make_series(n_columns=n_columns, n_timepoints=20, random_state=21)
+    y_true = make_series(n_columns=n_columns, n_timepoints=20, random_state=42)
 
-    # coerce to DataFrame since _make_series does not return consisten output type
+    # coerce to DataFrame since make_series does not return consisten output type
     y_pred = pd.DataFrame(y_pred)
     y_true = pd.DataFrame(y_true)
 

@@ -1,9 +1,11 @@
 [report]
 show_missing = True
+exclude_lines =
+    pragma: no cover
+    @abstractmethod
+    @abc.abstractmethod
 
 [run]
+branch = True
 source = aeon
-omit =
-    */setup.py
-    */aeon/__init__.py
-    */aeon/setup.py
+parallel = True

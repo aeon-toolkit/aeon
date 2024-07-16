@@ -1,21 +1,66 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """Time format related utilities."""
 
-__author__ = ["mloning", "xiaobenbenecho", "khrapovs"]
+__maintainer__ = []
 __all__ = []
 
 import warnings
-from functools import singledispatch
-from typing import Optional, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_integer_dtype
 
-from aeon.datatypes import VectorizedDF
-from aeon.datatypes._utilities import get_time_index
 from aeon.utils.validation.series import check_time_index, is_integer_index
+
+
+def _get_index(x):
+    if hasattr(x, "index"):
+        return x.index
+    else:
+        # select last dimension for time index
+        return pd.RangeIndex(x.shape[-1])
+
+
+def get_time_index(X):
+    """Get index of time series data, helper function.
+
+    Parameters
+    ----------
+    X : pd.DataFrame, pd.Series, np.ndarray
+
+    Returns
+    -------
+    time_index : pandas.Index
+        Index of time series
+    """
+    # assumes that all samples share the same the time index, only looks at
+    # first row
+    if isinstance(X, (pd.DataFrame, pd.Series)):
+        # pd-multiindex or pd_multiindex_hier
+        if isinstance(X.index, pd.MultiIndex):
+            index_tuple = tuple(list(X.index[0])[:-1])
+            index = X.loc[index_tuple].index
+            return index
+        # nested_univ
+        elif isinstance(X, pd.DataFrame) and isinstance(X.iloc[0, 0], pd.DataFrame):
+            return _get_index(X.iloc[0, 0])
+        # pd.Series or pd.DataFrame
+        else:
+            return X.index
+    # numpy3D and np.ndarray
+    elif isinstance(X, np.ndarray):
+        # np.ndarray
+        if X.ndim < 3:
+            return pd.RangeIndex(X.shape[0])
+        # numpy3D
+        else:
+            return pd.RangeIndex(X.shape[-1])
+    elif hasattr(X, "X"):
+        return get_time_index(X.X)
+    else:
+        raise ValueError(
+            f"X must be pd.DataFrame, pd.Series, or np.ndarray, but found: {type(X)}"
+        )
 
 
 def _coerce_duration_to_int(
@@ -117,7 +162,7 @@ def set_hier_freq(x):
         raise ValueError("Set_freq only supported for DatetimeIndex.")
 
     if timepoints.freq is not None:
-        warnings.warn("Frequency already set.")
+        warnings.warn("Frequency already set.", stacklevel=2)
     else:
         time_names = x.index.names[-1]
         x = (
@@ -128,13 +173,12 @@ def set_hier_freq(x):
     return x
 
 
-@singledispatch
-def infer_freq(y=None) -> Optional[str]:
+def infer_freq(y):
     """Infer frequency string from the time series object.
 
     Parameters
     ----------
-    y : Series, Panel, or Hierarchical object, or VectorizedDF, optional (default=None)
+    y : pd.DataFrame, pd.Series, or np.ndarray object
 
     Returns
     -------
@@ -142,34 +186,7 @@ def infer_freq(y=None) -> Optional[str]:
         Frequency string inferred from the pandas index,
         or `None`, if inference fails.
     """
-    return None
-
-
-@infer_freq.register(pd.DataFrame)
-@infer_freq.register(pd.Series)
-@infer_freq.register(np.ndarray)
-def _(y) -> Optional[str]:
-    return _infer_freq_from_index(get_time_index(y))
-
-
-@infer_freq.register(VectorizedDF)
-def _(y) -> Optional[str]:
-    return _infer_freq_from_index(get_time_index(y.as_list()[0]))
-
-
-def _infer_freq_from_index(index: pd.Index) -> Optional[str]:
-    """Infer frequency string from the pandas index.
-
-    Parameters
-    ----------
-    index : pd.Index
-
-    Returns
-    -------
-    str
-        Frequency string inferred from the pandas index,
-        or `None`, if inference fails.
-    """
+    index = get_time_index(y)
     if hasattr(index, "freqstr"):
         return index.freqstr
     else:
@@ -233,7 +250,7 @@ def _get_duration(x, y=None, coerce_to_int=False, unit=None):
     Parameters
     ----------
     x : pd.Index, pd.Timestamp, pd.Period, int
-    y : pd.Timestamp, pd.Period, int, optional (default=None)
+    y : pd.Timestamp, pd.Period, int, default=None
     coerce_to_int : bool
         If True, duration is returned as integer value for given unit
     unit : str

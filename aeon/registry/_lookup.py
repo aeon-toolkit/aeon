@@ -1,20 +1,16 @@
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """
 Registry lookup methods.
 
 This module exports the following methods for registry lookup:
 
-all_estimators(estimator_types, filter_tags)
+all_estimators(estimator_identifiers, filter_tags)
     lookup and filtering of estimators
 
-all_tags(estimator_types)
+all_tags(estimator_identifiers)
     lookup and filtering of estimator tags
 """
 
-__author__ = ["fkiraly", "mloning", "katiebuc", "miraep8", "xloem"]
-# all_estimators is also based on the sklearn utility of the same name
-
+__maintainer__ = []
 
 import inspect
 import pkgutil
@@ -41,49 +37,55 @@ def all_estimators(
     estimator_types=None,
     filter_tags=None,
     exclude_estimators=None,
+    exclude_estimator_types=None,
     return_names=True,
     as_dataframe=False,
     return_tags=None,
     suppress_import_stdout=True,
 ):
-    """Get a list of all estimators from sktime.
+    """Get a list of all estimators from aeon.
 
     This function crawls the module and gets all classes that inherit
-    from sktime's and sklearn's base classes.
+    from aeon's and sklearn's base classes.
 
     Not included are: the base classes themselves, classes defined in test
     modules.
 
+    Based on the sklearn utility of the same name.
+
     Parameters
     ----------
-    estimator_types: str, list of str, optional (default=None)
+    estimator_types: str, list of str, default=None
         Which kind of estimators should be returned.
         if None, no filter is applied and all estimators are returned.
-        if str or list of str, strings define scitypes specified in search
-                only estimators that are of (at least) one of the scitypes are returned
+        if str or list of str, string identifiers define types specified in search
+                only estimators that are of (at least) one of the types are returned
             possible str values are entries of registry.BASE_CLASS_REGISTER (first col)
                 for instance 'classifier', 'regressor', 'transformer', 'forecaster'
-    return_names: bool, optional (default=True)
+    return_names: bool, default=True
         if True, estimator class name is included in the all_estimators()
             return in the order: name, estimator class, optional tags, either as
             a tuple or as pandas.DataFrame columns
         if False, estimator class name is removed from the all_estimators()
             return.
-    filter_tags: dict of (str or list of str), optional (default=None)
+    filter_tags: dict of (str or list of str), default=None
         For a list of valid tag strings, use the registry.all_tags utility.
         subsets the returned estimators as follows:
             each key/value pair is statement in "and"/conjunction
                 key is tag name to sub-set on
                 value str or list of string are tag values
                 condition is "key must be equal to value, or in set(value)"
-    exclude_estimators: str, list of str, optional (default=None)
+    exclude_estimators: str, list of str, default=None
         Names of estimators to exclude.
-    as_dataframe: bool, optional (default=False)
+    exclude_estimator_types: str, list of str, default=None
+        Names of estimator types to exclude i.e. "collection_transformer" when you are
+        looking for "transformer" classes
+    as_dataframe: bool, default=False
         if True, all_estimators will return a pandas.DataFrame with named
             columns for all of the attributes being returned.
         if False, all_estimators will return a list (either a list of
             estimators or a list of tuples, see Returns)
-    return_tags: str or list of str, optional (default=None)
+    return_tags: str or list of str, default=None
         Names of tags to fetch and return each estimator's value of.
         For a list of valid tag strings, use the registry.all_tags utility.
         if str or list of str,
@@ -123,11 +125,11 @@ def all_estimators(
     --------
     >>> from aeon.registry import all_estimators
     >>> # return a complete list of estimators as pd.Dataframe
-    >>> all_estimators(as_dataframe=True)
+    >>> all=all_estimators(as_dataframe=True)
     >>> # return all forecasters by filtering for estimator type
-    >>> all_estimators("forecaster")
+    >>> forecasters=all_estimators("forecaster")
     >>> # return all forecasters which handle missing data in the input by tag filtering
-    >>> all_estimators("forecaster", filter_tags={"handles-missing-data": True})
+    >>> f2=all_estimators("forecaster", filter_tags={"capability:missing_values":True})
 
     References
     ----------
@@ -137,10 +139,21 @@ def all_estimators(
     import sys
     import warnings
 
-    MODULES_TO_IGNORE = ("tests", "setup", "contrib", "benchmarking", "utils", "all")
+    MODULES_TO_IGNORE = (
+        "tests",
+        "setup",
+        "benchmarking",
+        "utils",
+        "all",
+        "testing",
+        "datasets",
+        "registry",
+        "datatypes",
+        "visualisation",
+    )
 
-    all_estimators = []
-    ROOT = str(Path(__file__).parent.parent)  # sktime package root directory
+    all_est = []
+    ROOT = str(Path(__file__).parent.parent)  # aeon package root directory
 
     def _is_abstract(klass):
         if not (hasattr(klass, "__abstractmethods__")):
@@ -210,6 +223,7 @@ def all_estimators(
         warnings.filterwarnings(
             "ignore", category=UserWarning, message=".*has been moved to.*"
         )
+        warnings.filterwarnings("ignore", category=Warning)
         for module_name in _walk(root=ROOT, exclude=MODULES_TO_IGNORE, prefix="aeon."):
             # Filter modules
             if _is_private_module(module_name):
@@ -218,9 +232,10 @@ def all_estimators(
             try:
                 if suppress_import_stdout:
                     # setup text trap, import, then restore
+                    original_stdout = sys.stdout
                     sys.stdout = io.StringIO()
                     module = import_module(module_name)
-                    sys.stdout = sys.__stdout__
+                    sys.stdout = original_stdout
                 else:
                     module = import_module(module_name)
                 classes = inspect.getmembers(module, inspect.isclass)
@@ -231,7 +246,7 @@ def all_estimators(
                     for name, klass in classes
                     if _is_estimator(name, klass)
                 ]
-                all_estimators.extend(estimators)
+                all_est.extend(estimators)
             except ModuleNotFoundError as e:
                 # Skip missing soft dependencies
                 if "soft dependency" not in str(e):
@@ -239,7 +254,7 @@ def all_estimators(
                 warnings.warn(str(e), ImportWarning, stacklevel=2)
 
     # Drop duplicates
-    all_estimators = set(all_estimators)
+    all_est = set(all_est)
 
     # Filter based on given estimator types
     def _is_in_estimator_types(estimator, estimator_types):
@@ -252,10 +267,21 @@ def all_estimators(
 
     if estimator_types:
         estimator_types = _check_estimator_types(estimator_types)
-        all_estimators = [
+        all_est = [
             (name, estimator)
-            for name, estimator in all_estimators
+            for name, estimator in all_est
             if _is_in_estimator_types(estimator, estimator_types)
+        ]
+
+    # Filter based on base class
+    if exclude_estimator_types:
+        exclude_estimator_types = _check_estimator_types(
+            exclude_estimator_types, var_name="exclude_estimator_types"
+        )
+        all_est = [
+            (name, estimator)
+            for name, estimator in all_est
+            if not _is_in_estimator_types(estimator, exclude_estimator_types)
         ]
 
     # Filter based on given exclude list
@@ -263,25 +289,25 @@ def all_estimators(
         exclude_estimators = _check_list_of_str_or_error(
             exclude_estimators, "exclude_estimators"
         )
-        all_estimators = [
+        all_est = [
             (name, estimator)
-            for name, estimator in all_estimators
+            for name, estimator in all_est
             if name not in exclude_estimators
         ]
 
     # Drop duplicates, sort for reproducibility
     # itemgetter is used to ensure the sort does not extend to the 2nd item of
     # the tuple
-    all_estimators = sorted(all_estimators, key=itemgetter(0))
+    all_est = sorted(all_est, key=itemgetter(0))
 
     if filter_tags:
-        all_estimators = [
-            (n, est) for (n, est) in all_estimators if _check_tag_cond(est, filter_tags)
+        all_est = [
+            (n, est) for (n, est) in all_est if _check_tag_cond(est, filter_tags)
         ]
 
     # remove names if return_names=False
     if not return_names:
-        all_estimators = [estimator for (name, estimator) in all_estimators]
+        all_est = [estimator for (name, estimator) in all_est]
         columns = ["estimator"]
     else:
         columns = ["name", "estimator"]
@@ -290,24 +316,23 @@ def all_estimators(
     if return_tags:
         return_tags = _check_list_of_str_or_error(return_tags, "return_tags")
         # enrich all_estimators by adding the values for all return_tags tags:
-        if all_estimators:
-            if isinstance(all_estimators[0], tuple):
-                all_estimators = [
+        if all_est:
+            if isinstance(all_est[0], tuple):
+                all_est = [
                     (name, est) + _get_return_tags(est, return_tags)
-                    for (name, est) in all_estimators
+                    for (name, est) in all_est
                 ]
             else:
-                all_estimators = [
-                    tuple([est]) + _get_return_tags(est, return_tags)
-                    for est in all_estimators
+                all_est = [
+                    tuple([est]) + _get_return_tags(est, return_tags) for est in all_est
                 ]
         columns = columns + return_tags
 
     # convert to pandas.DataFrame if as_dataframe=True
     if as_dataframe:
-        all_estimators = pd.DataFrame(all_estimators, columns=columns)
+        all_est = pd.DataFrame(all_est, columns=columns)
 
-    return all_estimators
+    return all_est
 
 
 def _check_list_of_str_or_error(arg_to_check, arg_name):
@@ -348,7 +373,7 @@ def _get_return_tags(estimator, return_tags):
 
     Parameters
     ----------
-    estimator:  BaseEstimator, an sktime estimator
+    estimator:  BaseEstimator, an aeon estimator
     return_tags: list of str,
         names of tags to get values for the estimator
 
@@ -366,7 +391,7 @@ def _check_tag_cond(estimator, filter_tags=None, as_dataframe=True):
 
     Parameters
     ----------
-    estimator: BaseEstimator, an sktime estimator
+    estimator: BaseEstimator, an aeon estimator
     filter_tags: dict of (str or list of str), default=None
         subsets the returned estimators as follows:
             each key/value pair is statement in "and"/conjunction
@@ -390,7 +415,15 @@ def _check_tag_cond(estimator, filter_tags=None, as_dataframe=True):
     for key, value in filter_tags.items():
         if not isinstance(value, list):
             value = [value]
-        cond_sat = cond_sat and estimator.get_class_tag(key) in set(value)
+        tags = estimator.get_class_tag(key)
+        if isinstance(tags, list):
+            in_list = False
+            for s in tags:
+                if s in value:
+                    in_list = True
+            cond_sat = cond_sat and in_list
+        else:
+            cond_sat = cond_sat and tags in value
 
     return cond_sat
 
@@ -399,19 +432,19 @@ def all_tags(
     estimator_types=None,
     as_dataframe=False,
 ):
-    """Get a list of all tags from sktime.
+    """Get a list of all tags from aeon.
 
     Retrieves tags directly from `_tags`, offers filtering functionality.
 
     Parameters
     ----------
-    estimator_types: string, list of string, optional (default=None)
+    estimator_types: string, list of string, default=None
         Which kind of estimators should be returned.
         - If None, no filter is applied and all estimators are returned.
         - Possible values are 'classifier', 'regressor', 'transformer' and
         'forecaster' to get estimators only of these specific types, or a list of
         these to get the estimators that fit at least one of the types.
-    as_dataframe: bool, optional (default=False)
+    as_dataframe: bool, default=False
                 if False, return is as described below;
                 if True, return is converted into a pandas.DataFrame for pretty
                 display
@@ -421,8 +454,8 @@ def all_tags(
     tags: list of tuples (a, b, c, d),
         in alphabetical order by a
         a : string - name of the tag as used in the _tags dictionary
-        b : string - name of the scitype this tag applies to
-                    must be in _base_classes.BASE_CLASS_SCITYPE_LIST
+        b : string - name of the type this tag applies to
+                    must be in _base_classes.BASE_CLASS_IDENTIFIER_LIST
         c : string - expected type of the tag value
             should be one of:
                 "bool" - valid values are True/False
@@ -463,7 +496,7 @@ def all_tags(
     return all_tags
 
 
-def _check_estimator_types(estimator_types):
+def _check_estimator_types(estimator_types, var_name="estimator_identifiers"):
     """Return list of classes corresponding to type strings."""
     estimator_types = deepcopy(estimator_types)
 
@@ -472,7 +505,7 @@ def _check_estimator_types(estimator_types):
 
     def _get_err_msg(estimator_type):
         return (
-            f"Parameter `estimator_type` must be None, a string or a list of "
+            f"Parameter `{var_name}` must be None, a string or a list of "
             f"strings. Valid string values are: "
             f"{tuple(BASE_CLASS_LOOKUP.keys())}, but found: "
             f"{repr(estimator_type)}"
@@ -481,7 +514,7 @@ def _check_estimator_types(estimator_types):
     for i, estimator_type in enumerate(estimator_types):
         if not isinstance(estimator_type, (type, str)):
             raise ValueError(
-                "Please specify `estimator_types` as a list of str or " "types."
+                f"Please specify `{var_name}` as a list of str or " "types."
             )
         if isinstance(estimator_type, str):
             if estimator_type not in BASE_CLASS_LOOKUP.keys():

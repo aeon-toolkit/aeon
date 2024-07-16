@@ -1,9 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file).
 """Implements Bagging Forecaster."""
 
-__author__ = ["ltsaprounis"]
+__maintainer__ = []
 
 from typing import List, Union
 
@@ -13,15 +10,15 @@ from sklearn import clone
 from sklearn.utils import check_random_state
 from sklearn.utils._testing import set_random_state
 
-from aeon.datatypes._utilities import update_data
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.ets import AutoETS
+from aeon.testing.mock_estimators import MockForecaster
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.bootstrap import (
     MovingBlockBootstrapTransformer,
     STLBootstrapTransformer,
 )
-from aeon.utils.estimators import MockForecaster
+from aeon.utils.index_functions import update_data
 
 
 class BaggingForecaster(BaseForecaster):
@@ -40,13 +37,13 @@ class BaggingForecaster(BaseForecaster):
     Parameters
     ----------
     bootstrap_transformer : BaseTransformer
-        (sktime.transformations.bootstrap.STLBootstrapTransformer)
+        (aeon.transformations.bootstrap.STLBootstrapTransformer)
         Bootstrapping Transformer that takes a series (with tag
-        scitype:transform-input=Series) as input and returns a panel (with tag
-        scitype:transform-input=Panel) of bootstrapped time series if not specified
-        sktime.transformations.bootstrap.STLBootstrapTransformer is used.
-    forecaster : BaseForecaster (sktime.forecating.ets.AutoETS)
-        A valid sktime Forecaster. If not specified sktime.forecating.ets.AutoETS is
+        input_data_type=Series) as input and returns a panel (with tag
+        input_data_type=Panel) of bootstrapped time series if not specified
+        aeon.transformations.bootstrap.STLBootstrapTransformer is used.
+    forecaster : BaseForecaster (aeon.forecating.ets.AutoETS)
+        A valid aeon Forecaster. If not specified aeon.forecating.ets.AutoETS is
         used.
     sp: int (default=2)
         Seasonal period for default Forecaster and Transformer. Must be 2 or greater.
@@ -56,11 +53,11 @@ class BaggingForecaster(BaseForecaster):
 
     See Also
     --------
-    sktime.transformations.bootstrap.MovingBlockBootstrapTransformer :
+    aeon.transformations.bootstrap.MovingBlockBootstrapTransformer :
         Transformer that applies the Moving Block Bootstrapping method to create
         a panel of synthetic time series.
 
-    sktime.transformations.bootstrap.STLBootstrapTransformer :
+    aeon.transformations.bootstrap.STLBootstrapTransformer :
         Transformer that utilises BoxCox, STL and Moving Block Bootstrapping to create
         a panel of similar time series.
 
@@ -89,11 +86,11 @@ class BaggingForecaster(BaseForecaster):
     """
 
     _tags = {
-        "scitype:y": "univariate",  # which y are fine? univariate/multivariate/both
+        "y_input_type": "univariate",  # which y are fine? univariate/multivariate/both
         "ignores-exogeneous-X": True,  # does estimator ignore the exogeneous X?
-        "handles-missing-data": False,  # can estimator handle missing data?
-        "y_inner_mtype": "pd.Series",  # which types do _fit, _predict, assume for y?
-        "X_inner_mtype": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
+        "capability:missing_values": False,  # can estimator handle missing data?
+        "y_inner_type": "pd.Series",  # which types do _fit, _predict, assume for y?
+        "X_inner_type": "pd.DataFrame",  # which types do _fit, _predict, assume for X?
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "requires-fh-in-fit": False,  # like AutoETS overwritten if forecaster not None
         "enforce_index_type": None,  # like AutoETS overwritten if forecaster not None
@@ -114,12 +111,12 @@ class BaggingForecaster(BaseForecaster):
 
         if bootstrap_transformer is None:
             # if the transformer is None, this uses the statsmodels dependent
-            # sktime.transformations.bootstrap.STLBootstrapTransformer
+            # aeon.transformations.bootstrap.STLBootstrapTransformer
             #
             # done before the super call to trigger exceptions
             self.set_tags(**{"python_dependencies": "statsmodels"})
 
-        super(BaggingForecaster, self).__init__()
+        super().__init__()
 
         # set the tags based on forecaster
         tags_to_clone = [
@@ -139,19 +136,19 @@ class BaggingForecaster(BaseForecaster):
 
         Parameters
         ----------
-        y : guaranteed to be of a type in self.get_tag("y_inner_mtype")
+        y : guaranteed to be of a type in self.get_tag("y_inner_type")
             Time series to which to fit the forecaster.
-            if self.get_tag("scitype:y")=="univariate":
+            if self.get_tag("y_input_type")=="univariate":
                 guaranteed to have a single column/variable
-            if self.get_tag("scitype:y")=="multivariate":
+            if self.get_tag("y_input_type")=="multivariate":
                 guaranteed to have 2 or more columns
-            if self.get_tag("scitype:y")=="both": no restrictions apply
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+            if self.get_tag("y_input_type")=="both": no restrictions apply
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             Required (non-optional) here if self.get_tag("requires-fh-in-fit")==True
             Otherwise, if not passed in _fit, guaranteed to be passed in _predict
-        X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
+        X : default=None
+            guaranteed to be of a type in self.get_tag("X_inner_type")
             Exogeneous time series to fit to.
 
         Returns
@@ -169,12 +166,10 @@ class BaggingForecaster(BaseForecaster):
             self.forecaster_ = clone(self.forecaster)
 
         if (
-            self.bootstrap_transformer_.get_tag(
-                "scitype:transform-input", raise_error=False
-            )
+            self.bootstrap_transformer_.get_tag("input_data_type", raise_error=False)
             != "Series"
             and self.bootstrap_transformer_.get_tag(
-                "scitype:transform-output", raise_error=False
+                "output_data_type", raise_error=False
             )
             != "Panel"
             and not isinstance(self.bootstrap_transformer_, BaseTransformer)
@@ -186,7 +181,7 @@ class BaggingForecaster(BaseForecaster):
 
         if not isinstance(self.forecaster_, BaseForecaster):
             raise TypeError(
-                "forecaster in BaggingForecaster should be an sktime Forecaster"
+                "forecaster in BaggingForecaster should be an aeon Forecaster"
             )
 
         # random state handling passed into input estimators
@@ -213,10 +208,10 @@ class BaggingForecaster(BaseForecaster):
 
         Parameters
         ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
+        fh : guaranteed to be ForecastingHorizon or None, default=None
             The forecasting horizon with the steps ahead to to predict.
             If not passed in _fit, guaranteed to be passed here
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
 
         Returns
@@ -246,7 +241,7 @@ class BaggingForecaster(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous time series
         alpha : list of float (guaranteed not None and floats in [0,1] interval)
             A list of probabilities at which quantile forecasts are computed.
@@ -272,9 +267,9 @@ class BaggingForecaster(BaseForecaster):
         ----------
         y : pd.Series, pd.DataFrame, or np.array
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogeneous data
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns

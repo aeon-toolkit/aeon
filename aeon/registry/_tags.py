@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Register of estimator and object tags.
 
 Note for extenders: new tags should be entered in ESTIMATOR_TAG_REGISTER.
@@ -6,13 +5,14 @@ No other place is necessary to add new tags.
 
 This module exports the following:
 
+
 ---
 ESTIMATOR_TAG_REGISTER - list of tuples
 
 each tuple corresponds to a tag, elements as follows:
     0 : string - name of the tag as used in the _tags dictionary
-    1 : string - name of the scitype this tag applies to
-                 must be in _base_classes.BASE_CLASS_SCITYPE_LIST
+    1 : string - identifier for the base class of objects this tag applies to
+                 must be in _base_classes.BASE_CLASS_IDENTIFIER_LIST
     2 : string - expected type of the tag value
         should be one of:
             "bool" - valid values are True/False
@@ -40,11 +40,19 @@ check_tag_is_valid(tag_name, tag_value) - checks whether tag_value is valid for 
 
 """
 
-__author__ = ["fkiraly", "victordremov"]
+__maintainer__ = []
 
 import pandas as pd
 
 ESTIMATOR_TAG_REGISTER = [
+    (
+        "returns_dense",
+        "segmenter",
+        "bool",
+        "does segmenter return a list of change points/start index of each "
+        "segmenter (dense format) or a list indicating which segment each time point "
+        "belongs to.",
+    ),
     (
         "ignores-exogeneous-X",
         "forecaster",
@@ -70,10 +78,16 @@ ESTIMATOR_TAG_REGISTER = [
         "does transform return same time index as input?",
     ),
     (
-        "handles-missing-data",
+        "non-deterministic",
         "estimator",
         "bool",
-        "can the estimator handle missing data (NA, np.nan) in inputs?",
+        "does running the estimator multiple times generate the same output?",
+    ),
+    (
+        "cant-pickle",
+        "estimator",
+        "bool",
+        "flag for estimators which are unable to be pickled",
     ),
     (
         "skip-inverse-transform",
@@ -100,28 +114,23 @@ ESTIMATOR_TAG_REGISTER = [
         "passed to input checks, input conversion index type to enforce",
     ),
     (
-        "scitype:X",
-        "param_est",
-        "str",
-        "which scitypes does X internally support?",
-    ),
-    (
-        "scitype:y",
+        "y_input_type",
         "forecaster",
         ("str", ["univariate", "multivariate", "both"]),
         "which series type does the forecaster support? multivariate means >1 vars",
     ),
     (
-        "y_inner_mtype",
+        "y_inner_type",
         ["forecaster", "transformer"],
         (
             "list",
             [
                 "pd.Series",
                 "pd.DataFrame",
-                "np.array",
+                "np.ndarray",
                 "nested_univ",
                 "pd-multiindex",
+                "pd_multiindex_hier",
                 "numpy3D",
                 "df-list",
             ],
@@ -129,46 +138,59 @@ ESTIMATOR_TAG_REGISTER = [
         "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
-        "X_inner_mtype",
-        ["forecaster", "param_est"],
+        "X_inner_type",
+        [
+            "forecaster",
+            "classifier",
+            "regressor",
+            "transformer",
+            "clusterer",
+            "anomaly-detector",
+        ],
         (
             "list",
             [
                 "pd.Series",
                 "pd.DataFrame",
-                "np.array",
+                "np.ndarray",
                 "nested_univ",
                 "pd-multiindex",
                 "numpy3D",
                 "df-list",
-                "numpy-list",
+                "np-list",
             ],
         ),
         "which data structure is the internal _fit/_predict able to deal with?",
     ),
     (
-        "scitype:transform-input",
+        "input_data_type",
         "transformer",
-        ("list", ["Series", "Panel"]),
-        "what is the scitype of the transformer input X",
+        ("list", ["Series", "Collection", "Panel"]),
+        "The input abstract data type of the transformer, input X. Series "
+        "indicates a single series input, Collection indicates a collection of "
+        "time series. Panel is a legacy term and equivalent to Collection.",
     ),
     (
-        "scitype:transform-output",
+        "output_data_type",
         "transformer",
-        ("list", ["Series", "Primitives", "Panel"]),
-        "what is the scitype of the transformer output, the transformed X",
+        ("list", ["Tabular", "Series", "Collection", "Primitives", "Panel"]),
+        "The output abstract data type of the transformer output, the transformed X. "
+        "Tabular indicates 2D output where rows are cases and unordered attributes are "
+        "columns. Series indicates a single series output and collection indicates "
+        "output is a collection of time series.  Primitives is a legacy term for "
+        "Tabular and Panel for Collection.",
     ),
     (
-        "scitype:instancewise",
+        "instancewise",
         "transformer",
         "bool",
-        "does the transformer transform instances independently?",
+        "Does the transformer transform instances independently?",
     ),
     (
-        "scitype:transform-labels",
+        "transform_labels",
         "transformer",
         ("list", ["None", "Series", "Primitives", "Panel"]),
-        "what is the scitype of y: None (not needed), Primitives, Series, Panel?",
+        "What is the type of y: None (not needed), Primitives, Series, Panel?",
     ),
     (
         "requires_y",
@@ -198,37 +220,43 @@ ESTIMATOR_TAG_REGISTER = [
         "capability:multivariate",
         [
             "classifier",
+            "clusterer",
             "early_classifier",
-            "param_est",
             "regressor",
+            "transformer",
+            "similarity-search",
+            "segmenter",
         ],
         "bool",
-        "can the classifier classify time series with 2 or more variables?",
+        "can the estimator deal with series with two or more channels?",
+    ),
+    (
+        "capability:univariate",
+        [
+            "segmenter",
+        ],
+        "bool",
+        "can the estimator deal with single series input?",
     ),
     (
         "capability:unequal_length",
         [
             "classifier",
+            "clusterer",
             "early_classifier",
             "regressor",
             "transformer",
+            "similarity-search",
+            "segmenter",
         ],
         "bool",
         "can the estimator handle unequal length time series?",
     ),
-    # "capability:missing_values" is same as "handles-missing-data" tag.
-    # They are kept distinct intentionally for easier TSC refactoring.
-    # Will be merged after refactor completion.
     (
         "capability:missing_values",
-        [
-            "classifier",
-            "early_classifier",
-            "param_est",
-            "regressor",
-        ],
+        "estimator",
         "bool",
-        "can the classifier handle missing data (NA, np.nan) in inputs?",
+        "can the estimator handle missing data (NA, np.nan) in inputs?",
     ),
     (
         "capability:unequal_length:removes",
@@ -244,21 +272,21 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "capability:train_estimate",
-        "classifier",
+        ["classifier", "regressor"],
         "bool",
         "can the classifier estimate its performance on the training set?",
     ),
     (
         "capability:contractable",
-        "classifier",
+        ["classifier", "regressor"],
         "bool",
         "contract time setting, does the estimator support limiting max fit time?",
     ),
     (
         "capability:multithreading",
-        ["classifier", "early_classifier"],
+        "estimator",
         "bool",
-        "can the classifier set n_jobs to use multiple threads?",
+        "can the estimator set n_jobs to use multiple threads?",
     ),
     (
         "algorithm_type",
@@ -276,44 +304,8 @@ ESTIMATOR_TAG_REGISTER = [
                 "deeplearning",
             ],
         ),
-        "which type the estimator falls under in the taxonomy of time series "
+        "Which type the estimator falls under in the taxonomy of time series "
         "machine learning algorithms.",
-    ),
-    (
-        "requires-y-train",
-        "metric",
-        "bool",
-        "does metric require y-train data to be passed?",
-    ),
-    (
-        "requires-y-pred-benchmark",
-        "metric",
-        "bool",
-        "does metric require a predictive benchmark?",
-    ),
-    (
-        "univariate-metric",
-        "metric",
-        "bool",
-        "Does the metric only work on univariate y data?",
-    ),
-    (
-        "scitype:y_pred",
-        "metric",
-        "str",
-        "What is the scitype of y_pred: quantiles, proba, interval?",
-    ),
-    (
-        "lower_is_better",
-        "metric",
-        "bool",
-        "Is a lower value better for the metric? True=yes, False=higher is better",
-    ),
-    (
-        "inner_implements_multilevel",
-        "metric",
-        "bool",
-        "whether inner _evaluate can deal with multilevel (Panel/Hierarchical)",
     ),
     (
         "python_version",

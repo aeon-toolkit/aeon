@@ -1,62 +1,118 @@
-# -*- coding: utf-8 -*-
 """Time Series Forest (TSF) Classifier.
 
-Interval based TSF classifier, extracts basic summary features from random intervals.
+Interval-based TSF classifier, extracts basic summary features from random intervals.
 """
 
-__author__ = ["kkoziara", "luiszugasti", "kanand77"]
+__maintainer__ = []
 __all__ = ["TimeSeriesForestClassifier"]
 
 import numpy as np
-from joblib import Parallel, delayed
-from sklearn.ensemble._forest import ForestClassifier
-from sklearn.tree import DecisionTreeClassifier
 
-from aeon.classification.base import BaseClassifier
-from aeon.series_as_features.base.estimators.interval_based import BaseTimeSeriesForest
-from aeon.series_as_features.base.estimators.interval_based._tsf import _transform
+from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.classification import BaseClassifier
+from aeon.classification.sklearn import ContinuousIntervalTree
 
 
-class TimeSeriesForestClassifier(
-    BaseTimeSeriesForest, ForestClassifier, BaseClassifier
-):
-    """Time series forest classifier.
+class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
+    """Time series forest (TSF) classifier.
 
-    A time series forest is an ensemble of decision trees built on random intervals.
+    Time series forest is an ensemble of decision trees built on random intervals [1]_.
     Overview: Input n series length m.
     For each tree
         - sample sqrt(m) intervals,
         - find mean, std and slope for each interval, concatenate to form new
         data set,
-        - build decision tree on new data set.
+        - build a decision tree on new data set.
     Ensemble the trees with averaged probability estimates.
 
     This implementation deviates from the original in minor ways. It samples
-    intervals with replacement and does not use the splitting criteria tiny
-    refinement described in [1].
-
-    This is an intentionally stripped down, non
-    configurable version for use as a hive-cote component. For a configurable
-    tree based ensemble, see sktime.classifiers.ensemble.TimeSeriesForestClassifier
+    intervals with replacement and does not use the tree splitting criteria
+    refinement described in [1] (this can be done with the CITClassifier base
+    estimator).
 
     Parameters
     ----------
+    base_estimator : BaseEstimator or None, default=None
+        scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
+        simple decision tree.
     n_estimators : int, default=200
         Number of estimators to build for the ensemble.
-    min_interval : int, default=3
-        Minimum length of an interval.
+    n_intervals : int, str, list or tuple, default="sqrt"
+        Number of intervals to extract per tree for each series_transformers series.
+
+        An int input will extract that number of intervals from the series, while a str
+        input will return a function of the series length (may differ per
+        series_transformers output) to extract that number of intervals.
+        Valid str inputs are:
+            - "sqrt": square root of the series length.
+            - "sqrt-div": sqrt of series length divided by the number
+                of series_transformers.
+
+        A list or tuple of ints and/or strs will extract the number of intervals using
+        the above rules and sum the results for the final n_intervals. i.e. [4, "sqrt"]
+        will extract sqrt(n_timepoints) + 4 intervals.
+
+        Different number of intervals for each series_transformers series can be
+        specified using a nested list or tuple. Any list or tuple input containing
+        another list or tuple must be the same length as the number of
+        series_transformers.
+
+        While random interval extraction will extract the n_intervals intervals total
+        (removing duplicates), supervised intervals will run the supervised extraction
+        process n_intervals times, returning more intervals than specified.
+    min_interval_length : int, float, list, or tuple, default=3
+        Minimum length of intervals to extract from series. float inputs take a
+        proportion of the series length to use as the minimum interval length.
+
+        Different minimum interval lengths for each series_transformers series can be
+        specified using a list or tuple. Any list or tuple input must be the same length
+        as the number of series_transformers.
+    max_interval_length : int, float, list, or tuple, default=np.inf
+        Maximum length of intervals to extract from series. float inputs take a
+        proportion of the series length to use as the maximum interval length.
+
+        Different maximum interval lengths for each series_transformers series can be
+        specified using a list or tuple. Any list or tuple input must be the same length
+        as the number of series_transformers.
+
+        Ignored for supervised interval_selection_method inputs.
+    time_limit_in_minutes : int, default=0
+        Time contract to limit build time in minutes, overriding n_estimators.
+        Default of 0 means n_estimators are used.
+    contract_max_n_estimators : int, default=500
+        Max number of estimators when time_limit_in_minutes is set.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
+        value of "threads" is used by default.
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
 
     Attributes
     ----------
+    n_cases_ : int
+        The number of train cases in the training set.
+    n_channels_ : int
+        The number of dimensions per case in the training set.
+    n_timepoints_ : int
+        The length of each series in the training set.
     n_classes_ : int
-        The number of classes.
-    classes_ : list
-        The classes labels.
+        Number of classes. Extracted from the data.
+    classes_ : ndarray of shape (n_classes_)
+        Holds the label for each class.
+    total_intervals_ : int
+        Total number of intervals per tree from all representations.
+    estimators_ : list of shape (n_estimators) of BaseEstimator
+        The collections of estimators trained in fit.
+    intervals_ : list of shape (n_estimators) of BaseTransformer
+        Stores the interval extraction transformer for all estimators.
 
     Notes
     -----
@@ -67,115 +123,79 @@ class TimeSeriesForestClassifier(
     References
     ----------
     .. [1] H.Deng, G.Runger, E.Tuv and M.Vladimir, "A time series forest for
-       classification and feature extraction",Information Sciences, 239, 2013
+       classification and feature extraction", Information Sciences, 239, 2013
 
     Examples
     --------
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
-    >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> clf = TimeSeriesForestClassifier(n_estimators=5)
-    >>> clf.fit(X_train, y_train)
-    TimeSeriesForestClassifier(...)
-    >>> y_pred = clf.predict(X_test)
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    ...                              return_y=True, random_state=0)
+    >>> clf = TimeSeriesForestClassifier(n_estimators=10, random_state=0)
+    >>> clf.fit(X, y)
+    TimeSeriesForestClassifier(n_estimators=10, random_state=0)
+    >>> clf.predict(X)
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {
+        "capability:multivariate": True,
+        "capability:train_estimate": True,
+        "capability:contractable": True,
+        "capability:multithreading": True,
         "algorithm_type": "interval",
     }
 
-    _base_estimator = DecisionTreeClassifier(criterion="entropy")
-
     def __init__(
         self,
-        min_interval=3,
+        base_estimator=None,
         n_estimators=200,
-        n_jobs=1,
+        n_intervals="sqrt",
+        min_interval_length=3,
+        max_interval_length=np.inf,
+        time_limit_in_minutes=None,
+        contract_max_n_estimators=500,
         random_state=None,
+        n_jobs=1,
+        parallel_backend=None,
     ):
-        super(TimeSeriesForestClassifier, self).__init__(
-            min_interval=min_interval,
+        if isinstance(base_estimator, ContinuousIntervalTree):
+            replace_nan = "nan"
+        else:
+            replace_nan = 0
+
+        super().__init__(
+            base_estimator=base_estimator,
             n_estimators=n_estimators,
-            n_jobs=n_jobs,
+            interval_selection_method="random",
+            n_intervals=n_intervals,
+            min_interval_length=min_interval_length,
+            max_interval_length=max_interval_length,
+            interval_features=None,
+            series_transformers=None,
+            att_subsample_size=None,
+            replace_nan=replace_nan,
+            time_limit_in_minutes=time_limit_in_minutes,
+            contract_max_n_estimators=contract_max_n_estimators,
             random_state=random_state,
+            n_jobs=n_jobs,
+            parallel_backend=parallel_backend,
         )
-        BaseClassifier.__init__(self)
-
-    def fit(self, X, y, **kwargs):
-        """Wrap fit to call BaseClassifier.fit.
-
-        This is a fix to get around the problem with multiple inheritance. The
-        problem is that if we just override _fit, this class inherits the fit from
-        the sklearn class BaseTimeSeriesForest. This is the simplest solution,
-        albeit a little hacky.
-        """
-        return BaseClassifier.fit(self, X=X, y=y, **kwargs)
-
-    def predict(self, X, **kwargs) -> np.ndarray:
-        """Wrap predict to call BaseClassifier.predict."""
-        return BaseClassifier.predict(self, X=X, **kwargs)
-
-    def predict_proba(self, X, **kwargs) -> np.ndarray:
-        """Wrap predict_proba to call BaseClassifier.predict_proba."""
-        return BaseClassifier.predict_proba(self, X=X, **kwargs)
 
     def _fit(self, X, y):
-        BaseTimeSeriesForest._fit(self, X=X, y=y)
+        return super()._fit(X, y)
 
     def _predict(self, X) -> np.ndarray:
-        """Find predictions for all cases in X. Built on top of predict_proba.
-
-        Parameters
-        ----------
-        X : The training input samples. array-like or pandas data frame.
-        If a Pandas data frame is passed, a check is performed that it only
-        has one column.
-        If not, an exception is thrown, since this classifier does not yet have
-        multivariate capability.
-
-        Returns
-        -------
-        output : array of shape = [n_test_instances]
-        """
-        proba = self.predict_proba(X)
-        return np.asarray([self.classes_[np.argmax(prob)] for prob in proba])
+        return super()._predict(X)
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Find probability estimates for each class for all cases in X.
+        return super()._predict_proba(X)
 
-        Parameters
-        ----------
-        X : The training input samples. array-like or sparse matrix of shape
-        = [n_test_instances, series_length]
-            If a Pandas data frame is passed (sktime format) a check is
-            performed that it only has one column.
-            If not, an exception is thrown, since this classifier does not
-            yet have
-            multivariate capability.
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
 
-        Returns
-        -------
-        output : nd.array of shape = (n_instances, n_classes)
-            Predicted probabilities
-        """
-        X = X.squeeze(1)
-        y_probas = Parallel(n_jobs=self.n_jobs, prefer="threads")(
-            delayed(_predict_single_classifier_proba)(
-                X, self.estimators_[i], self.intervals_[i]
-            )
-            for i in range(self.n_estimators)
-        )
-
-        output = np.sum(y_probas, axis=0) / (
-            np.ones(self.n_classes) * self.n_estimators
-        )
-        return output
-
-    def _get_fitted_params(self):
-        params = super(TimeSeriesForestClassifier, self)._get_fitted_params()
-        params.update({"n_classes": self.n_classes_, "fit_time": self.fit_time_})
-        return params
+    def _fit_predict_proba(self, X, y) -> np.ndarray:
+        return super()._fit_predict_proba(X, y)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -187,9 +207,15 @@ class TimeSeriesForestClassifier(
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
             TimeSeriesForestClassifier provides the following special sets:
-                 "results_comparison" - used in some classifiers to compare against
+                "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
+                "contracting" - used in classifiers that set the
+                    "capability:contractable" tag to True to test contacting
+                    functionality
+                "train_estimate" - used in some classifiers that set the
+                    "capability:train_estimate" tag to True to allow for more efficient
+                    testing when relevant parameters are available
 
         Returns
         -------
@@ -201,11 +227,11 @@ class TimeSeriesForestClassifier(
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10}
+        elif parameter_set == "contracting":
+            return {
+                "time_limit_in_minutes": 5,
+                "contract_max_n_estimators": 2,
+                "n_intervals": 2,
+            }
         else:
-            return {"n_estimators": 2}
-
-
-def _predict_single_classifier_proba(X, estimator, intervals):
-    """Find probability estimates for each class for all cases in X."""
-    Xt = _transform(X, intervals)
-    return estimator.predict_proba(Xt)
+            return {"n_estimators": 2, "n_intervals": 2}

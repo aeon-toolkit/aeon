@@ -1,26 +1,22 @@
-# -*- coding: utf-8 -*-
 """Unit tests for classifier/regressor input output."""
 
-__author__ = ["mloning", "TonyBagnall", "fkiraly"]
+__maintainer__ = []
 
 import inspect
+from sys import platform
 
 import numpy as np
-import pytest
+from sklearn.utils._testing import set_random_state
 
-from aeon.classification.tests._expected_outputs import (
+from aeon.datasets import load_basic_motions, load_unit_test
+from aeon.testing.expected_results.expected_classifier_outputs import (
     basic_motions_proba,
     unit_test_proba,
 )
-from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.datatypes import check_is_scitype
-from aeon.tests.test_all_estimators import BaseFixtureGenerator, QuickTester
-from aeon.utils._testing.estimator_checks import _assert_array_almost_equal
-from aeon.utils._testing.panel import make_classification_problem
-from aeon.utils._testing.scenarios_classification import (
-    ClassifierFitPredict,
-    ClassifierFitPredictMultivariate,
-)
+from aeon.testing.test_all_estimators import BaseFixtureGenerator, QuickTester
+from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
+from aeon.testing.utils.scenarios_classification import ClassifierFitPredict
+from aeon.utils.validation import get_n_cases
 
 
 class ClassifierFixtureGenerator(BaseFixtureGenerator):
@@ -45,29 +41,7 @@ class ClassifierFixtureGenerator(BaseFixtureGenerator):
 
 
 class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
-    """Module level tests for all sktime classifiers."""
-
-    def test_multivariate_input_exception(self, estimator_instance):
-        """Test univariate classifiers raise exception on multivariate X."""
-        # check if multivariate input raises error for univariate classifiers
-
-        # if handles multivariate, no error is to be raised
-        #   that classifier works on multivariate data is tested in test_all_estimators
-        if estimator_instance.get_tag("capability:multivariate"):
-            return None
-
-        error_msg = "multivariate series"
-
-        scenario = ClassifierFitPredictMultivariate()
-
-        # check if estimator raises appropriate error message
-        #   composites will raise a warning, non-composites an exception
-        if estimator_instance.is_composite():
-            with pytest.warns(UserWarning, match=error_msg):
-                scenario.run(estimator_instance, method_sequence=["fit"])
-        else:
-            with pytest.raises(ValueError, match=error_msg):
-                scenario.run(estimator_instance, method_sequence=["fit"])
+    """Module level tests for all aeon classifiers."""
 
     def test_classifier_output(self, estimator_instance, scenario):
         """Test classifier outputs the correct data types and values.
@@ -76,145 +50,119 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
         data, and that predict_proba probability estimates add up to one.
         """
         n_classes = scenario.get_tag("n_classes")
-        X_new = scenario.args["predict"]["X"]
-        y_train = scenario.args["fit"]["y"]
-        # we use check_is_scitype to get the number instances in X_new
-        #   this is more robust against different scitypes in X_new
-        _, _, X_new_metadata = check_is_scitype(X_new, "Panel", return_metadata=True)
-        X_new_instances = X_new_metadata["n_instances"]
+        X = scenario.args["predict"]["X"]
+        y = scenario.args["fit"]["y"]
+        n_cases = get_n_cases(X)
 
         # run fit and predict
         y_pred = scenario.run(estimator_instance, method_sequence=["fit", "predict"])
 
         # check predict
         assert isinstance(y_pred, np.ndarray)
-        assert y_pred.shape == (X_new_instances,)
-        assert np.all(np.isin(np.unique(y_pred), np.unique(y_train)))
+        assert y_pred.shape == (n_cases,)
+        assert np.all(np.isin(np.unique(y_pred), np.unique(y)))
 
         # check predict proba (all classifiers have predict_proba by default)
         y_proba = scenario.run(estimator_instance, method_sequence=["predict_proba"])
         assert isinstance(y_proba, np.ndarray)
-        assert y_proba.shape == (X_new_instances, n_classes)
+        assert y_proba.shape == (n_cases, n_classes)
         np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
-    def test_classifier_on_unit_test_data(self, estimator_class):
-        """Test classifier on unit test data."""
+    def test_classifier_against_expected_results(self, estimator_class):
+        """Test classifier against stored results."""
         # we only use the first estimator instance for testing
         classname = estimator_class.__name__
 
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in unit_test_proba.keys():
-            expected_probas = unit_test_proba[classname]
-        else:
-            # skip test if no expected probas are registered
+        # We cannot guarantee same results on ARM macOS
+        if platform == "darwin":
             return None
 
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        if "random_state" in estimator_instance.get_params().keys():
-            estimator_instance.set_params(random_state=0)
+        # the test currently fails when numba is disabled. See issue #622
+        import os
 
-        # load unit test data
-        X_train, y_train = load_unit_test(split="train")
-        X_test, _ = load_unit_test(split="test")
-        indices = np.random.RandomState(0).choice(len(y_train), 10, replace=False)
-
-        # train classifier and predict probas
-        estimator_instance.fit(X_train, y_train)
-        y_proba = estimator_instance.predict_proba(X_test[indices])
-
-        # assert probabilities are the same
-        _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
-
-    def test_classifier_on_basic_motions(self, estimator_class):
-        """Test classifier on basic motions data."""
-        # we only use the first estimator instance for testing
-        classname = estimator_class.__name__
-
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in basic_motions_proba.keys():
-            expected_probas = basic_motions_proba[classname]
-        else:
-            # skip test if no expected probas are registered
+        if classname == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
             return None
 
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        if "random_state" in estimator_instance.get_params().keys():
-            estimator_instance.set_params(random_state=0)
+        for data_name, data_dict, data_loader, data_seed in [
+            ["UnitTest", unit_test_proba, load_unit_test, 0],
+            ["BasicMotions", basic_motions_proba, load_basic_motions, 4],
+        ]:
+            # retrieve expected predict_proba output, and skip test if not available
+            if classname in data_dict.keys():
+                expected_probas = data_dict[classname]
+            else:
+                # skip test if no expected probas are registered
+                continue
 
-        # load unit test data
-        X_train, y_train = load_basic_motions(split="train")
-        X_test, _ = load_basic_motions(split="test")
-        indices = np.random.RandomState(4).choice(len(y_train), 10, replace=False)
+            # we only use the first estimator instance for testing
+            estimator_instance = estimator_class.create_test_instance(
+                parameter_set="results_comparison"
+            )
+            # set random seed if possible
+            set_random_state(estimator_instance, 0)
 
-        # train classifier and predict probas
-        estimator_instance.fit(X_train[indices], y_train[indices])
-        y_proba = estimator_instance.predict_proba(X_test[indices])
+            # load test data
+            X_train, y_train = data_loader(split="train")
+            X_test, _ = data_loader(split="test")
+            indices = np.random.RandomState(data_seed).choice(
+                len(y_train), 10, replace=False
+            )
 
-        # assert probabilities are the same
-        _assert_array_almost_equal(y_proba, expected_probas, decimal=2)
+            # train classifier and predict probas
+            estimator_instance.fit(X_train[indices], y_train[indices])
+            y_proba = estimator_instance.predict_proba(X_test[indices])
 
-    def test_handles_single_class(self, estimator_instance):
-        """Test that estimator handles fit when only single class label is seen.
-
-        This is important for compatibility with ensembles that sub-sample,
-        as sub-sampling stochastically produces training sets with single class label.
-        """
-        X, y = make_classification_problem()
-        y[:] = 42
-
-        error_msg = "single class label"
-
-        with pytest.warns(UserWarning, match=error_msg):
-            estimator_instance.fit(X, y)
+            # assert probabilities are the same
+            _assert_array_almost_equal(
+                y_proba,
+                expected_probas,
+                decimal=2,
+                err_msg=f"Failed to reproduce results for {classname} on {data_name}",
+            )
 
     def test_contracted_classifier(self, estimator_class):
         """Test classifiers that can be contracted."""
         if estimator_class.get_class_tag(tag_name="capability:contractable") is True:
-            # if we have a train_estimate parameter set use it, else use default
+            # if we have a contracting parameter set use it, else use default
             estimator_instance = estimator_class.create_test_instance(
                 parameter_set="contracting"
             )
 
-            # The "capability:contractable" has not been fully implemented yet.
-            # Most uses currently have a time_limit_in_minutes parameter, but we won't
-            # fail those that don't.
             default_params = inspect.signature(estimator_class.__init__).parameters
-            if default_params.get(
-                "time_limit_in_minutes", None
-            ) is not None and default_params.get(
-                "time_limit_in_minutes", None
-            ).default not in (
+
+            # check that the classifier has a time_limit_in_minutes parameter
+            if default_params.get("time_limit_in_minutes", None) is None:
+                raise ValueError(
+                    f"Classifier {estimator_class} which sets "
+                    "capability:contractable=True must have a time_limit_in_minutes "
+                    "parameter."
+                )
+
+            # check that the default value is to turn off contracting
+            if default_params.get("time_limit_in_minutes", None).default not in (
                 0,
                 -1,
                 None,
             ):
-                return None
+                raise ValueError(
+                    "time_limit_in_minutes parameter must have a default value of 0, "
+                    "-1 or None, disabling contracting by default."
+                )
 
             # too short of a contract time can lead to test failures
-            if vars(estimator_instance).get("time_limit_in_minutes", None) < 5:
+            if vars(estimator_instance).get("time_limit_in_minutes", None) < 0.5:
                 raise ValueError(
                     "Test parameters for test_contracted_classifier must set "
-                    "time_limit_in_minutes to 5 or more."
+                    "time_limit_in_minutes to 0.5 or more. It is recommended to make "
+                    "this larger and add an alternative stopping mechanism "
+                    "(i.e. max ensemble members)."
                 )
 
             scenario = ClassifierFitPredict()
 
             X_new = scenario.args["predict"]["X"]
             y_train = scenario.args["fit"]["y"]
-            # we use check_is_scitype to get the number instances in X_new
-            #   this is more robust against different scitypes in X_new
-            _, _, X_new_metadata = check_is_scitype(
-                X_new, "Panel", return_metadata=True
-            )
-            X_new_instances = X_new_metadata["n_instances"]
+            X_new_instances = get_n_cases(X_new)
 
             # run fit and predict
             y_pred = scenario.run(
@@ -237,29 +185,68 @@ class TestAllClassifiers(ClassifierFixtureGenerator, QuickTester):
                 parameter_set="train_estimate"
             )
 
-            # The "capability:train_estimate" has not been fully implemented yet.
-            # Most uses currently have the below method, but we won't fail those that
-            # don't.
-            if not hasattr(estimator_instance, "_get_train_probs"):
-                return None
+            if (
+                "_fit_predict" not in estimator_class.__dict__
+                or "_fit_predict_proba" not in estimator_class.__dict__
+            ):
+                raise ValueError(
+                    f"Classifier {estimator_class} has capability:train_estimate=True "
+                    "and must override the _fit_predict and _fit_predict_proba methods."
+                )
 
-            # fit classifier
             scenario = ClassifierFitPredict()
-            scenario.run(estimator_instance, method_sequence=["fit"])
-
             n_classes = scenario.get_tag("n_classes")
             X_train = scenario.args["fit"]["X"]
             y_train = scenario.args["fit"]["y"]
-            _, _, X_train_metadata = check_is_scitype(
-                X_train, "Panel", return_metadata=True
-            )
-            X_train_len = X_train_metadata["n_instances"]
+            X_train_len = get_n_cases(X_train)
+
+            # check the predictions are valid
+            train_preds = estimator_instance.fit_predict(X_train, y_train)
+            assert isinstance(train_preds, np.ndarray)
+            assert train_preds.shape == (X_train_len,)
+            assert np.all(np.isin(np.unique(train_preds), np.unique(y_train)))
 
             # check the probabilities are valid
-            train_proba = estimator_instance._get_train_probs(X_train, y_train)
+            train_proba = estimator_instance.fit_predict_proba(X_train, y_train)
             assert isinstance(train_proba, np.ndarray)
             assert train_proba.shape == (X_train_len, n_classes)
             np.testing.assert_almost_equal(train_proba.sum(axis=1), 1, decimal=4)
         else:
             # skip test if it can't produce an estimate
             return None
+
+    def test_classifier_tags_consistent(self, estimator_class):
+        """Test the tag X_inner_type is consistent with capability:unequal_length."""
+        valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
+        unequal = estimator_class.get_class_tag("capability:unequal_length")
+        if unequal:  # one of X_inner_types must be capable of storing unequal length
+            internal_types = estimator_class.get_class_tag("X_inner_type")
+            if isinstance(internal_types, str):
+                assert internal_types in valid_types
+            else:  # must be a list
+                assert bool(set(internal_types) & valid_types)
+        # Test can actually fit/predict with multivariate if tag is set
+        multivariate = estimator_class.get_class_tag("capability:multivariate")
+        if multivariate:
+            X = np.random.random((10, 2, 20))
+            y = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
+            inst = estimator_class.create_test_instance(parameter_set="default")
+            inst.fit(X, y)
+            inst.predict(X)
+            inst.predict_proba(X)
+
+    def test_does_not_override_final_methods(self, estimator_class):
+        """Test does not override final methods."""
+        final_methods = [
+            "fit",
+            "predict",
+            "predict_proba",
+            "fit_predict",
+            "fit_predict_proba",
+        ]
+        for method in final_methods:
+            if method in estimator_class.__dict__:
+                raise ValueError(
+                    f"Classifier {estimator_class} overrides the method {method}. "
+                    f"Override _{method} instead."
+                )

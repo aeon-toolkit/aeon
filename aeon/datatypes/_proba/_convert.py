@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Machine type converters for Series scitype.
 
 Exports conversion and mtype dictionary for Series scitype:
@@ -27,14 +26,14 @@ ValueError and TypeError, if requested conversion is not possible
                             (depending on conversion logic)
 """
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 __all__ = ["convert_dict"]
 
 import numpy as np
 import pandas as pd
 
-from aeon.datatypes._proba._registry import MTYPE_LIST_PROBA
+from aeon.datatypes._proba._registry import TYPE_LIST_PROBA
 
 ##############################################################
 # methods to convert one machine type to another machine type
@@ -48,7 +47,7 @@ def convert_identity(obj, store=None):
 
 
 # assign identity function to type conversion to self
-for tp in MTYPE_LIST_PROBA:
+for tp in TYPE_LIST_PROBA:
     convert_dict[(tp, tp, "Proba")] = convert_identity
 
 
@@ -87,7 +86,6 @@ def convert_pred_interval_to_quantiles(y_pred, inplace=False):
     var_names = idx.get_level_values(0)
 
     # treat univariate default name
-    # todo: maybe not a good idea, remove this...
     # here because it's in the current specification
     var_names = ["Quantiles" if x == "Coverage" else x for x in var_names]
 
@@ -114,9 +112,9 @@ def convert_interval_to_quantiles(obj: pd.DataFrame, store=None) -> pd.DataFrame
     return convert_pred_interval_to_quantiles(y_pred=obj)
 
 
-convert_dict[
-    ("pred_interval", "pred_quantiles", "Proba")
-] = convert_interval_to_quantiles
+convert_dict[("pred_interval", "pred_quantiles", "Proba")] = (
+    convert_interval_to_quantiles
+)
 
 
 def convert_pred_quantiles_to_interval(y_pred, inplace=False):
@@ -154,7 +152,6 @@ def convert_pred_quantiles_to_interval(y_pred, inplace=False):
     var_names = idx.get_level_values(0)
 
     # treat univariate default name
-    # todo: maybe not a good idea, remove this...
     # here because it's in the current specification
     var_names = ["Coverage" if x == "Quantiles" else x for x in var_names]
 
@@ -176,6 +173,6 @@ def convert_quantiles_to_interval(obj: pd.DataFrame, store=None) -> pd.DataFrame
     return convert_pred_quantiles_to_interval(y_pred=obj)
 
 
-convert_dict[
-    ("pred_quantiles", "pred_interval", "Proba")
-] = convert_quantiles_to_interval
+convert_dict[("pred_quantiles", "pred_interval", "Proba")] = (
+    convert_quantiles_to_interval
+)

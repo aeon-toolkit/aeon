@@ -26,11 +26,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 
-#TSC results
-results/
-
-MANIFEST
-
 #downloaded datasets
 aeon/datasets/local_data/
 
@@ -78,7 +73,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
-docs/source/api_reference/auto_generated/
+docs/api_reference/auto_generated/
 docs/estimator_overview_table.md
 
 # PyBuilder
@@ -109,6 +104,9 @@ ENV/
 env.bak/
 venv.bak/
 aeon-dev/
+
+#Pyright
+pyrightconfig.json
 
 # mkdocs documentation
 /site
@@ -159,5 +157,11 @@ build_doc_site/
 envs/
 *.html
 
-# example mlflow runs
+# example run output
 examples/local/
+
+# local files
+local_code/
+local/
+local_code.py
+local.py

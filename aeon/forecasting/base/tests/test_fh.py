@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Tests for ForecastingHorizon object."""
 
-__author__ = ["mloning", "khrapovs"]
+__maintainer__ = []
 
 from datetime import timedelta
 
@@ -13,25 +11,26 @@ from numpy.testing._private.utils import assert_array_equal
 from pytest import raises
 
 from aeon.datasets import load_airline
-from aeon.datatypes._utilities import get_cutoff
-from aeon.forecasting.arima import AutoARIMA
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._fh import (
     DELEGATED_METHODS,
     _check_freq,
     _extract_freq_from_cutoff,
 )
-from aeon.forecasting.ets import AutoETS
-from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.forecasting.tests._config import (
+from aeon.forecasting.naive import NaiveForecaster
+from aeon.forecasting.tests import (
     INDEX_TYPE_LOOKUP,
     TEST_FHS,
     TEST_FHS_TIMEDELTA,
     VALID_INDEX_FH_COMBINATIONS,
 )
-from aeon.utils._testing.forecasting import _make_fh, make_forecasting_problem
-from aeon.utils._testing.series import _make_index
+from aeon.testing.data_generation._legacy import (
+    _make_fh,
+    _make_index,
+    make_forecasting_problem,
+)
+from aeon.testing.mock_estimators import MockForecaster
 from aeon.utils.datetime import (
     _coerce_duration_to_int,
     _get_duration,
@@ -40,7 +39,7 @@ from aeon.utils.datetime import (
     _shift,
     infer_freq,
 )
-from aeon.utils.validation._dependencies import _check_estimator_deps
+from aeon.utils.index_functions import get_cutoff
 from aeon.utils.validation.series import is_in_valid_index_types, is_integer_index
 
 
@@ -435,10 +434,6 @@ def test_to_absolute_int_fh_with_freq(idx: int, freq: str):
     assert_array_equal(fh + idx, absolute_int)
 
 
-@pytest.mark.skipif(
-    not _check_estimator_deps(AutoETS, severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
-)
 @pytest.mark.parametrize("freqstr", ["W-WED", "W-SUN", "W-SAT"])
 def test_estimator_fh(freqstr):
     """Test model fitting with anchored frequency."""
@@ -446,7 +441,7 @@ def test_estimator_fh(freqstr):
         np.random.uniform(low=2000, high=7000, size=(104,)),
         index=pd.date_range("2019-01-02", freq=freqstr, periods=104),
     )
-    forecaster = AutoETS(auto=True, sp=52, n_jobs=-1, restrict=True)
+    forecaster = MockForecaster()
     forecaster.fit(train)
     fh = ForecastingHorizon(np.arange(1, 27))
     pred = forecaster.predict(fh)
@@ -478,22 +473,17 @@ def test_frequency_setter(freqstr):
     assert fh.freq == freqstr
 
 
-# TODO: Replace this long running test with fast unit test
-@pytest.mark.skipif(
-    not _check_estimator_deps(AutoETS, severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
-)
-def test_auto_ets():
-    """Test failure case from #1435.
+def test_special_case_failure1():
+    """Test failure case from issue 1435 on sktime.
 
-    https://github.com/sktime/sktime/issues/1435#issue-1000175469
+    See https://github.com/sktime/sktime/issues/1435#issue-1000175469
     """
     freq = "30T"
     _y = np.arange(50) + np.random.rand(50) + np.sin(np.arange(50) / 4) * 10
     t = pd.date_range("2021-09-19", periods=50, freq=freq)
     y = pd.Series(_y, index=t)
     y.index = y.index.to_period(freq=freq)
-    forecaster = AutoETS(sp=12, auto=True, n_jobs=-1)
+    forecaster = MockForecaster()
     forecaster.fit(y)
     y_pred = forecaster.predict(fh=[1, 2, 3])
     pd.testing.assert_index_equal(
@@ -502,13 +492,8 @@ def test_auto_ets():
     )
 
 
-# TODO: Replace this long running test with fast unit test
-@pytest.mark.skipif(
-    not _check_estimator_deps(ExponentialSmoothing, severity="none"),
-    reason="skip test if required soft dependency for hmmlearn not available",
-)
-def test_exponential_smoothing():
-    """Test failure case from #1876.
+def test_special_case_failure2():
+    """Test failure case from  issue 1876 on sktime.
 
     https://github.com/sktime/sktime/issues/1876#issue-1103752402.
     """
@@ -523,7 +508,7 @@ def test_exponential_smoothing():
     # Period Index does not work
     y.index = time_range.to_period()
 
-    forecaster = ExponentialSmoothing(trend="add", seasonal="multiplicative", sp=12)
+    forecaster = MockForecaster()
     forecaster.fit(y, fh=[1, 2, 3, 4, 5, 6])
     y_pred = forecaster.predict()
     pd.testing.assert_index_equal(
@@ -531,13 +516,8 @@ def test_exponential_smoothing():
     )
 
 
-# TODO: Replace this long running test with fast unit test
-@pytest.mark.skipif(
-    not _check_estimator_deps(AutoARIMA, severity="none"),
-    reason="skip test if required soft dependencies not available",
-)
-def test_auto_arima():
-    """Test failure case from #805.
+def test_special_case_failure3():
+    """Test failure case from sktime issue 805.
 
     https://github.com/sktime/sktime/issues/805#issuecomment-891848228.
     """
@@ -550,8 +530,7 @@ def test_auto_arima():
     y = pd.Series([1, 3, 2, 4, 5, 2, 3, 1], index=time_index)
 
     fh_ = ForecastingHorizon(X.index[5:], is_relative=False)
-
-    a_clf = AutoARIMA(start_p=2, start_q=2, max_p=5, max_q=5)
+    a_clf = MockForecaster()
     clf = a_clf.fit(X=X[:5], y=y[:5])
     y_pred_sk = clf.predict(fh=fh_, X=X[5:])
 
@@ -569,7 +548,7 @@ def test_auto_arima():
 
     fh = ForecastingHorizon(X.index[5:], is_relative=False)
 
-    a_clf = AutoARIMA(start_p=2, start_q=2, max_p=5, max_q=5)
+    a_clf = NaiveForecaster()
     clf = a_clf.fit(X=X[:5], y=y[:5])
     y_pred_sk = clf.predict(fh=fh, X=X[5:])
 

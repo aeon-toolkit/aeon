@@ -1,19 +1,29 @@
-# -*- coding: utf-8 -*-
-"""Interval based time series classifiers."""
+"""Interval-based time series classifiers."""
+
 __all__ = [
-    "TimeSeriesForestClassifier",
-    "RandomIntervalSpectralEnsemble",
-    "SupervisedTimeSeriesForest",
-    "CanonicalIntervalForest",
-    "DrCIF",
+    "CanonicalIntervalForestClassifier",
+    "DrCIFClassifier",
+    "IntervalForestClassifier",
     "RandomIntervalClassifier",
+    "SupervisedIntervalClassifier",
+    "RandomIntervalSpectralEnsembleClassifier",
+    "RSTSF",
+    "SupervisedTimeSeriesForest",
+    "TimeSeriesForestClassifier",
+    "QUANTClassifier",
 ]
 
-from aeon.classification.interval_based._cif import CanonicalIntervalForest
-from aeon.classification.interval_based._drcif import DrCIF
-from aeon.classification.interval_based._random_interval_classifier import (
+from aeon.classification.interval_based._cif import CanonicalIntervalForestClassifier
+from aeon.classification.interval_based._drcif import DrCIFClassifier
+from aeon.classification.interval_based._interval_forest import IntervalForestClassifier
+from aeon.classification.interval_based._interval_pipelines import (
     RandomIntervalClassifier,
+    SupervisedIntervalClassifier,
 )
-from aeon.classification.interval_based._rise import RandomIntervalSpectralEnsemble
+from aeon.classification.interval_based._quant import QUANTClassifier
+from aeon.classification.interval_based._rise import (
+    RandomIntervalSpectralEnsembleClassifier,
+)
+from aeon.classification.interval_based._rstsf import RSTSF
 from aeon.classification.interval_based._stsf import SupervisedTimeSeriesForest
 from aeon.classification.interval_based._tsf import TimeSeriesForestClassifier

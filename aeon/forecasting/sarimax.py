@@ -1,10 +1,7 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Implements SARIMAX."""
 
 __all__ = ["SARIMAX"]
-__author__ = ["TNTran92"]
+__maintainer__ = []
 
 from aeon.forecasting.base.adapters import _StatsModelsAdapter
 

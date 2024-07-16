@@ -1,9 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Test grid search CV."""
 
-__author__ = ["mloning"]
+__maintainer__ = []
 __all__ = ["test_gscv", "test_rscv"]
 
 import numpy as np
@@ -20,46 +17,15 @@ from aeon.forecasting.model_selection import (
     SlidingWindowSplitter,
 )
 from aeon.forecasting.naive import NaiveForecaster
-from aeon.forecasting.tests._config import (
-    TEST_N_ITERS,
-    TEST_OOS_FHS,
-    TEST_RANDOM_SEEDS,
-    TEST_WINDOW_LENGTHS_INT,
-)
+from aeon.forecasting.tests import TEST_N_ITERS, TEST_OOS_FHS, TEST_WINDOW_LENGTHS_INT
 from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.performance_metrics.forecasting import (
-    MeanAbsolutePercentageError,
-    MeanSquaredError,
+    mean_absolute_percentage_error,
+    mean_squared_error,
 )
-from aeon.transformations.series.detrend import Detrender
-from aeon.utils._testing.hierarchical import _make_hierarchical
-
-TEST_METRICS = [MeanAbsolutePercentageError(symmetric=True), MeanSquaredError()]
-
-
-def _get_expected_scores(forecaster, cv, param_grid, y, X, scoring):
-    scores = np.zeros(len(param_grid))
-    for i, params in enumerate(param_grid):
-        f = forecaster.clone()
-        f.set_params(**params)
-        out = evaluate(f, cv, y, X=X, scoring=scoring)
-        scores[i] = out.loc[:, f"test_{scoring.name}"].mean()
-    return scores
-
-
-def _check_cv(forecaster, tuner, cv, param_grid, y, X, scoring):
-    actual = tuner.cv_results_[f"mean_test_{scoring.name}"]
-
-    expected = _get_expected_scores(forecaster, cv, param_grid, y, X, scoring)
-    np.testing.assert_array_equal(actual, expected)
-
-    # Check if best parameters are selected.
-    best_idx = tuner.best_index_
-    assert best_idx == actual.argmin()
-
-    fitted_params = tuner.get_fitted_params()
-    assert param_grid[best_idx].items() <= fitted_params.items()
-
+from aeon.testing.data_generation import _make_hierarchical
+from aeon.testing.test_config import PR_TESTING
+from aeon.transformations.detrend import Detrender
 
 NAIVE = NaiveForecaster(strategy="mean")
 NAIVE_GRID = {"window_length": TEST_WINDOW_LENGTHS_INT}
@@ -73,11 +39,44 @@ PIPE_GRID = {
     "transformer__forecaster__degree": [1, 2],
     "forecaster__strategy": ["last", "mean"],
 }
+
+if PR_TESTING:
+    TEST_METRICS = [mean_absolute_percentage_error]
+    ERROR_SCORES = [1000]
+    GRID = [(NAIVE, NAIVE_GRID)]
+else:
+    TEST_METRICS = [mean_absolute_percentage_error, mean_squared_error]
+    ERROR_SCORES = [np.nan, "raise", 1000]
+    GRID = [(NAIVE, NAIVE_GRID), (PIPE, PIPE_GRID)]
+
 CVs = [
     *[SingleWindowSplitter(fh=fh) for fh in TEST_OOS_FHS],
     SlidingWindowSplitter(fh=1, initial_window=15),
 ]
-ERROR_SCORES = [np.nan, "raise", 1000]
+
+
+def _get_expected_scores(forecaster, cv, param_grid, y, X, scoring):
+    scores = np.zeros(len(param_grid))
+    for i, params in enumerate(param_grid):
+        f = forecaster.clone()
+        f.set_params(**params)
+        out = evaluate(f, cv, y, X=X, scoring=scoring)
+        scores[i] = out.loc[:, f"test_{scoring.__name__}"].mean()
+    return scores
+
+
+def _check_cv(forecaster, tuner, cv, param_grid, y, X, scoring):
+    actual = tuner.cv_results_[f"mean_test_{scoring.__name__}"]
+
+    expected = _get_expected_scores(forecaster, cv, param_grid, y, X, scoring)
+    np.testing.assert_array_equal(actual, expected)
+
+    # Check if best parameters are selected.
+    best_idx = tuner.best_index_
+    assert best_idx == actual.argmin()
+
+    fitted_params = tuner.get_fitted_params()
+    assert param_grid[best_idx].items() <= fitted_params.items()
 
 
 @pytest.mark.parametrize(
@@ -113,8 +112,7 @@ def test_gscv(forecaster, param_grid, cv, scoring, error_score):
 @pytest.mark.parametrize("error_score", ERROR_SCORES)
 @pytest.mark.parametrize("cv", CVs)
 @pytest.mark.parametrize("n_iter", TEST_N_ITERS)
-@pytest.mark.parametrize("random_state", TEST_RANDOM_SEEDS)
-def test_rscv(forecaster, param_grid, cv, scoring, error_score, n_iter, random_state):
+def test_rscv(forecaster, param_grid, cv, scoring, error_score, n_iter):
     """Test ForecastingRandomizedSearchCV.
 
     Tests that ForecastingRandomizedSearchCV successfully searches the
@@ -128,19 +126,15 @@ def test_rscv(forecaster, param_grid, cv, scoring, error_score, n_iter, random_s
         scoring=scoring,
         error_score=error_score,
         n_iter=n_iter,
-        random_state=random_state,
+        random_state=42,
     )
     rscv.fit(y, X)
 
-    param_distributions = list(
-        ParameterSampler(param_grid, n_iter, random_state=random_state)
-    )
+    param_distributions = list(ParameterSampler(param_grid, n_iter, random_state=42))
     _check_cv(forecaster, rscv, cv, param_distributions, y, X, scoring)
 
 
-@pytest.mark.parametrize(
-    "forecaster, param_grid", [(NAIVE, NAIVE_GRID), (PIPE, PIPE_GRID)]
-)
+@pytest.mark.parametrize("forecaster, param_grid", GRID)
 @pytest.mark.parametrize("scoring", TEST_METRICS)
 @pytest.mark.parametrize("cv", CVs)
 @pytest.mark.parametrize("error_score", ERROR_SCORES)

@@ -1,39 +1,40 @@
-# -*- coding: utf-8 -*-
 """KNN time series regression.
 
 This class is a KNN regressor which supports time series distance measures.
-The class has hardcoded string references to numba based distances in sktime.distances.
-It can also be used with callables, or sktime (pairwise transformer) estimators.
+The class has hardcoded string references to numba based distances in aeon.distances.
+It can also be used with callables, or aeon (pairwise transformer) estimators.
 """
 
-__author__ = ["TonyBagnall", "GuiArcencio"]
+__maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesRegressor"]
 
 import numpy as np
 
-from aeon.distances import distance_factory
+from aeon.distances import get_distance_function
 from aeon.regression.base import BaseRegressor
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
-    """KNN Time Series Regressor.
+    """
+    K-Nearest Neighbour Time Series Regressor.
 
     An adapted K-Neighbors Regressor for time series data.
 
     This class is a KNN regressor which supports time series distance measures.
-    It has hardcoded string references to numba based distances in sktime.distances,
-    and can also be used with callables, or sktime (pairwise transformer) estimators.
+    It has hardcoded string references to numba based distances in aeon.distances,
+    and can also be used with callables, or aeon (pairwise transformer) estimators.
 
     Parameters
     ----------
-    n_neighbors : int, set k for knn (default =1)
-    weights : string or callable function, optional. default = 'uniform'
-        mechanism for weighting a vot
-        one of: 'uniform', 'distance', or a callable function
-    distance : str or callable, optional. default ='dtw'
-        distance measure between time series
+    n_neighbors : int, default =1
+        Set k for knn.
+    weights : str or callable function, default = 'uniform'
+        Mechanism for weighting a vote.
+        one of: 'uniform', 'distance', or a callable function.
+    distance : str or callable, default ='dtw'
+        Distance measure between time series
         if str, must be one of the following strings:
             'euclidean', 'squared', 'dtw', 'ddtw', 'wdtw', 'wddtw',
             'lcss', 'edr', 'erp', 'msm', 'twe'
@@ -42,26 +43,27 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             Example: knn_mpdist = KNeighborsTimeSeriesClassifier(
                                 metric='mpdist', metric_params={'m':30})
         if callable, must be of signature (X: np.ndarray, X2: np.ndarray) -> np.ndarray
-            output must be mxn array if X is array of m Series, X2 of n Series
-        can be pairwise panel transformer inheriting from BasePairwiseTransformerPanel
-    distance_params : dict, optional. default = None.
-        dictionary for metric parameters , in case that distance is a str
+            output must be mxn array if X is array of m Series, X2 of n Series.
+    distance_params : dict, default = None
+        Dictionary for metric parameters , in case that distance is a str.
 
     Examples
     --------
-    >>> from aeon.datasets import load_unit_test
+    >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-    >>> X_train, y_train = load_unit_test(return_X_y=True, split="train")
-    >>> X_test, y_test = load_unit_test(return_X_y=True, split="test")
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> regressor = KNeighborsTimeSeriesRegressor(distance="euclidean")
     >>> regressor.fit(X_train, y_train)
-    KNeighborsTimeSeriesRegressor(...)
+    KNeighborsTimeSeriesRegressor(distance='euclidean')
     >>> y_pred = regressor.predict(X_test)
     """
 
     _tags = {
         "capability:multivariate": True,
-        "X_inner_mtype": ["numpy3D"],
+        "capability:unequal_length": True,
+        "X_inner_type": ["np-list", "numpy3D"],
+        "algorithm_type": "distance",
     }
 
     def __init__(
@@ -82,24 +84,27 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             )
         self.weights = weights
 
-        super(KNeighborsTimeSeriesRegressor, self).__init__()
+        self._distance_params = distance_params
+        if self._distance_params is None:
+            self._distance_params = {}
+
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit the model using X as training data and y as target values.
 
         Parameters
         ----------
-        X : sktime-compatible Panel data format, with n_samples series
-        y : {array-like, sparse matrix}
-            Target values of shape = [n_samples]
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
+        y : array-like, shape = (n_cases)
+            The class labels.
         """
         if isinstance(self.distance, str):
-            if self.distance_params is None:
-                self.metric_ = distance_factory(X[0], X[0], metric=self.distance)
-            else:
-                self.metric_ = distance_factory(
-                    X[0], X[0], metric=self.distance, **self.distance_params
-                )
+            self.metric_ = get_distance_function(metric=self.distance)
 
         self.X_ = X
         self.y_ = y
@@ -110,17 +115,21 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : sktime-compatible Panel data format, with n_samples series
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
 
         Returns
         -------
-        y : array of shape [n_samples] or [n_samples, n_outputs]
-            Target values for each data sample.
+        y : array of shape (n_cases)
+            Class labels for each data sample.
         """
         self.check_is_fitted()
 
-        preds = np.zeros(X.shape[0])
-        for i in range(X.shape[0]):
+        preds = np.empty(len(X))
+        for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
             preds[i] = np.average(self.y_[idx], weights=weights)
 
@@ -133,7 +142,11 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : sktime-compatible data format, Panel or Series, with n_samples series
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+                If the series are all equal length, a numpy3D will be passed. If
+                unequal, a list of 2D numpy arrays is passed, which may have
+                different lengths.
 
         Returns
         -------
@@ -143,7 +156,10 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             Array representing the weights of each neighbor.
         """
         distances = np.array(
-            [self.metric_(X, self.X_[j]) for j in range(self.X_.shape[0])]
+            [
+                self.metric_(X, self.X_[j], **self._distance_params)
+                for j in range(len(self.X_))
+            ]
         )
 
         # Find indices of k nearest neighbors using partitioning:
@@ -156,7 +172,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         if self.weights == "distance":
             ws = distances[closest_idx]
-            ws = ws**2
 
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)

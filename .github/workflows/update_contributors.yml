@@ -9,25 +9,33 @@ on:
 
 jobs:
   generate-markdown-and-commit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Node
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
         with:
           node-version: 18
-      - name: Set up tool
-        run: npm install -g all-contributors-cli@6.24.0
-      - name: Generate file
+
+      - name: Setup all-contributors-cli
+        run: npm install -g all-contributors-cli
+
+      - name: Generate CONTRIBUTORS.md
         id: generate
         run: npx all-contributors generate
-      - name: commit-and-push
-        id: candp
-        uses: stefanzweifel/git-auto-commit-action@v4
+
+      - uses: actions/create-github-app-token@v1
+        id: app-token
         with:
-          commit_message: '[AUTOMATED] update CONTRIBUTORS.md'
-          file_pattern: 'CONTRIBUTORS.md'
-          commit_user_name: github-actions[bot]
-      - name: Echo Results
-        if: steps.candp.outputs.changes_detected == 'true'
-        run: echo "changes detected and committed."
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "Automated `CONTRIBUTORS.md` update"
+          branch: update_contributors
+          title: "[MNT] Automated `CONTRIBUTORS.md` update"
+          body: "Automated update to CONTRIBUTORS.md caused by an update to the `.all-contributorsrc` file."
+          labels: maintenance, no changelog

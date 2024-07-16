@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """Testing machine type converters for scitypes - covert_to utility."""
 
-__author__ = ["fkiraly"]
+__maintainer__ = []
 
 from aeon.datatypes._convert import convert_to
 from aeon.datatypes._examples import get_examples
-from aeon.utils._testing.deep_equals import deep_equals
+from aeon.testing.utils.deep_equals import deep_equals
 
 # hard-coded scitypes/mtypes to use in test_convert_to
 #   easy to change in case the strings change

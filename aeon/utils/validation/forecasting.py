@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """Validations for use with forecasting module."""
 
 __all__ = [
@@ -11,17 +9,17 @@ __all__ = [
     "check_step_length",
     "check_alpha",
     "check_cutoffs",
-    "check_scoring",
     "check_sp",
     "check_regressor",
 ]
-__author__ = ["mloning", "@big-o", "khrapovs"]
+__maintainer__ = ["TonyBagnall"]
 
 from datetime import timedelta
 from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+from pandas.api.types import is_numeric_dtype
 from sklearn.base import clone, is_regressor
 from sklearn.ensemble import GradientBoostingRegressor
 
@@ -50,12 +48,12 @@ def check_y_X(
     Parameters
     ----------
     y : pd.Series
-    X : pd.DataFrame, optional (default=None)
-    allow_empty : bool, optional (default=False)
+    X : pd.DataFrame, default=None
+    allow_empty : bool, default=False
         If True, empty `y` does not raise an error.
-    allow_constant : bool, optional (default=True)
+    allow_constant : bool, default=True
         If True, constant `y` does not raise an error.
-    enforce_index_type : type, optional (default=None)
+    enforce_index_type : type, default=None
         type of time index
 
     Raises
@@ -90,11 +88,11 @@ def check_X(
     Parameters
     ----------
     X : pd.Series, pd.DataFrame, np.ndarray
-    allow_empty : bool, optional (default=False)
+    allow_empty : bool, default=False
         If False, empty `X` raises an error.
-    enforce_index_type : type, optional (default=None)
+    enforce_index_type : type, default=None
         type of time index
-    enforce_univariate : bool, optional (default=False)
+    enforce_univariate : bool, default=False
         If True, multivariate X will raise an error.
 
     Returns
@@ -119,18 +117,26 @@ def check_X(
     )
 
 
-def check_y(y, allow_empty=False, allow_constant=True, enforce_index_type=None):
+def check_y(
+    y,
+    allow_empty=False,
+    allow_constant=True,
+    enforce_index_type=None,
+    allow_index_names=False,
+):
     """Validate input data.
 
     Parameters
     ----------
     y : pd.Series
-    allow_empty : bool, optional (default=False)
+    allow_empty : bool, default=False
         If False, empty `y` raises an error.
-    allow_constant : bool, optional (default=True)
+    allow_constant : bool, default=True
         If True, constant `y` does not raise an error.
-    enforce_index_type : type, optional (default=None)
+    enforce_index_type : type, default=None
         type of time index
+    allow_index_names : bool, default=None
+        If False, names of y.index will be set to None
 
     Returns
     -------
@@ -147,6 +153,7 @@ def check_y(y, allow_empty=False, allow_constant=True, enforce_index_type=None):
         allow_empty=allow_empty,
         allow_numpy=False,
         enforce_index_type=enforce_index_type,
+        allow_index_names=allow_index_names,
     )
 
     if not allow_constant:
@@ -241,7 +248,7 @@ def check_sp(sp, enforce_list=False):
     ----------
     sp : int or [int/float]
         Seasonal periodicity
-    enforce_list : bool, optional (default=False)
+    enforce_list : bool, default=False
         If true, convert sp to list if not list.
 
     Returns
@@ -269,9 +276,9 @@ def check_fh(fh, enforce_relative: bool = False, freq=None):
     ----------
     fh : int, list, np.array, pd.Index or ForecastingHorizon
         Forecasting horizon specifying the time points to predict.
-    enforce_relative : bool, optional (default=False)
+    enforce_relative : bool, default=False
         If True, checks if fh is relative.
-    freq : str, or pd.Index, optional (default=None)
+    freq : str, or pd.Index, default=None
         object carrying frequency information on values
         ignored unless values is without inferrable freq
         Frequency string or pd.Index
@@ -386,47 +393,6 @@ def check_cutoffs(cutoffs: VALID_CUTOFF_TYPES) -> np.ndarray:
     return np.sort(cutoffs)
 
 
-def check_scoring(scoring, allow_y_pred_benchmark=False):
-    """
-    Validate the performance scoring.
-
-    Parameters
-    ----------
-    scoring : object that inherits from BaseMetric from aeon.performance_metrics.
-
-    Returns
-    -------
-    scoring :
-        MeanAbsolutePercentageError if the object is None.
-
-    Raises
-    ------
-    TypeError
-        if object is not callable from current scope.
-    NotImplementedError
-        if metric requires y_pred_benchmark to be passed
-    """
-    # Note symmetric=True is default arg for MeanAbsolutePercentageError
-    from aeon.performance_metrics.forecasting import MeanAbsolutePercentageError
-
-    if scoring is None:
-        return MeanAbsolutePercentageError()
-
-    scoring_req_bench = scoring.get_class_tag("requires-y-pred-benchmark", False)
-
-    if scoring_req_bench and not allow_y_pred_benchmark:
-        msg = """Scoring requiring benchmark forecasts (y_pred_benchmark) are not
-                 fully supported yet. Please use a performance metric that does not
-                 require y_pred_benchmark as a keyword argument in its call signature.
-              """
-        raise NotImplementedError(msg)
-
-    if not callable(scoring):
-        raise TypeError("`scoring` must be a callable object")
-
-    return scoring
-
-
 def check_regressor(regressor=None, random_state=None):
     """Check if a regressor.
 
@@ -438,6 +404,10 @@ def check_regressor(regressor=None, random_state=None):
     regressor : sklearn-like regressor, optional, default=None.
     random_state : int, RandomState instance or None, default=None
         Used to set random_state of the default regressor.
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Returns
     -------
@@ -460,20 +430,57 @@ def check_regressor(regressor=None, random_state=None):
     return regressor
 
 
+def _check_valid_prediction_intervals(obj):
+    """Check whether obj is a valid representation of probablity prediction intervals.
+
+    Parameters
+    ----------
+    obj : pd.DataFrame
+
+    Returns
+    -------
+    bool
+        True if obj is a valid representation of prediction intervals
+    """
+    # check if the input is a dataframe
+    if not isinstance(obj, pd.DataFrame):
+        return False
+    # check that column indices are unique
+    if not len(set(obj.columns)) == len(obj.columns):
+        return False
+    # check that all cols are numeric
+    if not np.all([is_numeric_dtype(obj[c]) for c in obj.columns]):
+        return False
+    # Check time index is ordered in time
+    if not obj.index.is_monotonic_increasing:
+        return False
+    # check column multiindex
+    colidx = obj.columns
+    if not isinstance(colidx, pd.MultiIndex) or not colidx.nlevels == 3:
+        return False
+    coverages = colidx.get_level_values(1)
+    if not is_numeric_dtype(coverages):
+        return False
+    if not (coverages <= 1).all() or not (coverages >= 0).all():
+        return False
+    upper_lower = colidx.get_level_values(2)
+    if not upper_lower.isin(["upper", "lower"]).all():
+        return False
+    return True
+
+
 def check_interval_df(interval_df, index_to_match):
     """
     Verify that a predicted interval DataFrame is formatted correctly.
 
     Parameters
     ----------
-    interval_df : pandas DataFrame outputted from forecaster.predict_interval()
+    interval_df : pandas DataFrame output from forecaster.predict_interval()
     index_to_match : Index object that must match interval_df.index
     """
-    from aeon.datatypes import check_is_mtype
-
-    checked = check_is_mtype(interval_df, "pred_interval", return_metadata=True)
-    if not checked[0]:
-        raise ValueError(checked[1])
+    valid = _check_valid_prediction_intervals(interval_df)
+    if not valid:
+        raise ValueError("Aregument interval_df is not a valid prediction interval.")
     df_idx = interval_df.index
     if len(index_to_match) != len(df_idx) or not (index_to_match == df_idx).all():
         raise ValueError("Prediction interval index must match the final Series index.")

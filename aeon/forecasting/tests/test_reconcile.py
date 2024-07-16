@@ -1,9 +1,6 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
 """Tests for hierarchical reconciler forecasters."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 
-__author__ = ["ciaran-g"]
+__maintainer__ = []
 
 import numpy as np
 import pytest
@@ -12,14 +9,20 @@ from pandas.testing import assert_frame_equal
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.reconcile import ReconcilerForecaster
+from aeon.testing.data_generation import _bottom_hier_datagen, _make_hierarchical
+from aeon.testing.test_config import PR_TESTING
 from aeon.transformations.hierarchical.aggregate import Aggregator
-from aeon.utils._testing.hierarchical import _bottom_hier_datagen, _make_hierarchical
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+if PR_TESTING:
+    level_list = [1]
+    flatten_list = [False]
+else:
+    level_list = [1, 3]
+    flatten_list = [True, False]
 
 # get all the methods
 METHOD_LIST = ReconcilerForecaster.METHOD_LIST
-level_list = [1, 2, 3]
-flatten_list = [True, False]
 
 
 # test the reconciled predictions are actually hierarchical
@@ -82,9 +85,8 @@ def test_reconciler_fit_predict(method, flatten, no_levels):
 @pytest.mark.parametrize("n_columns", [1, 2])
 def test_reconcilerforecaster_exog(n_columns):
     """Test that ReconcilerForecaster works without aggregated input, see #3980."""
-    from aeon.datatypes._utilities import get_window
     from aeon.forecasting.reconcile import ReconcilerForecaster
-    from aeon.forecasting.sarimax import SARIMAX
+    from aeon.utils.index_functions import get_window
 
     y = _make_hierarchical(
         hierarchy_levels=(2, 4),
@@ -107,7 +109,8 @@ def test_reconcilerforecaster_exog(n_columns):
     X_train = get_window(X, lag=2)
     X_test = get_window(X, window_length=2)
 
-    forecaster = SARIMAX()
+    forecaster = ExponentialSmoothing(sp=12)
+
     estimator_instance = ReconcilerForecaster(forecaster, method="mint_shrink")
     fh = [1, 2]
     estimator_instance.fit(y=y_train, X=X_train, fh=fh)

@@ -1,9 +1,6 @@
-# -*- coding: utf-8 -*-
-# !/usr/bin/env python3 -u
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
-"""Implements adapter for using tbats forecasters in sktime framework."""
+"""Implements adapter for using tbats forecasters in aeon framework."""
 
-__author__ = ["mloning", "aiwalter", "k1m190r"]
+__maintainer__ = []
 __all__ = ["_TbatsAdapter"]
 
 import numpy as np
@@ -21,7 +18,7 @@ class _TbatsAdapter(BaseForecaster):
         "ignores-exogeneous-X": True,
         "capability:pred_int": True,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
+        "capability:missing_values": False,
         # "capability:predict_quantiles": True,
         "python_dependencies": "tbats",
     }
@@ -49,11 +46,11 @@ class _TbatsAdapter(BaseForecaster):
         self.n_jobs = n_jobs
         self.multiprocessing_start_method = multiprocessing_start_method
         self.context = context
-        # custom sktime args
+        # custom aeon args
         self._forecaster = None
         self._yname = None  # .fit(y) -> y.name
 
-        super(_TbatsAdapter, self).__init__()
+        super().__init__()
 
     def _create_model_class(self):
         """Instantiate (T)BATS model.
@@ -87,9 +84,9 @@ class _TbatsAdapter(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        fh : int, list or np.array, optional (default=None)
+        fh : int, list or np.array, default=None
             The forecasters horizon with the steps ahead to to predict.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables (ignored)
 
         Returns
@@ -113,9 +110,9 @@ class _TbatsAdapter(BaseForecaster):
         ----------
         y : pd.Series
             Target time series to which to fit the forecaster.
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Exogenous variables (ignored)
-        update_params : bool, optional (default=True)
+        update_params : bool, default=True
             whether model parameters should be updated
 
         Returns
@@ -256,7 +253,7 @@ class _TbatsAdapter(BaseForecaster):
         ----------
         fh : int, list, np.array or ForecastingHorizon
             Forecasting horizon, default = y.index (in-sample forecast)
-        X : pd.DataFrame, optional (default=None)
+        X : pd.DataFrame, default=None
             Ignored, passed for interface compatibility
         coverage : list of float (guaranteed not None and floats in [0,1] interval)
            nominal coverage(s) of predictive interval(s)

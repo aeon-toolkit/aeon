@@ -1,0 +1,53 @@
+name: PR Opened
+
+on:
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  # based on the scikit-learn 1.3.1 PR labelers
+  labeler:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: build_tools
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install PyGithub
+        run: pip install -Uq PyGithub
+
+      - name: Create app token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Label pull request
+        id: label-pr
+        run: python build_tools/pr_labeler.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Write pull request comment
+        run: python build_tools/pr_open_commenter.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          TITLE_LABELS: ${{ steps.label-pr.outputs.title-labels }}
+          TITLE_LABELS_NEW: ${{ steps.label-pr.outputs.title-labels-new }}
+          CONTENT_LABELS: ${{ steps.label-pr.outputs.content-labels }}
+          CONTENT_LABELS_STATUS: ${{ steps.label-pr.outputs.content-labels-status }}

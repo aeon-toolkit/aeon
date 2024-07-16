@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
 """Test trend forecasters."""
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 
-__author__ = ["mloning", "fkiraly"]
+__maintainer__ = []
 __all__ = ["get_expected_polynomial_coefs"]
 
 import numpy as np
@@ -15,7 +13,7 @@ from aeon.forecasting.trend import (
     TrendForecaster,
     _get_X_numpy_int_from_pandas,
 )
-from aeon.utils._testing.forecasting import make_forecasting_problem
+from aeon.testing.data_generation._legacy import make_forecasting_problem
 
 
 def test_get_X_numpy():

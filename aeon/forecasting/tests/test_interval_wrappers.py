@@ -1,15 +1,12 @@
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file)
 """Tests the conformal interval wrapper."""
 
-__author__ = ["fkiraly", "bethrice44"]
+__maintainer__ = []
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.datatypes import convert_to, scitype_to_mtype
 from aeon.forecasting.conformal import ConformalIntervals
 from aeon.forecasting.model_evaluation import evaluate
 from aeon.forecasting.model_selection import (
@@ -17,38 +14,47 @@ from aeon.forecasting.model_selection import (
     SlidingWindowSplitter,
 )
 from aeon.forecasting.naive import NaiveForecaster, NaiveVariance
-from aeon.performance_metrics.forecasting.probabilistic import PinballLoss
+from aeon.performance_metrics.forecasting import mean_squared_error
+from aeon.testing.test_config import PR_TESTING
+from aeon.utils.conversion import convert_series
 
-INTERVAL_WRAPPERS = [ConformalIntervals, NaiveVariance]
-CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
-EVALUATE_STRATEGY = ["update", "refit"]
-SAMPLE_FRACS = [None, 0.5]
-MTYPES_SERIES = scitype_to_mtype("Series", softdeps="present")
+if PR_TESTING:
+    INTERVAL_WRAPPERS = [NaiveVariance]
+    CV_SPLITTERS = [SlidingWindowSplitter]
+    EVALUATE_STRATEGY = ["update"]
+    SAMPLE_FRACS = [0.5]
+    SERIES_TYPES = ["pd.Series", "pd.DataFrame"]
+else:
+    INTERVAL_WRAPPERS = [ConformalIntervals, NaiveVariance]
+    CV_SPLITTERS = [SlidingWindowSplitter, ExpandingWindowSplitter]
+    EVALUATE_STRATEGY = ["update", "refit"]
+    SAMPLE_FRACS = [None, 0.5]
+    SERIES_TYPES = ["pd.Series", "pd.DataFrame", "np.ndarray"]
 
 
-@pytest.mark.parametrize("mtype", MTYPES_SERIES)
-@pytest.mark.parametrize("override_y_mtype", [True, False])
 @pytest.mark.parametrize("wrapper", INTERVAL_WRAPPERS)
-def test_wrapper_series_mtype(wrapper, override_y_mtype, mtype):
+@pytest.mark.parametrize("override_y_type", [True, False])
+@pytest.mark.parametrize("input_type", SERIES_TYPES)
+def test_wrapper_series_mtype(wrapper, override_y_type, input_type):
     """Test that interval wrappers behave nicely with different internal y_mtypes.
 
     The wrappers require y to be pd.Series, and the internal estimator can have
     a different internal mtype.
 
-    We test all interval wrappers in sktime (wrapper).
+    We test all interval wrappers in aeon (wrapper).
 
     We test once with an internal forecaster that needs pd.DataFrame conversion,
     and one that accepts pd.Series.
     We do this with a trick: the vanilla NaiveForecaster can accept both; we mimick a
-    "pd.DataFrame only" forecaster by restricting its y_inner_mtype tag to pd.Series.
+    "pd.DataFrame only" forecaster by restricting its y_inner_type tag to pd.Series.
     """
     y = load_airline()
-    y = convert_to(y, to_type=mtype)
+    y = convert_series(y, input_type)
 
     f = NaiveForecaster()
 
-    if override_y_mtype:
-        f.set_tags(**{"y_inner_mtype": "pd.DataFrame"})
+    if override_y_type:
+        f.set_tags(**{"y_inner_type": "pd.DataFrame"})
 
     interval_forecaster = wrapper(f)
     interval_forecaster.fit(y, fh=[1, 2, 3])
@@ -105,11 +111,11 @@ def test_evaluate_with_window_splitters(wrapper, splitter, strategy, sample_frac
         y=y,
         X=None,
         strategy=strategy,
-        scoring=PinballLoss(alpha=[0.1, 0.5, 0.9]),
+        scoring=mean_squared_error,
         return_data=True,
         error_score="raise",
         backend=None,
     )
 
     assert len(results) == 8
-    assert not results.test_PinballLoss.isna().any()
+    assert not results.test_mean_squared_error.isna().any()

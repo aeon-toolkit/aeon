@@ -1,13 +1,10 @@
-#!/usr/bin/env python3 -u
-# -*- coding: utf-8 -*-
-# copyright: sktime developers, BSD-3-Clause License (see LICENSE file).
 """Implements ensemble forecasters.
 
 Creates univariate (optionally weighted)
 combination of the predictions from underlying forecasts.
 """
 
-__author__ = ["mloning", "GuzalBulatova", "aiwalter", "RNKuhns", "AnH0ang"]
+__maintainer__ = []
 __all__ = ["EnsembleForecaster", "AutoEnsembleForecaster"]
 
 import numpy as np
@@ -18,13 +15,13 @@ from sklearn.pipeline import Pipeline
 from aeon.forecasting.base import ForecastingHorizon
 from aeon.forecasting.base._meta import _HeterogenousEnsembleForecaster
 from aeon.forecasting.model_selection import temporal_train_test_split
-from aeon.utils.stats import (
+from aeon.utils.validation.forecasting import check_regressor
+from aeon.utils.weighted_metrics import (
     _weighted_geometric_mean,
     _weighted_max,
     _weighted_median,
     _weighted_min,
 )
-from aeon.utils.validation.forecasting import check_regressor
 
 VALID_AGG_FUNCS = {
     "mean": {"unweighted": np.mean, "weighted": np.average},
@@ -107,8 +104,8 @@ class AutoEnsembleForecaster(_HeterogenousEnsembleForecaster):
     _tags = {
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
-        "scitype:y": "univariate",
+        "capability:missing_values": False,
+        "y_input_type": "univariate",
     }
 
     def __init__(
@@ -120,7 +117,7 @@ class AutoEnsembleForecaster(_HeterogenousEnsembleForecaster):
         random_state=None,
         n_jobs=None,
     ):
-        super(AutoEnsembleForecaster, self).__init__(
+        super().__init__(
             forecasters=forecasters,
             n_jobs=n_jobs,
         )
@@ -311,14 +308,14 @@ class EnsembleForecaster(_HeterogenousEnsembleForecaster):
     _tags = {
         "ignores-exogeneous-X": False,
         "requires-fh-in-fit": False,
-        "handles-missing-data": False,
-        "X_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "y_inner_mtype": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
-        "scitype:y": "both",
+        "capability:missing_values": False,
+        "X_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_inner_type": ["pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"],
+        "y_input_type": "both",
     }
 
     def __init__(self, forecasters, n_jobs=None, aggfunc="mean", weights=None):
-        super(EnsembleForecaster, self).__init__(forecasters=forecasters, n_jobs=n_jobs)
+        super().__init__(forecasters=forecasters, n_jobs=n_jobs)
         self.aggfunc = aggfunc
         self.weights = weights
 
