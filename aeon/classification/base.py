@@ -655,3 +655,16 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
                     "but in predict it is ",
                     get_n_timepoints(X),
                 )
+
+    @staticmethod
+    def _get_folds(dict):
+        """Get the number of CV folds from kwargs dict."""
+        cv_size = 10
+        if "cv_size" in dict:
+            if not isinstance(dict["cv_size"], int) or dict["cv_size"] < 1:
+                raise ValueError(
+                    "cv_size must be an integer greater than 0, but found "
+                    f"{dict['cv_size']}"
+                )
+            cv_size = dict["cv_size"]
+        return cv_size
