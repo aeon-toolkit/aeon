@@ -82,11 +82,6 @@ class ProximityTree(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    n_jobs : int, default = 1
-        The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details. Parameter for compatibility purposes, still unimplemented.
 
     Notes
     -----
@@ -126,13 +121,11 @@ class ProximityTree(BaseClassifier):
         max_depth: int = None,
         min_samples_split: int = 2,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
-        n_jobs: int = 1,
     ) -> None:
         self.n_splitters = n_splitters
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.random_state = random_state
-        self.n_jobs = n_jobs
         super().__init__()
 
     def _get_parameter_value(self, X):

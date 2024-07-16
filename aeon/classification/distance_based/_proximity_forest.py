@@ -9,6 +9,7 @@ from typing import Type, Union
 
 import numpy as np
 from joblib import Parallel, delayed
+from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._proximity_tree import ProximityTree
@@ -102,6 +103,7 @@ class ProximityForest(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
+        rng = check_random_state(self.random_state)
         self.trees_ = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
@@ -111,8 +113,7 @@ class ProximityForest(BaseClassifier):
                 self.n_splitters,
                 self.max_depth,
                 self.min_samples_split,
-                self.random_state,
-                self.n_jobs,
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for _ in range(self.n_trees)
         )
@@ -132,13 +133,12 @@ class ProximityForest(BaseClassifier):
         return preds
 
 
-def _fit_tree(X, y, n_splitters, max_depth, min_samples_split, random_state, n_jobs):
+def _fit_tree(X, y, n_splitters, max_depth, min_samples_split, random_state):
     clf = ProximityTree(
         n_splitters=n_splitters,
         max_depth=max_depth,
         min_samples_split=min_samples_split,
         random_state=random_state,
-        n_jobs=n_jobs,
     )
     clf.fit(X, y)
     return clf
