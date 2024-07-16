@@ -248,7 +248,7 @@ Detrending
 Filtering and denoising
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.bkfilter
+.. currentmodule:: aeon.transformations.series._bkfilter
 
 .. autosummary::
     :toctree: auto_generated/
@@ -299,24 +299,6 @@ Missing value imputation
 
     Imputer
 
-Seasonality and Date-Time Features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.date
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DateTimeFeatures
-
-.. currentmodule:: aeon.transformations.fourier
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FourierFeatures
 
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -363,8 +345,10 @@ These transformers select features in `X` based on `y`.
     :toctree: auto_generated/
     :template: class.rst
 
+    ChannelScorer
     ElbowClassSum
     ElbowClassPairwise
+    RandomChannelSelector
 
 Panel transformers
 ------------------

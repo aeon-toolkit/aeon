@@ -11,7 +11,6 @@ from aeon.testing.data_generation import (
 )
 from aeon.testing.mock_estimators import MockCollectionTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
-from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
@@ -28,12 +27,10 @@ from aeon.transformations.collection.feature_based import SevenNumberSummaryTran
     [
         PaddingTransformer(pad_length=15),
         SevenNumberSummaryTransformer(),
-        [TabularToSeriesAdaptor(StandardScaler())],
         [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
         [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
         [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
         [
-            TabularToSeriesAdaptor(StandardScaler()),
             PaddingTransformer(pad_length=15),
             SevenNumberSummaryTransformer(),
         ],

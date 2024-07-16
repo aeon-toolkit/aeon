@@ -7,7 +7,7 @@ from scipy.stats import boxcox
 from sklearn.preprocessing import PowerTransformer
 
 from aeon.datasets import load_airline
-from aeon.transformations.adapt import TabularToSeriesAdaptor
+from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
 
 
 def test_boxcox_transform():

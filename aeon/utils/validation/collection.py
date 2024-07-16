@@ -152,6 +152,62 @@ def get_n_cases(X):
     return len(X)
 
 
+def get_n_timepoints(X):
+    """Return the number of timepoints in the first element of a collectiom.
+
+    Handle the single exception of multi index DataFrame.
+
+    Parameters
+    ----------
+    X : collection
+        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+
+    Returns
+    -------
+    int
+        Number of time points in the first case.
+    """
+    t = get_type(X)
+    if t in ["numpy3D", "np-list"]:
+        return X[0].shape[1]
+    if t in ["numpy2D", "df-list"]:
+        return X[0].shape[0]
+    if t == "pd-multiindex":
+        return len(X.index.get_level_values(1).unique())
+    if t == "nested_univ":
+        return X.iloc[0, 0].size
+    if t == "pd-wide":
+        return len(X.iloc[0])
+
+
+def get_n_channels(X):
+    """Return the number of timepoints in the first element of a collectiom.
+
+    Handle the single exception of multi index DataFrame.
+
+    Parameters
+    ----------
+    X : collection
+        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+
+    Returns
+    -------
+    int
+        Number of time points in the first case.
+    """
+    t = get_type(X)
+    if t in ["numpy3D", "np-list"]:
+        return X[0].shape[0]
+    if t in ["numpy2D", "pd-wide"]:
+        return 1
+    if t == "df-list":
+        return X[0].shape[1]
+    if t == "pd-multiindex":
+        return len(X.columns)
+    if t == "nested_univ":
+        return X.shape[1]
+
+
 def get_type(X):
     """Get the string identifier associated with different data structures.
 
