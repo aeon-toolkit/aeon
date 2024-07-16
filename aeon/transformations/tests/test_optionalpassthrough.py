@@ -23,8 +23,8 @@ def test_optionalpassthrough():
         SlidingWindowSplitter,
     )
     from aeon.forecasting.naive import NaiveForecaster
-    from aeon.transformations._legacy.compose import OptionalPassthrough
-    from aeon.transformations.adapt import TabularToSeriesAdaptor
+    from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
+    from aeon.transformations.compose import OptionalPassthrough
     from aeon.transformations.detrend import Deseasonalizer
 
     # create pipeline
@@ -58,7 +58,7 @@ def test_optionalpassthrough():
 def test_passthrough_does_not_broadcast_variables():
     """Test that OptionalPassthrough does not itself vectorize/broadcast columns."""
     from aeon.datasets import load_longley
-    from aeon.transformations._legacy.compose import OptionalPassthrough
+    from aeon.transformations.compose import OptionalPassthrough
     from aeon.transformations.detrend import Deseasonalizer
 
     _, X = load_longley()
@@ -74,7 +74,7 @@ def test_passthrough_does_not_broadcast_variables():
 def test_passthrough_does_not_broadcast_instances():
     """Test that OptionalPassthrough does not itself vectorize/broadcast rows."""
     from aeon.testing.data_generation import _make_hierarchical
-    from aeon.transformations._legacy.compose import OptionalPassthrough
+    from aeon.transformations.compose import OptionalPassthrough
     from aeon.transformations.detrend import Deseasonalizer
 
     X = _make_hierarchical()
