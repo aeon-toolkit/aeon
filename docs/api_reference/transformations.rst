@@ -248,7 +248,7 @@ Detrending
 Filtering and denoising
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.bkfilter
+.. currentmodule:: aeon.transformations.series._bkfilter
 
 .. autosummary::
     :toctree: auto_generated/
