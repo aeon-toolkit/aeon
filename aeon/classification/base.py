@@ -36,7 +36,11 @@ from sklearn.utils.multiclass import type_of_target
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import get_n_cases
+from aeon.utils.validation.collection import (
+    get_n_cases,
+    get_n_channels,
+    get_n_timepoints,
+)
 
 
 class BaseClassifier(BaseCollectionEstimator, ABC):
@@ -172,6 +176,8 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return np.repeat(list(self._class_dictionary.keys()), n_cases)
 
         X = self._preprocess_collection(X)
+        # Check if X is equal length but that is different to the length seen in fit
+        self._check_shape(X)
         return self._predict(X)
 
     @final
@@ -215,6 +221,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             return np.repeat([[1]], n_cases, axis=0)
 
         X = self._preprocess_collection(X)
+        self._check_shape(X)
         return self._predict_proba(X)
 
     @final
@@ -629,15 +636,22 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             n_jobs=self._n_jobs,
         )
 
-    @staticmethod
-    def _get_folds(dict):
-        """Get the number of CV folds from kwargs dict."""
-        cv_size = 10
-        if "cv_size" in dict:
-            if not isinstance(dict["cv_size"], int) or dict["cv_size"] < 1:
+    def _check_shape(self, X):
+        if not self.get_tag("capability:unequal_length"):
+            if get_n_timepoints(X) != self.metadata_["n_timepoints"]:
                 raise ValueError(
-                    "cv_size must be an integer greater than 0, but found "
-                    f"{dict['cv_size']}"
+                    "X has different length to the data seen in fit but "
+                    "this classifier cannot handle unequal length series."
+                    "length of train set was",
+                    self.metadata_["n_timepoints"],
+                    " length in predict is ",
                 )
-            cv_size = dict["cv_size"]
-        return cv_size
+        if self.get_tag("capability:multivariate"):
+            if get_n_channels(X) != self.metadata_["n_channels"]:
+                raise ValueError(
+                    "X has different number of channels to the data seen in fit "
+                    "number of channels in train set was",
+                    self.metadata_["n_channels"],
+                    "but in predict it is ",
+                    get_n_timepoints(X),
+                )
