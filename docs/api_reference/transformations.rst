@@ -74,22 +74,6 @@ features, usually a vector of floats, but can also be categorical.
 When applied to collections or hierarchical data, the transformation result is a table
 with as many rows as time series in the collection and a column for each feature.
 
-Summarization
-~~~~~~~~~~~~~
-
-These transformers extract simple summary features.
-
-.. currentmodule:: aeon.transformations.summarize
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    SummaryTransformer
-    WindowSummarizer
-    FittedParamExtractor
-
-
 Shapelets, wavelets and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -205,12 +189,6 @@ Depending on the transformer, the transformation parameters can be fitted.
 
     BoxCoxTransformer
     LogTransformer
-
-.. currentmodule:: aeon.transformations.scaledlogit
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
 
     ScaledLogitTransformer
 
@@ -329,16 +307,6 @@ These transformers convert multivariate series to univariate.
 FeatureSelection
 ~~~~~~~~~~~~~~~~
 
-These transformers select features in `X` based on `y`.
-
-.. currentmodule:: aeon.transformations.feature_selection
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FeatureSelection
-
 .. currentmodule:: aeon.transformations.collection.channel_selection
 
 .. autosummary::
@@ -409,14 +377,6 @@ Bootstrap transformations
 
 Outlier detection, changepoint detection
 ----------------------------------------
-
-.. currentmodule:: aeon.transformations.outlier_detection
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    HampelFilter
 
 .. currentmodule:: aeon.transformations.series._clasp
 
