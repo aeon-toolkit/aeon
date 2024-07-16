@@ -19,8 +19,6 @@ api_reference/clustering
 api_reference/data_format
 api_reference/datasets
 api_reference/distances
-api_reference/exceptions
-api_reference/forecasting
 api_reference/networks
 api_reference/performance_metrics
 api_reference/regression

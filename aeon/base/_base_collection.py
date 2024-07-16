@@ -10,6 +10,8 @@ from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import (
     get_n_cases,
+    get_n_channels,
+    get_n_timepoints,
     has_missing,
     is_equal_length,
     is_univariate,
@@ -43,7 +45,7 @@ class BaseCollectionEstimator(BaseEstimator):
         super().__init__()
         _check_estimator_deps(self)
 
-    def _preprocess_collection(self, X):
+    def _preprocess_collection(self, X, store_metadata=True):
         """Preprocess input X prior to call to fit.
 
         1. Checks the characteristics of X, store metadata, checks self can handle
@@ -56,6 +58,8 @@ class BaseCollectionEstimator(BaseEstimator):
         X : collection
             See aeon.registry.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
+        store_metadata : bool, default=True
+            Whether to store metadata about X in self.metadata_.
 
         Returns
         -------
@@ -77,7 +81,7 @@ class BaseCollectionEstimator(BaseEstimator):
         (10, 1, 20)
         """
         meta = self._check_X(X)
-        if len(self.metadata_) == 0:
+        if len(self.metadata_) == 0 and store_metadata:
             self.metadata_ = meta
 
         X = self._convert_X(X)
@@ -216,5 +220,8 @@ class BaseCollectionEstimator(BaseEstimator):
         metadata["missing_values"] = has_missing(X)
         metadata["unequal_length"] = not is_equal_length(X)
         metadata["n_cases"] = get_n_cases(X)
+        # Length of first series, used if equal length is True
+        metadata["n_timepoints"] = get_n_timepoints(X)
+        metadata["n_channels"] = get_n_channels(X)
 
         return metadata

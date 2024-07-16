@@ -5,7 +5,6 @@ import warnings
 import numpy as np
 import numpy.typing as npt
 import pandas as pd
-from deprecated.sphinx import deprecated
 from pandas.api.types import is_numeric_dtype
 from scipy.linalg import null_space
 from sklearn.decomposition import PCA
@@ -14,17 +13,10 @@ from sklearn.neighbors import NearestNeighbors
 from aeon.transformations.base import BaseTransformer
 
 __maintainer__ = []
-__all__ = ["DOBIN"]
+__all__ = ["_DOBIN"]
 
 
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="DOBIN will be removed in version 0.10.0 and replaced with a "
-    "BaseSeriesTransformer version in the transformations.series module.",
-    category=FutureWarning,
-)
-class DOBIN(BaseTransformer):
+class _DOBIN(BaseTransformer):
     """Distance based Outlier BasIs using Neighbors (DOBIN).
 
     DOBIN is a pre-processing algorithm that constructs a set of basis
@@ -64,26 +56,6 @@ class DOBIN(BaseTransformer):
     .. [1] Kandanaarachchi, Sevvandi, and Rob J. Hyndman. "Dimension reduction
     for outlier detection using DOBIN." Journal of Computational and Graphical
     Statistics 30.1 (2021): 204-219.
-
-    Examples
-    --------
-    >>> from aeon.transformations.dobin import DOBIN
-    >>> from sklearn.preprocessing import MinMaxScaler
-    >>> import numpy as np
-    >>> import pandas as pd
-    >>> from aeon.datasets import load_uschange
-    >>> _, X = load_uschange()
-    >>> scaler = MinMaxScaler()
-    >>> X = scaler.fit_transform(X)
-    >>> model = DOBIN()
-    >>> X_outlier = model.fit_transform(pd.DataFrame(X))
-    >>> X_outlier.head()
-            DB0       DB1       DB2       DB3
-    0  1.151965  0.116488  0.286064  0.288140
-    1  1.191976  0.100772  0.050835  0.225985
-    2  1.221158  0.078031  0.034030  0.249676
-    3  1.042420  0.188494  0.218460  0.205251
-    4  1.224701  0.020028 -0.294705  0.199827
     """
 
     _tags = {
@@ -208,7 +180,7 @@ class DOBIN(BaseTransformer):
         # fit again if indices not seen, but don't store anything
         if not X.index.equals(self._X.index):
             X_full = X.combine_first(self._X)
-            new_dobin = DOBIN(
+            new_dobin = _DOBIN(
                 frac=self.frac,
                 k=self.k,
             ).fit(X_full)

@@ -23,7 +23,7 @@ def test_optionalpassthrough():
         SlidingWindowSplitter,
     )
     from aeon.forecasting.naive import NaiveForecaster
-    from aeon.transformations.adapt import TabularToSeriesAdaptor
+    from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
     from aeon.transformations.compose import OptionalPassthrough
     from aeon.transformations.detrend import Deseasonalizer
 

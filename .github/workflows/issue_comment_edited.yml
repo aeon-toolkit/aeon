@@ -1,15 +1,27 @@
-name: Issue Comment Posted
+name: Issue Comment Edited
 
 on:
   issue_comment:
     types: [edited]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.comment.id }}
+  cancel-in-progress: true
+
 jobs:
-  check-pr-labels:
+  pr-welcome-edited:
+    if: ${{ github.event.issue.pull_request }}
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout
+      - name: Create app token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Checkout main
         uses: actions/checkout@v4
         with:
           sparse-checkout: build_tools
@@ -22,15 +34,27 @@ jobs:
       - name: Install PyGithub
         run: pip install -Uq PyGithub
 
-      - name: Create app token
-        uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          app-id: ${{ vars.PR_APP_ID }}
-          private-key: ${{ secrets.PR_APP_KEY }}
-
-      - name: Assign issue
-        run: python build_tools/comment_pr_labeler.py
+      - name: Process comment edit
+        id: label_out
+        run: python build_tools/pr_welcome_edited.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - if: ${{ steps.label_out.outputs.empty_commit == 'true' }}
+        name: Checkout head
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.label_out.outputs.repo }}
+          ref: ${{ steps.label_out.outputs.branch }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - if: ${{ steps.label_out.outputs.empty_commit == 'true' }}
+        name: Push empty commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Empty commit for CI
+          commit_user_name: aeon-actions-bot[bot]
+          commit_options: --allow-empty
+          create_branch: false
+          skip_dirty_check: true
