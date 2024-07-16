@@ -44,7 +44,7 @@ class REDCOMETS(BaseClassifier):
         If ``RandomState`` instance, ``random_state`` is the random number generator;
         If ``None``, the random number generator is the ``RandomState`` instance used
         by ``np.random``.
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+    class_weight{“balanced”, “balanced_subsample”}: dict or list of dicts, default=None
         From sklearn documentation:
         If not given, all classes are supposed to have weight one.
         The “balanced” mode uses the values of y to automatically adjust weights
