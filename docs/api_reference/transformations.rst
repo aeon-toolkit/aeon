@@ -313,18 +313,6 @@ These transformers create a series based on a sequence of sliding windows.
 
     HOG1DTransformer
 
-Multivariate-to-univariate
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These transformers convert multivariate series to univariate.
-
-.. currentmodule:: aeon.transformations.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ColumnConcatenator
 
 FeatureSelection
 ~~~~~~~~~~~~~~~~
