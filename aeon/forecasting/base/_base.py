@@ -124,7 +124,7 @@ class BaseForecaster(BaseEstimator):
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
         from aeon.forecasting.compose import TransformedTargetForecaster
-        from aeon.transformations.adapt import TabularToSeriesAdaptor
+        from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
         from aeon.utils.sklearn import is_sklearn_transformer
 
@@ -155,7 +155,7 @@ class BaseForecaster(BaseEstimator):
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.forecasting.compose import TransformedTargetForecaster
-        from aeon.transformations.adapt import TabularToSeriesAdaptor
+        from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
         from aeon.utils.sklearn import is_sklearn_transformer
 
@@ -186,7 +186,7 @@ class BaseForecaster(BaseEstimator):
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
         from aeon.forecasting.compose import ForecastingPipeline
-        from aeon.transformations.adapt import TabularToSeriesAdaptor
+        from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
         from aeon.transformations.base import BaseTransformer
         from aeon.utils.sklearn import is_sklearn_transformer
 

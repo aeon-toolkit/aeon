@@ -1,32 +1,22 @@
-"""
-Implements Baxter-King bandpass filter transformation.
+"""Baxter-King bandpass filter transformation."""
 
-Please see the original library
-(https://github.com/statsmodels/statsmodels/blob/main/statsmodels/tsa/filters/bk_filter.py)
-"""
-
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["BKFilter"]
 
 
 import numpy as np
 
 from aeon.transformations.series.base import BaseSeriesTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class BKFilter(BaseSeriesTransformer):
     """Filter a times series using the Baxter-King filter.
 
-    This is a wrapper around statsmodels' bkfilter function
-    (see 'sm.tsa.filters.bk_filter.bkfilter').
+    The Baxter-King filter from econometrics  that uses a band pass filter to
+    removes the cycle component (seasonality) from the time series based on weighted
+    moving average with specified weights. It removes high or low frequency
+    patterns and returns a centred weighted moving average of the original series.
 
-    The Baxter-King filter is intended for economic and econometric time series
-    data and deals with the periodicity of the business cycle. Applying their
-    band-pass filter to a series will produce a new series that does not contain
-    fluctuations at a higher or lower frequency than those of the business cycle.
-    Baxter-King follow Burns and Mitchell's work on business cycles, which suggests
-    that U.S. business cycles typically last from 1.5 to 8 years.
 
     Parameters
     ----------
@@ -44,7 +34,8 @@ class BKFilter(BaseSeriesTransformer):
 
     Notes
     -----
-    Returns a centered weighted moving average of the original series.
+    Adapted from statsmodels implementation
+    https://github.com/statsmodels/statsmodels/blob/main/statsmodels/tsa/filters/bk_filter.py
 
     References
     ----------
@@ -54,22 +45,19 @@ class BKFilter(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.bkfilter import BKFilter # doctest: +SKIP
-    >>> import pandas as pd # doctest: +SKIP
-    >>> import statsmodels.api as sm # doctest: +SKIP
-    >>> dta = sm.datasets.macrodata.load_pandas().data # doctest: +SKIP
-    >>> index = pd.date_range(start='1959Q1', end='2009Q4', freq='Q') # doctest: +SKIP
-    >>> dta.set_index(index, inplace=True) # doctest: +SKIP
-    >>> bk = BKFilter(6, 24, 12) # doctest: +SKIP
-    >>> cycles = bk.fit_transform(X=dta[['realinv']]) # doctest: +SKIP
+    >>> import numpy as np
+    >>> from aeon.transformations.series._bkfilter import BKFilter
+    >>> X = np.random.random((1,100)) # Random series length 100
+    >>> bk = BKFilter()
+    >>> X2 = bk.fit_transform(X)
+    >>> X2.shape
+    (1, 76)
     """
 
     _tags = {
         "capability:multivariate": True,
         "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
-        "capability:unequal_length": True,
-        "python_dependencies": "statsmodels",
     }
 
     def __init__(
@@ -90,19 +78,15 @@ class BKFilter(BaseSeriesTransformer):
 
         Parameters
         ----------
-        X : array_like
-        A 1 or 2d ndarray. If 2d, variables are assumed to be in columns.
+        X : np.ndarray
+            time series in shape (n_channels, n_timepoints)
 
         Returns
         -------
         transformed cyclical version of X
         """
-        _check_soft_dependencies("statsmodels", severity="error")
         from scipy.signal import fftconvolve
-        from statsmodels.tools.validation import PandasWrapper, array_like
 
-        pw = PandasWrapper(X)
-        X = array_like(X, "X", maxdim=2)
         omega_1 = 2.0 * np.pi / self.high
         omega_2 = 2.0 * np.pi / self.low
         bweights = np.zeros(2 * self.K + 1)
@@ -114,9 +98,9 @@ class BKFilter(BaseSeriesTransformer):
         bweights -= bweights.mean()
         if X.ndim == 2:
             bweights = bweights[:, None]
-        X = fftconvolve(X, bweights, mode="valid")
+        XTr = fftconvolve(X, bweights, mode="valid")
 
-        return pw.wrap(X, append="cycle", trim_start=self.K, trim_end=self.K)
+        return XTr
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
