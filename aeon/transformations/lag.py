@@ -458,7 +458,7 @@ class ReducerTransform(BaseTransformer):
         -------
         self: reference to self
         """
-        from aeon.transformations.compose import FeatureUnion, YtoX
+        from aeon.transformations._legacy.compose import FeatureUnion, YtoX
         from aeon.transformations.impute import Imputer
 
         impute_method = self.impute_method

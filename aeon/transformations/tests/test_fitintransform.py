@@ -5,7 +5,7 @@ __all__ = []
 
 import numpy as np
 
-from aeon.transformations.compose import FitInTransform
+from aeon.transformations._legacy.compose import FitInTransform
 from aeon.transformations.series._boxcox import BoxCoxTransformer
 
 
