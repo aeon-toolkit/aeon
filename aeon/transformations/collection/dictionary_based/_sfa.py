@@ -3,7 +3,7 @@
 Configurable SFA transform for discretising time series into words.
 """
 
-__maintainer__ = []
+__maintainer__ = ["patrickzib", "MatthewMiddlehurst"]
 __all__ = ["SFA"]
 
 import math
@@ -21,13 +21,14 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from aeon.transformations.collection import BaseCollectionTransformer
 
-# The binning methods to use: equi-depth, equi-width, information gain or kmeans
+# The binning methods to use
 binning_methods = {
     "equi-depth",
     "equi-width",
     "information-gain",
     "information-gain-mae",
     "kmeans",
+    "quantile",
 }
 
 
@@ -40,47 +41,42 @@ class SFA(BaseCollectionTransformer):
             shorten the series with DFT
             discretise the shortened series into bins set by MFC
             form a word from these discrete values
-    by default SFA produces a single word per series (window_size=0)
-    if a window is used, it forms a histogram of counts of words.
+    SFA returns a dictionary of word counts for each series
+
+    This is a slower but more flexible version of the SFA transform, which can store
+    greater than 64 bit words. This is at the cost of efficiency, however.
 
     Parameters
     ----------
-    word_length:         int, default = 8
-        length of word to shorten window to (using PAA)
-
-    alphabet_size:       int, default = 4
-        number of values to discretise each value to
-
-    window_size:         int, default = 12
-        size of window for sliding. Input series
-        length for whole series transform
-
-    norm:                boolean, default = False
-        mean normalise words by dropping first fourier coefficient
-
-    binning_method:      {"equi-depth", "equi-width", "information-gain",
-        "information-gain-mae", "kmeans"}, default="equi-depth"
-        the binning method used to derive the breakpoints.
-
-    anova:               boolean, default = False
-        If True, the Fourier coefficient selection is done via a one-way
-        ANOVA test. If False, the first Fourier coefficients are selected.
-        Only applicable if labels are given
-
-    bigrams:             boolean, default = False
-        whether to create bigrams of SFA words
-
-    skip_grams:          boolean, default = False
-        whether to create skip-grams of SFA words
-
-    remove_repeat_words: boolean, default = False
-        whether to use numerosity reduction (default False)
+    word_length : int, default=8
+        Length of word to shorten window to (using PAA).
+    alphabet_size : int, default=4
+        Number of values to discretise each value to.
+    window_size : int, default=12
+        Size of window for sliding. Input series length for whole series transform.
+    norm : boolean, default=False
+        Mean normalise words by dropping first fourier coefficient.
+    binning_method : str, default="equi-depth"
+        The binning method used to derive the breakpoints. One of {"equi-depth",
+        "equi-width", "information-gain", "information-gain-mae", "kmeans",
+        "quantile"}.
+    anova : boolean, default=False
+        If True, the Fourier coefficient selection is done via a one-way ANOVA test.
+        If False, the first Fourier coefficients are selected. Only applicable if
+        labels are given.
+    bigrams : boolean, default=False
+        Whether to create bigrams of SFA words.
+    skip_grams : boolean, default=False
+        Whether to create skip-grams of SFA words.
+    levels: int, default=1
+        Number of spatial pyramid levels
+    remove_repeat_words : boolean, default=False
+       Whether to use numerosity reduction.
 
     lower_bounding_distances : boolean, default = None
         If set to True, the FFT is normed to allow for ED lower bounding.
 
-    levels:              int, default = 1
-        Number of spatial pyramid levels
+
 
     save_words:          boolean, default = False
         whether to save the words generated for each series (default False)
@@ -123,8 +119,8 @@ class SFA(BaseCollectionTransformer):
         anova=False,
         bigrams=False,
         skip_grams=False,
-        remove_repeat_words=False,
         levels=1,
+        remove_repeat_words=False,
         lower_bounding=True,
         lower_bounding_distances=None,
         save_words=False,
