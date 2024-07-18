@@ -13,11 +13,11 @@ from sklearn.utils._testing import set_random_state
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.ets import AutoETS
 from aeon.testing.mock_estimators import MockForecaster
-from aeon.transformations.base import BaseTransformer
-from aeon.transformations.bootstrap import (
+from aeon.transformations._legacy._mbb import (
     MovingBlockBootstrapTransformer,
     STLBootstrapTransformer,
 )
+from aeon.transformations.base import BaseTransformer
 from aeon.utils.index_functions import update_data
 
 

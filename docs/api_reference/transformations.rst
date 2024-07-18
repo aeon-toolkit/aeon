@@ -383,17 +383,6 @@ Series-to-Panel transformers
 
 These transformers create a panel from a single series.
 
-Bootstrap transformations
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.bootstrap
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    STLBootstrapTransformer
-    MovingBlockBootstrapTransformer
 
 Outlier detection, changepoint detection
 ----------------------------------------
