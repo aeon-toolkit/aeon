@@ -225,17 +225,6 @@ Depending on the transformer, the transformation parameters can be fitted.
 Detrending
 ~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.detrend
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Detrender
-    Deseasonalizer
-    ConditionalDeseasonalizer
-    STLTransformer
-
 .. currentmodule:: aeon.transformations.series._clear_sky
 
 .. autosummary::

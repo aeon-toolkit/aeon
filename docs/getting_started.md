@@ -340,7 +340,6 @@ yourself, you will need to `pip install statsmodels` and `pip install pmdarima`)
 >>> import numpy as np
 >>> from aeon.datasets import load_airline
 >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
->>> from aeon.transformations.detrend import Deseasonalizer
 >>> from aeon.forecasting.arima import ARIMA
 >>> from aeon.forecasting.compose import TransformedTargetForecaster
 ...
@@ -350,7 +349,6 @@ yourself, you will need to `pip install statsmodels` and `pip install pmdarima`)
 >>> pipe = TransformedTargetForecaster(
 ...     steps=[
 ...         ("boxcox", BoxCoxTransformer(sp=12)),
-...         ("deseasonaliser", Deseasonalizer(sp=12)),
 ...         ("arima", ARIMA(order=(1, 1, 0))),
 ...     ]
 ... )
@@ -378,10 +376,9 @@ function can be used to creating pipelines as well.
 ```{code-block} python
 >>> from aeon.pipeline import make_pipeline
 >>> make_pipeline(
-...     BoxCoxTransformer(sp=12), Deseasonalizer(sp=12), ARIMA(order=(1, 1, 0))
+...     BoxCoxTransformer(sp=12), ARIMA(order=(1, 1, 0))
 ... )
 TransformedTargetForecaster(steps=[BoxCoxTransformer(sp=12),
-                                   Deseasonalizer(sp=12),
                                    ARIMA(order=(1, 1, 0))])
 ```
 
@@ -436,7 +433,7 @@ to ARIMA order values for the forecasting pipeline we created in the previous ex
 ... )
 >>> from aeon.forecasting.arima import ARIMA
 >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
->>> from aeon.transformations.detrend import Deseasonalizer
+>>> from aeon.transformations._legacy._deseasonalize import Deseasonalizer
 ...
 >>> y = load_airline()
 ...
