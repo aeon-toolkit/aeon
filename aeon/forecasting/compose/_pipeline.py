@@ -704,38 +704,6 @@ class TransformedTargetForecaster(_Pipeline):
         reference to pairs in steps_ that precede forecaster_
     transformers_ost_ : list of tuples (str, transformer) of aeon transformers
         reference to pairs in steps_ that succeed forecaster_
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.forecasting.compose import TransformedTargetForecaster
-    >>> from aeon.transformations.impute import Imputer
-    >>> from aeon.transformations.detrend import Detrender
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> y = load_airline()
-
-        Example 1: string/estimator pairs
-    >>> pipe = TransformedTargetForecaster(steps=[
-    ...     ("imputer", Imputer(method="mean")),
-    ...     ("detrender", Detrender()),
-    ...     ("forecaster", NaiveForecaster(strategy="drift")),
-    ... ])
-    >>> t = pipe.fit(y)
-    >>> y_pred = pipe.predict(fh=[1,2,3])
-
-        Example 2: without strings
-    >>> pipe = TransformedTargetForecaster([
-    ...     Imputer(method="mean"),
-    ...     Detrender(),
-    ...     NaiveForecaster(strategy="drift"),
-    ...     ExponentTransformer(),
-    ... ])
-
-        Example 3: using the dunder method
-    >>> forecaster = NaiveForecaster(strategy="drift")
-    >>> imputer = Imputer(method="mean")
-    >>> pipe = imputer * Detrender() * forecaster * ExponentTransformer()
     """
 
     _tags = {

@@ -19,12 +19,12 @@ from aeon.transformations._legacy.compose import (
     OptionalPassthrough,
     TransformerPipeline,
 )
+from aeon.transformations._legacy.impute import Imputer
 from aeon.transformations._legacy.subset import _ColumnSelect
 from aeon.transformations._legacy.theta import (
     _ThetaLinesTransformer as ThetaLinesTransformer,
 )
 from aeon.transformations.collection.pad import PaddingTransformer
-from aeon.transformations.impute import Imputer
 from aeon.transformations.summarize import SummaryTransformer
 
 

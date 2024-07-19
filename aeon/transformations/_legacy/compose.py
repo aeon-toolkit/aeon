@@ -869,7 +869,7 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
         -------
         params : dict or list of dict
         """
-        from aeon.transformations.impute import Imputer
+        from aeon.transformations._legacy.impute import Imputer
 
         # test with 2 simple detrend transformations with selected_transformer
         params1 = {
