@@ -1,6 +1,6 @@
-"""Multi Layer Perceptron Network (MLP) for Regression."""
+"""Multi Layer Perceptron Network (MLP) regressor."""
 
-__author__ = ["Aadya-Chinubhai"]
+__author__ = ["Aadya-Chinubhai", "hadifawaz1999"]
 __all__ = ["MLPRegressor"]
 
 import gc

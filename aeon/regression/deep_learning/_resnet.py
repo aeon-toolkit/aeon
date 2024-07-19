@@ -1,6 +1,6 @@
-"""Residual Network (ResNet) for regression."""
+"""Residual Network (ResNet) regressor."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["ResNetRegressor"]
 
 import gc

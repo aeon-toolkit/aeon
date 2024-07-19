@@ -1,6 +1,6 @@
-"""Fully Convolutional Network (FCN) for regression."""
+"""Fully Convolutional Network (FCN) regressor."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["FCNRegressor"]
 
 import gc

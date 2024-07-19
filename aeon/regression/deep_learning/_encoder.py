@@ -1,6 +1,6 @@
 """Encoder Regressor."""
 
-__author__ = ["AnonymousCodes911"]
+__author__ = ["AnonymousCodes911", "hadifawaz1999"]
 __all__ = ["EncoderRegressor"]
 
 import gc

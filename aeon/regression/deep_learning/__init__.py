@@ -2,6 +2,7 @@
 
 __all__ = [
     "CNNRegressor",
+    "TimeCNNRegressor",
     "FCNRegressor",
     "InceptionTimeRegressor",
     "IndividualInceptionRegressor",
@@ -13,7 +14,7 @@ __all__ = [
     "MLPRegressor",
 ]
 
-from aeon.regression.deep_learning._cnn import CNNRegressor
+from aeon.regression.deep_learning._cnn import CNNRegressor, TimeCNNRegressor
 from aeon.regression.deep_learning._encoder import EncoderRegressor
 from aeon.regression.deep_learning._fcn import FCNRegressor
 from aeon.regression.deep_learning._inception_time import (

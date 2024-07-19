@@ -1,6 +1,6 @@
-"""LITETime Regressor."""
+"""LITETime and LITE regressors."""
 
-__author__ = ["aadya940"]
+__author__ = ["aadya940", "hadifawaz1999"]
 __all__ = ["IndividualLITERegressor", "LITETimeRegressor"]
 
 import gc
