@@ -1,6 +1,7 @@
 """Unit tests for classifiers deep learning random_state functionality."""
 
 import inspect
+import os
 import tempfile
 import time
 
@@ -56,21 +57,24 @@ def test_saving_loading_deep_learning_cls(deep_cls):
 
             deep_cls_best = deep_cls()
             deep_cls_best.load_model(
-                model_path=tmp + best_file_name + ".keras", classes=np.unique(y)
+                model_path=os.path.joint(tmp, best_file_name + ".keras"),
+                classes=np.unique(y),
             )
             ypred_best = deep_cls_best.predict(X)
             assert len(ypred_best) == len(y)
 
             deep_cls_last = deep_cls()
             deep_cls_last.load_model(
-                model_path=tmp + last_file_name + ".keras", classes=np.unique(y)
+                model_path=os.path.joint(tmp, last_file_name + ".keras"),
+                classes=np.unique(y),
             )
             ypred_last = deep_cls_last.predict(X)
             assert len(ypred_last) == len(y)
 
             deep_cls_init = deep_cls()
             deep_cls_init.load_model(
-                model_path=tmp + init_file_name + ".keras", classes=np.unique(y)
+                model_path=os.path.joint(tmp, init_file_name + ".keras"),
+                classes=np.unique(y),
             )
             ypred_init = deep_cls_init.predict(X)
             assert len(ypred_init) == len(y)
