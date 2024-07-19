@@ -1,6 +1,7 @@
 """Deep learning based regressors."""
 
 __all__ = [
+    "BaseDeepRegressor",
     "CNNRegressor",
     "TimeCNNRegressor",
     "FCNRegressor",
@@ -28,3 +29,4 @@ from aeon.regression.deep_learning._lite_time import (
 from aeon.regression.deep_learning._mlp import MLPRegressor
 from aeon.regression.deep_learning._resnet import ResNetRegressor
 from aeon.regression.deep_learning._tapnet import TapNetRegressor
+from aeon.regression.deep_learning.base import BaseDeepRegressor
