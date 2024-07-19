@@ -1,7 +1,7 @@
 """Implements transformers raise time series to user provided exponent."""
 
 __maintainer__ = []
-__all__ = ["ExponentTransformer", "SqrtTransformer"]
+__all__ = ["ExponentTransformer"]
 
 from warnings import warn
 
@@ -12,6 +12,12 @@ from deprecated.sphinx import deprecated
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ExponentTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class ExponentTransformer(BaseTransformer):
     """Apply element-wise exponentiation transformation to a time series.
 
@@ -43,17 +49,6 @@ class ExponentTransformer(BaseTransformer):
         User supplied offset value.
         Scalar or 1D iterable with as many values as X columns in transform.
 
-    See Also
-    --------
-    BoxCoxTransformer :
-        Applies Box-Cox power transformation. Can help normalize data and
-        compress variance of the series.
-    LogTransformer :
-        Transformer input data using natural log. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.exponent.SqrtTransformer :
-        Transform input data by taking its square root. Can help compress
-        variance of input series.
 
     Notes
     -----
@@ -184,76 +179,3 @@ class ExponentTransformer(BaseTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return [{"power": 2.5, "offset": 1}]
-
-
-# TODO: remove in v0.10.0
-@deprecated(
-    version="0.9.0",
-    reason="SqrtTransformer will be removed in version 0.10.0.",
-    category=FutureWarning,
-)
-class SqrtTransformer(ExponentTransformer):
-    """Apply element-sise square root transformation to a time series.
-
-    Transformation performs the following operations element-wise:
-        * adds the constant `offset` (shift)
-        * applies the square root
-    Offset="auto" computes offset as the smallest offset that ensure all elements
-    are non-negative before taking the square root.
-
-    Parameters
-    ----------
-    offset : "auto", int or float, default="auto"
-        Offset to be added to the input timeseries prior to raising
-        the timeseries to the given `power`. If "auto" the series is checked to
-        determine if it contains negative values. If negative values are found
-        then the offset will be equal to the absolute value of the most negative
-        value. If not negative values are present the offset is set to zero.
-        If an integer or float value is supplied it will be used as the offset.
-
-    Attributes
-    ----------
-    offset : int or float
-        User supplied offset value.
-
-    See Also
-    --------
-    BoxCoxTransformer :
-        Applies Box-Cox power transformation. Can help normalize data and
-        compress variance of the series.
-    LogTransformer :
-        Transformer input data using natural log. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.exponent.ExponentTransformer :
-        Transform input data by raising it to an exponent. Can help compress
-        variance of series if a fractional exponent is supplied.
-
-    Notes
-    -----
-    For an input series `Z` the square root transformation is defined as
-    :math:`(Z + offset)^{0.5}`.
-    """
-
-    def __init__(self, offset="auto"):
-        super().__init__(power=0.5, offset=offset)
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            There are currently no reserved values for transformers.
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
-        """
-        return [{}, {"offset": 4.2}]

@@ -22,10 +22,18 @@ __all__ = [
     "plot_series_with_profiles",
     "plot_cluster_algorithm",
     "plot_temporal_importance_curves",
+    "ShapeletVisualizer",
+    "ShapeletTransformerVisualizer",
+    "ShapeletClassifierVisualizer",
 ]
 
 from aeon.visualisation.estimator._clasp import plot_series_with_profiles
 from aeon.visualisation.estimator._clustering import plot_cluster_algorithm
+from aeon.visualisation.estimator._shapelets import (
+    ShapeletClassifierVisualizer,
+    ShapeletTransformerVisualizer,
+    ShapeletVisualizer,
+)
 from aeon.visualisation.estimator._temporal_importance_curves import (
     plot_temporal_importance_curves,
 )

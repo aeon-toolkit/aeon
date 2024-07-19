@@ -6,6 +6,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from pandas.api.types import is_integer_dtype
 
 from aeon.transformations.base import BaseTransformer
@@ -23,6 +24,12 @@ def _coerce_to_int(obj):
     return obj
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="Lag will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class Lag(BaseTransformer):
     """Lagging transformer. Lags time series by one or multiple lags.
 
@@ -322,6 +329,12 @@ class Lag(BaseTransformer):
         return [params1, params2, params3]
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ReducerTransform will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class ReducerTransform(BaseTransformer):
     """Transformer for forecasting reduction. Prepares tabular X/y via lag and trafos.
 

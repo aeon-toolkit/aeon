@@ -20,6 +20,7 @@ jobs:
       - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
 
       - if: always()
+        name: Create app token
         uses: actions/create-github-app-token@v1
         id: app-token
         with:

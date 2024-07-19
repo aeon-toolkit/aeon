@@ -112,7 +112,17 @@ The [Checks](https://github.com/aeon-toolkit/aeon/pull/{pr_number}/checks) tab w
 
 If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR unless it is a draft.
 
-Don't hesitate to ask questions on the `aeon` [Slack](
-https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) channel if you have any.
+Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) channel if you have any.
+
+### PR CI actions
+
+These checkboxes will add labels to enable/disable CI functionality for this PR. This may not take effect immediately, and a new commit may be required to run the new configuration.
+
+- [ ] Run `pre-commit` checks for all files
+- [ ] Run all `pytest` tests and configurations
+- [ ] Run all notebook example tests
+- [ ] Run numba-disabled `codecov` tests
+- [ ] Stop automatic `pre-commit` fixes (always disabled for drafts)
+- [ ] Push an empty commit to re-run CI checks
     """  # noqa
 )
