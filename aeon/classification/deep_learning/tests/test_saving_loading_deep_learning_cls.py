@@ -54,6 +54,7 @@ def test_saving_loading_deep_learning_cls(deep_cls):
                 best_file_name=best_file_name,
                 last_file_name=last_file_name,
                 init_file_name=init_file_name,
+                file_path=tmp,
             )
             deep_cls_train.fit(X, y)
 
