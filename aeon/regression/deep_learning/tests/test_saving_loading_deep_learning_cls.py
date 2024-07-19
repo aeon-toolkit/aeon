@@ -1,21 +1,20 @@
-"""Unit tests for classifiers deep learners save/load functionalities."""
+"""Unit tests for regressors deep learners save/load functionalities."""
 
 import inspect
 import os
 import tempfile
 import time
 
-import numpy as np
 import pytest
 
-from aeon.classification import deep_learning
+from aeon.regression import deep_learning
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 __maintainer__ = ["hadifawaz1999"]
 
 
-_deep_cls_classes = [
+_deep_rgs_classes = [
     member[1] for member in inspect.getmembers(deep_learning, inspect.isclass)
 ]
 
@@ -24,17 +23,17 @@ _deep_cls_classes = [
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("deep_cls", _deep_cls_classes)
-def test_saving_loading_deep_learning_cls(deep_cls):
-    """Test Deep Classifier saving."""
+@pytest.mark.parametrize("deep_rgs", _deep_rgs_classes)
+def test_saving_loading_deep_learning_rgs(deep_rgs):
+    """Test Deep Regressor saving."""
     with tempfile.TemporaryDirectory() as tmp:
         if not (
-            deep_cls.__name__
+            deep_rgs.__name__
             in [
-                "BaseDeepClassifier",
-                "InceptionTimeClassifier",
-                "LITETimeClassifier",
-                "TapNetClassifier",
+                "BaseDeepRegressor",
+                "InceptionTimeRegressor",
+                "LITETimeRegressor",
+                "TapNetRegressor",
             ]
         ):
             curr_time = str(time.time_ns())
@@ -44,7 +43,7 @@ def test_saving_loading_deep_learning_cls(deep_cls):
 
             X, y = make_example_3d_numpy()
 
-            deep_cls_train = deep_cls(
+            deep_rgs_train = deep_rgs(
                 n_epochs=2,
                 save_best_model=True,
                 save_last_model=True,
@@ -53,28 +52,25 @@ def test_saving_loading_deep_learning_cls(deep_cls):
                 last_file_name=last_file_name,
                 init_file_name=init_file_name,
             )
-            deep_cls_train.fit(X, y)
+            deep_rgs_train.fit(X, y)
 
-            deep_cls_best = deep_cls()
-            deep_cls_best.load_model(
+            deep_rgs_best = deep_rgs()
+            deep_rgs_best.load_model(
                 model_path=os.path.join(tmp, best_file_name + ".keras"),
-                classes=np.unique(y),
             )
-            ypred_best = deep_cls_best.predict(X)
+            ypred_best = deep_rgs_best.predict(X)
             assert len(ypred_best) == len(y)
 
-            deep_cls_last = deep_cls()
-            deep_cls_last.load_model(
+            deep_rgs_last = deep_rgs()
+            deep_rgs_last.load_model(
                 model_path=os.path.join(tmp, last_file_name + ".keras"),
-                classes=np.unique(y),
             )
-            ypred_last = deep_cls_last.predict(X)
+            ypred_last = deep_rgs_last.predict(X)
             assert len(ypred_last) == len(y)
 
-            deep_cls_init = deep_cls()
-            deep_cls_init.load_model(
+            deep_rgs_init = deep_rgs()
+            deep_rgs_init.load_model(
                 model_path=os.path.join(tmp, init_file_name + ".keras"),
-                classes=np.unique(y),
             )
-            ypred_init = deep_cls_init.predict(X)
+            ypred_init = deep_rgs_init.predict(X)
             assert len(ypred_init) == len(y)
