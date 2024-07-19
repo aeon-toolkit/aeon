@@ -756,13 +756,13 @@ class ShapeletClassifierVisualizer:
             "edgecolor": "black",
             "linewidths": 2,
         },
-        x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        x_plot_options={"linewidth": 4, "alpha": 0.9},  # noqa: B006
         shp_plot_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
             "linestyle": "--",
         },
-        dist_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        dist_plot_options={"linewidth": 3, "alpha": 0.9},  # noqa: B006
         threshold_plot_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
