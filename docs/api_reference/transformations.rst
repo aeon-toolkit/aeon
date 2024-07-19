@@ -288,18 +288,6 @@ Segmentation
     RandomIntervalSegmenter
     SlidingWindowSegmenter
 
-Missing value imputation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.impute
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Imputer
-
-
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
