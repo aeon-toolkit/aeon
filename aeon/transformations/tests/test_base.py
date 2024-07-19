@@ -26,8 +26,8 @@ from aeon.testing.utils.scenarios_transformers import (
     TransformerFitTransformSeriesMultivariate,
     TransformerFitTransformSeriesUnivariate,
 )
+from aeon.transformations._legacy.compose import FitInTransform, Id
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.compose import FitInTransform, Id
 from aeon.utils.validation import (
     abstract_types,
     is_collection,
