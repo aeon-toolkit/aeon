@@ -77,17 +77,6 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         The Box-Cox lambda parameter that was solved for based on the supplied
         `method` and data provided in `fit`.
 
-    See Also
-    --------
-    _LogTransformer :
-        Transformer input data using natural log. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.exponent.ExponentTransformer :
-        Transform input data by raising it to an exponent. Can help compress
-        variance of series if a fractional exponent is supplied.
-    aeon.transformations.exponent.SqrtTransformer :
-        Transform input data by taking its square root. Can help compress
-        variance of input series.
 
     Notes
     -----
@@ -210,17 +199,6 @@ class LogTransformer(BaseSeriesTransformer):
     scale  : float , default = 1
              Multiplicative scaling constant applied to all the data.
 
-    See Also
-    --------
-    _BoxCoxTransformer :
-        Applies Box-Cox power transformation. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.exponent.ExponentTransformer :
-        Transform input data by raising it to an exponent. Can help compress
-        variance of series if a fractional exponent is supplied.
-    aeon.transformations.exponent.SqrtTransformer :
-        Transform input data by taking its square root. Can help compress
-        variance of input series.
 
     Notes
     -----

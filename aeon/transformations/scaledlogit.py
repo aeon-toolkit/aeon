@@ -41,21 +41,6 @@ class ScaledLogitTransformer(BaseTransformer):
     upper_bound : float, optional, default=None
         upper bound of inverse transform function
 
-    See Also
-    --------
-    aeon.transformations.boxcox._LogTransformer :
-        Transformer input data using natural log. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.boxcox._BoxCoxTransformer :
-        Applies Box-Cox power transformation. Can help normalize data and
-        compress variance of the series.
-    aeon.transformations.exponent.ExponentTransformer :
-        Transform input data by raising it to an exponent. Can help compress
-        variance of series if a fractional exponent is supplied.
-    aeon.transformations.exponent.SqrtTransformer :
-        Transform input data by taking its square root. Can help compress
-        variance of input series.
-
     Notes
     -----
     | The scaled logit transform is applied if both upper_bound and lower_bound are

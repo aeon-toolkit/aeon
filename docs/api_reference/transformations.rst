@@ -214,14 +214,6 @@ Depending on the transformer, the transformation parameters can be fitted.
 
     ScaledLogitTransformer
 
-.. currentmodule:: aeon.transformations.exponent
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ExponentTransformer
-
 Detrending
 ~~~~~~~~~~
 
