@@ -7,10 +7,17 @@ from copy import deepcopy
 from warnings import warn
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
+# TODO: remove in v0.11.0
+@deprecated(
+    version="0.10.0",
+    reason="ScaledLogitTransformer will be removed in version 0.11.0.",
+    category=FutureWarning,
+)
 class ScaledLogitTransformer(BaseTransformer):
     r"""Scaled logit transform or Log transform.
 
@@ -36,10 +43,10 @@ class ScaledLogitTransformer(BaseTransformer):
 
     See Also
     --------
-    aeon.transformations.boxcox.LogTransformer :
+    aeon.transformations.boxcox._LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
-    aeon.transformations.boxcox.BoxCoxTransformer :
+    aeon.transformations.boxcox._BoxCoxTransformer :
         Applies Box-Cox power transformation. Can help normalize data and
         compress variance of the series.
     aeon.transformations.exponent.ExponentTransformer :

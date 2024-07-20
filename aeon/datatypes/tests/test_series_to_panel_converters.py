@@ -8,7 +8,8 @@ from aeon.datatypes._series_as_panel import (
     convert_Panel_to_Series,
     convert_Series_to_Panel,
 )
-from aeon.testing.data_generation import make_example_3d_numpy, make_series
+from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.testing.data_generation._legacy import make_series
 
 
 def test_convert_numpy_series_to_collection():

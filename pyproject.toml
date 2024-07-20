@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeon"
-version = "0.9.0"
+version = "0.10.0"
 description = "A toolkit for machine learning from time series"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
@@ -38,13 +38,12 @@ classifiers = [
     "Operating System :: Unix",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.8,<3.13"
+requires-python = ">=3.9,<3.13"
 dependencies = [
     "deprecated>=1.2.13",
     "numba>=0.55,<0.60.0",
@@ -59,8 +58,7 @@ dependencies = [
 [project.optional-dependencies]
 all_extras = [
     "cloudpickle",
-    "esig>=0.9.7,<0.9.8.3; python_version < '3.11'",
-    "filterpy>=1.4.5",
+    "esig>=0.9.7; platform_system != 'Darwin' and python_version < '3.11'",
     "gluonts>=0.12.4",
     "h5py",
     "imbalanced-learn",
@@ -75,14 +73,17 @@ all_extras = [
     "statsforecast>=0.5.2",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
+    "ruptures>=1.1.9",
     "tbats>=1.1.0",
-    "tensorflow>=2.12; python_version < '3.12' and python_version >= '3.9'",
-    "tensorflow-addons; python_version < '3.12' and python_version >= '3.9'",
+    "tensorflow>=2.14; python_version < '3.12'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "xarray",
+    "pyod>=1.1.3",
 
+    # dependency of tensorflow, see issue #1724
+    "keras<3.4",
     # for some reason, a heirarchical dask test fails on some Python versions with the
     # later versions of pyarrow and dask
     "dask[dataframe]<2024.3.0; python_version < '3.11'",
@@ -91,11 +92,12 @@ all_extras = [
 ]
 dl = [
     "keras-self-attention",
-    "tensorflow>=2.12; python_version < '3.12' and python_version >= '3.9'",
-    "tensorflow-addons; python_version < '3.12' and python_version >= '3.9'",
+    # dependency of tensorflow, see issue #1724
+    "keras<3.4",
+    "tensorflow>=2.12; python_version < '3.12'",
 ]
 unstable_extras = [
-    "mrsqm>=0.0.1,<0.1.0 ; platform_system == 'Darwin' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
+    "mrsqm>=0.0.1,<0.1.0; platform_system == 'Darwin' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
     "pycatch22<=0.4.3",  # known to fail installation on some setups
     "pyfftw>=0.12.0; python_version < '3.12'",  # requires fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
 ]
@@ -105,6 +107,7 @@ dev = [
     "pre-commit",
     "pytest",
     "pytest-cov",
+    "pytest-mock",
     "pytest-randomly",
     "pytest-timeout",
     "pytest-xdist[psutil]",
@@ -129,6 +132,7 @@ docs = [
     "jupyter",
     "furo",
     "tabulate",
+    "matplotlib",
 ]
 
 [project.urls]
@@ -182,7 +186,6 @@ addopts = '''
     --durations 20
     --timeout 600
     --showlocals
-    --numprocesses logical
     --dist worksteal
     --reruns 2
     --only-rerun "crashed while running"

@@ -7,6 +7,13 @@ Visualisation
     :no-members:
     :no-inherited-members:
 
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ShapeletVisualizer
+    ShapeletTransformerVisualizer
+    ShapeletClassifierVisualizer
 
 .. autosummary::
     :toctree: auto_generated/
