@@ -120,7 +120,7 @@ class RSASTClassifier(BaseClassifier):
 
         self._classifier = _clone_estimator(
             (
-                RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+                RidgeClassifierCV(alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight)
                 if self.classifier is None
                 else self.classifier
             ),
