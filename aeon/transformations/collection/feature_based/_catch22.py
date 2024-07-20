@@ -20,51 +20,51 @@ from aeon.utils.validation import check_n_jobs
 feature_names = [
     "DN_HistogramMode_5",
     "DN_HistogramMode_10",
-    "SB_BinaryStats_mean_longstretch1",
-    "DN_OutlierInclude_p_001_mdrmd",
-    "DN_OutlierInclude_n_001_mdrmd",
     "CO_f1ecac",
     "CO_FirstMin_ac",
-    "SP_Summaries_welch_rect_area_5_1",
-    "SP_Summaries_welch_rect_centroid",
-    "FC_LocalSimple_mean3_stderr",
-    "CO_trev_1_num",
     "CO_HistogramAMI_even_2_5",
-    "IN_AutoMutualInfoStats_40_gaussian_fmmi",
+    "CO_trev_1_num",
     "MD_hrv_classic_pnn40",
-    "SB_BinaryStats_diff_longstretch0",
-    "SB_MotifThree_quantile_hh",
-    "FC_LocalSimple_mean1_tauresrat",
-    "CO_Embed2_Dist_tau_d_expfit_meandiff",
-    "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
-    "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
+    "SB_BinaryStats_mean_longstretch1",
     "SB_TransitionMatrix_3ac_sumdiagcov",
     "PD_PeriodicityWang_th0_01",
+    "CO_Embed2_Dist_tau_d_expfit_meandiff",
+    "IN_AutoMutualInfoStats_40_gaussian_fmmi",
+    "FC_LocalSimple_mean1_tauresrat",
+    "DN_OutlierInclude_p_001_mdrmd",
+    "DN_OutlierInclude_n_001_mdrmd",
+    "SP_Summaries_welch_rect_area_5_1",
+    "SB_BinaryStats_diff_longstretch0",
+    "SB_MotifThree_quantile_hh",
+    "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
+    "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
+    "SP_Summaries_welch_rect_centroid",
+    "FC_LocalSimple_mean3_stderr",
 ]
 
 feature_names_short = [
     "mode_5",
     "mode_10",
-    "stretch_high",
-    "outlier_timing_pos",
-    "outlier_timing_neg",
     "acf_timescale",
     "acf_first_min",
-    "centroid_freq",
-    "low_freq_power",
-    "forecast_error",
-    "trev",
     "ami2",
-    "ami_timescale",
+    "trev",
     "high_fluctuation",
-    "stretch_decreasing",
-    "entropy_pairs",
-    "whiten_timescale",
-    "periodicity",
-    "dfa",
-    "rs_range",
+    "stretch_high",
     "transition_matrix",
     "periodicity",
+    "embedding_dist",
+    "ami_timescale",
+    "whiten_timescale",
+    "outlier_timing_pos",
+    "outlier_timing_neg",
+    "centroid_freq",
+    "stretch_decreasing",
+    "entropy_pairs",
+    "rs_range",
+    "dfa",
+    "low_freq_power",
+    "forecast_error",
 ]
 
 
@@ -82,24 +82,27 @@ class Catch22(BaseCollectionTransformer):
         list of names or indices for multiple features. If "all", all features are
         extracted.
         Valid features are as follows:
-            ["DN_HistogramMode_5", "DN_HistogramMode_10",
-            "SB_BinaryStats_diff_longstretch0", "DN_OutlierInclude_p_001_mdrmd",
-            "DN_OutlierInclude_n_001_mdrmd", "CO_f1ecac", "CO_FirstMin_ac",
-            "SP_Summaries_welch_rect_area_5_1", "SP_Summaries_welch_rect_centroid",
-            "FC_LocalSimple_mean3_stderr", "CO_trev_1_num", "CO_HistogramAMI_even_2_5",
-            "IN_AutoMutualInfoStats_40_gaussian_fmmi", "MD_hrv_classic_pnn40",
-            "SB_BinaryStats_mean_longstretch1", "SB_MotifThree_quantile_hh",
-            "FC_LocalSimple_mean1_tauresrat", "CO_Embed2_Dist_tau_d_expfit_meandiff",
+           ["DN_HistogramMode_5", "DN_HistogramMode_10", "CO_f1ecac","CO_FirstMin_ac",
+            "CO_HistogramAMI_even_2_5", "CO_trev_1_num", "MD_hrv_classic_pnn40",
+            "SB_BinaryStats_mean_longstretch1", "SB_TransitionMatrix_3ac_sumdiagcov",
+            "PD_PeriodicityWang_th0_01", "CO_Embed2_Dist_tau_d_expfit_meandiff",
+            "IN_AutoMutualInfoStats_40_gaussian_fmmi", "FC_LocalSimple_mean1_tauresrat",
+            "DN_OutlierInclude_p_001_mdrmd", "DN_OutlierInclude_n_001_mdrmd",
+            "SP_Summaries_welch_rect_area_5_1", "SB_BinaryStats_diff_longstretch0",
+            "SB_MotifThree_quantile_hh", "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
             "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
-            "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
-            "SB_TransitionMatrix_3ac_sumdiagcov", "PD_PeriodicityWang_th0_01"]
+            "SP_Summaries_welch_rect_centroid", "FC_LocalSimple_mean3_stderr"]
         Shortened:
-            ["mode_5","mode_10","stretch_high","outlier_timing_pos",
-            "outlier_timing_neg","acf_timescale","acf_first_min","centroid_freq",
-            "low_freq_power","forecast_error","trev","ami2","ami_timescale",
-            "high_fluctuation","stretch_decreasing","entropy_pairs",
-            "whiten_timescale","periodicity","dfa","rs_range",
-            "transition_matrix","periodicity"]
+           ["mode_5", "mode_10", "acf_timescale", "acf_first_min",
+            "ami2", "trev", "high_fluctuation",
+            "stretch_high", "transition_matrix",
+            "periodicity", "embedding_dist",
+            "ami_timescale", "whiten_timescale",
+            "outlier_timing_pos", "outlier_timing_neg",
+            "centroid_freq", "stretch_decreasing",
+            "entropy_pairs", "rs_range",
+            "dfa",
+            "low_freq_power", "forecast_error"]
 
     catch24 : bool, default=False
         Extract the mean and standard deviation as well as the 22 Catch22 features if
@@ -222,26 +225,26 @@ class Catch22(BaseCollectionTransformer):
             features = [
                 pycatch22.DN_HistogramMode_5,
                 pycatch22.DN_HistogramMode_10,
-                pycatch22.SB_BinaryStats_diff_longstretch0,
-                pycatch22.DN_OutlierInclude_p_001_mdrmd,
-                pycatch22.DN_OutlierInclude_n_001_mdrmd,
                 pycatch22.CO_f1ecac,
                 pycatch22.CO_FirstMin_ac,
-                pycatch22.SP_Summaries_welch_rect_area_5_1,
-                pycatch22.SP_Summaries_welch_rect_centroid,
-                pycatch22.FC_LocalSimple_mean3_stderr,
-                pycatch22.CO_trev_1_num,
                 pycatch22.CO_HistogramAMI_even_2_5,
-                pycatch22.IN_AutoMutualInfoStats_40_gaussian_fmmi,
+                pycatch22.CO_trev_1_num,
                 pycatch22.MD_hrv_classic_pnn40,
                 pycatch22.SB_BinaryStats_mean_longstretch1,
-                pycatch22.SB_MotifThree_quantile_hh,
-                pycatch22.FC_LocalSimple_mean1_tauresrat,
-                pycatch22.CO_Embed2_Dist_tau_d_expfit_meandiff,
-                pycatch22.SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
-                pycatch22.SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
                 pycatch22.SB_TransitionMatrix_3ac_sumdiagcov,
                 pycatch22.PD_PeriodicityWang_th0_01,
+                pycatch22.CO_Embed2_Dist_tau_d_expfit_meandiff,
+                pycatch22.IN_AutoMutualInfoStats_40_gaussian_fmmi,
+                pycatch22.FC_LocalSimple_mean1_tauresrat,
+                pycatch22.DN_OutlierInclude_p_001_mdrmd,
+                pycatch22.DN_OutlierInclude_n_001_mdrmd,
+                pycatch22.SP_Summaries_welch_rect_area_5_1,
+                pycatch22.SB_BinaryStats_diff_longstretch0,
+                pycatch22.SB_MotifThree_quantile_hh,
+                pycatch22.SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
+                pycatch22.SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
+                pycatch22.SP_Summaries_welch_rect_centroid,
+                pycatch22.FC_LocalSimple_mean3_stderr,
             ]
         else:
             features = [
@@ -550,7 +553,24 @@ class Catch22(BaseCollectionTransformer):
         ami = np.zeros(len(X_ac), dtype=np.float64)
 
         for i in range(tau):
-            ac = _autocorr_lag(X_ac, len(X_ac), i + 1)
+
+            lag_size = len(X_ac) - (i + 1)
+            y = X_ac[i + 1 :]
+            nom = 0.0
+            denomX = 0.0
+            denomY = 0.0
+            meanX = 0.0
+            for j in range(lag_size):
+                meanX += X_ac[j]
+            meanX = meanX / lag_size
+            meanY = np.mean(y)
+
+            for j in range(lag_size):
+                nom += (X_ac[j] - meanX) * (y[j] - meanY)
+                denomX += (X_ac[j] - meanX) * (X_ac[j] - meanX)
+                denomY += (y[j] - meanY) * (y[j] - meanY)
+
+            ac = nom / np.sqrt(denomX * denomY)
             ami[i] = -0.5 * np.log(1 - np.power(ac, 2))
 
         for i in range(1, tau - 1):
@@ -632,7 +652,11 @@ class Catch22(BaseCollectionTransformer):
                 out2[i][j] = tmp
         hh = 0.0
         for i in range(alphabet_size):
-            hh += _f_entropy(out2[i], alphabet_size)
+            f = 0.0
+            for j in range(alphabet_size):
+                if out2[i][j] > 0:
+                    f += out2[i][j] * np.log(out2[i][j])
+            hh += -1 * f
         return hh
 
     @staticmethod
@@ -766,12 +790,17 @@ class Catch22(BaseCollectionTransformer):
 
         # columns = [column1, column2, column3]
         cov_array = np.zeros((3, 3), dtype=np.float64)
-        covTemp = 0.0
         for i in range(3):
             for j in range(3):
-                covTemp = _covariance(columns[i], columns[j], 3)
-                cov_array[i][j] = covTemp
-                cov_array[j][i] = covTemp
+                val = 0.0
+                meanX = np.mean(columns[i])
+                meanY = np.mean(columns[j])
+                for k in range(3):
+                    val += (columns[i][k] - meanX) * (columns[j][k] - meanY)
+
+                val = val / 2
+                cov_array[i][j] = val
+                cov_array[j][i] = val
 
         sum_of_diagonal_cov = 0.0
         for i in range(3):
@@ -1376,14 +1405,24 @@ def _verify_features(features, catch24):
 @njit(fastmath=True, cache=True)
 def _compute_autocorrelations(X):
     mean = np.mean(X)
-    nFFT = _nearestPowerOf2(len(X)) * 2
+
+    nFFT = int(np.log2(len(X)))
+    if 2**nFFT == len(X):
+        nFFT = len(X) * 2
+    else:
+        nFFT = (2 ** (nFFT + 1)) * 2
+
     F = np.zeros(nFFT * 2, dtype=np.complex128)
     for i in range(len(X)):
         F[i] = complex(X[i] - mean, 0.0)
     for i in range(len(X), nFFT):
         F[i] = complex(0.0, 0.0)
     tw = np.zeros(nFFT * 2, dtype=np.complex128)
-    _twiddles(tw, nFFT)
+    # twiddles
+    PI = np.pi
+    for i in range(nFFT):
+        tmp = 0.0 - PI * i / nFFT * 1j
+        tw[i] = np.exp(tmp)
     F = _fft(F, tw)
     # dot multiply
     F = np.multiply(F, np.conj(F))
@@ -1392,25 +1431,6 @@ def _compute_autocorrelations(X):
     F = F / divisor
     out = np.real(F)
     return out
-
-
-@njit(fastmath=True, cache=True)
-def _nearestPowerOf2(N):
-    a = int(np.log2(N))
-
-    if 2**a == N:
-        return N
-
-    return 2 ** (a + 1)
-
-
-@njit(fastmath=True, cache=True)
-def _twiddles(a, size):
-    PI = np.pi
-
-    for i in range(size):
-        tmp = 0.0 - PI * i / size * 1j
-        a[i] = np.exp(tmp)
 
 
 @njit(fastmath=True, cache=True)
@@ -1446,30 +1466,6 @@ def _stddev(a, size):
     m = np.mean(a[:size])
     sd = np.sqrt(np.sum((a[:size] - m) ** 2) / (size - 1))
     return sd
-
-
-@njit(fastmath=True, cache=True)
-def _autocorr_lag(x, size, lag):
-    return _corr(x, x[lag:], size - lag)
-
-
-@njit(fastmath=True, cache=True)
-def _corr(x, y, size):
-    nom = 0.0
-    denomX = 0.0
-    denomY = 0.0
-    meanX = 0.0
-    for i in range(size):
-        meanX += x[i]
-    meanX = meanX / size
-    meanY = np.mean(y)
-
-    for i in range(size):
-        nom += (x[i] - meanX) * (y[i] - meanY)
-        denomX += (x[i] - meanX) * (x[i] - meanX)
-        denomY += (y[i] - meanY) * (y[i] - meanY)
-
-    return nom / np.sqrt(denomX * denomY)
 
 
 @njit(fastmath=True, cache=True)
@@ -1509,23 +1505,3 @@ def _quantile(X, quant):
         tmp[idx_right] - tmp[idx_left]
     ) / (idx_right - idx_left)
     return value
-
-
-@njit(fastmath=True, cache=True)
-def _f_entropy(a, size):
-    f = 0.0
-    for i in range(size):
-        if a[i] > 0:
-            f += a[i] * np.log(a[i])
-    return -1 * f
-
-
-@njit(fastmath=True, cache=True)
-def _covariance(X, Y, size):
-    val = 0
-    meanX = np.mean(X)
-    meanY = np.mean(Y)
-    for i in range(size):
-        val += (X[i] - meanX) * (Y[i] - meanY)
-
-    return val / (size - 1)
