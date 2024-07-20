@@ -1,7 +1,10 @@
+"""Piecewise Linear Approximation.
+
+A transformer which uses Piecewise Linear Approximation algorithms.
+"""
+
 __maintainer__ = []
 __all__ = ["PiecewiseLinearApproximation"]
-
-from enum import Enum
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -19,17 +22,23 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
 
     Parameters
     ----------
-    transformer: enum
-        The transformer to be used
+    transformer: int or str
+        The transformer to be used.
+        Default transformer is swab.
+        Valid transformers with their string and int:
+            Sliding Window: "sliding window", 1
+            Top Down: "top down" , 2
+            Bottom Up: "bottom up", 3
+            SWAB: "swab", 4
     max_error: float
-        The maximum error valuefor the function to find before segmenting the dataset
-    buffer_size: int
-        The buffer size, used only for SWAB
+        The maximum error valuefor the function to find before segmenting the dataset.
+    buffer_size: float
+        The buffer size, used only for SWAB.
 
     Attributes
     ----------
     segment_dense : np.array
-        The endpoints of each found segment of the series for transformation
+        The endpoints of each found segment of the series for transformation.
 
     References
     ----------
@@ -42,8 +51,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     >>> from aeon.datasets import load_electric_devices_segmentation
     >>> ts, period_size, true_cps = load_electric_devices_segmentation()
     >>> ts = ts.values
-    >>> pla = PiecewiseLinearApproximation(
-    ... PiecewiseLinearApproximation.Algorithm.SWAB, 20)
+    >>> pla = PiecewiseLinearApproximation(20)
     >>> results = pla.fit_transform(ts)
     >>> print(ts)
     [ 573.  375.  301.  212.   55.   34.   25.   33.  113.  143.  303.  615.
@@ -54,30 +62,36 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     759.1  572.7  386.3  199.9]
     """
 
-    class Algorithm(Enum):
-        """An enum class specifically for PLA."""
-
-        SlidingWindow = "SlidingWindow"
-        TopDown = "TopDown"
-        BottomUp = "BottomUp"
-        SWAB = "Swab"
-
     _tags = {
         "fit_is_empty": True,
-        "python_dependencies": "sklearn",
     }
 
-    def __init__(self, transformer, max_error, buffer_size=None):
-        if not isinstance(transformer, self.Transformer):
-            raise ValueError("Invalid transformer: please use Transformer class.")
-        if not isinstance(max_error, (int, float, complex)):
+    def __init__(self, max_error, transformer=4, buffer_size=None):
+        if not isinstance(max_error, (int, float)):
             raise ValueError("Invalid max_error: it has to be a number.")
-        if not (buffer_size is None or isinstance(buffer_size, (int, float, complex))):
+        if not isinstance(transformer, (int, str)):
+            raise ValueError("Invalid transformer: it has to be a number or a string.")
+        if not (buffer_size is None or isinstance(buffer_size, (int, float))):
             raise ValueError("Invalid buffer_size: use a number only or keep empty.")
+        if isinstance(transformer, (str)):
+            if transformer.lower() == "sliding window":
+                self.transformer = 1
+            elif transformer.lower() == "top down":
+                self.transformer = 2
+            elif transformer.lower() == "bottom up":
+                self.transformer = 3
+            elif transformer.lower() == "swab":
+                self.transformer = 4
+            else:
+                raise ValueError(
+                    "Invalid transformer: no transformer called ", transformer
+                )
+        elif not (1 <= transformer <= 4):
+            raise ValueError("Invalid transformer: choose between 1-4")
         self.transformer = transformer
         self.max_error = max_error
         self.buffer_size = buffer_size
-        self.segment_dense = np.array([])
+        self.segment_dense = None
         super().__init__(axis=0)
 
     def _transform(self, X, y=None):
@@ -97,13 +111,13 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
             1D transform of X.
         """
         results = None
-        if self.transformer == self.Transformer.SlidingWindow:
+        if self.transformer == 1:
             results = self._sliding_window(X)
-        elif self.transformer == self.Transformer.TopDown:
+        elif self.transformer == 2:
             results = self._top_down(X)
-        elif self.transformer == self.Transformer.BottomUp:
+        elif self.transformer == 3:
             results = self._bottom_up(X)
-        elif self.transformer == self.Transformer.SWAB:
+        elif self.transformer == 4:
             results = self._SWAB(X)
         else:
             raise RuntimeError("No transformer was called.")
