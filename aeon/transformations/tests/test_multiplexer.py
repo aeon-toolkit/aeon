@@ -17,7 +17,7 @@ from aeon.forecasting.model_selection import (
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
 from aeon.testing.mock_estimators import MockTransformer
-from aeon.transformations.compose import MultiplexTransformer
+from aeon.transformations._legacy.compose import MultiplexTransformer
 
 
 def test_multiplex_transformer_alone():
