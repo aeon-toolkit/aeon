@@ -6,32 +6,20 @@ __all__ = []
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
-from sklearn.svm import SVR
+from sklearn.preprocessing import MinMaxScaler
 
 from aeon.datasets import load_airline, load_longley
-from aeon.forecasting.compose import (
-    ForecastingPipeline,
-    TransformedTargetForecaster,
-    make_reduction,
-)
+from aeon.forecasting.compose import ForecastingPipeline, TransformedTargetForecaster
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
-from aeon.forecasting.model_selection import (
-    ExpandingWindowSplitter,
-    ForecastingGridSearchCV,
-    temporal_train_test_split,
-)
+from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.forecasting.sarimax import SARIMAX
 from aeon.forecasting.trend import PolynomialTrendForecaster
-from aeon.testing.data_generation import get_examples, make_series
+from aeon.testing.data_generation._legacy import get_examples, make_series
 from aeon.testing.mock_estimators import MockForecaster, MockTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.adapt import TabularToSeriesAdaptor
-from aeon.transformations.boxcox import LogTransformer
-from aeon.transformations.compose import OptionalPassthrough
 from aeon.transformations.detrend import Detrender
-from aeon.transformations.difference import Differencer
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.impute import Imputer
 from aeon.transformations.outlier_detection import HampelFilter
@@ -106,7 +94,7 @@ def test_nesting_pipelines():
     from aeon.testing.utils.scenarios_forecasting import (
         ForecasterFitPredictUnivariateWithX,
     )
-    from aeon.transformations.boxcox import LogTransformer
+    from aeon.transformations._legacy._boxcox import _LogTransformer as LogTransformer
     from aeon.transformations.compose import OptionalPassthrough
     from aeon.transformations.detrend import Detrender
 
@@ -143,72 +131,6 @@ def test_pipeline_with_detrender():
     )
     trans_fc.fit(y)
     trans_fc.predict(1)
-
-
-def test_pipeline_with_dimension_changing_transformer():
-    """Example of pipeline with dimension changing transformer.
-
-    The code below should run without generating any errors.  Issues
-    can arise from using Differencer in the pipeline.
-    """
-    y, X = load_longley()
-
-    # split train/test both y and X
-    fh = [1, 2, 3]
-    train_model, test_model = temporal_train_test_split(y, fh=fh)
-    X_train = X[X.index.isin(train_model.index)]
-
-    # pipeline
-    pipe = TransformedTargetForecaster(
-        steps=[
-            ("log", OptionalPassthrough(LogTransformer())),
-            ("differencer", Differencer(na_handling="drop_na")),
-            ("scaler", TabularToSeriesAdaptor(StandardScaler())),
-            (
-                "myforecasterpipe",
-                ForecastingPipeline(
-                    steps=[
-                        ("logX", OptionalPassthrough(LogTransformer())),
-                        ("differencerX", Differencer(na_handling="drop_na")),
-                        ("scalerX", TabularToSeriesAdaptor(StandardScaler())),
-                        ("myforecaster", make_reduction(SVR())),
-                    ]
-                ),
-            ),
-        ]
-    )
-
-    # cv setup
-    N_cv_fold = 1
-    step_cv = 1
-    cv = ExpandingWindowSplitter(
-        initial_window=len(train_model) - (N_cv_fold - 1) * step_cv - len(fh),
-        step_length=step_cv,
-        fh=fh,
-    )
-
-    param_grid = [
-        {
-            "log__passthrough": [False],
-            "myforecasterpipe__logX__passthrough": [False],
-            "myforecasterpipe__myforecaster__window_length": [2, 3],
-            "myforecasterpipe__myforecaster__estimator__C": [10, 100],
-        },
-        {
-            "log__passthrough": [True],
-            "myforecasterpipe__logX__passthrough": [True],
-            "myforecasterpipe__myforecaster__window_length": [2, 3],
-            "myforecasterpipe__myforecaster__estimator__C": [10, 100],
-        },
-    ]
-
-    # grid search
-    gscv = ForecastingGridSearchCV(
-        forecaster=pipe, cv=cv, param_grid=param_grid, verbose=1
-    )
-
-    # fit
-    gscv.fit(train_model, X=X_train)
 
 
 @pytest.mark.skipif(

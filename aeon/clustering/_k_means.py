@@ -185,7 +185,6 @@ class TimeSeriesKMeans(BaseClusterer):
 
         self._random_state = None
         self._init_algorithm = None
-        self._fit_method = None
         self._averaging_method = None
         self._average_params = None
 
@@ -229,7 +228,7 @@ class TimeSeriesKMeans(BaseClusterer):
         if isinstance(self._init_algorithm, Callable):
             cluster_centres = self._init_algorithm(X)
         else:
-            cluster_centres = self._init_algorithm
+            cluster_centres = self._init_algorithm.copy()
         prev_inertia = np.inf
         prev_labels = None
         for i in range(self.max_iter):

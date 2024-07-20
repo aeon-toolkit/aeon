@@ -46,7 +46,7 @@ from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.model_selection._split import BaseSplitter
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
-from aeon.similarity_search.base import BaseSimiliaritySearch
+from aeon.similarity_search.base import BaseSimilaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
@@ -66,7 +66,7 @@ BASE_CLASS_REGISTER = [
     ("series-estimator", BaseSeriesEstimator, "single series estimator"),
     ("series-transformer", BaseSeriesTransformer, "single series transformer"),
     ("splitter", BaseSplitter, "splitter"),
-    ("similarity-search", BaseSimiliaritySearch, "similarity search"),
+    ("similarity-search", BaseSimilaritySearch, "similarity search"),
     ("transformer", BaseTransformer, "transformer"),
 ]
 

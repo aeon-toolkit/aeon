@@ -22,7 +22,6 @@ from aeon.datatypes._registry import (
     mtype_to_scitype,
     scitype_to_mtype,
 )
-from aeon.datatypes._vectorize import VectorizedDF
 
 __all__ = [
     "check_is_mtype",
@@ -44,5 +43,4 @@ __all__ = [
     "scitype_to_mtype",
     "SCITYPE_LIST",
     "DATATYPE_REGISTER",
-    "VectorizedDF",
 ]
