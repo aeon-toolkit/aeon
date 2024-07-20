@@ -227,6 +227,11 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
+                tf.keras.callbacks.ModelCheckpoint(
+                    filepath=self.file_path + self.file_name_ + ".keras",
+                    monitor="loss",
+                    save_best_only=True,
+                ),
             ]
         else:
             self.callbacks_ = self._get_model_checkpoint_callback(
