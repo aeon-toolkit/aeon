@@ -7,18 +7,11 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 from aeon.forecasting.model_selection import SlidingWindowSplitter
 from aeon.transformations.base import BaseTransformer
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="HampelFilter will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class HampelFilter(BaseTransformer):
     """Use HampelFilter to detect outliers based on a sliding window.
 
