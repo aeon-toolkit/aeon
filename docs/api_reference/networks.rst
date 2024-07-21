@@ -13,7 +13,7 @@ Deep learning networks
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseDeepNetwork
+    BaseDeepLearningNetwork
     CNNNetwork
     EncoderNetwork
     FCNNetwork

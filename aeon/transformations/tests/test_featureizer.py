@@ -7,7 +7,7 @@ from numpy.testing import assert_array_equal
 from aeon.datasets import load_longley
 from aeon.forecasting.model_selection import temporal_train_test_split
 from aeon.testing.mock_estimators import MockTransformer
-from aeon.transformations.compose import YtoX
+from aeon.transformations._legacy.compose import YtoX
 from aeon.transformations.lag import Lag
 
 y, X = load_longley()
