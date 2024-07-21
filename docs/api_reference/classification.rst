@@ -56,6 +56,7 @@ Dictionary-based
     ContractableBOSS
     IndividualBOSS
     IndividualTDE
+    MrSQMClassifier
     MUSE
     REDCOMETS
     TemporalDictionaryEnsemble
@@ -133,7 +134,6 @@ Shapelet-based
     :template: class.rst
 
     LearningShapeletClassifier
-    MrSQMClassifier
     RDSTClassifier
     SASTClassifier
     ShapeletTransformClassifier
