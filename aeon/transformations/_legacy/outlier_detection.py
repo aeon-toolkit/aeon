@@ -39,14 +39,6 @@ class HampelFilter(BaseTransformer):
     ----------
     .. [1] Hampel F. R., "The influence curve and its role in robust estimation",
        Journal of the American Statistical Association, 69, 382–393, 1974
-
-    Examples
-    --------
-    >>> from aeon.transformations.outlier_detection import HampelFilter
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = HampelFilter(window_length=10)
-    >>> y_hat = transformer.fit_transform(y)
     """
 
     _tags = {
