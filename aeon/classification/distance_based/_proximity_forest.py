@@ -119,11 +119,19 @@ class ProximityForest(BaseClassifier):
         )
 
     def _predict_proba(self, X):
-        output_probas = Parallel(
+        classes = list(self.classes_)
+        preds = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(delayed(_predict_proba_tree)(tree, X) for tree in self.trees_)
-        output_probas = np.sum(output_probas, axis=0)
-        output_probas = np.divide(output_probas, self.n_trees)
+        )(delayed(_predict_tree)(tree, X) for tree in self.trees_)
+        n_cases = X.shape[0]
+        votes = np.zeros((n_cases, self.n_classes_))
+        for i in range(len(preds)):
+            predictions = np.array(
+                [classes.index(class_label) for class_label in preds[i]]
+            )
+            for j in range(n_cases):
+                votes[j, predictions[j]] += 1
+        output_probas = votes / self.n_trees
         return output_probas
 
     def _predict(self, X):
@@ -144,5 +152,5 @@ def _fit_tree(X, y, n_splitters, max_depth, min_samples_split, random_state):
     return clf
 
 
-def _predict_proba_tree(tree, X):
-    return tree.predict_proba(X)
+def _predict_tree(tree, X):
+    return tree.predict(X)
