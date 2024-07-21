@@ -18,7 +18,7 @@ from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.testing.data_generation._legacy import get_examples, make_series
 from aeon.testing.mock_estimators import MockForecaster, MockTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
-from aeon.transformations.adapt import TabularToSeriesAdaptor
+from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
 from aeon.transformations.detrend import Detrender
 from aeon.transformations.hierarchical.aggregate import Aggregator
 from aeon.transformations.impute import Imputer
@@ -95,7 +95,7 @@ def test_nesting_pipelines():
         ForecasterFitPredictUnivariateWithX,
     )
     from aeon.transformations._legacy._boxcox import _LogTransformer as LogTransformer
-    from aeon.transformations.compose import OptionalPassthrough
+    from aeon.transformations._legacy.compose import OptionalPassthrough
     from aeon.transformations.detrend import Detrender
 
     pipe = ForecastingPipeline(

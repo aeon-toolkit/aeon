@@ -5,11 +5,11 @@ import numbers
 
 import numpy as np
 
-from aeon.transformations._split import SplitsTimeSeries
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils import split_series
 
 
-class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
+class HOG1DTransformer(BaseCollectionTransformer):
     """HOG1D transform.
 
     This transformer calculates the HOG1D transform [1] of a collection of time series.
@@ -89,7 +89,7 @@ class HOG1DTransformer(BaseCollectionTransformer, SplitsTimeSeries):
         """
         # Firstly, split the time series into approx equal
         # length intervals
-        splitTimeSeries = self._split(X)
+        splitTimeSeries = split_series(X, self.n_intervals)
         HOG1Ds = []
 
         for x in range(len(splitTimeSeries)):
