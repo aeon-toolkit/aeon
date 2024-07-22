@@ -31,7 +31,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
             Bottom Up: "bottom up", 3
             SWAB: "swab", 4
     max_error: float
-        The maximum error valuefor the function to find before segmenting the dataset.
+        The maximum error value for the algorithm to find before segmenting the dataset.
     buffer_size: float
         The buffer size, used only for SWAB.
 
@@ -59,7 +59,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, max_error, transformer=4, buffer_size=None):
+    def __init__(self, max_error=20, transformer=4, buffer_size=None):
         self.transformer = transformer
         self.max_error = max_error
         self.buffer_size = buffer_size
