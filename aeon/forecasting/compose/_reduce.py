@@ -26,7 +26,7 @@ from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA
 from aeon.forecasting.base._fh import _index_range
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.compose import FeatureUnion
+from aeon.transformations._legacy.compose import FeatureUnion
 from aeon.transformations.summarize import WindowSummarizer
 from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_time_index
