@@ -20,7 +20,7 @@ from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MultiRocket,
-    Rocket,
+    Rocket
 )
 
 

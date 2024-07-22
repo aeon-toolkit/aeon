@@ -16,6 +16,7 @@ from aeon.transformations.collection.feature_based import SevenNumberSummaryTran
 
 class SummaryClassifier(BaseClassifier):
     """
+
     Summary statistic classifier.
 
     This classifier simply transforms the input data using the
