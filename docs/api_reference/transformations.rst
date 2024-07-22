@@ -191,14 +191,6 @@ Depending on the transformer, the transformation parameters can be fitted.
     BoxCoxTransformer
     LogTransformer
 
-.. currentmodule:: aeon.transformations.scaledlogit
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ScaledLogitTransformer
-
 .. currentmodule:: aeon.transformations.exponent
 
 .. autosummary::
