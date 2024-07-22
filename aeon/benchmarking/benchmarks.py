@@ -1,5 +1,3 @@
-
-
 from typing import Callable, Optional, Union
 from warnings import warn
 
