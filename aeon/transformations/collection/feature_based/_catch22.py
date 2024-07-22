@@ -348,27 +348,13 @@ class Catch22(BaseCollectionTransformer):
                         )
                         fft = np.fft.fft(series - smean, n=nfft)
                     args = [series, fft]
-                elif feature == 2:
-                    if smean is None:
-                        smean = mean(series)
-                    if fft is None:
-                        nfft = int(
-                            np.power(2, np.ceil(np.log(len(series)) / np.log(2)))
-                        )
-                        fft = np.fft.fft(series - smean, n=nfft)
+                elif feature == 2 or feature == 3:
                     if ac is None:
-                        ac = _autocorr(series, fft)
-                    args = [ac]
+                        ac = _compute_autocorrelations(series)
+                    args = [ac, len(series)]
                 elif feature == 12 or feature == 10 or feature == 8:
-                    if smean is None:
-                        smean = mean(series)
-                    if fft is None:
-                        nfft = int(
-                            np.power(2, np.ceil(np.log(len(series)) / np.log(2)))
-                        )
-                        fft = np.fft.fft(series - smean, n=nfft)
                     if ac is None:
-                        ac = _autocorr(series, fft)
+                        ac = _compute_autocorrelations(series)
                     if acfz is None:
                         acfz = _ac_first_zero(ac)
                     args = [series, acfz]
@@ -462,29 +448,30 @@ class Catch22(BaseCollectionTransformer):
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _CO_f1ecac(X_ac):
+    def _CO_f1ecac(X_ac, size):
         # Parameter has already been transformed using _autocorr
         # First 1/e crossing of autocorrelation function.
         threshold = 0.36787944117144233  # 1 / np.exp(1)
         for i in range(len(X_ac) - 2):
             if X_ac[i + 1] < threshold:
                 m = X_ac[i + 1] - X_ac[i]
+                if m == 0:
+                    return size
                 dy = threshold - X_ac[i]
                 dx = dy / m
                 out = np.float64(i) + dx
                 return out
 
-        return len(X_ac)
+        return size
 
     @staticmethod
     @njit(fastmath=True, cache=True)
-    def _CO_FirstMin_ac(X_ac):
-        X_ac = _compute_autocorrelations(X_ac)
+    def _CO_FirstMin_ac(X_ac, size):
         # First minimum of autocorrelation function.
         for i in range(1, len(X_ac) - 1):
             if X_ac[i] < X_ac[i - 1] and X_ac[i] < X_ac[i + 1]:
                 return i
-        return len(X_ac)
+        return size
 
     @staticmethod
     def _SP_Summaries_welch_rect_area_5_1(X, X_fft):
@@ -551,7 +538,6 @@ class Catch22(BaseCollectionTransformer):
         tau = int(min(40, np.ceil(len(X_ac) / 2)))
 
         ami = np.zeros(len(X_ac), dtype=np.float64)
-
         for i in range(tau):
 
             lag_size = len(X_ac) - (i + 1)
@@ -564,12 +550,13 @@ class Catch22(BaseCollectionTransformer):
                 meanX += X_ac[j]
             meanX = meanX / lag_size
             meanY = np.mean(y)
-
             for j in range(lag_size):
                 nom += (X_ac[j] - meanX) * (y[j] - meanY)
                 denomX += (X_ac[j] - meanX) * (X_ac[j] - meanX)
                 denomY += (y[j] - meanY) * (y[j] - meanY)
-
+            divisor = np.sqrt(denomX * denomY)
+            if divisor == 0:
+                return np.nan
             ac = nom / np.sqrt(denomX * denomY)
             ami[i] = -0.5 * np.log(1 - np.power(ac, 2))
 
@@ -1411,7 +1398,6 @@ def _compute_autocorrelations(X):
         nFFT = len(X) * 2
     else:
         nFFT = (2 ** (nFFT + 1)) * 2
-
     F = np.zeros(nFFT * 2, dtype=np.complex128)
     for i in range(len(X)):
         F[i] = complex(X[i] - mean, 0.0)
@@ -1428,6 +1414,8 @@ def _compute_autocorrelations(X):
     F = np.multiply(F, np.conj(F))
     F = _fft(F, tw)
     divisor = F[0]
+    if np.real(divisor) == 0 and np.imag(divisor) == 0:
+        return np.zeros(nFFT * 2, dtype=np.float64)
     F = F / divisor
     out = np.real(F)
     return out
