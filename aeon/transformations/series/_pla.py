@@ -50,7 +50,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     >>> from aeon.transformations.series import PiecewiseLinearApproximation
     >>> from aeon.datasets import load_electric_devices_segmentation
     >>> ts, period_size, true_cps = load_electric_devices_segmentation()
-    >>> ts.values
+    >>> ts = ts.values
     >>> pla = PiecewiseLinearApproximation(0.001, transformer=3)
     >>> transformed_x = pla.fit_transform(ts)
     """
