@@ -60,32 +60,54 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     }
 
     def __init__(self, max_error, transformer=4, buffer_size=None):
-        if not isinstance(max_error, (int, float)):
-            raise ValueError("Invalid max_error: it has to be a number.")
-        if not isinstance(transformer, (int, str)):
-            raise ValueError("Invalid transformer: it has to be a number or a string.")
-        if not (buffer_size is None or isinstance(buffer_size, (int, float))):
-            raise ValueError("Invalid buffer_size: use a number only or keep empty.")
-        if isinstance(transformer, (str)):
-            if transformer.lower() == "sliding window":
-                self.transformer = 1
-            elif transformer.lower() == "top down":
-                self.transformer = 2
-            elif transformer.lower() == "bottom up":
-                self.transformer = 3
-            elif transformer.lower() == "swab":
-                self.transformer = 4
-            else:
-                raise ValueError(
-                    "Invalid transformer: no transformer called ", transformer
-                )
-        elif not (1 <= transformer <= 4):
-            raise ValueError("Invalid transformer: choose between 1-4")
         self.transformer = transformer
         self.max_error = max_error
         self.buffer_size = buffer_size
         self.segment_dense = None
         super().__init__(axis=0)
+
+    def _fit(self, X, y=None):
+        """Fit transformer to X and y.
+
+        private _fit containing the core logic, called from fit
+
+        Parameters
+        ----------
+        X: pd.DataFrame
+        y : Ignored
+
+        Returns
+        -------
+        self: reference to self
+        """
+        if not isinstance(self.max_error, (int, float)):
+            raise ValueError("Invalid max_error: it has to be a number.")
+        if not isinstance(self.transformer, (int, str)):
+            raise ValueError("Invalid transformer: it has to be a number or a string.")
+        if not (self.buffer_size is None or isinstance(self.buffer_size, (int, float))):
+            raise ValueError("Invalid buffer_size: use a number only or keep empty.")
+        if isinstance(self.transformer, (str)):
+            if self.transformer.lower() == "sliding window":
+                self.transformer = 1
+            elif self.transformer.lower() == "top down":
+                self.transformer = 2
+            elif self.transformer.lower() == "bottom up":
+                self.transformer = 3
+            elif self.transformer.lower() == "swab":
+                self.transformer = 4
+            else:
+                raise ValueError(
+                    "Invalid transformer: no transformer called ", self.transformer
+                )
+        elif not (1 <= self.transformer <= 4):
+            raise ValueError("Invalid transformer: choose between 1-4")
+        self.pla_ = PiecewiseLinearApproximation(
+            max_error=self.max_error,
+            transformer=self.transformer,
+            buffer_size=self.buffer_size,
+        )
+        self.pla_.fit(X=X)
+        return self
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -412,25 +434,3 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
             the linear regression of the time series.
         """
         return self._linear_regression(X)
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
-        """
-        params = {
-            "max_error": 20,
-        }
-
-        return params

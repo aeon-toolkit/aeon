@@ -191,11 +191,11 @@ def test_piecewise_linear_approximation_check_diff_in_params(X):
 def test_piecewise_linear_approximation_wrong_parameters(X):
     """Test PLA transformer."""
     with pytest.raises(ValueError):
-        PiecewiseLinearApproximation(100, "Fake Transformer error")
+        PiecewiseLinearApproximation(100, "Fake Transformer error").fit_transform(X)
     with pytest.raises(ValueError):
-        PiecewiseLinearApproximation("max_error")
+        PiecewiseLinearApproximation("max_error").fit_transform(X)
     with pytest.raises(ValueError):
-        PiecewiseLinearApproximation(100, 4, "buffer_size")
+        PiecewiseLinearApproximation(100, 4, "buffer_size").fit_transform(X)
 
 
 def test_piecewise_linear_approximation_one_segment(X):
