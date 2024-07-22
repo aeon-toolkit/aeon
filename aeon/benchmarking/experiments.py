@@ -29,7 +29,7 @@ from aeon.datasets._data_loaders import load_from_tsfile as load_ts
 
 
 def stratified_resample(X_train, y_train, X_test, y_test, random_state=None):
-    """Stratified resample data without replacement using a random state.
+    """Stratified resample data without replacement using a random stat
 
     Reproducable resampling. Combines train and test, resamples to get the same class
     distribution, then returns new train and test.

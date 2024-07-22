@@ -1,7 +1,4 @@
-"""Benchmarking interface for use with aeon objects.
 
-Wraps kotsu benchmarking package.
-"""
 
 from typing import Callable, Optional, Union
 from warnings import warn
@@ -13,7 +10,9 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class BaseBenchmark:
-    """Base class for benchmarks.
+    """
+
+      Base class for benchmarks.
 
     A benchmark consists of a set of tasks and a set of estimators.
     """

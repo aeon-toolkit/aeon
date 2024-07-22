@@ -21,7 +21,7 @@ from aeon.classification.dictionary_based._boss import pairwise_distances
 
 class ContractableBOSS(BaseClassifier):
     """
-    Contractable Bag of Symbolic Fourier Approximation Symbols (cBOSS).
+    Contractable Bag of Symbolic Fourier Approximation Symbols (cBOSS)
 
     Implementation of BOSS Ensemble from [1]_ with refinements
     described in [2]_.
