@@ -573,5 +573,3 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         }
 
         return [param1]
-
-

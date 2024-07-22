@@ -13,8 +13,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 __maintainer__ = []
 
 
-
-
 class _DummyDeepClassifier(BaseDeepClassifier):
     """Dummy Deep Classifier for testing empty base deep class save utilities."""
 

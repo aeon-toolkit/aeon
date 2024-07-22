@@ -1,5 +1,3 @@
-
-
 __maintainer__ = []
 __all__ = ["Catch22Classifier"]
 
