@@ -28,7 +28,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     Parameters
     ----------
-    n_neighbors : int, default =1
+    n_neighbors : int, default = 5
         k for knn.
     weights : str or callable, default = 'uniform'
         Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
@@ -73,7 +73,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         self,
         distance: Union[str, Callable] = "dtw",
         distance_params: dict = None,
-        n_neighbors: int = 1,
+        n_neighbors: int = 5,
         weights: Union[str, Callable] = "uniform",
         n_jobs: int = 1,
     ) -> None:
