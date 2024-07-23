@@ -80,7 +80,7 @@ Dimensions may also be referred to as variables.
 Different parts of `aeon` work with single series or collections of series. The
 `anomaly detection` and `segmentation` modules will commonly use single series input, while
 `classification`, `regression` and `clustering` modules will use collections of time
-series. Collections of time series may also be referred to a Panels. Collections of
+series. Collections of time series may also be referred to as Panels. Collections of
 time series will often be accompanied by an array of target variables.
 
 ```{code-block} python
