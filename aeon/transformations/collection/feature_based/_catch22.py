@@ -82,7 +82,7 @@ class Catch22(BaseCollectionTransformer):
         list of names or indices for multiple features. If "all", all features are
         extracted.
         Valid features are as follows:
-           ["DN_HistogramMode_5", "DN_HistogramMode_10", "CO_f1ecac","CO_FirstMin_ac",
+            ["DN_HistogramMode_5", "DN_HistogramMode_10", "CO_f1ecac","CO_FirstMin_ac",
             "CO_HistogramAMI_even_2_5", "CO_trev_1_num", "MD_hrv_classic_pnn40",
             "SB_BinaryStats_mean_longstretch1", "SB_TransitionMatrix_3ac_sumdiagcov",
             "PD_PeriodicityWang_th0_01", "CO_Embed2_Dist_tau_d_expfit_meandiff",
@@ -93,7 +93,7 @@ class Catch22(BaseCollectionTransformer):
             "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
             "SP_Summaries_welch_rect_centroid", "FC_LocalSimple_mean3_stderr"]
         Shortened:
-           ["mode_5", "mode_10", "acf_timescale", "acf_first_min",
+            ["mode_5", "mode_10", "acf_timescale", "acf_first_min",
             "ami2", "trev", "high_fluctuation",
             "stretch_high", "transition_matrix",
             "periodicity", "embedding_dist",
@@ -158,12 +158,12 @@ class Catch22(BaseCollectionTransformer):
     >>> tnf.fit(X)
     Catch22(...)
     >>> print(tnf.transform(X)[0])
-    [1.15639531e+00 1.31700577e+00 5.66227710e-01 2.00000000e+00
-     3.89048349e-01 2.33853577e-01 1.00000000e+00 3.00000000e+00
-     8.23045267e-03 0.00000000e+00 1.70859420e-01 2.00000000e+00
-     1.00000000e+00 2.00000000e-01 0.00000000e+00 1.10933565e-32
-     4.00000000e+00 2.04319187e+00 0.00000000e+00 0.00000000e+00
-     1.96349541e+00 5.51667002e-01]
+    [1.15639532e+00 1.31700575e+00 3.00000000e+00 2.00000000e-01
+     0.00000000e+00 1.00000000e+00 2.00000000e+00 1.10933565e-32
+     1.96349541e+00 5.10744398e-01 2.33853577e-01 3.89048349e-01
+     2.00000000e+00 1.00000000e+00 4.00000000e+00 1.88915916e+00
+     1.00000000e+00 1.70859420e-01 0.00000000e+00 0.00000000e+00
+     2.46913580e-02 0.00000000e+00]
     """
 
     _tags = {
@@ -462,7 +462,7 @@ class Catch22(BaseCollectionTransformer):
                 out = np.float64(i) + dx
                 return out
 
-        return size
+        return len(X_ac)
 
     @staticmethod
     @njit(fastmath=True, cache=True)
@@ -652,12 +652,8 @@ class Catch22(BaseCollectionTransformer):
         if len(X) < 2:
             return 0
         res = _local_simple_mean(X, 1)
-        mean = np.mean(res)
 
-        nfft = int(np.power(2, np.ceil(np.log(len(res)) / np.log(2))))
-        fft = np.fft.fft(res - mean, n=nfft)
-        ac = _autocorr(res, fft)
-
+        ac = _compute_autocorrelations(res)
         return _ac_first_zero(ac) / acfz
 
     @staticmethod
@@ -779,15 +775,14 @@ class Catch22(BaseCollectionTransformer):
         cov_array = np.zeros((3, 3), dtype=np.float64)
         for i in range(3):
             for j in range(3):
-                val = 0.0
+                covTemp = 0
                 meanX = np.mean(columns[i])
                 meanY = np.mean(columns[j])
                 for k in range(3):
-                    val += (columns[i][k] - meanX) * (columns[j][k] - meanY)
-
-                val = val / 2
-                cov_array[i][j] = val
-                cov_array[j][i] = val
+                    covTemp += (columns[i][k] - meanX) * (columns[j][k] - meanY)
+                covTemp = covTemp / 2
+                cov_array[i][j] = covTemp
+                cov_array[j][i] = covTemp
 
         sum_of_diagonal_cov = 0.0
         for i in range(3):
@@ -881,7 +876,6 @@ def _histogram_mode(X, num_bins, smin, smax):
         elif histogram[i] == max_count:
             num_maxs += 1
             max_sum += v
-
     return max_sum / num_maxs
 
 
@@ -1336,8 +1330,6 @@ def _verify_features(features, catch24):
             f_idx = [i for i in range(22)]
             if catch24:
                 f_idx += [22, 23]
-        elif features in feature_names_short:
-            f_idx = [feature_names_short.index(features)]
         elif features in feature_names:
             f_idx = [feature_names.index(features)]
         elif catch24 and features == "Mean":
@@ -1360,9 +1352,7 @@ def _verify_features(features, catch24):
             f_idx = []
             for f in features:
                 if isinstance(f, str):
-                    if f in feature_names_short:
-                        f_idx.append(feature_names_short.index(f))
-                    elif f in feature_names:
+                    if f in feature_names:
                         f_idx.append(feature_names.index(f))
                     elif catch24 and f == "Mean":
                         f_idx.append(22)
@@ -1392,7 +1382,6 @@ def _verify_features(features, catch24):
 @njit(fastmath=True, cache=True)
 def _compute_autocorrelations(X):
     mean = np.mean(X)
-
     nFFT = int(np.log2(len(X)))
     if 2**nFFT == len(X):
         nFFT = len(X) * 2
