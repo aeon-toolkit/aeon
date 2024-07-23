@@ -73,7 +73,7 @@ Quarter
 ```
 
 We commonly refer to the number of observations for a time series as `n_timepoints` or
-`n_timepoints`. If a series is multivariate, we refer to the dimensions as channels
+`m_timepoints`. If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`.
 Dimensions may also be referred to as variables.
 
