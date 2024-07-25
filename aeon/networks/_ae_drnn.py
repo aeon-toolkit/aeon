@@ -202,12 +202,13 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
             expanded_latent_space = tf.keras.layers.RepeatVector(input_shape[0])(
                 decoder_input_layer
             )
-            decoder_gru = expanded_latent_space
         elif self.temporal_latent_space:
             decoder_input_layer = tf.keras.layers.Input(
                 shape=encoder_output_layer.shape[1:]
             )
-            decoder_gru = decoder_input_layer
+            expanded_latent_space = decoder_input_layer
+
+        decoder_gru = expanded_latent_space
 
         for i in range(self.n_layers_decoder):
             decoder_gru = tf.keras.layers.GRU(
