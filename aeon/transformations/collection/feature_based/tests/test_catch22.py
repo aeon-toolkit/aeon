@@ -28,6 +28,25 @@ def test_catch22_on_basic_motions():
     )
 
 
+def test_catch22_short_on_basic_motions():
+    """Test of Catch22 on basic motions data."""
+    X_train, _ = load_basic_motions(split="train")
+    indices = [28, 39, 4, 15, 26]
+    # fit Catch22 and assert transformed data is the same
+    c22 = Catch22(features=feature_names_short, replace_nans=True)
+    data = c22.fit_transform(X_train[indices])
+    testing.assert_array_almost_equal(data, catch22_basic_motions_data, decimal=4)
+
+    # fit Catch22 with select features and assert transformed data is the same
+    c22 = Catch22(replace_nans=True, features=feature_names)
+    data = c22.fit_transform(X_train[indices])
+    testing.assert_array_almost_equal(
+        data,
+        catch22_basic_motions_data[:, np.sort(np.r_[0:132:22, 2:132:22, 21:132:22])],
+        decimal=4,
+    )
+
+
 @pytest.mark.skipif(
     not _check_soft_dependencies("pycatch22", severity="none"),
     reason="skip test if required soft dependency pycatch22 not available",
@@ -58,6 +77,31 @@ def test_catch22_wrapper_on_basic_motions():
 
 
 feature_names = ["DN_HistogramMode_5", "CO_f1ecac", "FC_LocalSimple_mean3_stderr"]
+
+feature_names_short = [
+    "mode_5",
+    "mode_10",
+    "acf_timescale",
+    "acf_first_min",
+    "ami2",
+    "trev",
+    "high_fluctuation",
+    "stretch_high",
+    "transition_matrix",
+    "periodicity",
+    "embedding_dist",
+    "ami_timescale",
+    "whiten_timescale",
+    "outlier_timing_pos",
+    "outlier_timing_neg",
+    "centroid_freq",
+    "stretch_decreasing",
+    "entropy_pairs",
+    "rs_range",
+    "dfa",
+    "low_freq_power",
+    "forecast_error",
+]
 
 # Both results should be the same
 catch22_basic_motions_data = np.array(

@@ -742,7 +742,6 @@ class Catch22(BaseCollectionTransformer):
     @staticmethod
     @njit(fastmath=True, cache=True)
     def _SB_TransitionMatrix_3ac_sumdiagcov(X, acfz):
-
         # Trace of covariance of transition matrix between symbols in 3-letter alphabet.
         ds = np.zeros(int(((len(X) - 1) / acfz) + 1), dtype=np.float64)
         for i in range(len(ds)):
@@ -1330,6 +1329,8 @@ def _verify_features(features, catch24):
             f_idx = [i for i in range(22)]
             if catch24:
                 f_idx += [22, 23]
+        elif features in feature_names_short:
+            f_idx = [feature_names_short.index(features)]
         elif features in feature_names:
             f_idx = [feature_names.index(features)]
         elif catch24 and features == "Mean":
@@ -1352,7 +1353,9 @@ def _verify_features(features, catch24):
             f_idx = []
             for f in features:
                 if isinstance(f, str):
-                    if f in feature_names:
+                    if f in feature_names_short:
+                        f_idx.append(feature_names_short.index(f))
+                    elif f in feature_names:
                         f_idx.append(feature_names.index(f))
                     elif catch24 and f == "Mean":
                         f_idx.append(22)
