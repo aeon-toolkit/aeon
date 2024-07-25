@@ -2446,6 +2446,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "adm-unl",
+      "name": "Adam Unal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143117979?v=4",
+      "profile": "https://github.com/adm-unl",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
