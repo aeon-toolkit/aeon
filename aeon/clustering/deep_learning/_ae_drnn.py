@@ -12,6 +12,7 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEDRNNNetwork
+from aeon.networks._ae_drnn import _TensorDilation
 
 
 class AEDRNNClusterer(BaseDeepClusterer):
@@ -274,7 +275,9 @@ class AEDRNNClusterer(BaseDeepClusterer):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
+                custom_objects={"_TensorDilation": _TensorDilation},
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
