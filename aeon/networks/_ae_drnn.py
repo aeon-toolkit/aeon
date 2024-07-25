@@ -208,17 +208,19 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
             )
             expanded_latent_space = decoder_input_layer
 
+        decoder_gru = expanded_latent_space
+
         for i in range(self.n_layers_decoder):
             decoder_gru = tf.keras.layers.GRU(
                 self._n_units_decoder[i],
                 return_sequences=True,
                 activation=self._decoder_activation[i],
-            )(expanded_latent_space)
+            )(decoder_gru)
             if i < self.n_layers_decoder - 1:
                 decoder_gru = tf.keras.layers.Lambda(
                     self._dilate_input,
                     arguments={"dilation_rate": self._dilation_rate_decoder[i]},
-                )
+                )(decoder_gru)
 
         decoder_output_layer = tf.keras.layers.TimeDistributed(
             tf.keras.layers.Dense(input_shape[1], activation="linear")
