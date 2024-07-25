@@ -3,6 +3,23 @@
 __maintainer__ = []
 
 from aeon.networks.base import BaseDeepLearningNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+if _check_soft_dependencies(["tensorflow"]):
+    import tensorflow as tf
+
+    class _TensorDilation(tf.keras.layers.Layer):
+        def __init__(self, dilation_rate, **kwargs):
+            super().__init__(**kwargs)
+            self._dilation_rate = dilation_rate
+
+        def call(self, inputs):
+            return inputs[:, :: self._dilation_rate, :]
+
+        def get_config(self):
+            config = super().get_config()
+            config.update({"dilation_rate": self._dilation_rate})
+            return config
 
 
 class AEDRNNNetwork(BaseDeepLearningNetwork):
@@ -75,16 +92,16 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         Parameters
         ----------
         input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
-            The shape of the data fed into the input layer.
+           The shape of the data fed into the input layer.
         **kwargs : dict
-            Additional keyword arguments for building the network.
+           Additional keyword arguments for building the network.
 
         Returns
         -------
         encoder : tf.keras.Model
-            The encoder model.
+           The encoder model.
         decoder : tf.keras.Model
-            The decoder model.
+           The decoder model.
         """
         import tensorflow as tf
 
@@ -160,10 +177,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
                 self._n_units_encoder[i],
                 activation=self._activation_encoder[i],
             )
-            x = tf.keras.layers.Lambda(
-                self._dilate_input,
-                arguments={"dilation_rate": self._dilation_rate_encoder[i]},
-            )(output)
+            x = _TensorDilation(self._dilation_rate_encoder[i])(output)
             _finals.append(final)
 
         if not self.temporal_latent_space:
@@ -217,10 +231,9 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
                 activation=self._decoder_activation[i],
             )(decoder_gru)
             if i < self.n_layers_decoder - 1:
-                decoder_gru = tf.keras.layers.Lambda(
-                    self._dilate_input,
-                    arguments={"dilation_rate": self._dilation_rate_decoder[i]},
-                )(decoder_gru)
+                decoder_gru = _TensorDilation(self._dilation_rate_decoder[i])(
+                    decoder_gru
+                )
 
         decoder_output_layer = tf.keras.layers.TimeDistributed(
             tf.keras.layers.Dense(input_shape[1], activation="linear")
@@ -231,9 +244,6 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         )
 
         return encoder, decoder
-
-    def _dilate_input(self, tensor, dilation_rate):
-        return tensor[:, ::dilation_rate, :]
 
     def _bidir_gru(self, input, nunits, activation, return_sequences=True):
         import tensorflow as tf
