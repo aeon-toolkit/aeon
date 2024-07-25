@@ -485,46 +485,44 @@ class BaseObject(_BaseEstimator):
         return {}
 
     @classmethod
-    def create_test_instance(cls, parameter_set="default"):
+    def create_test_instance(cls, parameter_set="default", return_first=True):
         """
         Construct Estimator instance if possible.
+
+        Calls the `get_test_params` method and returns an instance or list of instances
+        using the returned dict or list of dict.
 
         Parameters
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
+        return_first : bool, default=True
+            If True, return the first instance of the list of instances.
+            If False, return the list of instances.
 
         Returns
         -------
-        instance : instance of the class with default parameters.
-
-        Notes
-        -----
-        `get_test_params` can return dict or list of dict.
-        This function takes first or single dict that get_test_params returns, and
-        constructs the object with that.
+        instance : BaseEstimator or list of BaseEstimator
+            Instance of the class with default parameters. If return_first
+            is False, returns list of instances.
         """
+        # todo, update all methods to use parameter_set and remove when done
         if "parameter_set" in inspect.getfullargspec(cls.get_test_params).args:
             params = cls.get_test_params(parameter_set=parameter_set)
         else:
             params = cls.get_test_params()
 
         if isinstance(params, list):
-            if isinstance(params[0], dict):
-                params = params[0]
+            if return_first:
+                return cls(**params[0])
             else:
-                raise TypeError(
-                    "get_test_params should either return a dict or list of dict."
-                )
-        elif isinstance(params, dict):
-            pass
+                return [cls(**p) for p in params]
         else:
-            raise TypeError(
-                "get_test_params should either return a dict or list of dict."
-            )
-
-        return cls(**params)
+            if return_first:
+                return cls(**params)
+            else:
+                return [cls(**params)]
 
     @classmethod
     def create_test_instances_and_names(cls, parameter_set="default"):
