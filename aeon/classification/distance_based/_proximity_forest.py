@@ -104,7 +104,6 @@ class ProximityForest(BaseClassifier):
 
     def _fit(self, X, y):
         rng = check_random_state(self.random_state)
-        rng_list = rng.choice(self.n_trees * 100, size=self.n_trees, replace=False)
         self.trees_ = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
             delayed(_fit_tree)(
                 X,
@@ -112,9 +111,9 @@ class ProximityForest(BaseClassifier):
                 self.n_splitters,
                 self.max_depth,
                 self.min_samples_split,
-                rng_list[i],
+                check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
-            for i in range(self.n_trees)
+            for _ in range(self.n_trees)
         )
 
     def _predict_proba(self, X):
