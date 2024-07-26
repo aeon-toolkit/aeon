@@ -248,7 +248,7 @@ Detrending
 Filtering and denoising
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.bkfilter
+.. currentmodule:: aeon.transformations.series._bkfilter
 
 .. autosummary::
     :toctree: auto_generated/
@@ -299,24 +299,6 @@ Missing value imputation
 
     Imputer
 
-Seasonality and Date-Time Features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.date
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DateTimeFeatures
-
-.. currentmodule:: aeon.transformations.fourier
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FourierFeatures
 
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -331,18 +313,6 @@ These transformers create a series based on a sequence of sliding windows.
 
     HOG1DTransformer
 
-Multivariate-to-univariate
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These transformers convert multivariate series to univariate.
-
-.. currentmodule:: aeon.transformations.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ColumnConcatenator
 
 FeatureSelection
 ~~~~~~~~~~~~~~~~

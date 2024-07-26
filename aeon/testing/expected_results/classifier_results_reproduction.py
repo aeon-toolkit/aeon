@@ -23,6 +23,7 @@ from aeon.classification.dictionary_based import (
     WEASEL_V2,
     BOSSEnsemble,
     ContractableBOSS,
+    MrSQMClassifier,
     TemporalDictionaryEnsemble,
 )
 from aeon.classification.distance_based import (
@@ -56,7 +57,6 @@ from aeon.classification.interval_based import (
 from aeon.classification.ordinal_classification import OrdinalTDE
 from aeon.classification.shapelet_based import (
     LearningShapeletClassifier,
-    MrSQMClassifier,
     SASTClassifier,
     ShapeletTransformClassifier,
 )
