@@ -15,11 +15,11 @@ from aeon.networks import CNNNetwork, TimeCNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 
-# TODO: remove v0.11.0
+# TODO: remove v0.12.0
 @deprecated(
     version="0.10.0",
     reason="CNNRegressor has been renamed to TimeCNNRegressor"
-    "and will be removed in 0.11.0.",
+    "and will be removed in 0.12.0.",
     category=FutureWarning,
 )
 class CNNRegressor(BaseDeepRegressor):
