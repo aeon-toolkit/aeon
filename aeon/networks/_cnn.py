@@ -9,7 +9,7 @@ from aeon.networks.base import BaseDeepLearningNetwork
 
 # TODO: remove v0.12.0
 @deprecated(
-    version="0.12.0",
+    version="0.10.0",
     reason="CNNNetwork has been renamed to TimeCNNNetwork"
     "and will be removed in 0.12.0.",
     category=FutureWarning,
