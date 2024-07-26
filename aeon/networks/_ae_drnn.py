@@ -9,6 +9,8 @@ if _check_soft_dependencies(["tensorflow"]):
     import tensorflow as tf
 
     class _TensorDilation(tf.keras.layers.Layer):
+        """A layer for dilation of a tensorflow tensor."""
+
         def __init__(self, dilation_rate, **kwargs):
             super().__init__(**kwargs)
             self._dilation_rate = dilation_rate
