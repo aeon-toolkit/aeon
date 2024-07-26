@@ -17,7 +17,7 @@ from aeon.networks import CNNNetwork, TimeCNNNetwork
 
 # TODO: remove v0.12.0
 @deprecated(
-    version="0.12.0",
+    version="0.10.0",
     reason="CNNClassifier has been renamed to TimeCNNClassifier"
     "and will be removed in 0.12.0.",
     category=FutureWarning,
