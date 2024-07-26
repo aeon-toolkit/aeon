@@ -7,7 +7,7 @@ from deprecated.sphinx import deprecated
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
-# TODO: remove v0.11.0
+# TODO: remove v0.12.0
 @deprecated(
     version="0.12.0",
     reason="CNNNetwork has been renamed to TimeCNNNetwork"
