@@ -15,11 +15,11 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import CNNNetwork, TimeCNNNetwork
 
 
-# TODO: remove v0.11.0
+# TODO: remove v0.12.0
 @deprecated(
     version="0.12.0",
     reason="CNNClassifier has been renamed to TimeCNNClassifier"
-    "and will be removed in 0.11.0.",
+    "and will be removed in 0.12.0.",
     category=FutureWarning,
 )
 class CNNClassifier(BaseDeepClassifier):
