@@ -375,14 +375,6 @@ Bootstrap transformations
 Outlier detection, changepoint detection
 ----------------------------------------
 
-.. currentmodule:: aeon.transformations.outlier_detection
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    HampelFilter
-
 .. currentmodule:: aeon.transformations.series._clasp
 
 .. autosummary::
