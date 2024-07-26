@@ -11,6 +11,7 @@ __all__ = [
     "StatsModelsACF",
     "StatsModelsPACF",
     "ThetaTransformer",
+    "BKFilter",
 ]
 
 from aeon.transformations.series._acf import (
@@ -18,6 +19,7 @@ from aeon.transformations.series._acf import (
     StatsModelsACF,
     StatsModelsPACF,
 )
+from aeon.transformations.series._bkfilter import BKFilter
 from aeon.transformations.series._clasp import ClaSPTransformer
 from aeon.transformations.series._clear_sky import ClearSkyTransformer
 from aeon.transformations.series._dobin import Dobin

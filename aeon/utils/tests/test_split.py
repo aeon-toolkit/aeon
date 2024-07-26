@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.transformations._split import SplitsTimeSeries
+from aeon.utils import split_series
 
 X = np.arange(10)
 testdata = [
@@ -13,11 +13,9 @@ testdata = [
 
 
 @pytest.mark.parametrize("X,n_intervals,expected", testdata)
-def test_split_(X, n_intervals, expected):
+def test_split_series(X, n_intervals, expected):
     """Test the splitting of a time series into multiple intervals."""
-    splitter = SplitsTimeSeries()
-    splitter.n_intervals = n_intervals
-    res = splitter._split(X)
+    res = split_series(X, n_intervals)
 
     assert len(res) == n_intervals
     for x, y in zip(res, expected):
