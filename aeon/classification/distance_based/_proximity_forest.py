@@ -44,7 +44,7 @@ class ProximityForest(BaseClassifier):
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
         for more details. Parameter for compatibility purposes, still unimplemented.
-    parallel_backend : str, ParallelBackendBase instance or None, default="threading"
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib, if None a 'prefer'
         value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
@@ -91,7 +91,7 @@ class ProximityForest(BaseClassifier):
         min_samples_split: int = 2,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
         n_jobs: int = 1,
-        parallel_backend="threading",
+        parallel_backend=None,
     ):
         self.n_trees = n_trees
         self.n_splitters = n_splitters
@@ -104,7 +104,9 @@ class ProximityForest(BaseClassifier):
 
     def _fit(self, X, y):
         rng = check_random_state(self.random_state)
-        self.trees_ = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
+        self.trees_ = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(
             delayed(_fit_tree)(
                 X,
                 y,
@@ -118,9 +120,9 @@ class ProximityForest(BaseClassifier):
 
     def _predict_proba(self, X):
         classes = list(self.classes_)
-        preds = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
-            delayed(_predict_tree)(tree, X) for tree in self.trees_
-        )
+        preds = Parallel(
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
+        )(delayed(_predict_tree)(tree, X) for tree in self.trees_)
         n_cases = X.shape[0]
         votes = np.zeros((n_cases, self.n_classes_))
         for i in range(len(preds)):
