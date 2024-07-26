@@ -56,7 +56,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     """
 
     _tags = {
-        "fit_is_empty": True,
+        "fit_is_empty": False,
     }
 
     def __init__(self, max_error=20, transformer=4, buffer_size=None):
@@ -97,16 +97,10 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
                 self.transformer = 4
             else:
                 raise ValueError(
-                    "Invalid transformer: no transformer called ", self.transformer
+                    "Invalid transformer: wrong transformer: ", self.transformer
                 )
         elif not (1 <= self.transformer <= 4):
             raise ValueError("Invalid transformer: choose between 1-4")
-        self.pla_ = PiecewiseLinearApproximation(
-            max_error=self.max_error,
-            transformer=self.transformer,
-            buffer_size=self.buffer_size,
-        )
-        self.pla_.fit(X=X)
         return self
 
     def _transform(self, X, y=None):
@@ -143,6 +137,8 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
             for i in range(1, len(results) - 1):
                 segment_dense[i] = segment_dense[i - 1] + len(results[i])
             self.segment_dense = segment_dense
+        else:
+            self.segment_dense = None
 
         return np.concatenate(results)
 
