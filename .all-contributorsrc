@@ -2446,6 +2446,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Cyril-Meyer",
+      "name": "Cyril Meyer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/69190238?v=4",
+      "profile": "https://github.com/Cyril-Meyer",
+      "contributions": [
+        "test"
+      ]
     }
   ],
   "commitType": "docs"
