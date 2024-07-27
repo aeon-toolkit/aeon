@@ -69,7 +69,7 @@ def test_clusterer(dist):
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
-@pytest.mark.parametrize("k", [1, 3])
+@pytest.mark.parametrize("k", [1, 4])
 @pytest.mark.parametrize(
     "task",
     [
@@ -86,7 +86,7 @@ def test_univariate(dist, k, task):
     X_train, y_train = problem_loader(split="train", return_type="numpy2D")
     X_test, y_test = problem_loader(split="test", return_type="numpy2D")
     indices = np.random.RandomState(0).choice(
-        min(len(y_test), len(y_train)), 5, replace=False
+        min(len(y_test), len(y_train)), 6, replace=False
     )
     # Compute the pairwise distance matrix for working with sklearn knn with
     # precomputed distances.
@@ -117,7 +117,7 @@ def test_univariate(dist, k, task):
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
-@pytest.mark.parametrize("k", [1, 3])
+@pytest.mark.parametrize("k", [1, 4])
 @pytest.mark.parametrize(
     "task",
     [
@@ -150,8 +150,8 @@ def test_multivariate(dist, k, task):
     X_train_concat = X_train.reshape(X_train.shape[0], -1)
     X_test_concat = X_test.reshape(X_test.shape[0], -1)
 
-    indices = np.random.RandomState(0).choice(
-        min(len(y_test), len(y_train)), 5, replace=False
+    indices = np.random.RandomState(2).choice(
+        min(len(y_test), len(y_train)), 6, replace=False
     )
 
     # A) Test multivariate with 2D format (concatenates channels to be compatible with
