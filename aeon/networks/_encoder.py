@@ -1,4 +1,4 @@
-"""Encoder Classifier."""
+"""Encoder Network (EncoderNetwork)."""
 
 __maintainer__ = ["hadifawaz1999"]
 

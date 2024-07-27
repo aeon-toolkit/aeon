@@ -1,6 +1,7 @@
-"""LITE Network."""
+"""LITE Network (LITENetwork)."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
+
 
 from aeon.networks.base import BaseDeepLearningNetwork
 
