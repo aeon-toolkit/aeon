@@ -41,20 +41,65 @@ def test_all_networks_functionality(network):
         ) and _check_python_version(network._config["python_version"], severity="none"):
             my_network = network()
 
-            if network._config["structure"] == "auto-encoder":
-                encoder, decoder = my_network.build_network(input_shape=input_shape)
-                assert encoder.output_shape[1:] == (my_network.latent_space_dim,)
-                assert encoder.input_shape == decoder.output_shape
-            elif network._config["structure"] == "encoder":
-                import tensorflow as tf
+            params = dict()
+            for attrname in [
+                "kernel_size",
+                "n_filters",
+                "avg_pool_size",
+                "activation",
+                "padding",
+                "strides",
+                "dilation_rate",
+                "use_bias",
+            ]:
+                # Exceptions to fix
+                if (
+                    attrname in ["kernel_size", "padding"]
+                    and network.__name__ == "TapNetNetwork"
+                ):
+                    continue
+                if attrname in ["activation"] and network.__name__ == "AEBiGRUNetwork":
+                    continue
+                # LITENetwork does not seem to work with list args
+                if network.__name__ == "LITENetwork":
+                    continue
 
-                input_layer, output_layer = my_network.build_network(
-                    input_shape=input_shape
-                )
-                assert input_layer is not None
-                assert output_layer is not None
-                assert tf.keras.backend.is_keras_tensor(input_layer)
-                assert tf.keras.backend.is_keras_tensor(output_layer)
+                # Here we use 'None' string as default to differentiate with None values
+                attr = getattr(my_network, attrname, "None")
+                if attr != "None":
+                    if attr is None:
+                        attr = 3
+                    elif isinstance(attr, list):
+                        attr = attr[0]
+                    else:
+                        if network.__name__ in ["ResNetNetwork", "AEResNetNetwork"]:
+                            attr = [attr] * my_network.n_conv_per_residual_block
+                        elif network.__name__ in ["InceptionNetwork"]:
+                            attr = [attr] * my_network.depth
+                        else:
+                            attr = [attr] * my_network.n_layers
+                    params[attrname] = attr
+
+            if params:
+                my_networks = [my_network, network(**params)]
+            else:
+                my_networks = [my_network]
+
+            for my_network in my_networks:
+                if network._config["structure"] == "auto-encoder":
+                    encoder, decoder = my_network.build_network(input_shape=input_shape)
+                    assert encoder.output_shape[1:] == (my_network.latent_space_dim,)
+                    assert encoder.input_shape == decoder.output_shape
+                elif network._config["structure"] == "encoder":
+                    import tensorflow as tf
+
+                    input_layer, output_layer = my_network.build_network(
+                        input_shape=input_shape
+                    )
+                    assert input_layer is not None
+                    assert output_layer is not None
+                    assert tf.keras.backend.is_keras_tensor(input_layer)
+                    assert tf.keras.backend.is_keras_tensor(output_layer)
         else:
             pytest.skip(
                 f"{network.__name__} dependencies not satisfied or invalid \
