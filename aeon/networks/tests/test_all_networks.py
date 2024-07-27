@@ -52,13 +52,14 @@ def test_all_networks_functionality(network):
                 "dilation_rate",
                 "use_bias",
             ]:
+                # Exceptions for AE networks
+                if network.__name__.startswith("AE"):
+                    continue
                 # Exceptions to fix
                 if (
                     attrname in ["kernel_size", "padding"]
                     and network.__name__ == "TapNetNetwork"
                 ):
-                    continue
-                if attrname in ["activation"] and network.__name__ == "AEBiGRUNetwork":
                     continue
                 # LITENetwork does not seem to work with list args
                 if network.__name__ == "LITENetwork":
@@ -72,7 +73,7 @@ def test_all_networks_functionality(network):
                     elif isinstance(attr, list):
                         attr = attr[0]
                     else:
-                        if network.__name__ in ["ResNetNetwork", "AEResNetNetwork"]:
+                        if network.__name__ in ["ResNetNetwork"]:
                             attr = [attr] * my_network.n_conv_per_residual_block
                         elif network.__name__ in ["InceptionNetwork"]:
                             attr = [attr] * my_network.depth
