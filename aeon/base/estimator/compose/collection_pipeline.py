@@ -28,6 +28,11 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         A estimator to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
+    random_state : int, RandomState instance or None, default=None
+        Random state used to fit the estimators. If None, no random state is set for
+        pipeline components (but they may still be seeded prior to input).
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -42,9 +47,10 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
     RegressorPipeline : A pipeline for regression tasks.
     """
 
-    def __init__(self, transformers, _estimator):
+    def __init__(self, transformers, _estimator, random_state=None):
         self.transformers = transformers
         self._estimator = _estimator
+        self.random_state = random_state
 
         self._steps = (
             [t for t in transformers]
@@ -260,9 +266,14 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
     def _clone_steps(self):
         if self.random_state is not None:
             rng = check_random_state(self.random_state)
-            self.steps_ = [(step[0], _clone_estimator(step[1],
-                                                                random_state=rng.randint(np.iinfo(np.int32).max)))
-                           for step in self._steps]
+            self.steps_ = [
+                (
+                    step[0],
+                    _clone_estimator(
+                        step[1], random_state=rng.randint(np.iinfo(np.int32).max)
+                    ),
+                )
+                for step in self._steps
+            ]
         else:
-            self.steps_ = [(step[0], _clone_estimator(step[1])
-                           for step in self._steps)]
+            self.steps_ = [(step[0], _clone_estimator(step[1])) for step in self._steps]

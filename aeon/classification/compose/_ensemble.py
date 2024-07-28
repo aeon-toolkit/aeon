@@ -5,6 +5,7 @@ __all__ = ["ClassifierEnsemble"]
 
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils import check_random_state
@@ -14,6 +15,8 @@ from aeon.base.estimator.compose.collection_ensemble import BaseCollectionEnsemb
 from aeon.classification import DummyClassifier
 from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
+from aeon.classification.sklearn._wrapper import SklearnClassifierWrapper
+from aeon.utils.sklearn import is_sklearn_classifier
 
 
 class ClassifierEnsemble(BaseCollectionEnsemble, BaseClassifier):
@@ -30,8 +33,7 @@ class ClassifierEnsemble(BaseCollectionEnsemble, BaseClassifier):
     weights : float, or iterable of float, default=None
         If float, ensemble weight for estimator i will be train score to this power.
         If iterable of float, must be equal length as _estimators. Ensemble weight for
-            _estimator i will be weights[i]. A dict containing members of _estimators
-            and weights is also acceptable.
+            _estimator i will be weights[i].
         If None, all estimators have equal weight.
     cv : None, int, or sklearn cross-validation object, default=None
         Only used if weights is a float. The method used to generate a performance
@@ -68,7 +70,6 @@ class ClassifierEnsemble(BaseCollectionEnsemble, BaseClassifier):
 
     See Also
     --------
-    ClassifierEnsemble : A pipeline for classification tasks.
     RegressorEnsemble : A pipeline for regression tasks.
     """
 
@@ -89,8 +90,10 @@ class ClassifierEnsemble(BaseCollectionEnsemble, BaseClassifier):
         self.classifiers = classifiers
         self.majority_vote = majority_vote
 
+        wclf = [self._wrap_sklearn(clf) for clf in self.classifiers]
+
         super().__init__(
-            _estimators=classifiers,
+            _estimators=wclf,
             weights=weights,
             cv=cv,
             metric=metric,
@@ -127,10 +130,11 @@ class ClassifierEnsemble(BaseCollectionEnsemble, BaseClassifier):
             # Call predict on each classifier, add the weighted predictions to the
             # current probabilities
             for clf_name, clf in self.ensemble_:
-                pred = clf.predict(X=X)
-                dists[
-                    np.arange(X.shape[0]), self._class_dictionary[pred]
-                ] += self.weights_[clf_name]
+                preds = clf.predict(X=X)
+                for i in range(X.shape[0]):
+                    dists[i, self._class_dictionary[preds[i]]] += self.weights_[
+                        clf_name
+                    ]
         else:
             # Call predict_proba on each classifier, multiply the probabilities by the
             # classifiers weight then add them to the current probabilities
@@ -142,6 +146,18 @@ class ClassifierEnsemble(BaseCollectionEnsemble, BaseClassifier):
         y_proba = dists / dists.sum(axis=1, keepdims=True)
 
         return y_proba
+
+    @staticmethod
+    def _wrap_sklearn(clf):
+        if isinstance(clf, tuple):
+            if is_sklearn_classifier(clf[1]):
+                return clf[0], SklearnClassifierWrapper(clf[1])
+            else:
+                return clf
+        elif is_sklearn_classifier(clf):
+            return SklearnClassifierWrapper(clf)
+        else:
+            return clf
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -170,6 +186,13 @@ class ClassifierEnsemble(BaseCollectionEnsemble, BaseClassifier):
         }
 
 
+# TODO: remove v1.0.0
+@deprecated(
+    version="1.0.0",
+    reason="WeightedEnsembleClassifier will be removed in 1.0.0, use "
+    "ClassifierEnsemble instead.",
+    category=FutureWarning,
+)
 class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
     """Weighted ensemble of classifiers with fittable ensemble weight.
 

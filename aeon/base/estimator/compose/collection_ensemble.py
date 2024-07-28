@@ -1,6 +1,9 @@
+"""Base class for collection ensembles."""
+
 import numpy as np
 from sklearn.base import BaseEstimator as SklearnBaseEstimator
-from sklearn.metrics import accuracy_score
+from sklearn.base import is_classifier
+from sklearn.metrics import accuracy_score, mean_squared_error
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils import check_random_state
 
@@ -22,8 +25,7 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
     weights : float, or iterable of float, default=None
         If float, ensemble weight for estimator i will be train score to this power.
         If iterable of float, must be equal length as _estimators. Ensemble weight for
-            _estimator i will be weights[i]. A dict containing members of _estimators
-            and weights is also acceptable.
+            _estimator i will be weights[i].
         If None, all estimators have equal weight.
     cv : None, int, or sklearn cross-validation object, default=None
         Only used if weights is a float. The method used to generate a performance
@@ -74,7 +76,7 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
         self.metric_probas = metric_probas
         self.random_state = random_state
 
-        self._ensemble = self._check_estimators(
+        self.ensemble_ = self._check_estimators(
             self._estimators,
             attr_name="_estimators",
             cls_type=SklearnBaseEstimator,
@@ -91,7 +93,7 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
                     if isinstance(e[1], BaseEstimator)
                     else False
                 )
-                for e in self._ensemble
+                for e in self.ensemble_
             ]
         )
 
@@ -103,7 +105,7 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
                     if isinstance(e[1], BaseEstimator)
                     else False
                 )
-                for e in self._ensemble
+                for e in self.ensemble_
             ]
         )
 
@@ -115,7 +117,7 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
                     if isinstance(e[1], BaseEstimator)
                     else False
                 )
-                for e in self._ensemble
+                for e in self.ensemble_
             ]
         )
 
@@ -137,8 +139,6 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
             self.weights_ = {x[0]: 1 for x in self.ensemble_}
         elif isinstance(self.weights, (float, int)):
             self.weights_ = {}
-        elif isinstance(self.weights, dict):
-            self.weights_ = {x[0]: self.weights[x[0]] for x in self.ensemble_}
         else:
             try:
                 if len(self.weights) != len(self.ensemble_):
@@ -154,7 +154,10 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
                 estimator.fit(X=X, y=y)
         # if weights are calculated by training loss, we fit_predict and evaluate
         else:
-            metric = accuracy_score if self.metric is None else self.metric
+            if self.metric is None:
+                metric = accuracy_score if is_classifier(self) else mean_squared_error
+            else:
+                metric = self.metric
 
             for name, estimator in self.ensemble_:
                 # estimate predictions from train data

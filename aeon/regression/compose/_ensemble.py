@@ -5,12 +5,12 @@ __all__ = ["RegressorEnsemble"]
 
 
 import numpy as np
-from sklearn.utils import check_random_state
 
 from aeon.base.estimator.compose.collection_ensemble import BaseCollectionEnsemble
-from aeon.classification import DummyClassifier
-from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-from aeon.regression import BaseRegressor
+from aeon.regression import BaseRegressor, DummyRegressor
+from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
+from aeon.regression.sklearn._wrapper import SklearnRegressorWrapper
+from aeon.utils.sklearn import is_sklearn_regressor
 
 
 class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
@@ -40,18 +40,9 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
             parameter of the cross_val_predict function from sklearn.
     metric : sklearn performance metric function, default=accuracy_score
         Only used if weights is a float. The metric used to evaluate the estimators.
-    metric_probas : bool, default=False
-        Only used if weights is a float. Whether to generate predictions via predict
-        (False) or probabilities via predict_proba (True) for use in the metric.
-    majority_vote : bool, default=False
-        If True, the ensemble predictions are the class with the majority of class
-        votes from the ensemble.
-        If False, the ensemble predictions are the class with the highest probability
-        summed from ensemble members.
     random_state : int, RandomState instance or None, default=None
-        Random state used to fit the estimators and break ties. If None, no random
-        state is set for ensemble members (but they may still be seeded prior to
-        input) and tie breaking.
+        Random state used to fit the estimators. If None, no random state is set for
+        ensemble members (but they may still be seeded prior to input).
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
 
@@ -66,7 +57,6 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
     See Also
     --------
     ClassifierEnsemble : A pipeline for classification tasks.
-    RegressorEnsemble : A pipeline for regression tasks.
     """
 
     _tags = {
@@ -75,70 +65,45 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
 
     def __init__(
         self,
-        classifiers,
+        regressors,
         weights=None,
         cv=None,
         metric=None,
-        metric_probas=False,
-        majority_vote=False,
         random_state=None,
     ):
-        self.classifiers = classifiers
-        self.majority_vote = majority_vote
+        self.regressors = regressors
+
+        wreg = [self._wrap_sklearn(clf) for clf in self.regressors]
 
         super().__init__(
-            _estimators=classifiers,
+            _estimators=wreg,
             weights=weights,
             cv=cv,
             metric=metric,
-            metric_probas=metric_probas,
+            metric_probas=False,
             random_state=random_state,
         )
 
     def _predict(self, X) -> np.ndarray:
         """Predicts labels for sequences in X."""
-        rng = check_random_state(self.random_state)
-        return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self.predict_proba(X)
-            ]
-        )
+        preds = np.zeros(X.shape[0])
 
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
+        for reg_name, reg in self.ensemble_:
+            preds += reg.predict(X=X) * self.weights_[reg_name]
 
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The data to make predict probabilities for.
+        return preds / np.sum(list(self.weights_.values()))
 
-        Returns
-        -------
-        y : array-like, shape = [n_cases, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        dists = np.zeros((X.shape[0], self.n_classes_))
-
-        if self.majority_vote:
-            # Call predict on each classifier, add the weighted predictions to the
-            # current probabilities
-            for clf_name, clf in self.ensemble_:
-                pred = clf.predict(X=X)
-                dists[
-                    np.arange(X.shape[0]), self._class_dictionary[pred]
-                ] += self.weights_[clf_name]
+    @staticmethod
+    def _wrap_sklearn(reg):
+        if isinstance(reg, tuple):
+            if is_sklearn_regressor(reg[1]):
+                return reg[0], SklearnRegressorWrapper(reg[1])
+            else:
+                return reg
+        elif is_sklearn_regressor(reg):
+            return SklearnRegressorWrapper(reg)
         else:
-            # Call predict_proba on each classifier, multiply the probabilities by the
-            # classifiers weight then add them to the current probabilities
-            for clf_name, clf in self.ensemble_:
-                proba = clf.predict_proba(X=X)
-                dists += proba * self.weights_[clf_name]
-
-        # Make each instances probability array sum to 1 and return
-        y_proba = dists / dists.sum(axis=1, keepdims=True)
-
-        return y_proba
+            return reg
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -159,9 +124,9 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
-            "classifiers": [
-                KNeighborsTimeSeriesClassifier.create_test_instance(),
-                DummyClassifier.create_test_instance(),
+            "regressors": [
+                KNeighborsTimeSeriesRegressor.create_test_instance(),
+                DummyRegressor.create_test_instance(),
             ],
             "weights": [2, 1],
         }
