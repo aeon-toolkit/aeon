@@ -2437,6 +2437,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "IRKnyazev",
+      "name": "Ivan Knyazev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105492484?v=4",
+      "profile": "https://github.com/IRKnyazev",
+      "contributions": [
+        "doc"
+      ]
     }
-  ]
+  ],
+  "commitType": "docs"
 }
