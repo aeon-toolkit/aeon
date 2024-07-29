@@ -212,6 +212,33 @@ class BaseCollectionEstimator(BaseEstimator):
         X = convert_collection(X, inner_type)
         return X
 
+    def _check_shape(self, X):
+        """Check that the shape of X is consistent with the data seen in fit.
+
+        Parameters
+        ----------
+        X : data structure
+            Must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
+        """
+        if not self.get_tag("capability:unequal_length"):
+            if get_n_timepoints(X) != self.metadata_["n_timepoints"]:
+                raise ValueError(
+                    "X has different length to the data seen in fit but "
+                    "this classifier cannot handle unequal length series."
+                    "length of train set was",
+                    self.metadata_["n_timepoints"],
+                    " length in predict is ",
+                )
+        if self.get_tag("capability:multivariate"):
+            if get_n_channels(X) != self.metadata_["n_channels"]:
+                raise ValueError(
+                    "X has different number of channels to the data seen in fit "
+                    "number of channels in train set was",
+                    self.metadata_["n_channels"],
+                    "but in predict it is ",
+                    get_n_timepoints(X),
+                )
+
     @staticmethod
     def _get_metadata(X):
         # Get and store X meta data.

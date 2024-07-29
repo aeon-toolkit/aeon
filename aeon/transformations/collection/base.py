@@ -154,6 +154,9 @@ class BaseCollectionTransformer(
         X_inner = self._preprocess_collection(X, store_metadata=False)
         y_inner = y
 
+        if not self.get_tag("fit_is_empty"):
+            self._check_shape(X)
+
         Xt = self._transform(X=X_inner, y=y_inner)
 
         return Xt
