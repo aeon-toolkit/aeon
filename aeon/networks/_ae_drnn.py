@@ -5,7 +5,7 @@ __maintainer__ = []
 from aeon.networks.base import BaseDeepLearningNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-if _check_soft_dependencies(["tensorflow"], severity=None):
+if _check_soft_dependencies(["tensorflow"], severity="none"):
     import tensorflow as tf
 
     class _TensorDilation(tf.keras.layers.Layer):
