@@ -20,12 +20,12 @@ from aeon.transformations._legacy.compose import (
     TransformerPipeline,
 )
 from aeon.transformations._legacy.subset import _ColumnSelect
+from aeon.transformations._legacy.summarize import SummaryTransformer
 from aeon.transformations._legacy.theta import (
     _ThetaLinesTransformer as ThetaLinesTransformer,
 )
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.impute import Imputer
-from aeon.transformations.summarize import SummaryTransformer
 
 
 def test_dunder_mul():
