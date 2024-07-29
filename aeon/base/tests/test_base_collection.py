@@ -13,7 +13,7 @@ from aeon.utils.validation import get_type
 def test__get_metadata(data):
     """Test get meta data."""
     X = EQUAL_LENGTH_UNIVARIATE[data]
-    meta = BaseCollectionEstimator._get_metadata(X)
+    meta = BaseCollectionEstimator._get_X_metadata(X)
     assert not meta["multivariate"]
     assert not meta["missing_values"]
     assert not meta["unequal_length"]
