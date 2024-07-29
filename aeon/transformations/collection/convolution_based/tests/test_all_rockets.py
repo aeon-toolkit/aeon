@@ -9,6 +9,7 @@ from aeon.transformations.collection.convolution_based import (
     MultiRocket,
     Rocket,
 )
+from aeon.transformations.collection.convolution_based._minirocket import _PPV
 
 # Data used to test correctness of transform
 uni_test_data = np.array(
@@ -213,3 +214,11 @@ def test_expected_basic_motions():
     np.testing.assert_allclose(
         X2[:5, :5], expected_basic_motions["MiniRocket"], rtol=1e-4
     )
+
+
+def test_ppv():
+    """Test uncovered PPV function."""
+    a = np.float32(10.0)
+    b = np.float32(-5.0)
+    assert _PPV(a, b) == 1
+    assert _PPV(b, a) == 0
