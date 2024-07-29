@@ -41,6 +41,43 @@ def test_all_networks_functionality(network):
         ) and _check_python_version(network._config["python_version"], severity="none"):
             my_network = network()
 
+            if network._config["structure"] == "auto-encoder":
+                encoder, decoder = my_network.build_network(input_shape=input_shape)
+                assert encoder.output_shape[1:] == (my_network.latent_space_dim,)
+                assert encoder.input_shape == decoder.output_shape
+            elif network._config["structure"] == "encoder":
+                import tensorflow as tf
+
+                input_layer, output_layer = my_network.build_network(
+                    input_shape=input_shape
+                )
+                assert input_layer is not None
+                assert output_layer is not None
+                assert tf.keras.backend.is_keras_tensor(input_layer)
+                assert tf.keras.backend.is_keras_tensor(output_layer)
+        else:
+            pytest.skip(
+                f"{network.__name__} dependencies not satisfied or invalid \
+                Python version."
+            )
+    else:
+        pytest.skip(f"{network.__name__} not to be tested since its a base class.")
+
+
+@pytest.mark.parametrize("network", _networks)
+def test_all_networks_params(network):
+    """Test the functionality of all networks."""
+    input_shape = (100, 2)
+
+    if not (network.__name__ in ["BaseDeepLearningNetwork"]):
+        if _check_soft_dependencies(
+            network._config["python_dependencies"], severity="none"
+        ) and _check_python_version(network._config["python_version"], severity="none"):
+            # check with default parameters
+            my_network = network()
+            my_network.build_network(input_shape=input_shape)
+
+            # check with list parameters
             params = dict()
             for attrname in [
                 "kernel_size",
@@ -52,7 +89,6 @@ def test_all_networks_functionality(network):
                 "dilation_rate",
                 "use_bias",
             ]:
-                # Exceptions for AE networks
                 if network.__name__.startswith("AE"):
                     continue
                 # Exceptions to fix
@@ -82,25 +118,8 @@ def test_all_networks_functionality(network):
                     params[attrname] = attr
 
             if params:
-                my_networks = [my_network, network(**params)]
-            else:
-                my_networks = [my_network]
-
-            for my_network in my_networks:
-                if network._config["structure"] == "auto-encoder":
-                    encoder, decoder = my_network.build_network(input_shape=input_shape)
-                    assert encoder.output_shape[1:] == (my_network.latent_space_dim,)
-                    assert encoder.input_shape == decoder.output_shape
-                elif network._config["structure"] == "encoder":
-                    import tensorflow as tf
-
-                    input_layer, output_layer = my_network.build_network(
-                        input_shape=input_shape
-                    )
-                    assert input_layer is not None
-                    assert output_layer is not None
-                    assert tf.keras.backend.is_keras_tensor(input_layer)
-                    assert tf.keras.backend.is_keras_tensor(output_layer)
+                my_network = network(**params)
+                my_network.build_network(input_shape=input_shape)
         else:
             pytest.skip(
                 f"{network.__name__} dependencies not satisfied or invalid \
