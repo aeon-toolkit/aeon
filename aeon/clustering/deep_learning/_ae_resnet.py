@@ -1,6 +1,6 @@
 """Residual Network (ResNet) for clustering."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["AEResNetClusterer"]
 
 import gc

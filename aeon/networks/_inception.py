@@ -1,6 +1,6 @@
-"""Inception Network."""
+"""Inception Network (InceptionNetwork)."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepLearningNetwork
 
