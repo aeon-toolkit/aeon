@@ -173,7 +173,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
 
         _finals = []
 
-        for i in range(self.n_layers_encoder - 1):
+        for i in range(self.n_layers_encoder):
             final, output = self._bidir_gru(
                 x,
                 self._n_units_encoder[i],
@@ -183,26 +183,12 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
             _finals.append(final)
 
         if not self.temporal_latent_space:
-            final, output = self._bidir_gru(
-                x,
-                self._n_units_encoder[-1],
-                activation=self._activation_encoder[-1],
-                return_sequences=False,
-            )
-            _finals.append(final)
             _output = tf.keras.layers.Concatenate()(_finals)
             encoder_output_layer = tf.keras.layers.Dense(
                 self.latent_space_dim, activation="linear"
             )(_output)
 
         elif self.temporal_latent_space:
-            final, output = self._bidir_gru(
-                x,
-                self._n_units_encoder[-1],
-                activation=self._activation_encoder[-1],
-                return_sequences=True,
-            )
-
             encoder_output_layer = tf.keras.layers.Conv1D(
                 self.latent_space_dim,
                 activation="linear",
@@ -232,7 +218,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
                 return_sequences=True,
                 activation=self._decoder_activation[i],
             )(decoder_gru)
-            if i < self.n_layers_decoder - 1:
+            if i != 0:
                 decoder_gru = _TensorDilation(self._dilation_rate_decoder[i])(
                     decoder_gru
                 )
