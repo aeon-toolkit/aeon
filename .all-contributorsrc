@@ -2446,6 +2446,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Moonzyyy",
+      "name": "Daniele Carli",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47296443?v=4",
+      "profile": "https://github.com/Moonzyyy",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
