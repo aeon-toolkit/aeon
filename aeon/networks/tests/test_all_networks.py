@@ -69,61 +69,68 @@ def test_all_networks_params(network):
     """Test the functionality of all networks."""
     input_shape = (100, 2)
 
-    if not (network.__name__ in ["BaseDeepLearningNetwork"]):
-        if _check_soft_dependencies(
-            network._config["python_dependencies"], severity="none"
-        ) and _check_python_version(network._config["python_version"], severity="none"):
-            # check with default parameters
-            my_network = network()
-            my_network.build_network(input_shape=input_shape)
-
-            # check with list parameters
-            params = dict()
-            for attrname in [
-                "kernel_size",
-                "n_filters",
-                "avg_pool_size",
-                "activation",
-                "padding",
-                "strides",
-                "dilation_rate",
-                "use_bias",
-            ]:
-                if network._config["structure"] == "auto-encoder":
-                    continue
-                # Exceptions to fix
-                if (
-                    attrname in ["kernel_size", "padding"]
-                    and network.__name__ == "TapNetNetwork"
-                ):
-                    continue
-                # LITENetwork does not seem to work with list args
-                if network.__name__ == "LITENetwork":
-                    continue
-
-                # Here we use 'None' string as default to differentiate with None values
-                attr = getattr(my_network, attrname, "None")
-                if attr != "None":
-                    if attr is None:
-                        attr = 3
-                    elif isinstance(attr, list):
-                        attr = attr[0]
-                    else:
-                        if network.__name__ in ["ResNetNetwork"]:
-                            attr = [attr] * my_network.n_conv_per_residual_block
-                        elif network.__name__ in ["InceptionNetwork"]:
-                            attr = [attr] * my_network.depth
-                        else:
-                            attr = [attr] * my_network.n_layers
-                    params[attrname] = attr
-
-            if params:
-                my_network = network(**params)
-                my_network.build_network(input_shape=input_shape)
-        else:
-            pytest.skip(
-                f"{network.__name__} dependencies not satisfied or invalid \
-                Python version."
-            )
-    else:
+    if network.__name__ in ["BaseDeepLearningNetwork", "EncoderNetwork"]:
         pytest.skip(f"{network.__name__} not to be tested since its a base class.")
+
+    if network._config["structure"] == "auto-encoder":
+        pytest.skip(
+            f"{network.__name__} not to be tested (AE networks have their own tests)."
+        )
+
+    if not (
+        _check_soft_dependencies(
+            network._config["python_dependencies"], severity="none"
+        )
+        and _check_python_version(network._config["python_version"], severity="none")
+    ):
+        pytest.skip(
+            f"{network.__name__} dependencies not satisfied or invalid \
+            Python version."
+        )
+
+    # check with default parameters
+    my_network = network()
+    my_network.build_network(input_shape=input_shape)
+
+    # check with list parameters
+    params = dict()
+    for attrname in [
+        "kernel_size",
+        "n_filters",
+        "avg_pool_size",
+        "activation",
+        "padding",
+        "strides",
+        "dilation_rate",
+        "use_bias",
+    ]:
+
+        # Exceptions to fix
+        if (
+            attrname in ["kernel_size", "padding"]
+            and network.__name__ == "TapNetNetwork"
+        ):
+            continue
+        # LITENetwork does not seem to work with list args
+        if network.__name__ == "LITENetwork":
+            continue
+
+        # Here we use 'None' string as default to differentiate with None values
+        attr = getattr(my_network, attrname, "None")
+        if attr != "None":
+            if attr is None:
+                attr = 3
+            elif isinstance(attr, list):
+                attr = attr[0]
+            else:
+                if network.__name__ in ["ResNetNetwork"]:
+                    attr = [attr] * my_network.n_conv_per_residual_block
+                elif network.__name__ in ["InceptionNetwork"]:
+                    attr = [attr] * my_network.depth
+                else:
+                    attr = [attr] * my_network.n_layers
+            params[attrname] = attr
+
+    if params:
+        my_network = network(**params)
+        my_network.build_network(input_shape=input_shape)
