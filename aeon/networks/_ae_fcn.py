@@ -91,8 +91,8 @@ class AEFCNNetwork(BaseDeepLearningNetwork):
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer.
 
