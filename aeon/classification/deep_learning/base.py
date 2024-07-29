@@ -32,8 +32,8 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         The name of the file of the last model, used
         only if save_last_model_to_file is used
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     self.model = None
 
     """
