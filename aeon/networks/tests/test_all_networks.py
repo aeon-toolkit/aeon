@@ -89,7 +89,7 @@ def test_all_networks_params(network):
                 "dilation_rate",
                 "use_bias",
             ]:
-                if network.__name__.startswith("AE"):
+                if network._config["structure"] == "auto-encoder":
                     continue
                 # Exceptions to fix
                 if (
