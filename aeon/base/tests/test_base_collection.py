@@ -72,29 +72,43 @@ def test__convert_X(internal_type, data):
     cls.metadata_ = cls._check_X(X)
     X2 = cls._convert_X(X)
     assert get_type(X2) == cls.get_tag("X_inner_type")
-    # Add the internal_type tag to cls, should still all revert to numpy3D
-    cls.set_tags(**{"X_inner_type": ["numpy3D", internal_type]})
+    # should all convert to numpy3D
+    cls.set_tags(**{"X_inner_type": "numpy3D"})
+    X2 = cls._convert_X(X)
+    assert get_type(X2) == "numpy3D"
+    # Same as above but as list
+    cls.set_tags(**{"X_inner_type": ["numpy3D"]})
     X2 = cls._convert_X(X)
     assert get_type(X2) == "numpy3D"
     # Set cls inner type to just internal_type, should convert to internal_type
     cls.set_tags(**{"X_inner_type": internal_type})
     X2 = cls._convert_X(X)
     assert get_type(X2) == internal_type
-    # Set to single type but in a list
-    cls.set_tags(**{"X_inner_type": [internal_type]})
+    # Should not convert, as datatype is already present
+    cls.set_tags(**{"X_inner_type": ["numpy3D", data]})
     X2 = cls._convert_X(X)
-    assert get_type(X2) == internal_type
-    # Set to the lowest priority data type, should convert to internal_type
-    cls.set_tags(**{"X_inner_type": ["nested_univ", internal_type]})
+    assert get_type(X2) == data
+    # Should always convert to numpy3D unless data is already internal_type, as it is
+    # the highest priority type
+    cls.set_tags(**{"X_inner_type": ["numpy3D", internal_type]})
     X2 = cls._convert_X(X)
-    assert get_type(X2) == internal_type
+    assert get_type(X2) == "numpy3D" if data != internal_type else internal_type
+
     if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
         if internal_type in UNEQUAL_LENGTH_UNIVARIATE.keys():
-            cls.set_tags(**{"capability:unequal_length": True})
-            cls.set_tags(**{"X_inner_type": ["nested_univ", "np-list", internal_type]})
             X = UNEQUAL_LENGTH_UNIVARIATE[data]
+
+            # Should stay as internal_type
+            cls.set_tags(**{"capability:unequal_length": True})
+            cls.set_tags(**{"X_inner_type": ["np-list", data]})
             X2 = cls._convert_X(X)
-            assert get_type(X2) == "np-list"
+            assert get_type(X2) == data
+
+            # np-list is the highest priority type for unequal length
+            cls.set_tags(**{"capability:unequal_length": True})
+            cls.set_tags(**{"X_inner_type": [internal_type, "np-list"]})
+            X2 = cls._convert_X(X)
+            assert get_type(X2) == "np-list" if data != internal_type else internal_type
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
