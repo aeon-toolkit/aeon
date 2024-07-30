@@ -1,4 +1,7 @@
 import inspect
+import os
+import tempfile
+import time
 from functools import partial
 from sys import platform
 
@@ -21,15 +24,24 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
     """Yield all classification checks for an aeon classifier."""
     # only class required
     yield partial(
-        test_classifier_against_expected_results, estimator_class=estimator_class
+        check_classifier_against_expected_results, estimator_class=estimator_class
     )
-    yield partial(test_classifier_tags_consistent, estimator_class=estimator_class)
-    yield partial(test_does_not_override_final_methods, estimator_class=estimator_class)
+    yield partial(check_classifier_tags_consistent, estimator_class=estimator_class)
+    yield partial(
+        check_does_not_override_final_methods, estimator_class=estimator_class
+    )
 
     # data type irrelevant
     if _get_tag(estimator_class, "capability:contractable", raise_error=True):
         yield partial(
-            test_contracted_classifier,
+            check_contracted_classifier,
+            estimator_class=estimator_class,
+            datatype=datatypes[0][0],
+        )
+
+    if issubclass(estimator_class, BaseDeepClassifier):
+        yield partial(
+            check_saving_loading_deep_learning_cls,
             estimator_class=estimator_class,
             datatype=datatypes[0][0],
         )
@@ -39,7 +51,7 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
         # data type irrelevant
         if _get_tag(estimator_class, "capability:train_estimate", raise_error=True):
             yield partial(
-                test_classifier_train_estimate,
+                check_classifier_train_estimate,
                 estimator=estimator,
                 datatype=datatypes[0][0],
             )
@@ -54,11 +66,11 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
         # test all data types
         for datatype in datatypes[i]:
             yield partial(
-                test_classifier_output, estimator=estimator, datatype=datatype
+                check_classifier_output, estimator=estimator, datatype=datatype
             )
 
 
-def test_classifier_against_expected_results(estimator_class):
+def check_classifier_against_expected_results(estimator_class):
     """Test classifier against stored results."""
     # we only use the first estimator instance for testing
     class_name = estimator_class.__name__
@@ -111,7 +123,7 @@ def test_classifier_against_expected_results(estimator_class):
         )
 
 
-def test_classifier_tags_consistent(estimator_class):
+def check_classifier_tags_consistent(estimator_class):
     """Test the tag X_inner_type is consistent with capability:unequal_length."""
     valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
     unequal = estimator_class.get_class_tag("capability:unequal_length")
@@ -132,7 +144,7 @@ def test_classifier_tags_consistent(estimator_class):
         inst.predict_proba(X)
 
 
-def test_does_not_override_final_methods(estimator_class):
+def check_does_not_override_final_methods(estimator_class):
     """Test does not override final methods."""
     final_methods = [
         "fit",
@@ -149,7 +161,7 @@ def test_does_not_override_final_methods(estimator_class):
             )
 
 
-def test_contracted_classifier(estimator_class, datatype):
+def check_contracted_classifier(estimator_class, datatype):
     """Test classifiers that can be contracted."""
     estimator_instance = estimator_class.create_test_instance(
         parameter_set="contracting"
@@ -200,7 +212,72 @@ def test_contracted_classifier(estimator_class, datatype):
     )
 
 
-def test_classifier_train_estimate(estimator, datatype):
+def check_saving_loading_deep_learning_cls(estimator_class, datatype):
+    """Test Deep Classifier saving."""
+    with tempfile.TemporaryDirectory() as tmp:
+        if not (
+            estimator_class.__name__
+            in [
+                "BaseDeepClassifier",
+                "InceptionTimeClassifier",
+                "LITETimeClassifier",
+                "TapNetClassifier",
+            ]
+        ):
+            if tmp[-1] != "/":
+                tmp = tmp + "/"
+            curr_time = str(time.time_ns())
+            last_file_name = curr_time + "last"
+            best_file_name = curr_time + "best"
+            init_file_name = curr_time + "init"
+
+            deep_cls_train = estimator_class(
+                n_epochs=2,
+                save_best_model=True,
+                save_last_model=True,
+                save_init_model=True,
+                best_file_name=best_file_name,
+                last_file_name=last_file_name,
+                init_file_name=init_file_name,
+                file_path=tmp,
+            )
+            deep_cls_train.fit(
+                FULL_TEST_DATA_DICT[datatype]["train"][0],
+                FULL_TEST_DATA_DICT[datatype]["train"][1],
+            )
+
+            deep_cls_best = estimator_class()
+            deep_cls_best.load_model(
+                model_path=os.path.join(tmp, best_file_name + ".keras"),
+                classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
+            )
+            ypred_best = deep_cls_best.predict(
+                FULL_TEST_DATA_DICT[datatype]["train"][0]
+            )
+            assert len(ypred_best) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
+
+            deep_cls_last = estimator_class()
+            deep_cls_last.load_model(
+                model_path=os.path.join(tmp, last_file_name + ".keras"),
+                classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
+            )
+            ypred_last = deep_cls_last.predict(
+                FULL_TEST_DATA_DICT[datatype]["train"][0]
+            )
+            assert len(ypred_last) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
+
+            deep_cls_init = estimator_class()
+            deep_cls_init.load_model(
+                model_path=os.path.join(tmp, init_file_name + ".keras"),
+                classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
+            )
+            ypred_init = deep_cls_init.predict(
+                FULL_TEST_DATA_DICT[datatype]["train"][0]
+            )
+            assert len(ypred_init) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
+
+
+def check_classifier_train_estimate(estimator, datatype):
     """Test classifiers that can produce train set probability estimates."""
     estimator = _clone_estimator(estimator)
     estimator_class = type(estimator)
@@ -276,7 +353,7 @@ def check_random_state_deep_learning(estimator, datatype):
             np.testing.assert_almost_equal(_weight1, _weight2, 4)
 
 
-def test_classifier_output(estimator, datatype):
+def check_classifier_output(estimator, datatype):
     """Test classifier outputs the correct data types and values.
 
     Test predict produces a np.array or pd.Series with only values seen in the train
