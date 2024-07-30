@@ -2437,6 +2437,34 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "IRKnyazev",
+      "name": "Ivan Knyazev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105492484?v=4",
+      "profile": "https://github.com/IRKnyazev",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Moonzyyy",
+      "name": "Daniele Carli",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47296443?v=4",
+      "profile": "https://github.com/Moonzyyy",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "adm-unl",
+      "name": "Adam Unal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143117979?v=4",
+      "profile": "https://github.com/adm-unl",
+      "contributions": [
+        "doc"
+      ]
     }
-  ]
+  ],
+  "commitType": "docs"
 }

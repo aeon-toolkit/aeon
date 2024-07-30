@@ -1,13 +1,12 @@
 """Multiple Representations Sequence Miner (MrSQM) Classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["MrSQMClassifier"]
 
 from typing import List, Union
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 from aeon.classification import BaseClassifier
 
@@ -31,13 +30,6 @@ def _from_numpy3d_to_nested_dataframe(X):
     return df
 
 
-# TODO: Move in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="MrSQMClassifier will be moved to the dictionary_based package in version "
-    "0.11.0 at the request of the author.",
-    category=FutureWarning,
-)
 class MrSQMClassifier(BaseClassifier):
     """
     Multiple Representations Sequence Miner (MrSQM) classifier.
@@ -46,7 +38,7 @@ class MrSQMClassifier(BaseClassifier):
     MrSQM is not included in all extras as it requires gcc and fftw
     (http://www.fftw.org/index.html) to be installed for Windows and some Linux OS.
 
-    Overview: MrSQM is an efficient time series classifier utilising symbolic
+    Overview: MrSQM is a time series classifier utilising symbolic
     representations of time series. MrSQM implements four different feature selection
     strategies (R,S,RS,SR) that can quickly select subsequences from multiple symbolic
     representations of time series data.
@@ -92,7 +84,7 @@ class MrSQMClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.shapelet_based import MrSQMClassifier
+    >>> from aeon.classification.dictionary_based import MrSQMClassifier
     >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(random_state=0)
     >>> clf = MrSQMClassifier(random_state=0) # doctest: +SKIP
@@ -102,7 +94,7 @@ class MrSQMClassifier(BaseClassifier):
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",  # we don't like this, but it's the only input!
+        "X_inner_type": "numpy3D",
         "algorithm_type": "shapelet",
         "cant-pickle": True,
         "python_dependencies": "mrsqm",
