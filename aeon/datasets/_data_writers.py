@@ -260,8 +260,6 @@ def write_to_tsf_file(
     Write metadata and data stored in aeon compatible data set to file.
     A description of the tsf format is in examples/load_data.ipynb.
 
-    Note that this file is structured to still support the
-
     Parameters
     ----------
     X : pd.DataFrame, each cell a pd.Series

@@ -29,6 +29,7 @@ from typing import final
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
@@ -150,7 +151,7 @@ class BaseCollectionTransformer(
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner = self._preprocess_collection(X)
+        X_inner = self._preprocess_collection(X, store_metadata=False)
         y_inner = y
 
         Xt = self._transform(X=X_inner, y=y_inner)
@@ -204,7 +205,6 @@ class BaseCollectionTransformer(
         self.reset()
         X_inner = self._preprocess_collection(X)
         y_inner = y
-
         Xt = self._fit_transform(X=X_inner, y=y_inner)
 
         self._is_fitted = True
@@ -266,13 +266,19 @@ class BaseCollectionTransformer(
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner = self._preprocess_collection(X)
+        X_inner = self._preprocess_collection(X, store_metadata=False)
         y_inner = y
 
         Xt = self._inverse_transform(X=X_inner, y=y_inner)
 
         return Xt
 
+    # TODO: remove in v0.11.0
+    @deprecated(
+        version="0.10.0",
+        reason="The update method will be removed in version 0.11.0.",
+        category=FutureWarning,
+    )
     @final
     def update(self, X, y=None, update_params=True):
         """Update transformer with X, optionally y.
@@ -326,7 +332,7 @@ class BaseCollectionTransformer(
             raise ValueError(f"{self.__class__.__name__} requires `y` in `update`.")
 
         # check and convert X/y
-        X_inner = self._preprocess_collection(X)
+        X_inner = self._preprocess_collection(X, store_metadata=False)
         y_inner = y
 
         # update memory of X, if remember_data exists and is set to True

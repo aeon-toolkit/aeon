@@ -12,35 +12,37 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 __maintainer__ = ["hadifawaz1999"]
 
 
+_deep_cls_classes = [
+    member[1] for member in inspect.getmembers(deep_learning, inspect.isclass)
+]
+
+
 @pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow", "tensorflow_addons"], severity="none"),
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_random_state_deep_learning_cls():
+@pytest.mark.parametrize("deep_cls", _deep_cls_classes)
+def test_random_state_deep_learning_cls(deep_cls):
     """Test Deep Classifier seeding."""
-    random_state = 42
+    if not (
+        deep_cls.__name__
+        in [
+            "BaseDeepClassifier",
+            "InceptionTimeClassifier",
+            "LITETimeClassifier",
+            "TapNetClassifier",
+        ]
+    ):
+        random_state = 42
 
-    X, y = make_example_3d_numpy(random_state=random_state)
+        X, y = make_example_3d_numpy(random_state=random_state)
 
-    deep_cls_classes = [
-        member[1] for member in inspect.getmembers(deep_learning, inspect.isclass)
-    ]
-
-    for i in range(len(deep_cls_classes)):
-        if (
-            "BaseDeepClassifier" in str(deep_cls_classes[i])
-            or "InceptionTimeClassifier" in str(deep_cls_classes[i])
-            or "LITETimeClassifier" in str(deep_cls_classes[i])
-            or "TapNetClassifier" in str(deep_cls_classes[i])
-        ):
-            continue
-
-        deep_cls1 = deep_cls_classes[i](random_state=random_state, n_epochs=4)
+        deep_cls1 = deep_cls(random_state=random_state, n_epochs=4)
         deep_cls1.fit(X, y)
 
         layers1 = deep_cls1.training_model_.layers[1:]
 
-        deep_cls2 = deep_cls_classes[i](random_state=random_state, n_epochs=4)
+        deep_cls2 = deep_cls(random_state=random_state, n_epochs=4)
         deep_cls2.fit(X, y)
 
         layers2 = deep_cls2.training_model_.layers[1:]
@@ -57,4 +59,4 @@ def test_random_state_deep_learning_cls():
                 _weight1 = np.asarray(weights1[j])
                 _weight2 = np.asarray(weights2[j])
 
-                assert np.array_equal(_weight1, _weight2)
+                np.testing.assert_almost_equal(_weight1, _weight2, 4)

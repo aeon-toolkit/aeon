@@ -1,4 +1,7 @@
-"""Residual Network (ResNet) (minus the final output layer)."""
+"""Auto-Encoder using Residual Network (AEResNetNetwork)."""
+
+__maintainer__ = ["hadifawaz1999"]
+
 
 import numpy as np
 
@@ -64,6 +67,12 @@ class AEResNetNetwork(BaseDeepLearningNetwork):
     1578--1585}, year={2017}, organization={IEEE} }
 
     """
+
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.12",
+        "structure": "auto-encoder",
+    }
 
     def __init__(
         self,

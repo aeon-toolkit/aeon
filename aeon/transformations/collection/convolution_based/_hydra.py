@@ -68,7 +68,6 @@ class HydraTransformer(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "algorithm_type": "convolution",
         "python_dependencies": "torch",
-        "fit_is_empty": True,
     }
 
     def __init__(
@@ -82,7 +81,7 @@ class HydraTransformer(BaseCollectionTransformer):
 
         super().__init__()
 
-    def _transform(self, X, y=None):
+    def _fit(self, X, y=None):
         import torch
 
         if isinstance(self.random_state, int):
@@ -91,14 +90,16 @@ class HydraTransformer(BaseCollectionTransformer):
         n_jobs = check_n_jobs(self.n_jobs)
         torch.set_num_threads(n_jobs)
 
-        self.hydra = _HydraInternal(
+        self._hydra = _HydraInternal(
             X.shape[2],
             X.shape[1],
             k=self.n_kernels,
             g=self.n_groups,
             max_num_channels=self.max_num_channels,
         )
-        return self.hydra(torch.tensor(X).float())
+
+    def _transform(self, X, y=None):
+        return self._hydra(torch.tensor(X).float())
 
 
 if _check_soft_dependencies("torch", severity="none"):

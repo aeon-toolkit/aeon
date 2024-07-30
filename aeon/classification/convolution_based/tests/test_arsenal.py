@@ -10,7 +10,6 @@ from aeon.testing.data_generation import (
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
     MultiRocket,
-    MultiRocketMultivariate,
     Rocket,
 )
 
@@ -73,7 +72,7 @@ def test_arsenal():
     )
     afc.fit(X_train, y_train)
     for i in range(afc.n_estimators):
-        assert isinstance(afc.estimators_[i].steps[0][1], MultiRocketMultivariate)
+        assert isinstance(afc.estimators_[i].steps[0][1], MultiRocket)
     afc = Arsenal(rocket_transform="fubar")
     with pytest.raises(ValueError, match="Invalid Rocket transformer: fubar"):
         afc.fit(X_train, y_train)
