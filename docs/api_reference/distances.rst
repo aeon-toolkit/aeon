@@ -153,6 +153,9 @@ Shape Dynamic Time Warping (Shape DTW)
     shape_dtw_pairwise_distance
     shape_dtw_cost_matrix
     shape_dtw_alignment_path
+    _pad_ts_collection_edges
+    _pad_ts_edges
+    _transform_subsequences
 
 Squared
 -------
