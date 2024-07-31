@@ -10,7 +10,6 @@ from numba.typed import List as NumbaList
 
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._squared import _univariate_squared_distance
 from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
@@ -19,6 +18,7 @@ def dtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     window: Optional[float] = None,
+    p: Optional[float] = 2.0,
     itakura_max_slope: Optional[float] = None,
 ) -> float:
     r"""Compute the DTW distance between two time series.
@@ -31,7 +31,7 @@ def dtw_distance(
     :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` DTW first calculates
     :math:`M(\mathbf{x},\mathbf{y})`, the :math:`n \times m`
     pointwise distance matrix between series :math:`\mathbf{x}` and :math:`\mathbf{y}`,
-    where :math:`M_{i,j}=   (x_i-y_j)^2`.
+    where :math:`M_{i,j}=   (x_i-y_j)^p`.
 
     A warping path
 
@@ -76,6 +76,8 @@ def dtw_distance(
         is used. window is a percentage deviation, so if ``window = 0.1`` then
         10% of the series length is the max warping allowed.
         is used.
+    p : float, default=2.0
+        The order of the Minkowski distance to use.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -106,11 +108,11 @@ def dtw_distance(
     >>> x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
     >>> y = np.array([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
     >>> dtw_distance(x, y) # 1D series
-    768.0
+    100.0
     >>> x = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [0, 1, 0, 2, 0]])
     >>> y = np.array([[11, 12, 13, 14],[7, 8, 9, 20],[1, 3, 4, 5]] )
-    >>> dtw_distance(x, y) # 2D series with 3 channels, unequal length
-    564.0
+    >>> dtw_distance(x, y, p = 1) # 2D series with 3 channels, unequal length
+    52.158582470567424
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -118,12 +120,12 @@ def dtw_distance(
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
-        return _dtw_distance(_x, _y, bounding_matrix)
+        return _dtw_distance(_x, _y, bounding_matrix, p)
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
-        return _dtw_distance(x, y, bounding_matrix)
+        return _dtw_distance(x, y, bounding_matrix, p)
     raise ValueError("x and y must be 1D or 2D")
 
 
@@ -132,12 +134,13 @@ def dtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
     window: Optional[float] = None,
+    p: Optional[float] = 2.0,
     itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     r"""Compute the DTW cost matrix between two time series.
 
-    The cost matrix is the pairwise Euclidean distance between all points
-    :math:`M_{i,j}=(x_i-x_j)^2`. It is used in the DTW path calculations.
+    The cost matrix is the pairwise Minkowski distance between all points
+    :math:`M_{i,j}=(x_i-x_j)^p`. It is used in the DTW path calculations.
 
     Parameters
     ----------
@@ -152,6 +155,8 @@ def dtw_cost_matrix(
         is used. window is a percentage deviation, so if ``window = 0.1``,
         10% of the series length is the max warping allowed.
         is used.
+    p : float, default=2.0
+        The order of the Minkowski distance to use.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -173,16 +178,16 @@ def dtw_cost_matrix(
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> dtw_cost_matrix(x, y)
-    array([[  0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204., 285.],
-           [  1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204.],
-           [  5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140.],
-           [ 14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91.],
-           [ 30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.],
-           [ 55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.,  30.],
-           [ 91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.,  14.],
-           [140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.,   5.],
-           [204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.],
-           [285., 204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.]])
+    array([[ 0.,  1.,  3.,  6., 10., 15., 21., 28., 36., 45.],
+           [ 1.,  0.,  1.,  3.,  6., 10., 15., 21., 28., 36.],
+           [ 3.,  1.,  0.,  1.,  3.,  6., 10., 15., 21., 28.],
+           [ 6.,  3.,  1.,  0.,  1.,  3.,  6., 10., 15., 21.],
+           [10.,  6.,  3.,  1.,  0.,  1.,  3.,  6., 10., 15.],
+           [15., 10.,  6.,  3.,  1.,  0.,  1.,  3.,  6., 10.],
+           [21., 15., 10.,  6.,  3.,  1.,  0.,  1.,  3.,  6.],
+           [28., 21., 15., 10.,  6.,  3.,  1.,  0.,  1.,  3.],
+           [36., 28., 21., 15., 10.,  6.,  3.,  1.,  0.,  1.],
+           [45., 36., 28., 21., 15., 10.,  6.,  3.,  1.,  0.]])
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -190,23 +195,25 @@ def dtw_cost_matrix(
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
-        return _dtw_cost_matrix(_x, _y, bounding_matrix)
+        return _dtw_cost_matrix(_x, _y, bounding_matrix, p)
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
-        return _dtw_cost_matrix(x, y, bounding_matrix)
+        return _dtw_cost_matrix(x, y, bounding_matrix, p)
     raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
-def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> float:
-    return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
+def _dtw_distance(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, p: float
+) -> float:
+    return _dtw_cost_matrix(x, y, bounding_matrix, p)[x.shape[1] - 1, y.shape[1] - 1]
 
 
 @njit(cache=True, fastmath=True)
 def _dtw_cost_matrix(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, p: float
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -216,9 +223,8 @@ def _dtw_cost_matrix(
     for i in range(x_size):
         for j in range(y_size):
             if bounding_matrix[i, j]:
-                cost_matrix[i + 1, j + 1] = _univariate_squared_distance(
-                    x[:, i], y[:, j]
-                ) + min(
+                dist = np.sum(np.abs(x[:, i] - y[:, j]) ** p) ** (1.0 / p)
+                cost_matrix[i + 1, j + 1] = dist + min(
                     cost_matrix[i, j + 1],
                     cost_matrix[i + 1, j],
                     cost_matrix[i, j],
@@ -231,6 +237,7 @@ def dtw_pairwise_distance(
     X: Union[np.ndarray, List[np.ndarray]],
     y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
     window: Optional[float] = None,
+    p: Optional[float] = 2.0,
     itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     r"""Compute the DTW pairwise distance between a set of time series.
@@ -264,6 +271,8 @@ def dtw_pairwise_distance(
     window : float or None, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+    p : float, default=2.0
+        The order of the Minkowski distance to use.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -287,41 +296,41 @@ def dtw_pairwise_distance(
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> dtw_pairwise_distance(X)
-    array([[  0.,  26., 108.],
-           [ 26.,   0.,  26.],
-           [108.,  26.,   0.]])
+    array([[ 0.,  9., 18.],
+           [ 9.,  0.,  9.],
+           [18.,  9.,  0.]])
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
-    >>> dtw_pairwise_distance(X, y)
-    array([[300., 507., 768.],
-           [147., 300., 507.],
-           [ 48., 147., 300.]])
+    >>> dtw_pairwise_distance(X, y, p=1)
+    array([[30., 39., 48.],
+           [21., 30., 39.],
+           [12., 21., 30.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([11, 12, 13])
-    >>> dtw_pairwise_distance(X, y_univariate)
-    array([[300.],
-           [147.],
-           [ 48.]])
+    >>> dtw_pairwise_distance(X, y_univariate, p=1.5)
+    array([[30.],
+           [21.],
+           [12.]])
 
     >>> # Distance between each TS in a collection of unequal-length time series
     >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
-    >>> dtw_pairwise_distance(X)
-    array([[  0.,  42., 292.],
-           [ 42.,   0.,  83.],
-           [292.,  83.,   0.]])
+    >>> dtw_pairwise_distance(X, p=1.2)
+    array([[ 0., 13., 38.],
+           [13.,  0., 21.],
+           [38., 21.,  0.]])
     """
     multivariate_conversion = _is_multivariate(X, y)
     _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
 
     if y is None:
         # To self
-        return _dtw_pairwise_distance(_X, window, itakura_max_slope, unequal_length)
+        return _dtw_pairwise_distance(_X, window, p, itakura_max_slope, unequal_length)
     _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
     return _dtw_from_multiple_to_multiple_distance(
-        _X, _y, window, itakura_max_slope, unequal_length
+        _X, _y, window, p, itakura_max_slope, unequal_length
     )
 
 
@@ -329,6 +338,7 @@ def dtw_pairwise_distance(
 def _dtw_pairwise_distance(
     X: NumbaList[np.ndarray],
     window: Optional[float],
+    p: Optional[float],
     itakura_max_slope: Optional[float],
     unequal_length: bool,
 ) -> np.ndarray:
@@ -347,7 +357,7 @@ def _dtw_pairwise_distance(
                 bounding_matrix = create_bounding_matrix(
                     x1.shape[1], x2.shape[1], window, itakura_max_slope
                 )
-            distances[i, j] = _dtw_distance(x1, x2, bounding_matrix)
+            distances[i, j] = _dtw_distance(x1, x2, bounding_matrix, p)
             distances[j, i] = distances[i, j]
 
     return distances
@@ -358,6 +368,7 @@ def _dtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
     window: Optional[float],
+    p: Optional[float],
     itakura_max_slope: Optional[float],
     unequal_length: bool,
 ) -> np.ndarray:
@@ -376,7 +387,7 @@ def _dtw_from_multiple_to_multiple_distance(
                 bounding_matrix = create_bounding_matrix(
                     x1.shape[1], y1.shape[1], window, itakura_max_slope
                 )
-            distances[i, j] = _dtw_distance(x1, y1, bounding_matrix)
+            distances[i, j] = _dtw_distance(x1, y1, bounding_matrix, p)
     return distances
 
 
@@ -385,6 +396,7 @@ def dtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     window: Optional[float] = None,
+    p: Optional[float] = 2.0,
     itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
     """Compute the DTW alignment path between two time series.
@@ -398,6 +410,8 @@ def dtw_alignment_path(
     window : float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
+    p : float, default=2.0
+        The order of the Minkowski distance to use.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -423,9 +437,9 @@ def dtw_alignment_path(
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
     >>> dtw_alignment_path(x, y)
-    ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
+    ([(0, 0), (1, 1), (2, 2), (3, 3)], 2.0)
     """
-    cost_matrix = dtw_cost_matrix(x, y, window, itakura_max_slope)
+    cost_matrix = dtw_cost_matrix(x, y, window, p, itakura_max_slope)
     return (
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
