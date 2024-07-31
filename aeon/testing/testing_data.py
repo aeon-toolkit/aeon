@@ -721,8 +721,10 @@ X_classification_missing_train[:, :, data_rng.choice(20, 2)] = np.nan
 X_classification_missing_test[:, :, data_rng.choice(20, 2)] = np.nan
 
 MISSING_VALUES_CLASSIFICATION = {
-    "train": (X_classification_missing_train, y_classification_missing_train),
-    "test": (X_classification_missing_test, y_classification_missing_test),
+    "numpy3D": {
+        "train": (X_classification_missing_train, y_classification_missing_train),
+        "test": (X_classification_missing_test, y_classification_missing_test),
+    }
 }
 
 X_classification_missing_train, y_classification_missing_train = make_example_3d_numpy(
@@ -743,8 +745,10 @@ X_classification_missing_train[:, :, data_rng.choice(20, 2)] = np.nan
 X_classification_missing_test[:, :, data_rng.choice(20, 2)] = np.nan
 
 MISSING_VALUES_REGRESSION = {
-    "train": (X_classification_missing_train, y_classification_missing_train),
-    "test": (X_classification_missing_test, y_classification_missing_test),
+    "numpy3D": {
+        "train": (X_classification_missing_train, y_classification_missing_train),
+        "test": (X_classification_missing_test, y_classification_missing_test),
+    }
 }
 
 X_series = make_example_1d_numpy(
