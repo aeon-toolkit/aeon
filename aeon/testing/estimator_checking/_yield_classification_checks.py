@@ -1,3 +1,5 @@
+"""Tests for all classifiers."""
+
 import inspect
 import os
 import tempfile
@@ -28,7 +30,8 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
     )
     yield partial(check_classifier_tags_consistent, estimator_class=estimator_class)
     yield partial(
-        check_does_not_override_final_methods, estimator_class=estimator_class
+        check_classifier_does_not_override_final_methods,
+        estimator_class=estimator_class,
     )
 
     # data type irrelevant
@@ -41,7 +44,7 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
 
     if issubclass(estimator_class, BaseDeepClassifier):
         yield partial(
-            check_saving_loading_deep_learning_cls,
+            check_classifier_saving_loading_deep_learning,
             estimator_class=estimator_class,
             datatype=datatypes[0][0],
         )
@@ -58,7 +61,7 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
 
         if isinstance(estimator, BaseDeepClassifier):
             yield partial(
-                check_random_state_deep_learning,
+                check_classifier_random_state_deep_learning,
                 estimator=estimator,
                 datatype=datatypes[i][0],
             )
@@ -144,7 +147,7 @@ def check_classifier_tags_consistent(estimator_class):
         inst.predict_proba(X)
 
 
-def check_does_not_override_final_methods(estimator_class):
+def check_classifier_does_not_override_final_methods(estimator_class):
     """Test does not override final methods."""
     final_methods = [
         "fit",
@@ -212,7 +215,7 @@ def check_contracted_classifier(estimator_class, datatype):
     )
 
 
-def check_saving_loading_deep_learning_cls(estimator_class, datatype):
+def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
     """Test Deep Classifier saving."""
     with tempfile.TemporaryDirectory() as tmp:
         if not (
@@ -318,7 +321,7 @@ def check_classifier_train_estimate(estimator, datatype):
     np.testing.assert_almost_equal(train_proba.sum(axis=1), 1, decimal=4)
 
 
-def check_random_state_deep_learning(estimator, datatype):
+def check_classifier_random_state_deep_learning(estimator, datatype):
     """Test Deep Classifier seeding."""
     random_state = 42
 
