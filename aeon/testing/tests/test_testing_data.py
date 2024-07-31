@@ -25,7 +25,7 @@ from aeon.utils.validation import (
 )
 
 
-def test_test_data_dict():
+def test_testing_data_dict():
     """Test the contents of the test data dictionary."""
     for key in FULL_TEST_DATA_DICT:
         # format
