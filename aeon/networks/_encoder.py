@@ -46,7 +46,7 @@ class EncoderNetwork(BaseDeepLearningNetwork):
     """
 
     _config = {
-        "python_dependencies": ["tensorflow", "tensorflow-addons"],
+        "python_dependencies": ["tensorflow"],
         "python_version": "<3.12",
         "structure": "encoder",
     }
