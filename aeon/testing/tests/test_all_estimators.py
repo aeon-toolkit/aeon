@@ -9,7 +9,7 @@ from aeon.testing.test_config import PR_TESTING
 from aeon.utils.sampling import random_partition
 
 ALL_ESTIMATORS = all_estimators(
-    estimator_types=["classifier", "regressor"],
+    estimator_types=["classifier", "regressor", "clusterer"],
     return_names=False,
 )
 
