@@ -157,23 +157,6 @@ These transformers extract larger collections of features.
     TSFreshFeatureExtractor
     Catch22
 
-Series-to-series transformers
------------------------------
-
-Series-to-series transformers transform individual time series into another time series.
-When applied to collections or hierarchical data, individual series are transformed
-through broadcasting.
-
-Lagging
-~~~~~~~
-
-.. currentmodule:: aeon.transformations.lag
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Lag
 
 Series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
