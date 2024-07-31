@@ -232,6 +232,9 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         Xt : transformed data
         """
         # transform
+        self.steps_ = self._check_estimators(
+            self._steps, attr_name="steps_", cls_type=SklearnBaseEstimator
+        )
         Xt = X
         for i in range(len(self.steps_)):
             Xt = self.steps_[i][1].fit_transform(X=Xt)

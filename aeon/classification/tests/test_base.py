@@ -262,6 +262,61 @@ def test_fit_predict():
     assert p.shape == (5,)
 
 
+def test_fit_predict_kwargs():
+    """Test fit_predict with cross validation kwargs."""
+    X = np.random.random(size=(5, 1, 10))
+    y = np.array([1, 0, 1, 0, 1])
+    cls = MockClassifier()
+    p = cls.fit_predict(X, y)
+    assert p.shape == (5,)
+
+    p = cls.fit_predict(X, y, cv_size=2)
+    assert p.shape == (5,)
+    with pytest.raises(ValueError, match="cv_size must be an integer greater than 0"):
+        cls.fit_predict(X, y, cv_size=0)
+    with pytest.raises(ValueError, match="cv_size must be an integer greater than 0"):
+        cls.fit_predict(X, y, cv_size="FOO")
+    y = np.array([0, 0, 0, 0, 1])
+    with pytest.raises(ValueError, match="All classes must have at least 2 values"):
+        cls.fit_predict(X, y, cv_size=20)
+    y = np.array([1, 0, 1, 0, 1])
+    p = cls.fit_predict_proba(X, y, cv_size=2)
+    assert p.shape == (5, 2)
+
+
+def test_score():
+    """Test base classifier scorer."""
+    X = np.random.random(size=(5, 1, 10))
+    y = np.array([1, 0, 1, 0, 1])
+    cls = MockClassifier()
+    cls.fit(X, y)
+    score = cls.score(X, y)
+    assert isinstance(score, float)
+    with pytest.raises(
+        ValueError,
+        match="can't handle a mix of binary and multilabel-indicator targets",
+    ):
+        score = cls.score(X, y, use_proba=True)
+    with pytest.raises(
+        ValueError,
+        match="can't handle a mix of binary and multilabel-indicator targets",
+    ):
+        score = cls.score(X, y, use_proba=True)
+    score = cls.score(X, y, metric="neg_log_loss")
+    assert isinstance(score, float)
+    score = cls.score(X, y, use_proba=True, metric="neg_log_loss")
+    with pytest.raises(
+        ValueError, match="The metric parameter should be either a string or a callable"
+    ):
+        score = cls.score(X, y, metric=42)
+
+    def dummy_metric(y_true, y_pred):
+        return 42.0
+
+    score = cls.score(X, y, metric=dummy_metric)
+    assert score == 42.0
+
+
 def test_fit_predict_single_class():
     """Test return of fit_predict/fit_predict_proba in case only single class."""
     X = np.ones(shape=(10, 20))

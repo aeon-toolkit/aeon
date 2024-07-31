@@ -34,7 +34,7 @@ from aeon.utils import ALL_TIME_SERIES_TYPES
 
 def _coerce_to_aeon(other):
     """Check and format inputs to dunders for compose."""
-    from aeon.transformations.adapt import TabularToSeriesAdaptor
+    from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
 
     # if sklearn transformer, adapt to aeon transformer first
     if is_sklearn_transformer(other):

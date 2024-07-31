@@ -1,4 +1,6 @@
-"""Implement Auto-Encoder based on Bidirectional GRUs."""
+"""Auto-Encoder using Bidirectional GRU Network (AEBiGRUNetwork)."""
+
+__maintainer__ = ["aadya940", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepLearningNetwork
 
@@ -25,7 +27,7 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
     _config = {
         "python_dependencies": ["tensorflow"],
         "python_version": "<3.12",
-        "structure": "encoder",
+        "structure": "auto-encoder",
     }
 
     def __init__(

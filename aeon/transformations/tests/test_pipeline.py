@@ -7,7 +7,7 @@ from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeClassifier
 
 from aeon.testing.data_generation import make_example_nested_dataframe
-from aeon.transformations.adapt import TabularToSeriesAdaptor
+from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection.segment import RandomIntervalSegmenter
 
 # load data
