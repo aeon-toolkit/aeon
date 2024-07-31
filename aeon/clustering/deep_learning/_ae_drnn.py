@@ -12,7 +12,10 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEDRNNNetwork
-from aeon.networks._ae_drnn import _TensorDilation
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+if _check_soft_dependencies(["tensorflow"], severity="none"):
+    from aeon.networks._ae_drnn import _TensorDilation
 
 
 class AEDRNNClusterer(BaseDeepClusterer):
