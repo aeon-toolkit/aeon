@@ -69,7 +69,8 @@ EXCLUDED_TESTS = {
     # has a keras fail, unknown reason, see #1387
     "LearningShapeletClassifier": ["check_fit_deterministic"],
     # does not fit structure for test, needs investigation
-    "TapNetClassifier": ["check_random_state_deep_learning"],
+    "TapNetClassifier": ["check_classifier_random_state_deep_learning"],
+    "TapNetRegressor": ["check_regressor_random_state_deep_learning"],
     # needs investigation
     "SASTClassifier": ["check_fit_deterministic"],
     "RSASTClassifier": ["check_fit_deterministic"],
