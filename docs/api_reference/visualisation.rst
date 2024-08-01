@@ -31,3 +31,4 @@ Visualisation
     plot_time_series_with_change_points
     plot_time_series_with_profiles
     plot_cluster_algorithm
+    plot_network

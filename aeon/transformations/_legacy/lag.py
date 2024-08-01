@@ -6,7 +6,6 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 from pandas.api.types import is_integer_dtype
 
 from aeon.transformations.base import BaseTransformer
@@ -24,12 +23,6 @@ def _coerce_to_int(obj):
     return obj
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="Lag will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class Lag(BaseTransformer):
     """Lagging transformer. Lags time series by one or multiple lags.
 
@@ -81,37 +74,6 @@ class Lag(BaseTransformer):
         has an effect only if `lags` contains only a single element
         if True, ensures that column names of `transform` output are same as in input,
         i.e., not `lag_x__varname` but `varname`. Overrides `flatten_transform_index`.
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.lag import Lag
-    >>> X = load_airline()
-
-    Single lag will yield a time series with the same variables:
-    >>> t = Lag(2)
-    >>> Xt = t.fit_transform(X)
-
-    Multiple lags can be provided, this will result in multiple columns:
-    >>> t = Lag([2, 4, -1])
-    >>> Xt = t.fit_transform(X)
-
-    The default setting of index_out will extend indices either side.
-    To ensure that the index remains the same after transform, use index_out="original"
-    >>> t = Lag([2, 4, -1], index_out="original")
-    >>> Xt = t.fit_transform(X)
-
-    The lag transformer may (and usually will) create NAs.
-    (except when index_out="shift" and there is only a single lag, or in trivial cases)
-    This may need to be handled, e.g., if a subsequent pipeline step does not accept NA.
-    To deal with the NAs, pipeline with the Imputer:
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.impute import Imputer
-    >>> from aeon.transformations.lag import Lag
-    >>> X = load_airline()
-    >>>
-    >>> t = Lag([2, 4, -1]) * Imputer("nearest")
-    >>> Xt = t.fit_transform(X)
     """
 
     _tags = {
@@ -329,12 +291,6 @@ class Lag(BaseTransformer):
         return [params1, params2, params3]
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="ReducerTransform will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class ReducerTransform(BaseTransformer):
     """Transformer for forecasting reduction. Prepares tabular X/y via lag and trafos.
 
@@ -366,37 +322,6 @@ class ReducerTransform(BaseTransformer):
     impute_method : str or None, optional, method string passed to Imputer
         default="bfill", admissible strings are of Imputer.method parameter, see there
         if None, no imputation is done when applying Lag transformer to obtain inner X
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.lag import Lag
-    >>> X = load_airline()
-
-    Single lag will yield a time series with the same variables:
-    >>> t = Lag(2)
-    >>> Xt = t.fit_transform(X)
-
-    Multiple lags can be provided, this will result in multiple columns:
-    >>> t = Lag([2, 4, -1])
-    >>> Xt = t.fit_transform(X)
-
-    The default setting of index_out will extend indices either side.
-    To ensure that the index remains the same after transform, use index_out="original"
-    >>> t = Lag([2, 4, -1], index_out="original")
-    >>> Xt = t.fit_transform(X)
-
-    The lag transformer may (and usually will) create NAs.
-    (except when index_out="shift" and there is only a single lag, or in trivial cases)
-    This may need to be handled, e.g., if a subsequent pipeline step does not accept NA.
-    To deal with the NAs, pipeline with the Imputer:
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.impute import Imputer
-    >>> from aeon.transformations.lag import Lag
-    >>> X = load_airline()
-    >>>
-    >>> t = Lag([2, 4, -1]) * Imputer("nearest")
-    >>> Xt = t.fit_transform(X)
     """
 
     _tags = {
