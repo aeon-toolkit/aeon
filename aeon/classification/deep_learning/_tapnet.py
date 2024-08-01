@@ -1,6 +1,6 @@
-"""Time Convolutional Neural Network (CNN) for classification."""
+"""Time series Attentional Prototype Network (TapNet) Classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = [
     "TapNetClassifier",
 ]

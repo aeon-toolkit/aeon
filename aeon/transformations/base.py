@@ -154,7 +154,7 @@ class BaseTransformer(BaseEstimator):
         TransformerPipeline object, concatenation of `self` (first) with `other` (last).
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
-        from aeon.transformations.compose import TransformerPipeline
+        from aeon.transformations._legacy.compose import TransformerPipeline
 
         # we wrap self in a pipeline, and concatenate with the other
         #   the TransformerPipeline does the rest, e.g., case distinctions on other
@@ -184,7 +184,7 @@ class BaseTransformer(BaseEstimator):
         TransformerPipeline object, concatenation of `other` (first) with `self` (last).
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
-        from aeon.transformations.compose import TransformerPipeline
+        from aeon.transformations._legacy.compose import TransformerPipeline
 
         # we wrap self in a pipeline, and concatenate with the other
         #   the TransformerPipeline does the rest, e.g., case distinctions on other
@@ -207,7 +207,7 @@ class BaseTransformer(BaseEstimator):
         -------
         MultiplexTransformer object
         """
-        from aeon.transformations.compose import MultiplexTransformer
+        from aeon.transformations._legacy.compose import MultiplexTransformer
 
         if isinstance(other, BaseTransformer):
             multiplex_self = MultiplexTransformer([self])
@@ -230,7 +230,7 @@ class BaseTransformer(BaseEstimator):
         FeatureUnion object, concatenation of `self` (first) with `other` (last).
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
-        from aeon.transformations.compose import FeatureUnion
+        from aeon.transformations._legacy.compose import FeatureUnion
 
         # we wrap self in a pipeline, and concatenate with the other
         #   the FeatureUnion does the rest, e.g., case distinctions on other
@@ -255,7 +255,7 @@ class BaseTransformer(BaseEstimator):
         FeatureUnion object, concatenation of `other` (first) with `self` (last).
             not nested, contains only non-FeatureUnion `aeon` transformers
         """
-        from aeon.transformations.compose import FeatureUnion
+        from aeon.transformations._legacy.compose import FeatureUnion
 
         # we wrap self in a pipeline, and concatenate with the other
         #   the TransformerPipeline does the rest, e.g., case distinctions on other
@@ -272,7 +272,7 @@ class BaseTransformer(BaseEstimator):
         -------
         `InvertTransform` object, containing `self`.
         """
-        from aeon.transformations.compose import InvertTransform
+        from aeon.transformations._legacy.compose import InvertTransform
 
         return InvertTransform(self)
 
@@ -286,7 +286,7 @@ class BaseTransformer(BaseEstimator):
         `OptionalPassthrough` object, containing `self`, with `passthrough=False`.
             The `passthrough` parameter can be set via `set_params`.
         """
-        from aeon.transformations.compose import OptionalPassthrough
+        from aeon.transformations._legacy.compose import OptionalPassthrough
 
         return OptionalPassthrough(self, passthrough=False)
 
