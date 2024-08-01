@@ -78,6 +78,7 @@ def test_dft_mft(use_fallback_dft, norm, lower_bounding):
         window_size=window_size,
         norm=norm,
         use_fallback_dft=use_fallback_dft,
+        lower_bounding=lower_bounding,
     ).fit(X, y)
 
     mft = p._mft(X_tab[0])
