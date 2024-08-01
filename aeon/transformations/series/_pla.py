@@ -56,52 +56,36 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     """
 
     _tags = {
-        "fit_is_empty": False,
+        "fit_is_empty": True,
     }
 
     def __init__(self, max_error=20, transformer=4, buffer_size=None):
+        if not isinstance(max_error, (int, float)):
+            raise ValueError("Invalid max_error: it has to be a number.")
+        if not isinstance(transformer, (int, str)):
+            raise ValueError("Invalid transformer: it has to be a number or a string.")
+        if not (buffer_size is None or isinstance(buffer_size, (int, float))):
+            raise ValueError("Invalid buffer_size: use a number only or keep empty.")
+        if isinstance(transformer, (str)):
+            if transformer.lower() == "sliding window":
+                transformer = 1
+            elif transformer.lower() == "top down":
+                transformer = 2
+            elif transformer.lower() == "bottom up":
+                transformer = 3
+            elif transformer.lower() == "swab":
+                transformer = 4
+            else:
+                raise ValueError(
+                    "Invalid transformer: wrong transformer: ", transformer
+                )
+        elif not (1 <= transformer <= 4):
+            raise ValueError("Invalid transformer: choose between 1-4")
+
         self.transformer = transformer
         self.max_error = max_error
         self.buffer_size = buffer_size
-        self.segment_dense = None
         super().__init__(axis=0)
-
-    def _fit(self, X, y=None):
-        """Fit transformer to X and y.
-
-        private _fit containing the core logic, called from fit
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-        y : Ignored
-
-        Returns
-        -------
-        self: reference to self
-        """
-        if not isinstance(self.max_error, (int, float)):
-            raise ValueError("Invalid max_error: it has to be a number.")
-        if not isinstance(self.transformer, (int, str)):
-            raise ValueError("Invalid transformer: it has to be a number or a string.")
-        if not (self.buffer_size is None or isinstance(self.buffer_size, (int, float))):
-            raise ValueError("Invalid buffer_size: use a number only or keep empty.")
-        if isinstance(self.transformer, (str)):
-            if self.transformer.lower() == "sliding window":
-                self.transformer = 1
-            elif self.transformer.lower() == "top down":
-                self.transformer = 2
-            elif self.transformer.lower() == "bottom up":
-                self.transformer = 3
-            elif self.transformer.lower() == "swab":
-                self.transformer = 4
-            else:
-                raise ValueError(
-                    "Invalid transformer: wrong transformer: ", self.transformer
-                )
-        elif not (1 <= self.transformer <= 4):
-            raise ValueError("Invalid transformer: choose between 1-4")
-        return self
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -130,15 +114,6 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
             results = self._SWAB(X)
         else:
             raise RuntimeError("No transformer was called.")
-
-        if len(results) > 1:
-            segment_dense = np.zeros([len(results) - 1])
-            segment_dense[0] = len(results[0])
-            for i in range(1, len(results) - 1):
-                segment_dense[i] = segment_dense[i - 1] + len(results[i])
-            self.segment_dense = segment_dense
-        else:
-            self.segment_dense = None
 
         return np.concatenate(results)
 
