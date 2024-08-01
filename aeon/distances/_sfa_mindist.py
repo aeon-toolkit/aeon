@@ -47,7 +47,7 @@ def sfa_mindist(x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray) -> float:
     ...    alphabet_size=8,
     ...    window_size=x.shape[-1],
     ...    norm=True,
-    ...    lower_bounding_distances=True   # This must be set!
+    ...    lower_bounding=True   # This must be set!
     ... )
     >>> transform.fit(x)
     SFAFast(...)

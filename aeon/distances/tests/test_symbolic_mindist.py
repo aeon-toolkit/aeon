@@ -70,7 +70,7 @@ def test_sfa_mindist():
         binning_method=histogram_type,
         norm=True,
         variance=True,
-        lower_bounding_distances=True,  # This must be set!
+        lower_bounding=True,  # This must be set!
     )
 
     sfa_old = SFA(
@@ -79,7 +79,7 @@ def test_sfa_mindist():
         window_size=X_train.shape[-1],
         binning_method=histogram_type,
         norm=True,
-        lower_bounding_distances=True,  # This must be set!
+        lower_bounding=True,  # This must be set!
     )
     transforms = [sfa_old, sfa_fast]
 
