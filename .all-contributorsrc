@@ -2473,6 +2473,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Datadote",
+      "name": "Daniel L.",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30182852?v=4",
+      "profile": "https://www.linkedin.com/in/dnylam/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"

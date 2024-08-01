@@ -174,14 +174,6 @@ Depending on the transformer, the transformation parameters can be fitted.
     BoxCoxTransformer
     LogTransformer
 
-.. currentmodule:: aeon.transformations.exponent
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ExponentTransformer
-
 Detrending
 ~~~~~~~~~~
 
@@ -343,17 +335,6 @@ Series-to-Panel transformers
 
 These transformers create a panel from a single series.
 
-Bootstrap transformations
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.bootstrap
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    STLBootstrapTransformer
-    MovingBlockBootstrapTransformer
 
 Outlier detection, changepoint detection
 ----------------------------------------

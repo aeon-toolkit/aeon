@@ -1,1 +1,0 @@
-"""Tests bor bootstrap Transformers."""
