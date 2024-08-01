@@ -10,6 +10,7 @@ from numba.typed import List as NumbaList
 
 from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
+from aeon.distances._minkowski import _univariate_minkowski_distance
 from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
@@ -112,7 +113,7 @@ def dtw_distance(
     >>> x = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [0, 1, 0, 2, 0]])
     >>> y = np.array([[11, 12, 13, 14],[7, 8, 9, 20],[1, 3, 4, 5]] )
     >>> dtw_distance(x, y, p = 1) # 2D series with 3 channels, unequal length
-    52.158582470567424
+    68.0
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -223,7 +224,8 @@ def _dtw_cost_matrix(
     for i in range(x_size):
         for j in range(y_size):
             if bounding_matrix[i, j]:
-                dist = np.sum(np.abs(x[:, i] - y[:, j]) ** p) ** (1.0 / p)
+                _w = np.ones_like(x[:, i])
+                dist = _univariate_minkowski_distance(x[:, i], y[:, j], p, _w)
                 cost_matrix[i + 1, j + 1] = dist + min(
                     cost_matrix[i, j + 1],
                     cost_matrix[i + 1, j],
