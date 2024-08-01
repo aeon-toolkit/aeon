@@ -1467,7 +1467,7 @@ class ColumnwiseTransformer(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations.detrend import Detrender
+        from aeon.transformations._legacy._detrend import Detrender
 
         return {"transformer": Detrender()}
 

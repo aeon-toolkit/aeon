@@ -240,8 +240,8 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
         from aeon.forecasting.compose._reduce import DirectReductionForecaster
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.testing.mock_estimators import MockTransformer
+        from aeon.transformations._legacy._detrend import Detrender
         from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
-        from aeon.transformations.detrend import Detrender
 
         # StandardScaler does not skip fit, NaiveForecaster is not probabilistic
         STEPS1 = [
@@ -1486,7 +1486,7 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     >>> from aeon.forecasting.compose import ForecastingPipeline, Permute
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
-    >>> from aeon.transformations.exponent import ExponentTransformer
+    >>> from aeon.transformations._legacy.exponent import ExponentTransformer
 
     Simple example: permute sequence of estimator in forecasting pipeline
     >>> y = load_airline()
