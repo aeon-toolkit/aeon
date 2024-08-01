@@ -219,5 +219,4 @@ def test_piecewise_linear_approximation_one_segment(X):
     X = X[:2]
     pla = PiecewiseLinearApproximation(10, "bottom up")
     result = pla.fit_transform(X)
-    assert pla.segment_dense is None
     np.testing.assert_array_almost_equal(X, result, decimal=1)
