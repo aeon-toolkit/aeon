@@ -15,6 +15,7 @@ Deep learning networks
 
     BaseDeepLearningNetwork
     CNNNetwork
+    TimeCNNNetwork
     EncoderNetwork
     FCNNetwork
     InceptionNetwork
@@ -22,3 +23,6 @@ Deep learning networks
     ResNetNetwork
     TapNetNetwork
     AEFCNNetwork
+    AEResNetNetwork
+    LITENetwork
+    AEBiGRUNetwork

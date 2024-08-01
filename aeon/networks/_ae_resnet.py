@@ -1,4 +1,7 @@
-"""Residual Network (ResNet) (minus the final output layer)."""
+"""Auto-Encoder using Residual Network (AEResNetNetwork)."""
+
+__maintainer__ = ["hadifawaz1999"]
+
 
 import numpy as np
 
