@@ -30,7 +30,7 @@ from aeon.utils.validation import check_n_jobs
 
 
 class RandomDilatedShapeletTransform(BaseCollectionTransformer):
-    """Random Dilated Shapelet Transform (RDST) as described in [1]_[2]_.
+    """Random Dilated Shapelet Transform (RDST) as described in [1]_,[2]_.
 
     Overview: The input is n series with d channels of length m. First step is to
     extract candidate shapelets from the inputs. This is done randomly, and for

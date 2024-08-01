@@ -25,7 +25,7 @@ from aeon.utils.validation import check_n_jobs
 class RandomShapeletTransform(BaseCollectionTransformer):
     """Random Shapelet Transform.
 
-    Implementation of the binary shapelet transform along the lines of [1]_[2]_, with
+    Implementation of the binary shapelet transform along the lines of [1]_,[2]_, with
     randomly extracted shapelets. A shapelet is a subsequence from the train set. The
     transform finds a set of shapelets that are good at separating the classes based on
     the distances between shapelets and whole series. The distance between a shapelet
