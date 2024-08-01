@@ -51,16 +51,18 @@ Deep learning
     :toctree: auto_generated/
     :template: class.rst
 
+    BaseDeepRegressor
     CNNRegressor
+    TimeCNNRegressor
     EncoderRegressor
     FCNRegressor
     InceptionTimeRegressor
     IndividualLITERegressor
     IndividualInceptionRegressor
     LITETimeRegressor
-    LITETimeRegressor
     ResNetRegressor
     TapNetRegressor
+    MLPRegressor
 
 Distance-based
 --------------
