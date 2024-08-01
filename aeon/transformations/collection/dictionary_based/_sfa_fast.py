@@ -147,7 +147,7 @@ class SFAFast(BaseCollectionTransformer):
         bigrams=False,
         skip_grams=False,
         remove_repeat_words=False,
-        lower_bounding=False,
+        lower_bounding=True,
         save_words=False,
         dilation=0,
         first_difference=False,

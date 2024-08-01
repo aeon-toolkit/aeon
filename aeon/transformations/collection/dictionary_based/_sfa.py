@@ -121,7 +121,7 @@ class SFA(BaseCollectionTransformer):
         skip_grams=False,
         levels=1,
         remove_repeat_words=False,
-        lower_bounding=False,
+        lower_bounding=True,
         save_words=False,
         keep_binning_dft=False,
         use_fallback_dft=False,

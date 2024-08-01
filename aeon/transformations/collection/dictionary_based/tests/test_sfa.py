@@ -35,7 +35,8 @@ def test_transformer(binning_method):
 
 @pytest.mark.parametrize("use_fallback_dft", [True, False])
 @pytest.mark.parametrize("norm", [True, False])
-def test_dft_mft(use_fallback_dft, norm):
+@pytest.mark.parametrize("lower_bounding", [True, False])
+def test_dft_mft(use_fallback_dft, norm, lower_bounding):
     """Test the DFT and MFT of the SFA transformer."""
     # load training data
     X = np.random.rand(10, 1, 150)
@@ -54,10 +55,13 @@ def test_dft_mft(use_fallback_dft, norm):
         window_size=window_size,
         norm=norm,
         use_fallback_dft=use_fallback_dft,
+        lower_bounding=lower_bounding,
     ).fit(X, y)
 
     if use_fallback_dft:
-        dft = p._discrete_fourier_transform(X_tab[0], word_length, norm, 1, True)
+        dft = p._discrete_fourier_transform(
+            X_tab[0], word_length, norm, p.inverse_sqrt_win_size, lower_bounding
+        )
     else:
         dft = p._fast_fourier_transform(X_tab[0])
 
@@ -80,7 +84,11 @@ def test_dft_mft(use_fallback_dft, norm):
     for i in range(len(X_tab[0]) - window_size + 1):
         if use_fallback_dft:
             dft = p._discrete_fourier_transform(
-                X_tab[0, i : window_size + i], word_length, norm, 1, True
+                X_tab[0, i : window_size + i],
+                word_length,
+                norm,
+                p.inverse_sqrt_win_size,
+                lower_bounding,
             )
         else:
             dft = p._fast_fourier_transform(X_tab[0, i : window_size + i])
@@ -89,9 +97,6 @@ def test_dft_mft(use_fallback_dft, norm):
 
     assert len(mft) == len(X_tab[0]) - window_size + 1
     assert len(mft[0]) == word_length
-
-
-test_dft_mft(True, True)
 
 
 @pytest.mark.parametrize("binning_method", ["equi-depth", "information-gain"])
@@ -131,7 +136,6 @@ def test_sfa_anova(binning_method):
     _ = p2.transform(X, y)
 
 
-#
 @pytest.mark.parametrize("word_length", [6, 7])
 @pytest.mark.parametrize("alphabet_size", [4, 5])
 @pytest.mark.parametrize("window_size", [5, 6])
