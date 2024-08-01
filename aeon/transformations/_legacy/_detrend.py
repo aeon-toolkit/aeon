@@ -4,7 +4,6 @@ __all__ = ["Detrender"]
 __maintainer__ = []
 
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 from aeon.forecasting.base._fh import ForecastingHorizon
 from aeon.forecasting.trend import PolynomialTrendForecaster
@@ -12,12 +11,6 @@ from aeon.transformations.base import BaseTransformer
 from aeon.utils.index_functions import update_data
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="STLTransformer will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class Detrender(BaseTransformer):
     """Remove a :term:`trend <Trend>` from a series.
 
@@ -61,15 +54,6 @@ class Detrender(BaseTransformer):
     --------
     Deseasonalizer
     STLTransformer
-
-    Examples
-    --------
-    >>> from aeon.transformations.detrend import Detrender
-    >>> from aeon.forecasting.trend import PolynomialTrendForecaster
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = Detrender(forecaster=PolynomialTrendForecaster(degree=1))
-    >>> y_hat = transformer.fit_transform(y)
     """
 
     _tags = {
