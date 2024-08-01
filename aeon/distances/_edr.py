@@ -8,10 +8,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._alignment_paths import (
-    _add_inf_to_out_of_bounds_cost_matrix,
-    compute_min_return_path,
-)
+from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._euclidean import _univariate_euclidean_distance
 from aeon.distances._utils import _convert_to_list, _is_multivariate
@@ -206,7 +203,15 @@ def _edr_cost_matrix(
     if epsilon is None:
         epsilon = float(max(np.std(x), np.std(y))) / 4
 
-    cost_matrix = np.zeros((x_size + 1, y_size + 1))
+    cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
+
+    for i in range(1, x_size + 1):
+        if bounding_matrix[i - 1, 0]:
+            cost_matrix[i, 0] = 0
+    for j in range(y_size):
+        if bounding_matrix[0, j - 1]:
+            cost_matrix[0, j] = 0
+    cost_matrix[0, 0] = 0
 
     for i in range(1, x_size + 1):
         for j in range(1, y_size + 1):
@@ -419,12 +424,8 @@ def edr_alignment_path(
     >>> edr_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 0.25)
     """
-    x_size = x.shape[-1]
-    y_size = y.shape[-1]
-    bounding_matrix = create_bounding_matrix(x_size, y_size, window, itakura_max_slope)
     cost_matrix = edr_cost_matrix(x, y, window, epsilon, itakura_max_slope)
-    # Need to do this because the cost matrix contains 0s and not inf in out of bounds
-    cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
-    return compute_min_return_path(cost_matrix), float(
-        cost_matrix[x_size - 1, y_size - 1] / max(x_size, y_size)
+    return (
+        compute_min_return_path(cost_matrix),
+        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1] / max(x.shape[-1], y.shape[-1]),
     )
