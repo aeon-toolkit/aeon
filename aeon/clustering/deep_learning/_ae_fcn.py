@@ -1,6 +1,6 @@
 """Deep Learning Auto-Encoder using FCN Network."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["AEFCNClusterer"]
 
 import gc

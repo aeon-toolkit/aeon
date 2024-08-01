@@ -74,21 +74,6 @@ features, usually a vector of floats, but can also be categorical.
 When applied to collections or hierarchical data, the transformation result is a table
 with as many rows as time series in the collection and a column for each feature.
 
-Summarization
-~~~~~~~~~~~~~
-
-These transformers extract simple summary features.
-
-.. currentmodule:: aeon.transformations.summarize
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    SummaryTransformer
-    WindowSummarizer
-    FittedParamExtractor
-
 
 Shapelets, wavelets and convolution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -172,23 +157,6 @@ These transformers extract larger collections of features.
     TSFreshFeatureExtractor
     Catch22
 
-Series-to-series transformers
------------------------------
-
-Series-to-series transformers transform individual time series into another time series.
-When applied to collections or hierarchical data, individual series are transformed
-through broadcasting.
-
-Lagging
-~~~~~~~
-
-.. currentmodule:: aeon.transformations.lag
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Lag
 
 Series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -205,14 +173,6 @@ Depending on the transformer, the transformation parameters can be fitted.
 
     BoxCoxTransformer
     LogTransformer
-
-.. currentmodule:: aeon.transformations.scaledlogit
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ScaledLogitTransformer
 
 .. currentmodule:: aeon.transformations.exponent
 
@@ -386,14 +346,6 @@ These transformers create a panel from a single series.
 
 Outlier detection, changepoint detection
 ----------------------------------------
-
-.. currentmodule:: aeon.transformations.outlier_detection
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    HampelFilter
 
 .. currentmodule:: aeon.transformations.series._clasp
 
