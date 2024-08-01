@@ -64,6 +64,7 @@ TEST_DATA = np.array(
 
 toy_data = np.array([1, 1, 1, 2, 2, 2, 3, 3, 3, 3])
 
+
 def test_min_length_predict():
     with pytest.raises(
         ValueError,
@@ -85,3 +86,9 @@ def test_contains_constant_regions_in_predict():
         mad.predict(toy_data)
     mad = MADRID(3, 5)
     mad.predict(TEST_DATA)
+
+
+def test_madrid():
+    """Test MADRID output."""
+    mad = MADRID(5, 15)
+    pred = mad.predict(TEST_DATA)
