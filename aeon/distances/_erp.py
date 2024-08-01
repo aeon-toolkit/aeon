@@ -8,10 +8,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._alignment_paths import (
-    _add_inf_to_out_of_bounds_cost_matrix,
-    compute_min_return_path,
-)
+from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._euclidean import _univariate_euclidean_distance
 from aeon.distances._utils import _convert_to_list, _is_multivariate
@@ -209,13 +206,13 @@ def _erp_cost_matrix(
     x_size = x.shape[1]
     y_size = y.shape[1]
 
-    cost_matrix = np.zeros((x_size + 1, y_size + 1))
-
+    cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
     gx_distance, x_sum = _precompute_g(x, g, g_arr)
     gy_distance, y_sum = _precompute_g(y, g, g_arr)
 
     cost_matrix[1:, 0] = x_sum
     cost_matrix[0, 1:] = y_sum
+    cost_matrix[0, 0] = 0.0
 
     for i in range(1, x_size + 1):
         for j in range(1, y_size + 1):
@@ -458,12 +455,7 @@ def erp_alignment_path(
     >>> erp_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 2.0)
     """
-    bounding_matrix = create_bounding_matrix(
-        x.shape[-1], y.shape[-1], window, itakura_max_slope
-    )
-    cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(
-        erp_cost_matrix(x, y, window, g, g_arr), bounding_matrix
-    )
+    cost_matrix = erp_cost_matrix(x, y, window, g, g_arr)
     return (
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
