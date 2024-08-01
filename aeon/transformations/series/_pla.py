@@ -3,7 +3,7 @@
 A transformer which uses Piecewise Linear Approximation algorithms.
 """
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["PiecewiseLinearApproximation"]
 
 import numpy as np
