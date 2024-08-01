@@ -749,14 +749,16 @@ class Catch22(BaseCollectionTransformer):
         # swap to alphabet:
         yCG = np.zeros(len(ds), dtype=np.int32)
         _sb_coarsegrain(ds, 3, yCG)
-
         T = np.zeros((3, 3), dtype=np.float64)
         for i in range(len(ds) - 1):
             T[yCG[i] - 1][yCG[i + 1] - 1] += 1
+
         for i in range(3):
             for j in range(3):
-                T[i][j] /= len(ds) - 1
-
+                if (len(ds) - 1) == 0:
+                    T[i][j] = np.nan
+                else:
+                    T[i][j] /= len(ds) - 1
         column1 = np.zeros(3, dtype=np.float64)
         column2 = np.zeros(3, dtype=np.float64)
         column3 = np.zeros(3, dtype=np.float64)
@@ -857,11 +859,6 @@ def _histogram_mode(X, num_bins, smin, smax):
 
     for i in range(num_bins + 1):
         edges[i] = i * bin_width + smin
-
-    bin_width = (smax - smin) / num_bins
-
-    if bin_width == 0:
-        return np.nan
 
     max_count = 0
     num_maxs = 1
