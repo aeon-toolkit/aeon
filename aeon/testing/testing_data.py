@@ -721,8 +721,10 @@ X_classification_missing_train[:, :, data_rng.choice(20, 2)] = np.nan
 X_classification_missing_test[:, :, data_rng.choice(20, 2)] = np.nan
 
 MISSING_VALUES_CLASSIFICATION = {
-    "train": (X_classification_missing_train, y_classification_missing_train),
-    "test": (X_classification_missing_test, y_classification_missing_test),
+    "numpy3D": {
+        "train": (X_classification_missing_train, y_classification_missing_train),
+        "test": (X_classification_missing_test, y_classification_missing_test),
+    }
 }
 
 X_classification_missing_train, y_classification_missing_train = make_example_3d_numpy(
@@ -743,8 +745,10 @@ X_classification_missing_train[:, :, data_rng.choice(20, 2)] = np.nan
 X_classification_missing_test[:, :, data_rng.choice(20, 2)] = np.nan
 
 MISSING_VALUES_REGRESSION = {
-    "train": (X_classification_missing_train, y_classification_missing_train),
-    "test": (X_classification_missing_test, y_classification_missing_test),
+    "numpy3D": {
+        "train": (X_classification_missing_train, y_classification_missing_train),
+        "test": (X_classification_missing_test, y_classification_missing_test),
+    }
 }
 
 X_series = make_example_1d_numpy(
@@ -827,9 +831,14 @@ FULL_TEST_DATA_DICT.update(
     }
 )
 FULL_TEST_DATA_DICT.update(
-    {"MissingValues-Classification": MISSING_VALUES_CLASSIFICATION}
+    {
+        f"MissingValues-Classification-{k}": v
+        for k, v in MISSING_VALUES_CLASSIFICATION.items()
+    }
 )
-FULL_TEST_DATA_DICT.update({"MissingValues-Regression": MISSING_VALUES_REGRESSION})
+FULL_TEST_DATA_DICT.update(
+    {f"MissingValues-Regression-{k}": v for k, v in MISSING_VALUES_REGRESSION.items()}
+)
 # Series
 FULL_TEST_DATA_DICT.update({"UnivariateSeries-NoLabel": UNIVARIATE_SERIES_NOLABEL})
 FULL_TEST_DATA_DICT.update({"MultivariateSeries-NoLabel": MULTIVARIATE_SERIES_NOLABEL})
@@ -881,6 +890,9 @@ def _get_datatypes_for_estimator(estimator):
                     s = f"UnequalLengthMultivariate-{label_type}-{inner_type}"
                     if s in FULL_TEST_DATA_DICT:
                         datatypes.append(s)
+
+        if missing_values:
+            datatypes.append(f"MissingValues-{label_type}-numpy3D")
     elif isinstance(estimator, BaseSeriesEstimator):
         if univariate:
             datatypes.append("UnivariateSeries-NoLabel")
@@ -890,9 +902,6 @@ def _get_datatypes_for_estimator(estimator):
             datatypes.append("MissingValues-NoLabel")
     else:
         raise ValueError(f"Unknown estimator type: {type(estimator)}")
-
-    if missing_values:
-        datatypes.append(f"MissingValues-{label_type}")
 
     if len(datatypes) == 0:
         raise ValueError(f"No valid data types found for estimator {estimator}")

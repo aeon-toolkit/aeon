@@ -9,12 +9,15 @@ from aeon.testing.testing_data import (
     EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
     EQUAL_LENGTH_UNIVARIATE_REGRESSION,
     FULL_TEST_DATA_DICT,
+    MISSING_VALUES_CLASSIFICATION,
+    MISSING_VALUES_REGRESSION,
     UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
     UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION,
     UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
     UNEQUAL_LENGTH_UNIVARIATE_REGRESSION,
 )
 from aeon.utils.validation import (
+    has_missing,
     is_collection,
     is_equal_length,
     is_single_series,
@@ -22,7 +25,7 @@ from aeon.utils.validation import (
 )
 
 
-def test_test_data_dict():
+def test_testing_data_dict():
     """Test the contents of the test data dictionary."""
     for key in FULL_TEST_DATA_DICT:
         # format
@@ -53,6 +56,7 @@ def test_equal_length_univariate_collection():
         )
         assert is_univariate(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["train"][0])
         assert is_equal_length(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["train"][0])
+        assert not has_missing(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["train"][0])
         check_classification_targets(
             EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["train"][1]
         )
@@ -62,6 +66,7 @@ def test_equal_length_univariate_collection():
         )
         assert is_univariate(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["test"][0])
         assert is_equal_length(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["test"][0])
+        assert not has_missing(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["test"][0])
         check_classification_targets(
             EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["test"][1]
         )
@@ -72,6 +77,7 @@ def test_equal_length_univariate_collection():
         )
         assert is_univariate(EQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["train"][0])
         assert is_equal_length(EQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["train"][0])
+        assert not has_missing(EQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["train"][0])
         assert np.issubdtype(
             EQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["train"][1].dtype, np.integer
         ) or np.issubdtype(
@@ -83,6 +89,7 @@ def test_equal_length_univariate_collection():
         )
         assert is_univariate(EQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["test"][0])
         assert is_equal_length(EQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["test"][0])
+        assert not has_missing(EQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["test"][0])
         assert np.issubdtype(
             EQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["test"][1].dtype, np.integer
         ) or np.issubdtype(
@@ -98,6 +105,9 @@ def test_unequal_length_univariate_collection():
         assert not is_equal_length(
             UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["train"][0]
         )
+        assert not has_missing(
+            UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["train"][0]
+        )
         check_classification_targets(
             UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["train"][1]
         )
@@ -107,6 +117,7 @@ def test_unequal_length_univariate_collection():
         assert not is_equal_length(
             UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["test"][0]
         )
+        assert not has_missing(UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["test"][0])
         check_classification_targets(
             UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[key]["test"][1]
         )
@@ -117,6 +128,7 @@ def test_unequal_length_univariate_collection():
         assert not is_equal_length(
             UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["train"][0]
         )
+        assert not has_missing(UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["train"][0])
         assert np.issubdtype(
             UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["train"][1].dtype, np.integer
         ) or np.issubdtype(
@@ -126,6 +138,7 @@ def test_unequal_length_univariate_collection():
         assert is_collection(UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["test"][0])
         assert is_univariate(UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["test"][0])
         assert not is_equal_length(UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["test"][0])
+        assert not has_missing(UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["test"][0])
         assert np.issubdtype(
             UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[key]["test"][1].dtype, np.integer
         ) or np.issubdtype(
@@ -143,6 +156,9 @@ def test_equal_length_multivariate_collection():
         assert is_equal_length(
             EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["train"][0]
         )
+        assert not has_missing(
+            EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["train"][0]
+        )
         check_classification_targets(
             EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["train"][1]
         )
@@ -152,6 +168,7 @@ def test_equal_length_multivariate_collection():
             EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["test"][0]
         )
         assert is_equal_length(EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["test"][0])
+        assert not has_missing(EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["test"][0])
         check_classification_targets(
             EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["test"][1]
         )
@@ -160,6 +177,7 @@ def test_equal_length_multivariate_collection():
         assert is_collection(EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["train"][0])
         assert not is_univariate(EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["train"][0])
         assert is_equal_length(EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["train"][0])
+        assert not has_missing(EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["train"][0])
         assert np.issubdtype(
             EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["train"][1].dtype, np.integer
         ) or np.issubdtype(
@@ -169,6 +187,7 @@ def test_equal_length_multivariate_collection():
         assert is_collection(EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["test"][0])
         assert not is_univariate(EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["test"][0])
         assert is_equal_length(EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["test"][0])
+        assert not has_missing(EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["test"][0])
         assert np.issubdtype(
             EQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["test"][1].dtype, np.integer
         ) or np.issubdtype(
@@ -188,6 +207,9 @@ def test_unequal_length_multivariate_collection():
         assert not is_equal_length(
             UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["train"][0]
         )
+        assert not has_missing(
+            UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["train"][0]
+        )
         check_classification_targets(
             UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["train"][1]
         )
@@ -197,6 +219,9 @@ def test_unequal_length_multivariate_collection():
             UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["test"][0]
         )
         assert not is_equal_length(
+            UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["test"][0]
+        )
+        assert not has_missing(
             UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[key]["test"][0]
         )
         check_classification_targets(
@@ -211,6 +236,7 @@ def test_unequal_length_multivariate_collection():
         assert not is_equal_length(
             UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["train"][0]
         )
+        assert not has_missing(UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["train"][0])
         assert np.issubdtype(
             UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["train"][1].dtype, np.integer
         ) or np.issubdtype(
@@ -222,6 +248,7 @@ def test_unequal_length_multivariate_collection():
         assert not is_equal_length(
             UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["test"][0]
         )
+        assert not has_missing(UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["test"][0])
         assert np.issubdtype(
             UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION[key]["test"][1].dtype, np.integer
         ) or np.issubdtype(
@@ -230,4 +257,36 @@ def test_unequal_length_multivariate_collection():
 
 
 def test_missing_values_collection():
-    pass
+    """Test the contents of the missing value data dictionary."""
+    for key in MISSING_VALUES_CLASSIFICATION:
+        assert is_collection(MISSING_VALUES_CLASSIFICATION[key]["train"][0])
+        assert is_univariate(MISSING_VALUES_CLASSIFICATION[key]["train"][0])
+        assert is_equal_length(MISSING_VALUES_CLASSIFICATION[key]["train"][0])
+        assert has_missing(MISSING_VALUES_CLASSIFICATION[key]["train"][0])
+
+        check_classification_targets(MISSING_VALUES_CLASSIFICATION[key]["train"][1])
+
+        assert is_collection(MISSING_VALUES_CLASSIFICATION[key]["test"][0])
+        assert is_univariate(MISSING_VALUES_CLASSIFICATION[key]["test"][0])
+        assert is_equal_length(MISSING_VALUES_CLASSIFICATION[key]["test"][0])
+        assert has_missing(MISSING_VALUES_CLASSIFICATION[key]["test"][0])
+        check_classification_targets(MISSING_VALUES_CLASSIFICATION[key]["test"][1])
+
+    for key in MISSING_VALUES_REGRESSION:
+        assert is_collection(MISSING_VALUES_REGRESSION[key]["train"][0])
+        assert is_univariate(MISSING_VALUES_REGRESSION[key]["train"][0])
+        assert is_equal_length(MISSING_VALUES_REGRESSION[key]["train"][0])
+        assert has_missing(MISSING_VALUES_REGRESSION[key]["train"][0])
+        assert np.issubdtype(
+            MISSING_VALUES_REGRESSION[key]["train"][1].dtype, np.integer
+        ) or np.issubdtype(
+            MISSING_VALUES_REGRESSION[key]["train"][1].dtype, np.floating
+        )
+
+        assert is_collection(MISSING_VALUES_REGRESSION[key]["test"][0])
+        assert is_univariate(MISSING_VALUES_REGRESSION[key]["test"][0])
+        assert is_equal_length(MISSING_VALUES_REGRESSION[key]["test"][0])
+        assert has_missing(MISSING_VALUES_REGRESSION[key]["test"][0])
+        assert np.issubdtype(
+            MISSING_VALUES_REGRESSION[key]["test"][1].dtype, np.integer
+        ) or np.issubdtype(MISSING_VALUES_REGRESSION[key]["test"][1].dtype, np.floating)
