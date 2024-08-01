@@ -67,7 +67,7 @@ repos:
         additional_dependencies: [ isort==5.13.2 ]
         args: [ "--nbqa-dont-skip-bad-cells", "--profile=black", "--multi-line=3" ]
       - id: nbqa-black
-        additional_dependencies: [ black==24.2.0 ]
+        additional_dependencies: [ black==24.4.2 ]
         args: [ "--nbqa-dont-skip-bad-cells" ]
       - id: nbqa-flake8
         additional_dependencies: [ flake8==7.0.0 ]
