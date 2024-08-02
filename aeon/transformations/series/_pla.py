@@ -18,7 +18,19 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     Takes a univariate time series as input. Approximates a time series using
     linear regression and the sum of squares error (SSE) through an algorithm.
     The algorithms available are two offline algorithms: TopDown and BottomUp
-    and two online algorithms: SlidingWindow and SWAB (Sliding Window and Bottom Up).
+    and two online algorithms: Sliding Window and SWAB (Sliding Window and Bottom Up).
+
+    Offline algorithms take the whole dataset and read it all at once. When working
+    with infinite data, the algorithm will infinitely read the data, never
+    processing it. On the other hand, online algorithms read a subsequence of data
+    and process the subsequence. Once processing is done, more data is read in.
+    This means that online algorithms can process even infinity data.
+
+    From the four algorithms, Sliding Window is known to give the worst performance in
+    transformation. While Bottom Up is known to give the best performance, yet has its
+    inefficiencies due to being an offline aglorithm. SWAB uses Bottom Up's performance
+    with the combination of Sliding Window to create an efficient online algorithm. It's
+    performance is only slightly reduced versus it's competitor Bottom Up.
 
     Parameters
     ----------
@@ -26,19 +38,14 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         The transformer to be used.
         Default transformer is swab.
         Valid transformers with their string and int:
-            Sliding Window: "sliding window", 1
-            Top Down: "top down" , 2
-            Bottom Up: "bottom up", 3
-            SWAB: "swab", 4
+            Sliding Window: "sliding window"
+            Top Down: "top down"
+            Bottom Up: "bottom up"
+            SWAB: "swab"
     max_error: float
         The maximum error value for the algorithm to find before segmenting the dataset.
     buffer_size: float
         The buffer size, used only for SWAB.
-
-    Attributes
-    ----------
-    segment_dense : np.array
-        The endpoints of each found segment of the series for transformation.
 
     References
     ----------
@@ -51,7 +58,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     >>> from aeon.datasets import load_electric_devices_segmentation
     >>> ts, period_size, true_cps = load_electric_devices_segmentation()
     >>> ts = ts.values
-    >>> pla = PiecewiseLinearApproximation(0.001, transformer=3)
+    >>> pla = PiecewiseLinearApproximation(max_error = 0.001, transformer="bottom up")
     >>> transformed_x = pla.fit_transform(ts)
     """
 
@@ -60,28 +67,6 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
     }
 
     def __init__(self, max_error=20, transformer=4, buffer_size=None):
-        if not isinstance(max_error, (int, float)):
-            raise ValueError("Invalid max_error: it has to be a number.")
-        if not isinstance(transformer, (int, str)):
-            raise ValueError("Invalid transformer: it has to be a number or a string.")
-        if not (buffer_size is None or isinstance(buffer_size, (int, float))):
-            raise ValueError("Invalid buffer_size: use a number only or keep empty.")
-        if isinstance(transformer, (str)):
-            if transformer.lower() == "sliding window":
-                transformer = 1
-            elif transformer.lower() == "top down":
-                transformer = 2
-            elif transformer.lower() == "bottom up":
-                transformer = 3
-            elif transformer.lower() == "swab":
-                transformer = 4
-            else:
-                raise ValueError(
-                    "Invalid transformer: wrong transformer: ", transformer
-                )
-        elif not (1 <= transformer <= 4):
-            raise ValueError("Invalid transformer: choose between 1-4")
-
         self.transformer = transformer
         self.max_error = max_error
         self.buffer_size = buffer_size
@@ -103,17 +88,26 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         np.ndarray
             1D transform of X.
         """
+        if not isinstance(self.max_error, (int, float)):
+            raise ValueError("Invalid max_error: it has to be a number.")
+        if not (self.buffer_size is None or isinstance(self.buffer_size, (int, float))):
+            raise ValueError("Invalid buffer_size: use a number only or keep empty.")
         results = None
-        if self.transformer == 1:
-            results = self._sliding_window(X)
-        elif self.transformer == 2:
-            results = self._top_down(X)
-        elif self.transformer == 3:
-            results = self._bottom_up(X)
-        elif self.transformer == 4:
-            results = self._SWAB(X)
+        if isinstance(self.transformer, (str)):
+            if self.transformer.lower() == "sliding window":
+                results = self._sliding_window(X)
+            elif self.transformer.lower() == "top down":
+                results = self._top_down(X)
+            elif self.transformer.lower() == "bottom up":
+                results = self._bottom_up(X)
+            elif self.transformer.lower() == "swab":
+                results = self._SWAB(X)
+            else:
+                raise ValueError(
+                    "Invalid transformer: wrong transformer: ", self.transformer
+                )
         else:
-            raise RuntimeError("No transformer was called.")
+            raise ValueError("Invalid transformer: it has to be a string.")
 
         return np.concatenate(results)
 
@@ -139,7 +133,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
                 and self._calculate_error(X[anchor : anchor + i]) < self.max_error
             ):
                 i = i + 1
-            seg_ts.append(self._create_segment(X[anchor : anchor + i - 1]))
+            seg_ts.append(self._linear_regression(X[anchor : anchor + i - 1]))
             anchor = anchor + i - 1
         return seg_ts
 
@@ -177,12 +171,12 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         if self._calculate_error(left_found_segment) > self.max_error:
             left_segment = self._top_down(left_found_segment)
         else:
-            left_segment = [self._create_segment(left_found_segment)]
+            left_segment = [self._linear_regression(left_found_segment)]
 
         if self._calculate_error(right_found_segment) > self.max_error:
             right_segment = self._top_down(right_found_segment)
         else:
-            right_segment = [self._create_segment(right_found_segment)]
+            right_segment = [self._linear_regression(right_found_segment)]
 
         return left_segment + right_segment
 
@@ -223,7 +217,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         seg_ts = []
         merge_cost = []
         for i in range(0, len(X), 2):
-            seg_ts.append(self._create_segment(X[i : i + 2]))
+            seg_ts.append(self._linear_regression(X[i : i + 2]))
         for i in range(len(seg_ts) - 1):
             merge_cost.append(self._calculate_error(seg_ts[i] + seg_ts[i + 1]))
 
@@ -231,7 +225,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
 
         while len(merge_cost) != 0 and min(merge_cost) < self.max_error:
             pos = np.argmin(merge_cost)
-            seg_ts[pos] = self._create_segment(
+            seg_ts[pos] = self._linear_regression(
                 np.concatenate((seg_ts[pos], seg_ts[pos + 1]))
             )
             seg_ts.pop(pos + 1)
@@ -354,26 +348,6 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         regression_line = np.array(linearRegression.predict(X))
         return regression_line
 
-    def _sum_squared_error(self, X, p_X):
-        """Return the SSE of a value and its predicted value.
-
-        formula: SSE = ∑i (Xi - p_Xi)^2
-
-        Parameters
-        ----------
-        X : np.array
-            1D time series.
-        p_X: np.array
-            1D linear time series formatted using linear regression.
-
-        Returns
-        -------
-        error: float
-            the SSE.
-        """
-        error = np.sum((X - p_X) ** 2)
-        return error
-
     def _calculate_error(self, X):
         """Return the SEE of a time series and its linear regression.
 
@@ -388,20 +362,5 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
             the SSE.
         """
         lrts = self._linear_regression(X)
-        sse = self._sum_squared_error(X, lrts)
+        sse = np.sum((X - lrts) ** 2)
         return sse
-
-    def _create_segment(self, X):
-        """Create a linear segment of a given time series.
-
-        Parameters
-        ----------
-        X : np.array
-            1D time series.
-
-        Returns
-        -------
-        np.array
-            the linear regression of the time series.
-        """
-        return self._linear_regression(X)
