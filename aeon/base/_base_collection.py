@@ -109,7 +109,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-           See aeon.registry.COLLECTIONS_DATA_TYPES for details
+           See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details
            on aeon supported data structures.
 
         Returns
