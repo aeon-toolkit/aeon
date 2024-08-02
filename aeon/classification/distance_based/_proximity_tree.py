@@ -82,11 +82,6 @@ class ProximityTree(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    n_jobs : int, default = 1
-        The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details. Parameter for compatibility purposes, still unimplemented.
 
     Notes
     -----
@@ -117,7 +112,7 @@ class ProximityTree(BaseClassifier):
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "algorithm_type": "distance",
-        "X_inner_type": ["numpy2D", "numpy3D"],
+        "X_inner_type": ["numpy2D"],
     }
 
     def __init__(
@@ -126,13 +121,11 @@ class ProximityTree(BaseClassifier):
         max_depth: int = None,
         min_samples_split: int = 2,
         random_state: Union[int, Type[np.random.RandomState], None] = None,
-        n_jobs: int = 1,
     ) -> None:
         self.n_splitters = n_splitters
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.random_state = random_state
-        self.n_jobs = n_jobs
         super().__init__()
 
     def _get_parameter_value(self, X):
@@ -276,6 +269,17 @@ class ProximityTree(BaseClassifier):
             for label, count in zip(*np.unique(y, return_counts=True))
         }
 
+        # Pure node
+        if len(np.unique(y)) == 1:
+            leaf_label = target_value
+            leaf = _Node(
+                node_id=node_id,
+                _is_leaf=True,
+                label=leaf_label,
+                class_distribution=class_distribution,
+            )
+            return leaf
+
         # If min sample splits is reached
         if self.min_samples_split >= len(X):
             leaf_label = target_value
@@ -289,17 +293,6 @@ class ProximityTree(BaseClassifier):
 
         # If max depth is reached
         if (self.max_depth is not None) and (depth >= self.max_depth):
-            leaf_label = target_value
-            leaf = _Node(
-                node_id=node_id,
-                _is_leaf=True,
-                label=leaf_label,
-                class_distribution=class_distribution,
-            )
-            return leaf
-
-        # Pure node
-        if len(np.unique(y)) == 1:
             leaf_label = target_value
             leaf = _Node(
                 node_id=node_id,
@@ -371,16 +364,6 @@ class ProximityTree(BaseClassifier):
         return mode_value
 
     def _fit(self, X, y):
-        # Check dimension of X
-        if X.ndim == 3:
-            if X.shape[1] == 1:
-                X = np.squeeze(X, axis=1)
-            else:
-                raise ValueError("X should be univariate.")
-
-        # Set the unique class labels
-        self.classes_ = list(np.unique(y))
-
         self.root = self._build_tree(
             X, y, depth=0, node_id="0", parent_target_value=None
         )
@@ -391,14 +374,8 @@ class ProximityTree(BaseClassifier):
         return np.array([self.classes_[pred] for pred in predictions])
 
     def _predict_proba(self, X):
-        # Check dimension of X
-        if X.ndim == 3:
-            if X.shape[1] == 1:
-                X = np.squeeze(X, axis=1)
-            else:
-                raise ValueError("X should be univariate.")
         # Get the unique class labels
-        classes = self.classes_
+        classes = list(self.classes_)
         class_count = len(classes)
         probas = []
 
