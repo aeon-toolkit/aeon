@@ -98,7 +98,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             - shapelet values
             - length parameter
             - dilation parameter
-            - treshold parameter
+            - threshold parameter
             - normalization parameter
             - mean parameter
             - standard deviation parameter
@@ -109,8 +109,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
     Notes
     -----
-    This implementation use all the features for multivariate shapelets, without
-    affecting a random feature subsets to each shapelet as done in the original
+    This implementation uses all the features for multivariate shapelets, without
+    affecting a random feature subset to each shapelet as done in the original
     implementation. See `convst
     https://github.com/baraline/convst/blob/main/convst/transformers/rdst.py`_.
 
