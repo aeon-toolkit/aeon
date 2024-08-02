@@ -254,20 +254,6 @@ These transformers create a series based on a sequence of sliding windows.
 
     HOG1DTransformer
 
-
-FeatureSelection
-~~~~~~~~~~~~~~~~
-
-These transformers select features in `X` based on `y`.
-
-.. currentmodule:: aeon.transformations.feature_selection
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FeatureSelection
-
 .. currentmodule:: aeon.transformations.collection.channel_selection
 
 .. autosummary::
