@@ -197,11 +197,23 @@ def get_n_channels(X):
         Number of time points in the first case.
     """
     t = get_type(X)
-    if t in ["numpy3D", "np-list"]:
+    if t == "numpy3D":
+        return X[0].shape[0]
+    if t == "np-list":
+        if not all(arr.shape[0] == X[0].shape[0] for arr in X):
+            raise ValueError(
+                f"ERROR: number of channels is not consistent. "
+                f"Found values: {np.unique([arr.shape[0] for arr in X])}."
+            )
         return X[0].shape[0]
     if t in ["numpy2D", "pd-wide"]:
         return 1
     if t == "df-list":
+        if not all(arr.shape[1] == X[0].shape[1] for arr in X):
+            raise ValueError(
+                f"ERROR: number of channels is not consistent. "
+                f"Found values: {np.unique([arr.shape[1] for arr in X])}."
+            )
         return X[0].shape[1]
     if t == "pd-multiindex":
         return len(X.columns)
