@@ -12,6 +12,7 @@ from aeon.utils.validation.collection import (
     get_n_cases,
     get_n_channels,
     get_n_timepoints,
+    get_type,
     has_missing,
     is_equal_length,
     is_univariate,
@@ -33,9 +34,9 @@ class BaseCollectionEstimator(BaseEstimator):
         "capability:multivariate": False,
         "capability:unequal_length": False,
         "capability:missing_values": False,
-        "X_inner_type": "numpy3D",
         "capability:multithreading": False,
-        "python_version": None,  # PEP 440 python version specifier to limit versions
+        "X_inner_type": "numpy3D",
+        "python_version": None,
     }
 
     def __init__(self):
@@ -49,7 +50,7 @@ class BaseCollectionEstimator(BaseEstimator):
         """Preprocess input X prior to call to fit.
 
         1. Checks the characteristics of X, store metadata, checks self can handle
-        the data
+            the data
         2. convert X to X_inner_type
         3. Check multi-threading against capabilities
 
@@ -115,9 +116,13 @@ class BaseCollectionEstimator(BaseEstimator):
         -------
         dict
             Meta data about X, with flags:
-            metadata["missing_values"] : whether X has missing values or not
             metadata["multivariate"] : whether X has more than one channel or not
+            metadata["missing_values"] : whether X has missing values or not
             metadata["unequal_length"] : whether X contains unequal length series.
+            metadata["n_cases"] : number of cases in X
+            metadata["n_channels"] : number of channels in X
+            metadata["n_timepoints"] : number of timepoints in X if equal length, else
+                None
 
         See Also
         --------
@@ -127,11 +132,11 @@ class BaseCollectionEstimator(BaseEstimator):
         --------
         >>> from aeon.classification.hybrid import HIVECOTEV2
         >>> import numpy as np
-        >>> X = np.random.random(size=(5,3,10)) # X is equal length, multivariate
+        >>> X = np.random.random(size=(5,3,10))  # X is equal length, multivariate
         >>> hc = HIVECOTEV2()
-        >>> meta=hc._check_X(X)    # HC2 can handle this
+        >>> meta = hc._check_X(X)  # HC2 can handle this
         """
-        metadata = self._get_metadata(X)
+        metadata = self._get_X_metadata(X)
         # Check classifier capabilities for X
         allow_multivariate = self.get_tag("capability:multivariate")
         allow_missing = self.get_tag("capability:missing_values")
@@ -155,27 +160,27 @@ class BaseCollectionEstimator(BaseEstimator):
                 f"but {type(self).__name__} cannot handle {problems_or}. "
             )
             raise ValueError(msg)
+
         return metadata
 
     def _convert_X(self, X):
         """Convert X to type defined by tag X_inner_type.
 
-        if self.metadata_ has not been set, it is set here from X, because we need to
-        know if the data is unequal length in order to choose between different
-        allowed input types. If multiple types are allowed by self, then the best
-        one for the data is selected. So, for example, if X_inner_tag is `["np-list",
-        "numpy3D"]` and an `np-list` is passed containing equal length series,
-        X will be converted to numpy3D.
+        If the input data is already an allowed type, it is returned unchanged.
+
+        If multiple types are allowed by self, then the best one for the type of input
+        data is selected. So, for example, if X_inner_tag is `["np-list", "numpy3D"]`
+        and an `df-list` is passed containing equal length series, will be converted
+        to numpy3D.
 
         Parameters
         ----------
         X : data structure
-        must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
+            Must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
 
         Returns
         -------
         data structure of type one of self.get_tag("X_inner_type").
-
 
         See Also
         --------
@@ -196,21 +201,29 @@ class BaseCollectionEstimator(BaseEstimator):
         >>> get_type(X)
         'numpy3D'
         """
+        inner_type = self.get_tag("X_inner_type")
+        if not isinstance(inner_type, list):
+            inner_type = [inner_type]
+        input_type = get_type(X)
+
+        # Check if we need to convert X, return if not
+        if input_type in inner_type:
+            return X
+
         if len(self.metadata_) == 0:
-            metadata = self._get_metadata(X)
+            metadata = self._get_X_metadata(X)
         else:
             metadata = self.metadata_
+
         # Convert X to X_inner_type if possible
-        inner_type = self.get_tag("X_inner_type")
-        if isinstance(inner_type, list):
-            # If self can handle more than one internal type, resolve correct conversion
-            # If unequal, choose data structure that can hold unequal
-            if metadata["unequal_length"]:
-                inner_type = resolve_unequal_length_inner_type(inner_type)
-            else:
-                inner_type = resolve_equal_length_inner_type(inner_type)
-        X = convert_collection(X, inner_type)
-        return X
+        # If self can handle more than one internal type, resolve correct conversion
+        # If unequal, choose data structure that can hold unequal
+        if metadata["unequal_length"]:
+            inner_type = resolve_unequal_length_inner_type(inner_type)
+        else:
+            inner_type = resolve_equal_length_inner_type(inner_type)
+
+        return convert_collection(X, inner_type)
 
     def _check_shape(self, X):
         """Check that the shape of X is consistent with the data seen in fit.
@@ -240,15 +253,15 @@ class BaseCollectionEstimator(BaseEstimator):
                 )
 
     @staticmethod
-    def _get_metadata(X):
+    def _get_X_metadata(X):
         # Get and store X meta data.
         metadata = {}
         metadata["multivariate"] = not is_univariate(X)
         metadata["missing_values"] = has_missing(X)
         metadata["unequal_length"] = not is_equal_length(X)
         metadata["n_cases"] = get_n_cases(X)
-        # Length of first series, used if equal length is True
-        metadata["n_timepoints"] = get_n_timepoints(X)
         metadata["n_channels"] = get_n_channels(X)
-
+        metadata["n_timepoints"] = (
+            None if metadata["unequal_length"] else get_n_timepoints(X)
+        )
         return metadata
