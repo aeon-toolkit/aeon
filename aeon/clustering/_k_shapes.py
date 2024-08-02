@@ -9,7 +9,7 @@ from aeon.clustering.base import BaseClusterer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-class TimeSeriesKShapes(BaseClusterer):
+class TimeSeriesKShape(BaseClusterer):
     """Kshape algorithm: wrapper of the ``tslearn`` implementation.
 
     Parameters
@@ -49,15 +49,15 @@ class TimeSeriesKShapes(BaseClusterer):
 
     Examples
     --------
-    >>> from aeon.clustering import TimeSeriesKShapes
+    >>> from aeon.clustering import TimeSeriesKShape
     >>> from aeon.datasets import load_basic_motions
     >>> # Load data
     >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
     >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
     >>> # Example of KShapes clustering
-    >>> ks = TimeSeriesKShapes(n_clusters=3, random_state=1)  # doctest: +SKIP
+    >>> ks = TimeSeriesKShape(n_clusters=3, random_state=1)  # doctest: +SKIP
     >>> ks.fit(X_train)  # doctest: +SKIP
-    TimeSeriesKShapes(n_clusters=3, random_state=1)
+    TimeSeriesKShape(n_clusters=3, random_state=1)
     >>> preds = ks.predict(X_test)  # doctest: +SKIP
     """
 

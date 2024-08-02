@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
-from aeon.clustering._k_shapes import TimeSeriesKShapes
+from aeon.clustering._k_shapes import TimeSeriesKShape
 from aeon.clustering.base import BaseClusterer
 
 
@@ -120,7 +120,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
                 n_clusters=self.n_clusters, **clustering_params_
             )
         elif self.clustering_algorithm == "kshape":
-            self.clusterer = TimeSeriesKShapes(
+            self.clusterer = TimeSeriesKShape(
                 n_clusters=self.n_clusters, **clustering_params_
             )
         elif self.clustering_algorithm == "kmedoids":
