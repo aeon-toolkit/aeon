@@ -429,7 +429,7 @@ class Catch22(BaseCollectionTransformer):
     def _SB_BinaryStats_diff_longstretch0(X):
         # Longest period of successive incremental decreases.
         diff_binary = np.zeros(len(X) - 1)
-        for i in range(len(X)):
+        for i in range(len(X) - 1):
             if X[i + 1] - X[i] >= 0:
                 diff_binary[i] = 1
 
