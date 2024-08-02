@@ -43,8 +43,6 @@ def test_piecewise_linear_approximation_sliding_window(X):
     """Test PLA transformer."""
     pla_string = PiecewiseLinearApproximation(100, "sliding window")
     result_string = pla_string.fit_transform(X)
-    pla_num = PiecewiseLinearApproximation(100, 1)
-    result_num = pla_num.fit_transform(X)
     expected = np.array(
         [
             573.0,
@@ -74,15 +72,12 @@ def test_piecewise_linear_approximation_sliding_window(X):
         ]
     )
     np.testing.assert_array_almost_equal(result_string, expected)
-    np.testing.assert_array_almost_equal(result_num, expected)
 
 
 def test_piecewise_linear_approximation_top_down(X):
     """Test PLA transformer."""
     pla_string = PiecewiseLinearApproximation(100, "top down")
     result_string = pla_string.fit_transform(X)
-    pla_num = PiecewiseLinearApproximation(100, 2)
-    result_num = pla_num.fit_transform(X)
     expected = np.array(
         [
             573.0,
@@ -112,15 +107,12 @@ def test_piecewise_linear_approximation_top_down(X):
         ]
     )
     np.testing.assert_array_almost_equal(result_string, expected)
-    np.testing.assert_array_almost_equal(result_num, expected)
 
 
 def test_piecewise_linear_approximation_bottom_up(X):
     """Test PLA transformer."""
     pla_string = PiecewiseLinearApproximation(5, "bottom up")
     result_string = pla_string.fit_transform(X)
-    pla_num = PiecewiseLinearApproximation(5, 3)
-    result_num = pla_num.fit_transform(X)
     expected = np.array(
         [
             538.8,
@@ -150,15 +142,12 @@ def test_piecewise_linear_approximation_bottom_up(X):
         ]
     )
     np.testing.assert_array_almost_equal(result_string, expected)
-    np.testing.assert_array_almost_equal(result_num, expected)
 
 
 def test_piecewise_linear_approximation_SWAB(X):
     """Test PLA transformer."""
     pla_string = PiecewiseLinearApproximation(5, "swab")
     result_string = pla_string.fit_transform(X)
-    pla_num = PiecewiseLinearApproximation(5, 4)
-    result_num = pla_num.fit_transform(X)
     expected = np.array(
         [
             538.8,
@@ -188,7 +177,6 @@ def test_piecewise_linear_approximation_SWAB(X):
         ]
     )
     np.testing.assert_array_almost_equal(result_string, expected)
-    np.testing.assert_array_almost_equal(result_num, expected)
 
 
 def test_piecewise_linear_approximation_check_diff_in_params(X):
@@ -206,8 +194,6 @@ def test_piecewise_linear_approximation_wrong_parameters(X):
     """Test PLA transformer."""
     with pytest.raises(ValueError):
         PiecewiseLinearApproximation(100, "Fake Transformer error").fit_transform(X)
-    with pytest.raises(ValueError):
-        PiecewiseLinearApproximation(100, 5).fit_transform(X)
     with pytest.raises(ValueError):
         PiecewiseLinearApproximation("max_error").fit_transform(X)
     with pytest.raises(ValueError):
