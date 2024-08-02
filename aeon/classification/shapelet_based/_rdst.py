@@ -56,9 +56,9 @@ class RDSTClassifier(BaseClassifier):
         shapelets to be lower than max_shapelets if the whole search space has been 
         covered. The default is 0.5, and the maximum is 1. Values above it have no effect for now.
     use_prime_dilations : bool, default=False
-        If True, restrict the value of the shapelet dilation parameter to be prime
+        If True, restricts the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
-        short shapelet length, possibly at the cost of some accuracy.
+        short shapelet lengths, possibly at the cost of some accuracy.
     distance: str="manhattan"
         Name of the distance function to be used. By default this is the
         manhattan distance. Other distances from the aeon distance modules can be used.
