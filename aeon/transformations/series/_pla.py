@@ -66,7 +66,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, max_error=20, transformer=4, buffer_size=None):
+    def __init__(self, max_error=20, transformer="bottom up", buffer_size=None):
         self.transformer = transformer
         self.max_error = max_error
         self.buffer_size = buffer_size
