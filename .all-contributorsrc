@@ -2448,6 +2448,15 @@
       ]
     },
     {
+      "login": "Cyril-Meyer",
+      "name": "Cyril Meyer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/69190238?v=4",
+      "profile": "https://github.com/Cyril-Meyer",
+      "contributions": [
+        "test"
+      ]
+    },
+    {
       "login": "Moonzyyy",
       "name": "Daniele Carli",
       "avatar_url": "https://avatars.githubusercontent.com/u/47296443?v=4",
@@ -2461,6 +2470,15 @@
       "name": "Adam Unal",
       "avatar_url": "https://avatars.githubusercontent.com/u/143117979?v=4",
       "profile": "https://github.com/adm-unl",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Datadote",
+      "name": "Daniel L.",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30182852?v=4",
+      "profile": "https://www.linkedin.com/in/dnylam/",
       "contributions": [
         "doc"
       ]

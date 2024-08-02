@@ -7,17 +7,10 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="ExponentTransformer will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class ExponentTransformer(BaseTransformer):
     """Apply element-wise exponentiation transformation to a time series.
 
@@ -54,14 +47,6 @@ class ExponentTransformer(BaseTransformer):
     -----
     For an input series `Z` the exponent transformation is defined as
     :math:`(Z + offset)^{power}`.
-
-    Examples
-    --------
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> transformer = ExponentTransformer()
-    >>> y_transform = transformer.fit_transform(y)
     """
 
     _tags = {
