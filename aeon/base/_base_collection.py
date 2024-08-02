@@ -234,22 +234,21 @@ class BaseCollectionEstimator(BaseEstimator):
             Must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
         """
         if not self.get_tag("capability:unequal_length"):
-            if get_n_timepoints(X) != self.metadata_["n_timepoints"]:
+            nt = get_n_timepoints(X)
+            if nt != self.metadata_["n_timepoints"]:
                 raise ValueError(
                     "X has different length to the data seen in fit but "
                     "this classifier cannot handle unequal length series."
-                    "length of train set was",
-                    self.metadata_["n_timepoints"],
-                    " length in predict is ",
+                    f"length of train set was {self.metadata_['n_timepoints']}",
+                    f" length in predict is {nt}.",
                 )
         if self.get_tag("capability:multivariate"):
-            if get_n_channels(X) != self.metadata_["n_channels"]:
+            nc = get_n_channels(X)
+            if nc != self.metadata_["n_channels"]:
                 raise ValueError(
                     "X has different number of channels to the data seen in fit "
-                    "number of channels in train set was",
-                    self.metadata_["n_channels"],
-                    "but in predict it is ",
-                    get_n_timepoints(X),
+                    "number of channels in train set was ",
+                    f"{self.metadata_['n_channels']} but in predict it is {nc}.",
                 )
 
     @staticmethod
