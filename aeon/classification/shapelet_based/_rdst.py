@@ -54,7 +54,8 @@ class RDSTClassifier(BaseClassifier):
         common indexes with previously sampled shapelets are allowed when sampling a 
         new candidate with the same dilation parameter. It can cause the number of sampled 
         shapelets to be lower than max_shapelets if the whole search space has been 
-        covered. The default is 0.5, and the maximum is 1. Values above it have no effect for now.
+        covered. The default is 0.5, and the maximum is 1. Values above it have no effect 
+        for now.
     use_prime_dilations : bool, default=False
         If True, restricts the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
@@ -64,7 +65,7 @@ class RDSTClassifier(BaseClassifier):
         manhattan distance. Other distances from the aeon distance modules can be used.
     estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
-        `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
+        `None` a default `RidgeClassifierCV` classifier is used with standard scaling.
     save_transformed_data : bool, default=False
         If True, the transformed training dataset for all classifiers will be saved.
     class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
@@ -233,7 +234,7 @@ class RDSTClassifier(BaseClassifier):
         Parameters
         ----------
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
-            The data to make prediction for.
+            The data to make predictions for.
 
         Returns
         -------
@@ -245,12 +246,12 @@ class RDSTClassifier(BaseClassifier):
         return self._estimator.predict(X_t)
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
+        """Predicts label probabilities for sequences in X.
 
         Parameters
         ----------
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
-            The data to make predict probabilities for.
+            The data to predict probabilities for.
 
         Returns
         -------
