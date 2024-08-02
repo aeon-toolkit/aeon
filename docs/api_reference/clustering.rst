@@ -33,6 +33,7 @@ Clustering Algorithms
 
     TimeSeriesKMeans
     TimeSeriesKMedoids
+    TimeSeriesKShapes
     TimeSeriesKShape
     TimeSeriesKernelKMeans
     TimeSeriesCLARA
