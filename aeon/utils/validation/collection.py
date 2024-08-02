@@ -68,7 +68,7 @@ def is_nested_univ_dataframe(X):
     Parameters
     ----------
     X: collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details
         on aeon supported data structures.
 
     Returns
@@ -140,7 +140,7 @@ def get_n_cases(X):
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -161,7 +161,7 @@ def get_n_timepoints(X):
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -182,14 +182,14 @@ def get_n_timepoints(X):
 
 
 def get_n_channels(X):
-    """Return the number of timepoints in the first element of a collectiom.
+    """Return the number of channels in the first element of a collectiom.
 
     Handle the single exception of multi index DataFrame.
 
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -215,7 +215,7 @@ def get_type(X):
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -287,7 +287,7 @@ def is_equal_length(X):
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
