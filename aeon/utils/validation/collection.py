@@ -194,7 +194,13 @@ def get_n_channels(X):
     Returns
     -------
     int
-        Number of time points in the first case.
+        Number of channels in the first case.
+
+    Raises
+    ------
+    ValueError
+        X is list of 2D numpy but number of channels is not consistent.
+        X is list of 2D pd.DataFrames but number of channels is not consistent.
     """
     t = get_type(X)
     if t == "numpy3D":
