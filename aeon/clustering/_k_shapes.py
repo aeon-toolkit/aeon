@@ -47,6 +47,13 @@ class TimeSeriesKShape(BaseClusterer):
     n_iter_: int
         Number of iterations run.
 
+    References
+    ----------
+    .. [1] John Paparrizos and Luis Gravano. 2016.
+       K-Shape: Efficient and Accurate Clustering of Time Series.
+       SIGMOD Rec. 45, 1 (March 2016), 69–76.
+       https://doi.org/10.1145/2949741.2949758
+
     Examples
     --------
     >>> from aeon.clustering import TimeSeriesKShape
