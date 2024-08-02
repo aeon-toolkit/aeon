@@ -1,28 +1,68 @@
 """Tests for BaseCollectionEstimator."""
 
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
+
 import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
-from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE, UNEQUAL_LENGTH_UNIVARIATE
+from aeon.testing.testing_data import (
+    EQUAL_LENGTH_MULTIVARIATE,
+    EQUAL_LENGTH_UNIVARIATE,
+    UNEQUAL_LENGTH_MULTIVARIATE,
+    UNEQUAL_LENGTH_UNIVARIATE,
+)
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_type
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test__get_metadata(data):
+def test_get_metadata(data):
     """Test get meta data."""
-    X = EQUAL_LENGTH_UNIVARIATE[data]
-    meta = BaseCollectionEstimator._get_metadata(X)
-    assert not meta["multivariate"]
-    assert not meta["missing_values"]
-    assert not meta["unequal_length"]
-    assert meta["n_channels"] == 1
-    assert meta["n_timepoints"] == 20
-    assert meta["n_cases"] == 10
+    # equal length univariate
+    if data in EQUAL_LENGTH_UNIVARIATE:
+        meta = BaseCollectionEstimator._get_metadata(EQUAL_LENGTH_UNIVARIATE[data])
+        assert not meta["multivariate"]
+        assert not meta["missing_values"]
+        assert not meta["unequal_length"]
+        assert meta["n_cases"] == 10
+        assert meta["n_channels"] == 1
+        assert meta["n_timepoints"] == 20
+
+    # unequal length univariate
+    if data in UNEQUAL_LENGTH_UNIVARIATE:
+        meta = BaseCollectionEstimator._get_metadata(UNEQUAL_LENGTH_UNIVARIATE[data])
+        assert not meta["multivariate"]
+        assert not meta["missing_values"]
+        assert meta["unequal_length"]
+        assert meta["n_cases"] == 10
+        assert meta["n_channels"] == 1
+        assert meta["n_timepoints"] is None
+
+    # equal length multivariate
+    if data in EQUAL_LENGTH_MULTIVARIATE:
+        meta = BaseCollectionEstimator._get_metadata(EQUAL_LENGTH_MULTIVARIATE[data])
+        assert meta["multivariate"]
+        assert not meta["missing_values"]
+        assert not meta["unequal_length"]
+        assert meta["n_cases"] == 10
+        assert meta["n_channels"] == 2
+        assert meta["n_timepoints"] == 20
+
+    # unequal length multivariate
+    if data in UNEQUAL_LENGTH_MULTIVARIATE:
+        meta = BaseCollectionEstimator._get_metadata(UNEQUAL_LENGTH_MULTIVARIATE[data])
+        assert meta["multivariate"]
+        assert not meta["missing_values"]
+        assert meta["unequal_length"]
+        assert meta["n_cases"] == 10
+        assert meta["n_channels"] == 2
+        assert meta["n_timepoints"] is None
+
+    # todo missing data
 
 
-def test__check_X():
+def test_check_X():
     """Test if capabilities correctly tested."""
     dummy1 = BaseCollectionEstimator()
     dummy2 = BaseCollectionEstimator()
@@ -32,28 +72,56 @@ def test__check_X():
         "capability:missing_values": True,
     }
     dummy2.set_tags(**all_tags)
-    X = np.random.random(size=(5, 1, 10))
+
+    # univariate equal length
+    X = EQUAL_LENGTH_UNIVARIATE["numpy3D"].copy()
     assert dummy1._check_X(X) and dummy2._check_X(X)
+
+    # univariate missing values
     X[3][0][6] = np.NAN
     assert dummy2._check_X(X)
     with pytest.raises(ValueError, match=r"cannot handle missing values"):
         dummy1._check_X(X)
-    X = np.random.random(size=(5, 3, 10))
+
+    # multivariate equal length
+    X = EQUAL_LENGTH_MULTIVARIATE["numpy3D"].copy()
     assert dummy2._check_X(X)
     with pytest.raises(ValueError, match=r"cannot handle multivariate"):
         dummy1._check_X(X)
-    X[2][2][6] = np.NAN
+
+    # multivariate missing values
+    X[2][1][5] = np.NAN
     assert dummy2._check_X(X)
     with pytest.raises(
         ValueError, match=r"cannot handle missing values or multivariate"
     ):
         dummy1._check_X(X)
-    X = [np.random.random(size=(1, 10)), np.random.random(size=(1, 20))]
+
+    # univariate equal length
+    X = UNEQUAL_LENGTH_UNIVARIATE["np-list"]
     assert dummy2._check_X(X)
     with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
         dummy1._check_X(X)
+
+    # multivariate unequal length
+    X = UNEQUAL_LENGTH_MULTIVARIATE["np-list"]
+    assert dummy2._check_X(X)
+    with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+        dummy1._check_X(X)
+
+    # different number of channels
+    X = [np.random.random(size=(2, 10)), np.random.random(size=(3, 10))]
+    with pytest.raises(TypeError, match=r"passed a list containing <class 'str'>"):
+        dummy1._check_X(X)
+
+    # invalid list type
     X = ["Does", "Not", "Accept", "List", "of", "String"]
     with pytest.raises(TypeError, match=r"passed a list containing <class 'str'>"):
+        dummy1._check_X(X)
+
+    # invalid type
+    X = BaseCollectionEstimator()
+    with pytest.raises(TypeError, match=r"passed a <class 'str'>"):
         dummy1._check_X(X)
 
 
