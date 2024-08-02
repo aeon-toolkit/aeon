@@ -34,10 +34,10 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
 
     Parameters
     ----------
-    transformer: int or str
+    transformer: str
         The transformer to be used.
         Default transformer is swab.
-        Valid transformers with their string and int:
+        Valid transformers with their string:
             Sliding Window: "sliding window"
             Top Down: "top down"
             Bottom Up: "bottom up"
