@@ -47,6 +47,7 @@ def test_knn_on_unit_test(distance_key):
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
     knn = KNeighborsTimeSeriesClassifier(
+        n_neighbors=1,
         distance=distance_key,
     )
     knn.fit(X_train, y_train)
@@ -66,7 +67,7 @@ def test_knn_bounding_matrix(distance_key):
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
     knn = KNeighborsTimeSeriesClassifier(
-        distance=distance_key, distance_params={"window": 0.5}
+        n_neighbors=1, distance=distance_key, distance_params={"window": 0.5}
     )
     knn.fit(X_train, y_train)
     pred = knn.predict(X_test)

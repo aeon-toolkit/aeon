@@ -28,7 +28,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
     Parameters
     ----------
-    n_neighbors : int, default =1
+    n_neighbors : int, default = 5
         Set k for knn.
     weights : str or callable function, default = 'uniform'
         Mechanism for weighting a vote.
@@ -70,7 +70,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         self,
         distance="dtw",
         distance_params=None,
-        n_neighbors=1,
+        n_neighbors=5,
         weights="uniform",
     ):
         self.distance = distance
