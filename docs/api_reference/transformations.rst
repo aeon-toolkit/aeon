@@ -43,17 +43,6 @@ Transformations are categorized as follows:
 Composition
 -----------
 
-Pipeline building
-~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.func_transform
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FunctionTransformer
-
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
