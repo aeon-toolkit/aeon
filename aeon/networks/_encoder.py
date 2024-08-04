@@ -115,20 +115,7 @@ class EncoderNetwork(BaseDeepLearningNetwork):
 
             x = conv
 
-        # split attention
-
-        split_size1 = int(self._n_filters[-1] // 2)
-        split_size2 = int(self._n_filters[-1] - split_size1)
-
-        attention_multiplier_1, attention_multiplier_2 = tf.split(
-            conv, [split_size1, split_size2], axis=-1
-        )
-
-        # attention mechanism
-
-        attention = tf.keras.layers.Multiply()(
-            [attention_multiplier_1, attention_multiplier_2]
-        )
+        attention = tf.keras.layers.Attention()([conv, conv, conv])
 
         # add fully connected hidden layer
 
