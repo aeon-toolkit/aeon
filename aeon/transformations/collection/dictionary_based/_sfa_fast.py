@@ -59,7 +59,7 @@ class SFAFast(BaseCollectionTransformer):
     Parameters
     ----------
     word_length : int, default = 8
-        Length of word to shorten window to (using PAA).
+        Length of word to shorten window to (using DFT).
     alphabet_size : int, default = 4
         Number of values to discretise each value to.
     window_size : int, default = 12

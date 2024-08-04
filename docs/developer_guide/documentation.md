@@ -79,7 +79,7 @@ The references you intend to link to within the docstring should follow a very s
    indent them so they start aligned with opening bracket on first line.
 ```
 
-To link to the reference labeled as `[1]`, you use `[1]_`. This only works within the same docstring. Sometimes this is not rendered correctly if the "[1]_" link is preceded or followed by certain characters. If you run into this issue, try putting a space before and following the `[1]_` link.
+To link to the reference labeled as `[1]`, you use `[1]_`. For multiple contiguous references please follow the format `[1]_, [2]_`. This only works within the same docstring. Sometimes this is not rendered correctly if the "[1]_" link is preceded or followed by certain characters. If you run into this issue, try putting a space before and following the `[1]_` link.
 
 ### Examples
 
