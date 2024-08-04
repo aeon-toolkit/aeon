@@ -117,14 +117,12 @@ class EncoderNetwork(BaseDeepLearningNetwork):
 
         # split attention
 
-        split_index = self._n_filters[-1] // 2
+        split_size1 = int(self._n_filters[-1] // 2)
+        split_size2 = int(self._n_filters[-1] - split_size1)
 
-        attention_multiplier_1 = tf.keras.layers.Softmax()(
-            tf.keras.layers.Lambda(lambda x: x[:, :, :split_index])(conv)
+        attention_multiplier_1, attention_multiplier_2 = tf.split(
+            conv, [split_size1, split_size2], axis=-1
         )
-        attention_multiplier_2 = tf.keras.layers.Lambda(
-            lambda x: x[:, :, split_index:]
-        )(conv)
 
         # attention mechanism
 
