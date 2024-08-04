@@ -3,7 +3,6 @@
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
-
 class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     """
     A class to implement an Auto-Encoder based on Attention Bidirectional GRUs.
@@ -126,7 +125,9 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
             value = tf.keras.layers.Dense(self.n_filters_RNN)(backward_layer)
 
             attention_layer = tf.keras.layers.Attention()([query, key, value])
-            x = tf.keras.layers.Dense(self.n_filters_RNN, activation="sigmoid")(attention_layer)
+            x = tf.keras.layers.Dense(self.n_filters_RNN, activation="sigmoid")(
+                attention_layer
+            )
             x = x * attention_layer
 
         if not self.temporal_latent_space:
