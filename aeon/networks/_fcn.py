@@ -1,6 +1,7 @@
-"""Fully Convolutional Network (FCN) (minus the final output layer)."""
+"""Fully Convolutional Network (FCNNetwork)."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
+
 
 from aeon.networks.base import BaseDeepLearningNetwork
 

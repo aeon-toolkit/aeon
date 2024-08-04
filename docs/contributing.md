@@ -20,18 +20,17 @@ for creating a fork of `aeon`.
 3. Pick an `enhancement`, `documentation` or `maintenance` issue from the [issue list](https://github.com/aeon-toolkit/aeon/issues)
 to complete i.e. improving an algorithm, docstring or test. The [good first issue](https://github.com/aeon-toolkit/aeon/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
 list may be a good place to start.
-4. Post on the issue which you want to work on, so that others know you are working on it. To assign yourself an **Issue/Pull Request**, please mention '@your_username' and use one of the following trigger phrases:
-    - Aeon-Assign bot
-    - assign
-    - assign this to
+4. Post on the issue which you want to work on, so that others know you are working on
+it. To assign yourself an **Issue/Pull Request**, please post a comment in the issue
+including '@aeon-actions-bot', the username of people to assign and the word `assign`:
 
     For example:
     ```python
-    Aeon-Assign bot assign @your-username
+    @aeon-actions-bot assign @MatthewMiddlehurst
     ```
     If it is a larger issue with multiple components, indicate which part you are
-    working on. A Core Developer may suggest a different issue if the one you chose is
-    complex or somebody is already working on it.
+working on. A Core Developer may suggest a different issue if the one you chose is
+complex or somebody is already working on it.
 5. Create a [pull request (PR)](https://github.com/aeon-toolkit/aeon/compare)
 with your changes from your fork. For help, see the [GitHub documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
 or ask in Slack. Follow the PR template and checklist.

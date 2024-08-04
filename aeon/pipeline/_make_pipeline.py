@@ -34,29 +34,20 @@ def make_pipeline(*steps):
 
     Examples
     --------
-    Example 1: forecaster pipeline
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.forecasting.trend import PolynomialTrendForecaster
-    >>> from aeon.pipeline import make_pipeline
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> pipe = make_pipeline(ExponentTransformer(), PolynomialTrendForecaster())
-    >>> type(pipe).__name__
-    'TransformedTargetForecaster'
-
     Example 2: classifier pipeline
     >>> from aeon.classification.feature_based import Catch22Classifier
     >>> from aeon.pipeline import make_pipeline
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> pipe = make_pipeline(ExponentTransformer(), Catch22Classifier())
+    >>> from aeon.transformations.collection import PeriodogramTransformer
+    >>> pipe = make_pipeline(PeriodogramTransformer(), Catch22Classifier())
     >>> type(pipe).__name__
     'ClassifierPipeline'
 
     Example 3: transformer pipeline
     >>> from aeon.pipeline import make_pipeline
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> pipe = make_pipeline(ExponentTransformer(), ExponentTransformer())
+    >>> from aeon.transformations.collection import PeriodogramTransformer
+    >>> pipe = make_pipeline(PeriodogramTransformer(), PeriodogramTransformer())
     >>> type(pipe).__name__
-    'TransformerPipeline'
+    'CollectionTransformerPipeline'
     """
     if len(steps) == 1 and isinstance(steps[0], list):
         steps = steps[0]

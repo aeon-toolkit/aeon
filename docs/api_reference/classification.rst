@@ -32,7 +32,9 @@ Deep learning
     :toctree: auto_generated/
     :template: class.rst
 
+    BaseDeepClassifier
     CNNClassifier
+    TimeCNNClassifier
     EncoderClassifier
     FCNClassifier
     InceptionTimeClassifier
@@ -74,6 +76,7 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
+    ProximityForest
     ProximityTree
 
 Feature-based

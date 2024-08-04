@@ -22,6 +22,20 @@ Amerced Dynamic Time Warping (ADTW)
     adtw_cost_matrix
     adtw_alignment_path
 
+Derivative Dynamic Time Warping (DDTW)
+-----------------------------------
+
+.. currentmodule:: aeon.distances
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    ddtw_distance
+    ddtw_pairwise_distance
+    ddtw_cost_matrix
+    ddtw_alignment_path
+
 Dynamic Time Warping (DTW)
 --------------------------
 
@@ -153,6 +167,9 @@ Shape Dynamic Time Warping (Shape DTW)
     shape_dtw_pairwise_distance
     shape_dtw_cost_matrix
     shape_dtw_alignment_path
+    _pad_ts_collection_edges
+    _pad_ts_edges
+    _transform_subsequences
 
 Squared
 -------
@@ -207,7 +224,6 @@ Weighted Dynamic Time Warping (DTW)
     wdtw_pairwise_distance
     wdtw_cost_matrix
     wdtw_alignment_path
-
 
 General methods with distance argument
 --------------------------------------
