@@ -153,9 +153,10 @@ def get_n_cases(X):
 
 
 def get_n_timepoints(X):
-    """Return the number of timepoints in the first element of a collectiom.
+    """Return the number of timepoints in the first element of a collection.
 
-    Handle the single exception of multi index DataFrame.
+    Handles the single exception of multi index DataFrames. If unequal length series,
+    returns the length of the first series.
 
     Parameters
     ----------

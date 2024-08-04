@@ -335,26 +335,3 @@ Outlier detection, changepoint detection
     :template: class.rst
 
     ClaSPTransformer
-
-Hierarchical transformers
--------------------------
-
-These transformers are specifically for hierarchical data and panel data.
-
-The transformation depends on the specified hierarchy in a non-trivial way.
-
-.. currentmodule:: aeon.transformations.hierarchical.aggregate
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Aggregator
-
-.. currentmodule:: aeon.transformations.hierarchical.reconcile
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Reconciler
