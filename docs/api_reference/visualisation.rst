@@ -7,6 +7,13 @@ Visualisation
     :no-members:
     :no-inherited-members:
 
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ShapeletVisualizer
+    ShapeletTransformerVisualizer
+    ShapeletClassifierVisualizer
 
 .. autosummary::
     :toctree: auto_generated/
@@ -24,3 +31,4 @@ Visualisation
     plot_time_series_with_change_points
     plot_time_series_with_profiles
     plot_cluster_algorithm
+    plot_network

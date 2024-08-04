@@ -3,15 +3,17 @@
   "projectOwner": "aeon-toolkit",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "commitConvention": "none",
   "files": [
     "CONTRIBUTORS.md"
   ],
   "imageSize": 80,
+  "commit": "false",
+  "commitConvention": "atom",
   "contributorsPerLine": 8,
   "contributorsSortAlphabetically": true,
-  "linkToUsage": true,
   "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors)",
+  "linkToUsage": true,
+  "skipCi": true,
   "contributors": [
     {
       "login": "fkiraly",
@@ -2349,7 +2351,7 @@
         "code",
         "doc",
         "research",
-        "tests",
+        "test",
         "review",
         "data"
       ]
@@ -2432,6 +2434,42 @@
       "name": "Futuer",
       "avatar_url": "https://avatars.githubusercontent.com/u/57895730?v=4",
       "profile": "https://github.com/futuer-szd",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "IRKnyazev",
+      "name": "Ivan Knyazev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105492484?v=4",
+      "profile": "https://github.com/IRKnyazev",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Cyril-Meyer",
+      "name": "Cyril Meyer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/69190238?v=4",
+      "profile": "https://github.com/Cyril-Meyer",
+      "contributions": [
+        "test"
+      ]
+    },
+    {
+      "login": "Moonzyyy",
+      "name": "Daniele Carli",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47296443?v=4",
+      "profile": "https://github.com/Moonzyyy",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "adm-unl",
+      "name": "Adam Unal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143117979?v=4",
+      "profile": "https://github.com/adm-unl",
       "contributions": [
         "doc"
       ]

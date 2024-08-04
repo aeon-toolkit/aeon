@@ -1,6 +1,6 @@
-"""Encoder Classifier."""
+"""Encoder Network (EncoderNetwork)."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepLearningNetwork
 
@@ -45,7 +45,11 @@ class EncoderNetwork(BaseDeepLearningNetwork):
 
     """
 
-    _tags = {"python_dependencies": ["tensorflow", "tensorflow_addons"]}
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.12",
+        "structure": "encoder",
+    }
 
     def __init__(
         self,
@@ -84,7 +88,8 @@ class EncoderNetwork(BaseDeepLearningNetwork):
         output_layer : a keras layer
         """
         import tensorflow as tf
-        import tensorflow_addons as tfa
+
+        tf.keras.config.enable_unsafe_deserialization()
 
         self._kernel_size = (
             [5, 11, 21] if self.kernel_size is None else self.kernel_size
@@ -103,7 +108,7 @@ class EncoderNetwork(BaseDeepLearningNetwork):
                 strides=self.strides,
             )(x)
 
-            conv = tfa.layers.InstanceNormalization()(conv)
+            conv = tf.keras.layers.GroupNormalization(groups=-1)(conv)
             conv = tf.keras.layers.PReLU(shared_axes=[1])(conv)
             conv = tf.keras.layers.Dropout(self.dropout_proba)(conv)
 
@@ -134,7 +139,7 @@ class EncoderNetwork(BaseDeepLearningNetwork):
         hidden_fc_layer = tf.keras.layers.Dense(
             units=self.fc_units, activation=self.activation
         )(attention)
-        hidden_fc_layer = tfa.layers.InstanceNormalization()(hidden_fc_layer)
+        hidden_fc_layer = tf.keras.layers.GroupNormalization(groups=-1)(hidden_fc_layer)
 
         # output layer before classification layer
 

@@ -12,8 +12,6 @@ package. If you want help with scikit-learn you may want to view
 the very latest algorithms for time series machine learning, in addition to a range of
 classical techniques for the following learning tasks:
 
-- {term}`Forecasting` where the goal is to predict future values of a target time
-series.
 - {term}`Time series classification` where the time series data for a given instance
 are used to predict a categorical target class.
 - {term}`Time series extrinsic regression` where the time series data for a given
@@ -74,15 +72,14 @@ Quarter
 1971 Q1     1.897371  1.987154    1.909734  3.657771          -0.1
 ```
 
-We commonly refer to the number of observations for a time series as `n_timepoints` or
-`n_timepoints`. If a series is multivariate, we refer to the dimensions as channels
+We commonly refer to the number of observations for a time series as `n_timepoints`. If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`.
 Dimensions may also be referred to as variables.
 
 Different parts of `aeon` work with single series or collections of series. The
-`forecasting` module will commonly use single series input, while
+`anomaly detection` and `segmentation` modules will commonly use single series input, while
 `classification`, `regression` and `clustering` modules will use collections of time
-series. Collections of time series may also be referred to a Panels. Collections of
+series. Collections of time series may also be referred to as Panels. Collections of
 time series will often be accompanied by an array of target variables.
 
 ```{code-block} python
@@ -130,63 +127,6 @@ store time series data.
 >>> X4[0].shape
 (12, 20)
 ```
-
-## Forecasting
-
-The possible use cases for forecasting are more complex than with the other modules.
-Like `scikit-learn`, forecasters use a fit and predict model, but the arguments are
-different. The simplest forecasting use case is when you have a single series and you
-want to build a model on that series (e.g. ARMA model) to predict values in the
-future. At their most basic, forecasters require a series to forecast for fit, and a
-forecast horizon (`fh`) to specify how many time steps ahead to make a forecast in
-predict. This code fits a [TrendForecaster](forecasting.trend.TrendForecaster) on our
-loaded data and predicts the next value in the series.
-
-```{code-block} python
->>> from aeon.datasets import load_airline
->>> from aeon.forecasting.trend import TrendForecaster
->>> y = load_airline()
->>> forecaster = TrendForecaster()
->>> forecaster.fit(y)  # fit the forecaster
-TrendForecaster()
->>> pred = forecaster.predict(fh=1)  # predict the next value
-1961-01    472.944444
-Freq: M, dtype: float64
-```
-
-An integer `fh` value will forecast *n* points into the future, i.e. a value of 3
-will make a prediction for 1961-03. You can predict multiple points into the future by
-passing a list of integers to `fh`.
-
-```{code-block} python
->>> pred = forecaster.predict(fh=[1,2,3])  # predict the next 3 values
-1961-01    472.944444
-1961-02    475.601628
-1961-03    478.258812
-Freq: M, dtype: float64
-```
-
-You can split a series into train and test partitions. This code splits airline into
-two parts, builds the forecasting model on the train portion and makes forecasts for
-the time points represented in the test segment. In this example we use a
-[ForecastingHorizon](forecasting.base.ForecastingHorizon) object to input our desired
-forecast horizon using the Series index.
-
-```{code-block} python
->>> from aeon.forecasting.model_selection import temporal_train_test_split
->>> from aeon.forecasting.base import ForecastingHorizon
->>> from aeon.performance_metrics.forecasting import mean_absolute_percentage_error
->>> y_train, y_test = temporal_train_test_split(y)  # split the data into train and test series
->>> fh = ForecastingHorizon(y_test.index, is_relative=False)
->>> forecaster.fit(y_train)  # fit the forecaster on train series
->>> y_pred = forecaster.predict(fh)  # predict the test series time stamps
->>> mean_absolute_percentage_error(y_test, y_pred)
-0.11725953222644162
-```
-
-`aeon` has a rich functionality for forecasting, and supports a wide variety of use
-cases. To find out more about forecasting in `aeon`, you can explore through the
-extensive [user guide notebook](./examples/forecasting/forecasting.ipynb).
 
 ## Time Series Classification (TSC)
 

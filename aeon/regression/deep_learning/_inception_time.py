@@ -1,6 +1,6 @@
-"""InceptionTime regressor."""
+"""InceptionTime and Inception regressors."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["InceptionTimeRegressor"]
 
 import gc
@@ -107,6 +107,8 @@ class InceptionTimeRegressor(BaseRegressor):
             Whether or not to save the last model, last
             epoch trained, using the base class method
             save_last_model_to_file
+        save_init_model : bool, default = False
+            Whether to save the initialization of the  model.
         best_file_name      : str, default = "best_model"
             The name of the file of the best model, if
             save_best_model is set to False, this parameter
@@ -115,6 +117,9 @@ class InceptionTimeRegressor(BaseRegressor):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
+        init_file_name : str, default = "init_model"
+            The name of the file of the init model, if save_init_model is set to False,
+            this parameter is discarded.
         random_state : int, RandomState instance or None, default=None
             If `int`, random_state is the seed used by the random number generator;
             If `RandomState` instance, random_state is the random number generator;
@@ -187,8 +192,10 @@ class InceptionTimeRegressor(BaseRegressor):
         file_path="./",
         save_last_model=False,
         save_best_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -223,8 +230,10 @@ class InceptionTimeRegressor(BaseRegressor):
 
         self.save_last_model = save_last_model
         self.save_best_model = save_best_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -275,8 +284,10 @@ class InceptionTimeRegressor(BaseRegressor):
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
+                save_init_model=self.save_init_model,
                 best_file_name=self.best_file_name + str(n),
                 last_file_name=self.last_file_name + str(n),
+                init_file_name=self.init_file_name + str(n),
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
                 n_epochs=self.n_epochs,
@@ -424,6 +435,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             Whether or not to save the last model, last
             epoch trained, using the base class method
             save_last_model_to_file
+        save_init_model : bool, default = False
+            Whether to save the initialization of the  model.
         best_file_name      : str, default = "best_model"
             The name of the file of the best model, if
             save_best_model is set to False, this parameter
@@ -432,6 +445,9 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
             is discarded
+        init_file_name : str, default = "init_model"
+            The name of the file of the init model, if save_init_model is set to False,
+            this parameter is discarded.
         random_state : int, RandomState instance or None, default=None
             If `int`, random_state is the seed used by the random number generator;
             If `RandomState` instance, random_state is the random number generator;
@@ -492,8 +508,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -526,7 +544,9 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -626,6 +646,9 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             mini_batch_size = self.batch_size
         self.training_model_ = self.build_model(self.input_shape_)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -633,8 +656,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
@@ -644,9 +667,12 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         self.history = self.training_model_.fit(
             X,

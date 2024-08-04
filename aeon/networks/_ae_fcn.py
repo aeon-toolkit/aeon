@@ -1,6 +1,6 @@
 """Auto-Encoder using Fully Convolutional Network (FCN)."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 
 import numpy as np
 
@@ -55,6 +55,12 @@ class AEFCNNetwork(BaseDeepLearningNetwork):
       organization={IEEE}
     }
     """
+
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.12",
+        "structure": "auto-encoder",
+    }
 
     def __init__(
         self,

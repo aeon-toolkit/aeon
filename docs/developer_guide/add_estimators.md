@@ -86,7 +86,7 @@ with parameters that are nested structures containing estimators
 ### Using the `check_estimator` utility
 
 Usually, the simplest way to test complaince with `aeon` is via the `check_estimator`
-methods in the `utils.estimator_checks` module.
+methods in the `utils.estimator_checking` module.
 
 When invoked, this will collect tests in `aeon` relevant for the estimator type and
 run them on the estimator.
@@ -95,7 +95,7 @@ This can be used for manual debugging in a notebook environment. Example of runn
 full test suite for `NaiveForecaster`:
 
 ```{code-block} powershell
-from aeon.testing.estimator_checks import check_estimator
+from aeon.testing.estimator_checking import check_estimator
 from aeon.forecasting.naive import NaiveForecaster
 check_estimator(NaiveForecaster)
 ```
