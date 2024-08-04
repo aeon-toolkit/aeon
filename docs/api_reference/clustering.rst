@@ -20,6 +20,7 @@ Deep learning
 
     BaseDeepClusterer
     AEFCNClusterer
+    AEResNetClusterer
 
 Clustering Algorithms
 ---------------------
