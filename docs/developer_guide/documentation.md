@@ -125,7 +125,26 @@ pip install .[docs]
 
 ```{code-block} powershell
 cd docs
-make html
+sphinx-apidoc -o docs/ ../
 ```
 
-You may need to install pandoc to build the documentation locally.
+NOTES:
+- This will auto-generate documentation by recursively travelling through the modules of `aeon` as static `.rst` files by parsing the docstrings. Hence, make sure your contribution is accessible through `__all__` if it exists.
+- Whenever you write new documentation, for example a class, mention it in the `docs/api_reference`.
+- Whenever you write new documentation, rerun `sphinx-apidoc` command after deleting the old generated files.
+
+3. To make the documentation, run:
+
+```{code-block} powershell
+make html
+cd _build/html
+```
+
+This will generate html documentation in `docs/_build/html`. Navigate to the `html` folder.
+
+4. To start an HTTP Server, run:
+
+```{code-block} powershell
+python -m http.server
+```
+This will start an HTTP Server and your docs will be visible
