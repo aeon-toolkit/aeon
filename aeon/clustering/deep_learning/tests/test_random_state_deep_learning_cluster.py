@@ -23,7 +23,7 @@ _deep_clr_classes = [
 @pytest.mark.parametrize("deep_clr", _deep_clr_classes)
 def test_random_state_deep_learning_clr(deep_clr):
     """Test Deep Clusterer seeding."""
-    if not (deep_clr in ["BaseDeepClusterer"]):
+    if not (deep_clr.__name__ in ["BaseDeepClusterer"]):
         random_state = 42
 
         X, _ = make_example_3d_numpy(random_state=random_state)
