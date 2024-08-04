@@ -89,8 +89,6 @@ class EncoderNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        tf.keras.config.enable_unsafe_deserialization()
-
         self._kernel_size = (
             [5, 11, 21] if self.kernel_size is None else self.kernel_size
         )

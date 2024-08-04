@@ -749,9 +749,13 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         param1 = {
             "n_epochs": 10,
             "batch_size": 4,
-            "kernel_size": 4,
+            "depth": 1,
+            "kernel_size": 2,
+            "n_filters": 1,
+            "n_conv_per_layer": 1,
             "use_residual": False,
-            "use_bottleneck": True,
+            "use_bottleneck": False,
+            "use_max_pooling": False,
             "depth": 1,
             "use_custom_filters": False,
         }
