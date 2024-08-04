@@ -331,15 +331,16 @@ class AEFCNClusterer(BaseDeepClusterer):
             "batch_size": 4,
             "use_bias": False,
             "n_layers": 1,
-            "n_filters": 5,
-            "kernel_size": 3,
+            "n_filters": 4,
+            "kernel_size": 2,
             "padding": "same",
             "strides": 1,
+            "latent_space_dim": 4,
             "clustering_params": {
                 "distance": "euclidean",
                 "averaging_method": "mean",
                 "n_init": 1,
-                "max_iter": 30,
+                "max_iter": 2,
             },
         }
 
