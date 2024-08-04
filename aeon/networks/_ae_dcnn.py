@@ -231,7 +231,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         y = input_layer_decoder
 
         for i in range(0, self.num_layers_decoder):
-            y = self._dcnn_layer(
+            y = self._dcnn_layer_decoder(
                 y,
                 self._num_filters_decoder[i],
                 self._dilation_rate_decoder[i],
@@ -263,6 +263,31 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
             padding="causal",
+            kernel_regularizer="l2",
+            activation=_activation,
+        )(x)
+        output = tf.keras.layers.Add()([x, _add])
+        return output
+
+    def _dcnn_layer_decoder(
+        self, _inputs, _num_filters, _dilation_rate, _activation, _kernel_size
+    ):
+        import tensorflow as tf
+
+        _add = tf.keras.layers.Conv1DTranspose(_num_filters, kernel_size=1)(_inputs)
+        x = tf.keras.layers.Conv1DTranspose(
+            _num_filters,
+            kernel_size=_kernel_size,
+            dilation_rate=_dilation_rate,
+            padding="same",
+            kernel_regularizer="l2",
+            activation=_activation,
+        )(_inputs)
+        x = tf.keras.layers.Conv1DTranspose(
+            _num_filters,
+            kernel_size=_kernel_size,
+            dilation_rate=_dilation_rate,
+            padding="same",
             kernel_regularizer="l2",
             activation=_activation,
         )(x)
