@@ -3,6 +3,7 @@
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
+
 class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     """
     A class to implement an Auto-Encoder based on Attention Bidirectional GRUs.
