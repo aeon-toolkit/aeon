@@ -7,7 +7,6 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.datetime import _get_duration, _get_freq
@@ -66,12 +65,6 @@ def autocorrelation_seasonality_test(y, sp):
         return np.abs(coef) > limit
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="Deseasonalizer will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class Deseasonalizer(BaseTransformer):
     """Remove seasonal components from a time series.
 
@@ -110,14 +103,6 @@ class Deseasonalizer(BaseTransformer):
     `Forecasting: Principles and Practice <https://otexts.com/fpp3/components.html>`_.
     Seasonal decomposition is computed using `statsmodels
     <https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.seasonal_decompose.html>`_.
-
-    Examples
-    --------
-    >>> from aeon.transformations.detrend import Deseasonalizer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()  # doctest: +SKIP
-    >>> transformer = Deseasonalizer()  # doctest: +SKIP
-    >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
     """
 
     _tags = {
@@ -291,12 +276,6 @@ class Deseasonalizer(BaseTransformer):
         return [params, params2]
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="ConditionalDeseasonalizer will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class ConditionalDeseasonalizer(Deseasonalizer):
     """Remove seasonal components from time series, conditional on seasonality test.
 
@@ -344,14 +323,6 @@ class ConditionalDeseasonalizer(Deseasonalizer):
     `Forecasting: Principles and Practice <https://otexts.com/fpp3/components.html>`_.
     Seasonal decomposition is computed using `statsmodels
     <https://www.statsmodels.org/stable/generated/statsmodels.tsa.seasonal.seasonal_decompose.html>`_.
-
-    Examples
-    --------
-    >>> from aeon.transformations.detrend import ConditionalDeseasonalizer
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()  # doctest: +SKIP
-    >>> transformer = ConditionalDeseasonalizer(sp=12)  # doctest: +SKIP
-    >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
     """
 
     def __init__(self, seasonality_test=None, sp=1, model="additive"):
@@ -423,12 +394,6 @@ class ConditionalDeseasonalizer(Deseasonalizer):
         return self
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="STLTransformer will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class STLTransformer(BaseTransformer):
     """Remove seasonal components from a time-series using STL.
 
@@ -509,14 +474,6 @@ class STLTransformer(BaseTransformer):
     References
     ----------
     .. [1] https://www.statsmodels.org/devel/generated/statsmodels.tsa.seasonal.STL.html
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.transformations.detrend import STLTransformer
-    >>> X = load_airline()  # doctest: +SKIP
-    >>> transformer = STLTransformer(sp=12)  # doctest: +SKIP
-    >>> Xt = transformer.fit_transform(X)  # doctest: +SKIP
     """
 
     _tags = {

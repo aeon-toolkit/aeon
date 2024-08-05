@@ -11,8 +11,8 @@ import pandas as pd
 from numpy.linalg import inv
 
 from aeon.forecasting.base import BaseForecaster, ForecastingHorizon
-from aeon.transformations.hierarchical.aggregate import _check_index_no_total
-from aeon.transformations.hierarchical.reconcile import (
+from aeon.transformations._legacy.aggregate import _check_index_no_total
+from aeon.transformations._legacy.reconcile import (
     Reconciler,
     _get_s_matrix,
     _parent_child_df,
@@ -55,25 +55,6 @@ class ReconcilerForecaster(BaseForecaster):
     References
     ----------
     .. [1] https://otexts.com/fpp3/hierarchical.html
-
-    Examples
-    --------
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.forecasting.reconcile import ReconcilerForecaster
-    >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.testing.data_generation import _bottom_hier_datagen
-    >>> agg = Aggregator()
-    >>> y = _bottom_hier_datagen(
-    ...     no_bottom_nodes=3,
-    ...     no_levels=1,
-    ...     random_seed=123,
-    ... )
-    >>> y = agg.fit_transform(y)
-    >>> forecaster = NaiveForecaster(strategy="drift")
-    >>> reconciler = ReconcilerForecaster(forecaster, method="mint_shrink")
-    >>> reconciler.fit(y)
-    ReconcilerForecaster(...)
-    >>> prds_recon = reconciler.predict(fh=[1])
     """
 
     _tags = {
@@ -110,7 +91,7 @@ class ReconcilerForecaster(BaseForecaster):
 
     def _add_totals(self, y):
         """Add total levels to y, using Aggregate."""
-        from aeon.transformations.hierarchical.aggregate import Aggregator
+        from aeon.transformations._legacy.aggregate import Aggregator
 
         return Aggregator().fit_transform(y)
 
