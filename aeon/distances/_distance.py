@@ -161,13 +161,7 @@ def distance(
     elif metric == "minkowski":
         return minkowski_distance(x, y, kwargs.get("p", 2.0), kwargs.get("w", None))
     elif metric == "dtw":
-        return dtw_distance(
-            x,
-            y,
-            kwargs.get("window"),
-            kwargs.get("p", 2.0),
-            kwargs.get("itakura_max_slope"),
-        )
+        return dtw_distance(x, y, kwargs.get("window"), kwargs.get("itakura_max_slope"))
     elif metric == "ddtw":
         return ddtw_distance(
             x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
@@ -336,11 +330,7 @@ def pairwise_distance(
         )
     elif metric == "dtw":
         return dtw_pairwise_distance(
-            x,
-            y,
-            kwargs.get("window"),
-            kwargs.get("p", 2.0),
-            kwargs.get("itakura_max_slope"),
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
         )
     elif metric == "shape_dtw":
         return shape_dtw_pairwise_distance(
@@ -534,11 +524,7 @@ def alignment_path(
     """
     if metric == "dtw":
         return dtw_alignment_path(
-            x,
-            y,
-            kwargs.get("window"),
-            kwargs.get("p", 2.0),
-            kwargs.get("itakura_max_slope"),
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
         )
     elif metric == "shape_dtw":
         return shape_dtw_alignment_path(
@@ -681,11 +667,7 @@ def cost_matrix(
     """
     if metric == "dtw":
         return dtw_cost_matrix(
-            x,
-            y,
-            kwargs.get("window"),
-            kwargs.get("p", 2.0),
-            kwargs.get("itakura_max_slope"),
+            x, y, kwargs.get("window"), kwargs.get("itakura_max_slope")
         )
     elif metric == "shape_dtw":
         return shape_dtw_cost_matrix(
