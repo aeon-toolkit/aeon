@@ -43,17 +43,6 @@ Transformations are categorized as follows:
 Composition
 -----------
 
-Pipeline building
-~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.func_transform
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FunctionTransformer
-
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -229,18 +218,6 @@ Segmentation
     RandomIntervalSegmenter
     SlidingWindowSegmenter
 
-Missing value imputation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.impute
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Imputer
-
-
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -253,20 +230,6 @@ These transformers create a series based on a sequence of sliding windows.
     :template: class.rst
 
     HOG1DTransformer
-
-
-FeatureSelection
-~~~~~~~~~~~~~~~~
-
-These transformers select features in `X` based on `y`.
-
-.. currentmodule:: aeon.transformations.feature_selection
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FeatureSelection
 
 .. currentmodule:: aeon.transformations.collection.channel_selection
 
