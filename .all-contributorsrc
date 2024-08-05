@@ -2453,7 +2453,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/69190238?v=4",
       "profile": "https://github.com/Cyril-Meyer",
       "contributions": [
-        "test"
+        "test",
+        "doc"
       ]
     },
     {
@@ -2470,6 +2471,15 @@
       "name": "Adam Unal",
       "avatar_url": "https://avatars.githubusercontent.com/u/143117979?v=4",
       "profile": "https://github.com/adm-unl",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Datadote",
+      "name": "Daniel L.",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30182852?v=4",
+      "profile": "https://www.linkedin.com/in/dnylam/",
       "contributions": [
         "doc"
       ]

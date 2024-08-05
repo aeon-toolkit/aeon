@@ -12,8 +12,8 @@ import pandas as pd
 from deprecated.sphinx import deprecated
 from numpy.linalg import inv
 
+from aeon.transformations._legacy.aggregate import _check_index_no_total
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.hierarchical.aggregate import _check_index_no_total
 
 
 # TODO: remove in v0.11.0
@@ -54,27 +54,6 @@ class Reconciler(BaseTransformer):
     References
     ----------
     .. [1] https://otexts.com/fpp3/hierarchical.html
-
-    Examples
-    --------
-    >>> from aeon.forecasting.trend import PolynomialTrendForecaster
-    >>> from aeon.transformations.hierarchical.reconcile import Reconciler
-    >>> from aeon.transformations.hierarchical.aggregate import Aggregator
-    >>> from aeon.testing.data_generation import _bottom_hier_datagen
-    >>> agg = Aggregator()
-    >>> y = _bottom_hier_datagen(
-    ...     no_bottom_nodes=3,
-    ...     no_levels=1,
-    ...     random_seed=123,
-    ... )
-    >>> y = agg.fit_transform(y)
-    >>> forecaster = PolynomialTrendForecaster()
-    >>> forecaster.fit(y)
-    PolynomialTrendForecaster(...)
-    >>> prds = forecaster.predict(fh=[1])
-    >>> # reconcile forecasts
-    >>> reconciler = Reconciler(method="ols")
-    >>> prds_recon = reconciler.fit_transform(prds)
     """
 
     _tags = {
@@ -107,7 +86,7 @@ class Reconciler(BaseTransformer):
 
     def _add_totals(self, X):
         """Add total levels to X, using Aggregate."""
-        from aeon.transformations.hierarchical.aggregate import Aggregator
+        from aeon.transformations._legacy.aggregate import Aggregator
 
         return Aggregator().fit_transform(X)
 
