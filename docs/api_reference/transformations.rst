@@ -177,17 +177,6 @@ Depending on the transformer, the transformation parameters can be fitted.
 Detrending
 ~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.detrend
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Detrender
-    Deseasonalizer
-    ConditionalDeseasonalizer
-    STLTransformer
-
 .. currentmodule:: aeon.transformations.series._clear_sky
 
 .. autosummary::
@@ -239,18 +228,6 @@ Segmentation
     IntervalSegmenter
     RandomIntervalSegmenter
     SlidingWindowSegmenter
-
-Missing value imputation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.impute
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Imputer
-
 
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -346,26 +323,3 @@ Outlier detection, changepoint detection
     :template: class.rst
 
     ClaSPTransformer
-
-Hierarchical transformers
--------------------------
-
-These transformers are specifically for hierarchical data and panel data.
-
-The transformation depends on the specified hierarchy in a non-trivial way.
-
-.. currentmodule:: aeon.transformations.hierarchical.aggregate
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Aggregator
-
-.. currentmodule:: aeon.transformations.hierarchical.reconcile
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Reconciler

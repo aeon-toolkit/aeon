@@ -5,7 +5,6 @@ __all__ = ["Imputer"]
 
 
 import numpy as np
-from deprecated.sphinx import deprecated
 from sklearn.utils import check_random_state
 
 from aeon.forecasting.base import ForecastingHorizon
@@ -13,12 +12,6 @@ from aeon.forecasting.trend import PolynomialTrendForecaster
 from aeon.transformations.base import BaseTransformer
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="Imputer will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class Imputer(BaseTransformer):
     """Missing value imputation.
 
@@ -70,19 +63,6 @@ class Imputer(BaseTransformer):
         method="forecaster" is set, otherwise forecaster is ignored.
     random_state : int/float/str, optional
         Value to set random.seed() if method="random", default None
-
-    Examples
-    --------
-    >>> from aeon.transformations.impute import Imputer
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.forecasting.model_selection import temporal_train_test_split
-    >>> y = load_airline()
-    >>> y_train, y_test = temporal_train_test_split(y)
-    >>> transformer = Imputer(method="drift")
-    >>> transformer.fit(y_train)
-    Imputer(...)
-    >>> y_test.iloc[3] = np.nan
-    >>> y_hat = transformer.transform(y_test)
     """
 
     _tags = {
