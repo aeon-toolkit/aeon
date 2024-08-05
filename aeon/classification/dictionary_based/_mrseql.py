@@ -1,6 +1,6 @@
 """Multiple Representations Sequence Learning (MrSEQL) Classifier."""
 
-__maintainer__ = ["MatthewMiddlehurst"]
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["MrSEQLClassifier"]
 
 from typing import List, Union
@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.classification import BaseClassifier
+
 
 def _from_numpy3d_to_nested_dataframe(X):
     """Convert numpy3D collection to a pd.DataFrame where each cell is a series."""
@@ -28,9 +29,10 @@ def _from_numpy3d_to_nested_dataframe(X):
     df = pd.concat(column_list, axis=1)
     return df
 
+
 class MrSEQLClassifier(BaseClassifier):
     """
-    ?
+    Multiple Representations Sequence Learning (MrSEQL) Classifier.
 
     Parameters
     ----------
@@ -46,7 +48,7 @@ class MrSEQLClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.shapelet_based import MrSEQLClassifier
+    >>> from aeon.classification.dictionary_based import MrSEQLClassifier
     >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(random_state=0)
     >>> clf = MrSEQLClassifier(random_state=0) # doctest: +SKIP
@@ -61,11 +63,10 @@ class MrSEQLClassifier(BaseClassifier):
         "python_dependencies": "mrseql",
     }
 
-    def __init__(
-        self,
-        ?
-    ) -> None:
-        ?
+    def __init__(self, seql_mode="fs", symrep=("sax"), custom_config=None) -> None:
+        self.seql_mode = seql_mode
+        self.symrep = symrep
+        self.custom_config = custom_config
 
         super().__init__()
 
@@ -75,7 +76,9 @@ class MrSEQLClassifier(BaseClassifier):
         _X = _from_numpy3d_to_nested_dataframe(X)
 
         self.clf_ = MrSEQLClassifier(
-            ?
+            seql_mode=self.seql_mode,
+            symrep=self.symrep,
+            custom_config=self.custom_config,
         )
         self.clf_.fit(_X, y)
 
@@ -111,6 +114,4 @@ class MrSEQLClassifier(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {
-            ?
-        }
+        return {}
