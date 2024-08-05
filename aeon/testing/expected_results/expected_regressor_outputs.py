@@ -25,18 +25,7 @@ covid_3month_preds["FreshPRINCERegressor"] = np.array(
 )
 
 covid_3month_preds["Catch22Regressor"] = np.array(
-    [
-        0.0302,
-        0.0354,
-        0.0352,
-        0.0345,
-        0.0259,
-        0.0484,
-        0.0369,
-        0.0827,
-        0.0737,
-        0.0526,
-    ]
+    [0.0310, 0.0555, 0.0193, 0.0359, 0.0261, 0.0361, 0.0387, 0.0835, 0.0827, 0.0414]
 )
 
 covid_3month_preds["RandomForestRegressor"] = np.array(
@@ -131,33 +120,11 @@ covid_3month_preds["KNeighborsTimeSeriesRegressor"] = np.array(
 )
 
 covid_3month_preds["CanonicalIntervalForestRegressor"] = np.array(
-    [
-        0.049,
-        0.04,
-        0.0299,
-        0.0352,
-        0.0423,
-        0.0315,
-        0.0519,
-        0.0605,
-        0.0647,
-        0.037,
-    ]
+    [0.0412, 0.0420, 0.0292, 0.0202, 0.0432, 0.0192, 0.0155, 0.0543, 0.0412, 0.0399]
 )
 
 covid_3month_preds["DrCIFRegressor"] = np.array(
-    [
-        0.0302,
-        0.0778,
-        0.0272,
-        0.03,
-        0.0405,
-        0.0388,
-        0.0351,
-        0.093,
-        0.1041,
-        0.0263,
-    ]
+    [0.0376, 0.0317, 0.0274, 0.0143, 0.0332, 0.0397, 0.0386, 0.0721, 0.0632, 0.0211]
 )
 
 covid_3month_preds["RandomIntervalRegressor"] = np.array(
@@ -252,16 +219,16 @@ cardano_sentiment_preds["FreshPRINCERegressor"] = np.array(
 
 cardano_sentiment_preds["Catch22Regressor"] = np.array(
     [
-        0.2174,
-        0.1394,
-        0.3623,
-        0.1496,
-        0.3502,
-        0.2719,
-        0.1378,
-        0.076,
-        0.0587,
-        0.3773,
+        0.2537,
+        0.1417,
+        0.2980,
+        0.1324,
+        0.3519,
+        0.1919,
+        0.1790,
+        0.1295,
+        0.1644,
+        0.3836,
     ]
 )
 
@@ -341,48 +308,15 @@ cardano_sentiment_preds["KNeighborsTimeSeriesRegressor"] = np.array(
 )
 
 cardano_sentiment_preds["RISTRegressor"] = np.array(
-    [
-        0.3002,
-        0.3174,
-        0.718,
-        0.089,
-        0.4002,
-        0.0825,
-        0.5342,
-        0.0,
-        0.3503,
-        0.448,
-    ]
+    [0.0825, 0.1924, 0.7180, 0.0413, 0.4840, 0.0825, 0.2336, 0.0000, 0.0413, 0.2814]
 )
 
 cardano_sentiment_preds["CanonicalIntervalForestRegressor"] = np.array(
-    [
-        0.276,
-        0.1466,
-        0.282,
-        0.205,
-        0.125,
-        0.0111,
-        0.3672,
-        0.0677,
-        0.1773,
-        0.2586,
-    ]
+    [0.2546, 0.1796, 0.3423, 0.2016, 0.2369, 0.3178, 0.2051, 0.2286, 0.1956, 0.2452]
 )
 
 cardano_sentiment_preds["DrCIFRegressor"] = np.array(
-    [
-        0.2361,
-        0.2222,
-        0.2046,
-        0.1709,
-        0.2462,
-        0.2369,
-        0.1916,
-        0.1995,
-        0.0407,
-        0.1428,
-    ]
+    [0.2569, 0.2196, 0.2948, 0.2677, 0.0829, 0.0677, 0.1584, 0.1840, 0.0498, 0.1383]
 )
 
 cardano_sentiment_preds["IntervalForestRegressor"] = np.array(
