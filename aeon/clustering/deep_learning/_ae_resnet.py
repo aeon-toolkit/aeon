@@ -355,12 +355,8 @@ class AEResNetClusterer(BaseDeepClusterer):
             "n_filters": 1,
             "kernel_size": 2,
             "use_bias": False,
-            "clustering_params": {
-                "distance": "euclidean",
-                "averaging_method": "mean",
-                "n_init": 1,
-                "max_iter": 2,
-            },
+            "clustering_algorithm": "dummy",
+            "clustering_params": {"strategy": "random"},
         }
 
         test_params = [param]

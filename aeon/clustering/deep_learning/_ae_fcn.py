@@ -336,12 +336,8 @@ class AEFCNClusterer(BaseDeepClusterer):
             "padding": "same",
             "strides": 1,
             "latent_space_dim": 4,
-            "clustering_params": {
-                "distance": "euclidean",
-                "averaging_method": "mean",
-                "n_init": 1,
-                "max_iter": 2,
-            },
+            "clustering_algorithm": "dummy",
+            "clustering_params": {"strategy": "random"},
         }
 
         return [param1]
