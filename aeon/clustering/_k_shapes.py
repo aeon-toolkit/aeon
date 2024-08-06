@@ -187,11 +187,11 @@ class TimeSeriesKShape(BaseClusterer):
         return np.abs(self.inertia_)
 
 
-# TODO: remove in v0.12.0
+# TODO: remove in v1.0.0
 @deprecated(
-    version="0.10.0",
-    reason="TimeSeriesKShapes class has been renamed to TimeSeriesKShape and "
-    "will be removed in v0.12.0.",
+    version="1.0.0",
+    reason="TimeSeriesKShapes class has been renamed to TimeSeriesKShape. "
+    "The TimeSeriesKShapes version will be removed in version 1.0.0.",
     category=FutureWarning,
 )
 class TimeSeriesKShapes(BaseClusterer):
