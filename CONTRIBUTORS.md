@@ -315,6 +315,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
     <tr>
       <td align="center" valign="top" width="12.5%"><a href="https://github.com/xiaopu222"><img src="https://avatars.githubusercontent.com/u/118000577?v=4?s=80" width="80px;" alt="xiaopu222"/><br /><sub><b>xiaopu222</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=xiaopu222" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="12.5%"><a href="https://github.com/phershbe"><img src="https://avatars2.githubusercontent.com/u/25594870?v=4?s=80" width="80px;" alt="phershbe"/><br /><sub><b>phershbe</b></sub></a><br /><a href="https://github.com/aeon-toolkit/aeon/commits?author=phershbe" title="Documentation">📖</a></td>
     </tr>
   </tbody>
   <tfoot>
