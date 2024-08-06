@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
-from aeon.clustering._k_shapes import TimeSeriesKShape
+from aeon.clustering._k_shape import TimeSeriesKShape
 from aeon.clustering.base import BaseClusterer
 
 

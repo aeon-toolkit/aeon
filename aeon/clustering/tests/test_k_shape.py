@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.clustering._k_shapes import TimeSeriesKShape
+from aeon.clustering._k_shape import TimeSeriesKShape
 from aeon.datasets import load_basic_motions
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
