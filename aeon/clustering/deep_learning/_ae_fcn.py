@@ -273,14 +273,25 @@ class AEFCNClusterer(BaseDeepClusterer):
                 file_name=self.file_name_,
             )
 
-        self.history = self.training_model_.fit(
-            X,
-            X,
-            batch_size=mini_batch_size,
-            epochs=self.n_epochs,
-            verbose=self.verbose,
-            callbacks=self.callbacks_,
-        )
+        if not self.loss == "multi_rec":
+            self.history = self.training_model_.fit(
+                X,
+                X,
+                batch_size=mini_batch_size,
+                epochs=self.n_epochs,
+                verbose=self.verbose,
+                callbacks=self.callbacks_,
+            )
+
+        elif self.loss == "multi_rec":
+            self._fit_multi_rec_model(
+                autoencoder=self.training_model_,
+                inputs=X,
+                outputs=X,
+                batch_size=mini_batch_size,
+                epochs=self.n_epochs,
+                callbacks=self.callbacks_,
+            )
 
         try:
             self.model_ = tf.keras.models.load_model(
@@ -302,6 +313,79 @@ class AEFCNClusterer(BaseDeepClusterer):
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
         return self.clusterer.score(latent_space)
+
+    def _fit_multi_rec_model(
+        self, autoencoder, inputs, outputs, batch_size, epochs, callbacks, optimizer
+    ):
+        import numpy as np
+        import tensorflow as tf
+        from tensorflow.keras import backend as K
+
+        train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
+        train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+
+        def layerwise_mse_loss(autoencoder, inputs, outputs):
+            def loss(y_true, y_pred):
+                # Calculate MSE for each layer in the encoder and decoder
+                mse = 0
+
+                # Encoding layers
+                _encoder_intermediate_outputs = []
+                _decoder_intermediate_outputs = []
+                for i, layer in enumerate(autoencoder.layers):
+                    if i == 0:
+                        _prop = layer(inputs)
+                    else:
+                        _prop = layer(_prop)
+                        if isinstance(layer, tf.keras.layers.Activation):
+                            # Encoder
+                            if len(_encoder_intermediate_outputs) < self.n_layers:
+                                _encoder_intermediate_outputs.append(_prop)
+
+                            # Decoder
+                            else:
+                                _decoder_intermediate_outputs.append(_prop)
+
+                # Throw away the output of encoders last layer
+                _decoder_intermediate_outputs.pop(0)
+
+                _encoder_intermediate_outputs = np.array(_encoder_intermediate_outputs)
+                _decoder_intermediate_outputs = np.array(_decoder_intermediate_outputs)
+
+                assert len(_encoder_intermediate_outputs) == len(
+                    _decoder_intermediate_outputs
+                )
+
+                mse += K.mean(
+                    K.squared(
+                        _encoder_intermediate_outputs - _decoder_intermediate_outputs
+                    )
+                )
+
+                return mse
+
+            return loss
+
+        for _ in range(epochs):
+            for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
+                with tf.GradientTape as tape:
+                    loss = layerwise_mse_loss(
+                        autoencoder=autoencoder,
+                        inputs=x_batch_train,
+                        outputs=y_batch_train,
+                    )
+
+                grads = tape.gradient(loss, autoencoder.trainable_weights)
+                self.optimizer_.apply_gradients(
+                    zip(grads, autoencoder.trainable_weights)
+                )
+
+                if step % 200 == 0:
+                    print(
+                        "Training loss (for one batch) at step %d: %.4f"
+                        % (step, float(loss))
+                    )
+                    print("Seen so far: %d samples" % ((step + 1) * batch_size))
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
