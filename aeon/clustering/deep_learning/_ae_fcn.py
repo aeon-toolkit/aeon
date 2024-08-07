@@ -284,7 +284,7 @@ class AEFCNClusterer(BaseDeepClusterer):
             )
 
         elif self.loss == "multi_rec":
-            self._fit_multi_rec_model(
+            self.history = self._fit_multi_rec_model(
                 autoencoder=self.training_model_,
                 inputs=X,
                 outputs=X,
@@ -324,6 +324,8 @@ class AEFCNClusterer(BaseDeepClusterer):
         train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
         train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
 
+        history = {"loss": []}
+
         def layerwise_mse_loss(autoencoder, inputs, outputs):
             def loss(y_true, y_pred):
                 # Calculate MSE for each layer in the encoder and decoder
@@ -357,7 +359,7 @@ class AEFCNClusterer(BaseDeepClusterer):
                 )
 
                 mse += K.mean(
-                    K.squared(
+                    K.square(
                         _encoder_intermediate_outputs - _decoder_intermediate_outputs
                     )
                 )
@@ -366,9 +368,16 @@ class AEFCNClusterer(BaseDeepClusterer):
 
             return loss
 
-        for _ in range(epochs):
+        # Initialize callbacks
+        for callback in self.callbacks_:
+            callback.set_model(autoencoder)
+            callback.on_train_begin()
+
+        for epoch in range(epochs):
+            epoch_loss = 0
+            num_batches = 0
             for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
-                with tf.GradientTape as tape:
+                with tf.GradientTape() as tape:
                     loss = layerwise_mse_loss(
                         autoencoder=autoencoder,
                         inputs=x_batch_train,
@@ -380,12 +389,31 @@ class AEFCNClusterer(BaseDeepClusterer):
                     zip(grads, autoencoder.trainable_weights)
                 )
 
+                epoch_loss += float(loss)
+                num_batches += 1
+
                 if step % 200 == 0:
                     print(
                         "Training loss (for one batch) at step %d: %.4f"
                         % (step, float(loss))
                     )
                     print("Seen so far: %d samples" % ((step + 1) * batch_size))
+
+                # Update callbacks on batch end
+                for callback in self.callbacks_:
+                    callback.on_batch_end(step, {"loss": float(loss)})
+
+            epoch_loss /= num_batches
+            history["loss"].append(epoch_loss)
+
+            for callback in self.callbacks_:
+                callback.on_epoch_end(epoch, {"loss": float(epoch_loss)})
+
+        # Finalize callbacks
+        for callback in self.callbacks_:
+            callback.on_train_end()
+
+        return history
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
