@@ -49,7 +49,6 @@ def test_classifier_pipeline(transformers):
     c = DummyClassifier()
     pipeline = ClassifierPipeline(transformers=transformers, classifier=c)
     pipeline.fit(X_train, y_train)
-    c.fit(X_train, y_train)
 
     y_pred = pipeline.predict(X_test)
     assert isinstance(y_pred, np.ndarray)
@@ -175,9 +174,11 @@ def test_unequal_tag_inference():
 def test_missing_tag_inference():
     """Test that ClassifierPipeline infers missing data tag correctly."""
     X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    # tags are reset so this causes a crash due to t1
+    # X[5, 0, 4] = np.nan
 
     t1 = MockCollectionTransformer()
-    t1.set_tags(
+    t1 = t1.set_tags(
         **{"capability:missing_values": True, "capability:missing_values:removes": True}
     )
     t2 = TimeSeriesScaler()
