@@ -11,10 +11,12 @@ __all__ = [
     "MUSE",
     "REDCOMETS",
     "MrSQMClassifier",
+    "MrSEQLClassifier",
 ]
 
 from aeon.classification.dictionary_based._boss import BOSSEnsemble, IndividualBOSS
 from aeon.classification.dictionary_based._cboss import ContractableBOSS
+from aeon.classification.dictionary_based._mrseql import MrSEQLClassifier
 from aeon.classification.dictionary_based._mrsqm import MrSQMClassifier
 from aeon.classification.dictionary_based._muse import MUSE
 from aeon.classification.dictionary_based._redcomets import REDCOMETS
