@@ -1,5 +1,7 @@
 """Helper and common function for similarity search distance profiles."""
 
+__maintainer__ = ["baraline"]
+
 import numpy as np
 from scipy.signal import convolve
 

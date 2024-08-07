@@ -1,4 +1,4 @@
-"""Base class for similarity search."""
+"""Base class for query search."""
 
 __maintainer__ = ["baraline"]
 
@@ -61,7 +61,7 @@ class QuerySearch(BaseSimilaritySearch):
         Which speed up technique to use with for the selected distance
         function. By default, the fastest algorithm is used. A list of available
         algorithm for each distance can be obtained by calling the
-        `get_speedup_function_names` function of the child classes.
+        `get_speedup_function_names` function.
     inverse_distance : bool, default=False
         If True, the matching will be made on the inverse of the distance, and thus, the
         worst matches to the query will be returned instead of the best ones.
@@ -137,7 +137,6 @@ class QuerySearch(BaseSimilaritySearch):
         self
 
         """
-        # In the basic query search, we use the whole input as search space for predict.
         self.X_ = X
         self.distance_profile_function_ = self._get_distance_profile_function()
         return self
@@ -200,12 +199,11 @@ class QuerySearch(BaseSimilaritySearch):
 
         Returns
         -------
-        array, shape (n_matches, 2)
-            An array containing the indexes of the matches between X and X_.
-            The decision of wheter a candidate of size query_length from X_ is matched
-            with X depends on the subclasses that implent the _predict method
-            (e.g. top-k, threshold, ...). The first index for each match is the sample
-            id, the second is the timestamp id.
+        tuple (array, array)
+            A tuple contrainign two arrays. The first one contains the distances of the
+            best matches between X and X_. The second one contains the indexes of the
+            matches between X and X_. The first value for each match is the sample
+            index in X_, the second is the timepoint index.
 
         """
         prev_threads = get_num_threads()
@@ -262,8 +260,10 @@ class QuerySearch(BaseSimilaritySearch):
 
         Returns
         -------
-        array
-            An array containing the indexes of the best k matches between q and _X.
+        tuple (array, array)
+            A tuple containing two arrays, the first contains the distance of the
+            best matches and the second containing the indexes of the best
+            matches in _X.
 
         """
         if self.store_distance_profiles:
@@ -288,11 +288,11 @@ class QuerySearch(BaseSimilaritySearch):
         if self.threshold != np.inf:
             distance_profiles[distance_profiles > self.threshold] = np.inf
 
-        _argsort = distance_profiles.argsort()
+        _argsort_1d = distance_profiles.argsort()
         _argsort = np.asarray(
             [
-                [id_samples[_argsort[i]], id_timestamps[_argsort[i]]]
-                for i in range(len(_argsort))
+                [id_samples[_argsort_1d[i]], id_timestamps[_argsort_1d[i]]]
+                for i in range(len(_argsort_1d))
             ],
             dtype=int,
         )
@@ -315,11 +315,14 @@ class QuerySearch(BaseSimilaritySearch):
             _k = self.k
 
         if exclusion_size is None:
-            return _argsort[:_k]
+            return distance_profiles[_argsort_1d[:_k]], _argsort[:_k]
         else:
             # Apply exclusion zone to avoid neighboring matches
             top_k = np.zeros((_k, 2), dtype=int)
+            top_k_dist = np.zeros((_k), dtype=float)
+
             top_k[0] = _argsort[0, :]
+            top_k_dist[0] = distance_profiles[_argsort_1d[0]]
 
             n_inserted = 1
             i_current = 1
@@ -341,10 +344,10 @@ class QuerySearch(BaseSimilaritySearch):
 
                 if insert:
                     top_k[n_inserted] = _argsort[i_current]
+                    top_k_dist[n_inserted] = distance_profiles[_argsort_1d[i_current]]
                     n_inserted += 1
                 i_current += 1
-
-            return top_k[:n_inserted]
+            return top_k_dist[:n_inserted], top_k[:n_inserted]
 
     def _init_X_index_mask(
         self, X_index, query_dim, query_length, exclusion_factor=2.0
@@ -476,7 +479,7 @@ class QuerySearch(BaseSimilaritySearch):
 
         """
         if isinstance(self.distance, str):
-            distance_dict = _SIM_SEARCH_SPEED_UP_DICT.get(self.distance)
+            distance_dict = _QUERY_SEARCH_SPEED_UP_DICT.get(self.distance)
             if self.speed_up is None or distance_dict is None:
                 self.distance_function_ = get_distance_function(self.distance)
             else:
@@ -595,7 +598,7 @@ class QuerySearch(BaseSimilaritySearch):
     @classmethod
     def get_speedup_function_names(self):
         """
-        Get available speedup for similarity search in aeon.
+        Get available speedup for query search in aeon.
 
         The returned structure is a dictionnary that contains the names of all
         avaialble speedups for normalized and non-normalized distance functions.
@@ -608,10 +611,10 @@ class QuerySearch(BaseSimilaritySearch):
 
         """
         speedups = {}
-        for dist_name in _SIM_SEARCH_SPEED_UP_DICT.keys():
-            for normalize in _SIM_SEARCH_SPEED_UP_DICT[dist_name].keys():
+        for dist_name in _QUERY_SEARCH_SPEED_UP_DICT.keys():
+            for normalize in _QUERY_SEARCH_SPEED_UP_DICT[dist_name].keys():
                 speedups_names = list(
-                    _SIM_SEARCH_SPEED_UP_DICT[dist_name][normalize].keys()
+                    _QUERY_SEARCH_SPEED_UP_DICT[dist_name][normalize].keys()
                 )
                 if normalize:
                     speedups.update({f"normalized {dist_name}": speedups_names})
@@ -620,7 +623,7 @@ class QuerySearch(BaseSimilaritySearch):
         return speedups
 
 
-_SIM_SEARCH_SPEED_UP_DICT = {
+_QUERY_SEARCH_SPEED_UP_DICT = {
     "euclidean": {
         True: {
             "fastest": normalized_euclidean_distance_profile,
