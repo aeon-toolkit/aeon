@@ -348,9 +348,6 @@ class AEFCNClusterer(BaseDeepClusterer):
                             elif layer.name.startswith("__act_decoder"):
                                 _decoder_intermediate_outputs.append(_prop)
 
-                # Throw away the output of encoders last layer
-                _decoder_intermediate_outputs.pop(0)
-
                 _encoder_intermediate_outputs = np.array(_encoder_intermediate_outputs)
                 _decoder_intermediate_outputs = np.array(_decoder_intermediate_outputs)
 
