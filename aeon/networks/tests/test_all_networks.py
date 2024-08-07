@@ -128,7 +128,10 @@ def test_all_networks_params(network):
                 elif network.__name__ in ["InceptionNetwork"]:
                     attr = [attr] * my_network.depth
                 else:
-                    attr = [attr] * my_network.n_layers
+                    if hasattr(my_network, "n_layers"):
+                        attr = [attr] * my_network.n_layers
+                    elif hasattr(my_network, "num_layers"):
+                        attr = [attr] * my_network.num_layers
             params[attrname] = attr
 
     if params:
