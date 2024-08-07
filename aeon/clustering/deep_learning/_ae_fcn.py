@@ -61,7 +61,7 @@ class AEFCNClusterer(BaseDeepClusterer):
     verbose : boolean, default = False
         Whether to output extra information.
     loss : string, default="mean_squared_error"
-        Fit parameter for the keras model.
+        Fit parameter for the keras model. "multi_rec" for multiple mse loss.
     optimizer : keras.optimizers object, default = Adam(lr=0.01)
         Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
