@@ -10,12 +10,19 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_MULTIVARIATE,
     UNEQUAL_LENGTH_UNIVARIATE,
 )
+from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import (
     is_collection,
     is_equal_length,
     is_single_series,
     is_univariate,
 )
+
+
+def test_datatype_exists():
+    """Check that the basic testing data case has all data types."""
+    for data in COLLECTIONS_DATA_TYPES:
+        assert data in EQUAL_LENGTH_UNIVARIATE
 
 
 def test_test_data_dict():

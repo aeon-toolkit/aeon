@@ -225,6 +225,37 @@ class BaseCollectionEstimator(BaseEstimator):
 
         return convert_collection(X, inner_type)
 
+    def _check_shape(self, X):
+        """Check that the shape of X is consistent with the data seen in fit.
+
+        Parameters
+        ----------
+        X : data structure
+            Must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
+        """
+        # if metadata is empty, then we have not seen any data in fit. If the estimator
+        # has not been fitted, then _is_fitted should catch this.
+        # there are valid cases where metadata is empty and the estimator has been
+        # fitted, i.e. deep learner loading.
+        if len(self.metadata_) != 0:
+            if not self.get_tag("capability:unequal_length"):
+                nt = get_n_timepoints(X)
+                if nt != self.metadata_["n_timepoints"]:
+                    raise ValueError(
+                        "X has different length to the data seen in fit but "
+                        "this classifier cannot handle unequal length series."
+                        f"length of train set was {self.metadata_['n_timepoints']}",
+                        f" length in predict is {nt}.",
+                    )
+            if self.get_tag("capability:multivariate"):
+                nc = get_n_channels(X)
+                if nc != self.metadata_["n_channels"]:
+                    raise ValueError(
+                        "X has different number of channels to the data seen in fit "
+                        "number of channels in train set was ",
+                        f"{self.metadata_['n_channels']} but in predict it is {nc}.",
+                    )
+
     @staticmethod
     def _get_X_metadata(X):
         # Get and store X meta data.
