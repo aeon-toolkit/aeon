@@ -34,17 +34,19 @@ def test_clara_uni():
     proba = clara.predict_proba(X_test)
     assert np.array_equal(
         test_medoids_result,
-        [0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1],
+        [1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0],
     )
     assert np.array_equal(
         train_medoids_result,
-        [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0],
+        [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1],
     )
-    assert test_score == 0.4789473684210526
-    assert train_score == 0.4789473684210526
-    assert np.isclose(clara.inertia_, 44.156819900725814)
+    assert test_score == 0.5210526315789473
+    assert train_score == 0.5578947368421052
+    assert np.isclose(clara.inertia_, 78.79839208236065)
     assert clara.n_iter_ == 2
-    assert np.array_equal(clara.labels_, [0, 0, 1, 0, 1, 1, 1, 0, 1, 1])
+    assert np.array_equal(
+        clara.labels_, [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1]
+    )
     assert isinstance(clara.cluster_centers_, np.ndarray)
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1
@@ -77,17 +79,19 @@ def test_clara_multi():
     proba = clara.predict_proba(X_test)
     assert np.array_equal(
         test_medoids_result,
-        [0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1],
+        [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
     )
     assert np.array_equal(
         train_medoids_result,
-        [1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0],
+        [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1],
     )
     assert test_score == 0.4789473684210526
     assert train_score == 0.5578947368421052
-    assert np.isclose(clara.inertia_, 95.91411895660636)
+    assert np.isclose(clara.inertia_, 1900.6752544011563)
     assert clara.n_iter_ == 3
-    assert np.array_equal(clara.labels_, [1, 1, 1, 1, 1, 1, 0, 1, 1, 1])
+    assert np.array_equal(
+        clara.labels_, [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 1]
+    )
     assert isinstance(clara.cluster_centers_, np.ndarray)
     for val in proba:
         assert np.count_nonzero(val == 1.0) == 1

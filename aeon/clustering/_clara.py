@@ -10,6 +10,7 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.clustering.base import BaseClusterer
+from aeon.distances import pairwise_distance
 
 
 class TimeSeriesCLARA(BaseClusterer):
@@ -158,8 +159,9 @@ class TimeSeriesCLARA(BaseClusterer):
         else:
             n_samples = self.n_samples
 
-        best_score = np.inf
+        best_inertia = np.inf
         best_pam = None
+        best_labels = None
         for _ in range(self.n_sampling_iters):
             sample_idxs = np.arange(n_samples)
             if n_samples < n_cases:
@@ -181,11 +183,24 @@ class TimeSeriesCLARA(BaseClusterer):
                 method="pam",
             )
             pam.fit(X[sample_idxs])
-            if pam.inertia_ < best_score:
-                best_pam = pam
+            curr_centers = pam.cluster_centers_
+            if isinstance(pam.distance, str):
+                pairwise_matrix = pairwise_distance(
+                    X, curr_centers, metric=self.distance, **pam._distance_params
+                )
+            else:
+                pairwise_matrix = pairwise_distance(
+                    X, curr_centers, pam._distance_callable, **pam._distance_params
+                )
+            curr_td = pairwise_matrix.min(axis=1).sum()
 
-        self.labels_ = best_pam.labels_
-        self.inertia_ = best_pam.inertia_
+            if curr_td < best_inertia:
+                best_pam = pam
+                best_inertia = curr_td
+                best_labels = pairwise_matrix.argmin(axis=1)
+
+        self.labels_ = best_labels
+        self.inertia_ = best_inertia
         self.cluster_centers_ = best_pam.cluster_centers_
         self.n_iter_ = best_pam.n_iter_
         self._kmedoids_instance = best_pam
