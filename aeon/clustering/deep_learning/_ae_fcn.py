@@ -339,13 +339,13 @@ class AEFCNClusterer(BaseDeepClusterer):
                         _prop = layer(inputs)
                     else:
                         _prop = layer(_prop)
-                        if isinstance(layer, tf.keras.layers.Activation):
+                        if layer.name.startswith("__act"):
                             # Encoder
-                            if len(_encoder_intermediate_outputs) < self.n_layers:
+                            if layer.name.startswith("__act_encoder"):
                                 _encoder_intermediate_outputs.append(_prop)
 
                             # Decoder
-                            else:
+                            elif layer.name.startswith("__act_decoder"):
                                 _decoder_intermediate_outputs.append(_prop)
 
                 # Throw away the output of encoders last layer

@@ -163,7 +163,9 @@ class AEFCNNetwork(BaseDeepLearningNetwork):
             )(x)
 
             conv = tf.keras.layers.BatchNormalization()(conv)
-            conv = tf.keras.layers.Activation(activation=self._activation[i])(conv)
+            conv = tf.keras.layers.Activation(
+                activation=self._activation[i], name=f"__act_encoder_block{i}"
+            )(conv)
 
             x = conv
 
@@ -215,7 +217,9 @@ class AEFCNNetwork(BaseDeepLearningNetwork):
             )(x)
 
             conv = tf.keras.layers.BatchNormalization()(conv)
-            conv = tf.keras.layers.Activation(activation=self._activation[i])(conv)
+            conv = tf.keras.layers.Activation(
+                activation=self._activation[i], name=f"__act_decoder_block{i}"
+            )(conv)
 
             x = conv
 
