@@ -1,6 +1,6 @@
 """Dilated Shapelet transformers.
 
-A modification of the classic Shapelet Transform which add a dilation parameter to
+A modification of the classic Shapelet Transform which adds a dilation parameter to
 Shapelets.
 """
 
