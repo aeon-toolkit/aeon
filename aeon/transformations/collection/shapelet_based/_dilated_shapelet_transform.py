@@ -717,7 +717,7 @@ def dilated_shapelet_transform(X, shapelets, distance):
     -------
     X_new : array, shape=(n_cases, 3*n_shapelets)
         The transformed input time series with each shapelet extracting 3
-        feature from the distance vector computed on each time series.
+        features from the distance vector computed on each time series.
 
     """
     (
