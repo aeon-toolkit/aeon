@@ -294,7 +294,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
@@ -326,6 +326,9 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
         train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+
+        if isinstance(self.optimizer_, str):
+            self.optimizer_ = tf.keras.optimizers.get(self.optimizer_)
 
         history = {"loss": []}
 
