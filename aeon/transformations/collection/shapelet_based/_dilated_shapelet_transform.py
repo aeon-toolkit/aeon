@@ -592,10 +592,8 @@ def random_dilated_shapelet_extraction(
             # For the unequal length case, we scale the mask up and set to False
             alpha_mask[:, _i, n_timepointss[_i] :] = False
 
-        # np.where creates a tuples wherre [0] is the list
         id_shps = np.where(dilations == unique_dil[i_dilation])[0]
         min_len = min(lengths[id_shps])
-
         # For each shapelet id with this dilation
         for i_shp in id_shps:
             # Get shapelet params
