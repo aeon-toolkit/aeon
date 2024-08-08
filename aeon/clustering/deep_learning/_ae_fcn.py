@@ -321,7 +321,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         batch_size,
         epochs,
     ):
-        import numpy as np
         import tensorflow as tf
         from tensorflow.keras import backend as K
 
@@ -372,12 +371,14 @@ class AEFCNClusterer(BaseDeepClusterer):
                         if _name.startswith("__act_decoder"):
                             _decoder_intermediate_outputs.append(_prop)
 
-                _encoder_intermediate_outputs = np.array(_encoder_intermediate_outputs)
-                _decoder_intermediate_outputs = np.array(_decoder_intermediate_outputs)
+                _encoder_intermediate_outputs = tf.stack(_encoder_intermediate_outputs)
+                _decoder_intermediate_outputs = tf.stack(_decoder_intermediate_outputs)
 
-                assert len(_encoder_intermediate_outputs) == len(
-                    _decoder_intermediate_outputs
-                )
+                if not (
+                    len(_encoder_intermediate_outputs)
+                    == len(_decoder_intermediate_outputs)
+                ):
+                    raise ValueError("The Auto-Encoder must be symmetric in nature.")
 
                 mse += K.mean(
                     K.square(
