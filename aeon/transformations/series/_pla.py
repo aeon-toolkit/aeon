@@ -93,6 +93,7 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         if not (self.buffer_size is None or isinstance(self.buffer_size, (int, float))):
             raise ValueError("Invalid buffer_size: use a number only or keep empty.")
         results = None
+        X = np.concatenate(X)
         if isinstance(self.transformer, (str)):
             if self.transformer.lower() == "sliding window":
                 results = self._sliding_window(X)
@@ -222,7 +223,6 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
             merge_cost.append(self._calculate_error(seg_ts[i] + seg_ts[i + 1]))
 
         merge_cost = np.array(merge_cost)
-
         while len(merge_cost) != 0 and min(merge_cost) < self.max_error:
             pos = np.argmin(merge_cost)
             seg_ts[pos] = self._linear_regression(
@@ -269,12 +269,11 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         seg = self._best_line(X, 0, lower_boundary_window, upper_boundary_window)
         current_data_point = len(seg)
         buffer = np.array(seg)
-
         while len(buffer) > 0:
-            t = self._bottom_up(X)
+            t = self._bottom_up(buffer)
             seg_ts.append(t[0])
             buffer = buffer[len(t[0]) :]
-            if current_data_point >= len(X):
+            if current_data_point <= len(X):
                 seg = self._best_line(
                     X, current_data_point, lower_boundary_window, upper_boundary_window
                 )
@@ -314,8 +313,10 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
         seg_ts = np.array(
             X[current_data_point : current_data_point + lower_boundary_window]
         )
+        if seg_ts.shape[0] == 0:
+            return seg_ts
         current_data_point = current_data_point + lower_boundary_window
-        error = 0
+        error = self._calculate_error(seg_ts)
         while (
             current_data_point < max_window_length
             and current_data_point < len(X)

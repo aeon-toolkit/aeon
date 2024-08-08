@@ -2,8 +2,7 @@
 
 import numpy as np
 import pytest
-
-from aeon.transformations.series._pla import PiecewiseLinearApproximation
+from _pla import PiecewiseLinearApproximation
 
 
 @pytest.fixture
@@ -151,35 +150,69 @@ def test_piecewise_linear_approximation_bottom_up(X):
 def test_piecewise_linear_approximation_SWAB(X):
     """Test PLA transformer."""
     pla_string = PiecewiseLinearApproximation(
-        max_error=100_000, transformer="swab", buffer_size=100
+        max_error=100_000, transformer="SWAB", buffer_size=2
     )
     result_string = pla_string.fit_transform(X)
     expected = np.array(
         [
-            471.33333333,
-            394.0952381,
-            316.85714286,
-            239.61904762,
-            162.38095238,
-            85.14285714,
-            7.9047619,
-            -69.33333333,
-            471.33333333,
-            394.0952381,
-            316.85714286,
-            239.61904762,
-            162.38095238,
-            85.14285714,
-            7.9047619,
-            -69.33333333,
-            471.33333333,
-            394.0952381,
-            316.85714286,
-            239.61904762,
-            162.38095238,
-            85.14285714,
-            7.9047619,
-            -69.33333333,
+            538.8,
+            423.1,
+            307.4,
+            191.7,
+            48.0,
+            40.5,
+            33.0,
+            25.5,
+            43.6,
+            210.2,
+            376.8,
+            543.4,
+            1276.5,
+            1227.0,
+            1177.5,
+            1128.0,
+            953.5,
+            980.5,
+            1007.5,
+            1034.5,
+            759.1,
+            572.7,
+            386.3,
+            199.9,
+        ]
+    )
+    np.testing.assert_array_almost_equal(result_string, expected)
+
+    pla_string = PiecewiseLinearApproximation(
+        max_error=100_000, transformer="SWAB", buffer_size=5
+    )
+    result_string = pla_string.fit_transform(X)
+    expected = np.array(
+        [
+            538.8,
+            423.1,
+            307.4,
+            191.7,
+            -72.33333333,
+            -4.48809524,
+            63.35714286,
+            131.20238095,
+            199.04761905,
+            266.89285714,
+            334.73809524,
+            402.58333333,
+            1335.95454545,
+            1260.05454545,
+            1184.15454545,
+            1108.25454545,
+            1032.35454545,
+            956.45454545,
+            880.55454545,
+            804.65454545,
+            728.75454545,
+            652.85454545,
+            576.95454545,
+            182.0,
         ]
     )
     np.testing.assert_array_almost_equal(result_string, expected)
