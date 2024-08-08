@@ -160,7 +160,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         time_limit_in_minutes: Union[int, float] = 0.0,
         contract_max_n_shapelet_samples: Union[int, float] = np.inf,
         n_jobs: int = 1,
-        parallel_backend = None,
+        parallel_backend=None,
         batch_size: Optional[int] = 100,
         random_state: Optional[int] = None,
     ) -> None:
