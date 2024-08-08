@@ -2483,6 +2483,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "phershbe",
+      "name": "Philip",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25594870?v=4",
+      "profile": "https://www.youtube.com/channel/UCLnEr7V_5BANojPKUjCjb4g",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
