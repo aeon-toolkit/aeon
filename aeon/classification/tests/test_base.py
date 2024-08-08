@@ -369,11 +369,11 @@ def test_different_shape_fit_predict():
     y = np.array([0, 0, 1, 1, 1])
     dummy.fit(X, y)
     with pytest.raises(
-        ValueError, match="X has different length to the data seen in fit"
+        ValueError, match="X has different length series to the data seen in fit"
     ):
         dummy.predict(X2)
     with pytest.raises(
-        ValueError, match="X has different length to the data seen in fit"
+        ValueError, match="X has different length series to the data seen in fit"
     ):
         dummy.predict_proba(X3)
     with pytest.raises(
