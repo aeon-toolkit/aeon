@@ -16,7 +16,7 @@ class RandomChannelSelector(BaseChannelSelector):
     Parameters
     ----------
     p: float, default 0.4
-        proportion of channels to keep. If p*len(X) is non integer it is rounded up
+        proportion of channels to keep. If p*n_channels is non integer it is rounded up
         to the nearest integer.
 
     Attributes
@@ -53,7 +53,7 @@ class RandomChannelSelector(BaseChannelSelector):
     def _fit(self, X, y):
         """Randomly select channels to retain."""
         rng = check_random_state(self.random_state)
-        to_select = math.ceil(self.p * len(X))
+        to_select = math.ceil(self.p * X.shape[1])
         self.channels_selected_ = rng.choice(
             list(range(X[0].shape[0])), size=to_select, replace=False
         )
