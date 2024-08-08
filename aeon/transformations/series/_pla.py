@@ -4,7 +4,7 @@ A transformer which uses Piecewise Linear Approximation algorithms.
 """
 
 __maintainer__ = ["TonyBagnall"]
-__all__ = ["PiecewiseLinearApproximation"]
+__all__ = ["PLASeriesTransformer"]
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -12,7 +12,7 @@ from sklearn.linear_model import LinearRegression
 from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-class PiecewiseLinearApproximation(BaseSeriesTransformer):
+class PLASeriesTransformer(BaseSeriesTransformer):
     """Piecewise Linear Approximation (PLA) for time series transformation.
 
     Takes a univariate time series as input. Approximates a time series using
@@ -54,11 +54,11 @@ class PiecewiseLinearApproximation(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series import PiecewiseLinearApproximation
+    >>> from aeon.transformations.series import PLASeriesTransformer
     >>> from aeon.datasets import load_electric_devices_segmentation
     >>> ts, period_size, true_cps = load_electric_devices_segmentation()
     >>> ts = ts.values
-    >>> pla = PiecewiseLinearApproximation(max_error = 0.001, transformer="bottom up")
+    >>> pla = PLASeriesTransformer(max_error = 0.001, transformer="bottom up")
     >>> transformed_x = pla.fit_transform(ts)
     """
 
