@@ -290,7 +290,6 @@ class AEFCNClusterer(BaseDeepClusterer):
                 outputs=X,
                 batch_size=mini_batch_size,
                 epochs=self.n_epochs,
-                callbacks=self.callbacks_,
             )
 
         try:
@@ -315,7 +314,12 @@ class AEFCNClusterer(BaseDeepClusterer):
         return self.clusterer.score(latent_space)
 
     def _fit_multi_rec_model(
-        self, autoencoder, inputs, outputs, batch_size, epochs, callbacks, optimizer
+        self,
+        autoencoder,
+        inputs,
+        outputs,
+        batch_size,
+        epochs,
     ):
         import numpy as np
         import tensorflow as tf
@@ -331,22 +335,42 @@ class AEFCNClusterer(BaseDeepClusterer):
                 # Calculate MSE for each layer in the encoder and decoder
                 mse = 0
 
-                # Encoding layers
-                _encoder_intermediate_outputs = []
-                _decoder_intermediate_outputs = []
-                for i, layer in enumerate(autoencoder.layers):
-                    if i == 0:
-                        _prop = layer(inputs)
-                    else:
-                        _prop = layer(_prop)
-                        if layer.name.startswith("__act"):
-                            # Encoder
-                            if layer.name.startswith("__act_encoder"):
-                                _encoder_intermediate_outputs.append(_prop)
+                _encoder_intermediate_outputs = (
+                    []
+                )  # Store embeddings of each layer in the Encoder
+                _decoder_intermediate_outputs = (
+                    []
+                )  # Store embeddings of each layer in the Decoder
 
-                            # Decoder
-                            elif layer.name.startswith("__act_decoder"):
-                                _decoder_intermediate_outputs.append(_prop)
+                encoder = autoencoder.layers[1]  # Returns Functional API Models.
+                decoder = autoencoder.layers[2]  # Returns Functional API Models.
+
+                _prop = inputs
+                for _object in encoder.layers:
+                    if isinstance(_object, tf.keras.layers.InputLayer):
+                        continue
+
+                    if isinstance(_object, tf.keras.layers.Layer):
+                        _name = _object.name
+                        print(_name)
+                        _layer = encoder.get_layer(_name)
+                        print(_layer)
+                        _prop = _layer(_prop)
+                        if _name.startswith("__act_encoder"):
+                            _encoder_intermediate_outputs.append(_prop)
+
+                for _object in decoder.layers:
+                    if isinstance(_object, tf.keras.layers.InputLayer):
+                        continue
+
+                    if isinstance(_object, tf.keras.layers.Layer):
+                        _name = _object.name
+                        print(_name)
+                        _layer = decoder.get_layer(_name)
+                        print(_layer)
+                        _prop = _layer(_prop)
+                        if _name.startswith("__act_decoder"):
+                            _decoder_intermediate_outputs.append(_prop)
 
                 _encoder_intermediate_outputs = np.array(_encoder_intermediate_outputs)
                 _decoder_intermediate_outputs = np.array(_decoder_intermediate_outputs)
@@ -375,30 +399,32 @@ class AEFCNClusterer(BaseDeepClusterer):
             num_batches = 0
             for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
-                    loss = layerwise_mse_loss(
+                    # Calculate the actual loss by calling the loss function
+                    loss_func = layerwise_mse_loss(
                         autoencoder=autoencoder,
                         inputs=x_batch_train,
                         outputs=y_batch_train,
                     )
+                    loss_value = loss_func(y_batch_train, autoencoder(x_batch_train))
 
-                grads = tape.gradient(loss, autoencoder.trainable_weights)
+                grads = tape.gradient(loss_value, autoencoder.trainable_weights)
                 self.optimizer_.apply_gradients(
                     zip(grads, autoencoder.trainable_weights)
                 )
 
-                epoch_loss += float(loss)
+                epoch_loss += float(loss_value)
                 num_batches += 1
 
                 if step % 200 == 0:
                     print(
                         "Training loss (for one batch) at step %d: %.4f"
-                        % (step, float(loss))
+                        % (step, float(loss_value))
                     )
                     print("Seen so far: %d samples" % ((step + 1) * batch_size))
 
                 # Update callbacks on batch end
                 for callback in self.callbacks_:
-                    callback.on_batch_end(step, {"loss": float(loss)})
+                    callback.on_batch_end(step, {"loss": float(loss_value)})
 
             epoch_loss /= num_batches
             history["loss"].append(epoch_loss)
