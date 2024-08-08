@@ -351,9 +351,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
                     if isinstance(_object, tf.keras.layers.Layer):
                         _name = _object.name
-                        print(_name)
                         _layer = encoder.get_layer(_name)
-                        print(_layer)
                         _prop = _layer(_prop)
                         if _name.startswith("__act_encoder"):
                             _encoder_intermediate_outputs.append(_prop)
@@ -364,9 +362,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
                     if isinstance(_object, tf.keras.layers.Layer):
                         _name = _object.name
-                        print(_name)
                         _layer = decoder.get_layer(_name)
-                        print(_layer)
                         _prop = _layer(_prop)
                         if _name.startswith("__act_decoder"):
                             _decoder_intermediate_outputs.append(_prop)
