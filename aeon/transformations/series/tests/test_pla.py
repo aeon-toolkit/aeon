@@ -2,7 +2,8 @@
 
 import numpy as np
 import pytest
-from _pla import PiecewiseLinearApproximation
+
+from aeon.transformations.series._pla import PLASeriesTransformer
 
 
 @pytest.fixture
@@ -40,9 +41,7 @@ def X():
 
 def test_piecewise_linear_approximation_sliding_window(X):
     """Test PLA transformer."""
-    pla_string = PiecewiseLinearApproximation(
-        max_error=100_000, transformer="sliding window"
-    )
+    pla_string = PLASeriesTransformer(max_error=100_000, transformer="sliding window")
     result_string = pla_string.fit_transform(X)
     expected = np.array(
         [
@@ -77,7 +76,7 @@ def test_piecewise_linear_approximation_sliding_window(X):
 
 def test_piecewise_linear_approximation_top_down(X):
     """Test PLA transformer."""
-    pla_string = PiecewiseLinearApproximation(100_000, "top down")
+    pla_string = PLASeriesTransformer(100_000, "top down")
     result_string = pla_string.fit_transform(X)
     expected = np.array(
         [
@@ -112,9 +111,7 @@ def test_piecewise_linear_approximation_top_down(X):
 
 def test_piecewise_linear_approximation_bottom_up(X):
     """Test PLA transformer."""
-    pla_string = PiecewiseLinearApproximation(
-        max_error=100_000, transformer="bottom up"
-    )
+    pla_string = PLASeriesTransformer(max_error=100_000, transformer="bottom up")
     result_string = pla_string.fit_transform(X)
     expected = np.array(
         [
@@ -149,7 +146,7 @@ def test_piecewise_linear_approximation_bottom_up(X):
 
 def test_piecewise_linear_approximation_SWAB(X):
     """Test PLA transformer."""
-    pla_string = PiecewiseLinearApproximation(
+    pla_string = PLASeriesTransformer(
         max_error=100_000, transformer="SWAB", buffer_size=2
     )
     result_string = pla_string.fit_transform(X)
@@ -183,7 +180,7 @@ def test_piecewise_linear_approximation_SWAB(X):
     )
     np.testing.assert_array_almost_equal(result_string, expected)
 
-    pla_string = PiecewiseLinearApproximation(
+    pla_string = PLASeriesTransformer(
         max_error=100_000, transformer="SWAB", buffer_size=5
     )
     result_string = pla_string.fit_transform(X)
@@ -222,8 +219,8 @@ def test_piecewise_linear_approximation_check_diff_in_params(X):
     """Test PLA transformer."""
     transformers = ["sliding window", "top down", "bottom up", "swab"]
     for i in range(len(transformers)):
-        low_error_pla = PiecewiseLinearApproximation(1, transformers[i])
-        high_error_pla = PiecewiseLinearApproximation(float("inf"), transformers[i])
+        low_error_pla = PLASeriesTransformer(1, transformers[i])
+        high_error_pla = PLASeriesTransformer(float("inf"), transformers[i])
         low_error_result = low_error_pla.fit_transform(X)
         high_error_result = high_error_pla.fit_transform(X)
         assert not np.allclose(low_error_result, high_error_result)
@@ -232,16 +229,16 @@ def test_piecewise_linear_approximation_check_diff_in_params(X):
 def test_piecewise_linear_approximation_wrong_parameters(X):
     """Test PLA transformer."""
     with pytest.raises(ValueError):
-        PiecewiseLinearApproximation(100, "Fake Transformer error").fit_transform(X)
+        PLASeriesTransformer(100, "Fake Transformer error").fit_transform(X)
     with pytest.raises(ValueError):
-        PiecewiseLinearApproximation("max_error").fit_transform(X)
+        PLASeriesTransformer("max_error").fit_transform(X)
     with pytest.raises(ValueError):
-        PiecewiseLinearApproximation(100, "swab", "buffer_size").fit_transform(X)
+        PLASeriesTransformer(100, "swab", "buffer_size").fit_transform(X)
 
 
 def test_piecewise_linear_approximation_one_segment(X):
     """Test PLA transformer."""
     X = X[:2]
-    pla = PiecewiseLinearApproximation(10, "bottom up")
+    pla = PLASeriesTransformer(10, "bottom up")
     result = pla.fit_transform(X)
     np.testing.assert_array_almost_equal(X, result, decimal=1)
