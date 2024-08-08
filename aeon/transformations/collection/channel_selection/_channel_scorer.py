@@ -7,6 +7,9 @@ from aeon.classification.base import BaseClassifier
 from aeon.classification.convolution_based._rocket_classifier import RocketClassifier
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["ChannelScorer"]
+
 
 class ChannelScorer(BaseChannelSelector):
     """Channel scorer performs channel selection using a single channel classifier.
