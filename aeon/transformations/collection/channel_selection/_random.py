@@ -27,7 +27,8 @@ class RandomChannelSelector(BaseChannelSelector):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.transformations.collection.channel_selection._random import RandomChannelSelector # noqa
+    >>> from aeon.transformations.collection.channel_selection._random import
+    ... RandomChannelSelector
     >>> X = np.random.rand(10, 10, 100)
     >>> selector = RandomChannelSelector(p=0.4)
     >>> XNew = selector.fit_transform(X)
