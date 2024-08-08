@@ -50,11 +50,11 @@ class RDSTClassifier(BaseClassifier):
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
         will be used.
     alpha_similarity : float, default=0.5
-        The strength of the alpha similarity pruning. The higher the value, the fewer 
-        common indexes with previously sampled shapelets are allowed when sampling a 
-        new candidate with the same dilation parameter. It can cause the number of sampled 
-        shapelets to be lower than max_shapelets if the whole search space has been 
-        covered. The default is 0.5, and the maximum is 1. Values above it have no effect 
+        The strength of the alpha similarity pruning. The higher the value, the fewer
+        common indexes with previously sampled shapelets are allowed when sampling a
+        new candidate with the same dilation parameter. It can cause the number of sampled
+        shapelets to be lower than max_shapelets if the whole search space has been
+        covered. The default is 0.5, and the maximum is 1. Values above it have no effect
         for now.
     use_prime_dilations : bool, default=False
         If True, restricts the value of the shapelet dilation parameter to be prime
