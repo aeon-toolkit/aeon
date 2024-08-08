@@ -34,6 +34,16 @@ class PyODAdapter(BaseAnomalyDetector):
     series the adapter concatenates the data points of each channel in the window to
     a single univariate feature vector per window as input to the PyOD model.
 
+    The PyOD adapter supports unsupervised and semi-supervised learning. The adapter
+    can be fitted on a reference time series and used to detect anomalies in a different
+    target time series with the same number of dimensions. The reference (or training)
+    time series does not need to be clean for most PyOD models. However, knowledge in
+    form of anomaly labels about the potential existing anomalies in the reference time
+    series are not used during the fitting process. Use `fit` to fit the model on the
+    reference time series and `predict` to detect anomalies in the target time series.
+    For unsupervised anomaly detection, use `fit_predict` directly on the target time
+    series.
+
     .. list-table:: Capabilities
        :stub-columns: 1
 
@@ -42,7 +52,7 @@ class PyODAdapter(BaseAnomalyDetector):
        * - Output data format
          - anomaly scores
        * - Learning Type
-         - unsupervised
+         - unsupervised or semi-supervised
 
 
     Parameters
@@ -70,6 +80,7 @@ class PyODAdapter(BaseAnomalyDetector):
         "capability:multivariate": True,
         "capability:univariate": True,
         "capability:missing_values": False,
+        "fit_is_empty": False,
         # Omit the version specification until PyOD has __version__
         # (https://github.com/yzhao062/pyod/pull/584 in dev but not released yet)
         # "python_dependencies": ["pyod>=1.1.3"]
@@ -83,7 +94,6 @@ class PyODAdapter(BaseAnomalyDetector):
         self.window_size = window_size
         self.stride = stride
 
-        self._padding_length = 0
         super().__init__(axis=0)
 
     @staticmethod
@@ -93,7 +103,37 @@ class PyODAdapter(BaseAnomalyDetector):
 
         return isinstance(model, BaseDetector)
 
-    def _predict(self, X) -> np.ndarray:
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> None:
+        self._check_params(X)
+        _X, _ = sliding_windows(
+            X, window_size=self.window_size, stride=self.stride, axis=0
+        )
+        self._inner_fit(_X)
+
+    def _predict(self, X: np.ndarray) -> np.ndarray:
+        _X, padding = sliding_windows(
+            X, window_size=self.window_size, stride=self.stride, axis=0
+        )
+        window_anomaly_scores = self.pyod_model.decision_function(_X)
+        point_anomaly_scores = reverse_windowing(
+            window_anomaly_scores, self.window_size, np.nanmean, self.stride, padding
+        )
+        return point_anomaly_scores
+
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
+        self._check_params(X)
+        _X, padding = sliding_windows(
+            X, window_size=self.window_size, stride=self.stride, axis=0
+        )
+        self._inner_fit(_X)
+
+        window_anomaly_scores = self.pyod_model.decision_scores_
+        point_anomaly_scores = reverse_windowing(
+            window_anomaly_scores, self.window_size, np.nanmean, self.stride, padding
+        )
+        return point_anomaly_scores
+
+    def _check_params(self, X: np.ndarray) -> None:
         if not self._is_pyod_model(self.pyod_model):
             raise ValueError("The provided model is not a compatible PyOD model.")
 
@@ -108,15 +148,15 @@ class PyODAdapter(BaseAnomalyDetector):
                 "The stride must be at least 1 and at most the window size."
             )
 
-        _X, self._padding_length = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride, axis=0
+    def _inner_fit(self, X: np.ndarray) -> None:
+        self.pyod_model.fit(X)
+
+    def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:
+        window_anomaly_scores = self.pyod_model.decision_function(X)
+        point_anomaly_scores = reverse_windowing(
+            window_anomaly_scores, self.window_size, np.nanmean, self.stride, padding
         )
-        self.pyod_model.fit(_X)
-        scores = self.pyod_model.decision_scores_
-        scores = reverse_windowing(
-            scores, self.window_size, np.nanmean, self.stride, self._padding_length
-        )
-        return scores
+        return point_anomaly_scores
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

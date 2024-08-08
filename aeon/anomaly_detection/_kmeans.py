@@ -110,9 +110,44 @@ class KMeansAD(BaseAnomalyDetector):
         self.estimator_: Optional[KMeans] = None
 
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "KMeansAD":
+        self._check_params(X)
         _X, _ = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0
         )
+        self._inner_fit(_X)
+        return self
+
+    def _predict(self, X) -> np.ndarray:
+        _X, padding = sliding_windows(
+            X, window_size=self.window_size, stride=self.stride, axis=0
+        )
+        point_anomaly_scores = self._inner_predict(_X, padding)
+        return point_anomaly_scores
+
+    def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
+        self._check_params(X)
+        _X, padding = sliding_windows(
+            X, window_size=self.window_size, stride=self.stride, axis=0
+        )
+        self._inner_fit(_X)
+        point_anomaly_scores = self._inner_predict(_X, padding)
+        return point_anomaly_scores
+
+    def _check_params(self, X: np.ndarray) -> None:
+        if self.window_size < 1 or self.window_size > X.shape[0]:
+            raise ValueError(
+                "The window size must be at least 1 and at most the length of the "
+                "time series."
+            )
+
+        if self.stride < 1 or self.stride > self.window_size:
+            raise ValueError(
+                "The stride must be at least 1 and at most the window size."
+            )
+        if self.n_clusters < 1:
+            raise ValueError("The number of clusters must be at least 1.")
+
+    def _inner_fit(self, X: np.ndarray) -> None:
         self.estimator_ = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
@@ -123,33 +158,12 @@ class KMeansAD(BaseAnomalyDetector):
             verbose=0,
             algorithm="lloyd",
         )
-        self.estimator_.fit(_X)
-        return self
+        self.estimator_.fit(X)
 
-    def _predict(self, X) -> np.ndarray:
-        _X, padding = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride, axis=0
-        )
-        clusters = self.estimator_.predict(_X)
+    def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:
+        clusters = self.estimator_.predict(X)
         window_scores = np.linalg.norm(
-            _X - self.estimator_.cluster_centers_[clusters], axis=1
-        )
-        point_anomaly_scores = reverse_windowing(
-            window_scores, self.window_size, np.nanmean, self.stride, padding
-        )
-        return point_anomaly_scores
-
-    def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
-        _X, padding = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride, axis=0
-        )
-        self.estimator_ = KMeans(
-            n_clusters=self.n_clusters, random_state=self.random_state
-        )
-        self.estimator_.fit(_X)
-        clusters = self.estimator_.predict(_X)
-        window_scores = np.linalg.norm(
-            _X - self.estimator_.cluster_centers_[clusters], axis=1
+            X - self.estimator_.cluster_centers_[clusters], axis=1
         )
         point_anomaly_scores = reverse_windowing(
             window_scores, self.window_size, np.nanmean, self.stride, padding
