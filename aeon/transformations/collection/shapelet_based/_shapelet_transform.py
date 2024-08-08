@@ -12,7 +12,7 @@ import time
 from typing import Optional, Union
 
 import numpy as np
-from joblib import Parallel, delayed, ParallelBackendBase
+from joblib import Parallel, ParallelBackendBase, delayed
 from numba import njit
 from numba.typed.typedlist import List
 from sklearn import preprocessing
