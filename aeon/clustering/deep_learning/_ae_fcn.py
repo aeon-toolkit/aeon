@@ -367,20 +367,16 @@ class AEFCNClusterer(BaseDeepClusterer):
                         if _name.startswith("__act_decoder"):
                             _decoder_intermediate_outputs.append(_prop)
 
-                _encoder_intermediate_outputs = tf.stack(_encoder_intermediate_outputs)
-                _decoder_intermediate_outputs = tf.stack(_decoder_intermediate_outputs)
-
                 if not (
                     len(_encoder_intermediate_outputs)
                     == len(_decoder_intermediate_outputs)
                 ):
                     raise ValueError("The Auto-Encoder must be symmetric in nature.")
 
-                mse += K.mean(
-                    K.square(
-                        _encoder_intermediate_outputs - _decoder_intermediate_outputs
-                    )
-                )
+                for enc_output, dec_output in zip(
+                    _encoder_intermediate_outputs, _decoder_intermediate_outputs
+                ):
+                    mse += K.mean(K.square(enc_output - dec_output))
 
                 return mse
 
