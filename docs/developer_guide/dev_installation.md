@@ -41,11 +41,11 @@ and type:
 pip install --editable .[dev]
 ```
 
-**If this results in a "no matches found" error**, it may be due to how your shell
-handles special characters. Try surrounding the dependency portion with quotes:
+```{note}
+    If this results in a "no matches found" error, it may be due to how your shell
+    handles special characters. Try surrounding the dependency portion with quotes i.e.
 
-```{code-block} powershell
-pip install --editable ."[dev]"
+    pip install --editable ."[dev]"
 ```
 
 Alternatively, the `.` may be replaced with a full or relative path to the root
