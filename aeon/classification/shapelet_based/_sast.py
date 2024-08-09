@@ -32,7 +32,7 @@ class SASTClassifier(BaseClassifier):
         the number of reference time series to select per class
     seed : int, default = None
         the seed of the random generator
-    classifier : sklearn compatible classifier, default = None
+    estimator : sklearn compatible classifier, default = None
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
         Number of threads to use for the transform.
@@ -61,7 +61,7 @@ class SASTClassifier(BaseClassifier):
     _tags = {
         "capability:multithreading": True,
         "capability:multivariate": False,
-        "algorithm_type": "subsequence",
+        "algorithm_type": "shapelet",
     }
 
     def __init__(
