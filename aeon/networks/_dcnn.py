@@ -15,7 +15,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
     ----------
     latent_space_dim: int, default=128
         Dimension of the models's latent space.
-    num_layers: int, default=4
+    n_layers: int, default=4
         Number of convolution layers.
     kernel_size: int, default=3
         Size of the 1D Convolutional Kernel.
@@ -48,7 +48,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
     def __init__(
         self,
         latent_space_dim=128,
-        num_layers=4,
+        n_layers=4,
         kernel_size=3,
         activation="relu",
         num_filters=None,
@@ -59,7 +59,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         self.latent_space_dim = latent_space_dim
         self.kernel_size = kernel_size
         self.num_filters = num_filters
-        self.num_layers = num_layers
+        self.n_layers = n_layers
         self.dilation_rate = dilation_rate
         self.activation = activation
 
@@ -78,38 +78,38 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         import tensorflow as tf
 
         if self.num_filters is None:
-            self._num_filters = [32 * i for i in range(1, self.num_layers + 1)]
+            self._num_filters = [32 * i for i in range(1, self.n_layers + 1)]
         elif isinstance(self.num_filters, list):
             self._num_filters = self.num_filters
-            assert len(self.num_filters) == self.num_layers
+            assert len(self.num_filters) == self.n_layers
 
         if self.dilation_rate is None:
             self._dilation_rate = [
-                2**layer_num for layer_num in range(1, self.num_layers + 1)
+                2**layer_num for layer_num in range(1, self.n_layers + 1)
             ]
         elif isinstance(self.dilation_rate, int):
-            self._dilation_rate = [self._dilation_rate for _ in range(self.num_layers)]
+            self._dilation_rate = [self._dilation_rate for _ in range(self.n_layers)]
         else:
             self._dilation_rate = self.dilation_rate
             assert isinstance(self.dilation_rate, list)
-            assert len(self.dilation_rate) == self.num_layers
+            assert len(self.dilation_rate) == self.n_layers
 
         if isinstance(self.kernel_size, int):
-            self._kernel_size = [self.kernel_size for _ in range(self.num_layers)]
+            self._kernel_size = [self.kernel_size for _ in range(self.n_layers)]
         elif isinstance(self.kernel_size, list):
             self._kernel_size = self.kernel_size
-            assert len(self.kernel_size) == self.num_layers
+            assert len(self.kernel_size) == self.n_layers
 
         if isinstance(self.activation, str):
-            self._activation = [self.activation for _ in range(self.num_layers)]
+            self._activation = [self.activation for _ in range(self.n_layers)]
         elif isinstance(self.activation, list):
             self._activation = self.activation
-            assert len(self._activation) == self.num_layers
+            assert len(self._activation) == self.n_layers
 
         input_layer = tf.keras.layers.Input(input_shape)
 
         x = input_layer
-        for i in range(0, self.num_layers):
+        for i in range(0, self.n_layers):
             x = self._dcnn_layer(
                 x,
                 self._num_filters[i],
