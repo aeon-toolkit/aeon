@@ -61,7 +61,7 @@ class SASTClassifier(BaseClassifier):
     _tags = {
         "capability:multithreading": True,
         "capability:multivariate": False,
-        "algorithm_type": "subsequence",
+        "algorithm_type": "shapelet",
     }
 
     def __init__(

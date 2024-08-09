@@ -83,7 +83,7 @@ class SAST(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": False,
-        "algorithm_type": "subsequence",
+        "algorithm_type": "shapelet",
     }
 
     def __init__(
