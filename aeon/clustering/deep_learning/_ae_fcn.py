@@ -361,7 +361,7 @@ class AEFCNClusterer(BaseDeepClusterer):
                         inputs=encoder.input, outputs=_activation_layer.output
                     )
                     __output = _model(inputs, training=True)
-                    _encoder_intermediate_outputs.append()
+                    _encoder_intermediate_outputs.append(__output)
 
                 # Decoder
                 for i in range(self.n_layers):
