@@ -37,11 +37,11 @@ def percentile_threshold(y_score: np.ndarray, percentile: int) -> float:
 def sigma_threshold(y_score: np.ndarray, factor: float = 2) -> float:
     r"""Calculate a threshold based on the standard deviation of the anomaly scores.
 
-    Computes a threshold :math:`\\theta` based on the anomaly scoring's mean
-    :math:`\\mu_s` and the standard deviation :math:`\\sigma_s`, ignoring NaNs:
+    Computes a threshold :math:`\theta` based on the anomaly scoring's mean
+    :math:`\mu_s` and the standard deviation :math:`\sigma_s`, ignoring NaNs:
 
     .. math::
-       \\theta = \\mu_{s} + x \\cdot \\sigma_{s}
+       \theta = \mu_{s} + x \cdot \sigma_{s}
 
     Parameters
     ----------

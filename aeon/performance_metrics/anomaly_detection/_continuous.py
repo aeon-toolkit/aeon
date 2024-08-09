@@ -107,6 +107,11 @@ def f_score_at_k_points(
     -------
     float
         F1 score at k.
+
+    See Also
+    --------
+    aeon.performance_metrics.anomaly_detection.thresholding.top_k_points_threshold
+        Function used to find the threshold.
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
@@ -145,6 +150,11 @@ def f_score_at_k_ranges(
     -------
     float
         F1 score at k.
+
+    See Also
+    --------
+    aeon.performance_metrics.anomaly_detection.thresholding.top_k_ranges_threshold
+        Function used to find the threshold.
     """
     _check_soft_dependencies(
         "prts>=1.0.0.3", obj="f_score_at_k_ranges", suppress_import_stdout=True
