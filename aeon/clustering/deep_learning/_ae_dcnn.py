@@ -36,9 +36,9 @@ class AEDCNNClusterer(BaseDeepClusterer):
         Number of filters used in convolution layers in the encoder.
     n_filters_decoder : int or list of int, default = None
         Number of filters used in convolution layers in the decoder.
-    kernel_size_encoder : int or list of int, default = [8,5,3]
+    kernel_size_encoder : int or list of int, default = 3
         Size of convolution kernel in the encoder.
-    kernel_size_decoder : int or list of int, default = 1
+    kernel_size_decoder : int or list of int, default = None
         Size of convolution kernel in the decoder.
     dilation_rate_encoder : int or list of int, default = None
         The dilation rate for convolution in the encoder.
@@ -114,7 +114,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         n_layers_decoder=1,
         n_filters_encoder=None,
         n_filters_decoder=None,
-        kernel_size_encoder=None,
+        kernel_size_encoder=3,
         kernel_size_decoder=None,
         dilation_rate_encoder=None,
         dilation_rate_decoder=None,
