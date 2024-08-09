@@ -88,7 +88,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
                 2**layer_num for layer_num in range(1, self.n_layers + 1)
             ]
         elif isinstance(self.dilation_rate, int):
-            self._dilation_rate = [self._dilation_rate for _ in range(self.n_layers)]
+            self._dilation_rate = [self.dilation_rate for _ in range(self.n_layers)]
         else:
             self._dilation_rate = self.dilation_rate
             assert isinstance(self.dilation_rate, list)
