@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+__maintainer__ = ["CodeLionX"]
+__all__ = []
+
 import warnings
 
 import numpy as np
@@ -14,9 +17,6 @@ from aeon.performance_metrics.anomaly_detection.thresholding import (
     top_k_ranges_threshold,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-__maintainer__ = ["CodeLionX"]
-__all__ = []
 
 
 def roc_auc_score(y_true: np.ndarray, y_score: np.ndarray) -> float:
@@ -147,7 +147,7 @@ def f_score_at_k_ranges(
         F1 score at k.
     """
     _check_soft_dependencies(
-        "prts", obj="f_score_at_k_ranges", suppress_import_stdout=True
+        "prts>=1.0.0.3", obj="f_score_at_k_ranges", suppress_import_stdout=True
     )
 
     from prts import ts_fscore
@@ -221,7 +221,7 @@ def rp_rr_auc_score(
         http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
     _check_soft_dependencies(
-        "prts", obj="f_score_at_k_ranges", suppress_import_stdout=True
+        "prts>=1.0.0.3", obj="f_score_at_k_ranges", suppress_import_stdout=True
     )
 
     from prts import ts_precision, ts_recall

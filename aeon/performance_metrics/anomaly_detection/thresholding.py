@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import numpy as np
-
 __maintainer__ = ["CodeLionX"]
 __all__ = [
     "percentile_threshold",
@@ -11,6 +9,8 @@ __all__ = [
     "top_k_points_threshold",
     "top_k_ranges_threshold",
 ]
+
+import numpy as np
 
 
 def percentile_threshold(y_score: np.ndarray, percentile: int) -> float:

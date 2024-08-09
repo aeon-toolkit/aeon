@@ -81,6 +81,7 @@ all_extras = [
     "tslearn>=0.5.2",
     "xarray",
     "pyod>=1.1.3",
+    "prts>=1.0.0.3",
 
     # dependency of tensorflow, see issue #1724
     "keras<3.4.0",

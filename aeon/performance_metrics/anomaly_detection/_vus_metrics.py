@@ -1,17 +1,11 @@
 from __future__ import annotations
 
+__maintainer__ = ["CodeLionX"]
+__all__ = []
+
 import warnings
 
 import numpy as np
-
-__maintainer__ = ["CodeLionX"]
-__all__ = [
-    "range_pr_roc_auc_support",
-    "range_roc_auc_score",
-    "range_pr_auc_score",
-    "range_pr_vus_score",
-    "range_roc_vus_score",
-]
 
 from aeon.performance_metrics.anomaly_detection._util import check_y
 
