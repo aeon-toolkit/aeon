@@ -5,6 +5,7 @@ __all__ = ["AEFCNClusterer"]
 
 import gc
 import os
+import sys
 import time
 from copy import deepcopy
 
@@ -324,7 +325,6 @@ class AEFCNClusterer(BaseDeepClusterer):
     ):
         import tensorflow as tf
         from tensorflow.keras import backend as K
-        from tensorflow import keras
 
         train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
         train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
@@ -349,6 +349,11 @@ class AEFCNClusterer(BaseDeepClusterer):
                 encoder = autoencoder.layers[1]  # Returns Functional API Models.
                 decoder = autoencoder.layers[2]  # Returns Functional API Models.
 
+                # Run the models since the below given loop misses the latent space
+                # layer which doesn't contribute to the loss.
+                logits = encoder(inputs)
+                decoder(logits)
+
                 # Encoder
                 for i in range(self.n_layers):
                     _activation_layer = encoder.get_layer(f"__act_encoder_block{i}")
@@ -356,7 +361,7 @@ class AEFCNClusterer(BaseDeepClusterer):
                         inputs=encoder.input, outputs=_activation_layer.output
                     )
                     __output = _model(inputs, training=True)
-                    _encoder_intermediate_outputs.append(__output)
+                    _encoder_intermediate_outputs.append()
 
                 # Decoder
                 for i in range(self.n_layers):
@@ -364,7 +369,8 @@ class AEFCNClusterer(BaseDeepClusterer):
                     _model = tf.keras.models.Model(
                         inputs=decoder.input, outputs=_activation_layer.output
                     )
-                    _decoder_intermediate_outputs.append(_model(__output, training=True))
+                    __output = _model(logits, training=True)
+                    _decoder_intermediate_outputs.append(__output)
 
                 if not (
                     len(_encoder_intermediate_outputs)
@@ -375,7 +381,7 @@ class AEFCNClusterer(BaseDeepClusterer):
                 for enc_output, dec_output in zip(
                     _encoder_intermediate_outputs, _decoder_intermediate_outputs
                 ):
-                    mse += keras.ops.mean(keras.ops.square(enc_output - dec_output))
+                    mse += K.mean(K.square(enc_output - dec_output))
 
                 return mse
 
@@ -408,11 +414,13 @@ class AEFCNClusterer(BaseDeepClusterer):
                 num_batches += 1
 
                 if step % 200 == 0:
-                    print(
-                        "Training loss (for one batch) at step %d: %.4f"
+                    sys.stdout.write(
+                        "Training loss (for one batch) at step %d: %.4f\n"
                         % (step, float(loss_value))
                     )
-                    print("Seen so far: %d samples" % ((step + 1) * batch_size))
+                    sys.stdout.write(
+                        "Seen so far: %d samples\n" % ((step + 1) * batch_size)
+                    )
 
                 # Update callbacks on batch end
                 for callback in self.callbacks_:
