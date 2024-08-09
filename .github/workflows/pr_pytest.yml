@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   test-no-soft-deps:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -55,7 +55,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macOS-14, windows-2022 ]
+        os: [ ubuntu-22.04, macOS-14, windows-2022 ]
         python-version: [ "3.9", "3.10", "3.11", "3.12" ]
         # skip python versions unless the PR has the 'full pytest actions' label
         pr-testing:
@@ -98,7 +98,7 @@ jobs:
     # run the code coverage job if a PR has the 'codecov actions' label
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout

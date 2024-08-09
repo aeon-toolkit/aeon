@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   check-manifest:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -29,7 +29,7 @@ jobs:
           extra_args: check-manifest --hook-stage manual
 
   pre-commit:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -46,7 +46,7 @@ jobs:
           extra_args: --all-files
 
   run-notebook-examples:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -84,7 +84,7 @@ jobs:
           key: numba-run-notebook-examples-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
 
   test-no-soft-deps:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -129,7 +129,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macOS-14, windows-2022 ]
+        os: [ ubuntu-22.04, macOS-14, windows-2022 ]
         python-version: [ "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
@@ -170,7 +170,7 @@ jobs:
           key: numba-pytest-${{ runner.os }}-${{ matrix.python-version}}-${{ env.CURRENT_DATE }}
 
   codecov:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
