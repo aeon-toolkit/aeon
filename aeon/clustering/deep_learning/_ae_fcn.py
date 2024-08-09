@@ -294,7 +294,8 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False,
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
@@ -323,6 +324,7 @@ class AEFCNClusterer(BaseDeepClusterer):
     ):
         import tensorflow as tf
         from tensorflow.keras import backend as K
+        from tensorflow import keras
 
         train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
         train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
@@ -347,28 +349,22 @@ class AEFCNClusterer(BaseDeepClusterer):
                 encoder = autoencoder.layers[1]  # Returns Functional API Models.
                 decoder = autoencoder.layers[2]  # Returns Functional API Models.
 
-                _prop = inputs
-                for _object in encoder.layers:
-                    if isinstance(_object, tf.keras.layers.InputLayer):
-                        continue
+                # Encoder
+                for i in range(self.n_layers):
+                    _activation_layer = encoder.get_layer(f"__act_encoder_block{i}")
+                    _model = tf.keras.models.Model(
+                        inputs=encoder.input, outputs=_activation_layer.output
+                    )
+                    __output = _model(inputs, training=True)
+                    _encoder_intermediate_outputs.append(__output)
 
-                    if isinstance(_object, tf.keras.layers.Layer):
-                        _name = _object.name
-                        _layer = encoder.get_layer(_name)
-                        _prop = _layer(_prop)
-                        if _name.startswith("__act_encoder"):
-                            _encoder_intermediate_outputs.append(_prop)
-
-                for _object in decoder.layers:
-                    if isinstance(_object, tf.keras.layers.InputLayer):
-                        continue
-
-                    if isinstance(_object, tf.keras.layers.Layer):
-                        _name = _object.name
-                        _layer = decoder.get_layer(_name)
-                        _prop = _layer(_prop)
-                        if _name.startswith("__act_decoder"):
-                            _decoder_intermediate_outputs.append(_prop)
+                # Decoder
+                for i in range(self.n_layers):
+                    _activation_layer = decoder.get_layer(f"__act_decoder_block{i}")
+                    _model = tf.keras.models.Model(
+                        inputs=decoder.input, outputs=_activation_layer.output
+                    )
+                    _decoder_intermediate_outputs.append(_model(__output, training=True))
 
                 if not (
                     len(_encoder_intermediate_outputs)
@@ -379,7 +375,7 @@ class AEFCNClusterer(BaseDeepClusterer):
                 for enc_output, dec_output in zip(
                     _encoder_intermediate_outputs, _decoder_intermediate_outputs
                 ):
-                    mse += K.mean(K.square(enc_output - dec_output))
+                    mse += keras.ops.mean(keras.ops.square(enc_output - dec_output))
 
                 return mse
 
