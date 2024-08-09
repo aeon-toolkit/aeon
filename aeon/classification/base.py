@@ -628,20 +628,21 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         if not self.get_tag("capability:unequal_length"):
             if get_n_timepoints(X) != self.metadata_["n_timepoints"]:
                 raise ValueError(
-                    "X has different length to the data seen in fit but "
+                    "X has different length series to the data seen in fit but "
                     "this classifier cannot handle unequal length series."
-                    "length of train set was",
+                    "length of data in the train set was",
                     self.metadata_["n_timepoints"],
-                    " length in predict is ",
+                    " length of data in predict is ",
+                    get_n_timepoints(X),
                 )
         if self.get_tag("capability:multivariate"):
             if get_n_channels(X) != self.metadata_["n_channels"]:
                 raise ValueError(
-                    "X has different number of channels to the data seen in fit "
-                    "number of channels in train set was",
+                    "X has different number of channels to the data seen in fit."
+                    "The number of channels see in the train set was",
                     self.metadata_["n_channels"],
                     "but in predict it is ",
-                    get_n_timepoints(X),
+                    get_n_channels(X),
                 )
 
     @staticmethod
