@@ -14,6 +14,9 @@ from numba import njit, prange, set_num_threads
 from numba.typed import List
 from sklearn.preprocessing import LabelEncoder
 
+from typing import Optional, Union, List, Dict
+from numba.core.registry import CPUDispatcher
+
 from aeon.distances import get_distance_function
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import (
@@ -149,15 +152,15 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
     def __init__(
         self,
-        max_shapelets=10_000,
-        shapelet_lengths=None,
-        proba_normalization=0.8,
-        threshold_percentiles=None,
-        alpha_similarity=0.5,
-        use_prime_dilations=False,
-        random_state=None,
-        distance="manhattan",
-        n_jobs=1,
+        max_shapelets: int=10_000,
+        shapelet_lengths: Optional[Union[List[int], np.ndarray]]=None,
+        proba_normalization: float=0.8,
+        threshold_percentiles: Optional[Union[List[float], np.ndarray]]=None,
+        alpha_similarity: float=0.5,
+        use_prime_dilations: bool=False,
+        random_state: Optional[int]=None,
+        distance: CPUDispatcher="manhattan",
+        n_jobs: int=1,
     ):
         self.max_shapelets = max_shapelets
         self.shapelet_lengths = shapelet_lengths
@@ -171,7 +174,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         super().__init__()
 
-    def _fit(self, X, y=None):
+    def _fit(self, X: np.ndarray, y: Optional[Union[np.ndarray, List]]=None) -> 'RandomDilatedShapeletTransform':
         """Fit the random dilated shapelet transform to a specified X and y.
 
         Parameters
@@ -245,7 +248,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         return self
 
-    def _transform(self, X, y=None):
+    def _transform(self, X: np.ndarray, y: Optional[Union[np.ndarray, List]]=None):
         """Transform X according to the extracted shapelets.
 
         Parameters
@@ -345,7 +348,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self.threshold_percentiles_ = np.asarray(self.threshold_percentiles_)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str="default") -> 'Union[Dict, List[Dict]]':
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -364,7 +367,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
         if parameter_set == "default":
-            params = {"max_shapelets": 10}
+            params : Union[Dict, List[Dict]]= {"max_shapelets": 10}
         else:
             raise NotImplementedError(
                 f"The parameter set {parameter_set} is not yet implemented"
@@ -374,12 +377,12 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
 @njit(fastmath=True, cache=True)
 def _init_random_shapelet_params(
-    max_shapelets,
-    shapelet_lengths,
-    proba_normalization,
-    use_prime_dilations,
-    n_channels,
-    n_timepoints,
+    max_shapelets: int,
+    shapelet_lengths: Union[np.ndarray,List[int]],
+    proba_normalization: float,
+    use_prime_dilations: bool,
+    n_channels: int,
+    n_timepoints: int,
 ):
     """Randomly initialize the parameters of the shapelets.
 
@@ -426,9 +429,9 @@ def _init_random_shapelet_params(
     """
     # Lengths of the shapelets
     # test dtypes correctness
-    lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
+    lengths: np.ndarray= np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
     # Upper bound values for dilations
-    dilations = np.zeros(max_shapelets, dtype=np.int32)
+    dilations: np.ndarray = np.zeros(max_shapelets, dtype=np.int32)
     upper_bounds = np.log2(np.floor_divide(n_timepoints - 1, lengths - 1))
 
     if use_prime_dilations:
@@ -484,16 +487,16 @@ def _get_admissible_sampling_point(current_mask):
 
 @njit(fastmath=True, cache=True, parallel=True)
 def random_dilated_shapelet_extraction(
-    X,
-    y,
-    max_shapelets,
-    shapelet_lengths,
-    proba_normalization,
-    threshold_percentiles,
-    alpha_similarity,
-    use_prime_dilations,
-    seed,
-    distance,
+    X: np.ndarray,
+    y: np.ndarray,
+    max_shapelets: int,
+    shapelet_lengths: Union[np.ndarray, List[int]],
+    proba_normalization: float,
+    threshold_percentiles: Union[np.ndarray, List[float]],
+    alpha_similarity: float,
+    use_prime_dilations: bool,
+    seed: int,
+    distance: CPUDispatcher,
 ):
     """Randomly generate a set of shapelets given the input parameters.
 
@@ -554,9 +557,9 @@ def random_dilated_shapelet_extraction(
         - stds : array, shape (max_shapelets, n_channels)
             Standard deviation of the shapelets
     """
-    n_cases = len(X)
-    n_channels = X[0].shape[0]
-    n_timepointss = np.zeros(n_cases, dtype=np.int64)
+    n_cases: int = len(X)
+    n_channels: int = X[0].shape[0]
+    n_timepointss: np.ndarray = np.zeros(n_cases, dtype=np.int64)
     for i in range(n_cases):
         n_timepointss[i] = X[i].shape[1]
     min_n_timepoints = n_timepointss.min()
@@ -685,7 +688,7 @@ def random_dilated_shapelet_extraction(
 
 
 @njit(fastmath=True, cache=True, parallel=True)
-def dilated_shapelet_transform(X, shapelets, distance):
+def dilated_shapelet_transform(X: np.ndarray, shapelets: tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray,np.ndarray,np.ndarray,np.ndarray,], distance:CPUDispatcher):
     """Perform the shapelet transform with a set of shapelets and a set of time series.
 
     Parameters
@@ -797,7 +800,7 @@ def normalize_subsequences(X_subs, X_means, X_stds):
 
 
 @njit(fastmath=True, cache=True)
-def get_all_subsequences(X, length, dilation):
+def get_all_subsequences(X: np.ndarray, length: int, dilation: int) -> np.ndarray:
     """
     Generate subsequences from a time series given the length and dilation parameters.
 
@@ -828,7 +831,7 @@ def get_all_subsequences(X, length, dilation):
 
 
 @njit(fastmath=True, cache=True)
-def compute_shapelet_features(X_subs, values, length, threshold, distance):
+def compute_shapelet_features(X_subs: np.ndarray, values: np.ndarray, length: int, threshold: float, distance:CPUDispatcher):
     """Extract the features from a shapelet distance vector.
 
     Given a shapelet and a time series, extract three features from the resulting
@@ -875,7 +878,7 @@ def compute_shapelet_features(X_subs, values, length, threshold, distance):
 
 
 @njit(fastmath=True, cache=True)
-def compute_shapelet_dist_vector(X_subs, values, length, distance):
+def compute_shapelet_dist_vector(X_subs: np.ndarray, values:np.ndarray, length: int, distanceCPUDispatcher):
     """Extract the features from a shapelet distance vector.
 
     Given a shapelet and a time series, extract three features from the resulting
