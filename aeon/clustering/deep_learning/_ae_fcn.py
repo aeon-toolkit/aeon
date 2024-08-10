@@ -388,7 +388,8 @@ class AEFCNClusterer(BaseDeepClusterer):
                     _encoder_intermediate_outputs, _decoder_intermediate_outputs
                 ):
                     mse += tf.reduce_mean(tf.square(enc_output - dec_output))
-                    assert isinstance(mse, float)
+                    assert isinstance(mse, tf.Tensor)
+                    assert tf.rank(mse) == 0
 
                 return mse
 
