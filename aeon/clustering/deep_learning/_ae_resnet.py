@@ -377,7 +377,7 @@ class AEResNetClusterer(BaseDeepClusterer):
                 __dec_outputs = decoder(logits)
 
                 # Encoder
-                for i in range(self.n_layers):
+                for i in range(self.n_residual_blocks):
                     _activation_layer = encoder.get_layer(f"__act_encoder_block{i}")
                     _model = tf.keras.models.Model(
                         inputs=encoder.input, outputs=_activation_layer.output
@@ -386,7 +386,7 @@ class AEResNetClusterer(BaseDeepClusterer):
                     _encoder_intermediate_outputs.append(__output)
 
                 # Decoder
-                for i in range(self.n_layers):
+                for i in range(self.n_residual_blocks):
                     _activation_layer = decoder.get_layer(f"__act_decoder_block{i}")
                     _model = tf.keras.models.Model(
                         inputs=decoder.input, outputs=_activation_layer.output
