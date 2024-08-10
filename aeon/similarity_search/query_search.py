@@ -251,7 +251,7 @@ class QuerySearch(BaseSimilaritySearch):
 
         Parameters
         ----------
-        distance_profiles : np.ndarray, 2D array of shape (n_cases, n_timepoints - query_length + 1)
+        distance_profiles : np.ndarray, 2D array of shape (n_cases, n_timepoints - query_length + 1)  # noqa: E501
             Precomputed distance profile.
         exclusion_size : int, optional
             The size of the exclusion zone used to prevent returning as top k candidates
@@ -525,7 +525,7 @@ class QuerySearch(BaseSimilaritySearch):
 
         Returns
         -------
-        distance_profiles : np.ndarray, 2D array of shape (n_cases, n_timepoints - query_length + 1)
+        distance_profiles : np.ndarray, 2D array of shape (n_cases, n_timepoints - query_length + 1)  # noqa: E501
             The distance profiles between the input time series and the query.
 
         """
