@@ -350,7 +350,7 @@ class QuerySearch(BaseSimilaritySearch):
 
     def _init_X_index_mask(
         self,
-        X_index,
+        X_index: Optional[Iterable[int]],
         query_dim: int,
         query_length: int,
         exclusion_factor: Optional[float] = 2.0,
