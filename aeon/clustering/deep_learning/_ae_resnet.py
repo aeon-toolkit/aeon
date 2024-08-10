@@ -5,6 +5,7 @@ __all__ = ["AEResNetClusterer"]
 
 import gc
 import os
+import sys
 import time
 from copy import deepcopy
 
@@ -94,7 +95,10 @@ class AEResNetClusterer(BaseDeepClusterer):
     verbose : boolean, default = False
         whether to output extra information
     loss : string, default = "mean_squared_error"
-        fit parameter for the keras model.
+        fit parameter for the keras model. "multi_rec" for multiple mse loss.
+        Multiple mse loss computes mean squared error between all embeddings
+        of encoder layers with the corresponding reconstructions of the
+        decoder layers.
     optimizer : keras.optimizer, default = keras.optimizers.Adam()
     metrics : list of strings, default = ["accuracy"]
 
@@ -292,14 +296,24 @@ class AEResNetClusterer(BaseDeepClusterer):
         else:
             mini_batch_size = self.batch_size
 
-        self.history = self.training_model_.fit(
-            X,
-            X,
-            batch_size=mini_batch_size,
-            epochs=self.n_epochs,
-            verbose=self.verbose,
-            callbacks=self.callbacks_,
-        )
+        if not self.loss == "multi_rec":
+            self.history = self.training_model_.fit(
+                X,
+                X,
+                batch_size=mini_batch_size,
+                epochs=self.n_epochs,
+                verbose=self.verbose,
+                callbacks=self.callbacks_,
+            )
+
+        elif self.loss == "multi_rec":
+            self.history = self._fit_multi_rec_model(
+                autoencoder=self.training_model_,
+                inputs=X,
+                outputs=X,
+                batch_size=mini_batch_size,
+                epochs=self.n_epochs,
+            )
 
         try:
             self.model_ = tf.keras.models.load_model(
@@ -323,6 +337,129 @@ class AEResNetClusterer(BaseDeepClusterer):
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
         return self.clusterer.score(latent_space)
+
+    def _fit_multi_rec_model(
+        self,
+        autoencoder,
+        inputs,
+        outputs,
+        batch_size,
+        epochs,
+    ):
+        import tensorflow as tf
+
+        train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
+        train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+
+        if isinstance(self.optimizer_, str):
+            self.optimizer_ = tf.keras.optimizers.get(self.optimizer_)
+
+        history = {"loss": []}
+
+        def layerwise_mse_loss(autoencoder, inputs, outputs):
+            def loss(y_true, y_pred):
+                # Calculate MSE for each layer in the encoder and decoder
+                mse = 0
+
+                _encoder_intermediate_outputs = (
+                    []
+                )  # Store embeddings of each layer in the Encoder
+                _decoder_intermediate_outputs = (
+                    []
+                )  # Store embeddings of each layer in the Decoder
+
+                encoder = autoencoder.layers[1]  # Returns Functional API Models.
+                decoder = autoencoder.layers[2]  # Returns Functional API Models.
+
+                # Run the models since the below given loop misses the latent space
+                # layer which doesn't contribute to the loss.
+                logits = encoder(inputs)
+                __dec_outputs = decoder(logits)
+
+                # Encoder
+                for i in range(self.n_layers):
+                    _activation_layer = encoder.get_layer(f"__act_encoder_block{i}")
+                    _model = tf.keras.models.Model(
+                        inputs=encoder.input, outputs=_activation_layer.output
+                    )
+                    __output = _model(inputs, training=True)
+                    _encoder_intermediate_outputs.append(__output)
+
+                # Decoder
+                for i in range(self.n_layers):
+                    _activation_layer = decoder.get_layer(f"__act_decoder_block{i}")
+                    _model = tf.keras.models.Model(
+                        inputs=decoder.input, outputs=_activation_layer.output
+                    )
+                    __output = _model(logits, training=True)
+                    _decoder_intermediate_outputs.append(__output)
+
+                if not (
+                    len(_encoder_intermediate_outputs)
+                    == len(_decoder_intermediate_outputs)
+                ):
+                    raise ValueError("The Auto-Encoder must be symmetric in nature.")
+
+                # Append normal mean_squared_error
+                _encoder_intermediate_outputs.append(inputs)
+                _decoder_intermediate_outputs.append(__dec_outputs)
+
+                for enc_output, dec_output in zip(
+                    _encoder_intermediate_outputs, _decoder_intermediate_outputs
+                ):
+                    mse += tf.reduce_mean(tf.square(enc_output - dec_output))
+                    assert isinstance(mse, tf.Tensor)
+                    assert tf.rank(mse) == 0
+
+                return mse
+
+            return loss
+
+        # Initialize callbacks
+        for callback in self.callbacks_:
+            callback.set_model(autoencoder)
+            callback.on_train_begin()
+
+        for epoch in range(epochs):
+            epoch_loss = 0
+            num_batches = 0
+            for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
+                with tf.GradientTape() as tape:
+                    # Calculate the actual loss by calling the loss function
+                    loss_func = layerwise_mse_loss(
+                        autoencoder=autoencoder,
+                        inputs=x_batch_train,
+                        outputs=y_batch_train,
+                    )
+                    loss_value = loss_func(y_batch_train, autoencoder(x_batch_train))
+
+                grads = tape.gradient(loss_value, autoencoder.trainable_weights)
+                self.optimizer_.apply_gradients(
+                    zip(grads, autoencoder.trainable_weights)
+                )
+
+                epoch_loss += float(loss_value)
+                num_batches += 1
+
+                # Update callbacks on batch end
+                for callback in self.callbacks_:
+                    callback.on_batch_end(step, {"loss": float(loss_value)})
+
+            epoch_loss /= num_batches
+            history["loss"].append(epoch_loss)
+
+            sys.stdout.write(
+                "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+            )
+
+            for callback in self.callbacks_:
+                callback.on_epoch_end(epoch, {"loss": float(epoch_loss)})
+
+        # Finalize callbacks
+        for callback in self.callbacks_:
+            callback.on_train_end()
+
+        return history
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

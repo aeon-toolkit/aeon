@@ -194,7 +194,14 @@ class AEResNetNetwork(BaseDeepLearningNetwork):
                         input_tensor=input_block_tensor, output_tensor=conv
                     )
 
-                conv = tf.keras.layers.Activation(activation=self._activation[c])(conv)
+                if c == self.n_conv_per_residual_block - 1:
+                    conv = tf.keras.layers.Activation(
+                        activation=self._activation[c], name=f"__act_encoder_block{d}"
+                    )(conv)
+                else:
+                    conv = tf.keras.layers.Activation(activation=self._activation[c])(
+                        conv
+                    )
 
                 x = conv
         if not self.temporal_latent_space:
@@ -252,7 +259,14 @@ class AEResNetNetwork(BaseDeepLearningNetwork):
                         input_tensor=input_block_tensor, output_tensor=conv
                     )
 
-                conv = tf.keras.layers.Activation(activation=self._activation[c])(conv)
+                if c == self.n_conv_per_residual_block - 1:
+                    conv = tf.keras.layers.Activation(
+                        activation=self._activation[c], name=f"__act_decoder_block{d}"
+                    )(conv)
+                else:
+                    conv = tf.keras.layers.Activation(activation=self._activation[c])(
+                        conv
+                    )
 
                 x = conv
 
