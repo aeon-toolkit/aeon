@@ -63,6 +63,9 @@ class AEFCNClusterer(BaseDeepClusterer):
         Whether to output extra information.
     loss : string, default="mean_squared_error"
         Fit parameter for the keras model. "multi_rec" for multiple mse loss.
+        Multiple mse loss computes mean squared error between all embeddings
+        of encoder layers with the corresponding reconstructions of the
+        decoder layers.
     optimizer : keras.optimizers object, default = Adam(lr=0.01)
         Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
@@ -324,7 +327,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         epochs,
     ):
         import tensorflow as tf
-        from tensorflow.keras import backend as K
 
         train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
         train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
@@ -352,7 +354,7 @@ class AEFCNClusterer(BaseDeepClusterer):
                 # Run the models since the below given loop misses the latent space
                 # layer which doesn't contribute to the loss.
                 logits = encoder(inputs)
-                decoder(logits)
+                __dec_outputs = decoder(logits)
 
                 # Encoder
                 for i in range(self.n_layers):
@@ -378,10 +380,15 @@ class AEFCNClusterer(BaseDeepClusterer):
                 ):
                     raise ValueError("The Auto-Encoder must be symmetric in nature.")
 
+                # Append normal mean_squared_error
+                _encoder_intermediate_outputs.append(inputs)
+                _decoder_intermediate_outputs.append(__dec_outputs)
+
                 for enc_output, dec_output in zip(
                     _encoder_intermediate_outputs, _decoder_intermediate_outputs
                 ):
-                    mse += K.mean(K.square(enc_output - dec_output))
+                    mse += tf.reduce_mean(tf.square(enc_output - dec_output))
+                    assert isinstance(mse, float)
 
                 return mse
 
@@ -413,21 +420,16 @@ class AEFCNClusterer(BaseDeepClusterer):
                 epoch_loss += float(loss_value)
                 num_batches += 1
 
-                if step % 200 == 0:
-                    sys.stdout.write(
-                        "Training loss (for one batch) at step %d: %.4f\n"
-                        % (step, float(loss_value))
-                    )
-                    sys.stdout.write(
-                        "Seen so far: %d samples\n" % ((step + 1) * batch_size)
-                    )
-
                 # Update callbacks on batch end
                 for callback in self.callbacks_:
                     callback.on_batch_end(step, {"loss": float(loss_value)})
 
             epoch_loss /= num_batches
             history["loss"].append(epoch_loss)
+
+            sys.stdout.write(
+                "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+            )
 
             for callback in self.callbacks_:
                 callback.on_epoch_end(epoch, {"loss": float(epoch_loss)})
