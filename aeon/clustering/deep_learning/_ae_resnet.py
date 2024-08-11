@@ -403,7 +403,9 @@ class AEResNetClusterer(BaseDeepClusterer):
                 for enc_output, dec_output in zip(
                     _encoder_intermediate_outputs, _decoder_intermediate_outputs
                 ):
-                    mse += tf.reduce_mean(tf.square(enc_output - dec_output))
+                    mse += tf.keras.backend.mean(
+                        tf.keras.backend.square(enc_output - dec_output)
+                    )
 
                 inputs_casted = tf.cast(inputs, tf.float64)
                 __dec_outputs_casted = tf.cast(__dec_outputs, tf.float64)
