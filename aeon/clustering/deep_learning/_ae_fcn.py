@@ -380,18 +380,21 @@ class AEFCNClusterer(BaseDeepClusterer):
                 ):
                     raise ValueError("The Auto-Encoder must be symmetric in nature.")
 
-                # Append normal mean_squared_error
-                _encoder_intermediate_outputs.append(inputs)
-                _decoder_intermediate_outputs.append(__dec_outputs)
+                # # Append normal mean_squared_error
 
                 for enc_output, dec_output in zip(
                     _encoder_intermediate_outputs, _decoder_intermediate_outputs
                 ):
-                    mse += tf.reduce_mean(tf.square(enc_output - dec_output))
-                    assert isinstance(mse, tf.Tensor)
-                    assert tf.rank(mse) == 0
+                    mse += tf.keras.backend.mean(
+                        tf.keras.backend.square(enc_output - dec_output)
+                    )
 
-                return mse
+                inputs_casted = tf.cast(inputs, dtype=tf.float64)
+                __dec_outputs_casted = tf.cast(__dec_outputs, dtype=tf.float64)
+                return tf.cast(mse, dtype=tf.float64) + tf.cast(
+                    tf.reduce_mean(tf.square(inputs_casted - __dec_outputs_casted)),
+                    dtype=tf.float64,
+                )
 
             return loss
 
