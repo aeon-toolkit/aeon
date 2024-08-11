@@ -400,18 +400,17 @@ class AEResNetClusterer(BaseDeepClusterer):
                 ):
                     raise ValueError("The Auto-Encoder must be symmetric in nature.")
 
-                # Append normal mean_squared_error
-                _encoder_intermediate_outputs.append(inputs)
-                _decoder_intermediate_outputs.append(__dec_outputs)
-
                 for enc_output, dec_output in zip(
                     _encoder_intermediate_outputs, _decoder_intermediate_outputs
                 ):
                     mse += tf.reduce_mean(tf.square(enc_output - dec_output))
-                    assert isinstance(mse, tf.Tensor)
-                    assert tf.rank(mse) == 0
 
-                return mse
+                inputs_casted = tf.cast(inputs, tf.float64)
+                __dec_outputs_casted = tf.cast(__dec_outputs, tf.float64)
+                return tf.cast(mse, tf.float64) + tf.cast(
+                    tf.reduce_mean(tf.square(inputs_casted - __dec_outputs_casted)),
+                    tf.float64,
+                )
 
             return loss
 
