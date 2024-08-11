@@ -870,11 +870,11 @@ class ShapeletClassifierVisualizer:
         mask_other_class_id = np.where(y != class_id)[0]
         if id_example_class is None:
             id_example_class = np.random.choice(mask_class_id)
-        else: 
+        else:
             id_example_class = mask_class_id[id_example_class]
         if id_example_other is None:
             id_example_other = np.random.choice(mask_other_class_id)
-        else: 
+        else:
             id_example_other = mask_other_class_id[id_example_other]
         figures = []
         for i_shp in shp_ids:
