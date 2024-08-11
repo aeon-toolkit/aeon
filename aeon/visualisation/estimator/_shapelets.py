@@ -817,10 +817,11 @@ class ShapeletClassifierVisualizer:
             Number of plots to output, one per shapelet (i.e. the n_shp best shapelets
             for class_id). The default is 1.
         id_example_other : int
-            Sample ID to use for sample of other class. If None, a random one is
-            selected.
+            Sample ID to use for sample of other class. If None, a random one from that
+            class is selected.
         id_example_class : int
-            Sample ID to use for sample of class_id. If None, a random one is selected.
+            Sample ID to use for sample of class_id.If None, a random one from that
+            class is selected.
         scatter_options : dict
             Dictionnary of options passed to the scatter plot of the shapelet values.
         x_plot_options : dict
