@@ -11,6 +11,7 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
+from aeon.clustering.dummy import DummyClusterer
 from aeon.networks import AEFCNNetwork
 
 
@@ -20,11 +21,15 @@ class AEFCNClusterer(BaseDeepClusterer):
     Parameters
     ----------
     n_clusters : int, default=None
-        Number of clusters for the deep learnign model.
-    clustering_algorithm : str, default="kmeans"
-        The clustering algorithm used in the latent space.
+        Please use 'estimator' parameter.
+    estimator : aeon clusterer, default=None
+        An aeon estimator to be built using the transformed data.
+        Defaults to aeon TimeSeriesKMeans() with euclidean distance
+        and mean averaging method and n_clusters set to 2.
+    clustering_algorithm : str, default="deprecated"
+        Please use 'estimator' parameter.
     clustering_params : dict, default=None
-        Dictionary containing the parameters of the clustering algorithm chosen.
+        Please use 'estimator' parameter.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
@@ -103,15 +108,16 @@ class AEFCNClusterer(BaseDeepClusterer):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> aefcn = AEFCNClusterer(n_clusters=2,n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> aefcn = AEFCNClusterer(n_epochs=5,batch_size=4)  # doctest: +SKIP
     >>> aefcn.fit(X_train)  # doctest: +SKIP
     AEFCNClusterer(...)
     """
 
     def __init__(
         self,
-        n_clusters,
-        clustering_algorithm="kmeans",
+        n_clusters=None,
+        estimator=None,
+        clustering_algorithm="deprecated",
         clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
@@ -160,6 +166,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.random_state = random_state
 
         super().__init__(
+            estimator=estimator,
             n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
@@ -326,7 +333,6 @@ class AEFCNClusterer(BaseDeepClusterer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_clusters": 2,
             "n_epochs": 1,
             "batch_size": 4,
             "use_bias": False,
@@ -336,12 +342,7 @@ class AEFCNClusterer(BaseDeepClusterer):
             "padding": "same",
             "strides": 1,
             "latent_space_dim": 4,
-            "clustering_params": {
-                "distance": "euclidean",
-                "averaging_method": "mean",
-                "n_init": 1,
-                "max_iter": 2,
-            },
+            "estimator": DummyClusterer(n_clusters=2),
         }
 
         return [param1]

@@ -11,23 +11,28 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
+from aeon.clustering.dummy import DummyClusterer
 from aeon.networks import AEResNetNetwork
 
 
 class AEResNetClusterer(BaseDeepClusterer):
     """
-    Residual Neural Network (RNN).
+    Auto-Encoder with Residual Network backbone for clustering.
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
     n_clusters : int, default=None
-    Number of clusters for the deep learning model.
-    clustering_algorithm : str, default="kmeans"
-        The clustering algorithm used in the latent space.
+        Please use 'estimator' parameter.
+    estimator : aeon clusterer, default=None
+        An aeon estimator to be built using the transformed data.
+        Defaults to aeon TimeSeriesKMeans() with euclidean distance
+        and mean averaging method and n_clusters set to 2.
+    clustering_algorithm : str, default="deprecated"
+        Please use 'estimator' parameter.
     clustering_params : dict, default=None
-        Dictionary containing the parameters of the clustering algorithm chosen.
+        Please use 'estimator' parameter.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
@@ -114,16 +119,17 @@ class AEResNetClusterer(BaseDeepClusterer):
     >>> from aeon.clustering.deep_learning import AEResNetClusterer
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> ae_resnet = AEResNetClusterer(n_clusters=2,n_epochs=20) # doctest: +SKIP
+    >>> ae_resnet = AEResNetClusterer(n_epochs=20) # doctest: +SKIP
     >>> ae_resnet.fit(X_train, y_train) # doctest: +SKIP
     AEResNetClusterer(...)
     """
 
     def __init__(
         self,
-        n_clusters,
+        n_clusters=None,
+        estimator=None,
         n_residual_blocks=3,
-        clustering_algorithm="kmeans",
+        clustering_algorithm="deprecated",
         clustering_params=None,
         n_conv_per_residual_block=3,
         n_filters=None,
@@ -175,6 +181,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         self.history = None
 
         super().__init__(
+            estimator=estimator,
             n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
@@ -347,7 +354,6 @@ class AEResNetClusterer(BaseDeepClusterer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param = {
-            "n_clusters": 2,
             "n_epochs": 1,
             "batch_size": 4,
             "n_residual_blocks": 1,
@@ -355,12 +361,7 @@ class AEResNetClusterer(BaseDeepClusterer):
             "n_filters": 1,
             "kernel_size": 2,
             "use_bias": False,
-            "clustering_params": {
-                "distance": "euclidean",
-                "averaging_method": "mean",
-                "n_init": 1,
-                "max_iter": 2,
-            },
+            "estimator": DummyClusterer(n_clusters=2),
         }
 
         test_params = [param]
