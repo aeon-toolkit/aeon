@@ -206,9 +206,13 @@ class AEFCNClusterer(BaseDeepClusterer):
         import tensorflow as tf
 
         if self.metrics is None:
-            metrics = ["mean_squared_error"]
+            self._metrics = ["mean_squared_error"]
+        elif isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
         else:
-            metrics = self.metrics
+            raise ValueError("Metrics should be a list, string, or None.")
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -228,7 +232,11 @@ class AEFCNClusterer(BaseDeepClusterer):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=metrics)
+        model.compile(
+        optimizer=self.optimizer_,
+        loss=self.loss,
+        metrics=self._metrics
+    )
 
         return model
 

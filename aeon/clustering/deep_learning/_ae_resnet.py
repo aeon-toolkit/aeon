@@ -96,7 +96,9 @@ class AEResNetClusterer(BaseDeepClusterer):
     loss : string, default = "mean_squared_error"
         fit parameter for the keras model.
     optimizer : keras.optimizer, default = keras.optimizers.Adam()
-    metrics : list of strings, default = ["accuracy"]
+    metrics : list of strings, default = ["mean_squared_error"]
+        will be set to mean_squared_error as default if None
+    
 
     Notes
     -----
@@ -214,6 +216,15 @@ class AEResNetClusterer(BaseDeepClusterer):
         """
         import numpy as np
         import tensorflow as tf
+        
+        if self.metrics is None:
+            self._metrics = ["mean_squared_error"]
+        elif isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            raise ValueError("Metrics should be a list, string, or None.")
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam(learning_rate=0.01)
@@ -238,6 +249,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
+            metrics=self._metrics,
         )
 
         return model
