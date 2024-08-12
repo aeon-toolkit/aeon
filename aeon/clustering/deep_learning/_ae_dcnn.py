@@ -28,26 +28,16 @@ class AEDCNNClusterer(BaseDeepClusterer):
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
         Flag to choose whether the latent space is an MTS or Euclidean space.
-    n_layers_encoder : int, default = 3
+    n_layers : int, default = 3
         Number of convolution layers in the encoder.
-    n_layers_decoder : int, default = 3
-        Number of convolution layers in the decoder.
-    n_filters_encoder : int or list of int, default = None
+    n_filters : int or list of int, default = None
         Number of filters used in convolution layers in the encoder.
-    n_filters_decoder : int or list of int, default = None
-        Number of filters used in convolution layers in the decoder.
-    kernel_size_encoder : int or list of int, default = 3
+    kernel_size : int or list of int, default = 3
         Size of convolution kernel in the encoder.
-    kernel_size_decoder : int or list of int, default = None
-        Size of convolution kernel in the decoder.
-    dilation_rate_encoder : int or list of int, default = None
+    dilation_rate : int or list of int, default = None
         The dilation rate for convolution in the encoder.
-    dilation_rate_decoder : int or list of int, default = None
-        The dilation rate for convolution in the decoder.
-    activation_encoder : str or list of str, default = "relu"
+    activation : str or list of str, default = "relu"
         Activation used after the convolution in the encoder.
-    activation_decoder : str or list of str, default = "relu"
-        Activation used after the convolution in the decoder.
     use_bias : bool or list of bool, default = True
         Whether or not ot use bias in convolution.
     n_epochs : int, default = 2000
@@ -110,16 +100,11 @@ class AEDCNNClusterer(BaseDeepClusterer):
         clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
-        n_layers_encoder=3,
-        n_layers_decoder=1,
-        n_filters_encoder=None,
-        n_filters_decoder=None,
-        kernel_size_encoder=3,
-        kernel_size_decoder=None,
-        dilation_rate_encoder=None,
-        dilation_rate_decoder=None,
-        activation_encoder="relu",
-        activation_decoder="relu",
+        n_layers=3,
+        n_filters=None,
+        kernel_size=3,
+        dilation_rate=None,
+        activation="relu",
         n_epochs=2000,
         batch_size=32,
         use_mini_batch_size=False,
@@ -136,16 +121,11 @@ class AEDCNNClusterer(BaseDeepClusterer):
     ):
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
-        self.n_layers_encoder = n_layers_encoder
-        self.n_layers_decoder = n_layers_decoder
-        self.n_filters_encoder = n_filters_encoder
-        self.n_filters_decoder = n_filters_decoder
-        self.kernel_size_encoder = kernel_size_encoder
-        self.kernel_size_decoder = kernel_size_decoder
-        self.activation_encoder = activation_encoder
-        self.activation_decoder = activation_decoder
-        self.dilation_rate_encoder = dilation_rate_encoder
-        self.dilation_rate_decoder = dilation_rate_decoder
+        self.n_layers = n_layers
+        self.n_filters = n_filters
+        self.kernel_size = kernel_size
+        self.activation = activation
+        self.dilation_rate = dilation_rate
         self.optimizer = optimizer
         self.loss = loss
         self.verbose = verbose
@@ -169,16 +149,11 @@ class AEDCNNClusterer(BaseDeepClusterer):
         self._network = AEDCNNNetwork(
             latent_space_dim=self.latent_space_dim,
             temporal_latent_space=self.temporal_latent_space,
-            n_layers_encoder=self.n_layers_encoder,
-            n_layers_decoder=self.n_layers_decoder,
-            n_filters_encoder=self.n_filters_encoder,
-            n_filters_decoder=self.n_filters_decoder,
-            kernel_size_encoder=self.kernel_size_encoder,
-            kernel_size_decoder=self.kernel_size_decoder,
-            dilation_rate_encoder=self.dilation_rate_encoder,
-            dilation_rate_decoder=self.dilation_rate_decoder,
-            activation_encoder=self.activation_encoder,
-            activation_decoder=self.activation_decoder,
+            n_layers=self.n_layers,
+            n_filters=self.n_filters,
+            kernel_size=self.kernel_size,
+            dilation_rate=self.dilation_rate,
+            activation=self.activation,
         )
 
     def build_model(self, input_shape, **kwargs):
@@ -330,12 +305,9 @@ class AEDCNNClusterer(BaseDeepClusterer):
             "n_clusters": 2,
             "n_epochs": 1,
             "batch_size": 4,
-            "n_layers_encoder": 3,
-            "n_layers_decoder": 1,
-            "n_filters_encoder": None,
-            "n_filters_decoder": None,
-            "kernel_size_encoder": None,
-            "kernel_size_decoder": None,
+            "n_layers": 3,
+            "n_filters": None,
+            "kernel_size": None,
             "clustering_params": {
                 "distance": "euclidean",
                 "averaging_method": "mean",
