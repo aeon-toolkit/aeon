@@ -1,14 +1,30 @@
 """ Moving average transformation """
 
-__maintainer__ = ['Datadote']
-__all__ = 'MovingAverageTransformer'
+__maintainer__ = ["Datadote"]
+__all__ = "MovingAverageTransformer"
 
 import numpy as np
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
 class MovingAverageTransformer(BaseSeriesTransformer):
-    """ Filter a time series using a simple moving average.
+    """ Filter a time series using a simple moving average. 
+    
+    Parameters
+    ----------
+    window_size: int, default=5
+        Number of values to average for each window
+
+    References
+    ----------
+    James Large, Paul Southam, Anthony Bagnall
+        "Can automated smoothing significantly improve benchmark time series classification algorithms?"
+        https://arxiv.org/abs/1811.00894
+
+    Examples
+    --------
+
+        
     """
     
     _tags = {
@@ -21,21 +37,42 @@ class MovingAverageTransformer(BaseSeriesTransformer):
             self,
             window_size: int = 5,
     ) -> None:
-        super().__init__(axis=0)
+        super().__init__(axis=0) # TODO: init first or last?
         self.window_size = window_size
 
     def _transform(self, X, y=None):
         """ Transform X and return a transformed version.
+
+        private _transform containing core logic, called from transform
+
+        Parameters
+        ----------
+        X : np.ndarray
+            time series in shape(n_chnannels, n_timepoints)
+
+        Returns
+        -------
+        Xt: 2D np.ndarray
+            transformed version of X
         """
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         csum = np.cumsum(X, axis=0)
         csum[self.window_size:, :] = csum[self.window_size:, :] - csum[:-self.window_size, :]    
-        return csum[self.window_size - 1:, :] / self.window_size
+        Xt = csum[self.window_size - 1:, :] / self.window_size
+        return Xt
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """ Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
         """
         params = {"window_size": 5}
         return params
