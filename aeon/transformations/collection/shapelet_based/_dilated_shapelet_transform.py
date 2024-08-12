@@ -428,7 +428,7 @@ def _init_random_shapelet_params(
 
     """
     # Init startpoint array
-    startpoints = np.zeros(max_shapelets, dtype=np.float64)
+    startpoints = np.zeros(max_shapelets, dtype=np.int32)
     # Lengths of the shapelets
     # test dtypes correctness
     lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
