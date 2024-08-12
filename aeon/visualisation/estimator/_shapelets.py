@@ -798,7 +798,7 @@ class ShapeletClassifierVisualizer:
         """
         Plot the n_shp best candidates for the class_id.
 
-        Visualize best macth on two random samples and how the shapelet discriminate
+        Visualize best match on two random samples and how the shapelet discriminate
         (X,y) with boxplots.
 
         Parameters

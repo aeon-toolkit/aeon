@@ -45,6 +45,11 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         A classifier to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
+    random_state : int, RandomState instance or None, default=None
+        Random state used to fit the estimators. If None, no random state is set for
+        pipeline components (but they may still be seeded prior to input).
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -73,10 +78,12 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         "X_inner_type": ["np-list", "numpy3D"],
     }
 
-    def __init__(self, transformers, classifier):
+    def __init__(self, transformers, classifier, random_state=None):
         self.classifier = classifier
 
-        super().__init__(transformers=transformers, _estimator=classifier)
+        super().__init__(
+            transformers=transformers, _estimator=classifier, random_state=random_state
+        )
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
