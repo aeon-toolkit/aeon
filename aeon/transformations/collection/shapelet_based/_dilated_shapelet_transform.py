@@ -8,14 +8,13 @@ __maintainer__ = ["baraline"]
 __all__ = ["RandomDilatedShapeletTransform"]
 
 import warnings
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 from numba import njit, prange, set_num_threads
+from numba.core.registry import CPUDispatcher
 from numba.typed import List
 from sklearn.preprocessing import LabelEncoder
-from numba.core.registry import CPUDispatcher
-
-from typing import Dict, List, Optional, Union
 
 from aeon.distances import get_distance_function
 from aeon.transformations.collection import BaseCollectionTransformer
@@ -347,7 +346,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self.threshold_percentiles_ = np.asarray(self.threshold_percentiles_)
 
     @classmethod
-    def get_test_params(cls, parameter_set: str="default") -> "Union[Dict, List[Dict]]":
+    def get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> "Union[Dict, List[Dict]]":
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -687,7 +688,19 @@ def random_dilated_shapelet_extraction(
 
 
 @njit(fastmath=True, cache=True, parallel=True)
-def dilated_shapelet_transform(X: np.ndarray, shapelets: tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray,np.ndarray,np.ndarray,np.ndarray], distance: CPUDispatcher):
+def dilated_shapelet_transform(
+    X: np.ndarray,
+    shapelets: tuple[
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+        np.ndarray,
+    ],
+    distance: CPUDispatcher,
+):
     """Perform the shapelet transform with a set of shapelets and a set of time series.
 
     Parameters
@@ -830,7 +843,13 @@ def get_all_subsequences(X: np.ndarray, length: int, dilation: int) -> np.ndarra
 
 
 @njit(fastmath=True, cache=True)
-def compute_shapelet_features(X_subs: np.ndarray, values: np.ndarray, length: int, threshold: float, distance: CPUDispatcher):
+def compute_shapelet_features(
+    X_subs: np.ndarray,
+    values: np.ndarray,
+    length: int,
+    threshold: float,
+    distance: CPUDispatcher,
+):
     """Extract the features from a shapelet distance vector.
 
     Given a shapelet and a time series, extract three features from the resulting
@@ -877,7 +896,9 @@ def compute_shapelet_features(X_subs: np.ndarray, values: np.ndarray, length: in
 
 
 @njit(fastmath=True, cache=True)
-def compute_shapelet_dist_vector(X_subs: np.ndarray, values: np.ndarray, length: int, distance:CPUDispatcher):
+def compute_shapelet_dist_vector(
+    X_subs: np.ndarray, values: np.ndarray, length: int, distance: CPUDispatcher
+):
     """Extract the features from a shapelet distance vector.
 
     Given a shapelet and a time series, extract three features from the resulting
