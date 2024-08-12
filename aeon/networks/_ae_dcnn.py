@@ -19,9 +19,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         Dimension of the models's latent space.
     temporal_latent_space : bool, default = False
         Flag to choose whether the latent space is an MTS or Euclidean space.
-    num_layers_encoder: int, default=4
+    n_layers_encoder: int, default=4
         Number of convolution layers of the encoder.
-    num_layers_decoder: int, default=4
+    n_layers_decoder: int, default=4
         Number of convolution layers of the decoder.
     kernel_size_encoder: int, default=3
         Size of the 1D Convolutional Kernel of the encoder.
@@ -31,9 +31,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         The activation function used by convolution layers of the encoder.
     activation_decoder: str, default="relu"
         The activation function used by convolution layers of the decoder.
-    num_filters_encoder: int, default=None
+    n_filters_encoder: int, default=None
         Number of filters used in convolution layers of the encoder.
-    num_filters_decoder: int, default=None
+    n_filters_decoder: int, default=None
         Number of filters used in convolution layers of the decoder.
     dilation_rate_encoder: list, default=None
         The dilation rate for convolution of the encoder.
@@ -63,14 +63,14 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         self,
         latent_space_dim=128,
         temporal_latent_space=False,
-        num_layers_encoder=4,
-        num_layers_decoder=4,
+        n_layers_encoder=4,
+        n_layers_decoder=4,
         kernel_size_encoder=3,
         kernel_size_decoder=None,
         activation_encoder="relu",
         activation_decoder="relu",
-        num_filters_encoder=None,
-        num_filters_decoder=None,
+        n_filters_encoder=None,
+        n_filters_decoder=None,
         dilation_rate_encoder=None,
         dilation_rate_decoder=None,
     ):
@@ -79,10 +79,10 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         self.latent_space_dim = latent_space_dim
         self.kernel_size_encoder = kernel_size_encoder
         self.kernel_size_decoder = kernel_size_decoder
-        self.num_filters_encoder = num_filters_encoder
-        self.num_filters_decoder = num_filters_decoder
-        self.num_layers_encoder = num_layers_encoder
-        self.num_layers_decoder = num_layers_decoder
+        self.n_filters_encoder = n_filters_encoder
+        self.n_filters_decoder = n_filters_decoder
+        self.n_layers_encoder = n_layers_encoder
+        self.n_layers_decoder = n_layers_decoder
         self.dilation_rate_encoder = dilation_rate_encoder
         self.dilation_rate_decoder = dilation_rate_decoder
         self.activation_encoder = activation_encoder
@@ -103,100 +103,100 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        if self.num_filters_encoder is None:
-            self._num_filters_encoder = [
-                32 * i for i in range(1, self.num_layers_encoder + 1)
+        if self.n_filters_encoder is None:
+            self._n_filters_encoder = [
+                32 * i for i in range(1, self.n_layers_encoder + 1)
             ]
-        elif isinstance(self.num_filters_encoder, list):
-            self._num_filters_encoder = self.num_filters_encoder
-            assert len(self.num_filters_encoder) == self.num_layers_encoder
+        elif isinstance(self.n_filters_encoder, list):
+            self._n_filters_encoder = self.n_filters_encoder
+            assert len(self.n_filters_encoder) == self.n_layers_encoder
 
         if self.dilation_rate_encoder is None:
             self._dilation_rate_encoder = [
-                2**layer_num for layer_num in range(1, self.num_layers_encoder + 1)
+                2**layer_num for layer_num in range(1, self.n_layers_encoder + 1)
             ]
         elif isinstance(self.dilation_rate_encoder, int):
             self._dilation_rate_encoder = [
-                self.dilation_rate_encoder for _ in range(self.num_layers_encoder)
+                self.dilation_rate_encoder for _ in range(self.n_layers_encoder)
             ]
         else:
             self._dilation_rate_encoder = self.dilation_rate_encoder
             assert isinstance(self.dilation_rate_encoder, list)
-            assert len(self.dilation_rate_encoder) == self.num_layers_encoder
+            assert len(self.dilation_rate_encoder) == self.n_layers_encoder
 
         if isinstance(self.kernel_size_encoder, int):
             self._kernel_size_encoder = [
-                self.kernel_size_encoder for _ in range(self.num_layers_encoder)
+                self.kernel_size_encoder for _ in range(self.n_layers_encoder)
             ]
         elif isinstance(self.kernel_size_encoder, list):
             self._kernel_size_encoder = self.kernel_size_encoder
-            assert len(self.kernel_size_encoder) == self.num_layers_encoder
+            assert len(self.kernel_size_encoder) == self.n_layers_encoder
 
         if isinstance(self.activation_encoder, str):
             self._activation_encoder = [
-                self.activation_encoder for _ in range(self.num_layers_encoder)
+                self.activation_encoder for _ in range(self.n_layers_encoder)
             ]
         elif isinstance(self.activation_encoder, list):
             self._activation_encoder = self.activation_encoder
-            assert len(self._activation_encoder) == self.num_layers_encoder
+            assert len(self._activation_encoder) == self.n_layers_encoder
 
         if self.activation_decoder is None:
             self._activation_decoder = self._activation_encoder[::-1]
         elif isinstance(self.activation_decoder, str):
             self._activation_decoder = [
-                self.activation_decoder for _ in range(self.num_layers_decoder)
+                self.activation_decoder for _ in range(self.n_layers_decoder)
             ]
         else:
             self._activation_decoder = self.activation_decoder
             assert isinstance(self.activation_decoder, list)
-            assert len(self.activation_decoder) == self.num_layers_decoder
+            assert len(self.activation_decoder) == self.n_layers_decoder
 
         if self.dilation_rate_decoder is None:
             self._dilation_rate_decoder = self._dilation_rate_encoder[::-1]
         elif isinstance(self.dilation_rate_decoder, int):
             self._dilation_rate_decoder = [
-                self.dilation_rate_decoder for _ in range(self.num_layers_decoder)
+                self.dilation_rate_decoder for _ in range(self.n_layers_decoder)
             ]
         else:
             self._dilation_rate_decoder = self.dilation_rate_decoder
             assert isinstance(self._dilation_rate_decoder, list)
-            assert len(self._dilation_rate_decoder) == self.num_layers_decoder
+            assert len(self._dilation_rate_decoder) == self.n_layers_decoder
 
         if self.kernel_size_decoder is None:
             self._kernel_size_decoder = self._kernel_size_encoder[::-1]
         elif isinstance(self.kernel_size_decoder, int):
             self._kernel_size_decoder = [
-                self.kernel_size_decoder for _ in range(self.num_layers_decoder)
+                self.kernel_size_decoder for _ in range(self.n_layers_decoder)
             ]
         else:
             self._kernel_size_decoder = self.kernel_size_decoder
             assert isinstance(self.kernel_size_decoder, list)
-            assert len(self.kernel_size_decoder) == self.num_layers_decoder
+            assert len(self.kernel_size_decoder) == self.n_layers_decoder
 
         if self.dilation_rate_decoder is None:
             self._dilation_rate_decoder = self._dilation_rate_encoder
         elif isinstance(self.dilation_rate_decoder, int):
             self._dilation_rate_decoder = [
-                self.dilation_rate_decoder for _ in range(self.num_layers_decoder)
+                self.dilation_rate_decoder for _ in range(self.n_layers_decoder)
             ]
         else:
             self._dilation_rate_decoder = self.dilation_rate_decoder
             assert isinstance(self.dilation_rate_decoder, list)
-            assert len(self.dilation_rate_decoder) == self.num_layers_decoder
+            assert len(self.dilation_rate_decoder) == self.n_layers_decoder
 
-        if self.num_filters_decoder is None:
-            self._num_filters_decoder = self._num_filters_encoder
-        elif isinstance(self.num_filters_decoder, list):
-            self._num_filters_decoder = self.num_filters_decoder
-            assert len(self.num_filters_decoder) == self.num_layers_decoder
+        if self.n_filters_decoder is None:
+            self._n_filters_decoder = self._n_filters_encoder
+        elif isinstance(self.n_filters_decoder, list):
+            self._n_filters_decoder = self.n_filters_decoder
+            assert len(self.n_filters_decoder) == self.n_layers_decoder
 
         input_layer = tf.keras.layers.Input(input_shape)
 
         x = input_layer
-        for i in range(0, self.num_layers_encoder):
+        for i in range(0, self.n_layers_encoder):
             x = self._dcnn_layer(
                 x,
-                self._num_filters_encoder[i],
+                self._n_filters_encoder[i],
                 self._dilation_rate_encoder[i],
                 _activation=self._activation_encoder[i],
                 _kernel_size=self._kernel_size_encoder[i],
@@ -230,10 +230,10 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
 
         y = input_layer_decoder
 
-        for i in range(0, self.num_layers_decoder):
+        for i in range(0, self.n_layers_decoder):
             y = self._dcnn_layer_decoder(
                 y,
-                self._num_filters_decoder[i],
+                self._n_filters_decoder[i],
                 self._dilation_rate_decoder[i],
                 _activation=self._activation_decoder[i],
                 _kernel_size=self._kernel_size_decoder[i],
