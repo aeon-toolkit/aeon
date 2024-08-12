@@ -267,11 +267,11 @@ def load_from_tsfile(
     ------
     IOError if the load fails.
     """
-    #split the file path into the root and the extension
+    # split the file path into the root and the extension
     root, ext = os.path.splitext(full_file_path_and_name)
-        # Append .ts if no extension if found
+    # Append .ts if no extension if found
     if not ext:
-        full_file_path_and_name = root + '.ts'
+        full_file_path_and_name = root + ".ts"
     # Open file
     with open(full_file_path_and_name, encoding="utf-8") as file:
         # Read in headers
