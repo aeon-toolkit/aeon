@@ -67,6 +67,8 @@ class AEFCNClusterer(BaseDeepClusterer):
         Whether to output extra information.
     loss : string, default="mean_squared_error"
         Fit parameter for the keras model.
+    metrics : keras metrics, default = ["mean_squared_error"]
+        will be set to mean_squared_error as default if None
     optimizer : keras.optimizers object, default = Adam(lr=0.01)
         Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
@@ -135,6 +137,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         random_state=None,
         verbose=False,
         loss="mse",
+        metrics=None,
         optimizer="Adam",
         file_path="./",
         save_best_model=False,
@@ -155,6 +158,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.use_bias = use_bias
         self.optimizer = optimizer
         self.loss = loss
+        self.metrics = metrics
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.callbacks = callbacks
@@ -207,6 +211,15 @@ class AEFCNClusterer(BaseDeepClusterer):
         """
         import numpy as np
         import tensorflow as tf
+        
+        if self.metrics is None:
+            self._metrics = ["mean_squared_error"]
+        elif isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            raise ValueError("Metrics should be a list, string, or None.")
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -226,8 +239,7 @@ class AEFCNClusterer(BaseDeepClusterer):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model.compile(optimizer=self.optimizer_, loss=self.loss)
-
+        model.compile(optimizer=self.optimizer_,loss=self.loss, metrics=self._metrics,)
         return model
 
     def _fit(self, X):
