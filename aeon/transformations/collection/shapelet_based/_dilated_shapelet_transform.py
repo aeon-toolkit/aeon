@@ -150,6 +150,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     }
 
     def __init__(
+        self,
         max_shapelets: int = 10_000,
         shapelet_lengths: Optional[Union[List[int], np.ndarray]] = None,
         proba_normalization: float = 0.8,
