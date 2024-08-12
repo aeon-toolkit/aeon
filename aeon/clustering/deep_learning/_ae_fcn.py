@@ -232,11 +232,7 @@ class AEFCNClusterer(BaseDeepClusterer):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model.compile(
-        optimizer=self.optimizer_,
-        loss=self.loss,
-        metrics=self._metrics
-    )
+        model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=self._metrics)
 
         return model
 

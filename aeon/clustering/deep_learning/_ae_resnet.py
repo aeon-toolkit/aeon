@@ -98,7 +98,7 @@ class AEResNetClusterer(BaseDeepClusterer):
     optimizer : keras.optimizer, default = keras.optimizers.Adam()
     metrics : list of strings, default = ["mean_squared_error"]
         will be set to mean_squared_error as default if None
-    
+
 
     Notes
     -----
@@ -216,7 +216,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         """
         import numpy as np
         import tensorflow as tf
-        
+
         if self.metrics is None:
             self._metrics = ["mean_squared_error"]
         elif isinstance(self.metrics, list):
