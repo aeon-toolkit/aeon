@@ -103,9 +103,10 @@ class Arsenal(BaseClassifier):
 
     References
     ----------
-    .. [1] Middlehurst, Matthew, James Large, Michael Flynn, Jason Lines, Aaron Bostrom,
-       and Anthony Bagnall. "HIVE-COTE 2.0: a new meta ensemble for time series
-       classification." arXiv preprint arXiv:2104.07551 (2021).
+    .. [1] Middlehurst, M., Large, J., Flynn, M. et al.
+       HIVE-COTE 2.0: a new meta ensemble for time series classification.
+       Mach Learn 110, 3211–3243 (2021).
+       https://doi.org/10.1007/s10994-021-06057-9
 
     Examples
     --------

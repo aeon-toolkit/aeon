@@ -37,8 +37,8 @@ class CollectionToSeriesWrapper(BaseTransformer):
     >>> y = load_airline()
     >>> wrap = CollectionToSeriesWrapper(Catch22())
     >>> wrap.fit_transform(y)
-               0           1     2         3   ...        18        19        20    21
-    0  155.800003  181.700012  49.0  0.541667  ...  0.282051  0.769231  0.166667  11.0
+          0      1          2    3   ...        18        19        20         21
+    0  155.8  181.7  27.498346  8.0  ...  0.769231  0.282051  0.024544  48.355452
     <BLANKLINE>
     [1 rows x 22 columns]
     """
