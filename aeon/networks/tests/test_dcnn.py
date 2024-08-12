@@ -27,7 +27,7 @@ def test_dcnnnetwork_init(latent_space_dim, n_layers):
         latent_space_dim=latent_space_dim,
         n_layers=n_layers,
         activation=random.choice(["relu", "tanh"]),
-        num_filters=[random.choice([50, 25, 100]) for _ in range(n_layers)],
+        n_filters=[random.choice([50, 25, 100]) for _ in range(n_layers)],
     )
     model = dcnnnet.build_network((1000, 5))
     assert model is not None
@@ -44,7 +44,7 @@ def test_dcnnnetwork_activations(activation):
         latent_space_dim=64,
         n_layers=2,
         activation=activation,
-        num_filters=[50, 50],
+        n_filters=[50, 50],
     )
     model = dcnnnet.build_network((150, 5))
     assert model is not None

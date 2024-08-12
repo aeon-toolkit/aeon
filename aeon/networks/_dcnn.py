@@ -21,7 +21,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         Size of the 1D Convolutional Kernel.
     activation: str, default="relu"
         The activation function used by convolution layers.
-    num_filters: int, default=None
+    n_filters: int, default=None
         Number of filters used in convolution layers.
     dilation_rate: list, default=None
         The dilation rate for convolution.
@@ -51,14 +51,14 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         n_layers=4,
         kernel_size=3,
         activation="relu",
-        num_filters=None,
+        n_filters=None,
         dilation_rate=None,
     ):
         super().__init__()
 
         self.latent_space_dim = latent_space_dim
         self.kernel_size = kernel_size
-        self.num_filters = num_filters
+        self.n_filters = n_filters
         self.n_layers = n_layers
         self.dilation_rate = dilation_rate
         self.activation = activation
@@ -77,11 +77,11 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        if self.num_filters is None:
-            self._num_filters = [32 * i for i in range(1, self.n_layers + 1)]
-        elif isinstance(self.num_filters, list):
-            self._num_filters = self.num_filters
-            assert len(self.num_filters) == self.n_layers
+        if self.n_filters is None:
+            self._n_filters = [32 * i for i in range(1, self.n_layers + 1)]
+        elif isinstance(self.n_filters, list):
+            self._n_filters = self.n_filters
+            assert len(self.n_filters) == self.n_layers
 
         if self.dilation_rate is None:
             self._dilation_rate = [
@@ -112,7 +112,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         for i in range(0, self.n_layers):
             x = self._dcnn_layer(
                 x,
-                self._num_filters[i],
+                self._n_filters[i],
                 self._dilation_rate[i],
                 _activation=self._activation[i],
                 _kernel_size=self._kernel_size[i],
@@ -124,13 +124,13 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         return input_layer, output_layer
 
     def _dcnn_layer(
-        self, _inputs, _num_filters, _dilation_rate, _activation, _kernel_size
+        self, _inputs, _n_filters, _dilation_rate, _activation, _kernel_size
     ):
         import tensorflow as tf
 
-        _add = tf.keras.layers.Conv1D(_num_filters, kernel_size=1)(_inputs)
+        _add = tf.keras.layers.Conv1D(_n_filters, kernel_size=1)(_inputs)
         x = tf.keras.layers.Conv1D(
-            _num_filters,
+            _n_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
             padding="causal",
@@ -138,7 +138,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
             activation=_activation,
         )(_inputs)
         x = tf.keras.layers.Conv1D(
-            _num_filters,
+            _n_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
             padding="causal",
