@@ -817,10 +817,11 @@ class ShapeletClassifierVisualizer:
             Number of plots to output, one per shapelet (i.e. the n_shp best shapelets
             for class_id). The default is 1.
         id_example_other : int
-            Sample ID to use for sample of other class. If None, a random one is
-            selected.
+            Sample ID to use for sample of other class. If None, a random one from that
+            class is selected.
         id_example_class : int
-            Sample ID to use for sample of class_id. If None, a random one is selected.
+            Sample ID to use for sample of class_id.If None, a random one from that
+            class is selected.
         scatter_options : dict
             Dictionnary of options passed to the scatter plot of the shapelet values.
         x_plot_options : dict
@@ -869,8 +870,12 @@ class ShapeletClassifierVisualizer:
         mask_other_class_id = np.where(y != class_id)[0]
         if id_example_class is None:
             id_example_class = np.random.choice(mask_class_id)
+        else:
+            id_example_class = mask_class_id[id_example_class]
         if id_example_other is None:
             id_example_other = np.random.choice(mask_other_class_id)
+        else:
+            id_example_other = mask_other_class_id[id_example_other]
         figures = []
         for i_shp in shp_ids:
             fig, ax = plt.subplots(**figure_options)
