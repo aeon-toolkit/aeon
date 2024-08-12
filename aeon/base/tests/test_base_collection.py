@@ -7,10 +7,11 @@ import pytest
 
 from aeon.base import BaseCollectionEstimator
 from aeon.testing.testing_data import (
-    EQUAL_LENGTH_MULTIVARIATE,
-    EQUAL_LENGTH_UNIVARIATE,
-    UNEQUAL_LENGTH_MULTIVARIATE,
-    UNEQUAL_LENGTH_UNIVARIATE,
+    EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
+    EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
+    MISSING_VALUES_CLASSIFICATION,
+    UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
+    UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
 )
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_type
@@ -20,8 +21,10 @@ from aeon.utils.validation import get_type
 def test_get_metadata(data):
     """Test get meta data."""
     # equal length univariate
-    if data in EQUAL_LENGTH_UNIVARIATE:
-        meta = BaseCollectionEstimator._get_X_metadata(EQUAL_LENGTH_UNIVARIATE[data])
+    if data in EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION:
+        meta = BaseCollectionEstimator._get_X_metadata(
+            EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+        )
         assert not meta["multivariate"]
         assert not meta["missing_values"]
         assert not meta["unequal_length"]
@@ -30,8 +33,10 @@ def test_get_metadata(data):
         assert meta["n_timepoints"] == 20
 
     # unequal length univariate
-    if data in UNEQUAL_LENGTH_UNIVARIATE:
-        meta = BaseCollectionEstimator._get_X_metadata(UNEQUAL_LENGTH_UNIVARIATE[data])
+    if data in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION:
+        meta = BaseCollectionEstimator._get_X_metadata(
+            UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+        )
         assert not meta["multivariate"]
         assert not meta["missing_values"]
         assert meta["unequal_length"]
@@ -40,8 +45,10 @@ def test_get_metadata(data):
         assert meta["n_timepoints"] is None
 
     # equal length multivariate
-    if data in EQUAL_LENGTH_MULTIVARIATE:
-        meta = BaseCollectionEstimator._get_X_metadata(EQUAL_LENGTH_MULTIVARIATE[data])
+    if data in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION:
+        meta = BaseCollectionEstimator._get_X_metadata(
+            EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]
+        )
         assert meta["multivariate"]
         assert not meta["missing_values"]
         assert not meta["unequal_length"]
@@ -50,9 +57,9 @@ def test_get_metadata(data):
         assert meta["n_timepoints"] == 20
 
     # unequal length multivariate
-    if data in UNEQUAL_LENGTH_MULTIVARIATE:
+    if data in UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION:
         meta = BaseCollectionEstimator._get_X_metadata(
-            UNEQUAL_LENGTH_MULTIVARIATE[data]
+            UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]
         )
         assert meta["multivariate"]
         assert not meta["missing_values"]
@@ -61,7 +68,17 @@ def test_get_metadata(data):
         assert meta["n_channels"] == 2
         assert meta["n_timepoints"] is None
 
-    # todo missing data, relies on #1770
+    # missing data
+    if data in MISSING_VALUES_CLASSIFICATION:
+        meta = BaseCollectionEstimator._get_X_metadata(
+            MISSING_VALUES_CLASSIFICATION[data]["train"][0]
+        )
+        assert not meta["multivariate"]
+        assert meta["missing_values"]
+        assert not meta["unequal_length"]
+        assert meta["n_cases"] == 10
+        assert meta["n_channels"] == 1
+        assert meta["n_timepoints"] == 20
 
 
 def test_check_X():
@@ -76,7 +93,7 @@ def test_check_X():
     dummy2.set_tags(**all_tags)
 
     # univariate equal length
-    X = EQUAL_LENGTH_UNIVARIATE["numpy3D"].copy()
+    X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"][0].copy()
     assert dummy1._check_X(X) and dummy2._check_X(X)
 
     # univariate missing values
@@ -86,7 +103,7 @@ def test_check_X():
         dummy1._check_X(X)
 
     # multivariate equal length
-    X = EQUAL_LENGTH_MULTIVARIATE["numpy3D"].copy()
+    X = EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION["numpy3D"]["train"][0].copy()
     assert dummy2._check_X(X)
     with pytest.raises(ValueError, match=r"cannot handle multivariate"):
         dummy1._check_X(X)
@@ -100,35 +117,37 @@ def test_check_X():
         dummy1._check_X(X)
 
     # univariate equal length
-    X = UNEQUAL_LENGTH_UNIVARIATE["np-list"]
+    X = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["np-list"]["train"][0]
     assert dummy2._check_X(X)
     with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
         dummy1._check_X(X)
 
     # multivariate unequal length
-    X = UNEQUAL_LENGTH_MULTIVARIATE["np-list"]
+    X = UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION["np-list"]["train"][0]
     assert dummy2._check_X(X)
     with pytest.raises(
         ValueError, match=r"cannot handle multivariate series or unequal length"
     ):
         dummy1._check_X(X)
 
-    # todo see issue #1888
     # different number of channels
-    # X = [np.random.random(size=(2, 10)), np.random.random(size=(3, 10))]
-    # with pytest.raises(Exception):
-    #     dummy2._check_X(X)
+    X = [np.random.random(size=(2, 10)), np.random.random(size=(3, 10))]
+    with pytest.raises(ValueError):
+        dummy2._check_X(X)
 
     # invalid list type
     X = ["Does", "Not", "Accept", "List", "of", "String"]
     with pytest.raises(TypeError, match=r"passed a list containing <class 'str'>"):
         dummy1._check_X(X)
 
-    # todo see issue #1889
     # invalid type
-    # X = BaseCollectionEstimator()
-    # with pytest.raises(TypeError, match=r"passed a <class 'str'>"):
-    #     dummy1._check_X(X)
+    X = BaseCollectionEstimator()
+    with pytest.raises(
+        TypeError,
+        match="must be of type np.ndarray, pd.DataFrame or list of"
+        " np.ndarray/pd.DataFrame",
+    ):
+        dummy1._check_X(X)
 
 
 @pytest.mark.parametrize("internal_type", COLLECTIONS_DATA_TYPES)
@@ -143,7 +162,7 @@ def test_convert_X(internal_type, data):
     cls = BaseCollectionEstimator()
 
     # Equal length should default to numpy3D
-    X = EQUAL_LENGTH_UNIVARIATE[data]
+    X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     cls.metadata_ = cls._check_X(X)
     X2 = cls._convert_X(X)
     assert get_type(X2) == cls.get_tag("X_inner_type")
@@ -174,9 +193,9 @@ def test_convert_X(internal_type, data):
     X2 = cls._convert_X(X)
     assert get_type(X2) == "numpy3D" if data != internal_type else internal_type
 
-    if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
-        if internal_type in UNEQUAL_LENGTH_UNIVARIATE.keys():
-            X = UNEQUAL_LENGTH_UNIVARIATE[data]
+    if data in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys():
+        if internal_type in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys():
+            X = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
 
             # Should stay as internal_type
             cls.set_tags(**{"capability:unequal_length": True})
@@ -194,7 +213,7 @@ def test_convert_X(internal_type, data):
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_preprocess_collection(data):
     """Test the functionality for preprocessing fit."""
-    data = EQUAL_LENGTH_UNIVARIATE[data]
+    data = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     data2 = np.random.random(size=(11, 1, 30))
     cls = BaseCollectionEstimator()
 

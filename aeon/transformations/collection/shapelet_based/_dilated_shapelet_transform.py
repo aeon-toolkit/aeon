@@ -1,6 +1,6 @@
 """Dilated Shapelet transformers.
 
-A modification of the classic Shapelet Transform which add a dilation parameter to
+A modification of the classic Shapelet Transform which adds a dilation parameter to
 Shapelets.
 """
 
@@ -38,11 +38,11 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         - Length is randomly selected from shapelet_lengths parameter
         - Dilation is sampled as a function the shapelet length and time series length
         - Normalization is chosen randomly given the probability given as parameter
-        - Value is sampled randomly from an input time series given the length and
+        - Start value is sampled randomly from an input time series given the length and
         dilation parameter.
         - Threshold is randomly chosen between two percentiles of the distribution
         of the distance vector between the shapelet and another time series. This time
-        serie is drawn from the same class if classes are given during fit. Otherwise,
+        series is drawn from the same class if classes are given during fit. Otherwise,
         a random sample will be used. If there is only one sample per class, the same
         sample will be used.
     Then, once the set of shapelets have been initialized, we extract the shapelet
@@ -50,21 +50,21 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         - min d(S,X): the minimum value of the distance vector between a shapelet S and
         a time series X.
         - argmin d(S,X): the location of the minumum.
-        - SO(d(S,X), threshold): The number of point in the distance vector that are
+        - SO(d(S,X), threshold): The number of points in the distance vector that are
         bellow the threshold parameter of the shapelet.
 
     Parameters
     ----------
     max_shapelets : int, default=10000
-        The maximum number of shapelet to keep for the final transformation.
-        A lower number of shapelets can be kept if alpha similarity have discarded the
+        The maximum number of shapelets to keep for the final transformation.
+        A lower number of shapelets can be kept if alpha similarity has discarded the
         whole dataset.
     shapelet_lengths : array, default=None
-        The set of possible length for shapelets. Each shapelet length is uniformly
-        drawn from this set. If None, the shapelets length will be equal to
+        The set of possible lengths for shapelets. Each shapelet length is uniformly
+        drawn from this set. If None, the shapelet length will be equal to
         min(max(2,n_timepoints//2),11).
     proba_normalization : float, default=0.8
-        This probability (between 0 and 1) indicate the chance of each shapelet to be
+        This probability (between 0 and 1) indicates the chance of each shapelet to be
         initialized such as it will use a z-normalized distance, inducing either scale
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalized distance.
@@ -73,16 +73,16 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
         will be used.
     alpha_similarity : float, default=0.5
-        The strength of the alpha similarity pruning. The higher the value, the lower
-        the allowed number of common indexes with previously sampled shapelets
-        when sampling a new candidate with the same dilation parameter.
-        It can cause the number of sampled shapelets to be lower than max_shapelets if
-        the whole search space has been covered. The default is 0.5, and the maximum is
-        1. Value above it have no effect for now.
+        The strength of the alpha similarity pruning. The higher the value, the fewer
+        common indexes with previously sampled shapelets are allowed when sampling a
+        new candidate with the same dilation parameter. It can cause the number of
+        sampled shapelets to be lower than max_shapelets if the whole search space
+        has been covered. The default is 0.5, and the maximum is 1. Values above it
+        have no effect for now.
     use_prime_dilations : bool, default=False
-        If True, restrict the value of the shapelet dilation parameter to be prime
+        If True, restricts the value of the shapelet dilation parameter to be prime
         values. This can greatly speed up the algorithm for long time series and/or
-        short shapelet length, possibly at the cost of some accuracy.
+        short shapelet lengths, possibly at the cost of some accuracy.
     distance: str="manhattan"
         Name of the distance function to be used. By default this is the
         manhattan distance. Other distances from the aeon distance modules can be used.
@@ -98,7 +98,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             - shapelet values
             - length parameter
             - dilation parameter
-            - treshold parameter
+            - threshold parameter
             - normalization parameter
             - mean parameter
             - standard deviation parameter
@@ -109,8 +109,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
     Notes
     -----
-    This implementation use all the features for multivariate shapelets, without
-    affecting a random feature subsets to each shapelet as done in the original
+    This implementation uses all the features for multivariate shapelets, without
+    affecting a random feature subset to each shapelet as done in the original
     implementation. See `convst
     https://github.com/baraline/convst/blob/main/convst/transformers/rdst.py`_.
 
@@ -717,7 +717,7 @@ def dilated_shapelet_transform(X, shapelets, distance):
     -------
     X_new : array, shape=(n_cases, 3*n_shapelets)
         The transformed input time series with each shapelet extracting 3
-        feature from the distance vector computed on each time series.
+        features from the distance vector computed on each time series.
 
     """
     (
