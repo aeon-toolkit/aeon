@@ -37,7 +37,7 @@ def test_custom_initialization():
     )
     model.build_network((100, 5))
     assert model.latent_space_dim == 64
-    assert model.kernel_size == [5 for _ in range(model.n_layers)]
+    assert model._kernel_size_encoder == [5 for _ in range(model.n_layers)]
     assert model.n_layers == 3
     assert model.dilation_rate == [1, 2, 4]
     assert model.activation == "sigmoid"
