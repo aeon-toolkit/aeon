@@ -14,16 +14,10 @@ def test_default_initialization():
     """Test if the network initializes with proper attributes."""
     model = AEDCNNNetwork()
     assert model.latent_space_dim == 128
-    assert model.kernel_size_encoder == 3
-    assert model.kernel_size_decoder is None
-    assert model.n_filters_decoder is None
-    assert model.n_filters_decoder is None
-    assert model.n_layers_encoder == 4
-    assert model.n_layers_decoder == 4
-    assert model.dilation_rate_encoder is None
-    assert model.dilation_rate_decoder is None
-    assert model.activation_encoder == "relu"
-    assert model.activation_decoder == "relu"
+    assert model.kernel_size == 3
+    assert model.n_layers == 4
+    assert model.dilation_rate is None
+    assert model.activation == "relu"
     assert not model.temporal_latent_space
 
 
@@ -36,29 +30,17 @@ def test_custom_initialization():
     model = AEDCNNNetwork(
         latent_space_dim=64,
         temporal_latent_space=True,
-        n_layers_encoder=3,
-        n_layers_decoder=5,
-        kernel_size_encoder=5,
-        kernel_size_decoder=7,
-        activation_encoder="sigmoid",
-        activation_decoder="tanh",
-        n_filters_decoder=[32, 64, 128],
-        n_filters_decoder=[128, 64, 32, 16, 8],
-        dilation_rate_encoder=[1, 2, 4],
-        dilation_rate_decoder=[4, 2, 1, 2, 4],
+        n_layers=3,
+        kernel_size=5,
+        activation="sigmoid",
+        dilation_rate=[1, 2, 4],
     )
     model.build_network((100, 5))
     assert model.latent_space_dim == 64
-    assert model._kernel_size_encoder == [5 for _ in range(model.n_layers_encoder)]
-    assert model._kernel_size_decoder == [7 for _ in range(model.n_layers_decoder)]
-    assert model.n_filters_decoder == [32, 64, 128]
-    assert model.n_filters_decoder == [128, 64, 32, 16, 8]
-    assert model.n_layers_encoder == 3
-    assert model.n_layers_decoder == 5
-    assert model.dilation_rate_encoder == [1, 2, 4]
-    assert model.dilation_rate_decoder == [4, 2, 1, 2, 4]
-    assert model.activation_encoder == "sigmoid"
-    assert model.activation_decoder == "tanh"
+    assert model._kernel_size == [5 for _ in range(model.n_layers)]
+    assert model.n_layers == 3
+    assert model.dilation_rate == [1, 2, 4]
+    assert model.activation == "sigmoid"
     assert model.temporal_latent_space
 
 
@@ -70,24 +52,14 @@ def test_edge_case_initialization():
     """Tests edge cases are correct or not."""
     model = AEDCNNNetwork(
         latent_space_dim=0,
-        n_layers_encoder=0,
-        n_layers_decoder=0,
-        kernel_size_encoder=0,
-        kernel_size_decoder=0,
-        n_filters_decoder=[],
-        n_filters_decoder=[],
-        dilation_rate_encoder=[],
-        dilation_rate_decoder=[],
+        n_layers=0,
+        kernel_size=0,
+        dilation_rate=[],
     )
     assert model.latent_space_dim == 0
-    assert model.kernel_size_encoder == 0
-    assert model.kernel_size_decoder == 0
-    assert model.n_filters_decoder == []
-    assert model.n_filters_decoder == []
-    assert model.n_layers_encoder == 0
-    assert model.n_layers_decoder == 0
-    assert model.dilation_rate_encoder == []
-    assert model.dilation_rate_decoder == []
+    assert model.kernel_size == 0
+    assert model.n_layers == 0
+    assert model.dilation_rate == []
 
 
 @pytest.mark.skipif(
@@ -97,14 +69,10 @@ def test_edge_case_initialization():
 def test_invalid_initialization():
     """Test if the network raises valid exceptions or not."""
     with pytest.raises(AssertionError):
-        AEDCNNNetwork(n_filters_decoder=[32, 64], n_layers_encoder=3).build_network(
-            (100, 10)
-        )
+        AEDCNNNetwork(n_filters_decoder=[32, 64], n_layers=3).build_network((100, 10))
 
     with pytest.raises(AssertionError):
-        AEDCNNNetwork(dilation_rate_encoder=[1, 2], n_layers_encoder=3).build_network(
-            (100, 10)
-        )
+        AEDCNNNetwork(dilation_rate=[1, 2], n_layers=3).build_network((100, 10))
 
 
 @pytest.mark.skipif(
