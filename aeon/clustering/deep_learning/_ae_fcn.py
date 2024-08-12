@@ -11,7 +11,6 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
-from aeon.clustering.dummy import DummyClusterer
 from aeon.networks import AEFCNNetwork
 
 
@@ -21,15 +20,11 @@ class AEFCNClusterer(BaseDeepClusterer):
     Parameters
     ----------
     n_clusters : int, default=None
-        Please use 'estimator' parameter.
-    estimator : aeon clusterer, default=None
-        An aeon estimator to be built using the transformed data.
-        Defaults to aeon TimeSeriesKMeans() with euclidean distance
-        and mean averaging method and n_clusters set to 2.
-    clustering_algorithm : str, default="deprecated"
-        Please use 'estimator' parameter.
+        Number of clusters for the deep learnign model.
+    clustering_algorithm : str, default="kmeans"
+        The clustering algorithm used in the latent space.
     clustering_params : dict, default=None
-        Please use 'estimator' parameter.
+        Dictionary containing the parameters of the clustering algorithm chosen.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
@@ -67,6 +62,8 @@ class AEFCNClusterer(BaseDeepClusterer):
         Whether to output extra information.
     loss : string, default="mean_squared_error"
         Fit parameter for the keras model.
+    metrics : keras metrics, default = ["mean_squared_error"]
+        will be set to mean_squared_error as default if None
     optimizer : keras.optimizers object, default = Adam(lr=0.01)
         Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
@@ -108,16 +105,15 @@ class AEFCNClusterer(BaseDeepClusterer):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> aefcn = AEFCNClusterer(n_epochs=5,batch_size=4)  # doctest: +SKIP
+    >>> aefcn = AEFCNClusterer(n_clusters=2,n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> aefcn.fit(X_train)  # doctest: +SKIP
     AEFCNClusterer(...)
     """
 
     def __init__(
         self,
-        n_clusters=None,
-        estimator=None,
-        clustering_algorithm="deprecated",
+        n_clusters,
+        clustering_algorithm="kmeans",
         clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
@@ -135,6 +131,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         random_state=None,
         verbose=False,
         loss="mse",
+        metrics=None,
         optimizer="Adam",
         file_path="./",
         save_best_model=False,
@@ -155,6 +152,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.use_bias = use_bias
         self.optimizer = optimizer
         self.loss = loss
+        self.metrics = metrics
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.callbacks = callbacks
@@ -166,7 +164,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.random_state = random_state
 
         super().__init__(
-            estimator=estimator,
             n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
@@ -208,6 +205,15 @@ class AEFCNClusterer(BaseDeepClusterer):
         import numpy as np
         import tensorflow as tf
 
+        if self.metrics is None:
+            self._metrics = ["mean_squared_error"]
+        elif isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            raise ValueError("Metrics should be a list, string, or None.")
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -226,7 +232,7 @@ class AEFCNClusterer(BaseDeepClusterer):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model.compile(optimizer=self.optimizer_, loss=self.loss)
+        model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=self._metrics)
 
         return model
 
@@ -308,7 +314,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
+        return self.clusterer.score(latent_space)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -333,16 +339,21 @@ class AEFCNClusterer(BaseDeepClusterer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
+            "n_clusters": 2,
             "n_epochs": 1,
             "batch_size": 4,
             "use_bias": False,
             "n_layers": 1,
-            "n_filters": 4,
-            "kernel_size": 2,
+            "n_filters": 5,
+            "kernel_size": 3,
             "padding": "same",
             "strides": 1,
-            "latent_space_dim": 4,
-            "estimator": DummyClusterer(n_clusters=2),
+            "clustering_params": {
+                "distance": "euclidean",
+                "averaging_method": "mean",
+                "n_init": 1,
+                "max_iter": 30,
+            },
         }
 
         return [param1]
