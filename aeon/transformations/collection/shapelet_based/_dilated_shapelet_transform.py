@@ -240,7 +240,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         # Shapelet "length" is length-1 times dilation
         self.max_shapelet_length_ = np.max(
-            (self.shapelets_[1] - 1) * self.shapelets_[2]
+            (self.shapelets_[2] - 1) * self.shapelets_[3]
         )
 
         return self
@@ -410,6 +410,8 @@ def _init_random_shapelet_params(
     -------
     values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
         An initialized (empty) value array for each shapelet
+    startpoints: array, shape (max_shapelets)
+        An initialized (empty) startpoint array for each shapelet
     lengths : array, shape (max_shapelets)
         The randomly initialized length of each shapelet
     dilations : array, shape (max_shapelets)
@@ -424,6 +426,8 @@ def _init_random_shapelet_params(
         Standard deviation of the shapelets
 
     """
+    # Init startpoint array
+    startpoints = np.zeros(max_shapelets, dtype=np.float64)
     # Lengths of the shapelets
     # test dtypes correctness
     lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
@@ -461,7 +465,7 @@ def _init_random_shapelet_params(
     means = np.zeros((max_shapelets, n_channels), dtype=np.float64)
     stds = np.zeros((max_shapelets, n_channels), dtype=np.float64)
 
-    return values, lengths, dilations, threshold, normalize, means, stds
+    return values, startpoints, lengths, dilations, threshold, normalize, means, stds
 
 
 @njit(cache=True)
@@ -541,6 +545,7 @@ def random_dilated_shapelet_extraction(
     The returned tuple contains 7 arrays describing the shapelets parameters:
         - values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
+        - startpoints : array, shape (max_shapelets) #TODO: finish
         - lengths : array, shape (max_shapelets)
             Length parameter of the shapelets
         - dilations : array, shape (max_shapelets)
@@ -567,6 +572,7 @@ def random_dilated_shapelet_extraction(
     # Initialize shapelets
     (
         values,
+        startpoints,
         lengths,
         dilations,
         threshold,
@@ -664,6 +670,8 @@ def random_dilated_shapelet_extraction(
 
                 threshold[i_shp] = np.random.uniform(lower_bound, upper_bound)
                 values[i_shp, :, :length] = _val
+                #Extract the starting point index of the shapelet
+                startpoints[i_shp] = idx_timestamp
                 if norm:
                     means[i_shp] = _means
                     stds[i_shp] = _stds
@@ -675,6 +683,7 @@ def random_dilated_shapelet_extraction(
 
     return (
         values[mask_values],
+        startpoints[mask_values],
         lengths[mask_values],
         dilations[mask_values],
         threshold[mask_values],
@@ -722,6 +731,7 @@ def dilated_shapelet_transform(X, shapelets, distance):
     """
     (
         values,
+        startpoints,
         lengths,
         dilations,
         threshold,
