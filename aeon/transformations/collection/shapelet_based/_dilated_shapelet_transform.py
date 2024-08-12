@@ -367,6 +367,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         """
         if parameter_set == "default":
             params = {"max_shapelets": 10}
+            params = {"max_shapelets": 10}
         else:
             raise NotImplementedError(
                 f"The parameter set {parameter_set} is not yet implemented"
@@ -376,12 +377,12 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
 @njit(fastmath=True, cache=True)
 def _init_random_shapelet_params(
-    max_shapelets: int,
-    shapelet_lengths: Union[np.ndarray, List[int]],
-    proba_normalization: float,
-    use_prime_dilations: bool,
-    n_channels: int,
-    n_timepoints: int,
+    max_shapelets,
+    shapelet_lengths,
+    proba_normalization,
+    use_prime_dilations,
+    n_channels,
+    n_timepoints,
 ):
     """Randomly initialize the parameters of the shapelets.
 
@@ -428,6 +429,7 @@ def _init_random_shapelet_params(
     """
     # Lengths of the shapelets
     # test dtypes correctness
+    lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
     lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
     # Upper bound values for dilations
     dilations: np.ndarray = np.zeros(max_shapelets, dtype=np.int32)
