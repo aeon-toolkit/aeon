@@ -16,9 +16,6 @@ from numba.core.registry import CPUDispatcher
 from numba.typed import List
 from sklearn.preprocessing import LabelEncoder
 
-from typing import Optional, Union, List, Dict
-from numba.core.registry import CPUDispatcher
-
 from aeon.distances import get_distance_function
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import (
