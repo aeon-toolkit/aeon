@@ -96,6 +96,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     shapelets : list
         The stored shapelets. Each item in the list is a tuple containing:
             - shapelet values
+            - startpoint values
             - length parameter
             - dilation parameter
             - threshold parameter
@@ -545,7 +546,8 @@ def random_dilated_shapelet_extraction(
     The returned tuple contains 7 arrays describing the shapelets parameters:
         - values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
-        - startpoints : array, shape (max_shapelets) #TODO: finish
+        - startpoints : array, shape (max_shapelets)
+            Start points parameter of the shapelets
         - lengths : array, shape (max_shapelets)
             Length parameter of the shapelets
         - dilations : array, shape (max_shapelets)
@@ -705,6 +707,8 @@ def dilated_shapelet_transform(X, shapelets, distance):
         The returned tuple contains 7 arrays describing the shapelets parameters:
         - values : array, shape (n_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
+        - startpoints : array, shape (max_shapelets)
+            Start points parameter of the shapelets
         - lengths : array, shape (n_shapelets)
             Length parameter of the shapelets
         - dilations : array, shape (n_shapelets)
