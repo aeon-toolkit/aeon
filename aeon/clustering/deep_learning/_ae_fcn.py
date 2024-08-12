@@ -211,7 +211,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         """
         import numpy as np
         import tensorflow as tf
-        
+
         if self.metrics is None:
             self._metrics = ["mean_squared_error"]
         elif isinstance(self.metrics, list):
@@ -239,7 +239,11 @@ class AEFCNClusterer(BaseDeepClusterer):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model.compile(optimizer=self.optimizer_,loss=self.loss, metrics=self._metrics,)
+        model.compile(
+            optimizer=self.optimizer_,
+            loss=self.loss,
+            metrics=self._metrics,
+        )
         return model
 
     def _fit(self, X):
