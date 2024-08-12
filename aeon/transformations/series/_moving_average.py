@@ -23,8 +23,11 @@ class MovingAverageTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-
-        
+    import numpy as np
+    from aeon.transformations.series._moving_average import MovingAverageTransformer
+    X = np.array([-3, -2, -1,  0,  1,  2,  3])
+    transformer = MovingAverageTransformer(2)
+    Xt = transformer.fit_transform(X)
     """
     
     _tags = {
@@ -48,7 +51,9 @@ class MovingAverageTransformer(BaseSeriesTransformer):
         Parameters
         ----------
         X : np.ndarray
-            time series in shape(n_chnannels, n_timepoints)
+            Data to be transformed
+        y : ignored argument for interface compatibility
+            Additional data, e.g., labels for transformation
 
         Returns
         -------
