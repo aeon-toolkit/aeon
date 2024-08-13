@@ -962,7 +962,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
-    return_metadata : boolean, default = True
+    return_metadata : boolean, default = False
         If True, returns a tuple (data, metadata)
 
     Returns
