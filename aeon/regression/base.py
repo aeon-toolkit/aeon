@@ -154,7 +154,8 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             indices correspond to instance indices in X
         """
         self.check_is_fitted()
-        X = self._preprocess_collection(X)
+        X = self._preprocess_collection(X, store_metadata=False)
+        self._check_shape(X)
         return self._predict(X)
 
     @final

@@ -1058,19 +1058,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
         ]
 
     def _predict_setup(self, X):
-        n_cases, n_channels, n_timepoints = X.shape
-
-        if n_channels != self.n_channels_:
-            raise ValueError(
-                "The number of channels in the train data does not match the number "
-                "of channels in the test data"
-            )
-        if n_timepoints != self.n_timepoints_:
-            raise ValueError(
-                "The series length of the train data does not match the series length "
-                "of the test data"
-            )
-
         Xt = []
         for transformer in self._series_transformers:
             if transformer is None:
