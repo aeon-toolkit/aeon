@@ -672,7 +672,7 @@ def random_dilated_shapelet_extraction(
 
                 threshold[i_shp] = np.random.uniform(lower_bound, upper_bound)
                 values[i_shp, :, :length] = _val
-                #Extract the starting point index of the shapelet
+                # Extract the starting point index of the shapelet
                 startpoints[i_shp] = idx_timestamp
                 if norm:
                     means[i_shp] = _means
