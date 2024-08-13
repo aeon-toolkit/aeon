@@ -27,7 +27,6 @@ def test_dft(r, sort):
 
     from aeon.transformations.series._dft import DFTSeriesTransformer
 
-    DFTSeriesTransformer
     dft = DFTSeriesTransformer(r=r, sort=sort)
     x_1 = dft.fit_transform(x1)
     x_2 = dft.fit_transform(x2)
