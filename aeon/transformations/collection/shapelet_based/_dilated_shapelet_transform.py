@@ -8,7 +8,8 @@ __maintainer__ = ["baraline"]
 __all__ = ["RandomDilatedShapeletTransform"]
 
 import warnings
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional, Union
+from typing import List as TypingList
 
 import numpy as np
 from numba import njit, prange, set_num_threads
@@ -152,13 +153,13 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     def __init__(
         self,
         max_shapelets: int = 10_000,
-        shapelet_lengths: Optional[Union[List[int], np.ndarray]] = None,
+        shapelet_lengths: Optional[Union[TypingList[int], np.ndarray]] = None,
         proba_normalization: float = 0.8,
-        threshold_percentiles: Optional[Union[List[float], np.ndarray]] = None,
+        threshold_percentiles: Optional[Union[TypingList[float], np.ndarray]] = None,
         alpha_similarity: float = 0.5,
         use_prime_dilations: bool = False,
-        random_state: Optional[int] = None,
-        distance: CPUDispatcher = "manhattan",
+        random_state: Optional[Union[int, np.random.RandomState, np.random.Generator]] = None,
+        distance: Union[CPUDispatcher, str] = "manhattan",
         n_jobs: int = 1,
     ):
         self.max_shapelets = max_shapelets
@@ -173,7 +174,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None):
+    def _fit(self, X: np.ndarray, y: Optional[Union[np.ndarray, TypingList]] = None):
         """Fit the random dilated shapelet transform to a specified X and y.
 
         Parameters
@@ -247,7 +248,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         return self
 
-    def _transform(self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None):
+    def _transform(self, X: np.ndarray, y: Optional[Union[np.ndarray, TypingList]] = None):
         """Transform X according to the extracted shapelets.
 
         Parameters
@@ -349,7 +350,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     @classmethod
     def get_test_params(
         cls, parameter_set: str = "default"
-    ) -> "Union[Dict, List[Dict]]":
+    ) -> "Union[Dict, TypingList[Dict]]":
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -491,13 +492,13 @@ def random_dilated_shapelet_extraction(
     X: np.ndarray,
     y: np.ndarray,
     max_shapelets: int,
-    shapelet_lengths: Union[np.ndarray, List[int]],
+    shapelet_lengths: Union[np.ndarray, TypingList[int]],
     proba_normalization: float,
-    threshold_percentiles: Union[np.ndarray, List[float]],
+    threshold_percentiles: Union[np.ndarray, TypingList[float]],
     alpha_similarity: float,
     use_prime_dilations: bool,
     seed: int,
-    distance: CPUDispatcher,
+    distance: Union[CPUDispatcher,str],
 ):
     """Randomly generate a set of shapelets given the input parameters.
 
@@ -700,7 +701,7 @@ def dilated_shapelet_transform(
         np.ndarray,
         np.ndarray,
     ],
-    distance: CPUDispatcher,
+    distance: Union[CPUDispatcher,str],
 ):
     """Perform the shapelet transform with a set of shapelets and a set of time series.
 
@@ -849,7 +850,7 @@ def compute_shapelet_features(
     values: np.ndarray,
     length: int,
     threshold: float,
-    distance: CPUDispatcher,
+    distance: Union[CPUDispatcher,str],
 ):
     """Extract the features from a shapelet distance vector.
 
@@ -898,7 +899,7 @@ def compute_shapelet_features(
 
 @njit(fastmath=True, cache=True)
 def compute_shapelet_dist_vector(
-    X_subs: np.ndarray, values: np.ndarray, length: int, distance: CPUDispatcher
+    X_subs: np.ndarray, values: np.ndarray, length: int, distance: Union[CPUDispatcher,str]
 ):
     """Extract the features from a shapelet distance vector.
 
