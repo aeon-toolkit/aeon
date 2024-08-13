@@ -4,7 +4,10 @@ import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
-from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE, UNEQUAL_LENGTH_UNIVARIATE
+from aeon.testing.testing_data import (
+    EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
+    UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
+)
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_type
 
@@ -12,7 +15,7 @@ from aeon.utils.validation import get_type
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test__get_metadata(data):
     """Test get meta data."""
-    X = EQUAL_LENGTH_UNIVARIATE[data]
+    X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     meta = BaseCollectionEstimator._get_X_metadata(X)
     assert not meta["multivariate"]
     assert not meta["missing_values"]
@@ -68,7 +71,7 @@ def test__convert_X(internal_type, data):
     """
     cls = BaseCollectionEstimator()
     # Equal length should default to numpy3D
-    X = EQUAL_LENGTH_UNIVARIATE[data]
+    X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     cls.metadata_ = cls._check_X(X)
     X2 = cls._convert_X(X)
     assert get_type(X2) == cls.get_tag("X_inner_type")
@@ -94,9 +97,9 @@ def test__convert_X(internal_type, data):
     X2 = cls._convert_X(X)
     assert get_type(X2) == "numpy3D" if data != internal_type else internal_type
 
-    if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
-        if internal_type in UNEQUAL_LENGTH_UNIVARIATE.keys():
-            X = UNEQUAL_LENGTH_UNIVARIATE[data]
+    if data in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys():
+        if internal_type in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys():
+            X = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
 
             # Should stay as internal_type
             cls.set_tags(**{"capability:unequal_length": True})
@@ -114,7 +117,7 @@ def test__convert_X(internal_type, data):
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_preprocess_collection(data):
     """Test the functionality for preprocessing fit."""
-    data = EQUAL_LENGTH_UNIVARIATE[data]
+    data = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     cls = BaseCollectionEstimator()
     X = cls._preprocess_collection(data)
     assert cls._n_jobs == 1
