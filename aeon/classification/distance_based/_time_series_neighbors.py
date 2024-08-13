@@ -145,7 +145,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return preds
 
     def _predict(self, X):
-        """Predict the class labels for the provided data.
+        """
+        Predict the class labels for the provided data.
 
         Parameters
         ----------
@@ -174,7 +175,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return preds
 
     def _kneighbors(self, X):
-        """Find the K-neighbors of a point.
+        """
+        Find the K-neighbors of a point.
 
         Returns indices and weights of each point.
 
