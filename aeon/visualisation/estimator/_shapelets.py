@@ -400,11 +400,12 @@ class ShapeletTransformerVisualizer:
 
     def _get_shapelet(self, id_shapelet):
         if isinstance(self.estimator, RandomDilatedShapeletTransform):
-            length_ = self.estimator.shapelets_[1][id_shapelet]
             values_ = self.estimator.shapelets_[0][id_shapelet]
-            dilation_ = self.estimator.shapelets_[2][id_shapelet]
-            threshold_ = self.estimator.shapelets_[3][id_shapelet]
-            normalize_ = self.estimator.shapelets_[4][id_shapelet]
+            startpos_ = self.estimator.shapelets_[1][id_shapelet]
+            length_ = self.estimator.shapelets_[2][id_shapelet]
+            dilation_ = self.estimator.shapelets_[3][id_shapelet]
+            threshold_ = self.estimator.shapelets_[4][id_shapelet]
+            normalize_ = self.estimator.shapelets_[5][id_shapelet]
             distance = self.estimator.distance
 
         elif isinstance(self.estimator, (RSAST, SAST)):
