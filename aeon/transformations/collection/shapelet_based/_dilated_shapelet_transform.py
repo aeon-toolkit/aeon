@@ -483,15 +483,15 @@ def _init_random_shapelet_params(
     stds = np.zeros((max_shapelets, n_channels), dtype=np.float64)
 
     return (
-        values: np.ndarray[np.float64],
-        startpoints: np.ndarray[np.int32] ,
-        lengths: np.ndarray[np.int32],
-        dilations: np.ndarray[np.int32],
-        threshold: np.ndarray[np.float64],
-        normalize: np.ndarray[np.bool_],
-        means: np.ndarray[np.float64],
-        stds: np.ndarray[np.float64],
-        classes: np.ndarray[np.int32],
+        values,
+        startpoints,
+        lengths,
+        dilations,
+        threshold,
+        normalize,
+        means,
+        stds,
+        classes,
     )
 
 
@@ -741,6 +741,8 @@ def dilated_shapelet_transform(
         np.ndarray,
         np.ndarray,
         np.ndarray,
+        np.ndarray,
+        np.ndarray,
     ],
     distance: CPUDispatcher,
 ):
@@ -830,7 +832,11 @@ def dilated_shapelet_transform(
 
 
 @njit(fastmath=True, cache=True)
-def normalize_subsequences(X_subs: np.ndarray[np.float64], X_means: np.ndarray[np.float64], X_stds: np.ndarray[np.float64]):
+def normalize_subsequences(
+    X_subs: np.ndarray[np.float64],
+    X_means: np.ndarray[np.float64],
+    X_stds: np.ndarray[np.float64],
+):
     """
     Generate subsequences from a time series given the length and dilation parameters.
 
