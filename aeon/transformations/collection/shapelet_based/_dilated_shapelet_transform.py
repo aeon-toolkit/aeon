@@ -434,7 +434,7 @@ def _init_random_shapelet_params(
     startpoints = np.zeros(max_shapelets, dtype=np.int32)
     # Init class array
     classes = np.zeros(max_shapelets, dtype=np.int32)
-       
+
     # Lengths of the shapelets
     # test dtypes correctness
     lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
@@ -472,7 +472,17 @@ def _init_random_shapelet_params(
     means = np.zeros((max_shapelets, n_channels), dtype=np.float64)
     stds = np.zeros((max_shapelets, n_channels), dtype=np.float64)
 
-    return values, startpoints, lengths, dilations, threshold, normalize, means, stds, classes
+    return (
+        values,
+        startpoints,
+        lengths,
+        dilations,
+        threshold,
+        normalize,
+        means,
+        stds,
+        classes,
+    )
 
 
 @njit(cache=True)
@@ -682,10 +692,10 @@ def random_dilated_shapelet_extraction(
                 threshold[i_shp] = np.random.uniform(lower_bound, upper_bound)
                 values[i_shp, :, :length] = _val
 
-                #Extract the starting point index of the shapelet
+                # Extract the starting point index of the shapelet
                 startpoints[i_shp] = idx_timestamp
 
-                #Extract the class value of the shapelet
+                # Extract the class value of the shapelet
                 classes[i_shp] = y[idx_sample]
 
                 if norm:
