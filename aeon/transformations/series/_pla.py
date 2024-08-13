@@ -17,8 +17,8 @@ class PLASeriesTransformer(BaseSeriesTransformer):
 
     Takes a univariate time series as input. Approximates a time series using
     linear regression and the sum of squares error (SSE) through an algorithm.
-    The algorithms available are two offline algorithms: TopDown and BottomUp
-    and two online algorithms: Sliding Window and SWAB (Sliding Window and Bottom Up).
+    The algorithms available are two offline algorithms: top down and bottom up
+    and two online algorithms: sliding window and SWAB (Sliding Window and Bottom Up).
 
     Offline algorithms take the whole dataset and read it all at once. When working
     with infinite data, the algorithm will infinitely read the data, never
@@ -26,15 +26,15 @@ class PLASeriesTransformer(BaseSeriesTransformer):
     and process the subsequence. Once processing is done, more data is read in.
     This means that online algorithms can process even infinity data.
 
-    From the four algorithms, Sliding Window is known to give the worst performance in
-    transformation. While Bottom Up is known to give the best performance, yet has its
-    inefficiencies due to being an offline aglorithm. SWAB uses Bottom Up's performance
-    with the combination of Sliding Window to create an efficient online algorithm. It's
-    performance is only slightly reduced versus it's competitor Bottom Up.
+    When working with continuous data or large datasets SWAB is recommended.
+    When working with small datasets it is recommended to test out both
+    bottom up and top down and use the one with the required result.
+    Sliding window is a weak algorithm and generally never used, except
+    when used for comparing accuracy of algorithms. [1]
 
     Parameters
     ----------
-    transformer: str
+    transformer: str, default="swab"
         The transformer to be used.
         Default transformer is swab.
         Valid transformers with their string:
@@ -42,9 +42,9 @@ class PLASeriesTransformer(BaseSeriesTransformer):
             Top Down: "top down"
             Bottom Up: "bottom up"
             SWAB: "swab"
-    max_error: float
+    max_error: float, default=20
         The maximum error value for the algorithm to find before segmenting the dataset.
-    buffer_size: float
+    buffer_size: float, default=None
         The buffer size, used only for SWAB.
 
     References
@@ -60,6 +60,12 @@ class PLASeriesTransformer(BaseSeriesTransformer):
     >>> ts = ts.values
     >>> pla = PLASeriesTransformer(max_error = 0.001, transformer="bottom up")
     >>> transformed_x = pla.fit_transform(ts)
+
+    References
+    ----------
+    .. [1] E. Keogh, S. Chu, D. Hart and M. Pazzani, "An online algorithm for
+    segmenting time series," Proceedings 2001 IEEE International Conference on
+    Data Mining, San Jose, CA, USA, 2001, pp. 289-296, doi: 10.1109/ICDM.2001.989531.
     """
 
     _tags = {
