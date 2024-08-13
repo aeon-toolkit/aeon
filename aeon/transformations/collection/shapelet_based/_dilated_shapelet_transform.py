@@ -162,7 +162,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         random_state: Optional[
             Union[int, np.random.RandomState, np.random.Generator]
         ] = None,
-        distance: Union[CPUDispatcher, str] = "manhattan",
+        distance: CPUDispatcher = "manhattan",
         n_jobs: int = 1,
     ):
         self.max_shapelets = max_shapelets
@@ -438,7 +438,7 @@ def _init_random_shapelet_params(
     # test dtypes correctness
     lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
     # Upper bound values for dilations
-    dilations: np.ndarray = np.zeros(max_shapelets, dtype=np.int32)
+    dilations = np.zeros(max_shapelets, dtype=np.int32)
     upper_bounds = np.log2(np.floor_divide(n_timepoints - 1, lengths - 1))
 
     if use_prime_dilations:
@@ -497,13 +497,13 @@ def random_dilated_shapelet_extraction(
     X: np.ndarray,
     y: np.ndarray,
     max_shapelets: int,
-    shapelet_lengths: Union[np.ndarray, TypingList[int]],
+    shapelet_lengths: np.ndarray,
     proba_normalization: float,
-    threshold_percentiles: Union[np.ndarray, TypingList[float]],
+    threshold_percentiles: np.ndarray,
     alpha_similarity: float,
     use_prime_dilations: bool,
     seed: int,
-    distance: Union[CPUDispatcher, str],
+    distance: CPUDispatcher,
 ):
     """Randomly generate a set of shapelets given the input parameters.
 
@@ -564,9 +564,9 @@ def random_dilated_shapelet_extraction(
         - stds : array, shape (max_shapelets, n_channels)
             Standard deviation of the shapelets
     """
-    n_cases: int = len(X)
-    n_channels: int = X[0].shape[0]
-    n_timepointss: np.ndarray = np.zeros(n_cases, dtype=np.int64)
+    n_cases = len(X)
+    n_channels = X[0].shape[0]
+    n_timepointss = np.zeros(n_cases, dtype=np.int64)
     for i in range(n_cases):
         n_timepointss[i] = X[i].shape[1]
     min_n_timepoints = n_timepointss.min()
@@ -855,7 +855,7 @@ def compute_shapelet_features(
     values: np.ndarray,
     length: int,
     threshold: float,
-    distance: Union[CPUDispatcher, str],
+    distance: CPUDispatcher,
 ):
     """Extract the features from a shapelet distance vector.
 
@@ -907,7 +907,7 @@ def compute_shapelet_dist_vector(
     X_subs: np.ndarray,
     values: np.ndarray,
     length: int,
-    distance: Union[CPUDispatcher, str],
+    distance: CPUDispatcher,
 ):
     """Extract the features from a shapelet distance vector.
 
