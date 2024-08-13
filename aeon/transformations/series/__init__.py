@@ -7,7 +7,6 @@ __all__ = [
     "ClaSPTransformer",
     "Dobin",
     "MatrixProfileSeriesTransformer",
-    "PLASeriesTransformer",
     "StatsModelsACF",
     "StatsModelsPACF",
     "ThetaTransformer",
