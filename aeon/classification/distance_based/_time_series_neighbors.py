@@ -28,8 +28,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     Parameters
     ----------
-    n_neighbors : int, default =1
-        k for knn.
+    n_neighbors : int, default = 1
+        Set k for knn.
     weights : str or callable, default = 'uniform'
         Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
         function.
@@ -96,7 +96,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
-        """Fit the model using X as training data and y as target values.
+        """
+        Fit the model using X as training data and y as target values.
 
         Parameters
         ----------
@@ -113,7 +114,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return self
 
     def _predict_proba(self, X):
-        """Return probability estimates for the provided data.
+        """
+        Return probability estimates for the provided data.
 
         Parameters
         ----------
@@ -149,9 +151,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
         shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-                If the series are all equal length, a numpy3D will be passed. If
-                unequal, a list of 2D numpy arrays is passed, which may have
-                different lengths.
+        If the series are all equal length, a numpy3D will be passed. If unequal, a list
+        of 2D numpy arrays is passed, which may have different lengths.
 
         Returns
         -------
