@@ -11,7 +11,7 @@ import pandas as pd
 from aeon.base._meta import flatten
 from aeon.forecasting.base._base import BaseForecaster
 from aeon.forecasting.base._meta import _HeterogenousEnsembleForecaster
-from aeon.transformations.hierarchical.aggregate import _check_index_no_total
+from aeon.transformations._legacy.aggregate import _check_index_no_total
 
 
 class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
@@ -153,7 +153,7 @@ class HierarchyEnsembleForecaster(_HeterogenousEnsembleForecaster):
 
     def _aggregate(self, y):
         """Add total levels to y, using Aggregate."""
-        from aeon.transformations.hierarchical.aggregate import Aggregator
+        from aeon.transformations._legacy.aggregate import Aggregator
 
         return Aggregator().fit_transform(y)
 

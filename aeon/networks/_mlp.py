@@ -1,6 +1,7 @@
-"""Multi Layer Perceptron (MLP) (minus the final output layer)."""
+"""Multi Layer Perceptron Network (MLPNetwork)."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
+
 
 from aeon.networks.base import BaseDeepLearningNetwork
 

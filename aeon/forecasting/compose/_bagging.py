@@ -13,11 +13,11 @@ from sklearn.utils._testing import set_random_state
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.ets import AutoETS
 from aeon.testing.mock_estimators import MockForecaster
-from aeon.transformations.base import BaseTransformer
-from aeon.transformations.bootstrap import (
+from aeon.transformations._legacy._mbb import (
     MovingBlockBootstrapTransformer,
     STLBootstrapTransformer,
 )
+from aeon.transformations.base import BaseTransformer
 from aeon.utils.index_functions import update_data
 
 
@@ -69,20 +69,6 @@ class BaggingForecaster(BaseForecaster):
     .. [2] Bergmeir, C., Hyndman, R. J., & Benítez, J. M. (2016). Bagging exponential
         smoothing methods using STL decomposition and Box-Cox transformation.
         International Journal of Forecasting, 32(2), 303-312
-
-    Examples
-    --------
-    >>> from aeon.transformations.bootstrap import STLBootstrapTransformer
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.forecasting.compose import BaggingForecaster
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> forecaster = BaggingForecaster(
-    ...     STLBootstrapTransformer(sp=12), NaiveForecaster(sp=12)
-    ... )  # doctest: +SKIP
-    >>> forecaster.fit(y)  # doctest: +SKIP
-    BaggingForecaster(...)
-    >>> y_hat = forecaster.predict([1,2,3])  # doctest: +SKIP
     """
 
     _tags = {
