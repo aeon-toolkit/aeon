@@ -100,12 +100,14 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     shapelets : list
         The stored shapelets. Each item in the list is a tuple containing:
             - shapelet values
+            - startpoint values
             - length parameter
             - dilation parameter
             - threshold parameter
             - normalization parameter
             - mean parameter
             - standard deviation parameter
+            - class value
     max_shapelet_length_ : int
         The maximum actual shapelet length fitted to train data.
     min_n_timepoints_ : int
@@ -246,7 +248,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         # Shapelet "length" is length-1 times dilation
         self.max_shapelet_length_ = np.max(
-            (self.shapelets_[1] - 1) * self.shapelets_[2]
+            (self.shapelets_[2] - 1) * self.shapelets_[3]
         )
 
         return self
@@ -420,6 +422,8 @@ def _init_random_shapelet_params(
     -------
     values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
         An initialized (empty) value array for each shapelet
+    startpoints: array, shape (max_shapelets)
+        An initialized (empty) startpoint array for each shapelet
     lengths : array, shape (max_shapelets)
         The randomly initialized length of each shapelet
     dilations : array, shape (max_shapelets)
@@ -432,8 +436,15 @@ def _init_random_shapelet_params(
         Means of the shapelets
     stds : array, shape (max_shapelets, n_channels)
         Standard deviation of the shapelets
+    class: array, shape (max_shapelets)
+        An initialized (empty) class array for each shapelet
 
     """
+    # Init startpoint array
+    startpoints = np.zeros(max_shapelets, dtype=np.int32)
+    # Init class array
+    classes = np.zeros(max_shapelets, dtype=np.int32)
+
     # Lengths of the shapelets
     # test dtypes correctness
     lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
@@ -471,7 +482,17 @@ def _init_random_shapelet_params(
     means = np.zeros((max_shapelets, n_channels), dtype=np.float64)
     stds = np.zeros((max_shapelets, n_channels), dtype=np.float64)
 
-    return values, lengths, dilations, threshold, normalize, means, stds
+    return (
+        values,
+        startpoints,
+        lengths,
+        dilations,
+        threshold,
+        normalize,
+        means,
+        stds,
+        classes,
+    )
 
 
 @njit(cache=True)
@@ -551,6 +572,8 @@ def random_dilated_shapelet_extraction(
     The returned tuple contains 7 arrays describing the shapelets parameters:
         - values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
+        - startpoints : array, shape (max_shapelets)
+            Start points parameter of the shapelets
         - lengths : array, shape (max_shapelets)
             Length parameter of the shapelets
         - dilations : array, shape (max_shapelets)
@@ -563,6 +586,8 @@ def random_dilated_shapelet_extraction(
             Means of the shapelets
         - stds : array, shape (max_shapelets, n_channels)
             Standard deviation of the shapelets
+        - classes : array, shape (max_shapelets)
+        An initialized (empty) startpoint array for each shapelet
     """
     n_cases = len(X)
     n_channels = X[0].shape[0]
@@ -577,12 +602,14 @@ def random_dilated_shapelet_extraction(
     # Initialize shapelets
     (
         values,
+        startpoints,
         lengths,
         dilations,
         threshold,
         normalize,
         means,
         stds,
+        classes,
     ) = _init_random_shapelet_params(
         max_shapelets,
         shapelet_lengths,
@@ -674,6 +701,13 @@ def random_dilated_shapelet_extraction(
 
                 threshold[i_shp] = np.random.uniform(lower_bound, upper_bound)
                 values[i_shp, :, :length] = _val
+
+                # Extract the starting point index of the shapelet
+                startpoints[i_shp] = idx_timestamp
+
+                # Extract the class value of the shapelet
+                classes[i_shp] = y[idx_sample]
+
                 if norm:
                     means[i_shp] = _means
                     stds[i_shp] = _stds
@@ -685,12 +719,14 @@ def random_dilated_shapelet_extraction(
 
     return (
         values[mask_values],
+        startpoints[mask_values],
         lengths[mask_values],
         dilations[mask_values],
         threshold[mask_values],
         normalize[mask_values],
         means[mask_values],
         stds[mask_values],
+        classes[mask_values],
     )
 
 
@@ -718,6 +754,8 @@ def dilated_shapelet_transform(
         The returned tuple contains 7 arrays describing the shapelets parameters:
         - values : array, shape (n_shapelets, n_channels, max(shapelet_lengths))
             Values of the shapelets.
+        - startpoints : array, shape (max_shapelets)
+            Start points parameter of the shapelets
         - lengths : array, shape (n_shapelets)
             Length parameter of the shapelets
         - dilations : array, shape (n_shapelets)
@@ -730,6 +768,8 @@ def dilated_shapelet_transform(
             Means of the shapelets
         - stds : array, shape (n_shapelets, n_channels)
             Standard deviation of the shapelets
+        - classes : array, shape (max_shapelets)
+        An initialized (empty) startpoint array for each shapelet
     distance: CPUDispatcher
         A Numba function used to compute the distance between two multidimensional
         time series of shape (n_channels, length).
@@ -744,12 +784,14 @@ def dilated_shapelet_transform(
     """
     (
         values,
+        startpoints,
         lengths,
         dilations,
         threshold,
         normalize,
         means,
         stds,
+        classes,
     ) = shapelets
     n_shapelets = len(lengths)
     n_cases = len(X)
