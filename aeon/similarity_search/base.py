@@ -3,8 +3,9 @@
 __maintainer__ = ["baraline"]
 
 from abc import ABC, abstractmethod
-from typing import Union, final
+from typing import Optional, final
 
+import numpy as np
 from numba import get_num_threads, set_num_threads
 from numba.typed import List
 
@@ -39,7 +40,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
 
     Attributes
     ----------
-    X_ : array, shape (n_cases, n_channels, n_timepoints)
+    X_ : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
         The input time series stored during the fit method.
 
     Notes
@@ -59,7 +60,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
     def __init__(
         self,
         distance: str = "euclidean",
-        distance_args: Union[None, dict] = None,
+        distance_args: Optional[dict] = None,
         inverse_distance: bool = False,
         normalize: bool = False,
         speed_up: str = "fastest",
@@ -74,14 +75,14 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
         super().__init__()
 
     @final
-    def fit(self, X, y=None):
+    def fit(self, X: np.ndarray, y=None):
         """
         Fit method: data preprocessing and storage.
 
         Parameters
         ----------
-        X : array, shape (n_cases, n_channels, n_timepoints)
-            Input array to used as database for the similarity search
+        X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+            Input array to be used as database for the similarity search
         y : optional
             Not used.
 

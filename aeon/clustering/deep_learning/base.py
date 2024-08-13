@@ -5,8 +5,6 @@ __maintainer__ = []
 from abc import ABC, abstractmethod
 
 from aeon.clustering._k_means import TimeSeriesKMeans
-from aeon.clustering._k_medoids import TimeSeriesKMedoids
-from aeon.clustering._k_shapes import TimeSeriesKShapes
 from aeon.clustering.base import BaseClusterer
 
 
@@ -16,16 +14,15 @@ class BaseDeepClusterer(BaseClusterer, ABC):
     Parameters
     ----------
     n_clusters : int, default=None
-        Number of clusters for the deep learning model.
-    clustering_algorithm : str, {'kmeans', 'kshape', 'kmedoids'},
-        default="kmeans"
-        The clustering algorithm used in the latent space.
-        Options include:
-        'kmeans' for Kmeans clustering,
-        'kshape' for KShape clustering,
-        'kmedoids' for KMedoids clustering.
+        Please use 'estimator' parameter.
+    estimator : aeon clusterer, default=None
+        An aeon estimator to be built using the transformed data.
+        Defaults to aeon TimeSeriesKMeans() with euclidean distance
+        and mean averaging method and n_clusters set to 2.
+    clustering_algorithm : str, default="deprecated"
+        Please use 'estimator' parameter.
     clustering_params : dict, default=None
-        Dictionary containing the parameters of the clustering algorithm chosen.
+        Please use 'estimator' parameter.
     batch_size : int, default = 40
         training batch size for the model
     last_file_name : str, default = "last_model"
@@ -45,21 +42,23 @@ class BaseDeepClusterer(BaseClusterer, ABC):
 
     def __init__(
         self,
-        n_clusters,
-        clustering_algorithm="kmeans",
+        n_clusters=None,
+        estimator=None,
+        clustering_algorithm="deprecated",
         clustering_params=None,
         batch_size=32,
         last_file_name="last_file",
     ):
+        self.estimator = estimator
+        self.n_clusters = n_clusters
         self.clustering_algorithm = clustering_algorithm
         self.clustering_params = clustering_params
         self.batch_size = batch_size
         self.last_file_name = last_file_name
 
         self.model_ = None
-        self.clusterer = None
 
-        super().__init__(n_clusters)
+        super().__init__(n_clusters=n_clusters)
 
     @abstractmethod
     def build_model(self, input_shape):
@@ -110,29 +109,35 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         X : np.ndarray, shape=(n_cases, n_timepoints, n_channels)
             The input time series.
         """
-        if self.clustering_params is None:
-            clustering_params_ = dict()
-        else:
-            clustering_params_ = self.clustering_params
-            # clustering_params_["n_clusters"] = self.n_clusters
-        if self.clustering_algorithm == "kmeans":
-            self.clusterer = TimeSeriesKMeans(
-                n_clusters=self.n_clusters, **clustering_params_
+        import warnings
+
+        self._estimator = (
+            TimeSeriesKMeans(
+                n_clusters=2, distance="euclidean", averaging_method="mean"
             )
-        elif self.clustering_algorithm == "kshape":
-            self.clusterer = TimeSeriesKShapes(
-                n_clusters=self.n_clusters, **clustering_params_
+            if self.estimator is None
+            else self.estimator
+        )
+
+        # to be removed in 1.0.0
+        if (
+            self.clustering_algorithm != "deprecated"
+            or self.clustering_params is not None
+            or self.n_clusters is not None
+        ):
+            warnings.warn(
+                "The 'n_clusters' 'clustering_algorithm' and "
+                "'clustering_params' parameters "
+                "will be removed in v1.0.0. "
+                "Their usage will not have an effect, "
+                "please use the new 'estimator' parameter to directly "
+                "give an aeon clusterer as input.",
+                FutureWarning,
+                stacklevel=2,
             )
-        elif self.clustering_algorithm == "kmedoids":
-            self.clusterer = TimeSeriesKMedoids(
-                n_clusters=self.n_clusters, **clustering_params_
-            )
-        else:
-            raise ValueError(
-                f"Invalid input for 'clustering_algorithm': {self.clustering_algorithm}"
-            )
+
         latent_space = self.model_.layers[1].predict(X)
-        self.clusterer.fit(X=latent_space)
+        self._estimator.fit(X=latent_space)
 
         return self
 
@@ -140,7 +145,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        clusters = self.clusterer.predict(latent_space)
+        clusters = self._estimator.predict(latent_space)
 
         return clusters
 
@@ -148,7 +153,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        clusters_proba = self.clusterer.predict_proba(latent_space)
+        clusters_proba = self._estimator.predict_proba(latent_space)
 
         return clusters_proba
 
