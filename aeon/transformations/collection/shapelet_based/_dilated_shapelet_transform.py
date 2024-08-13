@@ -8,8 +8,9 @@ __maintainer__ = ["baraline"]
 __all__ = ["RandomDilatedShapeletTransform"]
 
 import warnings
-from typing import Dict, Optional, Union
+from typing import Dict
 from typing import List as TypingList
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit, prange, set_num_threads
@@ -158,7 +159,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         threshold_percentiles: Optional[Union[TypingList[float], np.ndarray]] = None,
         alpha_similarity: float = 0.5,
         use_prime_dilations: bool = False,
-        random_state: Optional[Union[int, np.random.RandomState, np.random.Generator]] = None,
+        random_state: Optional[
+            Union[int, np.random.RandomState, np.random.Generator]
+        ] = None,
         distance: Union[CPUDispatcher, str] = "manhattan",
         n_jobs: int = 1,
     ):
@@ -248,7 +251,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         return self
 
-    def _transform(self, X: np.ndarray, y: Optional[Union[np.ndarray, TypingList]] = None):
+    def _transform(
+        self, X: np.ndarray, y: Optional[Union[np.ndarray, TypingList]] = None
+    ):
         """Transform X according to the extracted shapelets.
 
         Parameters
@@ -498,7 +503,7 @@ def random_dilated_shapelet_extraction(
     alpha_similarity: float,
     use_prime_dilations: bool,
     seed: int,
-    distance: Union[CPUDispatcher,str],
+    distance: Union[CPUDispatcher, str],
 ):
     """Randomly generate a set of shapelets given the input parameters.
 
@@ -701,7 +706,7 @@ def dilated_shapelet_transform(
         np.ndarray,
         np.ndarray,
     ],
-    distance: Union[CPUDispatcher,str],
+    distance: Union[CPUDispatcher, str],
 ):
     """Perform the shapelet transform with a set of shapelets and a set of time series.
 
@@ -850,7 +855,7 @@ def compute_shapelet_features(
     values: np.ndarray,
     length: int,
     threshold: float,
-    distance: Union[CPUDispatcher,str],
+    distance: Union[CPUDispatcher, str],
 ):
     """Extract the features from a shapelet distance vector.
 
@@ -899,7 +904,10 @@ def compute_shapelet_features(
 
 @njit(fastmath=True, cache=True)
 def compute_shapelet_dist_vector(
-    X_subs: np.ndarray, values: np.ndarray, length: int, distance: Union[CPUDispatcher,str]
+    X_subs: np.ndarray,
+    values: np.ndarray,
+    length: int,
+    distance: Union[CPUDispatcher, str],
 ):
     """Extract the features from a shapelet distance vector.
 
