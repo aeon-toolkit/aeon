@@ -401,7 +401,7 @@ class ShapeletTransformerVisualizer:
     def _get_shapelet(self, id_shapelet):
         if isinstance(self.estimator, RandomDilatedShapeletTransform):
             values_ = self.estimator.shapelets_[0][id_shapelet]
-            #startpos_ = self.estimator.shapelets_[1][id_shapelet]
+            # startpos_ = self.estimator.shapelets_[1][id_shapelet]
             length_ = self.estimator.shapelets_[2][id_shapelet]
             dilation_ = self.estimator.shapelets_[3][id_shapelet]
             threshold_ = self.estimator.shapelets_[4][id_shapelet]
