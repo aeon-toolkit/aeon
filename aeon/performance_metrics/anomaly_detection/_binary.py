@@ -55,9 +55,7 @@ def range_precision(
         1920–30. 2018.
         http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
-    _check_soft_dependencies(
-        "prts>=1.0.0.3", obj="range_precision", suppress_import_stdout=True
-    )
+    _check_soft_dependencies("prts", obj="range_precision", suppress_import_stdout=True)
 
     from prts import ts_precision
 
@@ -117,9 +115,7 @@ def range_recall(
         1920–30. 2018.
         http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
-    _check_soft_dependencies(
-        "prts>=1.0.0.3", obj="range_recall", suppress_import_stdout=True
-    )
+    _check_soft_dependencies("prts", obj="range_recall", suppress_import_stdout=True)
 
     from prts import ts_recall
 
@@ -187,9 +183,7 @@ def range_f_score(
         1920–30. 2018.
         http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
-    _check_soft_dependencies(
-        "prts>=1.0.0.3", obj="range_recall", suppress_import_stdout=True
-    )
+    _check_soft_dependencies("prts", obj="range_recall", suppress_import_stdout=True)
 
     from prts import ts_fscore
 
