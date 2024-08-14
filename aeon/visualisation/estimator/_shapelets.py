@@ -745,7 +745,7 @@ class ShapeletClassifierVisualizer:
                 " supported. Is it a shapelet classifier ?"
             )
 
-    def visualize_best_shapelets_one_class(
+    def visualize_shapelets_one_class(
         self,
         X,
         y,
