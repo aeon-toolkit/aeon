@@ -15,7 +15,7 @@ class MrSQMClassifier(BaseClassifier):
     Multiple Representations Sequence Miner (MrSQM) classifier.
 
     This is a wrapper for the MrSQMClassifier algorithm from the `mrsqm` package.
-    MrSQM is not included in all extras as it requires gcc and fftw
+    MrSQM is not included in ``all_extras`` as it requires gcc and fftw
     (http://www.fftw.org/index.html) to be installed for Windows and some Linux OS.
 
     Overview: MrSQM is a time series classifier utilising symbolic
@@ -58,9 +58,6 @@ class MrSQMClassifier(BaseClassifier):
     .. [1] Nguyen, Thach Le, and Georgiana Ifrim. "Fast time series classification with
         random symbolic subsequences." Advanced Analytics and Learning on Temporal Data:
         7th ECML PKDD Workshop, AALTD 2022, Grenoble, France, September 19–23, 2022.
-    .. [2] Nguyen, Thach Le, and Georgiana Ifrim. "MrSQM: Fast time series
-        classification with symbolic representations." arXiv preprint arXiv:2109.01036
-        (2021).
 
     Examples
     --------

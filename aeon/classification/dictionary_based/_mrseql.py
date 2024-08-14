@@ -34,17 +34,30 @@ class MrSEQLClassifier(BaseClassifier):
     """
     Multiple Representations Sequence Learning (MrSEQL) Classifier.
 
+    This is a wrapper for the MrSEQLClassifier algorithm from the `mrseql` package.
+    MrSEQL is not included in ``all_extras`` as it requires gcc and fftw
+    (http://www.fftw.org/index.html) to be installed for Windows and some Linux OS.
+
+    Overview: MrSEQL extends the symbolic sequence classifier (SEQL) to work with
+    multiple symbolic representations of time series, using features extracted from the
+    SAX and SFA transformations.
+
     Parameters
     ----------
-    ?
-
-    Notes
-    -----
-    ?
+    seql_mode : "clf" or "fs", default="fs".
+        If "fs", trains a logistic regression model with features extracted by SEQL.
+        IF "clf", builds an ensemble of SEQL models
+    symrep : "sax" or "sfa", or ["sax", "sfa"], default = "sax"
+        The symbolic features to extract from the time series.
+    custom_config : dict, default=None
+        Additional configuration for the symbolic transformations. See the original
+        package for details. ``symrep`` will be ignored if used.
 
     References
     ----------
-    ?
+    .. [1] Le Nguyen, Thach, et al. "Interpretable time series classification using
+        linear models and multi-resolution multi-domain symbolic representations."
+        Data mining and knowledge discovery 33 (2019): 1183-1222.
 
     Examples
     --------
