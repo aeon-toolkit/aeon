@@ -16,6 +16,7 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
     UNEQUAL_LENGTH_UNIVARIATE_REGRESSION,
 )
+from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import (
     has_missing,
     is_collection,
@@ -23,6 +24,13 @@ from aeon.utils.validation import (
     is_single_series,
     is_univariate,
 )
+
+
+def test_datatype_exists():
+    """Check that the basic testing data case has all data types."""
+    for data in COLLECTIONS_DATA_TYPES:
+        assert data in EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
+        assert data in EQUAL_LENGTH_UNIVARIATE_REGRESSION
 
 
 def test_testing_data_dict():
