@@ -690,10 +690,9 @@ class ShapeletClassifierVisualizer:
                 coefs = np.append(-coefs, coefs, axis=0)
             coefs = coefs[class_id]
 
-
         elif isinstance(classifier, (BaseForest, BaseDecisionTree)):
             coefs = classifier.feature_importances_
-            
+
         else:
             raise NotImplementedError(
                 f"The classifier linked to the estimator is not supported. We expect a "
@@ -709,7 +708,7 @@ class ShapeletClassifierVisualizer:
 
         idx = coefs.argsort()[::-1]
         coefs = coefs[idx]
- 
+
         return idx, coefs
 
     def _get_boxplot_data(self, X, mask_class_id, mask_other_class_id, id_shp):
