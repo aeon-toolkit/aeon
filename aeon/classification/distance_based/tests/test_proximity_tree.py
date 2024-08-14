@@ -139,7 +139,7 @@ def test_get_best_splitter():
 def test_proximity_tree():
     """Test the fit method of ProximityTree."""
     X, y = load_unit_test()
-    clf = ProximityTree(n_splitters=3, max_depth=4)
+    clf = ProximityTree(n_splitters=3, max_depth=4, random_state=42)
     clf.fit(X, y)
     X_test, y_test = load_unit_test(split="train")
     y_pred = clf.predict(X_test)
