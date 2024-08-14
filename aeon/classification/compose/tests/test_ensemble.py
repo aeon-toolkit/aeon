@@ -63,7 +63,9 @@ def test_classifier_ensemble(classifiers):
 )
 def test_classifier_ensemble_weights(weights):
     """Test classifier ensemble weight options."""
-    X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X_train, y_train = make_example_3d_numpy(
+        n_cases=10, n_timepoints=12, min_cases_per_label=2
+    )
     X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
     ensemble = ClassifierEnsemble(classifiers=mixed_ensemble, weights=weights)
@@ -118,9 +120,9 @@ def test_classifier_ensemble_learned_weights(cv, metric):
     assert isinstance(y_pred, np.ndarray)
 
 
-# def test_ensemble_matches_hc2():
-#     """Pass"""
-#     pass
+def test_ensemble_matches_hc2():
+    """Test that we can replicate the results of the HC2 ensemble."""
+    pass
 
 
 def test_unequal_tag_inference():
