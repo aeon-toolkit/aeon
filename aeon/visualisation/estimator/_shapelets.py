@@ -750,6 +750,7 @@ class ShapeletClassifierVisualizer:
         X,
         y,
         class_id,
+        best=True,
         n_shp=1,
         id_example_other=None,
         id_example_class=None,
@@ -818,6 +819,9 @@ class ShapeletClassifierVisualizer:
             this class will be selected based on the feature coefficients
             inside the ridge classifier. The original labels are given to a
             LabelEncoder, hence why we ask for an integer ID.
+        best : bool, optional
+            Specifies whether to return the best or the worst shapelet(s) for a class.
+            The default is True, returning the best shapelet(s)
         n_shp : int, optional
             Number of plots to output, one per shapelet (i.e. the n_shp best shapelets
             for class_id). The default is 1.
@@ -862,7 +866,8 @@ class ShapeletClassifierVisualizer:
         plt.rcParams.update(**rc_Params_options)
 
         idx, _ = self._get_shp_importance(class_id)
-
+        if not best:
+            idx = idx[::-1]
         shp_ids = []
         i = 0
         while len(shp_ids) < n_shp and i < idx.shape[0]:
