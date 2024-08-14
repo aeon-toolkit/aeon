@@ -28,7 +28,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     Parameters
     ----------
-    n_neighbors : int, default =1
+    n_neighbors : int, default = 1
         k for knn.
     weights : str or callable, default = 'uniform'
         Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
