@@ -801,7 +801,7 @@ class ShapeletClassifierVisualizer:
         matplotlib_style="seaborn-v0_8",
     ):
         """
-        Plot the n_shp best candidates for the class_id.
+        Plot the n_shp best (or worst) candidates for the class_id.
 
         Visualize best match on two random samples and how the shapelet discriminate
         (X,y) with boxplots.
