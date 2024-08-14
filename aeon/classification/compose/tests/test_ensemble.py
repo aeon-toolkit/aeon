@@ -120,9 +120,9 @@ def test_classifier_ensemble_learned_weights(cv, metric):
     assert isinstance(y_pred, np.ndarray)
 
 
-def test_ensemble_matches_hc2():
-    """Test that we can replicate the results of the HC2 ensemble."""
-    pass
+# def test_ensemble_matches_hc2():
+#     """Pass"""
+#     pass
 
 
 def test_unequal_tag_inference():
