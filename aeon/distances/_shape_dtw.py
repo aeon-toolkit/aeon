@@ -652,7 +652,6 @@ def _shape_dtw_pairwise_distance(
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
-    X_pad = _pad_ts_collection_edges(x=X, reach=reach)
 
     if not unequal_length:
         n_timepoints = X[0].shape[1]
@@ -661,9 +660,10 @@ def _shape_dtw_pairwise_distance(
         )
     for i in range(len(X)):
         for j in range(i + 1, n_cases):
-            x1, x2 = X_pad[i], X_pad[j]
+            x1_, x2_ = X[i], X[j]
+            x1 = _pad_ts_edges(x=x1_, reach=reach)
+            x2 = _pad_ts_edges(x=x2_, reach=reach)
             if unequal_length:
-                x1_, x2_ = X[i], X[j]
                 bounding_matrix = create_bounding_matrix(
                     x1_.shape[1], x2_.shape[1], window, itakura_max_slope
                 )
@@ -706,8 +706,6 @@ def _shape_dtw_from_multiple_to_multiple_distance(
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
-    x_pad = _pad_ts_collection_edges(x=x, reach=reach)
-    y_pad = _pad_ts_collection_edges(x=y, reach=reach)
 
     if not unequal_length:
         bounding_matrix = create_bounding_matrix(
@@ -715,9 +713,10 @@ def _shape_dtw_from_multiple_to_multiple_distance(
         )
     for i in range(n_cases):
         for j in range(m_cases):
-            x1, y1 = x_pad[i], y_pad[j]
+            x1_, y1_ = x[i], y[j]
+            x1 = _pad_ts_edges(x=x1_, reach=reach)
+            y1 = _pad_ts_edges(x=y1_, reach=reach)
             if unequal_length:
-                x1_, y1_ = x[i], y[j]
                 bounding_matrix = create_bounding_matrix(
                     x1_.shape[1], y1_.shape[1], window, itakura_max_slope
                 )
