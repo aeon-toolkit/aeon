@@ -610,11 +610,11 @@ def shape_dtw_pairwise_distance(
     """
     multivariate_conversion = _is_multivariate(X, y)
     _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
-    X_pad = _pad_ts_collection_edges(x=_X, reach=reach)
+    
     if y is None:
         # To self
         return _shape_dtw_pairwise_distance(
-            X=X_pad,
+            X=_X,
             window=window,
             descriptor=descriptor,
             reach=reach,
@@ -624,11 +624,10 @@ def shape_dtw_pairwise_distance(
             unequal_length=unequal_length,
         )
     _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
-    y_pad = _pad_ts_collection_edges(x=_y, reach=reach)
 
     return _shape_dtw_from_multiple_to_multiple_distance(
-        x=X_pad,
-        y=y_pad,
+        x=_X,
+        y=_y,
         window=window,
         descriptor=descriptor,
         reach=reach,
