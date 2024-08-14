@@ -610,7 +610,7 @@ def shape_dtw_pairwise_distance(
     """
     multivariate_conversion = _is_multivariate(X, y)
     _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
-    
+
     if y is None:
         # To self
         return _shape_dtw_pairwise_distance(
