@@ -161,9 +161,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         threshold_percentiles: Optional[Union[TypingList[float], np.ndarray]] = None,
         alpha_similarity: float = 0.5,
         use_prime_dilations: bool = False,
-        random_state: Optional[
-            Union[int, np.random.RandomState, np.random.Generator]
-        ] = None,
+        random_state: Optional[int] = None,
         distance: CPUDispatcher = "manhattan",
         n_jobs: int = 1,
     ):
