@@ -40,6 +40,11 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
         A regressor to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
+    random_state : int, RandomState instance or None, default=None
+        Random state used to fit the estimators. If None, no random state is set for
+        pipeline components (but they may still be seeded prior to input).
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -66,13 +71,15 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
     """
 
     _tags = {
-        "X_inner_type": ["numpy3D", "np-list"],  # which type do _fit/_predict accept
+        "X_inner_type": ["numpy3D", "np-list"],
     }
 
-    def __init__(self, transformers, regressor):
+    def __init__(self, transformers, regressor, random_state=None):
         self.regressor = regressor
 
-        super().__init__(transformers=transformers, _estimator=regressor)
+        super().__init__(
+            transformers=transformers, _estimator=regressor, random_state=random_state
+        )
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
