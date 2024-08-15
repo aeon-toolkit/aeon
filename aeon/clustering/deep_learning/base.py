@@ -109,7 +109,6 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         X : np.ndarray, shape=(n_cases, n_timepoints, n_channels)
             The input time series.
         """
-
         import warnings
 
         self._estimator = (
