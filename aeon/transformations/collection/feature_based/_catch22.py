@@ -6,8 +6,8 @@ A transformer for the Catch22 features.
 __maintainer__ = []
 __all__ = ["Catch22"]
 
-import logging
 import math
+import warnings
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -248,11 +248,12 @@ class Catch22(BaseCollectionTransformer):
                     pycatch22.SP_Summaries_welch_rect_centroid,
                     pycatch22.FC_LocalSimple_mean3_stderr,
                 ]
-            except ImportError:  # Corrected exception handling
+            except ImportError:
                 self.use_pycatch22 = False
-                logging.warning(
+                warnings.warn(
                     "pycatch22 not installed, but 'self.use_pycatch22' is set to True. "
-                    "Please install pycatch22. 'self.use_pycatch22' set to False."
+                    "Please install pycatch22. 'self.use_pycatch22' set to False.",
+                    stacklevel=2,
                 )
 
         if not self.use_pycatch22:
