@@ -25,7 +25,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
     ----------
     n_clusters : int, default=None
         Number of clusters for the deep learnign model.
-    clustering_algorithm : str, default="kmeans"
+    clustering_algorithm : str, default="deprecated"
         Please use the 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
@@ -101,7 +101,10 @@ class AEDRNNClusterer(BaseDeepClusterer):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> aefcn = AEDRNNClusterer(n_clusters=2,n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> from aeon.clustering import DummyClusterer
+    >>> _clst = DummyClusterer(n_clusters=2)
+    >>> aefcn = AEDRNNClusterer(n_clusters=2,
+    ... estimator = _clst, n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> aefcn.fit(X_train)  # doctest: +SKIP
     AEDRNNClusterer(...)
     """
@@ -304,7 +307,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        return self.clusterer.score(latent_space)
+        return self._estimator.score(latent_space)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
