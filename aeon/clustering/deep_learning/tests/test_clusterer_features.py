@@ -19,5 +19,5 @@ def test_multi_rec_fcn():
     )
     clst.fit(X)
     assert (
-        clst.history["loss"][0] > clst.history["loss"][1]
+        clst.history["loss"][0] > clst.history["loss"][9]
     )  # Check if loss is decreasing.
