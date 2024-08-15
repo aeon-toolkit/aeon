@@ -11,7 +11,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 def sliding_windows(
     X: np.ndarray, window_size: int, stride: int = 1, axis: int = 1
-) -> Tuple[np.ndarray, int]:
+) -> tuple[np.ndarray, int]:
     """Create sliding windows of a time series.
 
     Extracts sliding windows of a time series with a given window size and stride. The

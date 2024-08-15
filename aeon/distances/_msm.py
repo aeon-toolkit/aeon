@@ -342,8 +342,8 @@ def _cost_independent(x: float, y: float, z: float, c: float) -> float:
 
 
 def msm_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     independent: bool = True,
     c: float = 1.0,
@@ -499,7 +499,7 @@ def msm_alignment_path(
     independent: bool = True,
     c: float = 1.0,
     itakura_max_slope: Optional[float] = None,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the msm alignment path between two time series.
 
     Parameters

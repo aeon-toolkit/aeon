@@ -17,7 +17,7 @@ convert_collection.
 Legacy code supported "dask_panel" but it is not actually used anywhere; thus, removed.
 """
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd

@@ -211,7 +211,7 @@ def evaluate(
     y,
     X=None,
     strategy: str = "refit",
-    scoring: Optional[Union[callable, List[callable]]] = None,
+    scoring: Optional[Union[callable, list[callable]]] = None,
     return_data: bool = False,
     error_score: Union[str, int, float] = np.nan,
     backend: Optional[str] = None,
@@ -331,7 +331,7 @@ def evaluate(
             raise TypeError("`scoring` must be a callable object")
         return s
 
-    if isinstance(scoring, List):
+    if isinstance(scoring, list):
         scoring = [_check_scoring(s) for s in scoring]
     else:
         scoring = [_check_scoring(scoring)]
@@ -378,7 +378,7 @@ def evaluate(
                 X = convert_collection(X, output_type="pd-multiindex")
     score_name = (
         f"test_{scoring.__name__}"
-        if not isinstance(scoring, List)
+        if not isinstance(scoring, list)
         else f"test_{scoring[0].__name__}"
     )
     cutoff_dtype = str(y.index.dtype)
@@ -386,7 +386,7 @@ def evaluate(
         "fh": cv.fh,
         "freq": freq,
         "forecaster": forecaster,
-        "scoring": scoring if not isinstance(scoring, List) else scoring[0],
+        "scoring": scoring if not isinstance(scoring, list) else scoring[0],
         "strategy": strategy,
         "return_data": True,
         "error_score": error_score,
@@ -471,7 +471,7 @@ def evaluate(
         )
         results = pd.concat(results)
 
-    if isinstance(scoring, List):
+    if isinstance(scoring, list):
         for s in scoring[1:]:
             results[f"test_{s.__name__}"] = np.nan
             for row in range(len(results)):

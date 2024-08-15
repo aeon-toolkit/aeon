@@ -228,8 +228,8 @@ def _dtw_cost_matrix(
 
 
 def dtw_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
@@ -386,7 +386,7 @@ def dtw_alignment_path(
     y: np.ndarray,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the DTW alignment path between two time series.
 
     Parameters

@@ -121,7 +121,7 @@ def _validate_multiple_to_multiple_result(
 
     # If unequal length swap where x and y are to ensure it works both ways around
     if check_xy_permuted and (
-        isinstance(x, List) or isinstance(y, List) or x.shape[-1] != y.shape[-1]
+        isinstance(x, list) or isinstance(y, list) or x.shape[-1] != y.shape[-1]
     ):
         _validate_multiple_to_multiple_result(
             original_y,
@@ -198,7 +198,7 @@ def _validate_single_to_multiple_result(
 def _supports_nonequal_length(dist) -> bool:
     anns = dist["pairwise_distance"].__annotations__
     return any(
-        param in anns and str(List) in str(anns[param])
+        param in anns and str(list) in str(anns[param])
         for param in ["x", "X", "y", "Y"]
     )
 

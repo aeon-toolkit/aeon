@@ -23,7 +23,7 @@ EXCLUDED_USERS = [
 ]
 
 
-def fetch_merged_pull_requests(page: int = 1) -> List[Dict]:
+def fetch_merged_pull_requests(page: int = 1) -> list[dict]:
     """Fetch a page of pull requests."""
     params = {
         "base": "main",
@@ -41,7 +41,7 @@ def fetch_merged_pull_requests(page: int = 1) -> List[Dict]:
     return [pr for pr in r.json() if pr["merged_at"]]
 
 
-def fetch_latest_release() -> Dict:
+def fetch_latest_release() -> dict:
     """Fetch latest release."""
     response = httpx.get(
         f"{GITHUB_REPOS}/{OWNER}/{REPO}/releases/latest", headers=HEADERS
@@ -53,7 +53,7 @@ def fetch_latest_release() -> Dict:
         raise ValueError(response.text, response.status_code)
 
 
-def fetch_pull_requests_since_last_release() -> List[Dict]:
+def fetch_pull_requests_since_last_release() -> list[dict]:
     """Fetch pull requests and filter based on merged date."""
     release = fetch_latest_release()
     published_at = parser.parse(release["published_at"])
@@ -77,7 +77,7 @@ def fetch_pull_requests_since_last_release() -> List[Dict]:
     return all_pulls
 
 
-def github_compare_tags(tag_left: str, tag_right: str = "HEAD") -> Dict:
+def github_compare_tags(tag_left: str, tag_right: str = "HEAD") -> dict:
     """Compare commit between two tags."""
     response = httpx.get(
         f"{GITHUB_REPOS}/{OWNER}/{REPO}/compare/{tag_left}...{tag_right}"
@@ -112,7 +112,7 @@ def render_contributors(prs: list, fmt: str = "myst", n_prs: int = -1):
 
 
 def assign_pr_category(
-    assigned: Dict, categories: List[List], pr_idx: int, pr_labels: List, pkg_title: str
+    assigned: dict, categories: list[list], pr_idx: int, pr_labels: list, pkg_title: str
 ):
     """Assign a PR to a category."""
     has_category = False
@@ -133,8 +133,8 @@ def assign_pr_category(
 
 
 def assign_prs(
-    prs: List[Dict], packages: List[List], categories: List[List]
-) -> Tuple[Dict, int]:
+    prs: list[dict], packages: list[list], categories: list[list]
+) -> tuple[dict, int]:
     """Assign all PRs to packages and categories based on labels."""
     assigned = {}
     prs_removed = 0
@@ -175,7 +175,7 @@ def assign_prs(
     return assigned, prs_removed
 
 
-def render_row(pr: Dict):  # noqa
+def render_row(pr: dict):  # noqa
     """Render a single row with PR in Myst Markdown format."""
     print(  # noqa: T201
         "-",
@@ -185,7 +185,7 @@ def render_row(pr: Dict):  # noqa
     )
 
 
-def render_changelog(prs: List[Dict], assigned: Dict):
+def render_changelog(prs: list[dict], assigned: dict):
     """Render changelog."""
     for pkg_title, group in assigned.items():
         print(f"\n## {pkg_title}")  # noqa: T201

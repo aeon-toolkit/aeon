@@ -230,7 +230,7 @@ def _erp_cost_matrix(
 @njit(cache=True, fastmath=True)
 def _precompute_g(
     x: np.ndarray, g: float, g_array: Optional[np.ndarray]
-) -> Tuple[np.ndarray, float]:
+) -> tuple[np.ndarray, float]:
     gx_distance = np.zeros(x.shape[1])
     if g_array is None:
         g_arr = np.full(x.shape[0], g)
@@ -248,8 +248,8 @@ def _precompute_g(
 
 
 def erp_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     g: float = 0.0,
     g_arr: Optional[np.ndarray] = None,
@@ -406,7 +406,7 @@ def erp_alignment_path(
     g: float = 0.0,
     g_arr: Optional[np.ndarray] = None,
     itakura_max_slope: Optional[float] = None,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the ERP alignment path between two time series.
 
     The optimal value of g is selected from the range [σ/5, σ], where σ is the

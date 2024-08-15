@@ -15,7 +15,7 @@ from aeon.testing.expected_results.expected_distance_results import (
 
 
 def _test_distance_params(
-    param_list: List[Dict], distance_func: Callable, distance_str: str
+    param_list: list[dict], distance_func: Callable, distance_str: str
 ):
     """
     Test function to check the parameters of distance functions.

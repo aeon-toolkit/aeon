@@ -209,7 +209,7 @@ class LearningShapeletClassifier(BaseClassifier):
         return self.clf_.locate(self.transformed_data_)
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

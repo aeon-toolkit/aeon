@@ -9,7 +9,7 @@ from aeon.distances._euclidean import _univariate_euclidean_distance
 
 
 @njit(cache=True, fastmath=True)
-def compute_min_return_path(cost_matrix: np.ndarray) -> List[Tuple]:
+def compute_min_return_path(cost_matrix: np.ndarray) -> list[tuple]:
     """Compute the minimum return path through a cost matrix.
 
     Parameters
@@ -62,7 +62,7 @@ def compute_lcss_return_path(
     epsilon: float,
     bounding_matrix: np.ndarray,
     cost_matrix: np.ndarray,
-) -> List[Tuple]:
+) -> list[tuple]:
     """Compute the return path through a cost matrix for the LCSS algorithm.
 
     Parameters

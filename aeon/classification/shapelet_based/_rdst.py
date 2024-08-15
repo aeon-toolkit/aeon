@@ -152,7 +152,7 @@ class RDSTClassifier(BaseClassifier):
         save_transformed_data: bool = False,
         class_weight=None,
         n_jobs: int = 1,
-        random_state: Union[int, Type[np.random.RandomState], None] = None,
+        random_state: Union[int, type[np.random.RandomState], None] = None,
     ) -> None:
         self.max_shapelets = max_shapelets
         self.shapelet_lengths = shapelet_lengths
@@ -271,7 +271,7 @@ class RDSTClassifier(BaseClassifier):
             return dists
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

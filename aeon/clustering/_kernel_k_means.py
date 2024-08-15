@@ -178,7 +178,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         return self._tslearn_kernel_k_means.predict(_X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default") -> Dict:
+    def get_test_params(cls, parameter_set="default") -> dict:
         """Return testing parameter settings for the estimator.
 
         Parameters
