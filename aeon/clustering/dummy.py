@@ -46,20 +46,19 @@ class DummyClusterer(BaseClusterer):
     >>> import numpy as np
     >>> X = np.array([[1, 2], [3, 4], [5, 6]])
     >>> clusterer = DummyClusterer(strategy="uniform", n_clusters=2)
-    >>> clusterer._fit(X)
+    >>> clusterer.fit(X)
     DummyClusterer(n_clusters=2, strategy='uniform')
     >>> clusterer.labels_
     array([0, 1, 0])
-    >>> clusterer._predict(X)
+    >>> clusterer.predict(X)
     array([0, 1, 0])
     """
 
     def __init__(self, strategy="random", n_clusters=3, random_state=None):
         self.strategy = strategy
-        self.n_clusters = n_clusters
         self.random_state = random_state
 
-        super().__init__()
+        super().__init__(n_clusters=n_clusters)
 
     def _fit(self, X, y=None):
         """
@@ -82,7 +81,7 @@ class DummyClusterer(BaseClusterer):
 
         if self.strategy == "random":
             rng = check_random_state(self.random_state)
-            self.labels_ = rng.randint(0, self.n_clusters, n_samples)
+            self.labels_ = rng.randint(self.n_clusters, size=n_samples)
         elif self.strategy == "uniform":
             self.labels_ = np.tile(
                 np.arange(self.n_clusters), n_samples // self.n_clusters + 1
@@ -113,7 +112,8 @@ class DummyClusterer(BaseClusterer):
         """
         n_samples = X.shape[0]
         if self.strategy == "random":
-            return np.random.randint(0, self.n_clusters, n_samples)
+            rng = check_random_state(self.random_state)
+            return rng.randint(self.n_clusters, size=n_samples)
         elif self.strategy == "uniform":
             return np.tile(
                 np.arange(self.n_clusters), n_samples // self.n_clusters + 1
