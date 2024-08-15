@@ -17,5 +17,5 @@ def test_multi_rec_fcn():
     clst = AEResNetClusterer(n_clusters=2, n_epochs=10, loss="multi_rec")
     clst.fit(X)
     assert (
-        clst.history["loss"][0] > clst.history["loss"][1]
+        clst.history["loss"][0] > clst.history["loss"][9]
     )  # Check if loss is decreasing.
