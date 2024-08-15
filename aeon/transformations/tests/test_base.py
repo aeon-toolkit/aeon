@@ -587,8 +587,8 @@ def test_vectorize_reconstruct_unique_columns():
     ------
     AssertionError if output columns are not as expected.
     """
+    from aeon.transformations._legacy._detrend import Detrender
     from aeon.transformations._legacy.theta import _ThetaLinesTransformer
-    from aeon.transformations.detrend import Detrender
 
     X = pd.DataFrame({"a": [1, 2], "b": [3, 4], "c": [5, 6]})
     X_mi = get_examples("pd_multiindex_hier")[0]
