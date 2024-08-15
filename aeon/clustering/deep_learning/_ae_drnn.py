@@ -26,9 +26,13 @@ class AEDRNNClusterer(BaseDeepClusterer):
     n_clusters : int, default=None
         Number of clusters for the deep learnign model.
     clustering_algorithm : str, default="kmeans"
-        The clustering algorithm used in the latent space.
+        Please use the 'estimator' parameter.
+    estimator : aeon clusterer, default=None
+        An aeon estimator to be built using the transformed data.
+        Defaults to aeon TimeSeriesKMeans() with euclidean distance
+        and mean averaging method and n_clusters set to 2.
     clustering_params : dict, default=None
-        Dictionary containing the parameters of the clustering algorithm chosen.
+        Please use 'estimator' parameter.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
@@ -104,8 +108,9 @@ class AEDRNNClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters,
-        clustering_algorithm="kmeans",
+        n_clusters=None,
+        estimator=None,
+        clustering_algorithm="deprecated",
         clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
@@ -152,9 +157,11 @@ class AEDRNNClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
+        self.estimator = estimator
 
         super().__init__(
             n_clusters=n_clusters,
+            estimator=estimator,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
             batch_size=batch_size,
