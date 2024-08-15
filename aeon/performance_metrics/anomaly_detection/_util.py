@@ -1,5 +1,7 @@
+"""Utility functions for anomaly detection performance metrics."""
+
 __maintainer__ = ["CodeLionX"]
-__all__ = []
+__all__ = ["check_y"]
 
 import warnings
 from typing import Tuple
@@ -73,11 +75,11 @@ def check_y(
             nan_is_0=nan_is_0,
         )
 
-    y_true: np.ndarray = column_or_1d(y_true)
+    y_true = column_or_1d(y_true)
     assert_all_finite(y_true)
 
     # check scores
-    y_pred: np.ndarray = column_or_1d(y_pred)
+    y_pred = column_or_1d(y_pred)
 
     check_consistent_length([y_true, y_pred])
     if not force_y_pred_continuous and y_pred.dtype not in [np.int_, np.bool_]:

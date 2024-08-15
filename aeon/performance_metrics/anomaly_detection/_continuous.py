@@ -3,7 +3,13 @@
 from __future__ import annotations
 
 __maintainer__ = ["CodeLionX"]
-__all__ = []
+__all__ = [
+    "roc_auc_score",
+    "pr_auc_score",
+    "f_score_at_k_points",
+    "f_score_at_k_ranges",
+    "rp_rr_auc_score",
+]
 
 import warnings
 
@@ -135,6 +141,10 @@ def f_score_at_k_ranges(
     finding a threshold on the scoring that produces at least k anomalous ranges. If `k`
     is not specified, the number of anomalies within the ground truth is used as `k`.
 
+    This implementation uses the community package
+    `prts <https://pypi.org/project/prts/>`_ as a soft-dependency to compute the
+    range-based F-score.
+
     Parameters
     ----------
     y_true : np.ndarray
@@ -188,7 +198,8 @@ def rp_rr_auc_score(
 
     Computes the area under the precision recall curve when using the range-based
     precision and range-based recall metric introduced by Tatbul et al. at NeurIPS 2018
-    [TatbulEtAl2018]_.
+    [1]_. This implementation uses the community package
+    `prts <https://pypi.org/project/prts/>`_ as a soft-dependency.
 
     This metric only considers the top-k predicted anomaly ranges within the scoring by
     finding a threshold on the scoring that produces at least k anomalous ranges. If `k`
@@ -224,11 +235,11 @@ def rp_rr_auc_score(
 
     References
     ----------
-    [TatbulEtAl2018] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin
-        Gottschlich. "Precision and Recall for Time Series." In Proceedings of the
-        International Conference on Neural Information Processing Systems (NeurIPS),
-        1920–30. 2018.
-        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
+    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin
+       Gottschlich. "Precision and Recall for Time Series." In Proceedings of the
+       International Conference on Neural Information Processing Systems (NeurIPS),
+       1920–30. 2018.
+       http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
     _check_soft_dependencies(
         "prts", obj="f_score_at_k_ranges", suppress_import_stdout=True

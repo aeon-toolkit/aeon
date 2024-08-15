@@ -1,7 +1,15 @@
+"""VUS and AUC metrics for anomaly detection on time series."""
+
 from __future__ import annotations
 
 __maintainer__ = ["CodeLionX"]
-__all__ = []
+__all__ = [
+    "range_pr_auc_score",
+    "range_roc_auc_score",
+    "range_pr_vus_score",
+    "range_roc_vus_score",
+    "range_pr_roc_auc_support",
+]
 
 import warnings
 
@@ -60,7 +68,7 @@ def _uniform_threshold_sampling(y_score: np.ndarray) -> np.ndarray:
     """Create the threshold via uniform sampling."""
     # magic number from original implementation
     n_samples = 250
-    thresholds: np.ndarray = np.sort(y_score)[::-1]
+    thresholds = np.sort(y_score)[::-1]
     thresholds = thresholds[
         np.linspace(0, thresholds.shape[0] - 1, n_samples, dtype=np.int_)
     ]
@@ -77,8 +85,7 @@ def range_pr_roc_auc_support(
 
     Computes the area under the precision-recall-curve and the area under the
     receiver operating characteristic using the range-based precision and range-based
-    recall definition from Paparrizos et al. published at VLDB 2022
-    [PaparrizosEtAl2022]_.
+    recall definition from Paparrizos et al. published at VLDB 2022 [1]_.
 
     We first extend the anomaly labels by two slopes of ``buffer_size//2`` length on
     both sides of each anomaly, uniformly sample thresholds from the anomaly score, and
@@ -108,11 +115,11 @@ def range_pr_roc_auc_support(
 
     References
     ----------
-    [PaparrizosEtAl2022] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
-        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
-        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
-        2774 - 2787, 2022.
-        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+    .. [1] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
+       Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
+       Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
+       2774 - 2787, 2022.
+       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
     if not skip_check:
         y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
@@ -160,7 +167,7 @@ def range_roc_auc_score(
 
     Computes the area under the receiver-operating-characteristic-curve using the
     range-based TPR and range-based FPR definition from Paparrizos et al.
-    published at VLDB 2022 [PaparrizosEtAl2022]_.
+    published at VLDB 2022 [1]_.
 
     We first extend the anomaly labels by two slopes of ``buffer_size//2`` length on
     both sides of each anomaly, uniformly sample thresholds from the anomaly score, and
@@ -188,11 +195,11 @@ def range_roc_auc_score(
 
     References
     ----------
-    [PaparrizosEtAl2022] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
-        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
-        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
-        2774 - 2787, 2022.
-        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+    .. [1] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
+       Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
+       Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
+       2774 - 2787, 2022.
+       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
@@ -215,7 +222,7 @@ def range_pr_auc_score(
 
     Computes the area under the precision-recall-curve using the range-based precision
     and range-based recall definition from Paparrizos et al. published at VLDB 2022
-    [PaparrizosEtAl2022]_.
+    [1]_.
 
     We first extend the anomaly labels by two slopes of ``buffer_size//2`` length on
     both sides of each anomaly, uniformly sample thresholds from the anomaly score, and
@@ -243,11 +250,11 @@ def range_pr_auc_score(
 
     References
     ----------
-    [PaparrizosEtAl2022] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
-        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
-        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
-        2774 - 2787, 2022.
-        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+    .. [1] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
+       Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
+       Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
+       2774 - 2787, 2022.
+       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
@@ -270,7 +277,7 @@ def range_pr_vus_score(
 
     Computes the volume under the precision-recall-buffer_size-surface using the
     range-based precision and range-based recall definition from Paparrizos et al.
-    published at VLDB 2022 [PaparrizosEtAl2022]_.
+    published at VLDB 2022 [1]_.
 
     For all buffer sizes from 0 to ``max_buffer_size``, we first extend the anomaly
     labels by two slopes of ``buffer_size//2`` length on both sides of each anomaly,
@@ -295,11 +302,11 @@ def range_pr_vus_score(
 
     References
     ----------
-    [PaparrizosEtAl2022] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
-        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
-        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
-        2774 - 2787, 2022.
-        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+    .. [1] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
+       Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
+       Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
+       2774 - 2787, 2022.
+       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
@@ -326,7 +333,7 @@ def range_roc_vus_score(
 
     Computes the volume under the receiver-operating-characteristic-buffer_size-surface
     using the range-based TPR and range-based FPR definition from Paparrizos et al.
-    published at VLDB 2022 [PaparrizosEtAl2022]_.
+    published at VLDB 2022 [1]_.
 
     For all buffer sizes from 0 to ``max_buffer_size``, we first extend the anomaly
     labels by two slopes of ``buffer_size//2`` length on both sides of each anomaly,
@@ -351,11 +358,11 @@ def range_roc_vus_score(
 
     References
     ----------
-    [PaparrizosEtAl2022] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
-        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
-        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
-        2774 - 2787, 2022.
-        doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+    .. [1] John Paparrizos, Paul Boniol, Themis Palpanas, Ruey S. Tsay,
+       Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
+       Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
+       2774 - 2787, 2022.
+       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:

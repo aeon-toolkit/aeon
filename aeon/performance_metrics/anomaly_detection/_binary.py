@@ -1,7 +1,7 @@
 """Metrics on binary predictions for anomaly detection."""
 
 __maintainer__ = ["CodeLionX"]
-__all__ = []
+__all__ = ["range_precision", "range_recall", "range_f_score"]
 
 import warnings
 
@@ -20,12 +20,13 @@ def range_precision(
 ) -> float:
     """Compute the range-based precision metric.
 
-    Range-based metrics were introduced by Tatbul et al. at NeurIPS 2018
-    [TatbulEtAl2018]_.
+    Range-based metrics were introduced by Tatbul et al. at NeurIPS 2018 [1]_. This
+    implementation uses the community package `prts <https://pypi.org/project/prts/>`_
+    as a soft-dependency.
 
     Range precision is the average precision of each predicted anomaly range. For each
     predicted continuous anomaly range the overlap size, position, and cardinality is
-    considered. For more details, please refer to the paper [TatbulEtAl2018]_.
+    considered. For more details, please refer to the paper [1]_.
 
     Parameters
     ----------
@@ -49,11 +50,11 @@ def range_precision(
 
     References
     ----------
-    [TatbulEtAl2018] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin
-        Gottschlich. "Precision and Recall for Time Series." In Proceedings of the
-        International Conference on Neural Information Processing Systems (NeurIPS),
-        1920–30. 2018.
-        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
+    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin
+       Gottschlich. "Precision and Recall for Time Series." In Proceedings of the
+       International Conference on Neural Information Processing Systems (NeurIPS),
+       1920–30. 2018.
+       http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
     _check_soft_dependencies("prts", obj="range_precision", suppress_import_stdout=True)
 
@@ -78,14 +79,15 @@ def range_recall(
 ) -> float:
     """Compute the range-based recall metric.
 
-    Range-based metrics were introduced by Tatbul et al. at NeurIPS 2018
-    [TatbulEtAl2018]_.
+    Range-based metrics were introduced by Tatbul et al. at NeurIPS 2018 [1]_. This
+    implementation uses the community package `prts <https://pypi.org/project/prts/>`_
+    as a soft-dependency.
 
     Range recall is the average recall of each real anomaly range. For each real
     anomaly range the overlap size, position, and cardinality with predicted anomaly
     ranges are considered. In addition, an existence reward can be given that boosts
     the recall even if just a single point of the real anomaly is in the predicted
-    ranges. For more details, please refer to the paper [TatbulEtAl2018]_.
+    ranges. For more details, please refer to the paper [1]_.
 
     Parameters
     ----------
@@ -109,11 +111,11 @@ def range_recall(
 
     References
     ----------
-    [TatbulEtAl2018] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin
-        Gottschlich. "Precision and Recall for Time Series." In Proceedings of the
-        International Conference on Neural Information Processing Systems (NeurIPS),
-        1920–30. 2018.
-        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
+    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin
+       Gottschlich. "Precision and Recall for Time Series." In Proceedings of the
+       International Conference on Neural Information Processing Systems (NeurIPS),
+       1920–30. 2018.
+       http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
     _check_soft_dependencies("prts", obj="range_recall", suppress_import_stdout=True)
 
@@ -141,8 +143,9 @@ def range_f_score(
 ) -> float:
     """Compute the F-score using the range-based recall and precision metrics.
 
-    Range-based metrics were introduced by Tatbul et al. at NeurIPS 2018
-    [TatbulEtAl2018]_.
+    Range-based metrics were introduced by Tatbul et al. at NeurIPS 2018 [1]_. This
+    implementation uses the community package `prts <https://pypi.org/project/prts/>`_
+    as a soft-dependency.
 
     The F-beta score is the weighted harmonic mean of precision and recall, reaching
     its optimal value at 1 and its worst value at 0. This implementation uses the
@@ -177,11 +180,11 @@ def range_f_score(
 
     References
     ----------
-    [TatbulEtAl2018] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin
-        Gottschlich. "Precision and Recall for Time Series." In Proceedings of the
-        International Conference on Neural Information Processing Systems (NeurIPS),
-        1920–30. 2018.
-        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
+    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam, and Justin
+       Gottschlich. "Precision and Recall for Time Series." In Proceedings of the
+       International Conference on Neural Information Processing Systems (NeurIPS),
+       1920–30. 2018.
+       http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
     _check_soft_dependencies("prts", obj="range_recall", suppress_import_stdout=True)
 
