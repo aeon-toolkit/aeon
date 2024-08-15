@@ -29,7 +29,7 @@ repos:
         args: [ "--create", "--python-folders", "aeon" ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.6
+    rev: v0.5.7
     hooks:
       - id: ruff
         args: [ "--fix"]
@@ -61,13 +61,13 @@ repos:
         language_version: python3
 
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.8.5
+    rev: 1.8.7
     hooks:
       - id: nbqa-isort
         additional_dependencies: [ isort==5.13.2 ]
         args: [ "--nbqa-dont-skip-bad-cells", "--profile=black", "--multi-line=3" ]
       - id: nbqa-black
-        additional_dependencies: [ black==24.2.0 ]
+        additional_dependencies: [ black==24.4.2 ]
         args: [ "--nbqa-dont-skip-bad-cells" ]
       - id: nbqa-flake8
         additional_dependencies: [ flake8==7.0.0 ]
