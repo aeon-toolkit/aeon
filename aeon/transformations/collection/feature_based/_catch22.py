@@ -6,6 +6,7 @@ A transformer for the Catch22 features.
 __maintainer__ = []
 __all__ = ["Catch22"]
 
+import logging
 import math
 
 import numpy as np
@@ -220,33 +221,41 @@ class Catch22(BaseCollectionTransformer):
         threads_to_use = check_n_jobs(self.n_jobs)
 
         if self.use_pycatch22:
-            import pycatch22
+            try:
+                import pycatch22
 
-            features = [
-                pycatch22.DN_HistogramMode_5,
-                pycatch22.DN_HistogramMode_10,
-                pycatch22.CO_f1ecac,
-                pycatch22.CO_FirstMin_ac,
-                pycatch22.CO_HistogramAMI_even_2_5,
-                pycatch22.CO_trev_1_num,
-                pycatch22.MD_hrv_classic_pnn40,
-                pycatch22.SB_BinaryStats_mean_longstretch1,
-                pycatch22.SB_TransitionMatrix_3ac_sumdiagcov,
-                pycatch22.PD_PeriodicityWang_th0_01,
-                pycatch22.CO_Embed2_Dist_tau_d_expfit_meandiff,
-                pycatch22.IN_AutoMutualInfoStats_40_gaussian_fmmi,
-                pycatch22.FC_LocalSimple_mean1_tauresrat,
-                pycatch22.DN_OutlierInclude_p_001_mdrmd,
-                pycatch22.DN_OutlierInclude_n_001_mdrmd,
-                pycatch22.SP_Summaries_welch_rect_area_5_1,
-                pycatch22.SB_BinaryStats_diff_longstretch0,
-                pycatch22.SB_MotifThree_quantile_hh,
-                pycatch22.SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
-                pycatch22.SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
-                pycatch22.SP_Summaries_welch_rect_centroid,
-                pycatch22.FC_LocalSimple_mean3_stderr,
-            ]
-        else:
+                features = [
+                    pycatch22.DN_HistogramMode_5,
+                    pycatch22.DN_HistogramMode_10,
+                    pycatch22.CO_f1ecac,
+                    pycatch22.CO_FirstMin_ac,
+                    pycatch22.CO_HistogramAMI_even_2_5,
+                    pycatch22.CO_trev_1_num,
+                    pycatch22.MD_hrv_classic_pnn40,
+                    pycatch22.SB_BinaryStats_mean_longstretch1,
+                    pycatch22.SB_TransitionMatrix_3ac_sumdiagcov,
+                    pycatch22.PD_PeriodicityWang_th0_01,
+                    pycatch22.CO_Embed2_Dist_tau_d_expfit_meandiff,
+                    pycatch22.IN_AutoMutualInfoStats_40_gaussian_fmmi,
+                    pycatch22.FC_LocalSimple_mean1_tauresrat,
+                    pycatch22.DN_OutlierInclude_p_001_mdrmd,
+                    pycatch22.DN_OutlierInclude_n_001_mdrmd,
+                    pycatch22.SP_Summaries_welch_rect_area_5_1,
+                    pycatch22.SB_BinaryStats_diff_longstretch0,
+                    pycatch22.SB_MotifThree_quantile_hh,
+                    pycatch22.SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
+                    pycatch22.SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
+                    pycatch22.SP_Summaries_welch_rect_centroid,
+                    pycatch22.FC_LocalSimple_mean3_stderr,
+                ]
+            except ImportError:  # Corrected exception handling
+                self.use_pycatch22 = False
+                logging.warning(
+                    "pycatch22 not installed, but 'self.use_pycatch22' is set to True. "
+                    "Please install pycatch22. 'self.use_pycatch22' set to False."
+                )
+
+        if not self.use_pycatch22:
             features = [
                 Catch22._DN_HistogramMode_5,
                 Catch22._DN_HistogramMode_10,
