@@ -3,21 +3,13 @@
 from typing import Union
 
 import numpy as np
-from deprecated.sphinx import deprecated
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-# TODO: remove in v1.0.0
-@deprecated(
-    version="1.0.0",
-    reason="TimeSeriesKShapes class has been renamed to TimeSeriesKShape. "
-    "The TimeSeriesKShapes version will be removed in version 1.0.0.",
-    category=FutureWarning,
-)
-class TimeSeriesKShapes(BaseClusterer):
+class TimeSeriesKShape(BaseClusterer):
     """Kshape algorithm: wrapper of the ``tslearn`` implementation.
 
     Parameters
@@ -55,17 +47,24 @@ class TimeSeriesKShapes(BaseClusterer):
     n_iter_: int
         Number of iterations run.
 
+    References
+    ----------
+    .. [1] John Paparrizos and Luis Gravano. 2016.
+       K-Shape: Efficient and Accurate Clustering of Time Series.
+       SIGMOD Rec. 45, 1 (March 2016), 69–76.
+       https://doi.org/10.1145/2949741.2949758
+
     Examples
     --------
-    >>> from aeon.clustering import TimeSeriesKShapes
+    >>> from aeon.clustering import TimeSeriesKShape
     >>> from aeon.datasets import load_basic_motions
     >>> # Load data
     >>> X_train, y_train = load_basic_motions(split="TRAIN")[0:10]
     >>> X_test, y_test = load_basic_motions(split="TEST")[0:10]
     >>> # Example of KShapes clustering
-    >>> ks = TimeSeriesKShapes(n_clusters=3, random_state=1)  # doctest: +SKIP
+    >>> ks = TimeSeriesKShape(n_clusters=3, random_state=1)  # doctest: +SKIP
     >>> ks.fit(X_train)  # doctest: +SKIP
-    TimeSeriesKShapes(n_clusters=3, random_state=1)
+    TimeSeriesKShape(n_clusters=3, random_state=1)
     >>> preds = ks.predict(X_test)  # doctest: +SKIP
     """
 
