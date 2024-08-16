@@ -10,6 +10,7 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
+from aeon.clustering import DummyClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEAttentionBiGRUNetwork
 
@@ -21,10 +22,14 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
     ----------
     n_clusters : int, default=None
         Number of clusters for the deep learnign model.
-    clustering_algorithm : str, default="kmeans"
-        The clustering algorithm used in the latent space.
+    clustering_algorithm : str, default="deprecated"
+        Use 'estimator' parameter instead.
     clustering_params : dict, default=None
-        Dictionary containing the parameters of the clustering algorithm chosen.
+        Use 'estimator' parameter instead.
+    estimator : aeon clusterer, default=None
+        An aeon estimator to be built using the transformed data.
+        Defaults to aeon TimeSeriesKMeans() with euclidean distance
+        and mean averaging method and n_clusters set to 2.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     n_layers_encoder : int, default = 2
@@ -80,19 +85,21 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
     Examples
     --------
     >>> from aeon.clustering.deep_learning import AEAttentionBiGRUClusterer
+    >>> from aeon.clustering import DummyClusterer
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
-    >>> abgruc=AEAttentionBiGRUClusterer(
-    ... n_clusters=2,n_epochs=20,batch_size=4
-    ... ) # doctest: +SKIP
+    >>> _clst = DummyClusterer(n_clusters=2)
+    >>> abgruc=AEAttentionBiGRUClusterer(estimator=_clst, n_epochs=20,
+    ... batch_size=4) # doctest: +SKIP
     >>> abgruc.fit(X_train)  # doctest: +SKIP
     AEAttentionBiGRUClusterer(...)
     """
 
     def __init__(
         self,
-        n_clusters,
+        n_clusters=None,
+        estimator=None,
         clustering_algorithm="kmeans",
         clustering_params=None,
         latent_space_dim=128,
@@ -130,9 +137,11 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
+        self.estimator = estimator
 
         super().__init__(
             n_clusters=n_clusters,
+            estimator=estimator,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
             batch_size=batch_size,
@@ -269,7 +278,7 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        return self.clusterer.score(latent_space)
+        return self._estimator.score(latent_space)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -294,17 +303,11 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_clusters": 2,
+            "estimator": DummyClusterer(n_clusters=2),
             "n_epochs": 1,
             "batch_size": 4,
             "n_layers_encoder": 2,
             "n_layers_decoder": 2,
-            "clustering_params": {
-                "distance": "euclidean",
-                "averaging_method": "mean",
-                "n_init": 1,
-                "max_iter": 30,
-            },
         }
 
         return [param1]
