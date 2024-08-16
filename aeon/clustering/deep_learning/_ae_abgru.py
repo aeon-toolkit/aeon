@@ -142,8 +142,6 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         super().__init__(
             n_clusters=n_clusters,
             estimator=estimator,
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
             batch_size=batch_size,
             last_file_name=last_file_name,
         )
