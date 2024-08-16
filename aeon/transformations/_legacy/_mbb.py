@@ -7,19 +7,12 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 from sklearn.utils import check_random_state
 
 from aeon.transformations._legacy._boxcox import _BoxCoxTransformer
 from aeon.transformations.base import BaseTransformer
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="STLBootstrapTransformer will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class STLBootstrapTransformer(BaseTransformer):
     """Creates a population of similar time series.
 
@@ -143,31 +136,6 @@ class STLBootstrapTransformer(BaseTransformer):
     .. [3] Kunsch HR (1989) The jackknife and the bootstrap for general stationary
         observations. Annals of Statistics 17(3), 1217-1241
     .. [4] https://www.statsmodels.org/dev/generated/statsmodels.tsa.seasonal.STL.html
-
-    Examples
-    --------
-    >>> from aeon.transformations.bootstrap import STLBootstrapTransformer
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
-    >>> y = load_airline()  # doctest: +SKIP
-    >>> transformer = STLBootstrapTransformer(10)  # doctest: +SKIP
-    >>> y_hat = transformer.fit_transform(y)  # doctest: +SKIP
-    >>> series_list = []  # doctest: +SKIP
-    >>> names = []  # doctest: +SKIP
-    >>> for group, series in y_hat.groupby(level=[0], as_index=False):
-    ...     series.index = series.index.droplevel(0)
-    ...     series_list.append(series)
-    ...     names.append(group)  # doctest: +SKIP
-    >>> plot_series(*series_list, labels=names)  # doctest: +SKIP
-    (...)
-    >>> print(y_hat.head())  # doctest: +SKIP
-                          Number of airline passengers
-    series_id time_index
-    actual    1949-01                            112.0
-              1949-02                            118.0
-              1949-03                            132.0
-              1949-04                            129.0
-              1949-05                            121.0
     """
 
     _tags = {
@@ -406,12 +374,6 @@ class STLBootstrapTransformer(BaseTransformer):
         return params
 
 
-# TODO: remove in v0.11.0
-@deprecated(
-    version="0.10.0",
-    reason="MovingBlockBootstrapTransformer will be removed in version 0.11.0.",
-    category=FutureWarning,
-)
 class MovingBlockBootstrapTransformer(BaseTransformer):
     """Moving Block Bootstrapping method for synthetic time series generation.
 
@@ -459,31 +421,6 @@ class MovingBlockBootstrapTransformer(BaseTransformer):
     .. [3] Hyndman, R.J., & Athanasopoulos, G. (2021) Forecasting: principles and
         practice, 3rd edition, OTexts: Melbourne, Australia. OTexts.com/fpp3,
         Chapter 12.5. Accessed on February 13th 2022. Accessed on February 13th 2022.
-
-    Examples
-    --------
-    >>> from aeon.transformations.bootstrap import MovingBlockBootstrapTransformer
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.visualisation import plot_series  # doctest: +SKIP
-    >>> y = load_airline()
-    >>> transformer = MovingBlockBootstrapTransformer(10)
-    >>> y_hat = transformer.fit_transform(y)
-    >>> series_list = []
-    >>> names = []
-    >>> for group, series in y_hat.groupby(level=[0], as_index=False):
-    ...     series.index = series.index.droplevel(0)
-    ...     series_list.append(series)
-    ...     names.append(group)
-    >>> plot_series(*series_list, labels=names)  # doctest: +SKIP
-    (...)
-    >>> print(y_hat.head()) # doctest: +NORMALIZE_WHITESPACE
-                          Number of airline passengers
-    series_id time_index
-    actual    1949-01                            112.0
-              1949-02                            118.0
-              1949-03                            132.0
-              1949-04                            129.0
-              1949-05                            121.0
     """
 
     _tags = {

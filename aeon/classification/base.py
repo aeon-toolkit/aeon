@@ -36,11 +36,7 @@ from sklearn.utils.multiclass import type_of_target
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
-from aeon.utils.validation.collection import (
-    get_n_cases,
-    get_n_channels,
-    get_n_timepoints,
-)
+from aeon.utils.validation.collection import get_n_cases
 
 
 class BaseClassifier(BaseCollectionEstimator, ABC):
@@ -57,13 +53,8 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         Class labels, either integers or strings.
     n_classes_ : int
         Number of classes (length of ``classes_``).
-    fit_time_ : int
-        Time (in milliseconds) for ``fit`` to run.
     _class_dictionary : dict
         Mapping of classes_ onto integers ``0 ... n_classes_-1``.
-    _n_jobs : int
-        Number of threads to use in estimator methods such as ``fit`` and ``predict``.
-        Determined by the ``n_jobs`` parameter if present.
     _estimator_type : string
         The type of estimator. Required by some ``sklearn`` tools, set to "classifier".
     """
@@ -74,17 +65,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
     }
 
     def __init__(self):
-        # reserved attributes written to in fit
         self.classes_ = []  # classes seen in y, unique labels
         self.n_classes_ = -1  # number of unique classes in y
         self._class_dictionary = {}
-        self.fit_time_ = -1
-        self._n_jobs = 1
-
-        # required for compatibility with some sklearn interfaces e.g.
-        # CalibratedClassifierCV
         self._estimator_type = "classifier"
-
         super().__init__()
         _check_estimator_deps(self)
 
@@ -105,7 +89,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -154,7 +138,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -175,7 +159,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             n_cases = get_n_cases(X)
             return np.repeat(list(self._class_dictionary.keys()), n_cases)
 
-        X = self._preprocess_collection(X)
+        X = self._preprocess_collection(X, store_metadata=False)
         # Check if X is equal length but that is different to the length seen in fit
         self._check_shape(X)
         return self._predict(X)
@@ -197,7 +181,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -220,7 +204,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             n_cases = get_n_cases(X)
             return np.repeat([[1]], n_cases, axis=0)
 
-        X = self._preprocess_collection(X)
+        X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._predict_proba(X)
 
@@ -252,7 +236,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -318,7 +302,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -376,7 +360,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -635,26 +619,6 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             method=method,
             n_jobs=self._n_jobs,
         )
-
-    def _check_shape(self, X):
-        if not self.get_tag("capability:unequal_length"):
-            if get_n_timepoints(X) != self.metadata_["n_timepoints"]:
-                raise ValueError(
-                    "X has different length to the data seen in fit but "
-                    "this classifier cannot handle unequal length series."
-                    "length of train set was",
-                    self.metadata_["n_timepoints"],
-                    " length in predict is ",
-                )
-        if self.get_tag("capability:multivariate"):
-            if get_n_channels(X) != self.metadata_["n_channels"]:
-                raise ValueError(
-                    "X has different number of channels to the data seen in fit "
-                    "number of channels in train set was",
-                    self.metadata_["n_channels"],
-                    "but in predict it is ",
-                    get_n_timepoints(X),
-                )
 
     @staticmethod
     def _get_folds(dict):

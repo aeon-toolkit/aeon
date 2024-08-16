@@ -3,7 +3,7 @@ import pickle
 import types
 from copy import deepcopy
 from functools import partial
-from inspect import getfullargspec, signature
+from inspect import getfullargspec, isclass, signature
 
 import joblib
 import numpy as np
@@ -13,78 +13,143 @@ from sklearn.utils.estimator_checks import check_get_params_invariance
 
 from aeon.base import BaseEstimator, BaseObject
 from aeon.base._base import _clone_estimator
+from aeon.classification import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
+from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+from aeon.testing.estimator_checking._yield_classification_checks import (
+    _yield_classification_checks,
+)
+from aeon.testing.estimator_checking._yield_regression_checks import (
+    _yield_regression_checks,
+)
 from aeon.testing.test_config import (
     NON_STATE_CHANGING_METHODS,
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
     VALID_ESTIMATOR_BASE_TYPES,
     VALID_ESTIMATOR_TAGS,
 )
-from aeon.testing.testing_data import (
-    TEST_DATA_DICT,
-    TEST_LABEL_DICT,
-    get_data_types_for_estimator,
-)
+from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import (
     _assert_array_almost_equal,
     _get_args,
+    _get_tag,
     _list_required_methods,
     _run_estimator_method,
 )
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
-def _yield_all_aeon_checks(estimator):
-    datatypes = get_data_types_for_estimator(estimator)
+def _yield_all_aeon_checks(
+    estimator, use_first_parameter_set=False, has_dependencies=None
+):
+    """Yield all checks for an aeon estimator."""
+    if has_dependencies is None:
+        has_dependencies = _check_estimator_deps(estimator, severity="none")
 
-    yield from _yield_estimator_checks(estimator, datatypes)
+    if has_dependencies:
+        if isclass(estimator) and issubclass(estimator, BaseEstimator):
+            estimator_class = estimator
+            estimator_instances = estimator.create_test_instance(
+                return_first=use_first_parameter_set
+            )
+        elif isinstance(estimator, BaseEstimator):
+            estimator_class = type(estimator)
+            estimator_instances = estimator
+        else:
+            raise TypeError(
+                "Passed estimator is not an instance or subclass of BaseEstimator."
+            )
+
+        if not isinstance(estimator_instances, list):
+            estimator_instances = [estimator_instances]
+
+        datatypes = [_get_datatypes_for_estimator(est) for est in estimator_instances]
+    else:
+        # if input does not have all dependencies installed, all tests are going to be
+        # skipped as we cannot instantiate the class
+        estimator_class = estimator if isclass(estimator) else type(estimator)
+        estimator_instances = [None]
+        datatypes = [[None]]
+
+    # start yielding checks
+    yield from _yield_estimator_checks(estimator_class, estimator_instances, datatypes)
+
+    if issubclass(estimator_class, BaseClassifier):
+        yield from _yield_classification_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseRegressor):
+        yield from _yield_regression_checks(
+            estimator_class, estimator_instances, datatypes
+        )
 
 
-def _yield_estimator_checks(estimator, datatypes):
-    # no data needed
-    yield check_create_test_instance
-    yield check_create_test_instances_and_names
-    yield check_estimator_tags
-    yield check_inheritance
-    yield check_has_common_interface
-    yield check_get_params
-    yield check_set_params
-    yield check_set_params_sklearn
-    yield check_clone
-    yield check_repr
-    yield check_constructor
-    yield check_valid_estimator_class_tags
-    yield check_valid_estimator_tags
+def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
+    """Yield all general checks for an aeon estimator."""
+    # only class required
+    yield partial(check_create_test_instance, estimator_class=estimator_class)
+    yield partial(
+        check_create_test_instances_and_names, estimator_class=estimator_class
+    )
+    yield partial(check_estimator_tags, estimator_class=estimator_class)
+    yield partial(check_inheritance, estimator_class=estimator_class)
+    yield partial(check_has_common_interface, estimator_class=estimator_class)
+    yield partial(check_set_params_sklearn, estimator_class=estimator_class)
+    yield partial(check_constructor, estimator_class=estimator_class)
+    yield partial(check_valid_estimator_class_tags, estimator_class=estimator_class)
 
-    if (
-        isinstance(estimator, BaseDeepClassifier)
-        or isinstance(estimator, BaseDeepRegressor)
-        or isinstance(estimator, BaseDeepClusterer)
-    ):
-        yield check_dl_constructor_initializes_deeply
+    # test class instances
+    for i, estimator in enumerate(estimator_instances):
+        # no data needed
+        yield partial(check_get_params, estimator=estimator)
+        yield partial(check_set_params, estimator=estimator)
+        yield partial(check_clone, estimator=estimator)
+        yield partial(check_repr, estimator=estimator)
+        yield partial(check_valid_estimator_tags, estimator=estimator)
 
-    # data type irrelevant
-    yield partial(check_non_state_changing_method, datatype=datatypes[0])
-    yield partial(check_fit_updates_state, datatype=datatypes[0])
+        if (
+            isinstance(estimator, BaseDeepClassifier)
+            or isinstance(estimator, BaseDeepRegressor)
+            or isinstance(estimator, BaseDeepClusterer)
+        ):
+            yield partial(check_dl_constructor_initializes_deeply, estimator=estimator)
 
-    if not estimator.get_tag(
-        "fit_is_empty", tag_value_default=False, raise_error=False
-    ):
-        yield partial(check_raises_not_fitted_error, datatype=datatypes[0])
+        # data type irrelevant
+        yield partial(
+            check_non_state_changing_method,
+            estimator=estimator,
+            datatype=datatypes[i][0],
+        )
+        yield partial(
+            check_fit_updates_state, estimator=estimator, datatype=datatypes[i][0]
+        )
 
-    if not estimator.get_tag("cant-pickle", tag_value_default=False, raise_error=False):
-        yield partial(test_persistence_via_pickle, datatype=datatypes[0])
+        if not _get_tag(estimator, "fit_is_empty", default=False):
+            yield partial(
+                check_raises_not_fitted_error,
+                estimator=estimator,
+                datatype=datatypes[i][0],
+            )
 
-    if not estimator.get_tag(
-        "non-deterministic", tag_value_default=False, raise_error=False
-    ):
-        yield partial(check_fit_deterministic, datatype=datatypes[0])
+        if not _get_tag(estimator, "cant-pickle", default=False):
+            yield partial(
+                test_persistence_via_pickle,
+                estimator=estimator,
+                datatype=datatypes[i][0],
+            )
+
+        if not _get_tag(estimator, "non-deterministic", default=False):
+            yield partial(
+                check_fit_deterministic, estimator=estimator, datatype=datatypes[i][0]
+            )
 
 
-def check_create_test_instance(estimator):
+def check_create_test_instance(estimator_class):
     """Check create_test_instance logic and basic constructor functionality.
 
     create_test_instance and create_test_instances_and_names are the
@@ -98,7 +163,6 @@ def check_create_test_instance(estimator):
     * __init__ calls super.__init__
     * _tags_dynamic attribute for tag inspection is present after construction
     """
-    estimator_class = type(estimator)
     estimator = estimator_class.create_test_instance()
 
     # Check that method does not construct object of other class than itself
@@ -115,7 +179,7 @@ def check_create_test_instance(estimator):
 
 
 # todo consider deprecation
-def check_create_test_instances_and_names(estimator):
+def check_create_test_instances_and_names(estimator_class):
     """Check that create_test_instances_and_names works.
 
     create_test_instance and create_test_instances_and_names are the
@@ -124,7 +188,6 @@ def check_create_test_instances_and_names(estimator):
 
     Tests expected function signature of create_test_instances_and_names.
     """
-    estimator_class = type(estimator)
     estimators, names = estimator_class.create_test_instances_and_names()
 
     assert isinstance(estimators, list), (
@@ -153,10 +216,8 @@ def check_create_test_instances_and_names(estimator):
 
 
 # todo consider expanding to init and compare against registry classes
-def check_estimator_tags(estimator):
+def check_estimator_tags(estimator_class):
     """Check conventions on estimator tags."""
-    estimator_class = type(estimator)
-
     assert hasattr(estimator_class, "get_class_tags")
     all_tags = estimator_class.get_class_tags()
     assert isinstance(all_tags, dict)
@@ -186,9 +247,7 @@ def check_estimator_tags(estimator):
 
 # todo consider removing the multiple base class allowance. Possibly deprecate
 #  BaseObject and roll it into BaseEstimator?
-def check_inheritance(estimator):
-    estimator_class = type(estimator)
-
+def check_inheritance(estimator_class):
     """Check that estimator inherits from BaseObject and/or BaseEstimator."""
     assert issubclass(
         estimator_class, BaseObject
@@ -214,10 +273,8 @@ def check_inheritance(estimator):
         assert issubclass(estimator_class, BaseTransformer)
 
 
-def check_has_common_interface(estimator):
+def check_has_common_interface(estimator_class):
     """Check estimator implements the common interface."""
-    estimator_class = type(estimator)
-
     # Check class for type of attribute
     if isinstance(estimator_class, BaseEstimator):
         assert isinstance(estimator_class.is_fitted, property)
@@ -235,37 +292,13 @@ def check_has_common_interface(estimator):
         assert hasattr(estimator_class, "predict")
 
 
-def check_get_params(estimator):
-    """Check that get_params works correctly."""
-    params = estimator.get_params()
-    assert isinstance(params, dict)
-    check_get_params_invariance(estimator.__class__.__name__, estimator)
-
-
-def check_set_params(estimator):
-    """Check that set_params works correctly."""
-    params = estimator.get_params()
-
-    msg = f"set_params of {type(estimator).__name__} does not return self"
-    assert estimator.set_params(**params) is estimator, msg
-
-    is_equal, equals_msg = deep_equals(estimator.get_params(), params, return_msg=True)
-    msg = (
-        f"get_params result of {type(estimator).__name__} (x) does not match "
-        f"what was passed to set_params (y). Reason for discrepancy: {equals_msg}"
-    )
-    assert is_equal, msg
-
-
-def check_set_params_sklearn(estimator):
+def check_set_params_sklearn(estimator_class):
     """Check that set_params works correctly, mirrors sklearn check_set_params.
 
     Instead of the "fuzz values" in sklearn's check_set_params,
     we use the other test parameter settings (which are assumed valid).
     This guarantees settings which play along with the __init__ content.
     """
-    estimator_class = type(estimator)
-
     estimator = estimator_class.create_test_instance()
     test_params = estimator_class.get_test_params()
     if not isinstance(test_params, list):
@@ -293,28 +326,7 @@ def check_set_params_sklearn(estimator):
         assert is_equal, msg
 
 
-def check_clone(estimator):
-    """Check that clone method does not raise exceptions and results in a clone.
-
-    A clone of an object x is an object that:
-    * has same class and parameters as x
-    * is not identical with x
-     * is unfitted (even if x was fitted)
-    """
-    est_clone = estimator.clone()
-    assert isinstance(est_clone, type(estimator))
-    assert est_clone is not estimator
-    if hasattr(est_clone, "is_fitted"):
-        assert not est_clone.is_fitted
-
-
-# todo roll into another test
-def check_repr(estimator):
-    """Check that __repr__ call to instance does not raise exceptions."""
-    repr(estimator)
-
-
-def check_constructor(estimator):
+def check_constructor(estimator_class):
     """Check that the constructor has sklearn compatible signature and behaviour.
 
     Based on sklearn check_estimator testing of __init__ logic.
@@ -331,8 +343,6 @@ def check_constructor(estimator):
         (other type parameters should be None, default handling should be by writing
         the default to attribute of a different name, e.g., my_param_ not my_param)
     """
-    estimator_class = type(estimator)
-
     msg = "constructor __init__ should have no varargs"
     assert getfullargspec(estimator_class.__init__).varkw is None, msg
 
@@ -398,11 +408,54 @@ def check_constructor(estimator):
                 assert param_value == param.default, param.name
 
 
-def check_valid_estimator_class_tags(estimator):
+def check_valid_estimator_class_tags(estimator_class):
     """Check that Estimator class tags are in VALID_ESTIMATOR_TAGS."""
-    estimator_class = type(estimator)
     for tag in estimator_class.get_class_tags().keys():
         assert tag in VALID_ESTIMATOR_TAGS
+
+
+def check_get_params(estimator):
+    """Check that get_params works correctly."""
+    params = estimator.get_params()
+    assert isinstance(params, dict)
+    check_get_params_invariance(estimator.__class__.__name__, estimator)
+
+
+def check_set_params(estimator):
+    """Check that set_params works correctly."""
+    estimator = _clone_estimator(estimator)
+    params = estimator.get_params()
+
+    msg = f"set_params of {type(estimator).__name__} does not return self"
+    assert estimator.set_params(**params) is estimator, msg
+
+    is_equal, equals_msg = deep_equals(estimator.get_params(), params, return_msg=True)
+    msg = (
+        f"get_params result of {type(estimator).__name__} (x) does not match "
+        f"what was passed to set_params (y). Reason for discrepancy: {equals_msg}"
+    )
+    assert is_equal, msg
+
+
+def check_clone(estimator):
+    """Check that clone method does not raise exceptions and results in a clone.
+
+    A clone of an object x is an object that:
+    * has same class and parameters as x
+    * is not identical with x
+     * is unfitted (even if x was fitted)
+    """
+    est_clone = estimator.clone()
+    assert isinstance(est_clone, type(estimator))
+    assert est_clone is not estimator
+    if hasattr(est_clone, "is_fitted"):
+        assert not est_clone.is_fitted
+
+
+# todo roll into another test
+def check_repr(estimator):
+    """Check that __repr__ call to instance does not raise exceptions."""
+    repr(estimator)
 
 
 def check_valid_estimator_tags(estimator):
@@ -413,24 +466,7 @@ def check_valid_estimator_tags(estimator):
 
 def check_dl_constructor_initializes_deeply(estimator):
     """Test DL estimators that they pass custom parameters to underlying Network."""
-    if not hasattr(estimator, "get_test_params"):
-        return None
-
-    params = estimator.get_test_params()
-
-    if isinstance(params, list):
-        params = params[0]
-    if isinstance(params, dict):
-        pass
-    else:
-        raise TypeError(
-            f"`get_test_params()` of estimator: {estimator} returns "
-            f"an expected type: {type(params)}, acceptable formats: [list, dict]"
-        )
-
-    estimator = estimator(**params)
-
-    for key, value in params.items():
+    for key, value in estimator.__dict__.items():
         assert vars(estimator)[key] == value
         # some keys are only relevant to the final model (eg: n_epochs)
         # skip them for the underlying network
@@ -452,25 +488,25 @@ def check_non_state_changing_method(estimator, datatype):
     """
     estimator = _clone_estimator(estimator)
 
-    X = deepcopy(TEST_DATA_DICT[datatype[0]]["train"])
-    y = deepcopy(TEST_LABEL_DICT[datatype[1]]["train"])
+    X = deepcopy(FULL_TEST_DATA_DICT[datatype]["train"][0])
+    y = deepcopy(FULL_TEST_DATA_DICT[datatype]["train"][1])
     _run_estimator_method(estimator, "fit", datatype, "train")
 
-    assert deep_equals(X, TEST_DATA_DICT[datatype[0]]["train"]) and deep_equals(
-        y, TEST_LABEL_DICT[datatype[1]]["train"]
+    assert deep_equals(X, FULL_TEST_DATA_DICT[datatype]["train"][0]) and deep_equals(
+        y, FULL_TEST_DATA_DICT[datatype]["train"][1]
     ), f"Estimator: {type(estimator)} has side effects on arguments of fit"
 
     # dict_before = copy of dictionary of estimator before predict, post fit
     dict_before = estimator.__dict__.copy()
-    X = deepcopy(TEST_DATA_DICT[datatype[0]]["test"])
-    y = deepcopy(TEST_LABEL_DICT[datatype[1]]["test"])
+    X = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    y = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][1])
 
     for method in NON_STATE_CHANGING_METHODS:
-        if hasattr(estimator, method):
+        if hasattr(estimator, method) and callable(getattr(estimator, method)):
             _run_estimator_method(estimator, method, datatype, "test")
 
-        assert deep_equals(X, TEST_DATA_DICT[datatype[0]]["test"]) and deep_equals(
-            y, TEST_LABEL_DICT[datatype[1]]["test"]
+        assert deep_equals(X, FULL_TEST_DATA_DICT[datatype]["test"][0]) and deep_equals(
+            y, FULL_TEST_DATA_DICT[datatype]["test"][1]
         ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
 
         # dict_after = dictionary of estimator after predict and fit
@@ -573,7 +609,7 @@ def test_persistence_via_pickle(estimator, datatype):
 
     results = []
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method):
+        if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
             results.append(output)
 
@@ -583,7 +619,7 @@ def test_persistence_via_pickle(estimator, datatype):
 
     i = 0
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method):
+        if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
 
             _assert_array_almost_equal(
@@ -606,7 +642,7 @@ def check_fit_deterministic(estimator, datatype):
 
     results = []
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method):
+        if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
             results.append(output)
 
@@ -615,7 +651,7 @@ def check_fit_deterministic(estimator, datatype):
 
     i = 0
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method):
+        if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
 
             _assert_array_almost_equal(
