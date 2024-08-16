@@ -80,6 +80,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
 
         if self.n_filters is None:
             self._n_filters_encoder = [32 * i for i in range(1, self.n_layers + 1)]
+        elif isinstance(self.n_filters, int):
+            self._n_filters_encoder = [self.n_filters for _ in range(self.n_layers)]
         elif isinstance(self.n_filters, list):
             self._n_filters_encoder = self.n_filters
             assert len(self.n_filters) == self.n_layers
