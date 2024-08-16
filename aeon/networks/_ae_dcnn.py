@@ -102,7 +102,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             assert isinstance(self.dilation_rate, list)
             assert len(self.dilation_rate) == self.n_layers
 
-        if isinstance(self.kernel_size, int):
+        if self.kernel_size is None:
+            self._kernel_size_encoder = [3 for _ in range(self.n_layers)]
+        elif isinstance(self.kernel_size, int):
             self._kernel_size_encoder = [self.kernel_size for _ in range(self.n_layers)]
         elif isinstance(self.kernel_size, list):
             self._kernel_size_encoder = self.kernel_size
