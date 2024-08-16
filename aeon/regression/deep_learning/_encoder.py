@@ -1,6 +1,6 @@
 """Encoder Regressor."""
 
-__author__ = ["AnonymousCodes911"]
+__author__ = ["AnonymousCodes911", "hadifawaz1999"]
 __all__ = ["EncoderRegressor"]
 
 import gc
@@ -54,6 +54,8 @@ class EncoderRegressor(BaseDeepRegressor):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file.
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -62,6 +64,9 @@ class EncoderRegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded.
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     n_epochs:
         The number of times the entire training dataset
         will be passed forward and backward
@@ -121,8 +126,10 @@ class EncoderRegressor(BaseDeepRegressor):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         verbose=False,
         loss="mean_squared_error",
         metrics="mean_squared_error",
@@ -144,7 +151,9 @@ class EncoderRegressor(BaseDeepRegressor):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.n_epochs = n_epochs
         self.verbose = verbose
         self.loss = loss
@@ -238,6 +247,9 @@ class EncoderRegressor(BaseDeepRegressor):
             self._metrics = self.metrics
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
+
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
 
         if self.verbose:
             self.training_model_.summary()

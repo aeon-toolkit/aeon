@@ -8,10 +8,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._alignment_paths import (
-    _add_inf_to_out_of_bounds_cost_matrix,
-    compute_min_return_path,
-)
+from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._squared import _univariate_squared_distance
 from aeon.distances._utils import _convert_to_list, _is_multivariate
@@ -262,7 +259,7 @@ def _independent_cost_matrix(
 ) -> np.ndarray:
     x_size = x.shape[0]
     y_size = y.shape[0]
-    cost_matrix = np.zeros((x_size, y_size))
+    cost_matrix = np.full((x_size, y_size), np.inf)
     cost_matrix[0, 0] = np.abs(x[0] - y[0])
 
     for i in range(1, x_size):
@@ -293,7 +290,7 @@ def _msm_dependent_cost_matrix(
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
-    cost_matrix = np.zeros((x_size, y_size))
+    cost_matrix = np.full((x_size, y_size), np.inf)
     cost_matrix[0, 0] = np.sum(np.abs(x[:, 0] - y[:, 0]))
 
     for i in range(1, x_size):
@@ -546,11 +543,8 @@ def msm_alignment_path(
     >>> msm_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 2.0)
     """
-    x_size = x.shape[-1]
-    y_size = y.shape[-1]
-    bounding_matrix = create_bounding_matrix(x_size, y_size, window, itakura_max_slope)
     cost_matrix = msm_cost_matrix(x, y, window, independent, c, itakura_max_slope)
-
-    # Need to do this because the cost matrix contains 0s and not inf in out of bounds
-    cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
-    return compute_min_return_path(cost_matrix), cost_matrix[x_size - 1, y_size - 1]
+    return (
+        compute_min_return_path(cost_matrix),
+        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
+    )

@@ -1,7 +1,19 @@
 """Tests for using OptionalPassthrough."""
 
 import pytest
+from sklearn.preprocessing import StandardScaler
 
+from aeon.datasets import load_airline, load_longley
+from aeon.forecasting.compose import TransformedTargetForecaster
+from aeon.forecasting.model_selection import (
+    ForecastingGridSearchCV,
+    SlidingWindowSplitter,
+)
+from aeon.forecasting.naive import NaiveForecaster
+from aeon.testing.data_generation import _make_hierarchical
+from aeon.transformations._legacy._deseasonalize import Deseasonalizer
+from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
+from aeon.transformations._legacy.compose import OptionalPassthrough
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -14,19 +26,6 @@ def test_optionalpassthrough():
 
     Same as docstring example of OptionalPassthrough.
     """
-    from sklearn.preprocessing import StandardScaler
-
-    from aeon.datasets import load_airline
-    from aeon.forecasting.compose import TransformedTargetForecaster
-    from aeon.forecasting.model_selection import (
-        ForecastingGridSearchCV,
-        SlidingWindowSplitter,
-    )
-    from aeon.forecasting.naive import NaiveForecaster
-    from aeon.transformations.adapt import TabularToSeriesAdaptor
-    from aeon.transformations.compose import OptionalPassthrough
-    from aeon.transformations.detrend import Deseasonalizer
-
     # create pipeline
     pipe = TransformedTargetForecaster(
         steps=[
@@ -57,10 +56,6 @@ def test_optionalpassthrough():
 )
 def test_passthrough_does_not_broadcast_variables():
     """Test that OptionalPassthrough does not itself vectorize/broadcast columns."""
-    from aeon.datasets import load_longley
-    from aeon.transformations.compose import OptionalPassthrough
-    from aeon.transformations.detrend import Deseasonalizer
-
     _, X = load_longley()
 
     t = OptionalPassthrough(Deseasonalizer())
@@ -73,10 +68,6 @@ def test_passthrough_does_not_broadcast_variables():
 )
 def test_passthrough_does_not_broadcast_instances():
     """Test that OptionalPassthrough does not itself vectorize/broadcast rows."""
-    from aeon.testing.data_generation import _make_hierarchical
-    from aeon.transformations.compose import OptionalPassthrough
-    from aeon.transformations.detrend import Deseasonalizer
-
     X = _make_hierarchical()
 
     t = OptionalPassthrough(Deseasonalizer())

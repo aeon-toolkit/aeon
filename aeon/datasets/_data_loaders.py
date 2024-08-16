@@ -267,9 +267,11 @@ def load_from_tsfile(
     ------
     IOError if the load fails.
     """
-    # Check file ends in .ts, if not, insert
-    if not full_file_path_and_name.endswith(".ts"):
-        full_file_path_and_name = full_file_path_and_name + ".ts"
+    # split the file path into the root and the extension
+    root, ext = os.path.splitext(full_file_path_and_name)
+    # Append .ts if no extension if found
+    if not ext:
+        full_file_path_and_name = root + ".ts"
     # Open file
     with open(full_file_path_and_name, encoding="utf-8") as file:
         # Read in headers
@@ -962,7 +964,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
-    return_metadata : boolean, default = True
+    return_metadata : boolean, default = False
         If True, returns a tuple (data, metadata)
 
     Returns
