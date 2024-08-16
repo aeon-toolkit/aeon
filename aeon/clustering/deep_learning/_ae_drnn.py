@@ -10,6 +10,7 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
+from aeon.clustering import DummyClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.networks import AEDRNNNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -103,8 +104,8 @@ class AEDRNNClusterer(BaseDeepClusterer):
     >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
     >>> from aeon.clustering import DummyClusterer
     >>> _clst = DummyClusterer(n_clusters=2)
-    >>> aefcn = AEDRNNClusterer(n_clusters=2,
-    ... estimator = _clst, n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> aefcn = AEDRNNClusterer(estimator = _clst,
+    ... n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> aefcn.fit(X_train)  # doctest: +SKIP
     AEDRNNClusterer(...)
     """
@@ -332,17 +333,11 @@ class AEDRNNClusterer(BaseDeepClusterer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_clusters": 2,
+            "estimator": DummyClusterer(n_clusters=2),
             "n_epochs": 1,
             "batch_size": 4,
             "n_layers_encoder": 1,
             "n_layers_decoder": 1,
-            "clustering_params": {
-                "distance": "euclidean",
-                "averaging_method": "mean",
-                "n_init": 1,
-                "max_iter": 30,
-            },
         }
 
         return [param1]
