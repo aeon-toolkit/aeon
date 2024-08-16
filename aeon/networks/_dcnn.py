@@ -17,26 +17,24 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         Dimension of the models's latent space.
     n_layers: int, default=4
         Number of convolution layers.
-    kernel_size: int, default=3
-        Size of the 1D Convolutional Kernel.
-    activation: str, default="relu"
+    kernel_size: Union[int, List[int]], default=3
+        Size of the 1D Convolutional Kernel. Defaults
+        to a list of three's for `n_layers` elements.
+    activation: Union[str, List[str]], default="relu"
         The activation function used by convolution layers.
-    n_filters: int, default=None
-        Number of filters used in convolution layers.
-    dilation_rate: list, default=None
-        The dilation rate for convolution.
+        Defaults to a list of "relu" for `n_layers` elements.
+    n_filters: Union[int, List[int]], default=None
+        Number of filters used in convolution layers. Defaults
+        to a list of multiple's of 32 for `n_layers` elements.
+    dilation_rate: Union[int, List[int]], default=None
+        The dilation rate for convolution. Defaults to a list of
+        powers of 2 for `n_layers` elements.
 
     References
     ----------
-    .. [1] Network originally defined in:
-    @article{franceschi2019unsupervised,
-      title={Unsupervised scalable representation learning for multivariate time
-        series},
-      author={Franceschi, Jean-Yves and Dieuleveut, Aymeric and Jaggi, Martin},
-      journal={Advances in neural information processing systems},
-      volume={32},
-      year={2019}
-    }
+    .. [1] Franceschi, J. Y., Dieuleveut, A., & Jaggi, M. (2019).
+    Unsupervised scalable representation learning for multivariate
+    time series. Advances in neural information processing systems, 32.
     """
 
     _config = {
@@ -66,8 +64,8 @@ class DCNNNetwork(BaseDeepLearningNetwork):
     def build_network(self, input_shape):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer.
 
