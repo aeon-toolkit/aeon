@@ -31,15 +31,7 @@ class MADRID(BaseAnomalyDetector):
         self.step_size = step_size
         super().__init__(axis=1)
 
-    def _predict(self, X, factor=None, estimate_time=False) -> np.ndarray:
-        if estimate_time and factor:
-            raise ValueError(
-                "You cannot set both parameters, estimate_time helps you pick the best factor,"
-                "once you set the factor you do not need to set the estimate_time."
-                "Alternatively you can decide to not set both and prediction should still work."
-                "factor aides in speeding up prediction and does not affect accuracy of prediction"
-            )
-
+    def _predict(self, X, factor=1) -> np.ndarray:
         if X.shape[0] < self.min_length:
             raise ValueError(
                 f"Series length of X {X.shape[0]} is less than min_length "
@@ -58,12 +50,8 @@ class MADRID(BaseAnomalyDetector):
             raise ValueError(error_message)
 
         X = X.squeeze()
-        len_x = len(X)
 
-        if estimate_time:
-            self._estimate_processing_time(self, len_x)
-
-        if factor:
+        if factor in [1, 2, 4, 8, 16]:
             if (self.max_length + factor - 1) // factor < 2:
                 raise ValueError(
                     f"MADRID cannot be executed properly because {self.min_length}/{factor} < 2, please select an option again"
@@ -72,7 +60,11 @@ class MADRID(BaseAnomalyDetector):
                 raise ValueError(
                     f"MADRID cannot be executed properly because {self.max_length}/{factor} < 2, please select an option again"
                 )
-        self._compute_madrid()
+        else:
+            raise ValueError(
+                f"factor must be one of these numbers [1, 2, 4, 8, 16] in order to compute MADRID."
+            )
+        self._compute_madrid(X)
 
     def _contains_constant_regions(self, X, sub_sequence_length):
         bool_vec = False  # in the origianl matlab code they use 0,1 but trus, false is a better representation
@@ -95,7 +87,8 @@ class MADRID(BaseAnomalyDetector):
     ):
         pass
 
-    def _estimate_processing_time(self, len_x):
+    def estimate_factor(self, X):
+        len_x = len(X)
         factor = 1
 
         if (
@@ -205,11 +198,13 @@ class MADRID(BaseAnomalyDetector):
 
         if predicted_execution_time_1 < 10:
             factor = 1
-            self._compute_madrid()
+            print(
+                f"Predicted execution time for MADRID is small, hence potential factor choise is 1"
+            )
         else:
             test_data = self._test_data_madrid()
             factor = 16
-            actual_measurement_16 = self._compute_madrid()
+            actual_measurement_16 = self._compute_madrid(test_data)
             scaling_factor = actual_measurement_16 / 0.65461
             predicted_execution_time_16_scaled = (
                 predicted_execution_time_16 * scaling_factor
@@ -243,7 +238,7 @@ class MADRID(BaseAnomalyDetector):
                 f"Predicted execution time for MADRID 1 to 1: {predicted_execution_time_1_scaled:.1f} seconds, hence potential factor choise is 1"
             )
 
-    def _compute_madrid(self):
+    def _compute_madrid(self, X):
         bfs_seed = float("-inf")  # used for first time run of dump_topk
         k = 1
         time_bf = 0
