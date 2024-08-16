@@ -35,7 +35,7 @@ def test_all_networks_functionality(network):
     """Test the functionality of all networks."""
     input_shape = (100, 2)
 
-    if not (network.__name__ in ["BaseDeepLearningNetwork", "EncoderNetwork"]):
+    if not (network.__name__ in ["BaseDeepLearningNetwork"]):
         if _check_soft_dependencies(
             network._config["python_dependencies"], severity="none"
         ) and _check_python_version(network._config["python_version"], severity="none"):

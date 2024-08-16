@@ -174,6 +174,8 @@ def test_unequal_tag_inference():
 def test_missing_tag_inference():
     """Test that ClustererPipeline infers missing data tag correctly."""
     X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    # tags are reset so this causes a crash due to t1
+    # X[5, 0, 4] = np.nan
 
     t1 = MockCollectionTransformer()
     t1.set_tags(

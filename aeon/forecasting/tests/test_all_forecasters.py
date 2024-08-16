@@ -310,8 +310,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
     ):
         """Check prediction intervals returned by predict.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         Forecaster: BaseEstimator class descendant, forecaster to test
         fh: ForecastingHorizon, fh at which to test prediction
         coverage: float, coverage at which to make prediction intervals
@@ -375,8 +375,8 @@ class TestAllForecasters(ForecasterFixtureGenerator, QuickTester):
     def test_predict_quantiles(self, estimator_instance, n_columns, fh_int_oos, alpha):
         """Check prediction quantiles returned by predict.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         Forecaster: BaseEstimator class descendant, forecaster to test
         fh: ForecastingHorizon, fh at which to test prediction
         alpha: float, alpha at which to make prediction intervals

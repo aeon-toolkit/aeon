@@ -16,8 +16,8 @@ from aeon.forecasting.compose._ensemble import _aggregate
 from aeon.forecasting.compose._pipeline import TransformedTargetForecaster
 from aeon.forecasting.exp_smoothing import ExponentialSmoothing
 from aeon.forecasting.trend import PolynomialTrendForecaster
+from aeon.transformations._legacy._deseasonalize import Deseasonalizer
 from aeon.transformations._legacy.theta import _ThetaLinesTransformer
-from aeon.transformations.detrend import Deseasonalizer
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.forecasting import check_sp
 

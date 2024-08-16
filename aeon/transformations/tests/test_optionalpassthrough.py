@@ -11,9 +11,9 @@ from aeon.forecasting.model_selection import (
 )
 from aeon.forecasting.naive import NaiveForecaster
 from aeon.testing.data_generation import _make_hierarchical
+from aeon.transformations._legacy._deseasonalize import Deseasonalizer
 from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
 from aeon.transformations._legacy.compose import OptionalPassthrough
-from aeon.transformations.detrend import Deseasonalizer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

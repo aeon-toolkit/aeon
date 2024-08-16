@@ -15,9 +15,12 @@ __all__ = [
     "AEResNetNetwork",
     "LITENetwork",
     "DCNNNetwork",
+    "AEDRNNNetwork",
     "AEBiGRUNetwork",
 ]
+
 from aeon.networks._ae_bgru import AEBiGRUNetwork
+from aeon.networks._ae_drnn import AEDRNNNetwork
 from aeon.networks._ae_fcn import AEFCNNetwork
 from aeon.networks._ae_resnet import AEResNetNetwork
 from aeon.networks._cnn import CNNNetwork, TimeCNNNetwork
