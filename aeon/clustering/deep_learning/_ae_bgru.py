@@ -140,8 +140,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
         super().__init__(
             n_clusters=n_clusters,
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
             estimator=estimator,
             batch_size=batch_size,
             last_file_name=last_file_name,
