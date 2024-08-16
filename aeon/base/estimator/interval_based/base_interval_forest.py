@@ -948,12 +948,17 @@ class BaseIntervalForest(metaclass=ABCMeta):
                     for i in range(att_subsample_size - count):
                         features.append(all_function_features[atts[count + i] - length])
                 else:
-                    warnings.warn(
-                        f"Attribute subsample size {att_subsample_size} is larger than "
-                        f"or equal to the number of attributes {num_features} for "
-                        f"series {self._series_transformers[r]}",
-                        stacklevel=2,
-                    )
+                    # only warn if requested number of features is greater than actual
+                    if att_subsample_size > num_features:
+                        warnings.warn(
+                            f"Attribute subsample size {att_subsample_size} is "
+                            f"larger than the number of attributes {num_features} "
+                            f"for series {self._series_transformers[r]}",
+                            stacklevel=2,
+                        )
+
+                    self._att_subsample_size[r] = None
+
                     for feature in self._interval_features[r]:
                         if isinstance(feature, BaseTransformer):
                             features.append(_clone_estimator(feature, seed))
@@ -1015,6 +1020,8 @@ class BaseIntervalForest(metaclass=ABCMeta):
                 self.replace_nan,
                 self.replace_nan,
             )
+
+        print(interval_features.shape)
 
         # clone and fit the base estimator using the transformed data
         tree = _clone_estimator(self._base_estimator, random_state=seed)
@@ -1151,7 +1158,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         """
         if not isinstance(self._base_estimator, ContinuousIntervalTree):
             raise ValueError(
-                "CIF base estimator for temporal importance curves must"
+                "base_estimator for temporal importance curves must"
                 " be ContinuousIntervalTree."
             )
 
@@ -1160,10 +1167,12 @@ class BaseIntervalForest(metaclass=ABCMeta):
             counts = {}
 
         for i, est in enumerate(self.estimators_):
+            print(i)
             splits, gains = est.tree_node_splits_and_gain()
             split_features = []
 
             for n, rep in enumerate(self.intervals_[i]):
+                print(n)
                 t = 0
                 rep_name = (
                     ""
@@ -1172,9 +1181,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
                 )
 
                 for interval in rep.intervals_:
-                    if t % len(self._interval_features[n]) - 1 == 0:
-                        t = 0
-
                     if _is_transformer(interval[3]):
                         if self._att_subsample_size[n] is None:
                             names = None
@@ -1193,6 +1199,9 @@ class BaseIntervalForest(metaclass=ABCMeta):
                                     "importance curves."
                                 )
                         else:
+                            if t % len(self._interval_features[n]) - 1 == 0:
+                                t = 0
+
                             names = getattr(
                                 interval[3], self._transformer_feature_names[n][t]
                             )
@@ -1220,6 +1229,8 @@ class BaseIntervalForest(metaclass=ABCMeta):
                                 interval[3].__name__,
                             )
                         )
+
+            print(len(split_features))
 
             for n, split in enumerate(splits):
                 feature = (
