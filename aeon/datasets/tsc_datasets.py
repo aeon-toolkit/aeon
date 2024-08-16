@@ -27,6 +27,10 @@ Ensembles Version 1.0 (HIVE-COTE v1.0). Lecture Notes in Computer Science. in pr
     The great multivariate time series classification bake off: a review and
     experimental evaluation of recent algorithmic advances,
     Data Mining and Knowledge Discovery, 2020.
+[5] Middlehurst, M., Schäfer, P. & Bagnall, A.
+    Bake off redux: a review and experimental evaluation of recent time series
+    classification algorithms. Data Min Knowl Disc 38, 1958–2031 (2024).
+    https://doi.org/10.1007/s10618-024-01022-1
 
 """
 
