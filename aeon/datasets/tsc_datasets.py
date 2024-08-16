@@ -632,11 +632,38 @@ tsc_zenodo = {
     "UWaveGestureLibrary": 11206282,
 }
 
-
-# TODO: Add the following datasets:
 # 30 new univariate classification problems used in the bake off [5]. Some are new,
 # some are discrete versions of regression problems, some are equal length versions
 # of the current UCR problems and some are no missing versions of the current 128 UCR.
-# All can be loaded from the timeseriesclassification.com archive directly using the
-# function load_classification. This will download all available versions of the
-# problem in one directory. You can then set which version through function arguments.
+univariate_bake_off_2024 = {
+    "AconityMINIPrinterLarge",  # AconityMINIPrinterLarge_eq
+    "AconityMINIPrinterSmall",  # AconityMINIPrinterSmall_eq
+    "AllGestureWiimoteX",  # AllGestureWiimoteX_eq
+    "AllGestureWiimoteY",  # AllGestureWiimoteY_eq
+    "AllGestureWiimoteZ",  # AllGestureWiimoteZ_eq
+    "AsphaltObstacles",  # AsphaltObstaclesUni_eq
+    "AsphaltPavementType",  # AsphaltPavementTypeUni_eq
+    "AsphaltRegularity",  # AsphaltRegularityUni_eq
+    "Colposcopy",  # Colposcopy
+    "Covid3Month",  # Covid3Month_disc
+    "DodgerLoopDay",  # DodgerLoopDay_nmv
+    "DodgerLoopGame",  # DodgerLoopGame_nmv
+    "DodgerLoopWeekend",  # DodgerLoopWeekend_nmv
+    "ElectricDeviceDetection",  # ElectricDeviceDetection
+    "FloodModeling1",  # FloodModeling1_disc
+    "FloodModeling2",  # FloodModeling2_disc
+    "FloodModeling3",  # FloodModeling3_disc
+    "GestureMidAirD1",  # GestureMidAirD1_eq
+    "GestureMidAirD2",  # GestureMidAirD2_eq
+    "GestureMidAirD3",  # GestureMidAirD3_eq
+    "GesturePebbleZ1",  # GesturePebbleZ1_eq
+    "GesturePebbleZ2",  # GesturePebbleZ2_eq
+    "KeplerLightCurves",  # KeplerLightCurves
+    "MelbournePedestrian",  # MelbournePedestrian_nmv
+    "PhoneHeartbeatSound",  # PhoneHeartbeatSound
+    "PickupGestureWiimoteZ",  # PickupGestureWiimoteZ_eq
+    "PLAID",  # PLAID_eq
+    "ShakeGestureWiimoteZ",  # ShakeGestureWiimoteZ_eq
+    "SharePriceIncrease",  # SharePriceIncrease
+    "Tools",  # Tools
+}
