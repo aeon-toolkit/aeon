@@ -3,10 +3,11 @@
 __maintainer__ = []
 
 
+from typing import Optional, Union
+
 import numpy as np
 from numba import njit, prange
 from numba.typed import List
-from typing import Optional, Union
 
 from aeon.utils.numba.general import (
     generate_new_default_njit_func,
@@ -15,7 +16,13 @@ from aeon.utils.numba.general import (
 )
 
 
-def naive_distance_profile(X: Union[np.ndarray, List], q: np.ndarray, mask: Union[np.ndarray, List], distance_function, distance_args: Optional[dict] = None) -> Union[np.ndarray, List]:
+def naive_distance_profile(
+    X: Union[np.ndarray, List],
+    q: np.ndarray,
+    mask: Union[np.ndarray, List],
+    distance_function,
+    distance_args: Optional[dict] = None,
+) -> Union[np.ndarray, List]:
     r"""
     Compute a distance profile in a brute force way.
 

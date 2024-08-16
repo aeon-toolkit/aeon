@@ -11,7 +11,9 @@ from aeon.similarity_search.distance_profiles.squared_distance_profile import (
 )
 
 
-def euclidean_distance_profile(X: np.ndarray, q: np.ndarray, mask: np.ndarray) -> np.ndarray:
+def euclidean_distance_profile(
+    X: np.ndarray, q: np.ndarray, mask: np.ndarray
+) -> np.ndarray:
     """
     Compute a distance profile using the squared Euclidean distance.
 

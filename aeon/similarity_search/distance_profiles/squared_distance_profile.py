@@ -3,16 +3,19 @@
 __maintainer__ = ["baraline"]
 
 
+from typing import Union
+
 import numpy as np
 from numba import njit, prange
 from numba.typed import List
-from typing import Union
 
 from aeon.similarity_search.distance_profiles._commons import fft_sliding_dot_product
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 
-def squared_distance_profile(X: Union[np.ndarray, List], q: np.ndarray, mask: np.ndarray) -> np.ndarray:
+def squared_distance_profile(
+    X: Union[np.ndarray, List], q: np.ndarray, mask: np.ndarray
+) -> np.ndarray:
     """
     Compute a distance profile using the squared Euclidean distance.
 
