@@ -20,12 +20,6 @@ class PLASeriesTransformer(BaseSeriesTransformer):
     The algorithms available are two offline algorithms: top down and bottom up
     and two online algorithms: sliding window and SWAB (Sliding Window and Bottom Up).
 
-    Offline algorithms take the whole dataset and read it all at once. When working
-    with infinite data, the algorithm will infinitely read the data, never
-    processing it. On the other hand, online algorithms read a subsequence of data
-    and process the subsequence. Once processing is done, more data is read in.
-    This means that online algorithms can process even infinity data.
-
     When working with continuous data or large datasets SWAB is recommended.
     When working with small datasets it is recommended to test out both
     bottom up and top down and use the one with the required result.
