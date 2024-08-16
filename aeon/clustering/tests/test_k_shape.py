@@ -1,9 +1,9 @@
-"""Tests for time series k-shapes."""
+"""Tests for time series k-shape."""
 
 import numpy as np
 import pytest
 
-from aeon.clustering._k_shapes import TimeSeriesKShapes
+from aeon.clustering._k_shape import TimeSeriesKShape
 from aeon.datasets import load_basic_motions
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
@@ -18,7 +18,7 @@ expected_score = 0.5645477840468736
 
 
 @pytest.mark.skipif(
-    not _check_estimator_deps(TimeSeriesKShapes, severity="none"),
+    not _check_estimator_deps(TimeSeriesKShape, severity="none"),
     reason="skip test if required soft dependencies not available",
 )
 def test_kshapes():
@@ -28,7 +28,7 @@ def test_kshapes():
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
 
-    kshapes = TimeSeriesKShapes(random_state=1, n_clusters=3)
+    kshapes = TimeSeriesKShape(random_state=1, n_clusters=3)
     kshapes.fit(X_train[0:max_train])
     test_shape_result = kshapes.predict(X_test[0:max_train])
     score = kshapes.score(X_test[0:max_train])
