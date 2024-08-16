@@ -7,11 +7,11 @@ import math
 
 import numpy as np
 
-from aeon.transformations._split import SplitsTimeSeries
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils import split_series
 
 
-class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
+class SlopeTransformer(BaseCollectionTransformer):
     """Piecewise slope transformation.
 
     Class to perform a slope transformation on a collection of time series.
@@ -67,8 +67,9 @@ class SlopeTransformer(BaseCollectionTransformer, SplitsTimeSeries):
         for i in range(n_cases):
             case_data = []
             for j in range(n_channels):
+                splits = split_series(X[i][j], self.n_intervals)
                 # Calculate gradients
-                res = [self._get_gradient(x) for x in self._split(X[i][j])]
+                res = [self._get_gradient(x) for x in splits]
                 case_data.append(res)
             full_data.append(np.asarray(case_data))
 

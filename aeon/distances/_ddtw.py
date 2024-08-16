@@ -322,7 +322,7 @@ def ddtw_alignment_path(
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
 ) -> Tuple[List[Tuple[int, int]], float]:
-    """Compute the ddtw alignment path between two time series.
+    """Compute the DDTW alignment path between two time series.
 
     Parameters
     ----------

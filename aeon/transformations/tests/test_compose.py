@@ -12,20 +12,20 @@ from aeon.testing.mock_estimators import MockTransformer
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations._legacy._boxcox import _LogTransformer
-from aeon.transformations._legacy.subset import _ColumnSelect
-from aeon.transformations._legacy.theta import (
-    _ThetaLinesTransformer as ThetaLinesTransformer,
-)
-from aeon.transformations.collection.pad import PaddingTransformer
-from aeon.transformations.compose import (
+from aeon.transformations._legacy.compose import (
     ColumnConcatenator,
     FeatureUnion,
     InvertTransform,
     OptionalPassthrough,
     TransformerPipeline,
 )
-from aeon.transformations.impute import Imputer
-from aeon.transformations.summarize import SummaryTransformer
+from aeon.transformations._legacy.impute import Imputer
+from aeon.transformations._legacy.subset import _ColumnSelect
+from aeon.transformations._legacy.summarize import SummaryTransformer
+from aeon.transformations._legacy.theta import (
+    _ThetaLinesTransformer as ThetaLinesTransformer,
+)
+from aeon.transformations.collection.pad import PaddingTransformer
 
 
 def test_dunder_mul():

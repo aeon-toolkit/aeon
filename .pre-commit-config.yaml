@@ -29,13 +29,13 @@ repos:
         args: [ "--create", "--python-folders", "aeon" ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.1
+    rev: v0.5.7
     hooks:
       - id: ruff
         args: [ "--fix"]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.16.0
+    rev: v3.17.0
     hooks:
       - id: pyupgrade
         args: [ "--py38-plus" ]
@@ -48,26 +48,26 @@ repos:
         args: [ "--profile=black", "--multi-line=3" ]
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.1.0
+    rev: 7.1.1
     hooks:
       - id: flake8
         additional_dependencies: [ flake8-bugbear, flake8-print, Flake8-pyproject ]
         args: [ "--max-line-length=88", "--extend-ignore=E203" ]
 
   - repo: https://github.com/psf/black
-    rev: 24.4.2
+    rev: 24.8.0
     hooks:
       - id: black
         language_version: python3
 
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: 1.8.5
+    rev: 1.8.7
     hooks:
       - id: nbqa-isort
         additional_dependencies: [ isort==5.13.2 ]
         args: [ "--nbqa-dont-skip-bad-cells", "--profile=black", "--multi-line=3" ]
       - id: nbqa-black
-        additional_dependencies: [ black==24.2.0 ]
+        additional_dependencies: [ black==24.4.2 ]
         args: [ "--nbqa-dont-skip-bad-cells" ]
       - id: nbqa-flake8
         additional_dependencies: [ flake8==7.0.0 ]

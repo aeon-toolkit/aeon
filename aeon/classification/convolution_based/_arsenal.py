@@ -103,9 +103,10 @@ class Arsenal(BaseClassifier):
 
     References
     ----------
-    .. [1] Middlehurst, Matthew, James Large, Michael Flynn, Jason Lines, Aaron Bostrom,
-       and Anthony Bagnall. "HIVE-COTE 2.0: a new meta ensemble for time series
-       classification." arXiv preprint arXiv:2104.07551 (2021).
+    .. [1] Middlehurst, M., Large, J., Flynn, M. et al.
+       HIVE-COTE 2.0: a new meta ensemble for time series classification.
+       Mach Learn 110, 3211–3243 (2021).
+       https://doi.org/10.1007/s10994-021-06057-9
 
     Examples
     --------
@@ -295,6 +296,8 @@ class Arsenal(BaseClassifier):
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 
+        rng = check_random_state(self.random_state)
+
         if time_limit > 0:
             self.n_estimators_ = 0
             self.estimators_ = []
@@ -307,16 +310,7 @@ class Arsenal(BaseClassifier):
                 fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                     delayed(self._fit_ensemble_estimator)(
                         _clone_estimator(
-                            base_rocket,
-                            (
-                                None
-                                if self.random_state is None
-                                else (
-                                    255 if self.random_state == 0 else self.random_state
-                                )
-                                * 37
-                                * (i + 1)
-                            ),
+                            base_rocket, rng.randint(np.iinfo(np.int32).max)
                         ),
                         X,
                         y,
@@ -335,16 +329,7 @@ class Arsenal(BaseClassifier):
         else:
             fit = Parallel(n_jobs=self._n_jobs, prefer="threads")(
                 delayed(self._fit_ensemble_estimator)(
-                    _clone_estimator(
-                        base_rocket,
-                        (
-                            None
-                            if self.random_state is None
-                            else (255 if self.random_state == 0 else self.random_state)
-                            * 37
-                            * (i + 1)
-                        ),
-                    ),
+                    _clone_estimator(base_rocket, rng.randint(np.iinfo(np.int32).max)),
                     X,
                     y,
                     keep_transformed_data=keep_transformed_data,

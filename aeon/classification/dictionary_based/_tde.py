@@ -257,7 +257,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         max_window_searches = self.n_timepoints_ / 4
         max_window = int(self.n_timepoints_ * self.max_win_len_prop)
 
-        if self.min_window >= max_window:
+        if self.min_window > max_window:
             self._min_window = max_window
             warnings.warn(
                 f"TemporalDictionaryEnsemble warning: min_window = "

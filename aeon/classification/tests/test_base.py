@@ -1,7 +1,6 @@
 """Unit tests for classifier base class functionality."""
 
 import numpy as np
-import numpy.random
 import pandas as pd
 import pytest
 from sklearn.metrics import accuracy_score
@@ -12,9 +11,9 @@ from aeon.testing.mock_estimators import (
     MockClassifierPredictProba,
 )
 from aeon.testing.testing_data import (
-    EQUAL_LENGTH_MULTIVARIATE,
-    EQUAL_LENGTH_UNIVARIATE,
-    UNEQUAL_LENGTH_UNIVARIATE,
+    EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
+    EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
+    UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
 )
 from aeon.utils import COLLECTIONS_DATA_TYPES
 
@@ -132,11 +131,11 @@ def test_check_y():
         cls._check_y(y, 10)
 
 
-@pytest.mark.parametrize("data", UNEQUAL_LENGTH_UNIVARIATE.keys())
+@pytest.mark.parametrize("data", UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys())
 def test_unequal_length_input(data):
     """Test with unequal length failures and passes."""
-    X = UNEQUAL_LENGTH_UNIVARIATE[data]
-    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    X = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+    y = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][1]
 
     # Unable to handle unequal length series
     dummy = MockClassifier()
@@ -151,8 +150,8 @@ def test_unequal_length_input(data):
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_univariate_equal_length_input(data):
     """Test with unequal length failures and passes."""
-    X = EQUAL_LENGTH_UNIVARIATE[data]
-    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+    y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][1]
 
     # Default capabilities
     dummy = MockClassifier()
@@ -163,11 +162,11 @@ def test_univariate_equal_length_input(data):
     _assert_fit_and_predict(dummy, X, y)
 
 
-@pytest.mark.parametrize("data", EQUAL_LENGTH_MULTIVARIATE.keys())
+@pytest.mark.parametrize("data", EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.keys())
 def test_multivariate_equal_length_input(data):
     """Test with unequal length failures and passes."""
-    X = EQUAL_LENGTH_MULTIVARIATE[data]
-    y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    X = EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]
+    y = EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][1]
 
     # Unable to handle multivariate series
     dummy = MockClassifier()
@@ -260,6 +259,61 @@ def test_fit_predict():
 
     p = cls.predict(X)
     assert p.shape == (5,)
+
+
+def test_fit_predict_kwargs():
+    """Test fit_predict with cross validation kwargs."""
+    X = np.random.random(size=(5, 1, 10))
+    y = np.array([1, 0, 1, 0, 1])
+    cls = MockClassifier()
+    p = cls.fit_predict(X, y)
+    assert p.shape == (5,)
+
+    p = cls.fit_predict(X, y, cv_size=2)
+    assert p.shape == (5,)
+    with pytest.raises(ValueError, match="cv_size must be an integer greater than 0"):
+        cls.fit_predict(X, y, cv_size=0)
+    with pytest.raises(ValueError, match="cv_size must be an integer greater than 0"):
+        cls.fit_predict(X, y, cv_size="FOO")
+    y = np.array([0, 0, 0, 0, 1])
+    with pytest.raises(ValueError, match="All classes must have at least 2 values"):
+        cls.fit_predict(X, y, cv_size=20)
+    y = np.array([1, 0, 1, 0, 1])
+    p = cls.fit_predict_proba(X, y, cv_size=2)
+    assert p.shape == (5, 2)
+
+
+def test_score():
+    """Test base classifier scorer."""
+    X = np.random.random(size=(5, 1, 10))
+    y = np.array([1, 0, 1, 0, 1])
+    cls = MockClassifier()
+    cls.fit(X, y)
+    score = cls.score(X, y)
+    assert isinstance(score, float)
+    with pytest.raises(
+        ValueError,
+        match="can't handle a mix of binary and multilabel-indicator targets",
+    ):
+        score = cls.score(X, y, use_proba=True)
+    with pytest.raises(
+        ValueError,
+        match="can't handle a mix of binary and multilabel-indicator targets",
+    ):
+        score = cls.score(X, y, use_proba=True)
+    score = cls.score(X, y, metric="neg_log_loss")
+    assert isinstance(score, float)
+    score = cls.score(X, y, use_proba=True, metric="neg_log_loss")
+    with pytest.raises(
+        ValueError, match="The metric parameter should be either a string or a callable"
+    ):
+        score = cls.score(X, y, metric=42)
+
+    def dummy_metric(y_true, y_pred):
+        return 42.0
+
+    score = cls.score(X, y, metric=dummy_metric)
+    assert score == 42.0
 
 
 def test_fit_predict_single_class():

@@ -240,8 +240,8 @@ class _Pipeline(_HeterogenousMetaEstimator, BaseForecaster):
         from aeon.forecasting.compose._reduce import DirectReductionForecaster
         from aeon.forecasting.naive import NaiveForecaster
         from aeon.testing.mock_estimators import MockTransformer
-        from aeon.transformations.adapt import TabularToSeriesAdaptor
-        from aeon.transformations.detrend import Detrender
+        from aeon.transformations._legacy._detrend import Detrender
+        from aeon.transformations._legacy.adapt import TabularToSeriesAdaptor
 
         # StandardScaler does not skip fit, NaiveForecaster is not probabilistic
         STEPS1 = [
@@ -325,46 +325,6 @@ class ForecastingPipeline(_Pipeline):
         strings not passed in `steps` are replaced by unique generated strings
         i-th transformer in `steps_` is clone of i-th in `steps`
     forecaster_ : estimator, reference to the unique forecaster in steps_
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_longley
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.forecasting.compose import ForecastingPipeline
-    >>> from aeon.transformations.adapt import TabularToSeriesAdaptor
-    >>> from aeon.transformations.impute import Imputer
-    >>> from aeon.forecasting.base import ForecastingHorizon
-    >>> from aeon.forecasting.model_selection import temporal_train_test_split
-    >>> from sklearn.preprocessing import MinMaxScaler
-    >>> y, X = load_longley()
-    >>> y_train, _, X_train, X_test = temporal_train_test_split(y, X)
-    >>> fh = ForecastingHorizon(X_test.index, is_relative=False)
-
-        Example 1: string/estimator pairs
-    >>> pipe = ForecastingPipeline(steps=[
-    ...     ("imputer", Imputer(method="mean")),
-    ...     ("minmaxscaler", TabularToSeriesAdaptor(MinMaxScaler())),
-    ...     ("forecaster", NaiveForecaster(strategy="drift")),
-    ... ])
-    >>> pipe.fit(y_train, X_train)
-    ForecastingPipeline(...)
-    >>> y_pred = pipe.predict(fh=fh, X=X_test)
-
-        Example 2: without strings
-    >>> pipe = ForecastingPipeline([
-    ...     Imputer(method="mean"),
-    ...     TabularToSeriesAdaptor(MinMaxScaler()),
-    ...     NaiveForecaster(strategy="drift"),
-    ... ])
-
-        Example 3: using the dunder method
-        Note: * (= apply to `y`) has precedence over ** (= apply to `X`)
-    >>> forecaster = NaiveForecaster(strategy="drift")
-    >>> imputer = Imputer(method="mean")
-    >>> pipe = (imputer * MinMaxScaler()) ** forecaster
-
-        Example 3b: using the dunder method, alternative
-    >>> pipe = imputer ** MinMaxScaler() ** forecaster
     """
 
     _tags = {
@@ -414,8 +374,8 @@ class ForecastingPipeline(_Pipeline):
             concatenation of `other` (first) with `self` (last).
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
+        from aeon.transformations._legacy.compose import TransformerPipeline
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.compose import TransformerPipeline
 
         _, ests = zip(*self.steps_)
         names = tuple(self._get_estimator_names(self.steps))
@@ -744,38 +704,6 @@ class TransformedTargetForecaster(_Pipeline):
         reference to pairs in steps_ that precede forecaster_
     transformers_ost_ : list of tuples (str, transformer) of aeon transformers
         reference to pairs in steps_ that succeed forecaster_
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.forecasting.compose import TransformedTargetForecaster
-    >>> from aeon.transformations.impute import Imputer
-    >>> from aeon.transformations.detrend import Detrender
-    >>> from aeon.transformations.exponent import ExponentTransformer
-    >>> y = load_airline()
-
-        Example 1: string/estimator pairs
-    >>> pipe = TransformedTargetForecaster(steps=[
-    ...     ("imputer", Imputer(method="mean")),
-    ...     ("detrender", Detrender()),
-    ...     ("forecaster", NaiveForecaster(strategy="drift")),
-    ... ])
-    >>> t = pipe.fit(y)
-    >>> y_pred = pipe.predict(fh=[1,2,3])
-
-        Example 2: without strings
-    >>> pipe = TransformedTargetForecaster([
-    ...     Imputer(method="mean"),
-    ...     Detrender(),
-    ...     NaiveForecaster(strategy="drift"),
-    ...     ExponentTransformer(),
-    ... ])
-
-        Example 3: using the dunder method
-    >>> forecaster = NaiveForecaster(strategy="drift")
-    >>> imputer = Imputer(method="mean")
-    >>> pipe = imputer * Detrender() * forecaster * ExponentTransformer()
     """
 
     _tags = {
@@ -855,8 +783,8 @@ class TransformedTargetForecaster(_Pipeline):
             concatenation of `self` (first) with `other` (last).
             not nested, contains only non-TransformerPipeline `aeon` transformers
         """
+        from aeon.transformations._legacy.compose import TransformerPipeline
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.compose import TransformerPipeline
 
         # we don't use names but _get_estimator_names to get the *original* names
         #   to avoid multiple "make unique" calls which may grow strings too much
@@ -900,8 +828,8 @@ class TransformedTargetForecaster(_Pipeline):
             concatenation of `other` (first) with `self` (last).
             not nested, contains only non-TransformerPipeline `aeon` steps
         """
+        from aeon.transformations._legacy.compose import TransformerPipeline
         from aeon.transformations.base import BaseTransformer
-        from aeon.transformations.compose import TransformerPipeline
 
         _, ests = zip(*self.steps_)
         names = tuple(self._get_estimator_names(self.steps))
@@ -1558,7 +1486,7 @@ class Permute(_DelegatedForecaster, BaseForecaster, _HeterogenousMetaEstimator):
     >>> from aeon.forecasting.compose import ForecastingPipeline, Permute
     >>> from aeon.forecasting.naive import NaiveForecaster
     >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
-    >>> from aeon.transformations.exponent import ExponentTransformer
+    >>> from aeon.transformations._legacy.exponent import ExponentTransformer
 
     Simple example: permute sequence of estimator in forecasting pipeline
     >>> y = load_airline()

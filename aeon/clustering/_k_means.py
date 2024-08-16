@@ -326,6 +326,9 @@ class TimeSeriesKMeans(BaseClusterer):
                 # Invalid distance passed for ba so default to dba
                 self._average_params["distance"] = "dtw"
 
+        if "random_state" not in self._average_params:
+            self._average_params["random_state"] = self._random_state
+
         self._averaging_method = _resolve_average_callable(self.averaging_method)
 
         if self.n_clusters > X.shape[0]:
