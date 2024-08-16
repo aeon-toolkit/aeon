@@ -8,9 +8,9 @@ from aeon.networks.base import BaseDeepLearningNetwork
 
 
 class AEDCNNNetwork(BaseDeepLearningNetwork):
-    """Establish the network structure for a DCNN-Model.
+    """Establish the Auto-Encoder based structure for a DCN Network.
 
-    Dilated Convolutional Neural Network based Model
+    Dilated Convolutional Neural (DCN) Network based Model
     for low-rank embeddings.
 
     Parameters
@@ -21,26 +21,21 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         Flag to choose whether the latent space is an MTS or Euclidean space.
     n_layers: int, default=4
         Number of convolution layers in the autoencoder.
-    kernel_size: int, default=3
+    kernel_size: Union[int, List[int]], default=3
         Size of the 1D Convolutional Kernel of the encoder.
-    activation: str, default="relu"
+    activation: Union[str, List[str]], default="relu"
         The activation function used by convolution layers of the encoder.
-    n_filters: int, default=None
+    n_filters: Union[int, List[int]], default=None
         Number of filters used in convolution layers of the encoder.
-    dilation_rate: list, default=None
+    dilation_rate: Union[int, List[int]], default=None
         The dilation rate for convolution of the encoder.
 
     References
     ----------
-    .. [1] Network originally defined in:
-    @article{franceschi2019unsupervised,
-      title={Unsupervised scalable representation learning for multivariate time
-        series},
-      author={Franceschi, Jean-Yves and Dieuleveut, Aymeric and Jaggi, Martin},
-      journal={Advances in neural information processing systems},
-      volume={32},
-      year={2019}
-    }
+    .. [1] Franceschi, J. Y., Dieuleveut, A., & Jaggi, M. (2019). Unsupervised
+    scalable representation learning for multivariate time series. Advances in
+    neural information processing systems, 32.
+
     """
 
     _config = {
