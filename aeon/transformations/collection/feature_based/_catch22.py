@@ -221,6 +221,7 @@ class Catch22(BaseCollectionTransformer):
 
         threads_to_use = check_n_jobs(self.n_jobs)
 
+        use_pycatch22_transform = False
         if self.use_pycatch22:
             if _check_soft_dependencies("pycatch22", severity="none"):
                 import pycatch22
@@ -249,6 +250,8 @@ class Catch22(BaseCollectionTransformer):
                     pycatch22.SP_Summaries_welch_rect_centroid,
                     pycatch22.FC_LocalSimple_mean3_stderr,
                 ]
+
+                use_pycatch22_transform = True
             else:
                 warnings.warn(
                     "pycatch22 not installed, but 'self.use_pycatch22' is set to True."
@@ -311,7 +314,7 @@ class Catch22(BaseCollectionTransformer):
         )(
             delayed(
                 self._transform_case_pycatch22
-                if self.use_pycatch22
+                if use_pycatch22_transform
                 else self._transform_case
             )(
                 X[i],
