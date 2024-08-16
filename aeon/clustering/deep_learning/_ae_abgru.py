@@ -100,7 +100,7 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         self,
         n_clusters=None,
         estimator=None,
-        clustering_algorithm="kmeans",
+        clustering_algorithm="deprecated",
         clustering_params=None,
         latent_space_dim=128,
         n_layers_encoder=2,
