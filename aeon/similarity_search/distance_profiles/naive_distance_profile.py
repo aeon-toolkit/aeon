@@ -43,7 +43,7 @@ def naive_distance_profile(
         of 2D arrays of shape (n_channels, n_timepoints)
     q : np.ndarray, 2D array of shape (n_channels, query_length)
         The query used for similarity search.
-    mask : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    mask : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed. Should be a numba TypedList if X is
         unequal length.
@@ -107,10 +107,10 @@ def normalized_naive_distance_profile(
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed. Should be a numba TypedList if X is
         unequal length.
-    X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Means of each subsequences of X of size query_length. Should be a numba
         TypedList if X is unequal length.
-    X_stds : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_stds : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Stds of each subsequences of X of size query_length. Should be a numba
         TypedList if X is unequal length.
     q_means : np.ndarray, 1D array of shape (n_channels)
