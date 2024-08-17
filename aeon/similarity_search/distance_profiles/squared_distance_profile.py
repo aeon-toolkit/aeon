@@ -80,9 +80,9 @@ def normalized_squared_distance_profile(
     mask : np.ndarray, 3D array of shape (n_cases, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
-    X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Means of each subsequences of X of size query_length
-    X_stds : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_stds : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Stds of each subsequences of X of size query_length
     q_means : np.ndarray, 1D array of shape (n_channels)
         Means of the query q
