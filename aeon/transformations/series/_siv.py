@@ -54,7 +54,9 @@ class SIVSeriesTransformer(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, window_length=3):
+    def __init__(self, window_length=None):
+        if window_length is None:
+            window_length = [3, 5, 7]
         if not isinstance(window_length, list):
             window_length = [window_length]
         self.window_length = window_length
