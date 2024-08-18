@@ -55,10 +55,6 @@ class SIVSeriesTransformer(BaseSeriesTransformer):
     }
 
     def __init__(self, window_length=None):
-        if window_length is None:
-            window_length = [3, 5, 7]
-        if not isinstance(window_length, list):
-            window_length = [window_length]
         self.window_length = window_length
         super().__init__(axis=1)
 
@@ -75,6 +71,11 @@ class SIVSeriesTransformer(BaseSeriesTransformer):
         -------
         transformed version of X
         """
+        if self.window_length is None:
+            self.window_length = [3, 5, 7]
+        if not isinstance(self.window_length, list):
+            self.window_length = [self.window_length]
+
         # Compute SIV
         X_ = X
 
