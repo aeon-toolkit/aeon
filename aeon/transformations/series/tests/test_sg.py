@@ -36,7 +36,7 @@ def test_sg(window_length, polyorder):
     """
     # Visualize smoothing
     import matplotlib.pyplot as plt
-    plt.plot(x12[0])
+    plt.plot(x12r[0])
     plt.plot(x_12_r[0])
     plt.savefig(fname=f'SG_{window_length}_{polyorder}.png')
     plt.clf()
