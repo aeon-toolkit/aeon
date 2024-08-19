@@ -60,10 +60,10 @@ class QUANTRegressor(BaseRegressor):
     >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              random_state=0, regression_target=True)
-    >>> clf = QUANTRegressor()  # doctest: +SKIP
-    >>> clf.fit(X, y)  # doctest: +SKIP
+    >>> reg = QUANTRegressor()  # doctest: +SKIP
+    >>> reg.fit(X, y)  # doctest: +SKIP
     QUANTRegressor()
-    >>> p = clf.predict(X)  # doctest: +SKIP
+    >>> reg.predict(X)  # doctest: +SKIP
     """
 
     _tags = {
@@ -97,7 +97,6 @@ class QUANTRegressor(BaseRegressor):
                 ExtraTreesRegressor(
                     n_estimators=200,
                     max_features=0.1,
-                    criterion="entropy",
                     random_state=self.random_state,
                 )
                 if self.estimator is None
