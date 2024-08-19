@@ -1021,8 +1021,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
                 self.replace_nan,
             )
 
-        print(interval_features.shape)
-
         # clone and fit the base estimator using the transformed data
         tree = _clone_estimator(self._base_estimator, random_state=seed)
         tree.fit(interval_features, y)
@@ -1167,12 +1165,10 @@ class BaseIntervalForest(metaclass=ABCMeta):
             counts = {}
 
         for i, est in enumerate(self.estimators_):
-            print(i)
             splits, gains = est.tree_node_splits_and_gain()
             split_features = []
 
             for n, rep in enumerate(self.intervals_[i]):
-                print(n)
                 t = 0
                 rep_name = (
                     ""
@@ -1229,8 +1225,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
                                 interval[3].__name__,
                             )
                         )
-
-            print(len(split_features))
 
             for n, split in enumerate(splits):
                 feature = (
