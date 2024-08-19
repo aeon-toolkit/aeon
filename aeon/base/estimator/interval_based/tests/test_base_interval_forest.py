@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeClassifier
 
 from aeon.base._base import _clone_estimator
@@ -14,7 +15,6 @@ from aeon.transformations.collection.feature_based import (
     Catch22,
     SevenNumberSummaryTransformer,
 )
-from aeon.transformations.func_transform import FunctionTransformer
 from aeon.utils.numba.stats import row_mean, row_numba_min
 
 

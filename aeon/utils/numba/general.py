@@ -36,7 +36,7 @@ from numba.core.registry import CPUDispatcher
 
 import aeon.utils.numba.stats as stats
 
-AEON_NUMBA_STD_THRESHOLD = 1e-8
+AEON_NUMBA_STD_THRESHOLD = 1e-12
 
 
 def generate_new_default_njit_func(
