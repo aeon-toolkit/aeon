@@ -46,19 +46,23 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         Unsupervised (default):
             Unsupervised detectors do not require any training data and can directly be
             used on the target time series. Their tags are set to ``fit_is_empty=True``
-            and ``requires_y=False``.
+            and ``requires_y=False``. You would usually call the ``fit_predict`` method
+            on these detectors.
         Semi-supervised:
             Semi-supervised detectors require a training step on a time series without
             anomalies (normal behaving time series). The target value ``y`` would
             consist of only zeros. Thus, these algorithms have logic in the ``fit``
             method, but do not require the target values. Their tags are set to
-            ``fit_is_empty=False`` and ``requires_y=False``.
+            ``fit_is_empty=False`` and ``requires_y=False``. You would usually first
+            call the ``fit`` method on the training data and then the ``predict``
+            method for your target time series.
         Supervised:
             Supervised detectors require a training step on a time series with known
             anomalies (anomalies should be present and must be annotated). The detector
             implements the ``fit`` method, and the target value ``y`` consists of zeros
             and ones. Their tags are, thus, set to ``fit_is_empty=False`` and
-            ``requires_y=True``.
+            ``requires_y=True``. You would usually first call the ``fit`` method on the
+            training data and then the ``predict`` method for your target time series.
 
     Parameters
     ----------
