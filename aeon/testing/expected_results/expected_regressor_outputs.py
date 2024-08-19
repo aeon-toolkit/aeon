@@ -373,16 +373,16 @@ cardano_sentiment_preds["RandomIntervalRegressor"] = np.array(
 
 cardano_sentiment_preds["RandomIntervalSpectralEnsembleRegressor"] = np.array(
     [
-        0.4,
-        -0.0056,
-        0.2023,
-        0.0986,
-        0.068,
-        0.2063,
-        0.1309,
-        0.1811,
-        0.1295,
-        0.2968,
+        0.4563,
+        0.004,
+        0.2486,
+        0.101,
+        0.1233,
+        0.188,
+        0.1242,
+        0.238,
+        0.1252,
+        0.3264,
     ]
 )
 
