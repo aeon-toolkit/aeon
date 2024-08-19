@@ -3,31 +3,32 @@
 __maintainer__ = ["baraline"]
 
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
+from numba.typed import List
 
 from aeon.similarity_search.query_search import QuerySearch
 
 
 def naive_series_search(
-    X,
-    S,
+    X: Union[np.ndarray, List],
+    S: np.ndarray,
     L: int,
     k: int = 1,
     threshold: float = np.inf,
     distance: str = "euclidean",
-    distance_args: Union[None, dict] = None,
+    distance_args: Optional[dict] = None,
     inverse_distance: bool = False,
     normalize: bool = False,
     speed_up: str = "fastest",
     n_jobs: int = 1,
-    X_index=None,
-    exclusion_factor=2.0,
-    apply_exclusion_to_result=True,
+    X_index: Optional[int] = None,
+    exclusion_factor: float = 2.0,
+    apply_exclusion_to_result: bool = True,
 ):
     r"""
-    Compute a matrix profile in a naive way.
+    Compute a matrix profile in a naive way, by looping through a query search.
 
     Parameters
     ----------
@@ -35,9 +36,11 @@ def naive_series_search(
         The input samples. If X is an unquel length collection, expect a TypedList
         of 2D arrays of shape (n_channels, n_timepoints)
     S : np.ndarray shape (n_channels, series_length)
-        The series used for similarity search.
+        The series used for similarity search. Note that series_length can be equal,
+        superior or inferior to n_timepoints, it doesn't matter.
     L : int
-        The length of the subsequences considered during the search.
+        The length of the subsequences considered during the search. This parameter
+        cannot be larger than n_timepoints and series_length.
     k : int, default=1
         The number of best matches to return during predict for each subsequence.
     threshold : float, default=np.inf
@@ -84,11 +87,11 @@ def naive_series_search(
 
     Returns
     -------
-    tuple (array, array)
-        The first array of length (series_length - L + 1) contains the distance between
-        the best matches of the i-th subsequence of size L in S and all the subsequences
-        of size L in X. The second will contains the sample index and timepoint index of
-        these best matches in X.
+    Tuple(np.ndarray, 1D array of shape (series_length - L + 1, n_matches), np.ndarray, 2D array of shape (series_length - L + 1, n_matches, 2)) # noqa: E501
+        The first array contains the distance between the best matches of the i-th
+        subsequence of size L in S and all the subsequences of size L in X.
+        The second will contains the sample index and timepoint index of these best
+        matches in X.
 
     """
     search = QuerySearch(
@@ -112,6 +115,9 @@ def naive_series_search(
         )
         for i in range(S.shape[1] - L + 1)
     ]
-    return [results[i][0] for i in range(len(results))], [
-        results[i][1] for i in range(len(results))
-    ]
+    MP = np.empty((S.shape[1] - L + 1, k), dtype=float)
+    IP = np.empty((S.shape[1] - L + 1, k, 2), dtype=int)
+    for i in range(len(results)):
+        MP[i] = results[i][0]
+        IP[i] = results[i][1]
+    return MP, IP
