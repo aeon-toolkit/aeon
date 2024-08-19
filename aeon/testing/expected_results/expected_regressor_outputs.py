@@ -159,16 +159,16 @@ covid_3month_preds["IntervalForestRegressor"] = np.array(
 
 covid_3month_preds["RandomIntervalSpectralEnsembleRegressor"] = np.array(
     [
-        0.4563,
-        0.004,
-        0.2486,
-        0.101,
-        0.1233,
-        0.188,
-        0.1242,
-        0.238,
-        0.1252,
-        0.3264,
+        0.0432,
+        0.0516,
+        0.0291,
+        0.0423,
+        0.0259,
+        0.0247,
+        0.0397,
+        0.0536,
+        0.0406,
+        0.0468,
     ]
 )
 
