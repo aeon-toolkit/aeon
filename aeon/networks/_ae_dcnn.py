@@ -155,6 +155,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
                 self._dilation_rate_encoder[i],
                 _activation=self._activation_encoder[i],
                 _kernel_size=self._kernel_size_encoder[i],
+                _padding_encoder=self._padding_encoder[i],
             )
 
         if not self.temporal_latent_space:
@@ -192,6 +193,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
                 self._dilation_rate_encoder[::-1][i],
                 _activation=self._activation_encoder[::-1][i],
                 _kernel_size=self._kernel_size_encoder[::-1][i],
+                _padding_decoder=self._padding_decoder[i],
             )
 
         last_layer = tf.keras.layers.Conv1D(filters=input_shape[-1], kernel_size=1)(y)
@@ -215,14 +217,14 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             _num_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
-            padding="causal",
+            padding=_padding_encoder,
             kernel_regularizer="l2",
         )(_inputs)
         x = tf.keras.layers.Conv1D(
             _num_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
-            padding="causal",
+            padding=_padding_encoder,
             kernel_regularizer="l2",
         )(x)
         output = tf.keras.layers.Add()([x, _add])
@@ -245,14 +247,14 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             _num_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
-            padding="same",
+            padding=_padding_decoder,
             kernel_regularizer="l2",
         )(_inputs)
         x = tf.keras.layers.Conv1DTranspose(
             _num_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
-            padding="same",
+            padding=_padding_decoder,
             kernel_regularizer="l2",
         )(x)
         output = tf.keras.layers.Add()([x, _add])
