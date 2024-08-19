@@ -144,7 +144,7 @@ def test_ShapeletClassifierVisualizer(classifier_class):
     assert isinstance(fig, plt.Figure)
     plt.close()
 
-    fig = shp_vis.visualize_best_shapelets_one_class(X, y, 0)
+    fig = shp_vis.visualize_shapelets_one_class(X, y, 0)
     plt.gcf().canvas.draw_idle()
     assert isinstance(fig[0], plt.Figure)
     plt.close()
