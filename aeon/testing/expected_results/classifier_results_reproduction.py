@@ -298,4 +298,4 @@ def _print_results_for_classifier(classifier_name, dataset_name):
 
 if __name__ == "__main__":
     # change as required when adding new classifiers, datasets or updating results
-    _print_results_for_classifier("ProbabilityThresholdEarlyClassifier", "UnitTest")
+    _print_results_for_classifier("HIVECOTEV2", "BasicMotions")
