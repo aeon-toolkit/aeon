@@ -29,6 +29,9 @@ class DCNNNetwork(BaseDeepLearningNetwork):
     dilation_rate: Union[int, List[int]], default=None
         The dilation rate for convolution. Defaults to a list of
         powers of 2 for `n_layers` elements.
+    padding: Union[str, List[str]], default="causal"
+        Padding to be used in each DCNN Layer. Defaults to a list
+        of causal paddings for `n_layers` elements.
 
     References
     ----------
@@ -51,6 +54,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         activation="relu",
         n_filters=None,
         dilation_rate=None,
+        padding="causal",
     ):
         super().__init__()
 
@@ -60,6 +64,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         self.n_layers = n_layers
         self.dilation_rate = dilation_rate
         self.activation = activation
+        self.padding = padding
 
     def build_network(self, input_shape):
         """Construct a network and return its input and output layers.
@@ -94,17 +99,29 @@ class DCNNNetwork(BaseDeepLearningNetwork):
             assert isinstance(self.dilation_rate, list)
             assert len(self.dilation_rate) == self.n_layers
 
-        if isinstance(self.kernel_size, int):
+        if self.kernel_size is None:
+            self._kernel_size = [3 for _ in range(self.n_layers)]
+        elif isinstance(self.kernel_size, int):
             self._kernel_size = [self.kernel_size for _ in range(self.n_layers)]
         elif isinstance(self.kernel_size, list):
             self._kernel_size = self.kernel_size
             assert len(self.kernel_size) == self.n_layers
 
-        if isinstance(self.activation, str):
+        if self.activation is None:
+            self._activation = ["relu" for _ in range(self.n_layers)]
+        elif isinstance(self.activation, str):
             self._activation = [self.activation for _ in range(self.n_layers)]
         elif isinstance(self.activation, list):
             self._activation = self.activation
             assert len(self._activation) == self.n_layers
+
+        if self.padding is None:
+            self._padding = ["causal" for _ in range(self.n_layers)]
+        elif isinstance(self.padding, str):
+            self._padding = [self.padding for _ in range(self.n_layers)]
+        elif isinstance(self.padding, list):
+            self._padding = self.padding
+            assert len(self._padding) == self.n_layers
 
         input_layer = tf.keras.layers.Input(input_shape)
 
@@ -116,6 +133,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
                 self._dilation_rate[i],
                 _activation=self._activation[i],
                 _kernel_size=self._kernel_size[i],
+                _padding=self._padding[i],
             )
 
         x = tf.keras.layers.GlobalMaxPool1D()(x)
@@ -124,7 +142,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         return input_layer, output_layer
 
     def _dcnn_layer(
-        self, _inputs, _n_filters, _dilation_rate, _activation, _kernel_size
+        self, _inputs, _n_filters, _dilation_rate, _activation, _kernel_size, _padding
     ):
         import tensorflow as tf
 
@@ -133,9 +151,8 @@ class DCNNNetwork(BaseDeepLearningNetwork):
             _n_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
-            padding="causal",
+            padding=_padding,
             kernel_regularizer="l2",
-            activation=_activation,
         )(_inputs)
         x = tf.keras.layers.Conv1D(
             _n_filters,
@@ -146,4 +163,5 @@ class DCNNNetwork(BaseDeepLearningNetwork):
             activation=_activation,
         )(x)
         output = tf.keras.layers.Add()([x, _add])
+        output = tf.keras.layers.Activation(_activation)(output)
         return output
