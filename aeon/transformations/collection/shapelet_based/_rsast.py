@@ -1,5 +1,4 @@
-from typing import List 
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -103,7 +102,7 @@ class RSAST(BaseCollectionTransformer):
         len_method: str = "both",
         nb_inst_per_class: int = 10,
         seed: int = None,
-        n_jobs: int = 1 # Parllel Processing
+        n_jobs: int = 1,  # Parllel Processing
     ):
         self.n_random_points = n_random_points
         self.len_method = len_method
