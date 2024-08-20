@@ -8,9 +8,9 @@ from aeon.networks.base import BaseDeepLearningNetwork
 
 
 class AEDCNNNetwork(BaseDeepLearningNetwork):
-    """Establish the network structure for a DCNN-Model.
+    """Establish the Auto-Encoder based structure for a DCN Network.
 
-    Dilated Convolutional Neural Network based Model
+    Dilated Convolutional Neural (DCN) Network based Model
     for low-rank embeddings.
 
     Parameters
@@ -21,26 +21,31 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         Flag to choose whether the latent space is an MTS or Euclidean space.
     n_layers: int, default=4
         Number of convolution layers in the autoencoder.
-    kernel_size: int, default=3
-        Size of the 1D Convolutional Kernel of the encoder.
-    activation: str, default="relu"
+    kernel_size: Union[int, List[int]], default=3
+        Size of the 1D Convolutional Kernel of the encoder. Defaults to a
+        list of length `n_layers` with `kernel_size` value.
+    activation: Union[str, List[str]], default="relu"
         The activation function used by convolution layers of the encoder.
-    n_filters: int, default=None
-        Number of filters used in convolution layers of the encoder.
-    dilation_rate: list, default=None
-        The dilation rate for convolution of the encoder.
+        Defaults to a list of "relu" for `n_layers` elements.
+    n_filters: Union[int, List[int]], default=None
+        Number of filters used in convolution layers of the encoder. Defaults
+        to a list of multiples of `32` for `n_layers` elements.
+    dilation_rate: Union[int, List[int]], default=None
+        The dilation rate for convolution of the encoder. Defaults to a list
+        of powers of `2` for `n_layers` elements.
+    padding_encoder: Union[str, List[str]], default="causal"
+        The padding string for the encoder layers. Defaults to a list of "causal"
+        for `n_layers` elements.
+    padding_decoder: Union[str, List[str]], default="same"
+        The padding string for the decoder layers. Defaults to a list of "same"
+        for `n_layers` elements.
 
     References
     ----------
-    .. [1] Network originally defined in:
-    @article{franceschi2019unsupervised,
-      title={Unsupervised scalable representation learning for multivariate time
-        series},
-      author={Franceschi, Jean-Yves and Dieuleveut, Aymeric and Jaggi, Martin},
-      journal={Advances in neural information processing systems},
-      volume={32},
-      year={2019}
-    }
+    .. [1] Franceschi, J. Y., Dieuleveut, A., & Jaggi, M. (2019). Unsupervised
+    scalable representation learning for multivariate time series. Advances in
+    neural information processing systems, 32.
+
     """
 
     _config = {
@@ -58,6 +63,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         activation="relu",
         n_filters=None,
         dilation_rate=None,
+        padding_encoder="causal",
+        padding_decoder="same",
     ):
         super().__init__()
 
@@ -68,6 +75,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         self.dilation_rate = dilation_rate
         self.activation = activation
         self.temporal_latent_space = temporal_latent_space
+        self.padding_encoder = padding_encoder
+        self.padding_decoder = padding_decoder
 
     def build_network(self, input_shape):
         """Construct a network and return its input and output layers.
@@ -85,6 +94,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
 
         if self.n_filters is None:
             self._n_filters_encoder = [32 * i for i in range(1, self.n_layers + 1)]
+        elif isinstance(self.n_filters, int):
+            self._n_filters_encoder = [self.n_filters for _ in range(self.n_layers)]
         elif isinstance(self.n_filters, list):
             self._n_filters_encoder = self.n_filters
             assert len(self.n_filters) == self.n_layers
@@ -110,11 +121,29 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             self._kernel_size_encoder = self.kernel_size
             assert len(self.kernel_size) == self.n_layers
 
-        if isinstance(self.activation, str):
+        if self.activation is None:
+            self._activation_encoder = ["relu" for _ in range(self.n_layers)]
+        elif isinstance(self.activation, str):
             self._activation_encoder = [self.activation for _ in range(self.n_layers)]
         elif isinstance(self.activation, list):
             self._activation_encoder = self.activation
             assert len(self._activation_encoder) == self.n_layers
+
+        if self.padding_encoder is None:
+            self._padding_encoder = ["causal" for _ in range(self.n_layers)]
+        elif isinstance(self.padding_encoder, str):
+            self._padding_encoder = [self.padding_encoder for _ in range(self.n_layers)]
+        elif isinstance(self.padding_encoder, list):
+            self._padding_encoder = self.padding_encoder
+            assert len(self._padding_encoder) == self.n_layers
+
+        if self.padding_decoder is None:
+            self._padding_decoder = ["same" for _ in range(self.n_layers)]
+        elif isinstance(self.padding_decoder, str):
+            self._padding_decoder = [self.padding_decoder for _ in range(self.n_layers)]
+        elif isinstance(self.padding_decoder, list):
+            self._padding_decoder = self.padding_decoder
+            assert len(self._padding_decoder) == self.n_layers
 
         input_layer = tf.keras.layers.Input(input_shape)
 
@@ -126,6 +155,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
                 self._dilation_rate_encoder[i],
                 _activation=self._activation_encoder[i],
                 _kernel_size=self._kernel_size_encoder[i],
+                _padding_encoder=self._padding_encoder[i],
             )
 
         if not self.temporal_latent_space:
@@ -163,6 +193,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
                 self._dilation_rate_encoder[::-1][i],
                 _activation=self._activation_encoder[::-1][i],
                 _kernel_size=self._kernel_size_encoder[::-1][i],
+                _padding_decoder=self._padding_decoder[i],
             )
 
         last_layer = tf.keras.layers.Conv1D(filters=input_shape[-1], kernel_size=1)(y)
@@ -171,7 +202,13 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         return encoder, decoder
 
     def _dcnn_layer(
-        self, _inputs, _num_filters, _dilation_rate, _activation, _kernel_size
+        self,
+        _inputs,
+        _num_filters,
+        _dilation_rate,
+        _activation,
+        _kernel_size,
+        _padding_encoder,
     ):
         import tensorflow as tf
 
@@ -180,23 +217,28 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             _num_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
-            padding="causal",
+            padding=_padding_encoder,
             kernel_regularizer="l2",
-            activation=_activation,
         )(_inputs)
         x = tf.keras.layers.Conv1D(
             _num_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
-            padding="causal",
+            padding=_padding_encoder,
             kernel_regularizer="l2",
-            activation=_activation,
         )(x)
         output = tf.keras.layers.Add()([x, _add])
+        output = tf.keras.layers.Activation(_activation)(output)
         return output
 
     def _dcnn_layer_decoder(
-        self, _inputs, _num_filters, _dilation_rate, _activation, _kernel_size
+        self,
+        _inputs,
+        _num_filters,
+        _dilation_rate,
+        _activation,
+        _kernel_size,
+        _padding_decoder,
     ):
         import tensorflow as tf
 
@@ -205,17 +247,16 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             _num_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
-            padding="same",
+            padding=_padding_decoder,
             kernel_regularizer="l2",
-            activation=_activation,
         )(_inputs)
         x = tf.keras.layers.Conv1DTranspose(
             _num_filters,
             kernel_size=_kernel_size,
             dilation_rate=_dilation_rate,
-            padding="same",
+            padding=_padding_decoder,
             kernel_regularizer="l2",
-            activation=_activation,
         )(x)
         output = tf.keras.layers.Add()([x, _add])
+        output = tf.keras.layers.Activation(_activation)(output)
         return output

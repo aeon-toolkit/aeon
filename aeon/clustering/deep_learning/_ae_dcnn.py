@@ -43,6 +43,12 @@ class AEDCNNClusterer(BaseDeepClusterer):
         The dilation rate for convolution in the encoder.
     activation : str or list of str, default = "relu"
         Activation used after the convolution in the encoder.
+    padding_encoder : str or list of str, default = "causal"
+        Keras compatible Padding string for the encoder. Defaults to a list
+        of "causal" paddings.
+    padding_decoder : str or list of str, default = "same"
+        Keras compatible Padding string for the decoder. Defaults to a list
+        of "same" paddings.
     use_bias : bool or list of bool, default = True
         Whether or not ot use bias in convolution.
     n_epochs : int, default = 2000
@@ -114,6 +120,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
         kernel_size=3,
         dilation_rate=None,
         activation="relu",
+        padding_encoder="causal",
+        padding_decoder="same",
         n_epochs=2000,
         batch_size=32,
         use_mini_batch_size=False,
@@ -134,6 +142,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
         self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.activation = activation
+        self.padding_encoder = padding_encoder
+        self.padding_decoder = padding_decoder
         self.dilation_rate = dilation_rate
         self.optimizer = optimizer
         self.loss = loss
@@ -163,6 +173,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
             kernel_size=self.kernel_size,
             dilation_rate=self.dilation_rate,
             activation=self.activation,
+            padding_encoder=self.padding_encoder,
+            padding_decoder=self.padding_decoder,
         )
 
     def build_model(self, input_shape, **kwargs):
