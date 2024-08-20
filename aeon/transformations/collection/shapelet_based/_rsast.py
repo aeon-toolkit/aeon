@@ -1,4 +1,4 @@
-from typing import List as TypingList
+from typing import List 
 from typing import Optional, Union
 
 import numpy as np
@@ -103,7 +103,7 @@ class RSAST(BaseCollectionTransformer):
         len_method: str = "both",
         nb_inst_per_class: int = 10,
         seed: int = None,
-        n_jobs: int = -1,
+        n_jobs: int = 1 # Parllel Processing
     ):
         self.n_random_points = n_random_points
         self.len_method = len_method
@@ -116,7 +116,7 @@ class RSAST(BaseCollectionTransformer):
         self._kernels_generators = {}  # Reference time series
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, TypingList]) -> "RSAST":
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, List]) -> "RSAST":
         from scipy.stats import ConstantInputWarning, DegenerateDataWarning, f_oneway
         from statsmodels.tsa.stattools import acf, pacf
 
@@ -304,7 +304,7 @@ class RSAST(BaseCollectionTransformer):
         return self
 
     def _transform(
-        self, X: np.ndarray, y: Optional[Union[np.ndarray, TypingList]] = None
+        self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None
     ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 
