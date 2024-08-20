@@ -1,5 +1,4 @@
-from typing import List 
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
@@ -95,7 +94,7 @@ class SAST(BaseCollectionTransformer):
         stride: int = 1,
         nb_inst_per_class: int = 1,
         seed: Optional[int] = None,
-        n_jobs: int = 1, # Parallel processing
+        n_jobs: int = 1,  # Parallel processing
     ):
         super().__init__()
         self.lengths = lengths
