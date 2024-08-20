@@ -610,11 +610,11 @@ def shape_dtw_pairwise_distance(
     """
     multivariate_conversion = _is_multivariate(X, y)
     _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
-    X_pad = _pad_ts_collection_edges(x=_X, reach=reach)
+
     if y is None:
         # To self
         return _shape_dtw_pairwise_distance(
-            X=X_pad,
+            X=_X,
             window=window,
             descriptor=descriptor,
             reach=reach,
@@ -624,11 +624,10 @@ def shape_dtw_pairwise_distance(
             unequal_length=unequal_length,
         )
     _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
-    y_pad = _pad_ts_collection_edges(x=_y, reach=reach)
 
     return _shape_dtw_from_multiple_to_multiple_distance(
-        x=X_pad,
-        y=y_pad,
+        x=_X,
+        y=_y,
         window=window,
         descriptor=descriptor,
         reach=reach,
@@ -661,10 +660,12 @@ def _shape_dtw_pairwise_distance(
         )
     for i in range(len(X)):
         for j in range(i + 1, n_cases):
-            x1, x2 = X[i], X[j]
+            x1_, x2_ = X[i], X[j]
+            x1 = _pad_ts_edges(x=x1_, reach=reach)
+            x2 = _pad_ts_edges(x=x2_, reach=reach)
             if unequal_length:
                 bounding_matrix = create_bounding_matrix(
-                    x1.shape[1], x2.shape[1], window, itakura_max_slope
+                    x1_.shape[1], x2_.shape[1], window, itakura_max_slope
                 )
 
             if transformation_precomputed and transformed_x is not None:
@@ -712,10 +713,12 @@ def _shape_dtw_from_multiple_to_multiple_distance(
         )
     for i in range(n_cases):
         for j in range(m_cases):
-            x1, y1 = x[i], y[j]
+            x1_, y1_ = x[i], y[j]
+            x1 = _pad_ts_edges(x=x1_, reach=reach)
+            y1 = _pad_ts_edges(x=y1_, reach=reach)
             if unequal_length:
                 bounding_matrix = create_bounding_matrix(
-                    x1.shape[1], y1.shape[1], window, itakura_max_slope
+                    x1_.shape[1], y1_.shape[1], window, itakura_max_slope
                 )
 
             if (

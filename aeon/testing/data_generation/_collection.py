@@ -23,6 +23,7 @@ def make_example_3d_numpy(
     n_channels: int = 1,
     n_timepoints: int = 12,
     n_labels: int = 2,
+    min_cases_per_label: int = 1,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
     return_y: bool = True,
@@ -44,6 +45,8 @@ def make_example_3d_numpy(
         The number of features/series length to generate.
     n_labels : int
         The number of unique labels to generate.
+    min_cases_per_label : int
+        The minimum number of samples per unique label.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
     random_state : int or None
@@ -85,9 +88,11 @@ def make_example_3d_numpy(
     y = X[:, 0, 0].astype(int)
 
     for i in range(n_labels):
-        if len(y) > i:
-            X[i, 0, 0] = i
-            y[i] = i
+        for j in range(min_cases_per_label):
+            idx = i * min_cases_per_label + j
+            if len(y) > idx:
+                X[idx, 0, 0] = i
+                y[idx] = i
     X = X * (y[:, None, None] + 1)
 
     if regression_target:
@@ -103,6 +108,7 @@ def make_example_2d_numpy_collection(
     n_cases: int = 10,
     n_timepoints: int = 8,
     n_labels: int = 2,
+    min_cases_per_label: int = 1,
     regression_target: bool = False,
     random_state: Union[int, None] = None,
     return_y: bool = True,
@@ -122,6 +128,8 @@ def make_example_2d_numpy_collection(
         The number of features/series length to generate.
     n_labels : int
         The number of unique labels to generate.
+    min_cases_per_label : int
+        The minimum number of samples per unique label.
     regression_target : bool
         If True, the target will be a scalar float, otherwise an int.
     random_state : int or None
@@ -159,9 +167,11 @@ def make_example_2d_numpy_collection(
     y = X[:, 0].astype(int)
 
     for i in range(n_labels):
-        if len(y) > i:
-            X[i, 0] = i
-            y[i] = i
+        for j in range(min_cases_per_label):
+            idx = i * min_cases_per_label + j
+            if len(y) > idx:
+                X[idx, 0] = i
+                y[idx] = i
     X = X * (y[:, None] + 1)
 
     if regression_target:
