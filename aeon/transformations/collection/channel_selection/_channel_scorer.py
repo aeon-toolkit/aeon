@@ -1,4 +1,7 @@
 import math
+from typing import Dict
+from typing import List as TypingList
+from typing import Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score, mean_squared_error
@@ -52,7 +55,7 @@ class ChannelScorer(BaseChannelSelector):
         self.estimator = estimator
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, List]):
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, TypingList]):
         """
         Fit to a specified X and y.
 
