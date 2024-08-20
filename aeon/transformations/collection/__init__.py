@@ -7,6 +7,7 @@ __all__ = [
     # transformers
     "AutocorrelationFunctionTransformer",
     "ARCoefficientTransformer",
+    "DownsampleTransformer",
     "ElbowClassSum",
     "ElbowClassPairwise",
     "DWTTransformer",
@@ -34,6 +35,7 @@ from aeon.transformations.collection.channel_selection import (
     ElbowClassPairwise,
     ElbowClassSum,
 )
+from aeon.transformations.collection.downsample import DownsampleTransformer
 from aeon.transformations.collection.dwt import DWTTransformer
 from aeon.transformations.collection.hog1d import HOG1DTransformer
 from aeon.transformations.collection.interpolate import TSInterpolator
