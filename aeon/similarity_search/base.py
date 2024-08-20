@@ -148,7 +148,8 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
                 distances[i] = self.distance_function(X[i], query, **self.distance_args)
             else:
                 raise ValueError(
-                    "Invalid value for channel_dependency. Choose 'independent' or 'dependent'."
+                    "Invalid value for channel_dependency. / "
+                    "Choose 'independent' or 'dependent'."
                 )
 
         if self.inverse_distance:
