@@ -1,4 +1,4 @@
-from typing import List as TypingList
+from typing import List 
 from typing import Optional, Union
 
 import numpy as np
@@ -95,7 +95,7 @@ class SAST(BaseCollectionTransformer):
         stride: int = 1,
         nb_inst_per_class: int = 1,
         seed: Optional[int] = None,
-        n_jobs: int = -1,
+        n_jobs: int = 1, # Parallel processing
     ):
         super().__init__()
         self.lengths = lengths
@@ -107,7 +107,7 @@ class SAST(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.seed = seed
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, TypingList]) -> "SAST":
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, List]) -> "SAST":
         """Select reference time series and generate subsequences from them.
 
         Parameters
@@ -175,7 +175,7 @@ class SAST(BaseCollectionTransformer):
         return self
 
     def _transform(
-        self, X: np.ndarray, y: Optional[Union[np.ndarray, TypingList]] = None
+        self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None
     ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 
