@@ -1,10 +1,12 @@
 import math
 
 import numpy as np
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, mean_squared_error
 
+from aeon.base import BaseEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.convolution_based._rocket_classifier import RocketClassifier
+from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
 __maintainer__ = ["TonyBagnall"]
@@ -12,17 +14,20 @@ __all__ = ["ChannelScorer"]
 
 
 class ChannelScorer(BaseChannelSelector):
-    """Channel scorer performs channel selection using a single channel classifier.
+    """Performs channel selection using a single channel classifier or regressor.
 
-    ChannelScorer uses a time series classifier to score each channel using an
-    estimate of accuracy on the training data, then selects a proportion of the top
+    ChannelScorer uses a time series classifier or a regressor to score each channel
+    using an estimate of accuracy on the training data fro classifier or mean
+    squared error for regressor, then selects a proportion of the top
     channels to keep. Can be configured through the constructor to use any time
-    series classifier and could easily be adapted to use forward selection or elbow
+    series estimator and could easily be adapted to use forward selection or elbow
     class methods. Approximately as described in [1]_.
 
     Parameters
     ----------
-    classifier, BaseClassifier, default = MiniROCKET
+    estimator: BaseEstimator, default: None
+        The classifier or regressor to be used for scoring channels.
+    classifier: BaseClassifier, default = MiniROCKET
     proportion : float, default = 0.2
         Proportion of channels to keep, rounded up to nearest integer.
 
@@ -40,16 +45,16 @@ class ChannelScorer(BaseChannelSelector):
 
     def __init__(
         self,
-        classifier: BaseClassifier = None,
+        estimator: BaseEstimator = None,
         proportion: float = 0.4,
     ):
         self.proportion = proportion
-        self.classifier = classifier
+        self.estimator = estimator
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, List]):
         """
-        Fit ECP to a specified X and y.
+        Fit to a specified X and y.
 
         Parameters
         ----------
@@ -65,23 +70,35 @@ class ChannelScorer(BaseChannelSelector):
         if self.proportion <= 0 or self.proportion > 1:
             raise ValueError("proportion must be in the range 0-1")
 
-        if self.classifier is None:
-            self.classifier_ = RocketClassifier(
+        if self.estimator is None:
+            # Default to a classifier if no estimator is provided
+            self.estimator_ = RocketClassifier(
                 rocket_transform="minirocket", num_kernels=5000
             )
-        elif not isinstance(self.classifier, BaseClassifier):
-            raise ValueError(
-                "parameter classifier must be None or an instance of a  "
-                "BaseClassifier."
-            )
+            scoring_function = accuracy_score
+            score_sign = 1
+        elif isinstance(self.estimator, BaseClassifier):
+            self.estimator_ = self.estimator.clone()
+            scoring_function = accuracy_score
+            score_sign = 1  # Higher accuracy is better, hence positive sign
+        elif isinstance(self.estimator, BaseRegressor):
+            self.estimator_ = self.estimator.clone()
+            scoring_function = mean_squared_error
+            score_sign = -1  # Lower MSE is better, hence negative sign
         else:
-            self.classifier_ = self.classifier.clone()
+            raise ValueError(
+                "parameter estimator must be an instance of BaseClassifier, "
+                "BaseRegressor or None."
+            )
+
         n_channels = X.shape[1]
         scores = np.zeros(n_channels)
         # Evaluate each channel with the classifier
         for i in range(n_channels):
-            preds = self.classifier_.fit_predict(X[:, i, :], y)
-            scores[i] = accuracy_score(y, preds)
+            preds = self.estimator_.fit_predict(X[:, i, :], y)
+            scores[i] = score_sign * scoring_function(
+                y, preds
+            )  # Applying the proper scoring function
         # Select the top n_keep channels
         sorted_indices = np.argsort(-scores)
         n_keep = math.ceil(n_channels * self.proportion)
@@ -89,7 +106,7 @@ class ChannelScorer(BaseChannelSelector):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Dict[str, any]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -104,5 +121,9 @@ class ChannelScorer(BaseChannelSelector):
             Dictionary of testing parameters.
         """
         from aeon.classification import DummyClassifier
+        from aeon.regression import DummyRegressor
 
-        return {"classifier": DummyClassifier(), "proportion": 0.4}
+        return {"estimator": DummyClassifier(), "proportion": 0.4}, {
+            "estimator": DummyRegressor(),
+            "proportion": 0.4,
+        }
