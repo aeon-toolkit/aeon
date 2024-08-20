@@ -64,6 +64,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
         inverse_distance: bool = False,
         normalize: bool = False,
         speed_up: str = "fastest",
+        channel_dependency: str = "independent",
         n_jobs: int = 1,
     ):
         self.distance = distance
@@ -72,6 +73,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
         self.normalize = normalize
         self.n_jobs = n_jobs
         self.speed_up = speed_up
+        self.channel_dependency = channel_dependency.lower()
         super().__init__()
 
     @final
@@ -115,3 +117,41 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
     def get_speedup_function_names(self):
         """Return a dictionnary containing the name of the speedup functions."""
         ...
+
+    def _compute_distances(self, X, query):
+        """
+        Compute distances between X and a query based on channel_dependency mode.
+
+        Parameters
+        ----------
+        X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+            The dataset to compare against the query.
+        query : np.ndarray, 2D array of shape (n_channels, n_timepoints)
+            The query time series.
+
+        Returns
+        -------
+        distances : np.ndarray
+            Array of distances between the query and each case in X.
+        """
+        distances = np.zeros(self.n_cases_)
+
+        for i in range(self.n_cases_):
+            if self.channel_dependency == "independent":
+                # Compute distance for each channel independently and sum them
+                for c in range(self.n_channels_):
+                    distances[i] += self.distance_function(
+                        X[i][c], query[c], **self.distance_args
+                    )
+            elif self.channel_dependency == "dependent":
+                # Compute distance considering all channels together
+                distances[i] = self.distance_function(X[i], query, **self.distance_args)
+            else:
+                raise ValueError(
+                    "Invalid value for channel_dependency. Choose 'independent' or 'dependent'."
+                )
+
+        if self.inverse_distance:
+            distances = -distances
+
+        return distances
