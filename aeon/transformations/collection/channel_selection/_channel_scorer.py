@@ -126,7 +126,9 @@ class ChannelScorer(BaseChannelSelector):
         from aeon.classification import DummyClassifier
         from aeon.regression import DummyRegressor
 
-        return {"estimator": DummyClassifier(), "proportion": 0.4}, {
-            "estimator": DummyRegressor(),
-            "proportion": 0.4,
-        }
+        if parameter_set == "default":
+            return {"estimator": DummyClassifier(), "proportion": 0.4}
+        elif parameter_set == "alternative":
+            return {"estimator": DummyRegressor(), "proportion": 0.4}
+        else:
+            raise ValueError(f"Unknown parameter_set: {parameter_set}")
