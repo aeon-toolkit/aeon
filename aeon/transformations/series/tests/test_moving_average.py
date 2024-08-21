@@ -3,7 +3,6 @@
 __maintainer__ = ["Datadote"]
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal
 
 from aeon.transformations.series._moving_average import MovingAverageTransformer
 
@@ -20,4 +19,4 @@ def test_moving_average():
     ma = MovingAverageTransformer(window_size=2)
     for i in range(len(TEST_DATA)):
         xt = ma.fit_transform(TEST_DATA[i])
-        assert_array_almost_equal(xt, EXPECTED_RESULTS[i], decimal=2)
+        np.testing.assert_array_almost_equal(xt, EXPECTED_RESULTS[i], decimal=2)
