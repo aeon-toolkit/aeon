@@ -194,6 +194,17 @@ Filtering and denoising
 
     DFTSeriesTransformer
 
+Distance Based
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.series._warping
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    WarpingSeriesTransformer
+
 Slope
 ~~~~~~~~~~~~~~~~~~~~~~
 
