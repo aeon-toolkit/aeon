@@ -948,12 +948,17 @@ class BaseIntervalForest(metaclass=ABCMeta):
                     for i in range(att_subsample_size - count):
                         features.append(all_function_features[atts[count + i] - length])
                 else:
-                    warnings.warn(
-                        f"Attribute subsample size {att_subsample_size} is larger than "
-                        f"or equal to the number of attributes {num_features} for "
-                        f"series {self._series_transformers[r]}",
-                        stacklevel=2,
-                    )
+                    # only warn if requested number of features is greater than actual
+                    if att_subsample_size > num_features:
+                        warnings.warn(
+                            f"Attribute subsample size {att_subsample_size} is "
+                            f"larger than the number of attributes {num_features} "
+                            f"for series {self._series_transformers[r]}",
+                            stacklevel=2,
+                        )
+
+                    self._att_subsample_size[r] = None
+
                     for feature in self._interval_features[r]:
                         if isinstance(feature, BaseTransformer):
                             features.append(_clone_estimator(feature, seed))
@@ -1058,19 +1063,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
         ]
 
     def _predict_setup(self, X):
-        n_cases, n_channels, n_timepoints = X.shape
-
-        if n_channels != self.n_channels_:
-            raise ValueError(
-                "The number of channels in the train data does not match the number "
-                "of channels in the test data"
-            )
-        if n_timepoints != self.n_timepoints_:
-            raise ValueError(
-                "The series length of the train data does not match the series length "
-                "of the test data"
-            )
-
         Xt = []
         for transformer in self._series_transformers:
             if transformer is None:
@@ -1164,7 +1156,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         """
         if not isinstance(self._base_estimator, ContinuousIntervalTree):
             raise ValueError(
-                "CIF base estimator for temporal importance curves must"
+                "base_estimator for temporal importance curves must"
                 " be ContinuousIntervalTree."
             )
 
@@ -1185,9 +1177,6 @@ class BaseIntervalForest(metaclass=ABCMeta):
                 )
 
                 for interval in rep.intervals_:
-                    if t % len(self._interval_features[n]) - 1 == 0:
-                        t = 0
-
                     if _is_transformer(interval[3]):
                         if self._att_subsample_size[n] is None:
                             names = None
@@ -1206,6 +1195,9 @@ class BaseIntervalForest(metaclass=ABCMeta):
                                     "importance curves."
                                 )
                         else:
+                            if t % len(self._interval_features[n]) - 1 == 0:
+                                t = 0
+
                             names = getattr(
                                 interval[3], self._transformer_feature_names[n][t]
                             )
