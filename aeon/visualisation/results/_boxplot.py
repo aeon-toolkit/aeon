@@ -56,11 +56,11 @@ def plot_boxplot(
 
     Examples
     --------
-    >>> from aeon.visualisation import plot_boxplot_median
+    >>> from aeon.visualisation import plot_boxplot
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
     >>> results = get_estimator_results_as_array(estimators=methods) # doctest: +SKIP
-    >>> plot = plot_boxplot_median(results[0], methods) # doctest: +SKIP
+    >>> plot = plot_boxplot(results[0], methods) # doctest: +SKIP
     >>> plot.show() # doctest: +SKIP
     >>> plot.savefig("boxplot.pdf") # doctest: +SKIP
     """
