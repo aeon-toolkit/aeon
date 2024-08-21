@@ -2120,7 +2120,12 @@
         "bug",
         "doc",
         "test",
-        "maintenance"
+        "maintenance",
+        "review",
+        "talk",
+        "tutorial",
+        "mentoring",
+        "example"
       ]
     },
     {
