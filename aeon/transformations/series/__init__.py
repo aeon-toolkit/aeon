@@ -16,6 +16,7 @@ __all__ = [
     "Dobin",
     "ScaledLogitSeriesTransformer",
     "PCASeriesTransformer",
+    "WarpingSeriesTransformer",
 ]
 
 from aeon.transformations.series._acf import (
@@ -33,4 +34,5 @@ from aeon.transformations.series._matrix_profile import MatrixProfileSeriesTrans
 from aeon.transformations.series._pca import PCASeriesTransformer
 from aeon.transformations.series._scaled_logit import ScaledLogitSeriesTransformer
 from aeon.transformations.series._theta import ThetaTransformer
+from aeon.transformations.series._warping import WarpingSeriesTransformer
 from aeon.transformations.series.base import BaseSeriesTransformer
