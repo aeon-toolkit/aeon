@@ -30,7 +30,7 @@ class WarpingSeriesTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations import WarpingSeriesTransformer
+    >>> from aeon.transformations.series import WarpingSeriesTransformer
     >>> from aeon.distances import dtw_alignment_path
     >>> import numpy as np
     >>> x = np.random.normal((2, 100))
