@@ -168,9 +168,11 @@ def _naive_distance_profile(
             # For each candidate subsequence, if it is valid compute distance
             if mask[i_instance][i_candidate]:
                 # Extract the multi-channel candidate
-                candidate = X[i_instance][:, i_candidate:i_candidate + query_length]
+                candidate = X[i_instance][:, i_candidate : i_candidate + query_length]
                 # Compute distance considering all channels together
-                distance_profiles[i_instance][i_candidate] = numba_distance_function(q, candidate)
+                distance_profiles[i_instance][i_candidate] = numba_distance_function(
+                    q, candidate
+                )
 
     return distance_profiles
 
@@ -216,8 +218,10 @@ def _normalized_naive_distance_profile(
                         X_means[i_instance][i_channel, i_candidate],
                         X_stds[i_instance][i_channel, i_candidate],
                     )
-                
+
                 # Compute distance considering all channels together
-                distance_profiles[i_instance][i_candidate] = numba_distance_function(q_norm, _C)
+                distance_profiles[i_instance][i_candidate] = numba_distance_function(
+                    q_norm, _C
+                )
 
     return distance_profiles

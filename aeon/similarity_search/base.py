@@ -115,5 +115,3 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
     def get_speedup_function_names(self):
         """Return a dictionnary containing the name of the speedup functions."""
         ...
-
-    

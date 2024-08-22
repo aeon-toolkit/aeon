@@ -91,6 +91,8 @@ def normalized_euclidean_distance_profile(
     distance_profiles = normalized_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
-    for i in range(len(distance_profiles)):
-        distance_profiles[i] = distance_profiles[i] ** 0.5
+    # Sum the squared distances across channels
+    distance_profiles = np.sum(distance_profiles, axis=1)
+    # Take the square root to get the Euclidean distance
+    distance_profiles = distance_profiles**0.5
     return distance_profiles
