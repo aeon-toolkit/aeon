@@ -178,6 +178,7 @@ class SASTClassifier(BaseClassifier):
         """
         import matplotlib.pyplot as plt
 
+        feature_importance = abs(feature_importance)
         features = zip(self._transformer._kernel_orig, feature_importance)
         sorted_features = sorted(features, key=itemgetter(1), reverse=True)
 

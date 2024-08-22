@@ -157,7 +157,7 @@ class SAST(BaseCollectionTransformer):
 
         classes = np.unique(y)
         self._num_classes = classes.shape[0]
-
+        class_values_of_candidates=[]
         candidates_ts = []
         for c in classes:
             X_c = X_[y == c]
@@ -168,7 +168,8 @@ class SAST(BaseCollectionTransformer):
             choosen = self._random_state.permutation(X_c.shape[0])[:cnt]
             candidates_ts.append(X_c[choosen])
             self.kernels_generators_[c] = X_c[choosen]
-
+            class_values_of_candidates.extend([c] * cnt)
+        print(class_values_of_candidates)
         candidates_ts = np.concatenate(candidates_ts, axis=0)
 
         self._length_list = self._length_list[self._length_list <= X_.shape[1]]
@@ -195,7 +196,7 @@ class SAST(BaseCollectionTransformer):
                     self._kernel_orig.append(can)
                     self._kernels[k, :shp_length] = z_normalise_series(can)
                     self._start_positions.append(j)  # Store the start position
-                    self._classes.append(y[np.where(y == classes[i])[0][0]])  # Store the class of the shapelet
+                    self._classes.append(y[np.where(y == class_values_of_candidates[i])[0][0]])  # Store the class of the shapelet
                     k += 1
         return self
 
