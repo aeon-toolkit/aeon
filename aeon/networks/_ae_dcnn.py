@@ -173,6 +173,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
 
         if self.temporal_latent_space:
             input_layer_decoder = tf.keras.layers.Input(x.shape[1:])
+            temp = input_layer_decoder
         elif not self.temporal_latent_space:
             input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
             dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flatten))(
@@ -182,9 +183,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             reshape_layer = tf.keras.layers.Reshape(target_shape=shape_before_flatten)(
                 dense_layer
             )
-            input_layer_decoder = reshape_layer
+            temp = reshape_layer
 
-        y = input_layer_decoder
+        y = temp
 
         for i in range(0, self.n_layers):
             y = self._dcnn_layer_decoder(
