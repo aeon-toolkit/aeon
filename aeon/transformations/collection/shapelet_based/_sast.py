@@ -59,6 +59,26 @@ class SAST(BaseCollectionTransformer):
     n_jobs : int, default -1
         Number of threads to use for the transform.
         The available cpu count is used if this value is less than 1
+    Attributes
+    ----------
+    lengths : list
+        The array of lengths for the subsequences to be generated. If None, lengths
+        will be inferred during fitting.
+    stride : int
+        The stride value used when generating subsequences.
+    nb_inst_per_class : int
+        The number of reference time series to select per class.
+    _kernels : list
+        The z-normalized subsequences used for transformation.
+    _kernel_orig : list 
+        The original (non z-normalized) subsequences.
+    _start_positions : list 
+        The starting positions of each subsequence within the original time series.
+    _classes : list
+        The class labels associated with each subsequence.
+    kernels_generators_ : dict
+        A dictionary mapping class labels to the selected reference time series for that class.
+
 
     References
     ----------
@@ -102,6 +122,8 @@ class SAST(BaseCollectionTransformer):
         self.nb_inst_per_class = nb_inst_per_class
         self._kernels = None  # z-normalized subsequences
         self._kernel_orig = None  # non z-normalized subsequences
+        self._start_positions = []  # To store the start positions
+        self._classes = []  # To store the class of each shapelet
         self.kernels_generators_ = {}  # Reference time series
         self.n_jobs = n_jobs
         self.seed = seed
@@ -161,6 +183,8 @@ class SAST(BaseCollectionTransformer):
             (n_kernels, max_shp_length), dtype=np.float32, fill_value=np.nan
         )
         self._kernel_orig = []
+        self._start_positions = []  # Reset start positions
+        self._classes = []  # Reset class information
 
         k = 0
         for shp_length in self._length_list:
@@ -170,6 +194,8 @@ class SAST(BaseCollectionTransformer):
                     can = np.squeeze(candidates_ts[i][j:end])
                     self._kernel_orig.append(can)
                     self._kernels[k, :shp_length] = z_normalise_series(can)
+                    self._start_positions.append(j)  # Store the start position
+                    self._classes.append(y[np.where(y == classes[i])[0][0]])  # Store the class of the shapelet
                     k += 1
         return self
 
