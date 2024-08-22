@@ -3,6 +3,8 @@
 __maintainer__ = []
 
 
+from typing import Optional, Union
+
 import numpy as np
 from numba import njit, prange
 from numba.typed import List
@@ -14,7 +16,13 @@ from aeon.utils.numba.general import (
 )
 
 
-def naive_distance_profile(X, q, mask, distance_function, distance_args=None):
+def naive_distance_profile(
+    X: Union[np.ndarray, List],
+    q: np.ndarray,
+    mask: Union[np.ndarray, List],
+    distance_function,
+    distance_args: Optional[dict] = None,
+) -> Union[np.ndarray, List]:
     r"""
     Compute a distance profile in a brute force way.
 
@@ -30,14 +38,14 @@ def naive_distance_profile(X, q, mask, distance_function, distance_args=None):
 
     Parameters
     ----------
-    X: array shape (n_cases, n_channels, n_timepoints)
-        The input samples. If X is an unquel length collection, expect a TypedList
+    X: np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a numba TypedList
         of 2D arrays of shape (n_channels, n_timepoints)
-    q : np.ndarray shape (n_channels, query_length)
+    q : np.ndarray, 2D array of shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    mask : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Boolean mask of the shape of the distance profile indicating for which part
-        of it the distance should be computed. Should be a TypedList if X is
+        of it the distance should be computed. Should be a numba TypedList if X is
         unequal length.
     distance_function : func
         A python function or a numba njit function used to compute the distance between
@@ -48,7 +56,7 @@ def naive_distance_profile(X, q, mask, distance_function, distance_args=None):
     Returns
     -------
     distance_profiles : np.ndarray
-        shape (n_cases, n_channels, n_timepoints - query_length + 1)
+        3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
         The distance profile between q and the input time series X independently
         for each channel. Returns a TypedList if X is unequal length.
 
@@ -65,16 +73,16 @@ def naive_distance_profile(X, q, mask, distance_function, distance_args=None):
 
 
 def normalized_naive_distance_profile(
-    X,
-    q,
-    mask,
-    X_means,
-    X_stds,
-    q_means,
-    q_stds,
-    distance_function,
-    distance_args=None,
-):
+    X: Union[np.ndarray, List],
+    q: np.ndarray,
+    mask: Union[np.ndarray, List],
+    X_means: Union[np.ndarray, List],
+    X_stds: Union[np.ndarray, List],
+    q_means: np.ndarray,
+    q_stds: np.ndarray,
+    distance_function: np.ndarray,
+    distance_args: Optional[dict] = None,
+) -> Union[np.ndarray, List]:
     """
     Compute a distance profile in a brute force way.
 
@@ -90,24 +98,24 @@ def normalized_naive_distance_profile(
 
     Parameters
     ----------
-    X : array, shape (n_cases, n_channels, n_timepoints)
-        The input samples. If X is an unquel length collection, expect a TypedList
-        of 2D arrays of shape (n_channels, n_timepoints)
-    q : array, shape (n_channels, query_length)
+    X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a numba TypedList
+        2D array of shape (n_channels, n_timepoints)
+    q : np.ndarray, 2D array of shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    mask : np.ndarray, 3D shape (n_cases, n_channels, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
-        of it the distance should be computed. Should be a TypedList if X is
+        of it the distance should be computed. Should be a numba TypedList if X is
         unequal length.
-    X_means : list, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Means of each subsequences of X of size query_length. Should be a numba
         TypedList if X is unequal length.
-    X_stds : list, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_stds : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Stds of each subsequences of X of size query_length. Should be a numba
         TypedList if X is unequal length.
-    q_means : array, shape (n_channels)
+    q_means : np.ndarray, 1D array of shape (n_channels)
         Means of the query q
-    q_stds : array, shape (n_channels)
+    q_stds : np.ndarray, 1D array of shape (n_channels)
         Stds of the query q
     distance_function : func
         A python function or a numba njit function used to compute the distance between
@@ -118,9 +126,9 @@ def normalized_naive_distance_profile(
     Returns
     -------
     distance_profiles : np.ndarray
-        shape (n_cases, n_channels, n_timepoints - query_length + 1).
+        3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
         The distance profile between q and the input time series X independently
-        for each channel. Returns a TypedList if X is unequal length.
+        for each channel. Returns a numba TypedList if X is unequal length.
 
     """
     dist_func = generate_new_default_njit_func(distance_function, distance_args)
