@@ -10,6 +10,10 @@ from aeon.anomaly_detection.base import BaseAnomalyDetector
 
 
 class MADRID(BaseAnomalyDetector):
+    factor = 1
+    _tags = {
+        "fit_is_empty": False,
+    }
 
     def __init__(
         self,
@@ -20,8 +24,6 @@ class MADRID(BaseAnomalyDetector):
     ):
         self.min_length = min_length
         self.max_length = max_length
-        if step_size <= 0:
-            raise ValueError("step_size must be greater than 0")
         if split_psn:
             self.split_psn = split_psn
         else:
@@ -31,13 +33,32 @@ class MADRID(BaseAnomalyDetector):
         self.step_size = step_size
         super().__init__(axis=1)
 
-    def _predict(self, X, factor=1) -> np.ndarray:
+    def _fit(self, X: np.ndarray) -> "MADRID":
+        self._check_params(X)
+        self._inner_fit(X)
+        return self
+
+    def _predict(self, X: np.ndarray) -> np.ndarray:
+        X = X.squeeze()
+        anomalies = self._inner_predict(X)
+        return anomalies
+
+    def _fit_predict(self, X: np.ndarray) -> np.ndarray:
+        self._check_params(X)
+        self._inner_fit(X)
+        anomalies = self._inner_predict(X)
+        return anomalies
+
+    def _check_params(self, X: np.ndarray) -> None:
+        if self.step_size <= 0:
+            raise ValueError("step_size must be greater than 0")
+        
         if X.shape[0] < self.min_length:
             raise ValueError(
                 f"Series length of X {X.shape[0]} is less than min_length "
                 f"{self.min_length}"
             )
-
+        
         if self._contains_constant_regions(X, self.min_length):
             error_message = (
                 "BREAK: There is at least one region of length min_length that is constant, or near constant.\n\n"
@@ -49,45 +70,8 @@ class MADRID(BaseAnomalyDetector):
             )
             raise ValueError(error_message)
 
-        X = X.squeeze()
 
-        if factor in [1, 2, 4, 8, 16]:
-            if (self.max_length + factor - 1) // factor < 2:
-                raise ValueError(
-                    f"MADRID cannot be executed properly because {self.min_length}/{factor} < 2, please select an option again"
-                )
-            if (self.max_length + factor - 1) // factor < 2:
-                raise ValueError(
-                    f"MADRID cannot be executed properly because {self.max_length}/{factor} < 2, please select an option again"
-                )
-        else:
-            raise ValueError(
-                f"factor must be one of these numbers [1, 2, 4, 8, 16] in order to compute MADRID."
-            )
-        self._compute_madrid(X)
-
-    def _contains_constant_regions(self, X, sub_sequence_length):
-        bool_vec = False  # in the origianl matlab code they use 0,1 but trus, false is a better representation
-        X = np.asarray(X)
-
-        constant_indices = np.where(np.diff(X) != 0)[0] + 1
-        constant_indices = np.concatenate(([0], constant_indices, [len(X)]))
-        constant_lengths = np.diff(constant_indices)
-
-        constant_length = max(constant_lengths)
-
-        if constant_length >= sub_sequence_length or np.var(X) < 0.2:
-            bool_vec = True
-
-        return bool_vec
-
-    def _dump_2_0(
-        self,
-        X,
-    ):
-        pass
-
-    def estimate_factor(self, X):
+    def _inner_fit(self, X: np.ndarray) -> None:
         len_x = len(X)
         factor = 1
 
@@ -197,14 +181,11 @@ class MADRID(BaseAnomalyDetector):
         )
 
         if predicted_execution_time_1 < 10:
-            factor = 1
-            print(
-                f"Predicted execution time for MADRID is small, hence potential factor choise is 1"
-            )
+            self.factor = 1
         else:
             test_data = self._test_data_madrid()
             factor = 16
-            actual_measurement_16 = self._compute_madrid(test_data)
+            actual_measurement_16 = self._inner_predict(test_data)
             scaling_factor = actual_measurement_16 / 0.65461
             predicted_execution_time_16_scaled = (
                 predicted_execution_time_16 * scaling_factor
@@ -222,23 +203,29 @@ class MADRID(BaseAnomalyDetector):
                 predicted_execution_time_1 * scaling_factor
             )
 
-            print(
-                f"Predicted execution time for MADRID 1 to 16: {predicted_execution_time_16_scaled:.1f} seconds, hence potential factor choise is 16"
-            )
-            print(
-                f"Predicted execution time for MADRID 1 to 8: {predicted_execution_time_8_scaled:.1f} seconds, hence potential factor choise is 8"
-            )
-            print(
-                f"Predicted execution time for MADRID 1 to 4: {predicted_execution_time_4_scaled:.1f} seconds, hence potential factor choise is 4"
-            )
-            print(
-                f"Predicted execution time for MADRID 1 to 2: {predicted_execution_time_2_scaled:.1f} seconds, hence potential factor choise is 2"
-            )
-            print(
-                f"Predicted execution time for MADRID 1 to 1: {predicted_execution_time_1_scaled:.1f} seconds, hence potential factor choise is 1"
-            )
+            execution_times = [
+                (predicted_execution_time_16_scaled, 16),
+                (predicted_execution_time_8_scaled, 8),
+                (predicted_execution_time_4_scaled, 4),
+                (predicted_execution_time_2_scaled, 2),
+                (predicted_execution_time_1_scaled, 1),
+            ]
 
-    def _compute_madrid(self, X):
+            # Sort execution times based on predicted execution time
+            execution_times.sort(key=lambda x: x[0])
+
+            for _, factor in execution_times:
+                if (self.min_length + factor - 1) // factor >= 2 and (self.max_length + factor - 1) // factor >= 2:
+                    self.factor = factor
+                    break
+            else:
+                raise ValueError(
+                    f"No valid factor found that meets the criteria. Because:"
+                    f"{self.min_length}/{self.factor} < 2 and "
+                    f"{self.max_length}/{self.factor} < 2"
+                )
+
+    def _inner_predict(self, X):
         bfs_seed = float("-inf")  # used for first time run of dump_topk
         k = 1
         time_bf = 0
@@ -256,6 +243,27 @@ class MADRID(BaseAnomalyDetector):
 
         # anomalies = np.zeros(X.shape[0], dtype=bool)
         # return anomalies
+
+    def _contains_constant_regions(self, X, sub_sequence_length):
+        bool_vec = False  # in the origianl matlab code they use 0,1 but trus, false is a better representation
+        X = np.asarray(X)
+
+        constant_indices = np.where(np.diff(X) != 0)[0] + 1
+        constant_indices = np.concatenate(([0], constant_indices, [len(X)]))
+        constant_lengths = np.diff(constant_indices)
+
+        constant_length = max(constant_lengths)
+
+        if constant_length >= sub_sequence_length or np.var(X) < 0.2:
+            bool_vec = True
+
+        return bool_vec
+
+    def _dump_2_0(
+        self,
+        X,
+    ):
+        pass
 
     def _test_data_madrid(self):
         np.random.seed(123456789)
