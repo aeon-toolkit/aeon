@@ -1,4 +1,4 @@
-""" Moving average transformation """
+"""Moving average transformation."""
 
 __maintainer__ = ["Datadote"]
 __all__ = "MovingAverageTransformer"
@@ -7,9 +7,10 @@ import numpy as np
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
+
 class MovingAverageTransformer(BaseSeriesTransformer):
-    """ Filter a time series using a simple moving average. 
-    
+    """Filter a time series using a simple moving average.
+
     Parameters
     ----------
     window_size: int, default=5
@@ -18,33 +19,33 @@ class MovingAverageTransformer(BaseSeriesTransformer):
     References
     ----------
     James Large, Paul Southam, Anthony Bagnall
-        "Can automated smoothing significantly improve benchmark time series classification algorithms?"
+        "Can automated smoothing significantly improve benchmark time series
+        classification algorithms?"
         https://arxiv.org/abs/1811.00894
 
     Examples
     --------
-    import numpy as np
-    from aeon.transformations.series._moving_average import MovingAverageTransformer
-    X = np.array([-3, -2, -1,  0,  1,  2,  3])
-    transformer = MovingAverageTransformer(2)
-    Xt = transformer.fit_transform(X)
+    >>> import numpy as np
+    >>> from aeon.transformations.series._moving_average import MovingAverageTransformer
+    >>> X = np.array([-3, -2, -1,  0,  1,  2,  3])
+    >>> transformer = MovingAverageTransformer(2)
+    >>> Xt = transformer.fit_transform(X)
+    >>> Xt.shape
+    (1, 6)
     """
-    
+
     _tags = {
         "capability:multivariate": True,
         "X_inner_type": "np.ndarray",
-        "fit_is_empty": True, # TODO: what bool to set?
+        "fit_is_empty": True,
     }
 
-    def __init__(
-            self,
-            window_size: int = 5,
-    ) -> None:
-        super().__init__(axis=0) # TODO: init first or last?
+    def __init__(self, window_size: int = 5) -> None:
+        super().__init__(axis=0)  # TODO: init first or last?
         self.window_size = window_size
 
     def _transform(self, X, y=None):
-        """ Transform X and return a transformed version.
+        """Transform X and return a transformed version.
 
         private _transform containing core logic, called from transform
 
@@ -63,17 +64,21 @@ class MovingAverageTransformer(BaseSeriesTransformer):
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         csum = np.cumsum(X, axis=0)
-        csum[self.window_size:, :] = csum[self.window_size:, :] - csum[:-self.window_size, :]    
-        Xt = csum[self.window_size - 1:, :] / self.window_size
+        csum[self.window_size :, :] = (
+            csum[self.window_size :, :] - csum[: -self.window_size, :]
+        )
+        Xt = csum[self.window_size - 1 :, :] / self.window_size
         return Xt
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
-        """ Return testing parameter settings for the estimator.
+        """Return testing parameter settings for the estimator.
 
         Parameters
         ----------
         parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
 
         Returns
         -------
