@@ -64,7 +64,7 @@ def naive_distance_profile(
     dist_func = generate_new_default_njit_func(distance_function, distance_args)
     # This will compile the new function and check for errors outside the numba loops
     # Call dtype on X[0] to support unequal length inputs
-    dist_func(np.ones(3, dtype=X[0].dtype), np.zeros(3, dtype=X[0].dtype))
+    dist_func(np.ones((3, 3), dtype=X[0].dtype), np.zeros((3, 3), dtype=X[0].dtype))
     distance_profiles = _naive_distance_profile(X, q, mask, dist_func)
     # If input was not unequal length, convert to 3D np array
     if isinstance(X, np.ndarray):
@@ -134,7 +134,7 @@ def normalized_naive_distance_profile(
     dist_func = generate_new_default_njit_func(distance_function, distance_args)
     # This will compile the new function and check for errors outside the numba loops
     # Call dtype on X[0] to support unequal length inputs
-    dist_func(np.ones(3, dtype=X[0].dtype), np.zeros(3, dtype=X[0].dtype))
+    dist_func(np.ones((3, 3), dtype=X[0].dtype), np.zeros((3, 3), dtype=X[0].dtype))
     distance_profiles = _normalized_naive_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds, dist_func
     )
@@ -158,7 +158,7 @@ def _naive_distance_profile(
     # Init distance profile array with unequal length support
     for i_instance in range(len(X)):
         profile_length = X[i_instance].shape[1] - query_length + 1
-        distance_profiles.append(np.full((n_channels, profile_length), np.inf))
+        distance_profiles.append(np.full(profile_length, np.inf))
 
     # Compute distances in parallel
     for _i_instance in prange(len(X)):
@@ -167,16 +167,11 @@ def _naive_distance_profile(
         for i_candidate in range(X[i_instance].shape[1] - query_length + 1):
             # For each candidate subsequence, if it is valid compute distance
             if mask[i_instance][i_candidate]:
-                for i_channel in range(n_channels):
-                    distance_profiles[i_instance][i_channel, i_candidate] = (
-                        numba_distance_function(
-                            q[i_channel],
-                            X[i_instance][
-                                i_channel,
-                                i_candidate : i_candidate + query_length,
-                            ],
-                        )
-                    )
+                # Extract the multi-channel candidate
+                candidate = X[i_instance][:, i_candidate:i_candidate + query_length]
+                # Compute distance considering all channels together
+                distance_profiles[i_instance][i_candidate] = numba_distance_function(q, candidate)
+
     return distance_profiles
 
 
@@ -198,9 +193,9 @@ def _normalized_naive_distance_profile(
     # Init distance profile array with unequal length support
     for i_instance in range(len(X)):
         profile_length = X[i_instance].shape[1] - query_length + 1
-        distance_profiles.append(np.full((n_channels, profile_length), np.inf))
+        distance_profiles.append(np.full(profile_length, np.inf))
 
-    # Normalize query once
+    # Normalize query once, considering all channels together
     q_norm = z_normalize_series_2d_with_mean_std(q, q_means, q_stds)
 
     # Compute distances in parallel
@@ -210,9 +205,10 @@ def _normalized_naive_distance_profile(
         for i_candidate in range(X[i_instance].shape[1] - query_length + 1):
             # For each candidate subsequence, if it is valid compute distance
             if mask[i_instance][i_candidate]:
+                # Extract and normalize the candidate, considering all channels
+                _C = np.empty((n_channels, query_length))
                 for i_channel in range(n_channels):
-                    # Extract and normalize the candidate
-                    _C = z_normalize_series_with_mean_std(
+                    _C[i_channel] = z_normalize_series_with_mean_std(
                         X[i_instance][
                             i_channel,
                             i_candidate : i_candidate + query_length,
@@ -220,8 +216,8 @@ def _normalized_naive_distance_profile(
                         X_means[i_instance][i_channel, i_candidate],
                         X_stds[i_instance][i_channel, i_candidate],
                     )
-                    distance_profiles[i_instance][i_channel, i_candidate] = (
-                        numba_distance_function(q_norm[i_channel], _C)
-                    )
+                
+                # Compute distance considering all channels together
+                distance_profiles[i_instance][i_candidate] = numba_distance_function(q_norm, _C)
 
     return distance_profiles
