@@ -48,26 +48,19 @@ class SAST(BaseCollectionTransformer):
     ----------
     lengths : int[], default = None
         an array containing the lengths of the subsequences
-        to be generated. If None, will be infered during fit
+        to be generated. If None, will be inferred during fit
         as np.arange(3, X.shape[1])
     stride : int, default = 1
-        the stride used when generating subsquences
-    nb_inst_per_class : int default = 1
+        the stride used when generating subsequences
+    nb_inst_per_class : int, default = 1
         the number of reference time series to select per class
     seed : int, default = None
         the seed of the random generator
     n_jobs : int, default -1
         Number of threads to use for the transform.
-        The available cpu count is used if this value is less than 1
+        The available CPU count is used if this value is less than 1
     Attributes
-    ----------
-    lengths : list
-        The array of lengths for the subsequences to be generated. If None, lengths
-        will be inferred during fitting.
-    stride : int
-        The stride value used when generating subsequences.
-    nb_inst_per_class : int
-        The number of reference time series to select per class.
+    ---------
     _kernels : list
         The z-normalized subsequences used for transformation.
     _kernel_orig : list 
@@ -76,6 +69,8 @@ class SAST(BaseCollectionTransformer):
         The starting positions of each subsequence within the original time series.
     _classes : list
         The class labels associated with each subsequence.
+    _source_series: list
+        The index of the original time series in the training set from which each subsequence was derived.
     kernels_generators_ : dict
         A dictionary mapping class labels to the selected reference time series for that class.
 
@@ -124,6 +119,7 @@ class SAST(BaseCollectionTransformer):
         self._kernel_orig = None  # non z-normalized subsequences
         self._start_positions = []  # To store the start positions
         self._classes = []  # To store the class of each shapelet
+        self._source_series = []  # To store the index of the original time series
         self.kernels_generators_ = {}  # Reference time series
         self.n_jobs = n_jobs
         self.seed = seed
@@ -157,19 +153,21 @@ class SAST(BaseCollectionTransformer):
 
         classes = np.unique(y)
         self._num_classes = classes.shape[0]
-        class_values_of_candidates=[]
+        class_values_of_candidates = []
         candidates_ts = []
+        source_series_indices = []  # List to store original indices
+
         for c in classes:
             X_c = X_[y == c]
 
-            # convert to int because if self.
-            # nb_inst_per_class is float, the result of np.min() will be float
+            # Convert to int because if nb_inst_per_class is float, the result of np.min() will be float
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
             choosen = self._random_state.permutation(X_c.shape[0])[:cnt]
             candidates_ts.append(X_c[choosen])
             self.kernels_generators_[c] = X_c[choosen]
             class_values_of_candidates.extend([c] * cnt)
-        print(class_values_of_candidates)
+            source_series_indices.extend(np.where(y == c)[0][choosen])  # Record the original indices
+
         candidates_ts = np.concatenate(candidates_ts, axis=0)
 
         self._length_list = self._length_list[self._length_list <= X_.shape[1]]
@@ -186,6 +184,7 @@ class SAST(BaseCollectionTransformer):
         self._kernel_orig = []
         self._start_positions = []  # Reset start positions
         self._classes = []  # Reset class information
+        self._source_series = []  # Reset source series information
 
         k = 0
         for shp_length in self._length_list:
@@ -196,10 +195,11 @@ class SAST(BaseCollectionTransformer):
                     self._kernel_orig.append(can)
                     self._kernels[k, :shp_length] = z_normalise_series(can)
                     self._start_positions.append(j)  # Store the start position
-                    self._classes.append(y[np.where(y == class_values_of_candidates[i])[0][0]])  # Store the class of the shapelet
+                    self._classes.append(class_values_of_candidates[i])  # Store the class of the shapelet
+                    self._source_series.append(source_series_indices[i])  # Store the original index of the time series
                     k += 1
         return self
-
+    
     def _transform(
         self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None
     ) -> np.ndarray:
