@@ -18,9 +18,13 @@ class MovingAverageTransformer(BaseSeriesTransformer):
 
     References
     ----------
-    James Large, Paul Southam, Anthony Bagnall
-        "Can automated smoothing significantly improve benchmark time series
-        classification algorithms?"
+    Large, J., Southam, P., Bagnall, A. (2019).
+        Can Automated Smoothing Significantly Improve Benchmark Time Series
+        Classification Algorithms?. In: Pérez García, H., Sánchez González,
+        L., CastejónLimas, M., Quintián Pardo, H., Corchado Rodríguez, E. (eds) Hybrid
+        Artificial Intelligent Systems. HAIS 2019. Lecture Notes in Computer Science(),
+        vol 11734. Springer, Cham. https://doi.org/10.1007/978-3-030-29859-3_5
+        https://link.springer.com/chapter/10.1007/978-3-030-29859-3_5
         https://arxiv.org/abs/1811.00894
 
     Examples
@@ -41,7 +45,9 @@ class MovingAverageTransformer(BaseSeriesTransformer):
     }
 
     def __init__(self, window_size: int = 5) -> None:
-        super().__init__(axis=0)  # TODO: init first or last?
+        super().__init__(axis=0)
+        if window_size <= 0:
+            raise ValueError(f"window_size must be > 0, got {window_size}")
         self.window_size = window_size
 
     def _transform(self, X, y=None):
@@ -69,20 +75,3 @@ class MovingAverageTransformer(BaseSeriesTransformer):
         )
         Xt = csum[self.window_size - 1 :, :] / self.window_size
         return Xt
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-        """
-        params = {"window_size": 5}
-        return params
