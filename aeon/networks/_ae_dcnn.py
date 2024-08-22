@@ -33,9 +33,10 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
     dilation_rate: Union[int, List[int]], default=None
         The dilation rate for convolution of the encoder. Defaults to a list
         of powers of `2` for `n_layers` elements.
-    padding_encoder: Union[str, List[str]], default="causal"
-        The padding string for the encoder layers. Defaults to a list of "causal"
-        for `n_layers` elements.
+    padding_encoder: Union[str, List[str]], default="same"
+        The padding string for the encoder layers. Defaults to a list of "same"
+        for `n_layers` elements. Valid strings are "causal", "valid", "same" or
+        any other Keras compatible string.
     padding_decoder: Union[str, List[str]], default="same"
         The padding string for the decoder layers. Defaults to a list of "same"
         for `n_layers` elements.
@@ -63,7 +64,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         activation="relu",
         n_filters=None,
         dilation_rate=None,
-        padding_encoder="causal",
+        padding_encoder="same",
         padding_decoder="same",
     ):
         super().__init__()
@@ -130,7 +131,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             assert len(self._activation_encoder) == self.n_layers
 
         if self.padding_encoder is None:
-            self._padding_encoder = ["causal" for _ in range(self.n_layers)]
+            self._padding_encoder = ["same" for _ in range(self.n_layers)]
         elif isinstance(self.padding_encoder, str):
             self._padding_encoder = [self.padding_encoder for _ in range(self.n_layers)]
         elif isinstance(self.padding_encoder, list):

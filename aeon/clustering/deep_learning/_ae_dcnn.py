@@ -120,7 +120,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         kernel_size=3,
         dilation_rate=None,
         activation="relu",
-        padding_encoder="causal",
+        padding_encoder="same",
         padding_decoder="same",
         n_epochs=2000,
         batch_size=32,
