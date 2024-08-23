@@ -35,12 +35,10 @@ class Normalise(BaseCollectionTransformer):
         Axis along which to apply the normalization.
     """
 
-
     def __init__(self, method="z-norm", axis=2):
         self.method = method
         self.axis = axis
         super().__init__()
-
 
     def _fit(self, X, y=None):
         # Fit method has no operaations on class normalise
@@ -48,7 +46,6 @@ class Normalise(BaseCollectionTransformer):
 
     """keepdims=True: Retains the reduced axes with size one in the output,
        preserving the number of dimensions of the array."""
-
 
     def _transform(self, X, y=None):
         if self.method == "z_norm":
