@@ -24,7 +24,6 @@ class MovingAverageSeriesTransformer(BaseSeriesTransformer):
         L., CastejónLimas, M., Quintián Pardo, H., Corchado Rodríguez, E. (eds) Hybrid
         Artificial Intelligent Systems. HAIS 2019. Lecture Notes in Computer Science(),
         vol 11734. Springer, Cham. https://doi.org/10.1007/978-3-030-29859-3_5
-        https://link.springer.com/chapter/10.1007/978-3-030-29859-3_5
         https://arxiv.org/abs/1811.00894
 
     Examples
