@@ -384,7 +384,7 @@ class ReducerTransform(BaseTransformer):
         self: reference to self
         """
         from aeon.transformations._legacy.compose import FeatureUnion, YtoX
-        from aeon.transformations.impute import Imputer
+        from aeon.transformations._legacy.impute import Imputer
 
         impute_method = self.impute_method
         lags = self._lags
