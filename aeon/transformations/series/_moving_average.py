@@ -29,9 +29,10 @@ class MovingAverageSeriesTransformer(BaseSeriesTransformer):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.transformations.series._moving_average import MovingAverageTransformer
+    >>> from aeon.transformations.series._moving_average \
+    >>> import MovingAverageSeriesTransformer
     >>> X = np.array([-3, -2, -1,  0,  1,  2,  3])
-    >>> transformer = MovingAverageTransformer(2)
+    >>> transformer = MovingAverageSeriesTransformer(2)
     >>> Xt = transformer.fit_transform(X)
     >>> Xt.shape
     (1, 6)
