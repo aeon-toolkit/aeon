@@ -66,4 +66,3 @@ class Normalise(BaseCollectionTransformer):
         else:
             raise ValueError(f"Unknown normalization method: {self.method}")
 
-            raise ValueError(f"Unknown normalization method: {self.method}")
