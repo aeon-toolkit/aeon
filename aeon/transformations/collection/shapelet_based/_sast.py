@@ -70,9 +70,11 @@ class SAST(BaseCollectionTransformer):
     _classes : list
         The class labels associated with each subsequence.
     _source_series: list
-        The index of the original time series in the training set from which each subsequence was derived.
+        The index of the original time series in the training set from which each
+        subsequence was derived.
     kernels_generators_ : dict
-        A dictionary mapping class labels to the selected reference time series for that class.
+        A dictionary mapping class labels to the selected reference time series
+        for that class.
 
 
     References
