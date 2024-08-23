@@ -29,22 +29,26 @@ class Normalise(BaseCollectionTransformer):
         Occurrence feature.
     method : str, optional (default="z_norm")
         The normalization method to apply.
+        The normalization method to apply.
         Supported methods: "z_norm", "standardize", "min_max".
     axis : int, optional (default=2)
         Axis along which to apply the normalization.
     """
+
 
     def __init__(self, method="z-norm", axis=2):
         self.method = method
         self.axis = axis
         super().__init__()
 
+
     def _fit(self, X, y=None):
         # Fit method has no operaations on class normalise
         pass
 
     """keepdims=True: Retains the reduced axes with size one in the output,
-     preserving the number of dimensions of the array."""
+       preserving the number of dimensions of the array."""
+
 
     def _transform(self, X, y=None):
         if self.method == "z_norm":
@@ -60,4 +64,6 @@ class Normalise(BaseCollectionTransformer):
             max_val = np.max(X, axis=self.axis, keepdims=True)
             return (X - min_val) / (max_val - min_val)
         else:
+            raise ValueError(f"Unknown normalization method: {self.method}")
+
             raise ValueError(f"Unknown normalization method: {self.method}")
