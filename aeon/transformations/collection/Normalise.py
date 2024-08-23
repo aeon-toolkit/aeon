@@ -62,4 +62,3 @@ class Normalise(BaseCollectionTransformer):
             return (X - min_val) / (max_val - min_val)
         else:
             raise ValueError(f"Unknown normalization method: {self.method}")
-
