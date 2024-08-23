@@ -54,7 +54,7 @@ class RSAST(BaseCollectionTransformer):
 
     Parameters
     ----------
-    n_random_points: int default = 10 
+    n_random_points: int default = 10
         the number of initial random points to extract
     len_method:  string default="both" the type of statistical tool used to get
     the length of shapelets. "both"=ACF&PACF, "ACF"=ACF, "PACF"=PACF,
@@ -68,14 +68,14 @@ class RSAST(BaseCollectionTransformer):
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
         Number of threads to use for the transform.
-        
+
     Attributes
-    ---------
+    ----------
     _kernels : list
         The z-normalized subsequences used for transformation.
-    _kernel_orig : list 
+    _kernel_orig : list
         The original (non z-normalized) subsequences.
-    _start_positions : list 
+    _start_positions : list
         The starting positions of each subsequence within the original time series.
     _classes : list
         The class labels associated with each subsequence.
@@ -130,8 +130,8 @@ class RSAST(BaseCollectionTransformer):
         self._kernels = None  # z-normalized subsequences
         self._cand_length_list = {}
         self._kernel_orig = []
-        self._start_positions = []  
-        self._classes = []  
+        self._start_positions = []
+        self._classes = []
         self._source_series = []  # To store the index of the original time series
         self._kernels_generators = {}  # Reference time series
         super().__init__()
@@ -210,7 +210,7 @@ class RSAST(BaseCollectionTransformer):
             X_c = X_[y == c]
 
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
-            
+
             # Store the original indices of the sampled time series
             original_indices = np.where(y == c)[0]
 
@@ -320,7 +320,8 @@ class RSAST(BaseCollectionTransformer):
                         self._kernel_orig.append(np.squeeze(kernel))
                         self._kernels_generators[c].extend(X_c[idx].reshape(1, -1))
 
-                        # Store the start position, class, and the original index in the training set
+                        # Store the start position,
+                        # class, and the original index in the training set
                         self._start_positions.append(i)
                         self._classes.append(c)
                         self._source_series.append(original_idx)

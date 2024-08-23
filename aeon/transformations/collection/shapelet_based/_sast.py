@@ -59,13 +59,14 @@ class SAST(BaseCollectionTransformer):
     n_jobs : int, default -1
         Number of threads to use for the transform.
         The available CPU count is used if this value is less than 1
+
     Attributes
-    ---------
+    ----------
     _kernels : list
         The z-normalized subsequences used for transformation.
-    _kernel_orig : list 
+    _kernel_orig : list
         The original (non z-normalized) subsequences.
-    _start_positions : list 
+    _start_positions : list
         The starting positions of each subsequence within the original time series.
     _classes : list
         The class labels associated with each subsequence.
@@ -162,13 +163,16 @@ class SAST(BaseCollectionTransformer):
         for c in classes:
             X_c = X_[y == c]
 
-            # Convert to int because if nb_inst_per_class is float, the result of np.min() will be float
+            # Convert to int because if nb_inst_per_class is float,
+            # the result of np.min() will be float
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
             choosen = self._random_state.permutation(X_c.shape[0])[:cnt]
             candidates_ts.append(X_c[choosen])
             self.kernels_generators_[c] = X_c[choosen]
             class_values_of_candidates.extend([c] * cnt)
-            source_series_indices.extend(np.where(y == c)[0][choosen])  # Record the original indices
+            source_series_indices.extend(
+                np.where(y == c)[0][choosen]
+            )  # Record the original indices
 
         candidates_ts = np.concatenate(candidates_ts, axis=0)
 
@@ -197,11 +201,15 @@ class SAST(BaseCollectionTransformer):
                     self._kernel_orig.append(can)
                     self._kernels[k, :shp_length] = z_normalise_series(can)
                     self._start_positions.append(j)  # Store the start position
-                    self._classes.append(class_values_of_candidates[i])  # Store the class of the shapelet
-                    self._source_series.append(source_series_indices[i])  # Store the original index of the time series
+                    self._classes.append(
+                        class_values_of_candidates[i]
+                    )  # Store the class of the shapelet
+                    self._source_series.append(
+                        source_series_indices[i]
+                    )  # Store the original index of the time series
                     k += 1
         return self
-    
+
     def _transform(
         self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None
     ) -> np.ndarray:
