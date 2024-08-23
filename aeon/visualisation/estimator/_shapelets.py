@@ -90,7 +90,7 @@ class ShapeletVisualizer:
             "edgecolor": "black",
             "linewidths": 2,
         },
-        plot_options={  # noqa: B006
+        line_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
             "linestyle": "--",
@@ -111,7 +111,7 @@ class ShapeletVisualizer:
         ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        plot_options : dict
+        line_options : dict
             Options to apply to plot of the shapelet values.
         scatter_options : dict
             Options to apply to scatter plot of the shapelet values.
@@ -134,8 +134,8 @@ class ShapeletVisualizer:
         _check_soft_dependencies("matplotlib")
         import matplotlib.pyplot as plt
 
-        if "label" not in plot_options.keys():
-            plot_options["label"] = ""
+        if "label" not in line_options.keys():
+            line_options["label"] = ""
         if custom_title_string is None:
             title_string = "Shapelet params:"
             if self.dilation > 1:
@@ -152,41 +152,43 @@ class ShapeletVisualizer:
             fig = plt.figure(**figure_options)
             for i in range(self.n_channels):
                 if self.n_channels > 1:
-                    plot_options.update(
-                        {"label": str(plot_options["label"]) + f" channel {i}"}
+                    line_options.update(
+                        {"label": str(line_options["label"]) + f" channel {i}"}
                     )
-                plt.plot(self.values[i], **plot_options)
+                plt.plot(self.values[i], **line_options)
                 plt.scatter(np.arange(self.length), self.values[i], **scatter_options)
             plt.ylabel("shapelet values")
             plt.xlabel("timepoint")
             plt.title(title_string)
-            plt.legend()
+            if self.n_channels > 1:
+                plt.legend()
             return fig
         else:
             for i in range(self.n_channels):
                 if self.n_channels > 1:
-                    plot_options.update(
-                        {"label": str(plot_options["label"]) + f" channel {i}"}
+                    line_options.update(
+                        {"label": str(line_options["label"]) + f" channel {i}"}
                     )
-                ax.plot(self.values[i], **plot_options)
+                ax.plot(self.values[i], **line_options)
                 ax.scatter(np.arange(self.length), self.values[i], **scatter_options)
             ax.set_title(title_string)
             ax.set_ylabel("shapelet values")
             ax.set_xlabel("timepoint")
-            ax.legend()
+            if self.n_channels > 1:
+                ax.legend()
             return ax
 
     def plot_on_X(
         self,
         X,
         ax=None,
-        shp_scatter_options={  # noqa: B006
+        scatter_options={  # noqa: B006
             "s": 40,
             "c": "purple",
-            "alpha": 0.9,
-            "zorder": 3,
+            "alpha": 0.75,
+            "zorder": 1,
         },
-        x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        line_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
         figure_options={  # noqa: B006
             "figsize": (10, 5),
             "dpi": 100,
@@ -204,9 +206,9 @@ class ShapeletVisualizer:
         ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        shp_scatter_options : dict
+        scatter_options : dict
             Dictionnary of options passed to the scatter plot of the shapelet values.
-        x_plot_options : dict
+        line_options : dict
             Dictionnary of options passed to the plot of the time series values.
         figure_options : dict
             Dictionnary of options passed to plt.figure. Only used if ax is None.
@@ -229,8 +231,8 @@ class ShapeletVisualizer:
         if len(X.shape) == 1:
             X = X[np.newaxis, :]
 
-        if "label" not in x_plot_options.keys():
-            x_plot_options["label"] = ""
+        if "label" not in line_options.keys():
+            line_options["label"] = ""
 
         # Get candidate subsequences in X
         X_subs = get_all_subsequences(X, self.length, self.dilation)
@@ -269,11 +271,11 @@ class ShapeletVisualizer:
             fig = plt.figure(**figure_options)
             for i in range(self.n_channels):
                 if self.n_channels > 1:
-                    x_plot_options.update(
-                        {"label": str(x_plot_options["label"]) + f" channel {i}"}
+                    line_options.update(
+                        {"label": str(line_options["label"]) + f" channel {i}"}
                     )
-                plt.plot(X[i], **x_plot_options)
-                plt.scatter(idx_match, _values[i], **shp_scatter_options)
+                plt.plot(X[i], **line_options)
+                plt.scatter(idx_match, _values[i], **scatter_options)
                 plt.title("Best match of shapelet on X")
             plt.ylabel("shapelet values")
             plt.xlabel("timepoint")
@@ -281,11 +283,11 @@ class ShapeletVisualizer:
         else:
             for i in range(self.n_channels):
                 if self.n_channels > 1:
-                    x_plot_options.update(
-                        {"label": str(x_plot_options["label"]) + f" channel {i}"}
+                    line_options.update(
+                        {"label": str(line_options["label"]) + f" channel {i}"}
                     )
-                ax.plot(X[i], **x_plot_options)
-                ax.scatter(idx_match, _values[i], **shp_scatter_options)
+                ax.plot(X[i], **line_options)
+                ax.scatter(idx_match, _values[i], **scatter_options)
             ax.set_ylabel("shapelet values")
             ax.set_xlabel("timepoint")
             return ax
@@ -296,8 +298,8 @@ class ShapeletVisualizer:
         ax=None,
         show_legend=True,
         show_threshold=True,
-        dist_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
-        threshold_plot_options={  # noqa: B006
+        line_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        threshold_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
             "color": "purple",
@@ -324,9 +326,9 @@ class ShapeletVisualizer:
             Wheter to show legend. Default is True
         show_threshold: bool, optional
             Wheter to show threshold (if it is not set to None). Default is True.
-        threshold_plot_options : dict
+        threshold_options : dict
             Dictionnary of options passed to the line plot of the threshold.
-        dist_plot_options : dict
+        line_options : dict
             Dictionnary of options passed to the plot of the distance vector values.
         figure_options : dict
             Dictionnary of options passed to plt.figure. Only used if ax is None.
@@ -368,17 +370,17 @@ class ShapeletVisualizer:
             plt.rcParams.update(rc_Params_options)
             fig = plt.figure(**figure_options)
 
-            plt.plot(c, **dist_plot_options)
+            plt.plot(c, **line_options)
             if self.threshold is not None and show_threshold:
-                plt.hlines(self.threshold, 0, c.shape[0], **threshold_plot_options)
+                plt.hlines(self.threshold, 0, c.shape[0], **threshold_options)
             plt.title("Distance vector between shapelet and X")
-            if show_legend:
+            if show_legend and self.n_channels > 1:
                 plt.legend()
             return fig
         else:
-            ax.plot(c, **dist_plot_options)
+            ax.plot(c, **line_options)
             if self.threshold is not None and show_threshold:
-                ax.hlines(self.threshold, 0, c.shape[0], **threshold_plot_options)
+                ax.hlines(self.threshold, 0, c.shape[0], **threshold_options)
             return ax
 
 
@@ -398,11 +400,12 @@ class ShapeletTransformerVisualizer:
 
     def _get_shapelet(self, id_shapelet):
         if isinstance(self.estimator, RandomDilatedShapeletTransform):
-            length_ = self.estimator.shapelets_[1][id_shapelet]
             values_ = self.estimator.shapelets_[0][id_shapelet]
-            dilation_ = self.estimator.shapelets_[2][id_shapelet]
-            threshold_ = self.estimator.shapelets_[3][id_shapelet]
-            normalize_ = self.estimator.shapelets_[4][id_shapelet]
+            # startpos_ = self.estimator.shapelets_[1][id_shapelet]
+            length_ = self.estimator.shapelets_[2][id_shapelet]
+            dilation_ = self.estimator.shapelets_[3][id_shapelet]
+            threshold_ = self.estimator.shapelets_[4][id_shapelet]
+            normalize_ = self.estimator.shapelets_[5][id_shapelet]
             distance = self.estimator.distance
 
         elif isinstance(self.estimator, (RSAST, SAST)):
@@ -439,13 +442,13 @@ class ShapeletTransformerVisualizer:
         id_shapelet,
         X,
         ax=None,
-        shp_scatter_options={  # noqa: B006
+        scatter_options={  # noqa: B006
             "s": 40,
             "c": "purple",
             "alpha": 0.9,
             "zorder": 3,
         },
-        x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        line_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
         figure_options={  # noqa: B006
             "figsize": (10, 5),
             "dpi": 100,
@@ -465,9 +468,9 @@ class ShapeletTransformerVisualizer:
         ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        shp_scatter_options : dict
+        scatter_options : dict
             Dictionnary of options passed to the scatter plot of the shapelet values.
-        x_plot_options : dict
+        line_options : dict
             Dictionnary of options passed to the plot of the time series values.
         figure_options : dict
             Dictionnary of options passed to plt.figure. Only used if ax is None.
@@ -487,8 +490,8 @@ class ShapeletTransformerVisualizer:
         return self._get_shapelet(id_shapelet).plot_on_X(
             X,
             ax=ax,
-            shp_scatter_options=shp_scatter_options,
-            x_plot_options=x_plot_options,
+            scatter_options=scatter_options,
+            line_options=line_options,
             figure_options=figure_options,
             rc_Params_options=rc_Params_options,
             matplotlib_style=matplotlib_style,
@@ -501,8 +504,8 @@ class ShapeletTransformerVisualizer:
         ax=None,
         show_legend=True,
         show_threshold=True,
-        dist_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
-        threshold_plot_options={  # noqa: B006
+        line_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        threshold_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
             "color": "purple",
@@ -531,9 +534,9 @@ class ShapeletTransformerVisualizer:
             Wheter to show legend. Default is True
         show_threshold: bool, optional
             Wheter to show threshold (if it is not set to None). Default is True.
-        threshold_plot_options : dict
+        threshold_options : dict
             Dictionnary of options passed to the line plot of the threshold.
-        dist_plot_options : dict
+        line_options : dict
             Dictionnary of options passed to the plot of the distance vector values.
         figure_options : dict
             Dictionnary of options passed to plt.figure. Only used if ax is None.
@@ -554,8 +557,8 @@ class ShapeletTransformerVisualizer:
             ax=ax,
             show_legend=show_legend,
             show_threshold=show_threshold,
-            threshold_plot_options=threshold_plot_options,
-            dist_plot_options=dist_plot_options,
+            threshold_options=threshold_options,
+            line_options=line_options,
             figure_options=figure_options,
             rc_Params_options=rc_Params_options,
             matplotlib_style=matplotlib_style,
@@ -572,7 +575,7 @@ class ShapeletTransformerVisualizer:
             "edgecolor": "black",
             "linewidths": 2,
         },
-        plot_options={  # noqa: B006
+        line_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
             "linestyle": "--",
@@ -595,10 +598,10 @@ class ShapeletTransformerVisualizer:
         ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-         scatter_options : dict
+        scatter_options : dict
              Options to apply to scatter plot of the shapelet values.
-         figure_options : dict
-             Dictionnary of options passed to plt.figure. Only used if ax is None.
+        line_options : dict
+             Dictionnary of options passed to plt.plot. Only used if ax is None.
         figure_options : dict
             Dictionnary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
@@ -617,7 +620,7 @@ class ShapeletTransformerVisualizer:
         """
         return self._get_shapelet(id_shapelet).plot(
             ax=ax,
-            plot_options=plot_options,
+            line_options=line_options,
             scatter_options=scatter_options,
             figure_options=figure_options,
             rc_Params_options=rc_Params_options,
@@ -686,23 +689,26 @@ class ShapeletClassifierVisualizer:
             if n_classes == 1:
                 coefs = np.append(-coefs, coefs, axis=0)
             coefs = coefs[class_id]
-            idx = coefs.argsort()[::-1]
 
         elif isinstance(classifier, (BaseForest, BaseDecisionTree)):
             coefs = classifier.feature_importances_
-            idx = coefs.argsort()[::-1]
+
         else:
             raise NotImplementedError(
                 f"The classifier linked to the estimator is not supported. We expect a "
                 "classifier inheriting from LinearClassifierMixin, BaseForest or "
                 f"BaseDecisionTree but got {type(classifier)}"
             )
-
-        coefs = coefs[idx]
+        # coefs = coefs[idx]
         if isinstance(self.estimator, RDSTClassifier):
             # As each shapelet generate 3 features, divide feature id by 3 so all
             # features generated by one shapelet share the same ID
-            idx = idx // 3
+            grouped_features = coefs.reshape(-1, 3)
+            coefs = grouped_features.sum(axis=1)
+
+        idx = coefs.argsort()[::-1]
+        coefs = coefs[idx]
+
         return idx, coefs
 
     def _get_boxplot_data(self, X, mask_class_id, mask_other_class_id, id_shp):
@@ -738,29 +744,30 @@ class ShapeletClassifierVisualizer:
                 " supported. Is it a shapelet classifier ?"
             )
 
-    def visualize_best_shapelets_one_class(
+    def visualize_shapelets_one_class(
         self,
         X,
         y,
         class_id,
+        best=True,
         n_shp=1,
         id_example_other=None,
         id_example_class=None,
         class_colors=("tab:green", "tab:orange"),
-        shp_scatter_options={  # noqa: B006
+        scatter_options={  # noqa: B006
             "s": 70,
             "alpha": 0.75,
             "zorder": 1,
             "edgecolor": "black",
             "linewidths": 2,
         },
-        x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        x_plot_options={"linewidth": 4, "alpha": 0.9},  # noqa: B006
         shp_plot_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
             "linestyle": "--",
         },
-        dist_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        dist_plot_options={"linewidth": 3, "alpha": 0.9},  # noqa: B006
         threshold_plot_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
@@ -794,9 +801,9 @@ class ShapeletClassifierVisualizer:
         matplotlib_style="seaborn-v0_8",
     ):
         """
-        Plot the n_shp best candidates for the class_id.
+        Plot the n_shp best (or worst) candidates for the class_id.
 
-        Visualize best macth on two random samples and how the shapelet discriminate
+        Visualize best match on two random samples and how the shapelet discriminate
         (X,y) with boxplots.
 
         Parameters
@@ -811,15 +818,19 @@ class ShapeletClassifierVisualizer:
             this class will be selected based on the feature coefficients
             inside the ridge classifier. The original labels are given to a
             LabelEncoder, hence why we ask for an integer ID.
+        best : bool, optional
+            Specifies whether to return the best or the worst shapelet(s) for a class.
+            The default is True, returning the best shapelet(s)
         n_shp : int, optional
             Number of plots to output, one per shapelet (i.e. the n_shp best shapelets
             for class_id). The default is 1.
         id_example_other : int
-            Sample ID to use for sample of other class. If None, a random one is
-            selected.
+            Sample ID to use for sample of other class. If None, a random one from that
+            class is selected.
         id_example_class : int
-            Sample ID to use for sample of class_id. If None, a random one is selected.
-        shp_scatter_options : dict
+            Sample ID to use for sample of class_id.If None, a random one from that
+            class is selected.
+        scatter_options : dict
             Dictionnary of options passed to the scatter plot of the shapelet values.
         x_plot_options : dict
             Dictionnary of options passed to the plot of the time series values.
@@ -854,7 +865,8 @@ class ShapeletClassifierVisualizer:
         plt.rcParams.update(**rc_Params_options)
 
         idx, _ = self._get_shp_importance(class_id)
-
+        if not best:
+            idx = idx[::-1]
         shp_ids = []
         i = 0
         while len(shp_ids) < n_shp and i < idx.shape[0]:
@@ -867,8 +879,12 @@ class ShapeletClassifierVisualizer:
         mask_other_class_id = np.where(y != class_id)[0]
         if id_example_class is None:
             id_example_class = np.random.choice(mask_class_id)
+        else:
+            id_example_class = mask_class_id[id_example_class]
         if id_example_other is None:
             id_example_other = np.random.choice(mask_other_class_id)
+        else:
+            id_example_other = mask_other_class_id[id_example_other]
         figures = []
         for i_shp in shp_ids:
             fig, ax = plt.subplots(**figure_options)
@@ -905,14 +921,14 @@ class ShapeletClassifierVisualizer:
                 current_ax = ax[i_ax % n_cols]
             else:
                 current_ax = ax[i_ax // n_cols, i_ax % n_cols]
-            shp0_scatter_options = copy.deepcopy(shp_scatter_options)
+            shp0_scatter_options = copy.deepcopy(scatter_options)
             shp0_scatter_options.update({"c": class_colors[0]})
             self.plot_on_X(
                 i_shp,
                 X[id_example_other],
                 ax=current_ax,
-                x_plot_options=x0_plot_options,
-                shp_scatter_options=shp0_scatter_options,
+                line_options=x0_plot_options,
+                scatter_options=shp0_scatter_options,
             )
 
             x1_plot_options = copy.deepcopy(x_plot_options)
@@ -922,14 +938,14 @@ class ShapeletClassifierVisualizer:
                     "c": class_colors[1],
                 }
             )
-            shp1_scatter_options = copy.deepcopy(shp_scatter_options)
+            shp1_scatter_options = copy.deepcopy(scatter_options)
             shp1_scatter_options.update({"c": class_colors[1]})
             self.plot_on_X(
                 i_shp,
                 X[id_example_class],
                 ax=current_ax,
-                x_plot_options=x1_plot_options,
-                shp_scatter_options=shp1_scatter_options,
+                line_options=x1_plot_options,
+                scatter_options=shp1_scatter_options,
             )
             current_ax.set_title("Best match on examples")
             current_ax.legend()
@@ -943,8 +959,8 @@ class ShapeletClassifierVisualizer:
             self.plot(
                 i_shp,
                 ax=current_ax,
-                plot_options=shp_plot_options,
-                scatter_options=shp_scatter_options,
+                line_options=shp_plot_options,
+                scatter_options=scatter_options,
             )
 
             # Plots of distance vectors
@@ -966,7 +982,7 @@ class ShapeletClassifierVisualizer:
                 ax=current_ax,
                 show_legend=False,
                 show_threshold=False,
-                dist_plot_options=d0_plot_options,
+                line_options=d0_plot_options,
             )
             d1_plot_options = copy.deepcopy(dist_plot_options)
             d1_plot_options.update(
@@ -979,7 +995,7 @@ class ShapeletClassifierVisualizer:
                 i_shp,
                 X[id_example_class],
                 ax=current_ax,
-                dist_plot_options=d1_plot_options,
+                line_options=d1_plot_options,
             )
             current_ax.legend()
             current_ax.set_title("Distance vectors of examples")
@@ -991,13 +1007,13 @@ class ShapeletClassifierVisualizer:
         id_shapelet,
         X,
         ax=None,
-        shp_scatter_options={  # noqa: B006
+        scatter_options={  # noqa: B006
             "s": 40,
             "c": "purple",
             "alpha": 0.9,
             "zorder": 3,
         },
-        x_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        line_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
         figure_options={  # noqa: B006
             "figsize": (10, 5),
             "dpi": 100,
@@ -1017,9 +1033,9 @@ class ShapeletClassifierVisualizer:
         ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-        shp_scatter_options : dict
+        scatter_options : dict
             Dictionnary of options passed to the scatter plot of the shapelet values.
-        x_plot_options : dict
+        line_options : dict
             Dictionnary of options passed to the plot of the time series values.
         figure_options : dict
             Dictionnary of options passed to plt.figure. Only used if ax is None.
@@ -1040,8 +1056,8 @@ class ShapeletClassifierVisualizer:
             id_shapelet,
             X,
             ax=ax,
-            shp_scatter_options=shp_scatter_options,
-            x_plot_options=x_plot_options,
+            scatter_options=scatter_options,
+            line_options=line_options,
             figure_options=figure_options,
             rc_Params_options=rc_Params_options,
             matplotlib_style=matplotlib_style,
@@ -1054,8 +1070,8 @@ class ShapeletClassifierVisualizer:
         ax=None,
         show_legend=True,
         show_threshold=True,
-        dist_plot_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
-        threshold_plot_options={  # noqa: B006
+        line_options={"linewidth": 2, "alpha": 0.9},  # noqa: B006
+        threshold_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
             "color": "purple",
@@ -1108,8 +1124,8 @@ class ShapeletClassifierVisualizer:
             ax=ax,
             show_legend=show_legend,
             show_threshold=show_threshold,
-            threshold_plot_options=threshold_plot_options,
-            dist_plot_options=dist_plot_options,
+            threshold_options=threshold_options,
+            line_options=line_options,
             figure_options=figure_options,
             rc_Params_options=rc_Params_options,
             matplotlib_style=matplotlib_style,
@@ -1126,7 +1142,7 @@ class ShapeletClassifierVisualizer:
             "edgecolor": "black",
             "linewidths": 2,
         },
-        plot_options={  # noqa: B006
+        line_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
             "linestyle": "--",
@@ -1149,10 +1165,10 @@ class ShapeletClassifierVisualizer:
         ax : matplotlib axe
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
-         scatter_options : dict
+        scatter_options : dict
              Options to apply to scatter plot of the shapelet values.
-         figure_options : dict
-             Dictionnary of options passed to plt.figure. Only used if ax is None.
+        line_options : dict
+             Dictionnary of options passed to plt.plot. Only used if ax is None.
         figure_options : dict
             Dictionnary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
@@ -1172,7 +1188,7 @@ class ShapeletClassifierVisualizer:
         return self.transformer_vis.plot(
             id_shapelet,
             ax=ax,
-            plot_options=plot_options,
+            line_options=line_options,
             scatter_options=scatter_options,
             figure_options=figure_options,
             rc_Params_options=rc_Params_options,

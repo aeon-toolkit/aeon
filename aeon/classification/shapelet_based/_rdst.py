@@ -1,7 +1,7 @@
 """Random Dilated Shapelet Transform (RDST) Classifier.
 
 A Random Dilated Shapelet Transform classifier pipeline that simply performs a random
-shapelet dilated transform and build (by default) a ridge classifier on the output.
+shapelet dilated transform and builds (by default) a ridge classifier on the output.
 """
 
 __maintainer__ = ["baraline"]
@@ -26,22 +26,22 @@ class RDSTClassifier(BaseClassifier):
     A random dilated shapelet transform (RDST) classifier.
 
     Implementation of the random dilated shapelet transform classifier pipeline
-    along the lines of [1]_[2]_. Transforms the data using the
+    along the lines of [1]_, [2]_. Transforms the data using the
     `RandomDilatedShapeletTransform` and then builds a `RidgeClassifierCV` classifier
-    with standard scalling.
+    with standard scaling.
 
     Parameters
     ----------
     max_shapelets : int, default=10000
-        The maximum number of shapelet to keep for the final transformation.
-        A lower number of shapelets can be kept if alpha similarity have discarded the
+        The maximum number of shapelets to keep for the final transformation.
+        A lower number of shapelets can be kept if alpha similarity has discarded the
         whole dataset.
     shapelet_lengths : array, default=None
-        The set of possible length for shapelets. Each shapelet length is uniformly
-        drawn from this set. If None, the shapelets length will be equal to
+        The set of possible lengths for shapelets. Each shapelet length is uniformly
+        drawn from this set. If None, the shapelet length will be equal to
         min(max(2,n_timepoints//2),11).
     proba_normalization : float, default=0.8
-        This probability (between 0 and 1) indicate the chance of each shapelet to be
+        This probability (between 0 and 1) indicates the chance of each shapelet to be
         initialized such as it will use a z-normalized distance, inducing either scale
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalized distance.
@@ -50,22 +50,22 @@ class RDSTClassifier(BaseClassifier):
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
         will be used.
     alpha_similarity : float, default=0.5
-        The strenght of the alpha similarity pruning. The higher the value, the lower
-        the allowed number of common indexes with previously sampled shapelets
-        when sampling a new candidate with the same dilation parameter.
-        It can cause the number of sampled shapelets to be lower than max_shapelets if
-        the whole search space has been covered. The default is 0.5, and the maximum is
-        1. Value above it have no effect for now.
+        The strength of the alpha similarity pruning. The higher the value, the fewer
+        common indexes with previously sampled shapelets are allowed when sampling a
+        new candidate with the same dilation parameter. It can cause the number of
+        sampled shapelets to be lower than max_shapelets if the whole search space has
+        been covered. The default is 0.5, and the maximum is 1. Values above it have
+        no effect for now.
     use_prime_dilations : bool, default=False
-        If True, restrict the value of the shapelet dilation parameter to be prime
+        If True, restricts the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
-        short shapelet length, possibly at the cost of some accuracy.
+        short shapelet lengths, possibly at the cost of some accuracy.
     distance: str="manhattan"
         Name of the distance function to be used. By default this is the
         manhattan distance. Other distances from the aeon distance modules can be used.
     estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
-        `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
+        `None` a default `RidgeClassifierCV` classifier is used with standard scaling.
     save_transformed_data : bool, default=False
         If True, the transformed training dataset for all classifiers will be saved.
     class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
@@ -234,7 +234,7 @@ class RDSTClassifier(BaseClassifier):
         Parameters
         ----------
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
-            The data to make prediction for.
+            The data to make predictions for.
 
         Returns
         -------
@@ -246,12 +246,12 @@ class RDSTClassifier(BaseClassifier):
         return self._estimator.predict(X_t)
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
+        """Predicts label probabilities for sequences in X.
 
         Parameters
         ----------
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
-            The data to make predict probabilities for.
+            The data to predict probabilities for.
 
         Returns
         -------

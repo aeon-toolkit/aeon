@@ -25,6 +25,14 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
         activation_decoder : Union[list, str], default="relu"
             Activation function(s) to use in each layer of the decoder.
             Can be a single string or a list.
+
+    References
+    ----------
+    .. [1] Ienco, D., & Interdonato, R. (2020). Deep multivariate time series
+    embedding clustering via attentive-gated autoencoder. In Advances in Knowledge
+    Discovery and Data Mining: 24th Pacific-Asia Conference, PAKDD 2020, Singapore,
+    May 11-14, 2020, Proceedings, Part I 24 (pp. 318-329). Springer International
+    Publishing.
     """
 
     _config = {

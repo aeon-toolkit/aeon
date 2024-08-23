@@ -7,7 +7,7 @@ from aeon.datasets import load_cardano_sentiment, load_covid_3month
 from aeon.regression.convolution_based import (
     HydraRegressor,
     MultiRocketHydraRegressor,
-    RocketRegressor
+    RocketRegressor,
 )
 from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
 from aeon.regression.feature_based import (
@@ -25,9 +25,8 @@ from aeon.regression.interval_based import (
     RandomIntervalSpectralEnsembleRegressor,
     TimeSeriesForestRegressor,
 )
-from aeon.regression.shapelet_based import (
-    RDSTRegressor,
-)
+from aeon.regression.shapelet_based import RDSTRegressor
+
 
 def _reproduce_regression_covid_3month(estimator):
     X_train, y_train = load_covid_3month(split="train")
