@@ -10,7 +10,7 @@ from numba.core.registry import CPUDispatcher
 
 from aeon.distances import get_distance_function
 from aeon.similarity_search.base import BaseSimilaritySearch
-from aeon.similarity_search.series_methods import naive_series_search
+from aeon.similarity_search.matrix_profiles import naive_series_search
 
 
 class SeriesSearch(BaseSimilaritySearch):
@@ -120,15 +120,15 @@ class SeriesSearch(BaseSimilaritySearch):
 
         """
         self.X_ = X
-        self.series_method_function_ = self._get_series_method_function()
+        self.matrix_profile_function_ = self._get_series_method_function()
         return self
 
     @final
     def predict(
         self,
-        X,
-        length,
-        axis=1,
+        X: np.ndarray,
+        length: int = 1,
+        axis: int = 1,
         X_index=None,
         exclusion_factor=2.0,
         apply_exclusion_to_result=False,
@@ -136,18 +136,162 @@ class SeriesSearch(BaseSimilaritySearch):
         """
         Predict function.
 
+        Parameters
+        ----------
+        X : np.ndarray, 2D array of shape (n_channels, series_length)
+            Input time series used for the search.
+        length : int
+            The length parameter that will be used to extract queries from X.
+        axis : int
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels,n_timepoints)``.
+        X_index : int
+            An integer indicating if X was extracted is part of the dataset that was
+            given during the fit method. If so, this integer should be the sample id.
+            The search will define an exclusion zone for the queries extarcted from X
+            in order to avoid matching with themself. If None, it is considered that
+            the query is not extracted from X_.
+        exclusion_factor : float, default=2.
+            The factor to apply to the query length to define the exclusion zone. The
+            exclusion zone is define from
+            :math:`id_timestamp - query_length//exclusion_factor` to
+            :math:`id_timestamp + query_length//exclusion_factor`. This also applies to
+            the matching conditions defined by child classes. For example, with
+            TopKSimilaritySearch, the k best matches are also subject to the exclusion
+            zone, but with :math:`id_timestamp` the index of one of the k matches.
+        apply_exclusion_to_result : bool, default=False
+            Wheter to apply the exclusion factor to the output of the similarity search.
+            This means that two matches of the query from the same sample must be at
+            least spaced by +/- :math:`query_length//exclusion_factor`.
+            This can avoid pathological matching where, for example if we extract the
+            best two matches, there is a high chance that if the best match is located
+            at :math:`id_timestamp`, the second best match will be located at
+            :math:`id_timestamp` +/- 1, as they both share all their values except one.
+
+        Raises
+        ------
+        TypeError
+            If the input X array is not 2D raise an error.
+        ValueError
+            If the length of the query is greater
+
         Returns
         -------
-        Tuple(np.ndarray, 2D array of shape (series_length - L + 1, n_matches), np.ndarray, 3D array of shape (series_length - L + 1, n_matches, 2)) # noqa: E501
+        Tuple(ndarray, ndarray)
+            The first array, of shape ``(series_length - length + 1, n_matches)``,
+            contains the distance between all the queries of size length and their best
+            matches in X_. The second array, of shape
+            ``(series_length - L + 1, n_matches, 2)``, contains the indexes of these
+            matches as ``(id_sample, id_timepoint)``. The corresponding match can be
+            retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
         """
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
-
-        # TODO ...
-
+        series_dim, series_length = self._check_series_format(X, length, axis)
+        X_preds = self._predict(
+            X, length, X_index, exclusion_factor, apply_exclusion_to_result
+        )
         set_num_threads(prev_threads)
-        return 0
+        return X_preds
+
+    def _predict(self, X, length, X_index, exclusion_factor, apply_exclusion_to_result):
+        """
+        Call the matrix profile function.
+
+        Parameters
+        ----------
+        X : np.ndarray, 2D array of shape (n_channels, series_length)
+            Input time series used for the search.
+        length : int
+            The length parameter that will be used to extract queries from X.
+        axis : int
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels,n_timepoints)``.
+        X_index : int
+            An integer indicating if X was extracted is part of the dataset that was
+            given during the fit method. If so, this integer should be the sample id.
+            The search will define an exclusion zone for the queries extarcted from X
+            in order to avoid matching with themself. If None, it is considered that
+            the query is not extracted from X_.
+        exclusion_factor : float, default=2.
+            The factor to apply to the query length to define the exclusion zone. The
+            exclusion zone is define from
+            :math:`id_timestamp - query_length//exclusion_factor` to
+            :math:`id_timestamp + query_length//exclusion_factor`. This also applies to
+            the matching conditions defined by child classes. For example, with
+            TopKSimilaritySearch, the k best matches are also subject to the exclusion
+            zone, but with :math:`id_timestamp` the index of one of the k matches.
+        apply_exclusion_to_result : bool, default=False
+            Wheter to apply the exclusion factor to the output of the similarity search.
+            This means that two matches of the query from the same sample must be at
+            least spaced by +/- :math:`query_length//exclusion_factor`.
+            This can avoid pathological matching where, for example if we extract the
+            best two matches, there is a high chance that if the best match is located
+            at :math:`id_timestamp`, the second best match will be located at
+            :math:`id_timestamp` +/- 1, as they both share all their values except one.
+
+        Returns
+        -------
+        Tuple(ndarray, ndarray)
+            The first array, of shape ``(series_length - length + 1, n_matches)``,
+            contains the distance between all the queries of size length and their best
+            matches in X_. The second array, of shape
+            ``(series_length - L + 1, n_matches, 2)``, contains the indexes of these
+            matches as ``(id_sample, id_timepoint)``. The corresponding match can be
+            retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
+
+        """
+        return self.matrix_profile_function_(
+            self.X_,
+            X,
+            length,
+            k=self.k,
+            threshold=self.threshold,
+            distance=self.distance,
+            distance_args=self.distance_args,
+            inverse_distance=self.inverse_distance,
+            normalize=self.normalize,
+            n_jobs=self.n_jobs,
+            X_index=X_index,
+            exclusion_factor=exclusion_factor,
+            apply_exclusion_to_result=apply_exclusion_to_result,
+        )
+
+    def _check_series_format(self, X, length, axis):
+        if axis not in [0, 1]:
+            raise ValueError("The axis argument is expected to be either 1 or 0")
+        if self.axis != axis:
+            X = X.T
+        if not isinstance(X, np.ndarray) or X.ndim != 2:
+            raise TypeError(
+                "Error, only supports 2D numpy for now. If the series X is univariate "
+                "do X = X[np.newaxis, :]."
+            )
+
+        series_dim, series_length = X.shape
+        if series_length < length:
+            raise ValueError(
+                "The length of the series should be superior or equal to the length "
+                "parameter given during predict, but got {} < {}".format(
+                    series_length, length
+                )
+            )
+
+        if series_dim != self.n_channels_:
+            raise ValueError(
+                "The number of feature should be the same for the series X and the data"
+                " (X_) provided during fit, but got {} for X and {} for X_".format(
+                    series_dim, self.n_channels_
+                )
+            )
+        return series_dim, series_length
 
     def _get_series_method_function(self):
         """

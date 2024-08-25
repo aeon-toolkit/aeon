@@ -14,7 +14,7 @@ from aeon.similarity_search.query_search import QuerySearch
 def naive_series_search(
     X: Union[np.ndarray, List],
     S: np.ndarray,
-    L: int,
+    length: int,
     k: int = 1,
     threshold: float = np.inf,
     distance: str = "euclidean",
@@ -27,7 +27,7 @@ def naive_series_search(
     exclusion_factor: float = 2.0,
     apply_exclusion_to_result: bool = True,
 ):
-    r"""
+    """
     Compute a matrix profile in a naive way, by looping through a query search.
 
     Parameters
@@ -38,7 +38,7 @@ def naive_series_search(
     S : np.ndarray shape (n_channels, series_length)
         The series used for similarity search. Note that series_length can be equal,
         superior or inferior to n_timepoints, it doesn't matter.
-    L : int
+    length : int
         The length of the subsequences considered during the search. This parameter
         cannot be larger than n_timepoints and series_length.
     k : int, default=1
@@ -87,11 +87,13 @@ def naive_series_search(
 
     Returns
     -------
-    Tuple(np.ndarray, 1D array of shape (series_length - L + 1, n_matches), np.ndarray, 2D array of shape (series_length - L + 1, n_matches, 2)) # noqa: E501
-        The first array contains the distance between the best matches of the i-th
-        subsequence of size L in S and all the subsequences of size L in X.
-        The second will contains the sample index and timepoint index of these best
-        matches in X.
+        Tuple(ndarray, ndarray)
+            The first array, of shape ``(series_length - length + 1, n_matches)``,
+            contains the distance between all the queries of size length and their best
+            matches in X_. The second array, of shape
+            ``(series_length - L + 1, n_matches, 2)``, contains the indexes of these
+            matches as ``(id_sample, id_timepoint)``. The corresponding match can be
+            retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
     """
     search = QuerySearch(
@@ -108,15 +110,15 @@ def naive_series_search(
 
     results = [
         search.predict(
-            S[:, i : i + L],
+            S[:, i : i + length],
             X_index=(X_index, i) if X_index is not None else None,
             apply_exclusion_to_result=apply_exclusion_to_result,
             exclusion_factor=exclusion_factor,
         )
-        for i in range(S.shape[1] - L + 1)
+        for i in range(S.shape[1] - length + 1)
     ]
-    MP = np.empty((S.shape[1] - L + 1, k), dtype=float)
-    IP = np.empty((S.shape[1] - L + 1, k, 2), dtype=int)
+    MP = np.empty((S.shape[1] - length + 1, k), dtype=float)
+    IP = np.empty((S.shape[1] - length + 1, k, 2), dtype=int)
     for i in range(len(results)):
         MP[i] = results[i][0]
         IP[i] = results[i][1]

@@ -199,12 +199,12 @@ class QuerySearch(BaseSimilaritySearch):
 
         Returns
         -------
-        Tuple(np.ndarray, 1D array of shape (n_matches), np.ndarray, 2D array of shape (n_matches, 2)) # noqa: E501
-            A tuple contrainign two arrays. The first one contains the distances of the
-            best matches between X and X_. The second one contains the indexes of the
-            matches between X and X_. The first value for each match is the sample
-            index in X_, the second is the timepoint index.
-
+        Tuple(ndarray, ndarray)
+            The first array, of shape ``(n_matches)``, contains the distance between
+            the query and its best matches in X_. The second array, of shape
+            ``(n_matches, 2)``, contains the indexes of these matches as
+            ``(id_sample, id_timepoint)``. The corresponding match can be
+            retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
         """
         prev_threads = get_num_threads()
@@ -263,10 +263,12 @@ class QuerySearch(BaseSimilaritySearch):
 
         Returns
         -------
-        Tuple(np.ndarray, 1D array of shape (n_matches), np.ndarray, 2D array of shape (n_matches, 2)) #noqa E501
-            A tuple containing two arrays, the first contains the distance of the
-            best matches and the second containing the indexes of the best
-            matches in _X.
+        Tuple(ndarray, ndarray)
+            The first array, of shape ``(n_matches)``, contains the distance between
+            the query and its best matches in X_. The second array, of shape
+            ``(n_matches, 2)``, contains the indexes of these matches as
+            ``(id_sample, id_timepoint)``. The corresponding match can be
+            retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
 
         """
@@ -448,7 +450,7 @@ class QuerySearch(BaseSimilaritySearch):
         if not isinstance(X, np.ndarray) or X.ndim != 2:
             raise TypeError(
                 "Error, only supports 2D numpy for now. If the query X is univariate "
-                "do X.reshape(1,-1)."
+                "do X = X[np.newaxis, :]."
             )
 
         query_dim, query_length = X.shape

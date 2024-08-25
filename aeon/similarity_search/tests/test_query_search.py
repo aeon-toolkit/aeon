@@ -60,7 +60,7 @@ def test_QuerySearch_threshold_and_k(dtype):
 
     search = QuerySearch(k=3, threshold=1)
     search.fit(X)
-    idx = search.predict(q)
+    dist, idx = search.predict(q)
     assert_array_equal(idx, [(0, 2), (1, 2)])
 
 
@@ -74,7 +74,7 @@ def test_QuerySearch_inverse_distance(dtype):
 
     search = QuerySearch(k=1, inverse_distance=True)
     search.fit(X)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(0, 5)])
 
 
@@ -88,29 +88,29 @@ def test_QuerySearch_euclidean(dtype):
 
     search = QuerySearch(k=1)
     search.fit(X)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(0, 2)])
 
     search = QuerySearch(k=3)
     search.fit(X)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(0, 2), (1, 2), (1, 1)])
 
-    idx = search.predict(q, apply_exclusion_to_result=True)
+    _, idx = search.predict(q, apply_exclusion_to_result=True)
     assert_array_equal(idx, [(0, 2), (1, 2), (1, 4)])
 
     search = QuerySearch(k=1, normalize=True)
     search.fit(X)
     q = np.asarray([[8, 8, 10]], dtype=dtype)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(1, 2)])
 
-    idx = search.predict(q, apply_exclusion_to_result=True)
+    _, idx = search.predict(q, apply_exclusion_to_result=True)
     assert_array_equal(idx, [(1, 2)])
 
     search = QuerySearch(k=1, normalize=True)
     search.fit(X)
-    idx = search.predict(q, X_index=(1, 2))
+    _, idx = search.predict(q, X_index=(1, 2))
     assert_array_equal(idx, [(1, 0)])
 
 
@@ -126,29 +126,29 @@ def test_QuerySearch_euclidean_unequal_length(dtype):
 
     search = QuerySearch(k=1)
     search.fit(X)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(0, 2)])
 
     search = QuerySearch(k=3)
     search.fit(X)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(0, 2), (1, 2), (1, 1)])
 
-    idx = search.predict(q, apply_exclusion_to_result=True)
+    _, idx = search.predict(q, apply_exclusion_to_result=True)
     assert_array_equal(idx, [(0, 2), (1, 2), (1, 4)])
 
     search = QuerySearch(k=1, normalize=True)
     search.fit(X)
     q = np.asarray([[8, 8, 10]], dtype=dtype)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(1, 2)])
 
-    idx = search.predict(q, apply_exclusion_to_result=True)
+    _, idx = search.predict(q, apply_exclusion_to_result=True)
     assert_array_equal(idx, [(1, 2)])
 
     search = QuerySearch(k=1, normalize=True)
     search.fit(X)
-    idx = search.predict(q, X_index=(1, 2))
+    _, idx = search.predict(q, X_index=(1, 2))
     assert_array_equal(idx, [(1, 0)])
 
 
@@ -167,23 +167,23 @@ def test_QuerySearch_custom_func(dtype):
 
     search = QuerySearch(k=3, distance=_dist)
     search.fit(X)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(0, 2), (1, 2), (1, 1)])
 
     search = QuerySearch(k=3, distance=dist)
     search.fit(X)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(0, 2), (1, 2), (1, 1)])
 
     search = QuerySearch(k=1, normalize=True, distance=dist)
     search.fit(X)
     q = np.asarray([[8, 8, 10]], dtype=dtype)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(1, 2)])
 
     search = QuerySearch(k=1, normalize=True, distance=dist)
     search.fit(X)
-    idx = search.predict(q, X_index=(1, 2))
+    _, idx = search.predict(q, X_index=(1, 2))
     assert_array_equal(idx, [(1, 0)])
 
 
@@ -197,7 +197,7 @@ def test_QuerySearch_change_args(dtype):
 
     search = QuerySearch(k=1, distance="dtw", distance_args={"window": 0.0})
     search.fit(X)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(0, 2)])
 
     search = QuerySearch(
@@ -205,7 +205,7 @@ def test_QuerySearch_change_args(dtype):
     )
     search.fit(X)
     q = np.asarray([[8, 8, 10]], dtype=dtype)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(1, 2)])
 
 
@@ -219,7 +219,7 @@ def test_QuerySearch_speedup(dtype):
 
     search = QuerySearch(k=1, speed_up="fastest")
     search.fit(X)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(0, 2)])
 
     search = QuerySearch(
@@ -230,5 +230,5 @@ def test_QuerySearch_speedup(dtype):
     )
     search.fit(X)
     q = np.asarray([[8, 8, 10]], dtype=dtype)
-    idx = search.predict(q)
+    _, idx = search.predict(q)
     assert_array_equal(idx, [(1, 2)])
