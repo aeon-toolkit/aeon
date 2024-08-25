@@ -1,6 +1,6 @@
 """Tests for SeriesSearch."""
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 
 import numpy as np
 import pytest

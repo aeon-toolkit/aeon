@@ -11,7 +11,7 @@ from numba.typed import List
 from aeon.similarity_search.query_search import QuerySearch
 
 
-def naive_series_search(
+def naive_matrix_profile(
     X: Union[np.ndarray, List],
     S: np.ndarray,
     length: int,

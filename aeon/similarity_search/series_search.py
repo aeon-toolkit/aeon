@@ -10,7 +10,7 @@ from numba.core.registry import CPUDispatcher
 
 from aeon.distances import get_distance_function
 from aeon.similarity_search.base import BaseSimilaritySearch
-from aeon.similarity_search.matrix_profiles import naive_series_search
+from aeon.similarity_search.matrix_profiles import naive_matrix_profile
 
 
 class SeriesSearch(BaseSimilaritySearch):
@@ -338,7 +338,7 @@ class SeriesSearch(BaseSimilaritySearch):
                     f"{type(self.distance)}."
                 )
         self.speed_up_ = None
-        return naive_series_search
+        return naive_matrix_profile
 
     @classmethod
     def get_speedup_function_names(self):
