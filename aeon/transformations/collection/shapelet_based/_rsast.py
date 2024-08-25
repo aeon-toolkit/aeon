@@ -1,3 +1,5 @@
+from typing import List, Optional, Union
+
 import numpy as np
 import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
@@ -8,7 +10,7 @@ from aeon.utils.validation import check_n_jobs
 
 
 @njit(fastmath=False)
-def _apply_kernel(ts, arr):
+def _apply_kernel(ts: np.ndarray, arr: np.ndarray) -> float:
     d_best = np.inf  # sdist
     m = ts.shape[0]
     kernel = arr[~np.isnan(arr)]  # ignore nan
@@ -22,7 +24,7 @@ def _apply_kernel(ts, arr):
 
 
 @njit(parallel=True, fastmath=True)
-def _apply_kernels(X, kernels):
+def _apply_kernels(X: np.ndarray, kernels: np.ndarray) -> np.ndarray:
     nbk = len(kernels)
     out = np.zeros((X.shape[0], nbk), dtype=np.float32)
     for i in prange(nbk):
@@ -96,11 +98,11 @@ class RSAST(BaseCollectionTransformer):
 
     def __init__(
         self,
-        n_random_points=10,
-        len_method="both",
-        nb_inst_per_class=10,
-        seed=None,
-        n_jobs=-1,
+        n_random_points: int = 10,
+        len_method: str = "both",
+        nb_inst_per_class: int = 10,
+        seed: int = None,
+        n_jobs: int = 1,  # Parllel Processing
     ):
         self.n_random_points = n_random_points
         self.len_method = len_method
@@ -113,7 +115,7 @@ class RSAST(BaseCollectionTransformer):
         self._kernels_generators = {}  # Reference time series
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, List]) -> "RSAST":
         from scipy.stats import ConstantInputWarning, DegenerateDataWarning, f_oneway
         from statsmodels.tsa.stattools import acf, pacf
 
@@ -300,7 +302,9 @@ class RSAST(BaseCollectionTransformer):
 
         return self
 
-    def _transform(self, X, y=None):
+    def _transform(
+        self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None
+    ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 
         Parameters
