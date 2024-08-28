@@ -113,7 +113,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         self,
         n_clusters=None,
         estimator=None,
-        clustering_algorithm="kmeans",
+        clustering_algorithm="deprecated",
         clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
