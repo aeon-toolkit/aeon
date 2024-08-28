@@ -2,6 +2,8 @@
 
 __maintainer__ = []
 
+import warnings
+
 import numpy as np
 
 from aeon.networks.base import BaseDeepLearningNetwork
@@ -30,9 +32,10 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
     n_filters: Union[int, List[int]], default=None
         Number of filters used in convolution layers of the encoder. Defaults
         to a list of multiples of `32` for `n_layers` elements.
-    dilation_rate: Union[int, List[int]], default=None
+    dilation_rate: Union[int, List[int]], default=1
         The dilation rate for convolution of the encoder. Defaults to a list
-        of powers of `2` for `n_layers` elements.
+        of powers of `2` for `n_layers` elements. `dilation_rate` greater than
+        `1` is not supported on `Conv1DTranspose` for some devices/OS.
     padding_encoder: Union[str, List[str]], default="same"
         The padding string for the encoder layers. Defaults to a list of "same"
         for `n_layers` elements. Valid strings are "causal", "valid", "same" or
@@ -63,7 +66,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         kernel_size=3,
         activation="relu",
         n_filters=None,
-        dilation_rate=None,
+        dilation_rate=1,
         padding_encoder="same",
         padding_decoder="same",
     ):
@@ -145,6 +148,16 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         elif isinstance(self.padding_decoder, list):
             self._padding_decoder = self.padding_decoder
             assert len(self._padding_decoder) == self.n_layers
+
+        if np.any(np.array(self._dilation_rate_encoder) > 1):
+            warnings.warn(
+                """Current network configuration contains `dilation_rate`
+                more than 1, which is not supported by
+                `tensorflow.keras.layers.Conv1DTranspose`layer for certain
+                hardware architectures and/or Operating Systems.""",
+                UserWarning,
+                stacklevel=2,
+            )
 
         input_layer = tf.keras.layers.Input(input_shape)
 
