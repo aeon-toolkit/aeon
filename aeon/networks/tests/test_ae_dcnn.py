@@ -16,7 +16,7 @@ def test_default_initialization():
     assert model.latent_space_dim == 128
     assert model.kernel_size == 3
     assert model.n_layers == 4
-    assert model.dilation_rate is None
+    assert model.dilation_rate == 1
     assert model.activation == "relu"
     assert not model.temporal_latent_space
 
