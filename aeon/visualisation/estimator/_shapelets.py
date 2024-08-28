@@ -5,6 +5,7 @@ __maintainer__ = ["baraline"]
 __all__ = ["ShapeletClassifierVisualizer", "ShapeletTransformerVisualizer"]
 
 import copy
+import warnings
 
 import numpy as np
 from sklearn.ensemble._forest import BaseForest
@@ -699,6 +700,15 @@ class ShapeletClassifierVisualizer:
 
                     # Append the two modified coefs arrays along axis 0
                     coefs = np.append(class_0_coefs, class_1_coefs, axis=0)
+                    warnings.warn(
+                        "Shapelet importance ranking may be unreliable "
+                        "when using linear classifiers with RDST. "
+                        "This is due to the interaction between argmin "
+                        "and shapelet occurrence features, which can distort "
+                        "the rankings. Consider evaluating the results carefully "
+                        "or using an alternative method.",
+                        stacklevel=1,
+                    )
                 else:
                     coefs = np.append(coefs, -coefs, axis=0)
             coefs = coefs[class_id]
