@@ -12,7 +12,10 @@ from aeon.similarity_search.distance_profiles.squared_distance_profile import (
 
 
 def euclidean_distance_profile(
-    X: np.ndarray, q: np.ndarray, mask: np.ndarray
+    X: np.ndarray,
+    q: np.ndarray,
+    mask: np.ndarray,
+    channel_independent: bool = True,
 ) -> np.ndarray:
     """
     Compute a distance profile using the squared Euclidean distance.
@@ -41,8 +44,12 @@ def euclidean_distance_profile(
 
     """
     distance_profiles = squared_distance_profile(X, q, mask)
-    for i in range(len(distance_profiles)):
-        distance_profiles[i] = distance_profiles[i] ** 0.5
+    if channel_independent:  # Channel independent case
+        for i in range(len(distance_profiles)):
+            distance_profiles[i] = distance_profiles[i] ** 0.5
+    else:  # Channel dependent case
+        distance_profiles = np.sum(distance_profiles, axis=1)
+        distance_profiles = distance_profiles**0.5
     return distance_profiles
 
 
@@ -54,6 +61,7 @@ def normalized_euclidean_distance_profile(
     X_stds: np.ndarray,
     q_means: np.ndarray,
     q_stds: np.ndarray,
+    channel_independent: bool = True,
 ) -> np.ndarray:
     """
     Compute a distance profile in a brute force way.
@@ -92,7 +100,12 @@ def normalized_euclidean_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
     # Sum the squared distances across channels
-    distance_profiles = np.sum(distance_profiles, axis=1)
-    # Take the square root to get the Euclidean distance
-    distance_profiles = distance_profiles**0.5
+    if channel_independent:
+        for i in range(len(distance_profiles)):
+            distance_profiles[i] = distance_profiles[i] ** 0.5
+    else:
+        distance_profiles = np.sum(distance_profiles, axis=1)
+        # Take the square root to get the Euclidean distance
+        distance_profiles = distance_profiles**0.5
+
     return distance_profiles
