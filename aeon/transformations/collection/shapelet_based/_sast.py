@@ -1,3 +1,5 @@
+from typing import List, Optional, Union
+
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
@@ -7,7 +9,7 @@ from aeon.utils.validation import check_n_jobs
 
 
 @njit(fastmath=False)
-def _apply_kernel(ts, arr):
+def _apply_kernel(ts: np.ndarray, arr: np.ndarray) -> float:
     d_best = np.inf  # sdist
     m = ts.shape[0]
     kernel = arr[~np.isnan(arr)]  # ignore nan
@@ -22,7 +24,7 @@ def _apply_kernel(ts, arr):
 
 
 @njit(parallel=True, fastmath=True)
-def _apply_kernels(X, kernels):
+def _apply_kernels(X: np.ndarray, kernels: np.ndarray) -> np.ndarray:
     nbk = len(kernels)
     out = np.zeros((X.shape[0], nbk), dtype=np.float32)
     for i in prange(nbk):
@@ -88,11 +90,11 @@ class SAST(BaseCollectionTransformer):
 
     def __init__(
         self,
-        lengths=None,
-        stride=1,
-        nb_inst_per_class=1,
-        seed=None,
-        n_jobs=-1,
+        lengths: Optional[np.ndarray] = None,
+        stride: int = 1,
+        nb_inst_per_class: int = 1,
+        seed: Optional[int] = None,
+        n_jobs: int = 1,  # Parallel processing
     ):
         super().__init__()
         self.lengths = lengths
@@ -104,7 +106,7 @@ class SAST(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.seed = seed
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, List]) -> "SAST":
         """Select reference time series and generate subsequences from them.
 
         Parameters
@@ -171,7 +173,9 @@ class SAST(BaseCollectionTransformer):
                     k += 1
         return self
 
-    def _transform(self, X, y=None):
+    def _transform(
+        self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None
+    ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 
         Parameters
