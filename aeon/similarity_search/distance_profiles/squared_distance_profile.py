@@ -3,6 +3,8 @@
 __maintainer__ = ["baraline"]
 
 
+from typing import Union
+
 import numpy as np
 from numba import njit, prange
 from numba.typed import List
@@ -11,7 +13,9 @@ from aeon.similarity_search.distance_profiles._commons import fft_sliding_dot_pr
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 
-def squared_distance_profile(X, q, mask):
+def squared_distance_profile(
+    X: Union[np.ndarray, List], q: np.ndarray, mask: np.ndarray
+) -> np.ndarray:
     """
     Compute a distance profile using the squared Euclidean distance.
 
@@ -22,19 +26,19 @@ def squared_distance_profile(X, q, mask):
 
     Parameters
     ----------
-    X: array shape (n_cases, n_channels, n_timepoints)
-        The input samples. If X is an unquel length collection, expect a TypedList
-        of 2D arrays of shape (n_channels, n_timepoints)
-    q : np.ndarray shape (n_channels, query_length)
+    X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a numba TypedList
+        2D array of shape (n_channels, n_timepoints)
+    q : np.ndarray, 2D array of shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_cases, n_timepoints - query_length + 1)
+    mask : np.ndarray, 3D array of shape (n_cases, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
 
     Returns
     -------
     distance_profile : np.ndarray
-        shape (n_cases, n_channels, n_timepoints - query_length + 1)
+        3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
         The distance profile between q and the input time series X independently
         for each channel.
 
@@ -51,14 +55,14 @@ def squared_distance_profile(X, q, mask):
 
 
 def normalized_squared_distance_profile(
-    X,
-    q,
-    mask,
-    X_means,
-    X_stds,
-    q_means,
-    q_stds,
-):
+    X: Union[np.ndarray, List],
+    q: np.ndarray,
+    mask: np.ndarray,
+    X_means: np.ndarray,
+    X_stds: np.ndarray,
+    q_means: np.ndarray,
+    q_stds: np.ndarray,
+) -> np.ndarray:
     """
     Compute a distance profile in a brute force way.
 
@@ -68,27 +72,27 @@ def normalized_squared_distance_profile(
 
     Parameters
     ----------
-    X : array, shape (n_cases, n_channels, n_timepoints)
-        The input samples. If X is an unquel length collection, expect a TypedList
-        of 2D arrays of shape (n_channels, n_timepoints)
-    q : array, shape (n_channels, query_length)
+    X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a numba TypedList
+        2D array of shape (n_channels, n_timepoints)
+    q : np.ndarray, 2D array of shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_cases, n_timepoints - query_length + 1)
+    mask : np.ndarray, 3D array of shape (n_cases, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
-    X_means : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Means of each subsequences of X of size query_length
-    X_stds : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    X_stds : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Stds of each subsequences of X of size query_length
-    q_means : array, shape (n_channels)
+    q_means : np.ndarray, 1D array of shape (n_channels)
         Means of the query q
-    q_stds : array, shape (n_channels)
+    q_stds : np.ndarray, 1D array of shape (n_channels)
         Stds of the query q
 
     Returns
     -------
     distance_profiles : np.ndarray
-        shape (n_cases, n_channels, n_timepoints - query_length + 1).
+        3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
         The distance profile between q and the input time series X independently
         for each channel.
 
