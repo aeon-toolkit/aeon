@@ -40,8 +40,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
     kernel_size : int or list of int, default = 3
         Size of convolution kernel in the encoder.
     dilation_rate : int or list of int, default = 1
-        The dilation rate for convolution in the encoder. 
-        `dilation_rate` greater than `1` is not supported on 
+        The dilation rate for convolution in the encoder.
+        `dilation_rate` greater than `1` is not supported on
         `Conv1DTranspose` for some devices/OS.
     activation : str or list of str, default = "relu"
         Activation used after the convolution in the encoder.
