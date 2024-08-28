@@ -32,7 +32,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
     n_filters: Union[int, List[int]], default=None
         Number of filters used in convolution layers of the encoder. Defaults
         to a list of multiples of `32` for `n_layers` elements.
-    dilation_rate: Union[int, List[int]], default=None
+    dilation_rate: Union[int, List[int]], default=1
         The dilation rate for convolution of the encoder. Defaults to a list
         of powers of `2` for `n_layers` elements. `dilation_rate` greater than
         `1` is not supported on `Conv1DTranspose` for some devices/OS.
