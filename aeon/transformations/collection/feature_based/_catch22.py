@@ -221,6 +221,31 @@ class Catch22(BaseCollectionTransformer):
 
         threads_to_use = check_n_jobs(self.n_jobs)
 
+        features = [
+            Catch22._DN_HistogramMode_5,
+            Catch22._DN_HistogramMode_10,
+            Catch22._CO_f1ecac,
+            Catch22._CO_FirstMin_ac,
+            Catch22._CO_HistogramAMI_even_2_5,
+            Catch22._CO_trev_1_num,
+            Catch22._MD_hrv_classic_pnn40,
+            Catch22._SB_BinaryStats_mean_longstretch1,
+            Catch22._SB_TransitionMatrix_3ac_sumdiagcov,
+            Catch22._PD_PeriodicityWang_th0_01,
+            Catch22._CO_Embed2_Dist_tau_d_expfit_meandiff,
+            Catch22._IN_AutoMutualInfoStats_40_gaussian_fmmi,
+            Catch22._FC_LocalSimple_mean1_tauresrat,
+            Catch22._DN_OutlierInclude_p_001_mdrmd,
+            Catch22._DN_OutlierInclude_n_001_mdrmd,
+            Catch22._SP_Summaries_welch_rect_area_5_1,
+            Catch22._SB_BinaryStats_diff_longstretch0,
+            Catch22._SB_MotifThree_quantile_hh,
+            Catch22._SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
+            Catch22._SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
+            Catch22._SP_Summaries_welch_rect_centroid,
+            Catch22._FC_LocalSimple_mean3_stderr,
+        ]
+
         use_pycatch22_transform = False
         if self.use_pycatch22:
             if _check_soft_dependencies("pycatch22", severity="none"):
@@ -258,56 +283,6 @@ class Catch22(BaseCollectionTransformer):
                     "Please install pycatch22. Aeon catch22 will be used.",
                     stacklevel=2,
                 )
-                features = [
-                    Catch22._DN_HistogramMode_5,
-                    Catch22._DN_HistogramMode_10,
-                    Catch22._CO_f1ecac,
-                    Catch22._CO_FirstMin_ac,
-                    Catch22._CO_HistogramAMI_even_2_5,
-                    Catch22._CO_trev_1_num,
-                    Catch22._MD_hrv_classic_pnn40,
-                    Catch22._SB_BinaryStats_mean_longstretch1,
-                    Catch22._SB_TransitionMatrix_3ac_sumdiagcov,
-                    Catch22._PD_PeriodicityWang_th0_01,
-                    Catch22._CO_Embed2_Dist_tau_d_expfit_meandiff,
-                    Catch22._IN_AutoMutualInfoStats_40_gaussian_fmmi,
-                    Catch22._FC_LocalSimple_mean1_tauresrat,
-                    Catch22._DN_OutlierInclude_p_001_mdrmd,
-                    Catch22._DN_OutlierInclude_n_001_mdrmd,
-                    Catch22._SP_Summaries_welch_rect_area_5_1,
-                    Catch22._SB_BinaryStats_diff_longstretch0,
-                    Catch22._SB_MotifThree_quantile_hh,
-                    Catch22._SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
-                    Catch22._SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
-                    Catch22._SP_Summaries_welch_rect_centroid,
-                    Catch22._FC_LocalSimple_mean3_stderr,
-                ]
-
-        if not self.use_pycatch22:
-            features = [
-                Catch22._DN_HistogramMode_5,
-                Catch22._DN_HistogramMode_10,
-                Catch22._CO_f1ecac,
-                Catch22._CO_FirstMin_ac,
-                Catch22._CO_HistogramAMI_even_2_5,
-                Catch22._CO_trev_1_num,
-                Catch22._MD_hrv_classic_pnn40,
-                Catch22._SB_BinaryStats_mean_longstretch1,
-                Catch22._SB_TransitionMatrix_3ac_sumdiagcov,
-                Catch22._PD_PeriodicityWang_th0_01,
-                Catch22._CO_Embed2_Dist_tau_d_expfit_meandiff,
-                Catch22._IN_AutoMutualInfoStats_40_gaussian_fmmi,
-                Catch22._FC_LocalSimple_mean1_tauresrat,
-                Catch22._DN_OutlierInclude_p_001_mdrmd,
-                Catch22._DN_OutlierInclude_n_001_mdrmd,
-                Catch22._SP_Summaries_welch_rect_area_5_1,
-                Catch22._SB_BinaryStats_diff_longstretch0,
-                Catch22._SB_MotifThree_quantile_hh,
-                Catch22._SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1,
-                Catch22._SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1,
-                Catch22._SP_Summaries_welch_rect_centroid,
-                Catch22._FC_LocalSimple_mean3_stderr,
-            ]
 
         c22_list = Parallel(
             n_jobs=threads_to_use, backend=self.parallel_backend, prefer="threads"
