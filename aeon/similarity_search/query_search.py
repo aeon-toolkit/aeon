@@ -274,7 +274,6 @@ class QuerySearch(BaseSimilaritySearch):
         """
         if self.store_distance_profiles:
             self.distance_profiles_ = distance_profiles
-
         # Define id sample and timestamp to not "loose" them due to concatenation
         id_timestamps = np.concatenate(
             [np.arange(distance_profiles[i].shape[0]) for i in range(self.n_cases_)]
@@ -570,6 +569,7 @@ class QuerySearch(BaseSimilaritySearch):
                 )
             else:
                 distance_profiles = self.distance_profile_function_(self.X_, X, mask)
+
         # For now, deal with the multidimensional case as "dependent", so we sum.
         if self.metadata_["unequal_length"]:
             distance_profiles = List(
@@ -577,6 +577,7 @@ class QuerySearch(BaseSimilaritySearch):
             )
         else:
             distance_profiles = distance_profiles.sum(axis=1)
+
         return distance_profiles
 
     def _store_mean_std_from_inputs(self, query_length: int) -> None:

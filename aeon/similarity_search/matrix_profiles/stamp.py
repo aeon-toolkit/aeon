@@ -1,4 +1,4 @@
-"""Naive distance profile computation."""
+"""Implementation of STAMP for euclidean and squared euclidean distance profile."""
 
 __maintainer__ = ["baraline"]
 
@@ -6,12 +6,13 @@ __maintainer__ = ["baraline"]
 from typing import Optional, Union
 
 import numpy as np
+from numba import njit, prange
 from numba.typed import List
 
-from aeon.similarity_search.query_search import QuerySearch
+# def stamp_euclidean_matrix_profile()
 
 
-def naive_matrix_profile(
+def stamp_squared_matrix_profile(
     X: Union[np.ndarray, List],
     T: np.ndarray,
     length: int,
@@ -28,7 +29,10 @@ def naive_matrix_profile(
     apply_exclusion_to_result: bool = True,
 ):
     """
-    Compute a matrix profile in a naive way, by looping through a query search.
+    Compute a squared euclidean matrix profile using STAMP [1]_.
+
+    This improves on the naive matrix profile by updating the dot products for each
+    sucessive query in T instead of recomputing them.
 
     Parameters
     ----------
@@ -84,6 +88,12 @@ def naive_matrix_profile(
         at :math:`id_timestamp`, the second best match will be located at
         :math:`id_timestamp` +/- 1, as they both share all their values except one.
 
+    References
+    ----------
+    .. [1] Matrix Profile I: All Pairs Similarity Joins for Time Series: A Unifying View
+    that Includes Motifs, Discords and Shapelets. Chin-Chia Michael Yeh, Yan Zhu,
+    Liudmila Ulanova, Nurjahan Begum, Yifei Ding, Hoang Anh Dau, Diego Furtado Silva,
+    Abdullah Mueen, Eamonn Keogh (2016). IEEE ICDM 2016
 
     Returns
     -------
@@ -96,30 +106,52 @@ def naive_matrix_profile(
         retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
     """
-    search = QuerySearch(
-        k=k,
-        threshold=threshold,
-        distance=distance,
-        distance_args=distance_args,
-        inverse_distance=inverse_distance,
-        normalize=normalize,
-        speed_up=speed_up,
-        n_jobs=n_jobs,
-    )
-    search.fit(X)
+    pass
 
-    results = [
-        search.predict(
-            T[:, i : i + length],
-            X_index=(X_index, i) if X_index is not None else None,
-            apply_exclusion_to_result=apply_exclusion_to_result,
-            exclusion_factor=exclusion_factor,
-        )
-        for i in range(T.shape[1] - length + 1)
-    ]
-    MP = np.empty((T.shape[1] - length + 1, k), dtype=float)
-    IP = np.empty((T.shape[1] - length + 1, k, 2), dtype=int)
-    for i in range(len(results)):
-        MP[i] = results[i][0]
-        IP[i] = results[i][1]
-    return MP, IP
+
+@njit(cache=True, fastmath=True)
+def _update_dot_product(
+    X,
+    T,
+    XT_products,
+    L,
+    i_query,
+):
+    """
+    Update dot products of the i-th query of size L in T from the dot products of i-1.
+
+    Parameters
+    ----------
+    X: np.ndarray, 2D array of shape (n_channels, n_timepoints)
+        Input time series on which the sliding dot product is computed.
+    T: np.ndarray, 2D array of shape (n_channels, series_length)
+        The series used for similarity search. Note that series_length can be equal,
+        superior or inferior to n_timepoints, it doesn't matter.
+    L : int
+        The length of the subsequences considered during the search. This parameter
+        cannot be larger than n_timepoints and series_length.
+    i_query : int
+        Query starting index in T.
+
+    Returns
+    -------
+    XT_products : np.ndarray, 2D array of shape (n_channels, n_timepoints - L + 1)
+        Sliding dot product between the i-th subsequence of size L in T and X..
+
+    """
+    n_channels = T.shape[0]
+    n_timepoints = X.shape[1]
+    n_candidates = n_timepoints - L + 1
+
+    if i_query > 0:
+        Q = T[:, i_query : i_query + L]
+        # first element of all 0 to n-1 candidates * first element of previous query
+        _a1 = X[:, : n_candidates - 1] * T[:, i_query - 1][:, np.newaxis]
+        # last element of all 1 to n candidates * last element of current query
+        _a2 = X[:, L : L - 1 + n_candidates] * T[:, i_query + L - 1][:, np.newaxis]
+
+        XT_products[:, 1:] = XT_products[:, :-1] - _a1 + _a2
+        # Compute first dot product
+        for i_ft in prange(n_channels):
+            XT_products[i_ft, 0] = np.sum(Q[i_ft] * X[i_ft, :L])
+    return XT_products

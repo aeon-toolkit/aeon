@@ -9,7 +9,7 @@ import numpy as np
 from numba import njit, prange
 from numba.typed import List
 
-from aeon.similarity_search.distance_profiles._commons import fft_sliding_dot_product
+from aeon.similarity_search._commons import fft_sliding_dot_product
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 
