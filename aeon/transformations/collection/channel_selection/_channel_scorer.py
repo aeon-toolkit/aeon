@@ -1,3 +1,4 @@
+import logging
 import math
 from typing import Dict
 from typing import List as TypingList
@@ -10,10 +11,15 @@ from aeon.base import BaseEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.convolution_based._rocket_classifier import RocketClassifier
 from aeon.regression.base import BaseRegressor
+from aeon.regression.convolution_based._rocket_regressor import RocketRegressor
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["ChannelScorer"]
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class ChannelScorer(BaseChannelSelector):
@@ -28,9 +34,6 @@ class ChannelScorer(BaseChannelSelector):
 
     Parameters
     ----------
-    estimator: BaseEstimator, default: None
-        The classifier or regressor to be used for scoring channels.
-    classifier: BaseClassifier, default = MiniROCKET
     proportion : float, default = 0.2
         Proportion of channels to keep, rounded up to nearest integer.
 
@@ -73,13 +76,28 @@ class ChannelScorer(BaseChannelSelector):
         if self.proportion <= 0 or self.proportion > 1:
             raise ValueError("proportion must be in the range 0-1")
 
+        # Determine the default estimator based on the type of y
         if self.estimator is None:
-            # Default to a classifier if no estimator is provided
-            self.estimator_ = RocketClassifier(
-                rocket_transform="minirocket", num_kernels=5000
-            )
-            scoring_function = accuracy_score
-            score_sign = 1
+            if np.issubdtype(np.array(y).dtype, np.integer) or np.issubdtype(
+                np.array(y).dtype, np.str_
+            ):
+                # Default to a classifier if y is int or str
+                self.estimator_ = RocketClassifier(
+                    rocket_transform="minirocket", num_kernels=5000
+                )
+                scoring_function = accuracy_score
+                score_sign = 1  # Higher accuracy is better, hence positive sign
+                logger.info("Automatically selected a classifier based on y type.")
+            elif np.issubdtype(np.array(y).dtype, np.float_):
+                # Default to a regressor if y is float
+                self.estimator_ = RocketRegressor(
+                    rocket_transform="minirocket", num_kernels=5000
+                )
+                scoring_function = mean_squared_error
+                score_sign = -1  # Lower MSE is better, hence negative sign
+                logger.info("Automatically selected a regressor based on y type.")
+            else:
+                raise ValueError("y must be of type int, float, or str.")
         elif isinstance(self.estimator, BaseClassifier):
             self.estimator_ = self.estimator.clone()
             scoring_function = accuracy_score
