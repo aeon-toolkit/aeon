@@ -4,6 +4,7 @@ __maintainer__ = ["baraline"]
 
 
 import numpy as np
+
 from aeon import List
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (
     normalized_squared_distance_profile,
@@ -54,16 +55,17 @@ def euclidean_distance_profile(
             distance_profiles = List([dp.sum(axis=0) for dp in distance_profiles])
         else:
             distance_profiles = List([dp.sum(axis=0) for dp in distance_profiles])
-            distance_profiles = List([dp ** 0.5 for dp in distance_profiles])
+            distance_profiles = List([dp**0.5 for dp in distance_profiles])
     else:  # Equal length case
         if channel_independent:
-            distance_profiles = distance_profiles ** 0.5
+            distance_profiles = distance_profiles**0.5
             distance_profiles = distance_profiles.sum(axis=1)
         else:
             distance_profiles = distance_profiles.sum(axis=1)
-            distance_profiles = distance_profiles ** 0.5
-    
+            distance_profiles = distance_profiles**0.5
+
     return distance_profiles
+
 
 def normalized_euclidean_distance_profile(
     X: np.ndarray,
@@ -101,6 +103,7 @@ def normalized_euclidean_distance_profile(
         Stds of the query q
     channel_independent : bool, default=False
         whether to compute distances independently for each channel or not.
+
     Returns
     -------
     distance_profiles : np.ndarray
@@ -121,13 +124,13 @@ def normalized_euclidean_distance_profile(
             distance_profiles = List([dp.sum(axis=0) for dp in distance_profiles])
         else:
             distance_profiles = List([dp.sum(axis=0) for dp in distance_profiles])
-            distance_profiles = List([dp ** 0.5 for dp in distance_profiles])
+            distance_profiles = List([dp**0.5 for dp in distance_profiles])
     else:  # Equal length case
         if channel_independent:
-            distance_profiles = distance_profiles ** 0.5
+            distance_profiles = distance_profiles**0.5
             distance_profiles = distance_profiles.sum(axis=1)
         else:
             distance_profiles = distance_profiles.sum(axis=1)
-            distance_profiles = distance_profiles ** 0.5
+            distance_profiles = distance_profiles**0.5
 
     return distance_profiles

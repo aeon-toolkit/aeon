@@ -14,7 +14,10 @@ from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 
 def squared_distance_profile(
-    X: Union[np.ndarray, List], q: np.ndarray, mask: np.ndarray, channel_independent: bool = False,
+    X: Union[np.ndarray, List],
+    q: np.ndarray,
+    mask: np.ndarray,
+    channel_independent: bool = False,
 ) -> np.ndarray:
     """
     Compute a distance profile using the squared Euclidean distance.
@@ -49,7 +52,7 @@ def squared_distance_profile(
     elif isinstance(X, List):
         QX = List(QX)
     distance_profiles = _squared_distance_profile(QX, X, q, mask)
-    
+
     # Handle channel-independent and channel-dependent cases
     if channel_independent and isinstance(X, List):
         distance_profiles = List(

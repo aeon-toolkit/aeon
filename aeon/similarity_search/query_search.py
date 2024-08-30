@@ -540,7 +540,10 @@ class QuerySearch(BaseSimilaritySearch):
                     self.query_means_,
                     self.query_stds_,
                     self.distance_function_,
-                    self.X_, X, mask, self.channel_independent,
+                    self.X_,
+                    X,
+                    mask,
+                    self.channel_independent,
                     distance_args=self.distance_args,
                 )
             else:
@@ -549,7 +552,11 @@ class QuerySearch(BaseSimilaritySearch):
                     X,
                     mask,
                     self.distance_function_,
-                    self.X_, X, mask, self.speed_up_, self.channel_independent,
+                    self.X_,
+                    X,
+                    mask,
+                    self.speed_up_,
+                    self.channel_independent,
                     distance_args=self.distance_args,
                 )
         else:
