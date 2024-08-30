@@ -14,7 +14,7 @@ from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 
 def squared_distance_profile(
-    X: Union[np.ndarray, List], q: np.ndarray, mask: np.ndarray
+    X: Union[np.ndarray, List], q: np.ndarray, mask: np.ndarray, channel_independent: bool = False,
 ) -> np.ndarray:
     """
     Compute a distance profile using the squared Euclidean distance.
@@ -49,8 +49,23 @@ def squared_distance_profile(
     elif isinstance(X, List):
         QX = List(QX)
     distance_profiles = _squared_distance_profile(QX, X, q, mask)
-    if isinstance(X, np.ndarray):
-        distance_profiles = np.asarray(distance_profiles)
+    
+    # Handle channel-independent and channel-dependent cases
+    if channel_independent and isinstance(X, List):
+        distance_profiles = List(
+            [distance_profiles[i].sum(axis=0) for i in range(len(X))]
+        )
+    elif channel_independent:
+        distance_profiles = distance_profiles.sum(axis=1)
+    elif not channel_independent and isinstance(X, List):
+        distance_profiles = List(
+            [distance_profiles[i].sum(axis=0) for i in range(len(X))]
+        )
+        distance_profiles = distance_profiles**0.5
+    else:
+        distance_profiles = distance_profiles.sum(axis=1)
+        distance_profiles = distance_profiles**0.5
+
     return distance_profiles
 
 
@@ -62,6 +77,7 @@ def normalized_squared_distance_profile(
     X_stds: np.ndarray,
     q_means: np.ndarray,
     q_stds: np.ndarray,
+    channel_independent: bool = False,
 ) -> np.ndarray:
     """
     Compute a distance profile in a brute force way.
@@ -107,8 +123,21 @@ def normalized_squared_distance_profile(
     distance_profiles = _normalized_squared_distance_profile(
         QX, mask, X_means, X_stds, q_means, q_stds, query_length
     )
-    if isinstance(X, np.ndarray):
-        distance_profiles = np.asarray(distance_profiles)
+    if channel_independent and isinstance(X, List):
+        distance_profiles = List(
+            [distance_profiles[i].sum(axis=0) for i in range(len(X))]
+        )
+    elif channel_independent:
+        distance_profiles = distance_profiles.sum(axis=1)
+    elif not channel_independent and isinstance(X, List):
+        distance_profiles = List(
+            [distance_profiles[i].sum(axis=0) for i in range(len(X))]
+        )
+        distance_profiles = distance_profiles**0.5
+    else:
+        distance_profiles = distance_profiles.sum(axis=1)
+        distance_profiles = distance_profiles**0.5
+
     return distance_profiles
 
 

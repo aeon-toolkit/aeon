@@ -4,7 +4,7 @@ __maintainer__ = ["baraline"]
 
 
 import numpy as np
-
+from aeon import List
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (
     normalized_squared_distance_profile,
     squared_distance_profile,
@@ -15,7 +15,7 @@ def euclidean_distance_profile(
     X: np.ndarray,
     q: np.ndarray,
     mask: np.ndarray,
-    channel_independent: bool = True,
+    channel_independent: bool = False,
 ) -> np.ndarray:
     """
     Compute a distance profile using the squared Euclidean distance.
@@ -34,6 +34,8 @@ def euclidean_distance_profile(
     mask : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
+    channel_independent : bool, default=False
+        whether to compute distances independently for each channel or not.
 
     Returns
     -------
@@ -44,14 +46,24 @@ def euclidean_distance_profile(
 
     """
     distance_profiles = squared_distance_profile(X, q, mask)
-    if channel_independent:  # Channel independent case
-        for i in range(len(distance_profiles)):
-            distance_profiles[i] = distance_profiles[i] ** 0.5
-    else:  # Channel dependent case
-        distance_profiles = np.sum(distance_profiles, axis=1)
-        distance_profiles = distance_profiles**0.5
+    if isinstance(distance_profiles, List):  # Unequal length case
+        n_cases = len(distance_profiles)
+        if channel_independent:
+            for i in range(n_cases):
+                distance_profiles[i] = distance_profiles[i] ** 0.5
+            distance_profiles = List([dp.sum(axis=0) for dp in distance_profiles])
+        else:
+            distance_profiles = List([dp.sum(axis=0) for dp in distance_profiles])
+            distance_profiles = List([dp ** 0.5 for dp in distance_profiles])
+    else:  # Equal length case
+        if channel_independent:
+            distance_profiles = distance_profiles ** 0.5
+            distance_profiles = distance_profiles.sum(axis=1)
+        else:
+            distance_profiles = distance_profiles.sum(axis=1)
+            distance_profiles = distance_profiles ** 0.5
+    
     return distance_profiles
-
 
 def normalized_euclidean_distance_profile(
     X: np.ndarray,
@@ -61,7 +73,7 @@ def normalized_euclidean_distance_profile(
     X_stds: np.ndarray,
     q_means: np.ndarray,
     q_stds: np.ndarray,
-    channel_independent: bool = True,
+    channel_independent: bool = False,
 ) -> np.ndarray:
     """
     Compute a distance profile in a brute force way.
@@ -87,7 +99,8 @@ def normalized_euclidean_distance_profile(
         Means of the query q
     q_stds : np.ndarray, 1D array of shape (n_channels)
         Stds of the query q
-
+    channel_independent : bool, default=False
+        whether to compute distances independently for each channel or not.
     Returns
     -------
     distance_profiles : np.ndarray
@@ -100,12 +113,21 @@ def normalized_euclidean_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
     # Sum the squared distances across channels
-    if channel_independent:
-        for i in range(len(distance_profiles)):
-            distance_profiles[i] = distance_profiles[i] ** 0.5
-    else:
-        distance_profiles = np.sum(distance_profiles, axis=1)
-        # Take the square root to get the Euclidean distance
-        distance_profiles = distance_profiles**0.5
+    if isinstance(distance_profiles, List):  # Unequal length case
+        n_cases = len(distance_profiles)
+        if channel_independent:
+            for i in range(n_cases):
+                distance_profiles[i] = distance_profiles[i] ** 0.5
+            distance_profiles = List([dp.sum(axis=0) for dp in distance_profiles])
+        else:
+            distance_profiles = List([dp.sum(axis=0) for dp in distance_profiles])
+            distance_profiles = List([dp ** 0.5 for dp in distance_profiles])
+    else:  # Equal length case
+        if channel_independent:
+            distance_profiles = distance_profiles ** 0.5
+            distance_profiles = distance_profiles.sum(axis=1)
+        else:
+            distance_profiles = distance_profiles.sum(axis=1)
+            distance_profiles = distance_profiles ** 0.5
 
     return distance_profiles

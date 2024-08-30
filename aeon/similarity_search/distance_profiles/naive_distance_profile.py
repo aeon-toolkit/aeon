@@ -158,7 +158,7 @@ def _naive_distance_profile(
     q,
     mask,
     numba_distance_function,
-    channel_independent: bool = True,
+    channel_independent: bool = False,
 ):
     distance_profiles = List()
     query_length = q.shape[1]
@@ -213,7 +213,7 @@ def _normalized_naive_distance_profile(
     q_means,
     q_stds,
     numba_distance_function,
-    channel_independent: bool = True,
+    channel_independent: bool = False,
 ):
     distance_profiles = List()
     query_length = q.shape[1]

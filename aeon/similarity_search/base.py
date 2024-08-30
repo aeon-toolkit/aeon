@@ -65,6 +65,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
         normalize: bool = False,
         speed_up: str = "fastest",
         n_jobs: int = 1,
+        channel_independent: bool = False,
     ):
         self.distance = distance
         self.distance_args = distance_args
@@ -72,6 +73,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
         self.normalize = normalize
         self.n_jobs = n_jobs
         self.speed_up = speed_up
+        self.channel_independent = channel_independent
         super().__init__()
 
     @final

@@ -540,6 +540,7 @@ class QuerySearch(BaseSimilaritySearch):
                     self.query_means_,
                     self.query_stds_,
                     self.distance_function_,
+                    self.X_, X, mask, self.channel_independent,
                     distance_args=self.distance_args,
                 )
             else:
@@ -548,6 +549,7 @@ class QuerySearch(BaseSimilaritySearch):
                     X,
                     mask,
                     self.distance_function_,
+                    self.X_, X, mask, self.speed_up_, self.channel_independent,
                     distance_args=self.distance_args,
                 )
         else:
@@ -564,12 +566,6 @@ class QuerySearch(BaseSimilaritySearch):
             else:
                 distance_profiles = self.distance_profile_function_(self.X_, X, mask)
         # For now, deal with the multidimensional case as "dependent", so we sum.
-        if self.metadata_["unequal_length"]:
-            distance_profiles = List(
-                [distance_profiles[i].sum(axis=0) for i in range(self.n_cases_)]
-            )
-        else:
-            distance_profiles = distance_profiles.sum(axis=1)
         return distance_profiles
 
     def _store_mean_std_from_inputs(self, query_length: int) -> None:
