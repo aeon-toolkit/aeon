@@ -149,11 +149,25 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             self._padding_decoder = self.padding_decoder
             assert len(self._padding_decoder) == self.n_layers
 
+        if self.dilation_rate == 1 or np.all(
+            np.array(self._dilation_rate_encoder) == 1
+        ):
+            warnings.warn(
+                """Currently, the dilation rate has been set to `1` which is
+            different from the original paper of the `AEDCNNNetwork` due to CPU
+            Implementation issues with `tensorflow.keras.layers.Conv1DTranspose`
+            & `dilation_rate` > 1 on some Hardwares & OS combinations. You
+            can use the dilation rates as specified in the paper by passing
+            `dilation_rate=None` to the Network/Clusterer.""",
+                UserWarning,
+                stacklevel=2,
+            )
+
         if np.any(np.array(self._dilation_rate_encoder) > 1):
             warnings.warn(
                 """Current network configuration contains `dilation_rate`
                 more than 1, which is not supported by
-                `tensorflow.keras.layers.Conv1DTranspose`layer for certain
+                `tensorflow.keras.layers.Conv1DTranspose` layer for certain
                 hardware architectures and/or Operating Systems.""",
                 UserWarning,
                 stacklevel=2,
