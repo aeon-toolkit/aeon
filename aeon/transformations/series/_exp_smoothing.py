@@ -34,14 +34,13 @@ class ExpSmoothingSeriesTransformer(BaseSeriesTransformer):
     --------
     >>> import numpy as np
     >>> from aeon.transformations.series._exp_smoothing import \
-    >>>     ExpSmoothingSeriesTransformer
+        ExpSmoothingSeriesTransformer
     >>> X = np.array([-2, -1,  0,  1,  2])
     >>> transformer = ExpSmoothingSeriesTransformer(0.5)
     >>> Xt = transformer.fit_transform(X)
     >>> print(Xt)
     [[-2.     -1.5    -0.75    0.125   1.0625]]
-    >>> X = np.array([[1, 2, 3, 4],
-    >>>               [10, 9, 8, 7]])
+    >>> X = np.array([[1, 2, 3, 4], [10, 9, 8, 7]])
     >>> Xt = transformer.fit_transform(X)
     >>> print(Xt)
     [[ 1.     1.5    2.25   3.125]
