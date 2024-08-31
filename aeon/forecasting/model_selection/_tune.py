@@ -386,68 +386,6 @@ class ForecastingGridSearchCV(BaseGridSearch):
     n_best_scores_: list of float
         The scores of n_best_forecasters_ sorted from best to worst
         score of forecasters
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_shampoo_sales
-    >>> from aeon.forecasting.model_selection import (
-    ...     ExpandingWindowSplitter,
-    ...     ForecastingGridSearchCV,
-    ...     ExpandingWindowSplitter)
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> y = load_shampoo_sales()
-    >>> fh = [1,2,3]
-    >>> cv = ExpandingWindowSplitter(fh=fh)
-    >>> forecaster = NaiveForecaster()
-    >>> param_grid = {"strategy" : ["last", "mean", "drift"]}
-    >>> gscv = ForecastingGridSearchCV(
-    ...     forecaster=forecaster,
-    ...     param_grid=param_grid,
-    ...     cv=cv,
-    ...     n_jobs=-1)
-    >>> gscv.fit(y)
-    ForecastingGridSearchCV(...)
-    >>> y_pred = gscv.predict(fh)
-
-        Advanced model meta-tuning (model selection) with multiple forecasters
-        together with hyper-parametertuning at same time using sklearn notation:
-    >>> from aeon.datasets import load_shampoo_sales
-    >>> from aeon.forecasting.exp_smoothing import ExponentialSmoothing
-    >>> from aeon.forecasting.naive import NaiveForecaster
-    >>> from aeon.forecasting.model_selection import ExpandingWindowSplitter
-    >>> from aeon.forecasting.model_selection import ForecastingGridSearchCV
-    >>> from aeon.forecasting.compose import TransformedTargetForecaster
-    >>> from aeon.forecasting.theta import ThetaForecaster
-    >>> from aeon.transformations.impute import Imputer
-    >>> y = load_shampoo_sales()
-    >>> pipe = TransformedTargetForecaster(steps=[
-    ...     ("imputer", Imputer()),
-    ...     ("forecaster", NaiveForecaster())])
-    >>> cv = ExpandingWindowSplitter(
-    ...     initial_window=24,
-    ...     step_length=12,
-    ...     fh=[1,2,3])
-    >>> gscv = ForecastingGridSearchCV(
-    ...     forecaster=pipe,
-    ...     param_grid=[{
-    ...         "forecaster": [NaiveForecaster(sp=12)],
-    ...         "forecaster__strategy": ["drift", "last", "mean"],
-    ...     },
-    ...     {
-    ...         "imputer__method": ["mean", "drift"],
-    ...         "forecaster": [ThetaForecaster(sp=12)],
-    ...     },
-    ...     {
-    ...         "imputer__method": ["mean", "median"],
-    ...         "forecaster": [ExponentialSmoothing(sp=12)],
-    ...         "forecaster__trend": ["add", "mul"],
-    ...     },
-    ...     ],
-    ...     cv=cv,
-    ...     n_jobs=-1)  # doctest: +SKIP
-    >>> gscv.fit(y)  # doctest: +SKIP
-    ForecastingGridSearchCV(...)
-    >>> y_pred = gscv.predict(fh=[1,2,3])  # doctest: +SKIP
     """
 
     def __init__(
