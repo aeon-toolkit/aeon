@@ -44,7 +44,7 @@ class ExpSmoothingSeriesTransformer(BaseSeriesTransformer):
     >>> Xt = transformer.fit_transform(X)
     >>> print(Xt)
     [[ 1.     1.5    2.25   3.125]
-    [10.     9.5    8.75   7.875]]
+     [10.     9.5    8.75   7.875]]
     """
 
     _tags = {
