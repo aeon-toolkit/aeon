@@ -12,23 +12,36 @@ DATATYPES = ["int64", "float64"]
 K_VALUES = [1, 3]
 
 
-@pytest.mark.parametrize("dtype", DATATYPES)
 @pytest.mark.parametrize("k", K_VALUES)
-def test_SeriesSearch_k(dtype, k):
+def test_SeriesSearch_naive(k):
     """Test the k and threshold combination of SeriesSearch."""
-    X = np.asarray(
-        [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
-    )
-    S = np.asarray([[3, 4, 5, 4, 3, 4]], dtype=dtype)
+    X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
+    S = np.asarray([[3, 4, 5, 4, 3, 4]])
+    L = 3
+
+    search = SeriesSearch(speed_up="naive")
+    search.fit(X)
+    mp, ip = search.predict(S, L)
+
+    assert mp[0].shape[0] == ip[0].shape[0] == k
+    assert len(mp) == len(ip) == S.shape[1] - L + 1
+    assert ip[0].shape[1] == 2
+
+
+@pytest.mark.parametrize("k", K_VALUES)
+def test_SeriesSearch_k(k):
+    """Test the k and threshold combination of SeriesSearch."""
+    X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
+    S = np.asarray([[3, 4, 5, 4, 3, 4]])
     L = 3
 
     search = SeriesSearch(k=k)
     search.fit(X)
     mp, ip = search.predict(S, L)
 
-    assert mp.shape[1] == ip.shape[1] == k
-    assert mp.shape[0] == ip.shape[0] == S.shape[1] - L + 1
-    assert ip.shape[2] == 2
+    assert mp[0].shape[0] == ip[0].shape[0] == k
+    assert len(mp) == len(ip) == S.shape[1] - L + 1
+    assert ip[0].shape[1] == 2
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

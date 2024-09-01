@@ -1,37 +1,59 @@
-"""Tests for naive Euclidean distance profile."""
+"""Tests for stomp algorithm."""
 
 __maintainer__ = ["baraline"]
 
 import numpy as np
 import pytest
 from numba.typed import List
-from numpy.testing import assert_almost_equal, assert_equal
+from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert_equal
 
 from aeon.distances import get_distance_function
-from aeon.similarity_search.matrix_profiles.naive_matrix_profile import (
-    naive_matrix_profile,
+from aeon.similarity_search._commons import get_ith_products
+from aeon.similarity_search.matrix_profiles.stomp import (
+    _update_dot_products,
+    stomp_squared_matrix_profile,
 )
 
 DATATYPES = ["float64", "int64"]
-DISTANCES = ["euclidean", "dtw"]
 K_VALUES = [1, 3]
 
 
+def test_update_dot_products():
+    """Test the _update_dot_product function."""
+    X = np.random.rand(1, 1, 50)
+    T = np.random.rand(1, 25)
+    L = 10
+    current_product = np.array([get_ith_products(X[0], T, L, 0)])
+    for i_query in range(1, T.shape[1] - L + 1):
+        new_product = get_ith_products(
+            X[0],
+            T,
+            L,
+            i_query,
+        )
+        current_product = _update_dot_products(
+            X,
+            T,
+            current_product,
+            L,
+            i_query,
+        )
+        assert_array_almost_equal(new_product, current_product[0])
+
+
 @pytest.mark.parametrize("dtype", DATATYPES)
-@pytest.mark.parametrize("distance_str", DISTANCES)
 @pytest.mark.parametrize("k", K_VALUES)
-def test_naive_matrix_profile(dtype, distance_str, k):
+def test_stomp_squared_matrix_profile(dtype, k):
     """Test naive series search."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
+
     S = np.asarray([[3, 4, 5, 4, 3, 4, 5, 3, 2, 4, 5]], dtype=dtype)
     L = 3
-
-    distance = get_distance_function(distance_str)
-    mp, ip = naive_matrix_profile(
-        X, S, L, distance=distance_str, k=k, apply_exclusion_to_result=False
-    )
+    mask = np.ones((X.shape[0], X.shape[2] - L + 1), dtype=bool)
+    distance = get_distance_function("squared")
+    mp, ip = stomp_squared_matrix_profile(X, S, L, mask, k=k)
 
     for i in range(S.shape[-1] - L + 1):
         q = S[:, i : i + L]
@@ -55,7 +77,7 @@ def test_naive_matrix_profile(dtype, distance_str, k):
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
-def test_naive_matrix_profile_unequal_length(dtype):
+def test_stomp_squared_matrix_profile_unequal_length(dtype):
     """Test naive distance with unequal length."""
     X = List(
         [
@@ -63,10 +85,17 @@ def test_naive_matrix_profile_unequal_length(dtype):
             np.array([[1, 2, 4, 4, 5, 6]], dtype=dtype),
         ]
     )
-    S = np.asarray([[3, 4, 5, 4, 3, 4, 5, 3, 2, 4, 5]], dtype=dtype)
     L = 3
-    distance = get_distance_function("euclidean")
-    mp, ip = naive_matrix_profile(X, S, L, distance="euclidean")
+    mask = List(
+        [
+            np.ones(X[0].shape[1] - L + 1, dtype=bool),
+            np.ones(X[1].shape[1] - L + 1, dtype=bool),
+        ]
+    )
+    S = np.asarray([[3, 4, 5, 4, 3, 4, 5, 3, 2, 4, 5]], dtype=dtype)
+
+    distance = get_distance_function("squared")
+    mp, ip = stomp_squared_matrix_profile(X, S, L, mask)
 
     for i in range(S.shape[-1] - L + 1):
         q = S[:, i : i + L]
@@ -82,24 +111,22 @@ def test_naive_matrix_profile_unequal_length(dtype):
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
-@pytest.mark.parametrize("distance_str", DISTANCES)
 @pytest.mark.parametrize("k", K_VALUES)
-def test_naive_matrix_profile_inverse(dtype, distance_str, k):
+def test_stomp_squared_matrix_profile_inverse(dtype, k):
     """Test naive series search for inverse distance."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
     S = np.asarray([[3, 4, 5, 4, 3, 4, 5, 3, 2, 4, 5]], dtype=dtype)
     L = 3
-
-    distance = get_distance_function(distance_str)
-    mp, ip = naive_matrix_profile(
+    mask = np.ones((X.shape[0], X.shape[2] - L + 1), dtype=bool)
+    distance = get_distance_function("squared")
+    mp, ip = stomp_squared_matrix_profile(
         X,
         S,
         L,
-        distance=distance_str,
+        mask,
         k=k,
-        apply_exclusion_to_result=False,
         inverse_distance=True,
     )
 

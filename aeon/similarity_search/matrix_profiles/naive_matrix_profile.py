@@ -117,8 +117,8 @@ def naive_matrix_profile(
         )
         for i in range(T.shape[1] - length + 1)
     ]
-    MP = np.empty((T.shape[1] - length + 1, k), dtype=float)
-    IP = np.empty((T.shape[1] - length + 1, k, 2), dtype=int)
+    MP = np.empty((T.shape[1] - length + 1), dtype=object)
+    IP = np.empty((T.shape[1] - length + 1), dtype=object)
     for i in range(len(results)):
         MP[i] = results[i][0]
         IP[i] = results[i][1]

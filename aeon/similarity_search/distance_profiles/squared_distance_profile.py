@@ -172,7 +172,7 @@ def _normalized_squared_distance_profile(
         i_instance = np.int_(_i_instance)
 
         distance_profiles[i_instance][:, mask[i_instance]] = (
-            _normalized_eucldiean_dist_profile_one_series(
+            _normalized_squared_dist_profile_one_series(
                 QX[i_instance],
                 X_means[i_instance],
                 X_stds[i_instance],
@@ -186,7 +186,7 @@ def _normalized_squared_distance_profile(
 
 
 @njit(cache=True, fastmath=True)
-def _normalized_eucldiean_dist_profile_one_series(
+def _normalized_squared_dist_profile_one_series(
     QT, T_means, T_stds, Q_means, Q_stds, query_length, Q_is_constant
 ):
     # Compute znormalized squared euclidean distance

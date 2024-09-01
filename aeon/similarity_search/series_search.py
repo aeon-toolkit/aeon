@@ -11,6 +11,13 @@ from numba.core.registry import CPUDispatcher
 from aeon.distances import get_distance_function
 from aeon.similarity_search.base import BaseSimilaritySearch
 from aeon.similarity_search.matrix_profiles import naive_matrix_profile
+from aeon.similarity_search.matrix_profiles.stomp import (
+    stomp_euclidean_matrix_profile,
+    stomp_normalized_euclidean_matrix_profile,
+    stomp_normalized_squared_matrix_profile,
+    stomp_squared_matrix_profile,
+)
+from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
 class SeriesSearch(BaseSimilaritySearch):
@@ -127,7 +134,7 @@ class SeriesSearch(BaseSimilaritySearch):
     def predict(
         self,
         X: np.ndarray,
-        length: int = 1,
+        length: int,
         axis: int = 1,
         X_index=None,
         exclusion_factor=2.0,
@@ -157,19 +164,19 @@ class SeriesSearch(BaseSimilaritySearch):
         exclusion_factor : float, default=2.
             The factor to apply to the query length to define the exclusion zone. The
             exclusion zone is define from
-            :math:`id_timestamp - query_length//exclusion_factor` to
-            :math:`id_timestamp + query_length//exclusion_factor`. This also applies to
+            ``id_timestamp - query_length//exclusion_factor`` to
+            ``id_timestamp + query_length//exclusion_factor``. This also applies to
             the matching conditions defined by child classes. For example, with
             TopKSimilaritySearch, the k best matches are also subject to the exclusion
             zone, but with :math:`id_timestamp` the index of one of the k matches.
         apply_exclusion_to_result : bool, default=False
             Wheter to apply the exclusion factor to the output of the similarity search.
             This means that two matches of the query from the same sample must be at
-            least spaced by +/- :math:`query_length//exclusion_factor`.
+            least spaced by +/- ``query_length//exclusion_factor``.
             This can avoid pathological matching where, for example if we extract the
             best two matches, there is a high chance that if the best match is located
-            at :math:`id_timestamp`, the second best match will be located at
-            :math:`id_timestamp` +/- 1, as they both share all their values except one.
+            at ``id_timestamp``, the second best match will be located at
+            ``id_timestamp`` +/- 1, as they both share all their values except one.
 
         Raises
         ------
@@ -192,13 +199,49 @@ class SeriesSearch(BaseSimilaritySearch):
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
         series_dim, series_length = self._check_series_format(X, length, axis)
+
+        mask = self._init_X_index_mask(
+            None if X_index is None else [X_index, 0],
+            length,
+            exclusion_factor=exclusion_factor,
+        )
+
+        if self.normalize and self.matrix_profile_function_ is not naive_matrix_profile:
+            _mean, _std = sliding_mean_std_one_series(X, length, 1)
+            self.T_means_ = _mean
+            self.T_stds_ = _std
+            if self._previous_query_length != length:
+                self._store_mean_std_from_inputs(length)
+
+        if apply_exclusion_to_result:
+            exclusion_size = length // exclusion_factor
+        else:
+            exclusion_size = None
+
+        self._previous_query_length = length
+
         X_preds = self._predict(
-            X, length, X_index, exclusion_factor, apply_exclusion_to_result
+            X,
+            length,
+            mask,
+            exclusion_size,
+            X_index,
+            exclusion_factor,
+            apply_exclusion_to_result,
         )
         set_num_threads(prev_threads)
         return X_preds
 
-    def _predict(self, X, length, X_index, exclusion_factor, apply_exclusion_to_result):
+    def _predict(
+        self,
+        X,
+        length,
+        mask,
+        exclusion_size,
+        X_index,
+        exclusion_factor,
+        apply_exclusion_to_result,
+    ):
         """
         Call the matrix profile function.
 
@@ -214,28 +257,17 @@ class SeriesSearch(BaseSimilaritySearch):
             shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
             the time series are in rows, i.e. the shape of the data is
             ``(n_channels,n_timepoints)``.
-        X_index : int
-            An integer indicating if X was extracted is part of the dataset that was
-            given during the fit method. If so, this integer should be the sample id.
-            The search will define an exclusion zone for the queries extarcted from X
-            in order to avoid matching with themself. If None, it is considered that
-            the query is not extracted from X_.
-        exclusion_factor : float, default=2.
-            The factor to apply to the query length to define the exclusion zone. The
-            exclusion zone is define from
-            :math:`id_timestamp - query_length//exclusion_factor` to
-            :math:`id_timestamp + query_length//exclusion_factor`. This also applies to
-            the matching conditions defined by child classes. For example, with
-            TopKSimilaritySearch, the k best matches are also subject to the exclusion
-            zone, but with :math:`id_timestamp` the index of one of the k matches.
-        apply_exclusion_to_result : bool, default=False
-            Wheter to apply the exclusion factor to the output of the similarity search.
-            This means that two matches of the query from the same sample must be at
-            least spaced by +/- :math:`query_length//exclusion_factor`.
-            This can avoid pathological matching where, for example if we extract the
-            best two matches, there is a high chance that if the best match is located
-            at :math:`id_timestamp`, the second best match will be located at
-            :math:`id_timestamp` +/- 1, as they both share all their values except one.
+        mask : np.ndarray, 3D array of shape (n_cases, n_timepoints - length + 1)
+            Boolean mask of the shape of the distance profiles indicating for which part
+            of it the distance should be computed.
+        exclusion_size : int, optional
+            The size of the exclusion zone used to prevent returning as top k candidates
+            the ones that are close to each other (for example i and i+1).
+            It is used to define a region between
+            :math:`id_timestamp - exclusion_size` and
+            :math:`id_timestamp + exclusion_size` which cannot be returned
+            as best match if :math:`id_timestamp` was already selected. By default,
+            the value None means that this is not used.
 
         Returns
         -------
@@ -248,21 +280,50 @@ class SeriesSearch(BaseSimilaritySearch):
             retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
         """
-        return self.matrix_profile_function_(
-            self.X_,
-            X,
-            length,
-            k=self.k,
-            threshold=self.threshold,
-            distance=self.distance,
-            distance_args=self.distance_args,
-            inverse_distance=self.inverse_distance,
-            normalize=self.normalize,
-            n_jobs=self.n_jobs,
-            X_index=X_index,
-            exclusion_factor=exclusion_factor,
-            apply_exclusion_to_result=apply_exclusion_to_result,
-        )
+        if self.matrix_profile_function_ is naive_matrix_profile:
+            # Naive requiers different argument due to using query search
+            return naive_matrix_profile(
+                self.X_,
+                X,
+                length,
+                k=self.k,
+                threshold=self.threshold,
+                distance=self.distance,
+                distance_args=self.distance_args,
+                inverse_distance=self.inverse_distance,
+                normalize=self.normalize,
+                n_jobs=self.n_jobs,
+                X_index=X_index,
+                exclusion_factor=exclusion_factor,
+                apply_exclusion_to_result=apply_exclusion_to_result,
+            )
+        elif self.normalize:
+            return self.matrix_profile_function_(
+                self.X_,
+                X,
+                length,
+                self.X_means_,
+                self.X_stds_,
+                self.T_means_,
+                self.T_stds_,
+                mask,
+                k=self.k,
+                threshold=self.threshold,
+                inverse_distance=self.inverse_distance,
+                exclusion_size=exclusion_size,
+            )
+
+        else:
+            return self.matrix_profile_function_(
+                self.X_,
+                X,
+                length,
+                mask,
+                k=self.k,
+                threshold=self.threshold,
+                inverse_distance=self.inverse_distance,
+                exclusion_size=exclusion_size,
+            )
 
     def _check_series_format(self, X, length, axis):
         if axis not in [0, 1]:
@@ -368,4 +429,29 @@ class SeriesSearch(BaseSimilaritySearch):
         return speedups
 
 
-_SERIES_SEARCH_SPEED_UP_DICT = {}
+_SERIES_SEARCH_SPEED_UP_DICT = {
+    "euclidean": {
+        True: {
+            "fastest": stomp_normalized_euclidean_matrix_profile,
+            "STOMP": stomp_normalized_euclidean_matrix_profile,
+            "naive": naive_matrix_profile,
+        },
+        False: {
+            "fastest": stomp_euclidean_matrix_profile,
+            "STOMP": stomp_euclidean_matrix_profile,
+            "naive": naive_matrix_profile,
+        },
+    },
+    "squared": {
+        True: {
+            "fastest": stomp_normalized_squared_matrix_profile,
+            "STOMP": stomp_normalized_squared_matrix_profile,
+            "naive": naive_matrix_profile,
+        },
+        False: {
+            "fastest": stomp_squared_matrix_profile,
+            "STOMP": stomp_squared_matrix_profile,
+            "naive": naive_matrix_profile,
+        },
+    },
+}

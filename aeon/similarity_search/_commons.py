@@ -2,7 +2,10 @@
 
 __maintainer__ = ["baraline"]
 
+import warnings
+
 import numpy as np
+from numba import njit, prange
 from scipy.signal import convolve
 
 
@@ -53,3 +56,164 @@ def get_ith_products(X, T, L, ith):
 
     """
     return fft_sliding_dot_product(X, T[:, ith : ith + L])
+
+
+@njit(cache=True)
+def numba_roll_2D_no_warparound(array, shift, warparound_value):
+    """
+    Roll the rows of an array.
+
+    Wheter to allow values at the end of the array to appear at the start after
+    being rolled out of the array length.
+
+    Parameters
+    ----------
+    array : np.ndarray of shape (n_rows, n_columns)
+        Array to roll. Can also be a TypedList in the case where n_columns changes
+        between rows.
+    shift : int
+        The amount of indexes the values will be rolled on each row of the array.
+        Must be inferior or equal to n_columns.
+    warparound_value : any type
+        A value of the type of array to insert instead of the value that got rolled
+        over the array length
+
+    Returns
+    -------
+    rolled_array : np.ndarray of shape (n_rows, n_columns)
+        The rolled array. Can also be a TypedList in the case where n_columns changes
+        between rows.
+
+    """
+    for i in prange(len(array)):
+        length = len(array[i])
+        _a1 = array[i][: length - shift]
+        array[i][shift:] = _a1
+        array[i][:shift] = warparound_value
+    return array
+
+
+def extract_top_k_and_threshold_from_distance_profiles(
+    distance_profiles,
+    k=1,
+    threshold=np.inf,
+    exclusion_size=None,
+    inverse_distance=False,
+):
+    """
+    Extract the best matches from a distance profile given k and threshold parameters.
+
+    Parameters
+    ----------
+    distance_profiles : np.ndarray, 2D array of shape (n_cases, n_candidates)
+        Precomputed distance profile. Can be a TypedList if n_candidates vary between
+        cases.
+    k : int
+        Number of matches to returns
+    threshold : float
+        All matches below this threshold will be returned
+    exclusion_size : int, optional
+        The size of the exclusion zone used to prevent returning as top k candidates
+        the ones that are close to each other (for example i and i+1).
+        It is used to define a region between
+        :math:`id_timestamp - exclusion_size` and
+        :math:`id_timestamp + exclusion_size` which cannot be returned
+        as best match if :math:`id_timestamp` was already selected. By default,
+        the value None means that this is not used.
+    inverse_distance : bool, optional
+        Wheter to return the worst matches instead of the bests. The default is False.
+
+    Returns
+    -------
+    Tuple(ndarray, ndarray)
+        The first array, of shape ``(n_matches)``, contains the distance between
+        the query and its best matches in X_. The second array, of shape
+        ``(n_matches, 2)``, contains the indexes of these matches as
+        ``(id_sample, id_timepoint)``. The corresponding match can be
+        retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
+
+    """
+    # This whole function could be optimized and maybe made in numba to avoid stepping
+    # out of numba mode during distance computations
+
+    n_cases_ = len(distance_profiles)
+
+    id_timestamps = np.concatenate(
+        [np.arange(distance_profiles[i].shape[0]) for i in range(n_cases_)]
+    )
+    id_samples = np.concatenate(
+        [[i] * distance_profiles[i].shape[0] for i in range(n_cases_)]
+    )
+
+    distance_profiles = np.concatenate(distance_profiles)
+
+    if inverse_distance:
+        # To avoid div by 0 case
+        distance_profiles += 1e-8
+        distance_profiles[distance_profiles != np.inf] = (
+            1 / distance_profiles[distance_profiles != np.inf]
+        )
+
+    if threshold != np.inf:
+        distance_profiles[distance_profiles > threshold] = np.inf
+
+    _argsort_1d = distance_profiles.argsort()
+    _argsort = np.asarray(
+        [
+            [id_samples[_argsort_1d[i]], id_timestamps[_argsort_1d[i]]]
+            for i in range(len(_argsort_1d))
+        ],
+        dtype=int,
+    )
+
+    if distance_profiles[distance_profiles <= threshold].shape[0] < k:
+        _k = distance_profiles[distance_profiles <= threshold].shape[0]
+        warnings.warn(
+            f"Only {_k} matches are bellow the threshold of {threshold}, while"
+            f" k={k}. The number of returned match will be {_k}.",
+            stacklevel=2,
+        )
+    elif _argsort.shape[0] < k:
+        _k = _argsort.shape[0]
+        warnings.warn(
+            f"The number of possible match is {_argsort.shape[0]}, but got"
+            f" k={k}. The number of returned match will be {_k}.",
+            stacklevel=2,
+        )
+    else:
+        _k = k
+
+    if exclusion_size is None:
+        return distance_profiles[_argsort_1d[:_k]], _argsort[:_k]
+    else:
+        # Apply exclusion zone to avoid neighboring matches
+        top_k = np.zeros((_k, 2), dtype=int)
+        top_k_dist = np.zeros((_k), dtype=float)
+
+        top_k[0] = _argsort[0, :]
+        top_k_dist[0] = distance_profiles[_argsort_1d[0]]
+
+        n_inserted = 1
+        i_current = 1
+
+        while n_inserted < _k and i_current < _argsort.shape[0]:
+            candidate_sample, candidate_timestamp = _argsort[i_current]
+
+            insert = True
+            is_from_same_sample = top_k[:, 0] == candidate_sample
+            if np.any(is_from_same_sample):
+                LB = candidate_timestamp >= (
+                    top_k[is_from_same_sample, 1] - exclusion_size
+                )
+                UB = candidate_timestamp <= (
+                    top_k[is_from_same_sample, 1] + exclusion_size
+                )
+                if np.any(UB & LB):
+                    insert = False
+
+            if insert:
+                top_k[n_inserted] = _argsort[i_current]
+                top_k_dist[n_inserted] = distance_profiles[_argsort_1d[i_current]]
+                n_inserted += 1
+            i_current += 1
+        return top_k_dist[:n_inserted], top_k[:n_inserted]
