@@ -19,7 +19,7 @@ def test_SeriesSearch_naive(k):
     S = np.asarray([[3, 4, 5, 4, 3, 4]])
     L = 3
 
-    search = SeriesSearch(speed_up="naive")
+    search = SeriesSearch(k=k, speed_up="naive")
     search.fit(X)
     mp, ip = search.predict(S, L)
 
