@@ -1,7 +1,7 @@
 """Moving average transformation."""
 
 __maintainer__ = ["Datadote"]
-__all__ = "MovingAverageSeriesTransformer"
+__all__ = ["MovingAverageSeriesTransformer"]
 
 import numpy as np
 
@@ -9,7 +9,7 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 
 
 class MovingAverageSeriesTransformer(BaseSeriesTransformer):
-    """Filter a time series using a simple moving average.
+    """Calculate the moving average of an array of numbers.
 
     Parameters
     ----------
