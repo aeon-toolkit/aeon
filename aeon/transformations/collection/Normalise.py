@@ -1,15 +1,4 @@
-"""Normalization techniques like z-normalization, standardization, and min-max scaling.
-
-Classes
--------
-Normalise : A transformer class for normalizing collections of time series data.
-BaseCollectionTransformer : A base class template for all collection transformers.
-
-The Normalise class supports several normalization methods that can be applied to
-time series data along a specified axis. It extends the BaseCollectionTransformer
-class and provides functionality to fit and transform data, ensuring consistent
-scaling across datasets.
-"""
+"""Normalization like z-normalization, standardization and min-max scaling."""
 
 from typing import Optional
 
@@ -21,11 +10,27 @@ from aeon.transformations.collection import BaseCollectionTransformer
 class Normalise(BaseCollectionTransformer):
     """Normaliser transformer for collections.
 
+    This transformer applies different normalization techniques to time series data,
+    ensuring that the data is scaled consistently across all samples. It supports
+    methods such as z-normalization, standardization, and min-max scaling, which can
+    be applied along a specified axis to adjust the data's scale or range.
+
     Parameters
     ----------
     method : str, optional (default="z_norm")
         The normalization method to apply.
         Supported methods: "z_norm", "standardize", "min_max".
+
+        z_norm, standardize: Subtracts the mean and divides by the standard deviation
+        along the specified axis. Used to center the data and standardize its variance,
+        making it dimensionless. This is useful when comparing datasets with different
+        units.
+
+        min_max: Useful when you need to normalize data to a bounded range, which is
+        important for algorithms that require or perform better with inputs within a
+        specific range.
+
+
     axis : int, optional (default=2)
         Axis along which to apply the normalization.
     """
