@@ -1,4 +1,4 @@
-"""Helper and common function for similarity search distance profiles."""
+"""Helper and common function for similarity search estimators and functions."""
 
 __maintainer__ = ["baraline"]
 
