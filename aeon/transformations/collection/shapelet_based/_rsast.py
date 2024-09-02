@@ -64,27 +64,8 @@ class RSAST(BaseCollectionTransformer):
         the number of reference time series to select per class
     seed : int, default = None
         the seed of the random generator
-    estimator : sklearn compatible classifier, default = None
-        if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
         Number of threads to use for the transform.
-
-    Attributes
-    ----------
-    _kernels : list
-        The z-normalized subsequences used for transformation.
-    _kernel_orig : list
-        The original (non z-normalized) subsequences.
-    _start_positions : list
-        The starting positions of each subsequence within the original time series.
-    _classes : list
-        The class labels associated with each subsequence.
-    _source_series: list
-        The index of the original time series in the training set from which each
-        subsequence was derived.
-    _kernels_generators_ : dict
-        A dictionary mapping class labels to the selected reference time series
-        for that class.
 
     References
     ----------

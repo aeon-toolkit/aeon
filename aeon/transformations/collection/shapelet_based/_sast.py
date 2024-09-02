@@ -60,23 +60,6 @@ class SAST(BaseCollectionTransformer):
         Number of threads to use for the transform.
         The available CPU count is used if this value is less than 1
 
-    Attributes
-    ----------
-    _kernels : list
-        The z-normalized subsequences used for transformation.
-    _kernel_orig : list
-        The original (non z-normalized) subsequences.
-    _start_positions : list
-        The starting positions of each subsequence within the original time series.
-    _classes : list
-        The class labels associated with each subsequence.
-    _source_series: list
-        The index of the original time series in the training set from which each
-        subsequence was derived.
-    kernels_generators_ : dict
-        A dictionary mapping class labels to the selected reference time series
-        for that class.
-
 
     References
     ----------
@@ -163,8 +146,8 @@ class SAST(BaseCollectionTransformer):
         for c in classes:
             X_c = X_[y == c]
 
-            # Convert to int because if nb_inst_per_class is float,
-            # the result of np.min() will be float
+            # convert to int because if self.
+            # nb_inst_per_class is float, the result of np.min() will be float
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
             choosen = self._random_state.permutation(X_c.shape[0])[:cnt]
             candidates_ts.append(X_c[choosen])
