@@ -70,7 +70,7 @@ class MovingAverageSeriesTransformer(BaseSeriesTransformer):
         if X.ndim == 1:
             X = X.reshape(-1, 1)
         if self.window_size < 1 or self.window_size > X.shape[1]:
-            raise ValueError(f"window_size must be between 1 and length of input data")
+            raise ValueError("window_size must be between 1 and length of input data")
         csum = np.cumsum(X, axis=0)
         csum[self.window_size :, :] = (
             csum[self.window_size :, :] - csum[: -self.window_size, :]
