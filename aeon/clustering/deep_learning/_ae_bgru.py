@@ -206,7 +206,7 @@ class AEBiGRUClusterer(BaseDeepClusterer):
             raise ValueError("Metrics should be a list, string, or None.")
 
         model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=self._metrics)
-        
+
         return model
 
     def _fit(self, X):
