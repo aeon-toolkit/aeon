@@ -13,6 +13,13 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 class ExpSmoothingSeriesTransformer(BaseSeriesTransformer):
     """Filter a time series using exponential smoothing.
 
+    - Exponential smoothing (EXP) is a generalisaton of moving average smoothing that
+    assigns a decaying weight to each element rather than averaging over a window.
+    - Assume time series T = [t_0, ..., t_j], and smoothed values S = [s_0, ..., s_j]
+    - Then, s_0 = t_0 and s_j = alpha * t_j + (1 - alpha) * s_j-1
+    where 0 ≤ alpha ≤ 1. If window_size is given, alpha is overwritten, and set as
+    alpha = 2. / (window_size + 1)
+
     Parameters
     ----------
     alpha: float, default=0.2
@@ -54,9 +61,7 @@ class ExpSmoothingSeriesTransformer(BaseSeriesTransformer):
     }
 
     def __init__(
-        self,
-        alpha:float = 0.2,
-        window_size: Union[int, float, None] = None
+        self, alpha: float = 0.2, window_size: Union[int, float, None] = None
     ) -> None:
         if not 0 <= alpha <= 1:
             raise ValueError(f"alpha must be in range [0, 1], got {alpha}")
