@@ -8,7 +8,7 @@ It can also be used with callables, or aeon (pairwise transformer) estimators.
 __maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesRegressor"]
 
-from typing import Callable, List, Union
+from typing import Callable, Union
 
 import numpy as np
 

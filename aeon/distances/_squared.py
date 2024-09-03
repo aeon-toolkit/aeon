@@ -1,6 +1,6 @@
 __maintainer__ = []
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit

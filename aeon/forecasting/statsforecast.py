@@ -4,7 +4,7 @@ __maintainer__ = []
 __all__ = ["StatsForecastAutoARIMA"]
 
 
-from typing import Dict, Optional
+from typing import Optional
 
 from aeon.forecasting.base.adapters._statsforecast import _StatsForecastAdapter
 
