@@ -390,8 +390,13 @@ def _stomp_normalized(
     IP = np.empty(n_queries, dtype=object)
     for i in range(n_queries):
         dist_profiles, XdotT, mask = _compute_normalized_profile_and_update(
-            X, T, XdotT, mask, X_means, X_stds, T_means[i], T_stds[i], L, i
+            X, T, XdotT, mask, X_means, X_stds, T_means[:, i], T_stds[:, i], L, i
         )
+        if isinstance(X, np.ndarray):
+            dist_profiles = np.asarray(dist_profiles).sum(axis=1)
+        else:
+            dist_profiles = List([dist_profiles[i].sum(axis=0) for i in range(len(X))])
+
         top_dists, top_indexes = extract_top_k_and_threshold_from_distance_profiles(
             dist_profiles,
             k=k,

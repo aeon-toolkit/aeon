@@ -10,16 +10,18 @@ from aeon.similarity_search.series_search import SeriesSearch
 
 DATATYPES = ["int64", "float64"]
 K_VALUES = [1, 3]
+NORMALIZE = [True, False]
 
 
 @pytest.mark.parametrize("k", K_VALUES)
-def test_SeriesSearch_naive(k):
+@pytest.mark.parametrize("normalize", NORMALIZE)
+def test_SeriesSearch_naive(k, normalize):
     """Test the k and threshold combination of SeriesSearch."""
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
     S = np.asarray([[3, 4, 5, 4, 3, 4]])
     L = 3
 
-    search = SeriesSearch(k=k, speed_up="naive")
+    search = SeriesSearch(k=k, normalize=normalize, speed_up="naive")
     search.fit(X)
     mp, ip = search.predict(S, L)
 
@@ -29,13 +31,14 @@ def test_SeriesSearch_naive(k):
 
 
 @pytest.mark.parametrize("k", K_VALUES)
-def test_SeriesSearch_k(k):
+@pytest.mark.parametrize("normalize", NORMALIZE)
+def test_SeriesSearch_k(k, normalize):
     """Test the k and threshold combination of SeriesSearch."""
     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
     S = np.asarray([[3, 4, 5, 4, 3, 4]])
     L = 3
 
-    search = SeriesSearch(k=k)
+    search = SeriesSearch(k=k, normalize=normalize)
     search.fit(X)
     mp, ip = search.predict(S, L)
 

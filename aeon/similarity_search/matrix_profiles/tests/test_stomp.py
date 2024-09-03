@@ -11,8 +11,10 @@ from aeon.distances import get_distance_function
 from aeon.similarity_search._commons import get_ith_products
 from aeon.similarity_search.matrix_profiles.stomp import (
     _update_dot_products,
+    stomp_normalized_squared_matrix_profile,
     stomp_squared_matrix_profile,
 )
+from aeon.utils.numba.general import sliding_mean_std_one_series
 
 DATATYPES = ["float64", "int64"]
 K_VALUES = [1, 3]
@@ -60,10 +62,7 @@ def test_stomp_squared_matrix_profile(dtype, k):
 
         expected = np.array(
             [
-                [
-                    distance(q, X[j, :, _i : _i + q.shape[-1]])
-                    for _i in range(X.shape[-1] - q.shape[-1] + 1)
-                ]
+                [distance(q, X[j, :, _i : _i + L]) for _i in range(X.shape[-1] - L + 1)]
                 for j in range(X.shape[0])
             ]
         )
@@ -74,6 +73,58 @@ def test_stomp_squared_matrix_profile(dtype, k):
         for j in range(k):
             assert_almost_equal(mp[i][j], expected[id_bests[j, 0], id_bests[j, 1]])
             assert_equal(ip[i][j], id_bests[j])
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+@pytest.mark.parametrize("k", K_VALUES)
+def test_stomp_normalized_squared_matrix_profile(dtype, k):
+    """Test naive series search."""
+    X = np.asarray(
+        [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
+    )
+
+    S = np.asarray([[3, 4, 5, 4, 3, 4, 5, 3, 2, 4, 5]], dtype=dtype)
+    L = 3
+    mask = np.ones((X.shape[0], X.shape[2] - L + 1), dtype=bool)
+    distance = get_distance_function("squared")
+    X_means = []
+    X_stds = []
+
+    for i in range(len(X)):
+        _mean, _std = sliding_mean_std_one_series(X[i], L, 1)
+
+        X_stds.append(_std)
+        X_means.append(_mean)
+    X_means = np.asarray(X_means)
+    X_stds = np.asarray(X_stds)
+
+    S_means, S_stds = sliding_mean_std_one_series(S, L, 1)
+
+    mp, ip = stomp_normalized_squared_matrix_profile(
+        X, S, L, X_means, X_stds, S_means, S_stds, mask, k=k
+    )
+
+    for i in range(S.shape[-1] - L + 1):
+        q = (S[:, i : i + L] - S_means[:, i]) / S_stds[:, i]
+
+        expected = np.array(
+            [
+                [
+                    distance(
+                        q,
+                        (X[j, :, _i : _i + L] - X_means[j, :, _i]) / X_stds[j, :, _i],
+                    )
+                    for _i in range(X.shape[-1] - L + 1)
+                ]
+                for j in range(X.shape[0])
+            ]
+        )
+        id_bests = np.vstack(
+            np.unravel_index(np.argsort(expected.ravel()), expected.shape)
+        ).T
+
+        for j in range(k):
+            assert_almost_equal(mp[i][j], expected[id_bests[j, 0], id_bests[j, 1]])
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
