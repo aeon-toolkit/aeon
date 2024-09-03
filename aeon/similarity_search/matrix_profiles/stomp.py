@@ -10,14 +10,15 @@ from numba import njit
 from numba.typed import List
 
 from aeon.similarity_search._commons import (
-    extract_top_k_and_threshold_from_distance_profiles,
+    extract_top_k_and_threshold_from_distance_profiles_one_series,
     get_ith_products,
-    numba_roll_2D_no_warparound,
+    numba_roll_1D_no_warparound,
 )
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (
-    _normalized_squared_distance_profile,
-    _squared_distance_profile,
+    _normalized_squared_dist_profile_one_series,
+    _squared_dist_profile_one_series,
 )
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 
 def stomp_euclidean_matrix_profile(
@@ -404,24 +405,45 @@ def _stomp_normalized(
     n_queries = T.shape[1] - L + 1
     MP = np.empty(n_queries, dtype=object)
     IP = np.empty(n_queries, dtype=object)
-    for i in range(n_queries):
-        dist_profiles, XdotT, mask = _compute_normalized_profile_and_update(
-            X, T, XdotT, mask, X_means, X_stds, T_means[:, i], T_stds[:, i], L, i
-        )
-        if isinstance(X, np.ndarray):
-            dist_profiles = np.asarray(dist_profiles).sum(axis=1)
-        else:
-            dist_profiles = List([dist_profiles[i].sum(axis=0) for i in range(len(X))])
+    for i_x in range(len(X)):
+        for i in range(n_queries):
+            dist_profiles = _normalized_squared_dist_profile_one_series(
+                XdotT[i_x],
+                X_means[i_x],
+                X_stds[i_x],
+                T_means[:, i],
+                T_stds[:, i],
+                L,
+                T_stds[:, i] <= AEON_NUMBA_STD_THRESHOLD,
+            ).sum(axis=0)
+            dist_profiles[~mask[i_x]] = np.inf
+            if i + 1 < n_queries:
+                XdotT[i_x] = _update_dot_products_one_series(
+                    X[i_x], T, XdotT[i_x], L, i + 1
+                )
 
-        top_dists, top_indexes = extract_top_k_and_threshold_from_distance_profiles(
-            dist_profiles,
-            k=k,
-            threshold=threshold,
-            exclusion_size=exclusion_size,
-            inverse_distance=inverse_distance,
-        )
-        MP[i] = top_dists
-        IP[i] = top_indexes
+            mask[i_x] = numba_roll_1D_no_warparound(mask[i_x], 1, True)
+            (
+                top_dists,
+                top_indexes,
+            ) = extract_top_k_and_threshold_from_distance_profiles_one_series(
+                dist_profiles,
+                i_x,
+                k=k,
+                threshold=threshold,
+                exclusion_size=exclusion_size,
+                inverse_distance=inverse_distance,
+            )
+            if i_x > 0:
+                top_dists, top_indexes = _sort_out_tops(
+                    top_dists, MP[i], top_indexes, IP[i], k
+                )
+                MP[i] = top_dists
+                IP[i] = top_indexes
+            else:
+                MP[i] = top_dists
+                IP[i] = top_indexes
+
     return MP, IP
 
 
@@ -439,53 +461,55 @@ def _stomp(
     n_queries = T.shape[1] - L + 1
     MP = np.empty(n_queries, dtype=object)
     IP = np.empty(n_queries, dtype=object)
-    for i in range(n_queries):
-        dist_profiles, XdotT, mask = _compute_profile_and_update(
-            X, T, XdotT, mask, L, i
-        )
-        if isinstance(X, np.ndarray):
-            dist_profiles = np.asarray(dist_profiles).sum(axis=1)
-        else:
-            dist_profiles = List([dist_profiles[i].sum(axis=0) for i in range(len(X))])
+    for i_x in range(len(X)):
+        for i in range(n_queries):
+            Q = T[:, i : i + L]
+            dist_profiles = _squared_dist_profile_one_series(XdotT[i_x], X[i_x], Q).sum(
+                axis=0
+            )
+            dist_profiles[~mask[i_x]] = np.inf
+            if i + 1 < n_queries:
+                XdotT[i_x] = _update_dot_products_one_series(
+                    X[i_x], T, XdotT[i_x], L, i + 1
+                )
 
-        top_dists, top_indexes = extract_top_k_and_threshold_from_distance_profiles(
-            dist_profiles,
-            k=k,
-            threshold=threshold,
-            exclusion_size=exclusion_size,
-            inverse_distance=inverse_distance,
-        )
-        MP[i] = top_dists
-        IP[i] = top_indexes
+            mask[i_x] = numba_roll_1D_no_warparound(mask[i_x], 1, True)
+            (
+                top_dists,
+                top_indexes,
+            ) = extract_top_k_and_threshold_from_distance_profiles_one_series(
+                dist_profiles,
+                i_x,
+                k=k,
+                threshold=threshold,
+                exclusion_size=exclusion_size,
+                inverse_distance=inverse_distance,
+            )
+            if i_x > 0:
+                top_dists, top_indexes = _sort_out_tops(
+                    top_dists, MP[i], top_indexes, IP[i], k
+                )
+                MP[i] = top_dists
+                IP[i] = top_indexes
+            else:
+                MP[i] = top_dists
+                IP[i] = top_indexes
 
     return MP, IP
 
 
-@njit(cache=True)
-def _compute_profile_and_update(X, T, XdotT, mask, L, i_query):
-    Q = T[:, i_query : i_query + L]
-    dist_profiles = _squared_distance_profile(XdotT, X, Q, mask)
-    if i_query + 1 < T.shape[1] - L + 1:
-        XdotT = _update_dot_products(X, T, XdotT, L, i_query + 1)
-        mask = numba_roll_2D_no_warparound(mask, 1, True)
-    return dist_profiles, XdotT, mask
-
-
-@njit(cache=True)
-def _compute_normalized_profile_and_update(
-    X, T, XdotT, mask, X_means, X_stds, T_means, T_stds, L, i_query
-):
-    dist_profiles = _normalized_squared_distance_profile(
-        XdotT, mask, X_means, X_stds, T_means, T_stds, L
-    )
-    if i_query + 1 < T.shape[1] - L + 1:
-        XdotT = _update_dot_products(X, T, XdotT, L, i_query + 1)
-        mask = numba_roll_2D_no_warparound(mask, 1, True)
-    return dist_profiles, XdotT, mask
+def _sort_out_tops(top_dists, prev_top_dists, top_indexes, prev_to_indexes, k):
+    all_dists = np.concatenate((prev_top_dists, top_dists))
+    all_indexes = np.concatenate((prev_to_indexes, top_indexes))
+    if k == np.inf:
+        return all_dists, all_indexes
+    else:
+        idx = np.argsort(all_dists)[:k]
+        return all_dists[idx], all_indexes[idx]
 
 
 @njit(cache=True, fastmath=True)
-def _update_dot_products(
+def _update_dot_products_one_series(
     X,
     T,
     XT_products,
@@ -516,16 +540,16 @@ def _update_dot_products(
     """
     n_channels = T.shape[0]
     Q = T[:, i_query : i_query + L]
-    for i in range(len(X)):
-        n_candidates = X[i].shape[1] - L + 1
+    n_candidates = X.shape[1] - L + 1
 
+    for i_ft in range(n_channels):
         # first element of all 0 to n-1 candidates * first element of previous query
-        _a1 = X[i][:, : n_candidates - 1] * T[:, i_query - 1][:, np.newaxis]
+        _a1 = X[i_ft, : n_candidates - 1] * T[i_ft, i_query - 1]
         # last element of all 1 to n candidates * last element of current query
-        _a2 = X[i][:, L : L - 1 + n_candidates] * T[:, i_query + L - 1][:, np.newaxis]
+        _a2 = X[i_ft, L : L - 1 + n_candidates] * T[i_ft, i_query + L - 1]
 
-        XT_products[i][:, 1:] = XT_products[i][:, :-1] - _a1 + _a2
+        XT_products[i_ft, 1:] = XT_products[i_ft, :-1] - _a1 + _a2
+
         # Compute first dot product
-        for i_ft in range(n_channels):
-            XT_products[i][i_ft, 0] = np.sum(Q[i_ft] * X[i][i_ft, :L])
+        XT_products[i_ft, 0] = np.sum(Q[i_ft] * X[i_ft, :L])
     return XT_products

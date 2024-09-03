@@ -10,7 +10,7 @@ from numpy.testing import assert_almost_equal, assert_array_almost_equal, assert
 from aeon.distances import get_distance_function
 from aeon.similarity_search._commons import get_ith_products
 from aeon.similarity_search.matrix_profiles.stomp import (
-    _update_dot_products,
+    _update_dot_products_one_series,
     stomp_normalized_squared_matrix_profile,
     stomp_squared_matrix_profile,
 )
@@ -20,27 +20,27 @@ DATATYPES = ["float64", "int64"]
 K_VALUES = [1, 3]
 
 
-def test_update_dot_products():
+def test__update_dot_products_one_series():
     """Test the _update_dot_product function."""
-    X = np.random.rand(1, 1, 50)
+    X = np.random.rand(1, 50)
     T = np.random.rand(1, 25)
     L = 10
-    current_product = np.array([get_ith_products(X[0], T, L, 0)])
+    current_product = get_ith_products(X, T, L, 0)
     for i_query in range(1, T.shape[1] - L + 1):
         new_product = get_ith_products(
-            X[0],
+            X,
             T,
             L,
             i_query,
         )
-        current_product = _update_dot_products(
+        current_product = _update_dot_products_one_series(
             X,
             T,
             current_product,
             L,
             i_query,
         )
-        assert_array_almost_equal(new_product, current_product[0])
+        assert_array_almost_equal(new_product, current_product)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
@@ -56,7 +56,6 @@ def test_stomp_squared_matrix_profile(dtype, k):
     mask = np.ones((X.shape[0], X.shape[2] - L + 1), dtype=bool)
     distance = get_distance_function("squared")
     mp, ip = stomp_squared_matrix_profile(X, S, L, mask, k=k)
-
     for i in range(S.shape[-1] - L + 1):
         q = S[:, i : i + L]
 

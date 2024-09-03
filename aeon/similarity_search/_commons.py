@@ -59,6 +59,39 @@ def get_ith_products(X, T, L, ith):
 
 
 @njit(cache=True)
+def numba_roll_1D_no_warparound(array, shift, warparound_value):
+    """
+    Roll the rows of an array.
+
+    Wheter to allow values at the end of the array to appear at the start after
+    being rolled out of the array length.
+
+    Parameters
+    ----------
+    array : np.ndarray of shape (n_columns)
+        Array to roll.
+    shift : int
+        The amount of indexes the values will be rolled on each row of the array.
+        Must be inferior or equal to n_columns.
+    warparound_value : any type
+        A value of the type of array to insert instead of the value that got rolled
+        over the array length
+
+    Returns
+    -------
+    rolled_array : np.ndarray of shape (n_rows, n_columns)
+        The rolled array. Can also be a TypedList in the case where n_columns changes
+        between rows.
+
+    """
+    length = array.shape[0]
+    _a1 = array[: length - shift]
+    array[shift:] = _a1
+    array[:shift] = warparound_value
+    return array
+
+
+@njit(cache=True)
 def numba_roll_2D_no_warparound(array, shift, warparound_value):
     """
     Roll the rows of an array.
@@ -91,6 +124,71 @@ def numba_roll_2D_no_warparound(array, shift, warparound_value):
         array[i][shift:] = _a1
         array[i][:shift] = warparound_value
     return array
+
+
+@njit(cache=True)
+def extract_top_k_and_threshold_from_distance_profiles_one_series(
+    distance_profiles,
+    id_x,
+    k=1,
+    threshold=np.inf,
+    exclusion_size=None,
+    inverse_distance=False,
+):
+    if inverse_distance:
+        # To avoid div by 0 case
+        distance_profiles += 1e-8
+        distance_profiles[distance_profiles != np.inf] = (
+            1 / distance_profiles[distance_profiles != np.inf]
+        )
+
+    if threshold != np.inf:
+        distance_profiles[distance_profiles > threshold] = np.inf
+
+    _argsort = np.argsort(distance_profiles)
+
+    if distance_profiles[distance_profiles <= threshold].shape[0] < k:
+        _k = distance_profiles[distance_profiles <= threshold].shape[0]
+    elif _argsort.shape[0] < k:
+        _k = _argsort.shape[0]
+    else:
+        _k = k
+
+    if exclusion_size is None:
+        indexes = np.zeros((_k, 2), dtype=np.int_)
+        for i in range(_k):
+            indexes[i, 0] = id_x
+            indexes[i, 1] = _argsort[i]
+        return distance_profiles[_argsort[:_k]], indexes
+    else:
+        # Apply exclusion zone to avoid neighboring matches
+        top_k = np.zeros((_k, 2), dtype=np.int_) - exclusion_size
+        top_k_dist = np.zeros((_k), dtype=np.float_)
+
+        top_k[0, 0] = id_x
+        top_k[0, 1] = _argsort[0]
+
+        top_k_dist[0] = distance_profiles[_argsort[0]]
+
+        n_inserted = 1
+        i_current = 1
+
+        while n_inserted < _k and i_current < _argsort.shape[0]:
+            candidate_timestamp = _argsort[i_current]
+
+            insert = True
+            LB = candidate_timestamp >= (top_k[:, 1] - exclusion_size)
+            UB = candidate_timestamp <= (top_k[:, 1] + exclusion_size)
+            if np.any(UB & LB):
+                insert = False
+
+            if insert:
+                top_k[n_inserted, 0] = id_x
+                top_k[n_inserted, 1] = _argsort[i_current]
+                top_k_dist[n_inserted] = distance_profiles[_argsort[i_current]]
+                n_inserted += 1
+            i_current += 1
+        return top_k_dist[:n_inserted], top_k[:n_inserted]
 
 
 def extract_top_k_and_threshold_from_distance_profiles(
@@ -157,7 +255,7 @@ def extract_top_k_and_threshold_from_distance_profiles(
     if threshold != np.inf:
         distance_profiles[distance_profiles > threshold] = np.inf
 
-    _argsort_1d = distance_profiles.argsort()
+    _argsort_1d = np.argsort(distance_profiles)
     _argsort = np.asarray(
         [
             [id_samples[_argsort_1d[i]], id_timestamps[_argsort_1d[i]]]
