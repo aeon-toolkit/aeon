@@ -53,8 +53,10 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         Whether to output extra information.
-    loss : string, default="mean_squared_error"
+    loss : str, default="mean_squared_error"
         Fit parameter for the keras model.
+    metrics : str, default=["mean_squared_error"]
+        Metrics to evaluate model predictions.
     optimizer : keras.optimizers object, default = Adam(lr=0.01)
         Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
@@ -112,6 +114,7 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         random_state=None,
         verbose=False,
         loss="mse",
+        metrics=None,
         optimizer="Adam",
         file_path="./",
         save_best_model=False,
@@ -127,6 +130,7 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         self.activation = activation
         self.optimizer = optimizer
         self.loss = loss
+        self.metrics = metrics
         self.verbose = verbose
         self.use_mini_batch_size = use_mini_batch_size
         self.callbacks = callbacks
@@ -192,8 +196,17 @@ class AEBiGRUClusterer(BaseDeepClusterer):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model.compile(optimizer=self.optimizer_, loss=self.loss)
+        if self.metrics is None:
+            self._metrics = ["mean_squared_error"]
+        elif isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            raise ValueError("Metrics should be a list, string, or None.")
 
+        model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=self._metrics)
+        
         return model
 
     def _fit(self, X):
