@@ -17,6 +17,8 @@ aeon/distances/ @chrisholder @TonyBagnall
 
 aeon/networks/ @hadifawaz1999
 
+aeon/performance_metrics/anomaly_detection/ @codelionx @MatthewMiddlehurst
+
 aeon/regression/ @MatthewMiddlehurst @TonyBagnall @dguijo
 aeon/regression/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall @dguijo
 
