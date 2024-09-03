@@ -20,6 +20,7 @@ aeon/forecasting/ @aiwalter @guzalbulatova @ltsaprounis
 aeon/networks/ @hadifawaz1999
 
 aeon/performance_metrics/forecasting/ @aiwalter
+aeon/performance_metrics/anomaly_detection/ @codelionx @MatthewMiddlehurst
 
 aeon/pipeline/ @aiwalter
 
