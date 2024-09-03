@@ -47,6 +47,10 @@ def stomp_euclidean_matrix_profile(
     L : int
         The length of the subsequences considered during the search. This parameter
         cannot be larger than n_timepoints and series_length.
+    mask : np.ndarray, 2D array of shape (n_cases, n_timepoints - length + 1)
+        Boolean mask of the shape of the distance profiles indicating for which part
+        of it the distance should be computed. In this context, it is the mask for the
+        first query of size L in T. This mask will be updated during the algorithm.
     k : int, default=1
         The number of best matches to return during predict for each subsequence.
     threshold : float, default=np.inf
@@ -123,6 +127,10 @@ def stomp_squared_matrix_profile(
     L : int
         The length of the subsequences considered during the search. This parameter
         cannot be larger than n_timepoints and series_length.
+    mask : np.ndarray, 2D array of shape (n_cases, n_timepoints - length + 1)
+        Boolean mask of the shape of the distance profiles indicating for which part
+        of it the distance should be computed. In this context, it is the mask for the
+        first query of size L in T. This mask will be updated during the algorithm.
     k : int, default=1
         The number of best matches to return during predict for each subsequence.
     threshold : float, default=np.inf
@@ -218,6 +226,10 @@ def stomp_normalized_euclidean_matrix_profile(
         Means of each subsequences of T of size L.
     T_stds : np.ndarray, 2D array of shape (n_channels, n_timepoints - L + 1)
         Stds of each subsequences of T of size L.
+    mask : np.ndarray, 2D array of shape (n_cases, n_timepoints - length + 1)
+        Boolean mask of the shape of the distance profiles indicating for which part
+        of it the distance should be computed. In this context, it is the mask for the
+        first query of size L in T. This mask will be updated during the algorithm.
     k : int, default=1
         The number of best matches to return during predict for each subsequence.
     threshold : float, default=np.inf
@@ -312,6 +324,10 @@ def stomp_normalized_squared_matrix_profile(
         Means of each subsequences of T of size L.
     T_stds : np.ndarray, 2D array of shape (n_channels, n_timepoints - L + 1)
         Stds of each subsequences of T of size L.
+    mask : np.ndarray, 2D array of shape (n_cases, n_timepoints - length + 1)
+        Boolean mask of the shape of the distance profiles indicating for which part
+        of it the distance should be computed. In this context, it is the mask for the
+        first query of size L in T. This mask will be updated during the algorithm.
     k : int, default=1
         The number of best matches to return during predict for each subsequence.
     threshold : float, default=np.inf

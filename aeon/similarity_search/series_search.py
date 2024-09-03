@@ -257,9 +257,11 @@ class SeriesSearch(BaseSimilaritySearch):
             shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
             the time series are in rows, i.e. the shape of the data is
             ``(n_channels,n_timepoints)``.
-        mask : np.ndarray, 3D array of shape (n_cases, n_timepoints - length + 1)
+        mask : np.ndarray, 2D array of shape (n_cases, n_timepoints - length + 1)
             Boolean mask of the shape of the distance profiles indicating for which part
-            of it the distance should be computed.
+            of it the distance should be computed. In this context, it is the mask for
+            the first query of size L in T. This mask will be updated during the
+            algorithm.
         exclusion_size : int, optional
             The size of the exclusion zone used to prevent returning as top k candidates
             the ones that are close to each other (for example i and i+1).
