@@ -2,7 +2,6 @@
 
 __maintainer__ = []
 
-from typing import Dict
 
 import pandas as pd
 

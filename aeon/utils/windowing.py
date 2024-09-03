@@ -3,7 +3,7 @@
 __maintainer__ = ["CodeLionX"]
 __all__ = ["sliding_windows", "reverse_windowing"]
 
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional
 
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view

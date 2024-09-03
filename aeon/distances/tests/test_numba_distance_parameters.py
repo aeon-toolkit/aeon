@@ -1,6 +1,6 @@
 """Test suite for numba distances with parameters."""
 
-from typing import Callable, Dict, List
+from typing import Callable
 
 import numpy as np
 import pytest

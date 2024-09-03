@@ -9,7 +9,7 @@ __all__ = [
 import re
 from functools import partial, wraps
 from inspect import isclass
-from typing import Callable, List, Type, Union
+from typing import Callable, Union
 
 from sklearn import config_context
 from sklearn.utils._testing import SkipTest

@@ -4,7 +4,7 @@ __all__ = ["BaseSegmenter"]
 __maintainer__ = []
 
 from abc import ABC, abstractmethod
-from typing import List, final
+from typing import final
 
 import numpy as np
 import pandas as pd

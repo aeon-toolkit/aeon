@@ -1,7 +1,7 @@
 """E-Agglo: agglomerative clustering algorithm that preserves observation order."""
 
 import warnings
-from typing import Callable, Dict, List, Tuple
+from typing import Callable
 
 import numpy as np
 import pandas as pd

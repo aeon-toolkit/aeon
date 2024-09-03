@@ -5,7 +5,7 @@ __all__ = ["MiniRocketMultivariateVariable"]
 
 import multiprocessing
 import warnings
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd

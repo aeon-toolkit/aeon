@@ -9,7 +9,7 @@ __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
 import itertools
-from typing import List, Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd

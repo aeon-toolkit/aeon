@@ -8,7 +8,7 @@ __maintainer__ = []
 __all__ = ["create_conditional_fixtures_and_names"]
 
 from copy import deepcopy
-from typing import Callable, Dict, List
+from typing import Callable
 
 import numpy as np
 

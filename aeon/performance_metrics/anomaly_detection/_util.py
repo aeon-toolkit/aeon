@@ -4,7 +4,6 @@ __maintainer__ = ["CodeLionX"]
 __all__ = ["check_y"]
 
 import warnings
-from typing import Tuple
 
 import numpy as np
 from sklearn.utils import assert_all_finite, check_consistent_length, column_or_1d

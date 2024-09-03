@@ -28,7 +28,6 @@ __all__ = [
 import inspect
 import types
 from copy import deepcopy
-from typing import Tuple
 
 import numpy as np
 from numba import njit, prange

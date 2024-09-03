@@ -1,7 +1,5 @@
 """Numba-accelerated discrete wavelet transformations (DFTs)."""
 
-from typing import Tuple
-
 import numpy as np
 from numba import njit
 from numba.typed import List

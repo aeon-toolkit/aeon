@@ -12,7 +12,7 @@ __all__ = [
     "make_example_multi_index_dataframe",
 ]
 
-from typing import List, Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd

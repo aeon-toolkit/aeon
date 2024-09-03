@@ -1,4 +1,6 @@
-from typing import List, Optional, Union
+"""SAST Transformer."""
+
+from typing import Optional, Union
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads

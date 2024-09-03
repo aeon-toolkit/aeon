@@ -7,7 +7,6 @@ To read more about the algorithm, check out the `HMM wikipedia page
 """
 
 import warnings
-from typing import Tuple
 
 import numpy as np
 from scipy.stats import norm
