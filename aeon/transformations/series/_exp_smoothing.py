@@ -1,7 +1,7 @@
 """Exponential smoothing transformation."""
 
 __maintainer__ = ["Datadote"]
-__all__ = "ExpSmoothingSeriesTransformer"
+__all__ = ["ExpSmoothingSeriesTransformer"]
 
 from typing import Union
 
@@ -54,7 +54,9 @@ class ExpSmoothingSeriesTransformer(BaseSeriesTransformer):
     }
 
     def __init__(
-        self, alpha: float = 0.2, window_size: Union[int, float, None] = None
+        self,
+        alpha:float = 0.2,
+        window_size: Union[int, float, None] = None
     ) -> None:
         if not 0 <= alpha <= 1:
             raise ValueError(f"alpha must be in range [0, 1], got {alpha}")
