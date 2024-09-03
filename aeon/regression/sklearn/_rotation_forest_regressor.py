@@ -8,7 +8,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestRegressor"]
 
 import time
-from typing import Optional, Type, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -104,12 +104,12 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         min_group: int = 3,
         max_group: int = 3,
         remove_proportion: float = 0.5,
-        base_estimator: Optional[type[BaseEstimator]] = None,
+        base_estimator: Optional[BaseEstimator] = None,
         pca_solver: str = "auto",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
-        random_state: Union[int, type[np.random.RandomState], None] = None,
+        random_state: Union[int, np.random.RandomState, None] = None,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
@@ -303,7 +303,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         self,
         X,
         y,
-        rng: type[np.random.RandomState],
+        rng: np.random.RandomState,
         save_transformed_data: bool,
     ):
         groups = self._generate_groups(rng)
@@ -381,7 +381,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
 
         return [results, oob]
 
-    def _generate_groups(self, rng: type[np.random.RandomState]):
+    def _generate_groups(self, rng: np.random.RandomState):
         permutation = rng.permutation(np.arange(0, self._n_atts))
 
         # select the size of each group.

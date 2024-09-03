@@ -10,7 +10,7 @@ __all__ = ["ContinuousIntervalTree"]
 
 import math
 import sys
-from typing import List, Tuple, Type, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ class _TreeNode:
     """ContinuousIntervalTree tree node."""
 
     def __init__(
-        self, random_state: Union[int, type[np.random.RandomState], None] = None
+        self, random_state: Union[int, np.random.RandomState, None] = None
     ) -> None:
         self.random_state = random_state
 
@@ -341,7 +341,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
         self,
         max_depth: int = sys.maxsize,
         thresholds: int = 20,
-        random_state: Union[int, type[np.random.RandomState], None] = None,
+        random_state: Union[int, np.random.RandomState, None] = None,
     ) -> None:
         self.max_depth = max_depth
         self.thresholds = thresholds
