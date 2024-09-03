@@ -7,7 +7,7 @@ __all__ = [
 
 from os import PathLike
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd

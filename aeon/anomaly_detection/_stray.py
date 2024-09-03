@@ -3,7 +3,6 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["STRAY"]
 
-from typing import Dict
 
 import numpy as np
 import numpy.typing as npt

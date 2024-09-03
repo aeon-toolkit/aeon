@@ -8,7 +8,6 @@ __maintainer__ = []
 __all__ = ["ProbabilityThresholdEarlyClassifier"]
 
 import copy
-from typing import Tuple
 
 import numpy as np
 from joblib import Parallel, delayed

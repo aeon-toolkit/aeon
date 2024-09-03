@@ -3,7 +3,7 @@
 __maintainer__ = []
 
 import warnings
-from typing import Callable, Tuple, Union
+from typing import Callable, Union
 
 import numpy as np
 from numpy.random import RandomState

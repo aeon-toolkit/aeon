@@ -12,7 +12,7 @@ import tempfile
 import zipfile
 from os import PathLike
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional, Tuple, Union
+from typing import Any, Literal, Optional, Union
 from urllib.request import urlopen
 
 import numpy as np

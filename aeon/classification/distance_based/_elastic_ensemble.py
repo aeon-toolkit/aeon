@@ -9,7 +9,7 @@ __all__ = ["ElasticEnsemble"]
 import math
 import time
 from itertools import product
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score

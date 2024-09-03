@@ -1,7 +1,7 @@
 """Benchmarking for forecasting estimators."""
 
 import functools
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Optional, Union
 
 from aeon.benchmarking.benchmarks import BaseBenchmark
 from aeon.forecasting.base import BaseForecaster

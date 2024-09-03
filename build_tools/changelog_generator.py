@@ -2,7 +2,6 @@
 
 import sys
 from collections import OrderedDict
-from typing import Dict, List, Tuple
 
 import httpx
 from dateutil import parser

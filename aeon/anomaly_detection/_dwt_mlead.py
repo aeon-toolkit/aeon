@@ -5,7 +5,7 @@ __all__ = ["DWT_MLEAD"]
 
 import warnings
 from collections.abc import Iterable
-from typing import Any, List, Tuple
+from typing import Any
 
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
