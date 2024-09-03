@@ -119,7 +119,7 @@ class STRAY(BaseAnomalyDetector):
 
         return outlier_bool.astype(bool)
 
-    def _find_outliers_kNN(self, X: np.ndarray, n: int) -> Dict:
+    def _find_outliers_kNN(self, X: np.ndarray, n: int) -> dict:
         """Find outliers using kNN distance with maximum gap.
 
         Parameters

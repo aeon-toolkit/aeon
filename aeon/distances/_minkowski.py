@@ -126,8 +126,8 @@ def _multivariate_minkowski_distance(
 
 
 def minkowski_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     p: float = 2.0,
     w: Optional[np.ndarray] = None,
 ) -> np.ndarray:

@@ -301,7 +301,7 @@ class BaggingForecaster(BaseForecaster):
         return params
 
 
-def _calculate_data_quantiles(df: pd.DataFrame, alpha: List[float]) -> pd.DataFrame:
+def _calculate_data_quantiles(df: pd.DataFrame, alpha: list[float]) -> pd.DataFrame:
     """Generate quantiles for each time point.
 
     Parameters

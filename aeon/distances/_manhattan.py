@@ -74,8 +74,8 @@ def _univariate_manhattan_distance(x: np.ndarray, y: np.ndarray) -> float:
 
 
 def manhattan_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
 ) -> np.ndarray:
     """Compute the manhattan pairwise distance between a set of time series.
 

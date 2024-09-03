@@ -26,7 +26,7 @@ from aeon.utils.validation._dependencies import (
 
 
 def parametrize_with_checks(
-    estimators: List[Union[BaseEstimator, Type[BaseEstimator]]],
+    estimators: list[Union[BaseEstimator, type[BaseEstimator]]],
     use_first_parameter_set: bool = False,
 ) -> Callable:
     """Pytest specific decorator for parametrizing aeon estimator checks.
@@ -89,13 +89,13 @@ def parametrize_with_checks(
 
 
 def check_estimator(
-    estimator: Union[BaseEstimator, Type[BaseEstimator]],
+    estimator: Union[BaseEstimator, type[BaseEstimator]],
     raise_exceptions: bool = False,
     use_first_parameter_set: bool = False,
-    checks_to_run: Union[str, List[str]] = None,
-    checks_to_exclude: Union[str, List[str]] = None,
-    full_checks_to_run: Union[str, List[str]] = None,
-    full_checks_to_exclude: Union[str, List[str]] = None,
+    checks_to_run: Union[str, list[str]] = None,
+    checks_to_exclude: Union[str, list[str]] = None,
+    full_checks_to_run: Union[str, list[str]] = None,
+    full_checks_to_exclude: Union[str, list[str]] = None,
     verbose: bool = False,
 ):
     """Check if estimator adheres to `aeon` conventions.

@@ -66,8 +66,8 @@ def _univariate_euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
 
 
 def euclidean_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
 ) -> np.ndarray:
     """Compute the Euclidean pairwise distance between a set of time series.
 

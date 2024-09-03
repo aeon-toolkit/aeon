@@ -8,7 +8,7 @@ from numba.typed import List as NumbaList
 @njit(cache=True, fastmath=True)
 def reshape_pairwise_to_multiple(
     x: np.ndarray, y: np.ndarray
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Reshape two collections of time series for pairwise distance computation.
 
     Parameters
@@ -72,8 +72,8 @@ def reshape_pairwise_to_multiple(
 
 
 def _is_multivariate(
-    x: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    x: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
 ) -> bool:
     if y is None:
         if isinstance(x, np.ndarray):
@@ -89,7 +89,7 @@ def _is_multivariate(
             if x_dims == 1:
                 return False
 
-        if isinstance(x, (List, NumbaList)):
+        if isinstance(x, (list, NumbaList)):
             x_dims = x[0].ndim
             if x_dims == 2:
                 if x[0].shape[0] == 1:
@@ -124,7 +124,7 @@ def _is_multivariate(
                 return False
             if x_dims == 1 and y_dims == 1:
                 return False
-        if isinstance(x, (List, NumbaList)) and isinstance(y, (List, NumbaList)):
+        if isinstance(x, (list, NumbaList)) and isinstance(y, (list, NumbaList)):
             x_dims = x[0].ndim
             y_dims = y[0].ndim
 
@@ -140,10 +140,10 @@ def _is_multivariate(
                 return True
         list_x = None
         ndarray_y: Optional[np.ndarray] = None
-        if isinstance(x, (List, NumbaList)):
+        if isinstance(x, (list, NumbaList)):
             list_x = x
             ndarray_y = y
-        elif isinstance(y, (List, NumbaList)):
+        elif isinstance(y, (list, NumbaList)):
             list_x = y
             ndarray_y = x
 
@@ -160,7 +160,7 @@ def _is_multivariate(
 
 
 def _convert_to_list(
-    x: Union[np.ndarray, List[np.ndarray]],
+    x: Union[np.ndarray, list[np.ndarray]],
     name: str = "X",
     multivariate_conversion: bool = False,
 ) -> NumbaList[np.ndarray]:
@@ -210,7 +210,7 @@ def _convert_to_list(
             return NumbaList(x.reshape(1, 1, x.shape[0])), False
         else:
             raise ValueError(f"{name} must be 1D, 2D or 3D")
-    elif isinstance(x, (List, NumbaList)):
+    elif isinstance(x, (list, NumbaList)):
         x_new = NumbaList()
         expected_n_timepoints = x[0].shape[-1]
         unequal_timepoints = False

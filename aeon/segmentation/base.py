@@ -212,7 +212,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
                 )
 
     @classmethod
-    def to_classification(cls, change_points: List[int], length: int):
+    def to_classification(cls, change_points: list[int], length: int):
         """Convert change point locations to a classification vector.
 
         Change point detection results can be treated as classification
@@ -228,7 +228,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         return labels
 
     @classmethod
-    def to_clusters(cls, change_points: List[int], length: int):
+    def to_clusters(cls, change_points: list[int], length: int):
         """Convert change point locations to a clustering vector.
 
         Change point detection results can be treated as clustering

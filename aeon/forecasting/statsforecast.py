@@ -188,7 +188,7 @@ class StatsForecastAutoARIMA(_StatsForecastAdapter):
         trend: bool = True,
         method: Optional[str] = None,
         offset_test_args: Optional[str] = None,
-        seasonal_test_args: Optional[Dict] = None,
+        seasonal_test_args: Optional[dict] = None,
         trace: bool = False,
         n_fits: int = 94,
         with_intercept: bool = True,
