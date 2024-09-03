@@ -2,7 +2,7 @@ r"""Dynamic time warping (DTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit

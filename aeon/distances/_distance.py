@@ -1,6 +1,6 @@
 __maintainer__ = []
 
-from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union
+from typing import Any, Callable, Optional, TypedDict, Union
 
 import numpy as np
 from typing_extensions import Unpack

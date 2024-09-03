@@ -6,7 +6,7 @@ Learning shapelet classifier that simply wraps the LearningShapelet class from t
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["LearningShapeletClassifier"]
 
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 

@@ -1,6 +1,6 @@
 """Time series kernel kmeans."""
 
-from typing import Dict, Union
+from typing import Union
 
 import numpy as np
 from numpy.random import RandomState
