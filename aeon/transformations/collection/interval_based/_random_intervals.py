@@ -315,12 +315,12 @@ class RandomIntervals(BaseCollectionTransformer):
 
         if rng.random() < 0.5:
             interval_start = (
-                rng.randint(0, self.n_timepoints_ - self._min_interval_length)
+                rng.randint(0, self.n_timepoints_ + 1 - self._min_interval_length)
                 if self.n_timepoints_ > self._min_interval_length
                 else 0
             )
             len_range = min(
-                self.n_timepoints_ - interval_start,
+                self.n_timepoints_ + 1 - interval_start,
                 self._max_interval_length,
             )
             length = (
@@ -332,7 +332,7 @@ class RandomIntervals(BaseCollectionTransformer):
             interval_end = interval_start + length
         else:
             interval_end = (
-                rng.randint(0, self.n_timepoints_ - self._min_interval_length)
+                rng.randint(0, self.n_timepoints_ + 1 - self._min_interval_length)
                 + self._min_interval_length
                 if self.n_timepoints_ > self._min_interval_length
                 else self._min_interval_length
