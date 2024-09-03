@@ -17,7 +17,7 @@ def check_y(
     inf_is_1: bool = True,
     neginf_is_0: bool = True,
     nan_is_0: bool = True,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Check the input arrays for the performance metrics.
 
     This function checks the input arrays for the performance metrics. You can control
