@@ -14,11 +14,11 @@ class SGSeriesTransformer(BaseSeriesTransformer):
 
     Parameters
     ----------
-    window_length : int
+    window_length : int, default=5
         The length of the filter window (i.e., the number of coefficients).
         window_length must be less than or equal to the size of the input.
 
-    polyorder : int
+    polyorder : int, default=2
         The order of the polynomial used to fit the samples.
         polyorder must be less than window_length.
 
