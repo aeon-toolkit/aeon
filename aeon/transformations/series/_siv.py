@@ -15,7 +15,7 @@ class SIVSeriesTransformer(BaseSeriesTransformer):
 
     Parameters
     ----------
-    window_length : list of int or int
+    window_length : list of int or int, default=[3, 5, 7]
         The filter windows lenths (recommended increasing value).
 
     Notes
