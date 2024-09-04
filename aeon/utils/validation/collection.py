@@ -68,7 +68,7 @@ def is_nested_univ_dataframe(X):
     Parameters
     ----------
     X: collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details
         on aeon supported data structures.
 
     Returns
@@ -140,7 +140,7 @@ def get_n_cases(X):
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -153,14 +153,15 @@ def get_n_cases(X):
 
 
 def get_n_timepoints(X):
-    """Return the number of timepoints in the first element of a collectiom.
+    """Return the number of timepoints in the first element of a collection.
 
-    Handle the single exception of multi index DataFrame.
+    Handles the single exception of multi index DataFrames. If unequal length series,
+    returns the length of the first series.
 
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -181,26 +182,44 @@ def get_n_timepoints(X):
 
 
 def get_n_channels(X):
-    """Return the number of timepoints in the first element of a collectiom.
+    """Return the number of channels in the first element of a collectiom.
 
     Handle the single exception of multi index DataFrame.
 
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
     int
-        Number of time points in the first case.
+        Number of channels in the first case.
+
+    Raises
+    ------
+    ValueError
+        X is list of 2D numpy but number of channels is not consistent.
+        X is list of 2D pd.DataFrames but number of channels is not consistent.
     """
     t = get_type(X)
-    if t in ["numpy3D", "np-list"]:
+    if t == "numpy3D":
+        return X[0].shape[0]
+    if t == "np-list":
+        if not all(arr.shape[0] == X[0].shape[0] for arr in X):
+            raise ValueError(
+                f"ERROR: number of channels is not consistent. "
+                f"Found values: {np.unique([arr.shape[0] for arr in X])}."
+            )
         return X[0].shape[0]
     if t in ["numpy2D", "pd-wide"]:
         return 1
     if t == "df-list":
+        if not all(arr.shape[1] == X[0].shape[1] for arr in X):
+            raise ValueError(
+                f"ERROR: number of channels is not consistent. "
+                f"Found values: {np.unique([arr.shape[1] for arr in X])}."
+            )
         return X[0].shape[1]
     if t == "pd-multiindex":
         return len(X.columns)
@@ -214,7 +233,7 @@ def get_type(X):
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -286,7 +305,7 @@ def is_equal_length(X):
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------

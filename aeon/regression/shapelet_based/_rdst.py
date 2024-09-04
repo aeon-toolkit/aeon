@@ -24,7 +24,7 @@ class RDSTRegressor(BaseRegressor):
     A random dilated shapelet transform (RDST) regressor.
 
     Implementation of the random dilated shapelet transform regressor pipeline
-    along the lines of [1]_[2]_. Transforms the data using the
+    along the lines of [1]_, [2]_. Transforms the data using the
     `RandomDilatedShapeletTransform` and then builds a `RidgeCV` regressor
     with standard scalling.
 

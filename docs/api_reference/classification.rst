@@ -32,7 +32,9 @@ Deep learning
     :toctree: auto_generated/
     :template: class.rst
 
+    BaseDeepClassifier
     CNNClassifier
+    TimeCNNClassifier
     EncoderClassifier
     FCNClassifier
     InceptionTimeClassifier
@@ -56,6 +58,7 @@ Dictionary-based
     ContractableBOSS
     IndividualBOSS
     IndividualTDE
+    MrSQMClassifier
     MUSE
     REDCOMETS
     TemporalDictionaryEnsemble
@@ -73,6 +76,7 @@ Distance-based
 
     ElasticEnsemble
     KNeighborsTimeSeriesClassifier
+    ProximityForest
     ProximityTree
 
 Feature-based
@@ -133,7 +137,6 @@ Shapelet-based
     :template: class.rst
 
     LearningShapeletClassifier
-    MrSQMClassifier
     RDSTClassifier
     SASTClassifier
     ShapeletTransformClassifier

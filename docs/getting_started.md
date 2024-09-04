@@ -72,15 +72,14 @@ Quarter
 1971 Q1     1.897371  1.987154    1.909734  3.657771          -0.1
 ```
 
-We commonly refer to the number of observations for a time series as `n_timepoints` or
-`n_timepoints`. If a series is multivariate, we refer to the dimensions as channels
+We commonly refer to the number of observations for a time series as `n_timepoints`. If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`.
 Dimensions may also be referred to as variables.
 
 Different parts of `aeon` work with single series or collections of series. The
 `anomaly detection` and `segmentation` modules will commonly use single series input, while
 `classification`, `regression` and `clustering` modules will use collections of time
-series. Collections of time series may also be referred to a Panels. Collections of
+series. Collections of time series may also be referred to as Panels. Collections of
 time series will often be accompanied by an array of target variables.
 
 ```{code-block} python
@@ -340,7 +339,6 @@ yourself, you will need to `pip install statsmodels` and `pip install pmdarima`)
 >>> import numpy as np
 >>> from aeon.datasets import load_airline
 >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
->>> from aeon.transformations.detrend import Deseasonalizer
 >>> from aeon.forecasting.arima import ARIMA
 >>> from aeon.forecasting.compose import TransformedTargetForecaster
 ...
@@ -350,7 +348,6 @@ yourself, you will need to `pip install statsmodels` and `pip install pmdarima`)
 >>> pipe = TransformedTargetForecaster(
 ...     steps=[
 ...         ("boxcox", BoxCoxTransformer(sp=12)),
-...         ("deseasonaliser", Deseasonalizer(sp=12)),
 ...         ("arima", ARIMA(order=(1, 1, 0))),
 ...     ]
 ... )
@@ -378,10 +375,9 @@ function can be used to creating pipelines as well.
 ```{code-block} python
 >>> from aeon.pipeline import make_pipeline
 >>> make_pipeline(
-...     BoxCoxTransformer(sp=12), Deseasonalizer(sp=12), ARIMA(order=(1, 1, 0))
+...     BoxCoxTransformer(sp=12), ARIMA(order=(1, 1, 0))
 ... )
 TransformedTargetForecaster(steps=[BoxCoxTransformer(sp=12),
-                                   Deseasonalizer(sp=12),
                                    ARIMA(order=(1, 1, 0))])
 ```
 
@@ -436,7 +432,7 @@ to ARIMA order values for the forecasting pipeline we created in the previous ex
 ... )
 >>> from aeon.forecasting.arima import ARIMA
 >>> from aeon.transformations.series._boxcox import BoxCoxTransformer
->>> from aeon.transformations.detrend import Deseasonalizer
+>>> from aeon.transformations._legacy._deseasonalize import Deseasonalizer
 ...
 >>> y = load_airline()
 ...

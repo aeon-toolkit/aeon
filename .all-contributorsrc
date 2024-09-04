@@ -2437,6 +2437,81 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "IRKnyazev",
+      "name": "Ivan Knyazev",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105492484?v=4",
+      "profile": "https://github.com/IRKnyazev",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Cyril-Meyer",
+      "name": "Cyril Meyer",
+      "avatar_url": "https://avatars.githubusercontent.com/u/69190238?v=4",
+      "profile": "https://github.com/Cyril-Meyer",
+      "contributions": [
+        "test",
+        "doc",
+        "code"
+      ]
+    },
+    {
+      "login": "Moonzyyy",
+      "name": "Daniele Carli",
+      "avatar_url": "https://avatars.githubusercontent.com/u/47296443?v=4",
+      "profile": "https://github.com/Moonzyyy",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "adm-unl",
+      "name": "Adam Unal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143117979?v=4",
+      "profile": "https://github.com/adm-unl",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Datadote",
+      "name": "Daniel L.",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30182852?v=4",
+      "profile": "https://www.linkedin.com/in/dnylam/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "phershbe",
+      "name": "Philip",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25594870?v=4",
+      "profile": "https://www.youtube.com/channel/UCLnEr7V_5BANojPKUjCjb4g",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Sharathchenna",
+      "name": "Sharathchenna",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50939688?v=4",
+      "profile": "https://github.com/Sharathchenna",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "neuron283",
+      "name": "neuron283",
+      "avatar_url": "https://avatars.githubusercontent.com/u/177816976?v=4",
+      "profile": "https://github.com/neuron283",
+      "contributions": [
+        "code"
+      ]
     }
-  ]
+  ],
+  "commitType": "docs"
 }

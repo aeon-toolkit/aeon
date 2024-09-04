@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeon"
-version = "0.10.0"
+version = "0.11.0"
 description = "A toolkit for machine learning from time series"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
@@ -46,7 +46,7 @@ classifiers = [
 requires-python = ">=3.9,<3.13"
 dependencies = [
     "deprecated>=1.2.13",
-    "numba>=0.55,<0.60.0",
+    "numba>=0.55,<0.61.0",
     "numpy>=1.21.0,<1.27.0",
     "packaging>=20.0",
     "pandas>=1.5.3,<2.1.0",
@@ -64,7 +64,7 @@ all_extras = [
     "imbalanced-learn",
     "keras-self-attention",
     "kotsu>=0.3.1",
-    "matplotlib>=3.3.2",
+    "matplotlib>=3.3.2,<3.9.0",
     "pmdarima>=1.8.0",
     "prophet>=1.1.0",
     "pydot>=2.0.0",
@@ -81,6 +81,7 @@ all_extras = [
     "tslearn>=0.5.2",
     "xarray",
     "pyod>=1.1.3",
+    "prts>=1.0.0.0",
 
     # for some reason, a heirarchical dask test fails on some Python versions with the
     # later versions of pyarrow and dask

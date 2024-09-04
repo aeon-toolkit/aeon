@@ -3,12 +3,20 @@
 from typing import Union
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+# TODO: remove in v1.0.0
+@deprecated(
+    version="1.0.0",
+    reason="TimeSeriesKShapes class has been renamed to TimeSeriesKShape. "
+    "The TimeSeriesKShapes version will be removed in version 1.0.0.",
+    category=FutureWarning,
+)
 class TimeSeriesKShapes(BaseClusterer):
     """Kshape algorithm: wrapper of the ``tslearn`` implementation.
 
