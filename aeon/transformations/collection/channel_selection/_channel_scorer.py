@@ -1,4 +1,3 @@
-import logging
 import math
 from typing import Dict
 from typing import List as TypingList
@@ -17,10 +16,6 @@ from aeon.transformations.collection.channel_selection.base import BaseChannelSe
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["ChannelScorer"]
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 
 class ChannelScorer(BaseChannelSelector):
     """Performs channel selection using a single channel classifier or regressor.
@@ -34,6 +29,13 @@ class ChannelScorer(BaseChannelSelector):
 
     Parameters
     ----------
+    estimator : BaseEstimator, optional (default=None)
+    The time series estimator used to score each channel.
+    - If `None`, the estimator is automatically selected based on the type of the
+      target variable `y`.
+        - If `y` is of type `int` or `str`, a `RocketClassifier` is used by default.
+        - If `y` is of type `float`, a `RocketRegressor` is used by default.
+
     proportion : float, default = 0.2
         Proportion of channels to keep, rounded up to nearest integer.
 
@@ -87,7 +89,6 @@ class ChannelScorer(BaseChannelSelector):
                 )
                 scoring_function = accuracy_score
                 score_sign = 1  # Higher accuracy is better, hence positive sign
-                logger.info("Automatically selected a classifier based on y type.")
             elif np.issubdtype(np.array(y).dtype, np.float_):
                 # Default to a regressor if y is float
                 self.estimator_ = RocketRegressor(
@@ -95,7 +96,6 @@ class ChannelScorer(BaseChannelSelector):
                 )
                 scoring_function = mean_squared_error
                 score_sign = -1  # Lower MSE is better, hence negative sign
-                logger.info("Automatically selected a regressor based on y type.")
             else:
                 raise ValueError("y must be of type int, float, or str.")
         elif isinstance(self.estimator, BaseClassifier):
@@ -142,11 +142,5 @@ class ChannelScorer(BaseChannelSelector):
             Dictionary of testing parameters.
         """
         from aeon.classification import DummyClassifier
-        from aeon.regression import DummyRegressor
 
-        if parameter_set == "default":
-            return {"estimator": DummyClassifier(), "proportion": 0.4}
-        elif parameter_set == "alternative":
-            return {"estimator": DummyRegressor(), "proportion": 0.4}
-        else:
-            raise ValueError(f"Unknown parameter_set: {parameter_set}")
+        return {"estimator": DummyClassifier(), "proportion": 0.4}
