@@ -12,8 +12,8 @@ class MovingAverageSeriesTransformer(BaseSeriesTransformer):
     """Calculate the moving average of an array of numbers.
 
     Slides a window across the input array, and returns the averages for each window.
-    This implementation precomputes a cumulative sum, and then performs subtraction. 
-    
+    This implementation precomputes a cumulative sum, and then performs subtraction.
+
     Parameters
     ----------
     window_size: int, default=5
