@@ -88,10 +88,7 @@ class ExpSmoothingSeriesTransformer(BaseSeriesTransformer):
         Xt: 2D np.ndarray
             transformed version of X
         """
-        X = X.astype("float")
-        if X.ndim == 1:
-            X = X.reshape(-1, 1)
-        Xt = np.zeros_like(X)
+        Xt = np.zeros_like(X, dtype="float")
         Xt[0, :] = X[0, :]
         for i in range(1, Xt.shape[0]):
             Xt[i, :] = self.alpha * X[i, :] + (1 - self.alpha) * Xt[i - 1, :]
