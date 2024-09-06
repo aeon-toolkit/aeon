@@ -11,7 +11,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("stumpy>=1.5.1", severity="none"),
+    not _check_soft_dependencies("stumpy", severity="none"),
     reason="required soft dependency stumpy not available",
 )
 def test_STOMP_default():

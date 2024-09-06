@@ -71,7 +71,7 @@ class STOMP(BaseAnomalyDetector):
         "capability:multivariate": False,
         "capability:missing_values": False,
         "fit_is_empty": True,
-        "python_dependencies": ["stumpy>=1.5.1"],
+        "python_dependencies": ["stumpy"],
     }
 
     def __init__(
