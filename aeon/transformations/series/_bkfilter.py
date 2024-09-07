@@ -79,7 +79,7 @@ class BKFilter(BaseSeriesTransformer):
         Parameters
         ----------
         X : np.ndarray
-            time series in shape (n_channels, n_timepoints)
+            time series in shape (n_timepoints, n_channels)
 
         Returns
         -------

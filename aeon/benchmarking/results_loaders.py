@@ -112,7 +112,7 @@ NAME_ALIASES = {
     "TS-CHIEF": {"TSCHIEF", "TS_CHIEF"},
     "TSF": {"tsf", "TimeSeriesForest", "TimeSeriesForestClassifier"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
-    "WEASEL-1.0": {"WEASEL", "WEASEL2", "weasel", "WEASEL 1.0"},
+    "WEASEL-1.0": {"WEASEL", "WEASEL1", "weasel", "WEASEL 1.0"},
     "WEASEL-2.0": {"WEASEL-D", "WEASEL-Dilation", "WEASEL2", "weasel 2.0", "WEASEL_V2"},
     "1NN-DTW": {
         "1NNDTW",
