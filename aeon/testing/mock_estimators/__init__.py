@@ -14,7 +14,6 @@ __all__ = [
     "MockMultivariateSeriesTransformer",
     "MockSeriesTransformerNoFit",
     "MockUnivariateSeriesTransformer",
-    "MockTransformer",
     "MockCollectionTransformer",
     "MockSeriesTransformer",
 ]
@@ -43,4 +42,3 @@ from aeon.testing.mock_estimators._mock_series_transformers import (
     MockSeriesTransformerNoFit,
     MockUnivariateSeriesTransformer,
 )
-from aeon.testing.mock_estimators._mock_transformers import MockTransformer

@@ -15,10 +15,9 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
-from aeon.transformations.base import BaseTransformer
 
 
-class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCMeta):
+class BaseSeriesTransformer(BaseSeriesEstimator, metaclass=ABCMeta):
     """Transformer base class for collections."""
 
     # tag values specific to SeriesTransformers

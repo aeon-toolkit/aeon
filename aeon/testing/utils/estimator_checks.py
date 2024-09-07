@@ -16,7 +16,6 @@ from aeon.clustering.base import BaseClusterer
 from aeon.regression.base import BaseRegressor
 from aeon.testing.test_config import VALID_ESTIMATOR_TYPES
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import is_nested_univ_dataframe
 
 
@@ -70,8 +69,6 @@ def _list_required_methods(estimator):
         BaseClusterer,
         BaseRegressor,
     )
-    # transformation base classes that must have transform
-    BASE_CLASSES_THAT_MUST_HAVE_TRANSFORM = (BaseTransformer,)
 
     required_methods = []
 
@@ -83,9 +80,6 @@ def _list_required_methods(estimator):
 
     if isinstance(estimator, BASE_CLASSES_THAT_MUST_HAVE_PREDICT):
         required_methods += ["predict"]
-
-    if isinstance(estimator, BASE_CLASSES_THAT_MUST_HAVE_TRANSFORM):
-        required_methods += ["transform"]
 
     return required_methods
 

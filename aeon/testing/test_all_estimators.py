@@ -45,7 +45,6 @@ from aeon.testing.utils.estimator_checks import (
     _list_required_methods,
 )
 from aeon.testing.utils.scenarios_getter import retrieve_scenarios
-from aeon.transformations.base import BaseTransformer
 from aeon.utils.sampling import random_partition
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
@@ -792,11 +791,6 @@ class TestAllObjects(BaseFixtureGenerator, QuickTester):
         )
 
         assert 2 >= n_base_types >= 1
-
-        # If the estimator inherits from more than one base estimator type, we check if
-        # one of them is a transformer base type
-        if n_base_types > 1:
-            assert issubclass(estimator_class, BaseTransformer)
 
     def test_has_common_interface(self, estimator_class):
         """Check estimator implements the common interface."""

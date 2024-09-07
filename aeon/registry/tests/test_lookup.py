@@ -8,7 +8,6 @@ from aeon.base import BaseObject
 from aeon.registry import all_estimators, all_tags, get_identifiers
 from aeon.registry._base_classes import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LOOKUP
 from aeon.registry._lookup import _check_estimator_types
-from aeon.transformations.base import BaseTransformer
 
 VALID_IDENTIFIERS_SET = set(BASE_CLASS_IDENTIFIER_LIST + ["estimator"])
 
@@ -142,14 +141,10 @@ def test_all_estimators_exclude_type():
     assert len(estimators) > 0
     names, estimators = list(zip(*estimators))
 
-    for estimator in estimators:
-        assert not isinstance(estimator, BaseTransformer)
-
 
 # arbitrary list for exclude_estimators argument test
 EXCLUDE_ESTIMATORS = [
     "ElasticEnsemble",
-    "NaiveForecaster",
 ]
 
 
