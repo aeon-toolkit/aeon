@@ -5,7 +5,6 @@ __all__ = [
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.forecasting import check_y
 
 
 def plot_series_windows(y, cv, title=""):
@@ -30,8 +29,6 @@ def plot_series_windows(y, cv, title=""):
     import matplotlib.pyplot as plt
     import seaborn as sns
     from matplotlib.ticker import FuncFormatter, MaxNLocator
-
-    y = check_y(y)
 
     train_windows = []
     test_windows = []

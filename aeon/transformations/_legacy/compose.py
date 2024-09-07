@@ -855,39 +855,6 @@ class MultiplexTransformer(_HeterogenousMetaEstimator, _DelegatedTransformer):
             # if None, simply clone the first transformer to self.transformer_
             self.transformer_ = self._get_estimator_list(self.transformers)[0].clone()
 
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-        Returns
-        -------
-        params : dict or list of dict
-        """
-        from aeon.transformations._legacy.impute import Imputer
-
-        # test with 2 simple detrend transformations with selected_transformer
-        params1 = {
-            "transformers": [
-                ("imputer_mean", Imputer(method="mean")),
-                ("imputer_near", Imputer(method="nearest")),
-            ],
-            "selected_transformer": "imputer_near",
-        }
-        # test no selected_transformer
-        params2 = {
-            "transformers": [
-                Imputer(method="mean"),
-                Imputer(method="nearest"),
-            ],
-        }
-        return [params1, params2]
-
     def __or__(self, other):
         """Magic | (or) method, return (right) concatenated MultiplexTransformer.
 
@@ -1467,9 +1434,7 @@ class ColumnwiseTransformer(BaseTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`
         """
-        from aeon.transformations._legacy._detrend import Detrender
-
-        return {"transformer": Detrender()}
+        return {"transformer": MockTransformer()}
 
 
 def _check_columns(z, selected_columns):

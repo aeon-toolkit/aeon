@@ -31,12 +31,9 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseCollectionEstimator
-from aeon.transformations.base import BaseTransformer
 
 
-class BaseCollectionTransformer(
-    BaseCollectionEstimator, BaseTransformer, metaclass=ABCMeta
-):
+class BaseCollectionTransformer(BaseCollectionEstimator, metaclass=ABCMeta):
     """Transformer base class for collections."""
 
     # tag values specific to CollectionTransformers

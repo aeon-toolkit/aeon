@@ -22,7 +22,6 @@ from sklearn.utils.estimator_checks import (
 
 from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.forecasting.base import BaseForecaster
 from aeon.registry import all_estimators
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.testing.test_config import (
@@ -48,10 +47,7 @@ from aeon.testing.utils.estimator_checks import (
 from aeon.testing.utils.scenarios_getter import retrieve_scenarios
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.sampling import random_partition
-from aeon.utils.validation._dependencies import (
-    _check_dl_dependencies,
-    _check_estimator_deps,
-)
+from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 def subsample_by_version_os(x):
@@ -369,10 +365,8 @@ class BaseFixtureGenerator:
         # ensure cls is a class
         if "estimator_class" in kwargs.keys():
             obj = kwargs["estimator_class"]
-            cls = obj
         elif "estimator_instance" in kwargs.keys():
             obj = kwargs["estimator_instance"]
-            cls = type(obj)
         else:
             return []
 
@@ -381,12 +375,6 @@ class BaseFixtureGenerator:
 
         # subset to the methods that x has implemented
         nsc_list = [x for x in nsc_list if _has_capability(obj, x)]
-
-        # remove predict_proba for forecasters, if tensorflow-proba is not installed
-        # this ensures that predict_proba, which requires it, is not called in testing
-        if issubclass(cls, BaseForecaster):
-            if not _check_dl_dependencies(severity="none"):
-                nsc_list = list(set(nsc_list).difference(["predict_proba"]))
 
         return nsc_list
 
@@ -467,20 +455,6 @@ class QuickTester:
         ------
         if raise_exceptions=True,
         raises any exception produced by the tests directly
-
-        Examples
-        --------
-        >>> from aeon.forecasting.naive import NaiveForecaster
-        >>> from aeon.testing.test_all_estimators import TestAllObjects
-        >>> TestAllObjects().run_tests(
-        ...     NaiveForecaster,
-        ...     tests_to_run="test_constructor"
-        ... )
-        {'test_constructor[NaiveForecaster]': 'PASSED'}
-        >>> TestAllObjects().run_tests(
-        ...     NaiveForecaster, fixtures_to_run="test_repr[NaiveForecaster-2]"
-        ... )
-        {'test_repr[NaiveForecaster-2]': 'PASSED'}
         """
         tests_to_run = self._check_None_str_or_list_of_str(
             tests_to_run, var_name="tests_to_run"
@@ -1203,14 +1177,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         ):
             return None
 
-        # for now, we have to skip predict_proba, since current output comparison
-        #   does not work for tensorflow Distribution
-        if (
-            isinstance(estimator_instance, BaseForecaster)
-            and method_nsc_arraylike == "predict_proba"
-        ):
-            return None
-
         # run fit plus method_nsc once, save results
         set_random_state(estimator_instance)
         results = scenario.run(
@@ -1250,13 +1216,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         # this is not the case
         if estimator_instance.get_tag(
             "cant-pickle", tag_value_default=False, raise_error=False
-        ):
-            return None
-
-        # escape predict_proba for forecasters, tfp distributions cannot be pickled
-        if (
-            isinstance(estimator_instance, BaseForecaster)
-            and method_nsc == "predict_proba"
         ):
             return None
 

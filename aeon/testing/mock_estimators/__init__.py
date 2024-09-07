@@ -1,8 +1,6 @@
-"""Mock forecasters for testing and debugging."""
+"""Mock estimators for testing and debugging."""
 
 __all__ = [
-    "MockForecaster",
-    "MockUnivariateForecasterLogger",
     "make_mock_estimator",
     "MockClassifier",
     "MockClassifierPredictProba",
@@ -30,11 +28,6 @@ from aeon.testing.mock_estimators._mock_classifiers import (
 from aeon.testing.mock_estimators._mock_clusterers import MockDeepClusterer
 from aeon.testing.mock_estimators._mock_collection_transformers import (
     MockCollectionTransformer,
-)
-from aeon.testing.mock_estimators._mock_forecasters import (
-    MockForecaster,
-    MockUnivariateForecasterLogger,
-    make_mock_estimator,
 )
 from aeon.testing.mock_estimators._mock_regressors import (
     MockHandlesAllInput,

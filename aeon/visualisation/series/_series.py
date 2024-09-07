@@ -12,7 +12,6 @@ from scipy.fft import fftshift
 from scipy.signal import spectrogram
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.forecasting import check_interval_df, check_y
 from aeon.utils.validation.series import check_consistent_index_type
 
 
@@ -43,8 +42,6 @@ def plot_series(
     title : str, default = None
         The text to use as the figure's suptitle.
     pred_interval : pd.DataFrame, default = None
-        Output of `forecaster.predict_interval()`. Contains columns for lower
-        and upper boundaries of confidence interval.
 
     Returns
     -------
@@ -63,9 +60,6 @@ def plot_series(
     import seaborn as sns
     from matplotlib.cbook import flatten
     from matplotlib.ticker import FuncFormatter, MaxNLocator
-
-    for y in series:
-        check_y(y, allow_index_names=True)
 
     series = list(series)
 
@@ -151,7 +145,6 @@ def plot_series(
     if legend:
         ax.legend()
     if pred_interval is not None:
-        check_interval_df(pred_interval, series[-1].index)
         ax = _plot_interval(ax, pred_interval)
 
     if _ax_kwarg_is_none:
@@ -221,8 +214,6 @@ def plot_lags(series, lags=1, suptitle=None):
     """
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
-
-    check_y(series)
 
     if isinstance(lags, int):
         single_lag = True
@@ -322,8 +313,6 @@ def plot_correlations(
     import matplotlib.pyplot as plt
     from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
-    series = check_y(series)
-
     # Setup figure for plotting
     fig = plt.figure(constrained_layout=True, figsize=(12, 8))
     gs = fig.add_gridspec(2, 2)
@@ -390,7 +379,6 @@ def plot_spectrogram(series, fs=1, return_onesided=True):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    series = check_y(series)
     fig, ax = plt.subplots()
 
     _, _, _spectrogram = spectrogram(series, fs=fs, return_onesided=return_onesided)
