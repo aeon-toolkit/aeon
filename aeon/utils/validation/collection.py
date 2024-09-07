@@ -262,7 +262,7 @@ def get_type(X):
             raise ValueError(
                 f"ERROR np.ndarray must be 2D or 3D but found " f"{X.ndim}"
             )
-    elif isinstance(X, list):  # np-list or df-list or TypedList
+    elif isinstance(X, list):  # np-list or df-list
         if isinstance(X[0], np.ndarray):  # if one a numpy they must all be 2D numpy
             for a in X:
                 if not (isinstance(a, np.ndarray) and a.ndim == 2):
