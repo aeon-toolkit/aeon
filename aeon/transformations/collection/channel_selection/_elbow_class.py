@@ -9,7 +9,7 @@ __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
 import itertools
-from typing import List, Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -20,7 +20,7 @@ from aeon.distances import distance as aeon_distance
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
 
-def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
+def _detect_knee_point(values: list[float], indices: list[int]) -> list[int]:
     """Find elbow point."""
     n_points = len(values)
     all_coords = np.vstack((range(n_points), values)).T
@@ -188,7 +188,7 @@ class _ClassPrototype:
 
     def _create_prototype(
         self, X: np.ndarray, y: np.array
-    ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.ndarray, np.array]]:
+    ) -> Union[tuple[pd.DataFrame, np.array], tuple[np.ndarray, np.array]]:
         """Create the class prototype for each class."""
         le = LabelEncoder()
         y_ind = le.fit_transform(y)
@@ -441,7 +441,7 @@ class ElbowClassPairwise(BaseChannelSelector):
         self._is_fitted = True
         return self
 
-    def _rank(self) -> List[int]:
+    def _rank(self) -> list[int]:
         """Return the rank of channels for ECP."""
         all_index = self.distance_frame.sum(axis=1).sort_values(ascending=False).index
         series = self.distance_frame.sum(axis=1)

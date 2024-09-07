@@ -8,6 +8,7 @@ __all__ = [
     "DFTSeriesTransformer",
     "Dobin",
     "MatrixProfileSeriesTransformer",
+    "PLASeriesTransformer",
     "StatsModelsACF",
     "StatsModelsPACF",
     "BKFilter",
@@ -30,5 +31,6 @@ from aeon.transformations.series._dft import DFTSeriesTransformer
 from aeon.transformations.series._dobin import Dobin
 from aeon.transformations.series._matrix_profile import MatrixProfileSeriesTransformer
 from aeon.transformations.series._pca import PCASeriesTransformer
+from aeon.transformations.series._pla import PLASeriesTransformer
 from aeon.transformations.series._scaled_logit import ScaledLogitSeriesTransformer
 from aeon.transformations.series.base import BaseSeriesTransformer
