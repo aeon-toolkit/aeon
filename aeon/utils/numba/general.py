@@ -567,7 +567,7 @@ def sliding_mean_std_one_series(
     length : int
         Length of the subsequence
     dilation : int
-        Dilation of the subsequence
+        Dilation of the subsequence. A value of 1 correspond to no dilation.
 
     Returns
     -------

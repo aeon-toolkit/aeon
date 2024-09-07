@@ -361,7 +361,6 @@ class ShapeletVisualizer:
             )
         else:
             _values = self.values
-
         c = compute_shapelet_dist_vector(
             X_subs, _values, self.length, self.distance_func
         )
