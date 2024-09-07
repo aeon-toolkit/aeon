@@ -24,11 +24,11 @@ def test_z_norm():
     standard deviation close to 1 along the specified axis.
     """
     X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-    normaliser = Normalise(method="z_norm", axis=2)
+    normaliser = Normalise(method="z_norm")
     X_transformed = normaliser._transform(X)
 
-    mean = np.mean(X_transformed, axis=2)
-    std = np.std(X_transformed, axis=2)
+    mean = np.mean(X_transformed, axis=-1)
+    std = np.std(X_transformed, axis=-1)
 
     assert np.allclose(mean, 0)
     assert np.allclose(std, 1)
@@ -45,11 +45,11 @@ def test_standardize():
     the specified axis.
     """
     X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-    normaliser = Normalise(method="standardize", axis=2)
+    normaliser = Normalise(method="standardize")
     X_transformed = normaliser._transform(X)
 
-    mean = np.mean(X_transformed, axis=2)
-    std = np.std(X_transformed, axis=2)
+    mean = np.mean(X_transformed, axis=-1)
+    std = np.std(X_transformed, axis=-1)
 
     assert np.allclose(mean, 0)
     assert np.allclose(std, 1)
@@ -65,11 +65,11 @@ def test_min_max():
     a minimum value of 0 and a maximum value of 1 along the specified axis.
     """
     X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-    normaliser = Normalise(method="min_max", axis=2)
+    normaliser = Normalise(method="min_max")
     X_transformed = normaliser._transform(X)
 
-    min_val = np.min(X_transformed, axis=2)
-    max_val = np.max(X_transformed, axis=2)
+    min_val = np.min(X_transformed, axis=-1)
+    max_val = np.max(X_transformed, axis=-1)
 
     assert np.allclose(min_val, 0)
     assert np.allclose(max_val, 1)
@@ -85,5 +85,5 @@ def test_invalid_method():
     """
     X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
     with pytest.raises(ValueError, match="Unknown normalization method: invalid"):
-        normaliser = Normalise(method="invalid", axis=2)
+        normaliser = Normalise(method="invalid")
         normaliser._transform(X)
