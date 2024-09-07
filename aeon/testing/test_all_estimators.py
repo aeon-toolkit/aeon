@@ -102,7 +102,7 @@ class BaseFixtureGenerator:
 
     Descendants can override:
         estimator_type_filter: str, class variable; None or string of estimator type
-            e.g., "forecaster", "transformer", "classifier",
+            e.g., "classifier", "regressor", "segmenter".
             see BASE_CLASS_IDENTIFIER_LIST
             which estimators are being retrieved and tested
         fixture_sequence: list of str
@@ -336,11 +336,6 @@ class BaseFixtureGenerator:
         -------
         bool, whether scenario should be skipped in test_name
         """
-        # for forecasters tested in test_non_state_changing_method_contract
-        #   if fh is not passed in fit, then this test would fail
-        #   since fh will be stored in predict through fh handling
-        #   as there are scenarios which pass it early and everything else is the same
-        #   we skip those scenarios
         if test_name == "test_non_state_changing_method_contract":
             if not scenario.get_tag("fh_passed_in_fit", True, raise_error=False):
                 return True

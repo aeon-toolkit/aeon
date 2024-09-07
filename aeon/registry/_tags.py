@@ -54,12 +54,6 @@ ESTIMATOR_TAG_REGISTER = [
         "belongs to.",
     ),
     (
-        "ignores-exogeneous-X",
-        "forecaster",
-        "bool",
-        "does forecaster ignore exogeneous data (X)?",
-    ),
-    (
         "univariate-only",
         "transformer",
         "bool",
@@ -96,51 +90,8 @@ ESTIMATOR_TAG_REGISTER = [
         "behaviour flag: skips inverse_transform when called yes/no",
     ),
     (
-        "requires-fh-in-fit",
-        "forecaster",
-        "bool",
-        "does forecaster require fh passed already in fit? yes/no",
-    ),
-    (
-        "X-y-must-have-same-index",
-        ["forecaster", "regressor"],
-        "bool",
-        "do X/y in fit/update and X/fh in predict have to be same indices?",
-    ),
-    (
-        "enforce_index_type",
-        ["forecaster", "regressor"],
-        "type",
-        "passed to input checks, input conversion index type to enforce",
-    ),
-    (
-        "y_input_type",
-        "forecaster",
-        ("str", ["univariate", "multivariate", "both"]),
-        "which series type does the forecaster support? multivariate means >1 vars",
-    ),
-    (
-        "y_inner_type",
-        ["forecaster", "transformer"],
-        (
-            "list",
-            [
-                "pd.Series",
-                "pd.DataFrame",
-                "np.ndarray",
-                "nested_univ",
-                "pd-multiindex",
-                "pd_multiindex_hier",
-                "numpy3D",
-                "df-list",
-            ],
-        ),
-        "which data structure is the internal _fit/_predict able to deal with?",
-    ),
-    (
         "X_inner_type",
         [
-            "forecaster",
             "classifier",
             "regressor",
             "transformer",
@@ -161,14 +112,6 @@ ESTIMATOR_TAG_REGISTER = [
             ],
         ),
         "which data structure is the internal _fit/_predict able to deal with?",
-    ),
-    (
-        "input_data_type",
-        "transformer",
-        ("list", ["Series", "Collection", "Panel"]),
-        "The input abstract data type of the transformer, input X. Series "
-        "indicates a single series input, Collection indicates a collection of "
-        "time series. Panel is a legacy term and equivalent to Collection.",
     ),
     (
         "output_data_type",
@@ -203,18 +146,6 @@ ESTIMATOR_TAG_REGISTER = [
         "transformer",
         "bool",
         "is the transformer capable of carrying out an inverse transform?",
-    ),
-    (
-        "capability:pred_int",
-        "forecaster",
-        "bool",
-        "does the forecaster implement predict_interval or predict_quantiles?",
-    ),
-    (
-        "capability:pred_var",
-        "forecaster",
-        "bool",
-        "does the forecaster implement predict_variance?",
     ),
     (
         "capability:multivariate",
@@ -318,12 +249,6 @@ ESTIMATOR_TAG_REGISTER = [
         "estimator",
         ("list", "str"),
         "python dependencies of estimator as str or list of str",
-    ),
-    (
-        "remember_data",
-        ["forecaster", "transformer"],
-        "bool",
-        "whether estimator remembers all data seen as self._X, self._y, etc",
     ),
     (
         "distribution_type",
