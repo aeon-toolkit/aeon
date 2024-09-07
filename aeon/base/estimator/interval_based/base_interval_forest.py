@@ -18,6 +18,7 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.transformations.base import BaseTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.interval_based import (
     RandomIntervals,
     SupervisedIntervals,
@@ -88,9 +89,10 @@ class BaseIntervalForest(metaclass=ABCMeta):
         as the number of series_transformers.
 
         Ignored for supervised interval_selection_method inputs.
-    interval_features : BaseTransformer, callable, list, tuple, or None, default=None
-        The features to extract from the intervals using transformers or callable
-        functions. If None, use the mean, standard deviation, and slope of the series.
+        interval_features : BaseCollectionTransformer, callable, list, tuple, or None,
+        default=None The features to extract from the intervals using transformers or
+        callable functions. If None, use the mean, standard deviation, and slope of the
+        series.
 
         Both transformers and functions should be able to take a 2D np.ndarray input.
         Functions should output a 1d array (the feature for each series), and
@@ -575,7 +577,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
         self._interval_transformer = [False] * len(Xt)
         self._interval_function = [False] * len(Xt)
         # single transformer or function for all series_transformers
-        if isinstance(self.interval_features, BaseTransformer):
+        if isinstance(self.interval_features, BaseCollectionTransformer):
             self._interval_transformer = [True] * len(Xt)
             transformer = _clone_estimator(self.interval_features, random_state=rng)
             self._interval_features = [[transformer]] * len(Xt)
@@ -1275,6 +1277,8 @@ class BaseIntervalForest(metaclass=ABCMeta):
 
 
 def _is_transformer(obj):
-    if isinstance(obj, BaseTransformer) or isinstance(obj, FunctionTransformer):
+    if isinstance(obj, BaseCollectionTransformer) or isinstance(
+        obj, FunctionTransformer
+    ):
         return True
     return False
