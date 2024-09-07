@@ -4,7 +4,6 @@ __maintainer__ = ["baraline"]
 
 import numpy as np
 import pytest
-from numba.typed import List
 from numpy.testing import assert_almost_equal, assert_equal
 
 from aeon.distances import get_distance_function
@@ -57,12 +56,11 @@ def test_naive_matrix_profile(dtype, distance_str, k):
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_naive_matrix_profile_unequal_length(dtype):
     """Test naive distance with unequal length."""
-    X = List(
-        [
-            np.array([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype),
-            np.array([[1, 2, 4, 4, 5, 6]], dtype=dtype),
-        ]
-    )
+    X = [
+        np.array([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype),
+        np.array([[1, 2, 4, 4, 5, 6]], dtype=dtype),
+    ]
+
     S = np.asarray([[3, 4, 5, 4, 3, 4, 5, 3, 2, 4, 5]], dtype=dtype)
     L = 3
     distance = get_distance_function("euclidean")
