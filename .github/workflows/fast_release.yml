@@ -6,7 +6,6 @@ on:
 
 jobs:
   build-project:
-    needs: check-manifest
     runs-on: ubuntu-22.04
 
     steps:
@@ -29,7 +28,6 @@ jobs:
           retention-days: 5
 
   upload-wheels:
-    needs: test-wheels
     runs-on: ubuntu-22.04
 
     steps:
