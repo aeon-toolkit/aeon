@@ -3,7 +3,8 @@
 __maintainer__ = ["baraline"]
 
 from abc import ABC, abstractmethod
-from typing import Iterable, Optional, final
+from collections.abc import Iterable
+from typing import Optional, final
 
 import numpy as np
 from numba import get_num_threads, set_num_threads
