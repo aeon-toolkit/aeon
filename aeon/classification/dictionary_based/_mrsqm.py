@@ -3,7 +3,7 @@
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["MrSQMClassifier"]
 
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -149,7 +149,7 @@ class MrSQMClassifier(BaseClassifier):
         return self.clf_.predict_proba(_X)
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
