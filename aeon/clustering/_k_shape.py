@@ -71,6 +71,9 @@ class TimeSeriesKShape(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "python_dependencies": "tslearn",
+        "init_algorithm": ["random", "3D-Array"],
+        "algorithm_type": "k-means",
+        "X_inner_type": "numpy3D",
     }
 
     def __init__(

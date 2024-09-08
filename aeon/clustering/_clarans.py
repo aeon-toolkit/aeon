@@ -99,6 +99,14 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     Data (AALTD 2023).
     """
 
+    _tags = {
+        "capability:multivariate": True,
+        "algorithm_type": "distance",
+        "distance_metric": "msm",
+        "init_algorithm": ["kmedoids++", "random", "first"],
+        "X_inner_type": "numpy3D",
+    }
+
     def __init__(
         self,
         n_clusters: int = 8,

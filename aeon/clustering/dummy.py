@@ -46,6 +46,13 @@ class DummyClusterer(BaseClusterer):
     array([0, 1, 0])
     """
 
+    _tags = {
+        "X_inner_type": "numpy",
+        "capability:multivariate": True,
+        "capability:unequal_length": False,
+        "capability:cluster_labels": True,
+    }
+
     def __init__(self, strategy="random", n_clusters=3):
         super().__init__()
         self.strategy = strategy

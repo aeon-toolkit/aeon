@@ -87,6 +87,8 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "python_dependencies": "tslearn",
+        "algorithm_type": "kernel-k-means",
+        "random_state": True,
     }
 
     def __init__(

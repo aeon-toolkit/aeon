@@ -22,6 +22,13 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         Number of clusters for model.
     """
 
+    _tags = {
+        "algorithm_type": "distance",
+        "capability:multivariate": True,
+        "random_state": True,
+        "X_inner_type": ["numpy2D", "numpy3D", np.ndarray],
+    }
+
     def __init__(self, n_clusters: int = None):
         self.n_clusters = n_clusters
         # required for compatibility with some sklearn interfaces e.g.
