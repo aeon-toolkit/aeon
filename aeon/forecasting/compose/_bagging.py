@@ -2,7 +2,7 @@
 
 __maintainer__ = []
 
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -301,7 +301,7 @@ class BaggingForecaster(BaseForecaster):
         return params
 
 
-def _calculate_data_quantiles(df: pd.DataFrame, alpha: List[float]) -> pd.DataFrame:
+def _calculate_data_quantiles(df: pd.DataFrame, alpha: list[float]) -> pd.DataFrame:
     """Generate quantiles for each time point.
 
     Parameters

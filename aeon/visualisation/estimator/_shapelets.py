@@ -361,7 +361,6 @@ class ShapeletVisualizer:
             )
         else:
             _values = self.values
-
         c = compute_shapelet_dist_vector(
             X_subs, _values, self.length, self.distance_func
         )
@@ -648,7 +647,7 @@ class ShapeletClassifierVisualizer:
 
     def _get_shp_importance(self, class_id):
         """
-        Return the shapelet importance for a speficied class.
+        Return the shapelet importance for a specified class.
 
         Parameters
         ----------
@@ -698,7 +697,6 @@ class ShapeletClassifierVisualizer:
                     class_0_coefs[:, mask] = -class_0_coefs[:, mask]
                     class_1_coefs[:, ::3] = -class_1_coefs[:, ::3]
 
-                    # Append the two modified coefs arrays along axis 0
                     coefs = np.append(class_0_coefs, class_1_coefs, axis=0)
                     warnings.warn(
                         "Shapelet importance ranking may be unreliable "
@@ -709,10 +707,24 @@ class ShapeletClassifierVisualizer:
                         "or using an alternative method.",
                         stacklevel=1,
                     )
+                    coefs = coefs[class_id]
                 else:
                     coefs = np.append(coefs, -coefs, axis=0)
-            coefs = coefs[class_id]
-
+                    coefs = coefs[class_id]
+            elif isinstance(self.estimator, RDSTClassifier):
+                coefs = coefs[class_id]
+                coefs[::3] = -coefs[::3]
+                warnings.warn(
+                    "Shapelet importance ranking may be unreliable "
+                    "when using linear classifiers with RDST. "
+                    "This is due to the interaction between argmin "
+                    "and shapelet occurrence features, which can distort "
+                    "the rankings. Consider evaluating the results carefully "
+                    "or using an alternative method.",
+                    stacklevel=1,
+                )
+            else:
+                coefs = -coefs[class_id]
         elif isinstance(classifier, (BaseForest, BaseDecisionTree)):
             coefs = classifier.feature_importances_
 
