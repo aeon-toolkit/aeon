@@ -4,7 +4,8 @@ __maintainer__ = ["CodeLionX"]
 __all__ = ["DWT_MLEAD"]
 
 import warnings
-from typing import Any, Iterable, List, Tuple
+from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
@@ -14,7 +15,7 @@ from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.utils.numba.wavelets import multilevel_haar_transform
 
 
-def _pad_series(x: np.ndarray) -> Tuple[np.ndarray, int, int]:
+def _pad_series(x: np.ndarray) -> tuple[np.ndarray, int, int]:
     """Pad input signal to the next power of 2 using periodic padding mode."""
     n = x.shape[0]
     exp = np.ceil(np.log2(n))
@@ -22,7 +23,7 @@ def _pad_series(x: np.ndarray) -> Tuple[np.ndarray, int, int]:
     return np.pad(x, (0, m - n), mode="wrap"), n, m
 
 
-def _combine_alternating(xs: List[Any], ys: List[Any]) -> Iterable[Any]:
+def _combine_alternating(xs: list[Any], ys: list[Any]) -> Iterable[Any]:
     """Combine two lists by alternating their elements."""
     for x, y in zip(xs, ys):
         yield x
@@ -173,7 +174,7 @@ class DWT_MLEAD(BaseAnomalyDetector):
 
     def _multilevel_dwt(
         self, X: np.ndarray, max_level: int
-    ) -> Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]]:
+    ) -> tuple[np.ndarray, list[np.ndarray], list[np.ndarray]]:
         ls_ = np.arange(self.start_level - 1, max_level - 1, dtype=np.int_) + 1
         as_, ds_ = multilevel_haar_transform(X, max_level - 1)
         as_ = as_[self.start_level :]
@@ -220,7 +221,7 @@ class DWT_MLEAD(BaseAnomalyDetector):
         return np.sum(mapped, axis=1)
 
     def _push_anomaly_counts_down_to_points(
-        self, coef_anomaly_counts: List[np.ndarray]
+        self, coef_anomaly_counts: list[np.ndarray]
     ) -> np.ndarray:
         # sum up counters of detail coeffs (orig. D^l) and approx coeffs (orig. C^l)
         anomaly_counts = coef_anomaly_counts[0::2] + coef_anomaly_counts[1::2]
