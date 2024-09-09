@@ -28,6 +28,7 @@ __all__ = [
 from aeon.transformations.collection._collection_wrapper import (
     CollectionToSeriesWrapper,
 )
+from aeon.transformations.collection._downsample import DownsampleTransformer
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
@@ -35,7 +36,6 @@ from aeon.transformations.collection.channel_selection import (
     ElbowClassPairwise,
     ElbowClassSum,
 )
-from aeon.transformations.collection.downsample import DownsampleTransformer
 from aeon.transformations.collection.dwt import DWTTransformer
 from aeon.transformations.collection.hog1d import HOG1DTransformer
 from aeon.transformations.collection.interpolate import TSInterpolator
