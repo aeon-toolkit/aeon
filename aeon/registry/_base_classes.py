@@ -45,6 +45,7 @@ from aeon.clustering.base import BaseClusterer
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search.base import BaseSimilaritySearch
+from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
 
@@ -62,6 +63,7 @@ BASE_CLASS_REGISTER = [
     ("series-estimator", BaseSeriesEstimator, "single series estimator"),
     ("series-transformer", BaseSeriesTransformer, "single series transformer"),
     ("similarity-search", BaseSimilaritySearch, "similarity search"),
+    ("transformer", BaseTransformer, "transformer"),
 ]
 
 

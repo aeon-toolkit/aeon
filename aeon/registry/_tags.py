@@ -90,6 +90,36 @@ ESTIMATOR_TAG_REGISTER = [
         "behaviour flag: skips inverse_transform when called yes/no",
     ),
     (
+        "X-y-must-have-same-index",
+        ["regressor"],
+        "bool",
+        "do X/y in fit/update and X/fh in predict have to be same indices?",
+    ),
+    (
+        "enforce_index_type",
+        ["regressor"],
+        "type",
+        "passed to input checks, input conversion index type to enforce",
+    ),
+    (
+        "y_inner_type",
+        ["transformer"],
+        (
+            "list",
+            [
+                "pd.Series",
+                "pd.DataFrame",
+                "np.ndarray",
+                "nested_univ",
+                "pd-multiindex",
+                "pd_multiindex_hier",
+                "numpy3D",
+                "df-list",
+            ],
+        ),
+        "which data structure is the internal _fit/_predict able to deal with?",
+    ),
+    (
         "X_inner_type",
         [
             "classifier",
@@ -112,6 +142,14 @@ ESTIMATOR_TAG_REGISTER = [
             ],
         ),
         "which data structure is the internal _fit/_predict able to deal with?",
+    ),
+    (
+        "input_data_type",
+        "transformer",
+        ("list", ["Series", "Collection", "Panel"]),
+        "The input abstract data type of the transformer, input X. Series "
+        "indicates a single series input, Collection indicates a collection of "
+        "time series. Panel is a legacy term and equivalent to Collection.",
     ),
     (
         "output_data_type",
@@ -249,6 +287,12 @@ ESTIMATOR_TAG_REGISTER = [
         "estimator",
         ("list", "str"),
         "python dependencies of estimator as str or list of str",
+    ),
+    (
+        "remember_data",
+        ["transformer"],
+        "bool",
+        "whether estimator remembers all data seen as self._X, self._y, etc",
     ),
     (
         "distribution_type",
