@@ -100,7 +100,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     """
 
     _tags = {
-        "algorithm_type": "k-medoids",
+        "algorithm_type": "distance",
     }
 
     def __init__(
