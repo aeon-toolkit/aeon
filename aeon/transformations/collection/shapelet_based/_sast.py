@@ -105,7 +105,7 @@ class SAST(BaseCollectionTransformer):
         self.nb_inst_per_class = nb_inst_per_class
         self._kernels = None  # z-normalized subsequences
         self._kernel_orig = None  # non z-normalized subsequences
-        self._start_positions = []  # To store the start positions
+        self._start_points = []  # To store the start positions
         self._classes = []  # To store the class of each shapelet
         self._source_series = []  # To store the index of the original time series
         self.kernels_generators_ = {}  # Reference time series
@@ -173,7 +173,7 @@ class SAST(BaseCollectionTransformer):
             (n_kernels, max_shp_length), dtype=np.float32, fill_value=np.nan
         )
         self._kernel_orig = []
-        self._start_positions = []  # Reset start positions
+        self._start_points = []  # Reset start positions
         self._classes = []  # Reset class information
         self._source_series = []  # Reset source series information
 
@@ -185,7 +185,7 @@ class SAST(BaseCollectionTransformer):
                     can = np.squeeze(candidates_ts[i][j:end])
                     self._kernel_orig.append(can)
                     self._kernels[k, :shp_length] = z_normalise_series(can)
-                    self._start_positions.append(j)  # Store the start position
+                    self._start_points.append(j)  # Store the start position
                     self._classes.append(
                         class_values_of_candidates[i]
                     )  # Store the class of the shapelet

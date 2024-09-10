@@ -113,7 +113,7 @@ class RSAST(BaseCollectionTransformer):
         self._kernels = None  # z-normalized subsequences
         self._cand_length_list = {}
         self._kernel_orig = []
-        self._start_positions = []
+        self._start_points = []
         self._classes = []
         self._source_series = []  # To store the index of the original time series
         self._kernels_generators = {}  # Reference time series
@@ -159,7 +159,7 @@ class RSAST(BaseCollectionTransformer):
         m_kernel = 0
 
         # Initialize lists to store start positions, classes, and source series
-        self._start_positions = []
+        self._start_points = []
         self._classes = []
         self._source_series = []
 
@@ -305,7 +305,7 @@ class RSAST(BaseCollectionTransformer):
 
                         # Store the start position,
                         # class, and the original index in the training set
-                        self._start_positions.append(i)
+                        self._start_points.append(i)
                         self._classes.append(c)
                         self._source_series.append(original_idx)
 
