@@ -1,5 +1,5 @@
 import math
-from typing import Dict
+from typing import Dict as TypingDict
 from typing import List as TypingList
 from typing import Union
 
@@ -127,7 +127,7 @@ class ChannelScorer(BaseChannelSelector):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> dict[str, any]:
+    def get_test_params(cls, parameter_set: str = "default") -> TypingDict[str, any]:
         """Return testing parameter settings for the estimator.
 
         Parameters
