@@ -3,7 +3,7 @@
 __maintainer__ = []
 
 from copy import copy
-from typing import Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -163,7 +163,7 @@ class STLBootstrapTransformer(BaseTransformer):
         block_length: int = None,
         sampling_replacement: bool = False,
         return_actual: bool = True,
-        lambda_bounds: Tuple = None,
+        lambda_bounds: tuple = None,
         lambda_method: str = "guerrero",
         seasonal: int = 7,
         trend: int = None,

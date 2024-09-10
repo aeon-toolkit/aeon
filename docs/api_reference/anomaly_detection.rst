@@ -74,3 +74,4 @@ Detectors
     MERLIN
     PyODAdapter
     STRAY
+    STOMP
