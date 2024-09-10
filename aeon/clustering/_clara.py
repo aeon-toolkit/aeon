@@ -112,9 +112,6 @@ class TimeSeriesCLARA(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "k-medoids",
-        "distance_metric": "default: msm",
-        "init_algorithm": ["kmedoids++", "random", "first", np.ndarray],
-        "X_inner_type": "numpy3D",
     }
 
     def __init__(

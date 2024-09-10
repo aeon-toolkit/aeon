@@ -24,9 +24,6 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
     _tags = {
         "algorithm_type": "distance",
-        "capability:multivariate": True,
-        "random_state": True,
-        "X_inner_type": ["numpy2D", "numpy3D", np.ndarray],
     }
 
     def __init__(self, n_clusters: int = None):

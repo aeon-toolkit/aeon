@@ -72,8 +72,7 @@ class TimeSeriesKShapes(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "python_dependencies": "tslearn",
-        "algorithm_type": ["k-shape", np.ndarray],
-        "X_inner_type": ["numpy2D", "numpy3D"],
+        "algorithm_type": "shape-based",
     }
 
     def __init__(

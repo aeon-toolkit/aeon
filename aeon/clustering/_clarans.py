@@ -100,11 +100,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     """
 
     _tags = {
-        "capability:multivariate": True,
-        "algorithm_type": "distance",
-        "distance_metric": "msm",
-        "init_algorithm": ["kmedoids++", "random", "first"],
-        "X_inner_type": "numpy3D",
+        "algorithm_type": "k-medoids",
     }
 
     def __init__(

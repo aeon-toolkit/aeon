@@ -151,10 +151,7 @@ class TimeSeriesKMeans(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": "distance",
-        "distance_metric": "msm",
-        "init_algorithm": "random",
-        "X_inner_type": "numpy3D",
+        "algorithm_type": "k-means",
     }
 
     def __init__(
