@@ -3,7 +3,7 @@
 __maintainer__ = []
 
 import warnings
-from typing import Callable, Tuple, Union
+from typing import Callable, Union
 
 import numpy as np
 from numpy.random import RandomState
@@ -386,7 +386,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         else:
             return None
 
-    def _alternate_fit(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
+    def _alternate_fit(self, X) -> tuple[np.ndarray, np.ndarray, float, int]:
         cluster_center_indexes = self._init_algorithm
         if isinstance(self._init_algorithm, Callable):
             cluster_center_indexes = self._init_algorithm(X)
@@ -419,7 +419,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     def _assign_clusters(
         self, X: np.ndarray, cluster_center_indexes: np.ndarray
-    ) -> Tuple[np.ndarray, float]:
+    ) -> tuple[np.ndarray, float]:
         X_indexes = np.arange(X.shape[0], dtype=int)
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_center_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
