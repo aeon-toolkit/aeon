@@ -166,8 +166,20 @@ class TimeSeriesKMeans(BaseClusterer):
         averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "ba",
         distance_params: dict = None,
         average_params: dict = None,
+        init_algorithm: Union[str, np.ndarray] = None,  # Deprecated
+
     ):
-        self.init = init
+        if init_algorithm is not None:
+            import warnings
+            warnings.warn(
+                "The 'init_algorithm' parameter is deprecated and will be removed in a future version. "
+                "Use 'init' instead.",
+                DeprecationWarning,
+            )
+            self.init = init_algorithm
+        else:
+            self.init = init
+        self.init_algorithm = init_algorithm
         self.distance = distance
         self.n_init = n_init
         self.max_iter = max_iter
