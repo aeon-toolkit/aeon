@@ -111,7 +111,6 @@ class TimeSeriesCLARA(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": "distance",
     }
 
     def __init__(

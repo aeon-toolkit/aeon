@@ -99,10 +99,6 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     Data (AALTD 2023).
     """
 
-    _tags = {
-        "algorithm_type": "distance",
-    }
-
     def __init__(
         self,
         n_clusters: int = 8,
