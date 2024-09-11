@@ -1,4 +1,6 @@
-from typing import List, Optional, Union
+"""RSAST Transformer."""
+
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -115,7 +117,7 @@ class RSAST(BaseCollectionTransformer):
         self._kernels_generators = {}  # Reference time series
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, List]) -> "RSAST":
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "RSAST":
         from scipy.stats import ConstantInputWarning, DegenerateDataWarning, f_oneway
         from statsmodels.tsa.stattools import acf, pacf
 
@@ -303,7 +305,7 @@ class RSAST(BaseCollectionTransformer):
         return self
 
     def _transform(
-        self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None
+        self, X: np.ndarray, y: Optional[Union[np.ndarray, list]] = None
     ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 

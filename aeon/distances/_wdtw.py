@@ -2,7 +2,7 @@ r"""Weighted dynamic time warping (WDTW) distance between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
@@ -235,8 +235,8 @@ def _wdtw_cost_matrix(
 
 
 def wdtw_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     g: float = 0.05,
     itakura_max_slope: Optional[float] = None,
@@ -383,7 +383,7 @@ def wdtw_alignment_path(
     window: Optional[float] = None,
     g: float = 0.05,
     itakura_max_slope: Optional[float] = None,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the WDTW alignment path between two time series.
 
     Parameters
