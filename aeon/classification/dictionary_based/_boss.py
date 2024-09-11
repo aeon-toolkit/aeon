@@ -7,6 +7,7 @@ Contains a single BOSS and a BOSS ensemble.
 __maintainer__ = []
 __all__ = ["BOSSEnsemble", "IndividualBOSS", "pairwise_distances"]
 
+import importlib
 from itertools import compress
 
 import numpy as np
@@ -20,6 +21,45 @@ from sklearn.utils.validation import _num_samples
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
+
+# Dictionary mapping method names to their full import paths
+lazy_import_dict = {
+    "IndividualBOSS": "aeon.classification.dictionary_based._boss.IndividualBOSS",
+}
+
+
+def lazy_import(class_name):
+    """
+    Dynamically import the specified class from its module.
+
+    This function splits the full import path into module and class names,
+    imports the module dynamically, and then retrieves the class or method
+    from the imported module. This approach helps in reducing the overhead
+    of importing all classes or methods upfront, especially in large modules
+    with many dependencies. Instead, imports are deferred until they are actually
+    needed during runtime.
+
+    Parameters
+    ----------
+    class_name : str
+        The name of the class to import.
+
+    Returns
+    -------
+    The Imported Class name which will be used for lazy loading.
+
+    """
+    if class_name in lazy_import_dict:
+        full_path = lazy_import_dict[class_name]  # Importing the full path of the class
+        module_name, class_name = full_path.rsplit(
+            ".", 1
+        )  # Splitting the full path into module and class names
+        module = importlib.import_module(
+            module_name
+        )  # Takes the module name and imports it dynamically.
+        return getattr(module, class_name)
+    else:
+        raise ImportError(f"Class {class_name} not found in lazy_import_dict")
 
 
 class BOSSEnsemble(BaseClassifier):
@@ -202,6 +242,11 @@ class BOSSEnsemble(BaseClassifier):
 
         max_acc = -1
         min_max_acc = -1
+
+        IndividualBOSS = lazy_import(
+            "IndividualBOSS"
+        )  # Lazy import of the IndividualBOSS class
+
         for normalise in self._norm_options:
             for win_size in range(self.min_window, max_window + 1, win_inc):
                 # max_word_len = min(self.min_window - 2, self.word_lengths[0])
