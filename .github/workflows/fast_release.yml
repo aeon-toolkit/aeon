@@ -1,0 +1,42 @@
+# Makes a release without testing. Don't run this unless you have to.
+name: Fast release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-project:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Build project
+        run: |
+          python -m pip install build
+          python -m build
+
+      - name: Store build files
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/*
+          retention-days: 5
+
+  upload-wheels:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_TOKEN }}
