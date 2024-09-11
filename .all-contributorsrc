@@ -2520,6 +2520,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "notaryanramani",
+      "name": "Aryan Ramani",
+      "avatar_url": "https://avatars.githubusercontent.com/u/105578782?v=4",
+      "profile": "http://aryanramani.streamlit.app",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
