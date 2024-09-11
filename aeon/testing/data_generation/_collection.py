@@ -12,7 +12,7 @@ __all__ = [
     "make_example_multi_index_dataframe",
 ]
 
-from typing import List, Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ def make_example_3d_numpy(
     regression_target: bool = False,
     random_state: Union[int, None] = None,
     return_y: bool = True,
-) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+) -> Union[np.ndarray, tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 3D numpy X and numpy y data for testing.
 
     Generates data in 'numpy3D' format.
@@ -112,7 +112,7 @@ def make_example_2d_numpy_collection(
     regression_target: bool = False,
     random_state: Union[int, None] = None,
     return_y: bool = True,
-) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+) -> Union[np.ndarray, tuple[np.ndarray, np.ndarray]]:
     """Randomly generate 2D numpy X and numpy y for testing.
 
     Generates data in 'numpy2D' format.
@@ -192,7 +192,7 @@ def make_example_3d_numpy_list(
     regression_target: bool = False,
     random_state: Union[int, None] = None,
     return_y: bool = True,
-) -> Union[List[np.ndarray], Tuple[List[np.ndarray], np.ndarray]]:
+) -> Union[list[np.ndarray], tuple[list[np.ndarray], np.ndarray]]:
     """Randomly generate 3D list of numpy X and numpy y for testing.
 
     Generates data in 'np-list' format.
@@ -281,7 +281,7 @@ def make_example_2d_numpy_list(
     regression_target: bool = False,
     random_state: Union[int, None] = None,
     return_y: bool = True,
-) -> Union[List[np.ndarray], Tuple[List[np.ndarray], np.ndarray]]:
+) -> Union[list[np.ndarray], tuple[list[np.ndarray], np.ndarray]]:
     """Randomly generate 2D list of numpy X and numpy y for testing.
 
     Will ensure there is at least one sample per label if a classification
@@ -362,7 +362,7 @@ def make_example_dataframe_list(
     regression_target: bool = False,
     random_state: Union[int, None] = None,
     return_y: bool = True,
-) -> Union[List[pd.DataFrame], Tuple[List[pd.DataFrame], np.ndarray]]:
+) -> Union[list[pd.DataFrame], tuple[list[pd.DataFrame], np.ndarray]]:
     """Randomly generate list of DataFrame X and numpy y for testing.
 
     Generates data in 'df-list' format.
@@ -455,7 +455,7 @@ def make_example_2d_dataframe_collection(
     regression_target: bool = False,
     random_state: Union[int, None] = None,
     return_y: bool = True,
-) -> Union[pd.DataFrame, Tuple[pd.DataFrame, np.ndarray]]:
+) -> Union[pd.DataFrame, tuple[pd.DataFrame, np.ndarray]]:
     """Randomly generate 2D DataFrame X and numpy y for testing.
 
     Generates data in 'pd-wide' format.
