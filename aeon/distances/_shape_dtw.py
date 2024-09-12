@@ -2,7 +2,7 @@ r"""Shape Dynamic time warping (ShapeDTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
@@ -34,7 +34,7 @@ def _pad_ts_edges(x: np.ndarray, reach: int) -> np.ndarray:
     return x_padded
 
 
-def _pad_ts_collection_edges(x: List[np.ndarray], reach: int) -> List[np.ndarray]:
+def _pad_ts_collection_edges(x: list[np.ndarray], reach: int) -> list[np.ndarray]:
     """Pad the edges of a collection of time series.
 
     Time series should be of shape (n_cases, n_channels, n_timepoints)
@@ -434,7 +434,7 @@ def shape_dtw_alignment_path(
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the ShapeDTW alignment path between two series x and y.
 
     Parameters
@@ -515,8 +515,8 @@ def shape_dtw_alignment_path(
 
 
 def shape_dtw_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     descriptor: str = "identity",
     reach: int = 30,

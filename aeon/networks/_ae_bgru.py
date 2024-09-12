@@ -78,7 +78,12 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
                 if isinstance(self.n_units, list):
                     self._n_units = self.n_units
                     self._n_units[-1] = self.latent_space_dim // 2
-                    assert len(self.n_units) == self.n_layers
+                    if len(self.n_units) != self.n_layers:
+                        raise ValueError(
+                            f"Number of units per layer {len(self.n_units)} should be"
+                            f" same as number of layers but is"
+                            f" not: {self.n_layers}"
+                        )
                 elif isinstance(self.n_units, int):
                     self._n_units = [self.n_units for _ in range(self.n_layers)]
                     self._n_units[-1] = self.latent_space_dim // 2
@@ -87,8 +92,14 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
             self._activation = [self.activation for _ in range(self._n_layers)]
         else:
             self._activation = self.activation
-            assert isinstance(self.activation, list)
-            assert len(self.activation) == self._n_layers
+            if not isinstance(self.activation, list):
+                raise ValueError("Activations should be a list or a single string.")
+            if len(self.activation) != self._n_layers:
+                raise ValueError(
+                    f"Number of activations {len(self.activation)} should be"
+                    f" same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
 
         encoder_inputs = tf.keras.layers.Input(shape=input_shape, name="encoder_input")
         x = encoder_inputs

@@ -12,7 +12,7 @@ import tempfile
 import zipfile
 from os import PathLike
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional, Tuple, Union
+from typing import Any, Literal, Optional, Union
 from urllib.request import urlopen
 
 import numpy as np
@@ -53,12 +53,12 @@ _COLLECTION_DOWNLOAD_IDS = {
 
 
 def load_anomaly_detection(
-    name: Tuple[str, str],
+    name: tuple[str, str],
     split: Literal["train", "test"] = "test",
     extract_path: Optional[PathLike] = None,
     return_metadata: bool = False,
 ) -> Union[
-    Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, Dict[str, Any]]
+    tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, dict[str, Any]]
 ]:
     """Load an anomaly detection dataset.
 
@@ -177,12 +177,12 @@ def load_anomaly_detection(
 
 
 def _load_custom(
-    name: Tuple[str, str],
+    name: tuple[str, str],
     split: Literal["train", "test"],
     path: Path,
     return_metadata: bool,
 ) -> Union[
-    Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, Dict[str, Any]]
+    tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, dict[str, Any]]
 ]:
     if not path.is_file() or path.suffix != ".csv":
         raise ValueError(
@@ -233,7 +233,7 @@ def _download_and_extract(collection: str, extract_path: Path) -> None:
             )
 
 
-def load_from_timeeval_csv_file(path: Path) -> Tuple[np.ndarray, np.ndarray]:
+def load_from_timeeval_csv_file(path: Path) -> tuple[np.ndarray, np.ndarray]:
     """Load a TimeEval-formatted CSV file into memory.
 
     TimeEval datasets are stored in simple CSV files with the following format:
@@ -269,7 +269,7 @@ def load_from_timeeval_csv_file(path: Path) -> Tuple[np.ndarray, np.ndarray]:
 
 def load_kdd_tsad_135(
     split: Literal["train", "test"] = "test"
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Load the KDD-TSAD 135 UCR_Anomaly_Internal_Bleeding16 univariate dataset.
 
     Returns
@@ -314,7 +314,7 @@ def load_kdd_tsad_135(
     return X, y
 
 
-def load_daphnet_s06r02e0() -> Tuple[np.ndarray, np.ndarray]:
+def load_daphnet_s06r02e0() -> tuple[np.ndarray, np.ndarray]:
     """Load the Daphnet S06R02E0 multivariate time series dataset.
 
     Returns
@@ -364,7 +364,7 @@ def load_ecg_diff_count_3(
         "unsupervised", "semi-supervised", "supervised"
     ] = "unsupervised"
 ) -> Union[
-    Tuple[np.ndarray, np.ndarray], Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+    tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
 ]:
     """Load the synthetic ECG dataset 'ecg-diff-count-3'.
 
