@@ -16,8 +16,8 @@ from aeon.similarity_search.distance_profiles.squared_distance_profile import (
 
 
 def euclidean_distance_profile(
-    X: Union[np.ndarray,
-    List], q: np.ndarray,
+    X: Union[np.ndarray, List],
+    q: np.ndarray,
     mask: np.ndarray,
     channel_independent: bool = False,
 ) -> np.ndarray:
