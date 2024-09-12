@@ -6,6 +6,7 @@ __all__ = [
     # transformers
     "AutocorrelationFunctionTransformer",
     "ARCoefficientTransformer",
+    "DownsampleTransformer",
     "ElbowClassSum",
     "ElbowClassPairwise",
     "DWTTransformer",
@@ -22,7 +23,7 @@ __all__ = [
     "TimeSeriesScaler",
     "TruncationTransformer",
 ]
-
+from aeon.transformations.collection._downsample import DownsampleTransformer
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
