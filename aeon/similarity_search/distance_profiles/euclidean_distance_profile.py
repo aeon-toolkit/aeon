@@ -3,7 +3,10 @@
 __maintainer__ = ["baraline"]
 
 
+from typing import Union
+
 import numpy as np
+from numba.typed import List
 
 from aeon import List
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (
@@ -13,8 +16,8 @@ from aeon.similarity_search.distance_profiles.squared_distance_profile import (
 
 
 def euclidean_distance_profile(
-    X: np.ndarray,
-    q: np.ndarray,
+    X: Union[np.ndarray,
+    List], q: np.ndarray,
     mask: np.ndarray,
     channel_independent: bool = False,
 ) -> np.ndarray:
@@ -29,7 +32,8 @@ def euclidean_distance_profile(
     Parameters
     ----------
     X: np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
-        The input samples.
+        The input samples. If X is an unquel length collection, expect a numba TypedList
+        of 2D arrays of shape (n_channels, n_timepoints)
     q : np.ndarray, 2D array of shape (n_channels, query_length)
         The query used for similarity search.
     mask : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
@@ -68,11 +72,11 @@ def euclidean_distance_profile(
 
 
 def normalized_euclidean_distance_profile(
-    X: np.ndarray,
+    X: Union[np.ndarray, List],
     q: np.ndarray,
     mask: np.ndarray,
-    X_means: np.ndarray,
-    X_stds: np.ndarray,
+    X_means: Union[np.ndarray, List],
+    X_stds: Union[np.ndarray, List],
     q_means: np.ndarray,
     q_stds: np.ndarray,
     channel_independent: bool = False,
@@ -86,17 +90,20 @@ def normalized_euclidean_distance_profile(
 
     Parameters
     ----------
-    X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
-        The input samples.
+    X: np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a numba TypedList
+        of 2D arrays of shape (n_channels, n_timepoints)
     q : np.ndarray, 2D array of shape (n_channels, query_length)
         The query used for similarity search.
     mask : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Boolean mask of the shape of the distance profile indicating for which part
         of it the distance should be computed.
     X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
-        Means of each subsequences of X of size query_length
+        Means of each subsequences of X of size query_length. Should be a numba
+        TypedList if X is unequal length.
     X_stds : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
-        Stds of each subsequences of X of size query_length
+        Stds of each subsequences of X of size query_length. Should be a numba
+        TypedList if X is unequal length.
     q_means : np.ndarray, 1D array of shape (n_channels)
         Means of the query q
     q_stds : np.ndarray, 1D array of shape (n_channels)
