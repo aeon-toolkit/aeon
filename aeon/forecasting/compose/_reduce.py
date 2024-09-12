@@ -26,8 +26,8 @@ from aeon.forecasting.base._aeon import _BaseWindowForecaster
 from aeon.forecasting.base._base import DEFAULT_ALPHA
 from aeon.forecasting.base._fh import _index_range
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.compose import FeatureUnion
-from aeon.transformations.summarize import WindowSummarizer
+from aeon.transformations._legacy.compose import FeatureUnion
+from aeon.transformations._legacy.summarize import WindowSummarizer
 from aeon.utils.datetime import _shift
 from aeon.utils.index_functions import get_time_index
 from aeon.utils.sklearn import is_sklearn_regressor
@@ -1839,7 +1839,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _fit_shifted(self, y, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.lag import Lag, ReducerTransform
+        from aeon.transformations._legacy.lag import Lag, ReducerTransform
 
         impute_method = self.impute_method
         lags = self._lags
@@ -1918,7 +1918,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _fit_concurrent(self, y, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.lag import Lag, ReducerTransform
+        from aeon.transformations._legacy.lag import Lag, ReducerTransform
 
         impute_method = self.impute_method
 
@@ -1983,7 +1983,7 @@ class DirectReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _predict_concurrent(self, X=None, fh=None):
         """Fit to training data."""
-        from aeon.transformations.lag import Lag
+        from aeon.transformations._legacy.lag import Lag
 
         if X is not None and self._X is not None:
             X_pool = X.combine_first(self._X)
@@ -2178,8 +2178,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
         -------
         self : reference to self
         """
+        from aeon.transformations._legacy.lag import Lag
         from aeon.transformations.impute import Imputer
-        from aeon.transformations.lag import Lag
 
         impute_method = self.impute_method
 
@@ -2265,8 +2265,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
     def _predict_out_of_sample(self, X_pool, fh):
         """Recursive reducer: predict out of sample (ahead of cutoff)."""
         # very similar to _predict_concurrent of DirectReductionForecaster - refactor?
+        from aeon.transformations._legacy.lag import Lag
         from aeon.transformations.impute import Imputer
-        from aeon.transformations.lag import Lag
 
         fh_idx = self._get_expected_pred_idx(fh=fh)
         y_cols = self._y.columns
@@ -2332,8 +2332,8 @@ class RecursiveReductionForecaster(BaseForecaster, _ReducerMixin):
 
     def _predict_in_sample(self, X_pool, fh):
         """Recursive reducer: predict out of sample (in past of of cutoff)."""
+        from aeon.transformations._legacy.lag import Lag
         from aeon.transformations.impute import Imputer
-        from aeon.transformations.lag import Lag
 
         fh_idx = self._get_expected_pred_idx(fh=fh)
         y_cols = self._y.columns

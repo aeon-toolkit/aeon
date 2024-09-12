@@ -1,6 +1,6 @@
-"""Multi Layer Perceptron Network (MLP) for Regression."""
+"""Multi Layer Perceptron Network (MLP) regressor."""
 
-__author__ = ["Aadya-Chinubhai"]
+__author__ = ["Aadya-Chinubhai", "hadifawaz1999"]
 __all__ = ["MLPRegressor"]
 
 import gc
@@ -47,6 +47,8 @@ class MLPRegressor(BaseDeepRegressor):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -55,6 +57,9 @@ class MLPRegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -100,8 +105,10 @@ class MLPRegressor(BaseDeepRegressor):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         random_state=None,
         activation="relu",
         output_activation="linear",
@@ -118,7 +125,9 @@ class MLPRegressor(BaseDeepRegressor):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.optimizer = optimizer
         self.random_state = random_state
         self.output_activation = output_activation
@@ -202,6 +211,9 @@ class MLPRegressor(BaseDeepRegressor):
 
         self.training_model_ = self.build_model(self.input_shape)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -209,8 +221,8 @@ class MLPRegressor(BaseDeepRegressor):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=200, min_lr=0.1
                 ),
@@ -220,9 +232,12 @@ class MLPRegressor(BaseDeepRegressor):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         self.history = self.training_model_.fit(
             X,

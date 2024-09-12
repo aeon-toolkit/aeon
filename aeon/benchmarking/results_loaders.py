@@ -112,7 +112,7 @@ NAME_ALIASES = {
     "TS-CHIEF": {"TSCHIEF", "TS_CHIEF"},
     "TSF": {"tsf", "TimeSeriesForest", "TimeSeriesForestClassifier"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
-    "WEASEL-1.0": {"WEASEL", "WEASEL2", "weasel", "WEASEL 1.0"},
+    "WEASEL-1.0": {"WEASEL", "WEASEL1", "weasel", "WEASEL 1.0"},
     "WEASEL-2.0": {"WEASEL-D", "WEASEL-Dilation", "WEASEL2", "weasel 2.0", "WEASEL_V2"},
     "1NN-DTW": {
         "1NNDTW",
@@ -234,7 +234,7 @@ def get_available_estimators(task="classification", return_dataframe=True):
             f" task {t} is not available on tsc.com, must be one of {VALID_TASK_TYPES}"
         )
     path = (
-        f"https://timeseriesclassification.com/results/ReferenceResults/"
+        f"http://timeseriesclassification.com/results/ReferenceResults/"
         f"{t}/estimators.txt"
     )
     data = pd.read_csv(path)

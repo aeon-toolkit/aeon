@@ -4,10 +4,7 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.classification import BaseClassifier
 from aeon.classification.convolution_based._hydra import _SparseScaler
-from aeon.transformations.collection.convolution_based import (
-    MultiRocket,
-    MultiRocketMultivariate,
-)
+from aeon.transformations.collection.convolution_based import MultiRocket
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
 
 
@@ -26,6 +23,17 @@ class MultiRocketHydraClassifier(BaseClassifier):
         Number of kernels per group for the Hydra transform.
     n_groups : int, default=64
         Number of groups per dilation for the Hydra transform.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
@@ -73,9 +81,12 @@ class MultiRocketHydraClassifier(BaseClassifier):
         "python_dependencies": "torch",
     }
 
-    def __init__(self, n_kernels=8, n_groups=64, n_jobs=1, random_state=None):
+    def __init__(
+        self, n_kernels=8, n_groups=64, class_weight=None, n_jobs=1, random_state=None
+    ):
         self.n_kernels = n_kernels
         self.n_groups = n_groups
+        self.class_weight = class_weight
         self.n_jobs = n_jobs
         self.random_state = random_state
 
@@ -93,16 +104,9 @@ class MultiRocketHydraClassifier(BaseClassifier):
         self._scale_hydra = _SparseScaler()
         Xt_hydra = self._scale_hydra.fit_transform(Xt_hydra)
 
-        self._transform_multirocket = (
-            MultiRocket(
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-            )
-            if X.shape[1] == 1
-            else MultiRocketMultivariate(
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-            )
+        self._transform_multirocket = MultiRocket(
+            n_jobs=self.n_jobs,
+            random_state=self.random_state,
         )
         Xt_multirocket = self._transform_multirocket.fit_transform(X)
 
@@ -111,7 +115,9 @@ class MultiRocketHydraClassifier(BaseClassifier):
 
         Xt = np.concatenate((Xt_hydra, Xt_multirocket), axis=1)
 
-        self.classifier = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+        self.classifier = RidgeClassifierCV(
+            alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+        )
         self.classifier.fit(Xt, y)
 
         return self

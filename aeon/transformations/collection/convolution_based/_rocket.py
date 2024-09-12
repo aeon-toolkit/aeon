@@ -38,7 +38,7 @@ class Rocket(BaseCollectionTransformer):
 
     See Also
     --------
-    MultiRocketMultivariate, MiniRocket, MiniRocketMultivariate
+    MiniRocket, MultiRocket
 
     References
     ----------
@@ -113,13 +113,13 @@ class Rocket(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        np.ndarray [n_cases, num_kernels], transformed features
+        np.ndarray (n_cases, num_kernels), transformed features
         """
         if self.normalise:
             X = (X - X.mean(axis=-1, keepdims=True)) / (
@@ -221,7 +221,7 @@ def _apply_kernel_univariate(X, weights, length, bias, dilation, padding):
     output_length = (n_timepoints + (2 * padding)) - ((length - 1) * dilation)
 
     _ppv = 0
-    _max = np.NINF
+    _max = -np.inf
 
     end = (n_timepoints + padding) - ((length - 1) * dilation)
 
@@ -254,28 +254,20 @@ def _apply_kernel_multivariate(
     output_length = (n_timepoints + (2 * padding)) - ((length - 1) * dilation)
 
     _ppv = 0
-    _max = np.NINF
-
+    _max = -np.inf
     end = (n_timepoints + padding) - ((length - 1) * dilation)
-
     for i in range(-padding, end):
         _sum = bias
-
         index = i
-
         for j in range(length):
             if index > -1 and index < n_timepoints:
                 for k in range(num_channel_indices):
                     _sum = _sum + weights[k, j] * X[channel_indices[k], index]
-
             index = index + dilation
-
         if _sum > _max:
             _max = _sum
-
         if _sum > 0:
             _ppv += 1
-
     return np.float32(_ppv / output_length), np.float32(_max)
 
 

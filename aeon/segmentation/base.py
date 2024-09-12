@@ -4,7 +4,7 @@ __all__ = ["BaseSegmenter"]
 __maintainer__ = []
 
 from abc import ABC, abstractmethod
-from typing import List, final
+from typing import final
 
 import numpy as np
 import pandas as pd
@@ -16,49 +16,11 @@ from aeon.base._base_series import VALID_INPUT_TYPES
 class BaseSegmenter(BaseSeriesEstimator, ABC):
     """Base class for segmentation algorithms.
 
-    Segmenters take a single time series of length $m$ and returns a segmentation.
-    Series can be univariate (single series) or multivariate, with $d$ dimensions.
-
-    Input and internal data format
-        Univariate series:
-            Numpy array:
-            shape `(m,)`, `(m, 1)` or `(1, m)`. if ``self`` has no multivariate
-            capability, i.e.``self.get_tag(
-            ""capability:multivariate") == False``, all are converted to 1D
-            numpy `(m,)`
-            if ``self`` has multivariate capability, converted to 2D numpy `(m,1)` or
-            `(1, m)` depending on axis
-            pandas DataFrame or Series:
-            DataFrame single column shape `(m,1)`, `(1,m)` or Series shape `(m,)`
-            if ``self`` has no multivariate capability, all converted to Series `(m,)`
-            if ``self`` has multivariate capability, all converted to Pandas DataFrame
-            shape `(m,1)`, `(1,m)` depending on axis
-
-        Multivariate series:
-            Numpy array, shape `(m,d)` or `(d,m)`.
-            pandas DataFrame `(m,d)` or `(d,m)`
-
-    Conversion and axis resolution for multivariate
-
-        Conversion between numpy and pandas is handled by the base class. Sub classses
-        can assume the data is in the correct format (determined by
-        ``"X_inner_type"``, one of ``aeon.base._base_series.VALID_INNER_TYPES)`` and
-        represented with the expected
-        axis.
-
-        Multivariate series are segmented along an axis determined by ``self.axis``.
-        Axis plays two roles:
-
-        1) the axis the segmenter expects the data to be in for its internal methods
-        ``_fit`` and ``_predict``: 0 means each column is a time series, and the data is
-        shaped `(m,d)`, axis equal to 1 means each row is a time series, sometimes
-        called wide format, and the whole series is shape `(d,m)`. This should be set
-        for a given child class through the BaseSegmenter constructor.
-
-        2) The optional ``axis`` argument passed to the base class ``fit`` and
-        ``predict`` methods. If the data ``axis`` is different to the ``axis``
-        expected (i.e. value stored in ``self.axis``, then it is transposed in this
-        base class if self has multivariate capability.
+    Segmenters take a single time series of length ``n_timepoints`` and returns a
+    segmentation. Series can be univariate (single series) or multivariate,
+    with ``n_channels`` dimensions. If the segmenter can handle multivariate series,
+    if will have the tag ``"capability:multivariate"`` set to True. Multivariate
+    series are segmented along a the axis of time determined by ``self.axis``.
 
     Segmentation representation
 
@@ -66,7 +28,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         and 8.
 
         The segmentation can be output in two forms:
-        a) A list of change points.
+        a) A list of change points (tag ``"returns_dense"`` is True).
             output example [4,8] for a series length 10 means three segments at
             positions (0,1,2,3), (4,5,6,7) and (8,9).
             This dense representation is the default behaviour, as it is the minimal
@@ -76,7 +38,8 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
             last less than the series length. If the last value is
             ``n_timepoints-1`` then the last point forms a single segment. An empty
             list indicates no change points.
-        b) A list of integers of length m indicating the segment of each time point:
+        b) A list of integers of length m indicating the segment of each time point (
+        tag ``"returns_dense"`` is False).
             output [0,0,0,0,1,1,1,1,2,2] or output [0,0,0,1,1,1,1,0,0,0]
             This sparse representation can be used to indicate shared segments
             indicating segment 1 is somehow the same (perhaps in generative process)
@@ -87,15 +50,16 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
 
     Parameters
     ----------
-    n_segments : int, default = 2
-        Number of segments to split the time series into. If None, then the number of
-        segments needs to be found in fit.
-    axis : int, default = 1
+    axis : int
         Axis along which to segment if passed a multivariate series (2D input). If axis
         is 0, it is assumed each column is a time series and each row is a
         timepoint. i.e. the shape of the data is ``(n_timepoints,n_channels)``.
         ``axis == 1`` indicates the time series are in rows, i.e. the shape of the data
-        is ``(n_channels, n_timepoints)`.
+        is ``(n_channels, n_timepoints)`. Each segmenter must specify the axis it
+        assumes in the constructor and pass it to the base class.
+    n_segments : int, default = 2
+        Number of segments to split the time series into. If None, then the number of
+        segments needs to be found in fit.
 
     """
 
@@ -124,7 +88,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         Parameters
         ----------
         X : One of ``VALID_INPUT_TYPES``
-            Input time series
+            Input time series to fit a segmenter.
         y : One of ``VALID_INPUT_TYPES`` or None, default None
             Training time series, a labeled 1D series same length as X for supervised
             segmentation.
@@ -248,7 +212,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
                 )
 
     @classmethod
-    def to_classification(cls, change_points: List[int], length: int):
+    def to_classification(cls, change_points: list[int], length: int):
         """Convert change point locations to a classification vector.
 
         Change point detection results can be treated as classification
@@ -264,7 +228,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         return labels
 
     @classmethod
-    def to_clusters(cls, change_points: List[int], length: int):
+    def to_clusters(cls, change_points: list[int], length: int):
         """Convert change point locations to a clustering vector.
 
         Change point detection results can be treated as clustering

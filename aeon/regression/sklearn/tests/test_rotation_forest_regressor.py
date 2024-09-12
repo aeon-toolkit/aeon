@@ -4,13 +4,48 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
+from sklearn.tree import DecisionTreeRegressor
 
 from aeon.datasets import load_covid_3month
 from aeon.regression.sklearn import RotationForestRegressor
 
 
-def test_contracted_rotf():
+def test_rotf_output():
     """Test of RotF contracting and train estimate on test data."""
+    X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
+    X_test, y_test = load_covid_3month(split="test", return_type="numpy2d")
+
+    rotf = RotationForestRegressor(
+        n_estimators=10,
+        base_estimator=DecisionTreeRegressor(max_depth=3),
+        pca_solver="randomized",
+        random_state=0,
+    )
+    rotf.fit(X_train, y_train)
+
+    expected = [
+        0.02694297,
+        0.02694297,
+        0.01997832,
+        0.04276962,
+        0.09027588,
+        0.02706564,
+        0.02553648,
+        0.04075808,
+        0.02900289,
+        0.04248546,
+        0.02694297,
+        0.03667328,
+        0.0235855,
+        0.03444119,
+        0.0235855,
+    ]
+
+    np.testing.assert_array_almost_equal(expected, rotf.predict(X_test[:15]), decimal=4)
+
+
+def test_contracted_rotf():
+    """Test of RotF contracting on testing data."""
     X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
     X_test, y_test = load_covid_3month(split="test", return_type="numpy2d")
 
@@ -32,7 +67,7 @@ def test_contracted_rotf():
 
 
 def test_rotf_fit_predict():
-    """Test of RotF fit_predict on test data."""
+    """Test of RotF fit_predict on testing data."""
     X_train, y_train = load_covid_3month(split="train", return_type="numpy2d")
 
     rotf = RotationForestRegressor(
