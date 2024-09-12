@@ -186,6 +186,22 @@ Filtering and denoising
 
     BKFilter
 
+.. currentmodule:: aeon.transformations.series._dft
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DFTSeriesTransformer
+
+.. currentmodule:: aeon.transformations.series._sg
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SGSeriesTransformer
+
 Slope
 ~~~~~~~~~~~~~~~~~~~~~~
 
