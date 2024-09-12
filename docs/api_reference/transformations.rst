@@ -201,13 +201,13 @@ Filtering and denoising
     :template: class.rst
 
     SGSeriesTransformer
-    
+
 .. currentmodule:: aeon.transformations.series._siv
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
-    
+
     SIVSeriesTransformer
 
 Slope
