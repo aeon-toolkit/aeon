@@ -11,10 +11,12 @@ from aeon.utils.validation import get_n_cases
 
 
 class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
-    """Wrap a single series transformer over a collection.
+    """Broadcast a ``BaseSeriesTransformer`` over a collection of time series.
 
-    Uses the single series transformer passed in the constructor over a
-    collection of series.
+    Uses the ``BaseSeriesTransformer`` passed in the constructor.  If the
+    BaseSeriesTransformer has no fit function (tag ``"fit_is_empty": True"``) we
+    use a single instance of the transformer on every series. If the series
+    transformer has a fit function, we clone a transformer for each series.
 
     Parameters
     ----------
@@ -43,20 +45,23 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
         self,
         transformer: BaseSeriesTransformer,
     ) -> None:
+        # Setting tags before __init__() causes them to be overwritten. Hence we make
+        # a copy before init from the series transformer, then copy the tags of the
+        # BaseSeriesTransformer to this BaseCollectionTransformer
         self.transformer = transformer
         tags_to_keep = SeriesToCollectionBroadcaster._tags
         tags_to_add = transformer.get_tags()
         for key in tags_to_keep:
             tags_to_add.pop(key, None)
         super().__init__()
-        # Setting tags before __init__() cause them to be overwriten.
         self.set_tags(**tags_to_add)
 
     def _fit(self, X, y=None):
         """
         Clone and fit instances of the transformer independently for each sample.
 
-        This Function only reachable if fit_is_empty is false.
+        This Function only reachable if fit_is_empty is false, hence we always clone
+        the transformer in this case.
 
         Parameters
         ----------
