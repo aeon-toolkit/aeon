@@ -6,6 +6,7 @@ __all__ = [
     "MockClassifierPredictProba",
     "MockClassifierFullTags",
     "MockClassifierMultiTestParams",
+    "MockCluster",
     "MockDeepClusterer",
     "MockSegmenter",
     "SupervisedMockSegmenter",
@@ -24,7 +25,7 @@ from aeon.testing.mock_estimators._mock_classifiers import (
     MockClassifierMultiTestParams,
     MockClassifierPredictProba,
 )
-from aeon.testing.mock_estimators._mock_clusterers import MockDeepClusterer
+from aeon.testing.mock_estimators._mock_clusterers import MockCluster, MockDeepClusterer
 from aeon.testing.mock_estimators._mock_collection_transformers import (
     MockCollectionTransformer,
 )
