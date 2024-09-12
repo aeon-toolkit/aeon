@@ -7,7 +7,7 @@ __all__ = [
 
 from os import PathLike
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -30,8 +30,8 @@ def load_time_series_segmentation_benchmark(
     extract_path: Optional[PathLike] = None,
     return_metadata: bool = False,
 ) -> Union[
-    Tuple[List[np.ndarray], List[np.ndarray]],
-    Tuple[List[np.ndarray], List[np.ndarray], List[Tuple[str, int]]],
+    tuple[list[np.ndarray], list[np.ndarray]],
+    tuple[list[np.ndarray], list[np.ndarray], list[tuple[str, int]]],
 ]:
     """Load the Time Series Segmentation Benchmark (TSSB).
 
@@ -124,9 +124,9 @@ def load_human_activity_segmentation_datasets(
     extract_path: Optional[PathLike] = None,
     return_metadata: bool = False,
 ) -> Union[
-    Tuple[List[np.ndarray], List[np.ndarray]],
-    Tuple[
-        List[np.ndarray], List[np.ndarray], List[Tuple[str, str, int, int, np.ndarray]]
+    tuple[list[np.ndarray], list[np.ndarray]],
+    tuple[
+        list[np.ndarray], list[np.ndarray], list[tuple[str, str, int, int, np.ndarray]]
     ],
 ]:
     """Load the Human Activity Segmentation Challenge data sets.
