@@ -2,30 +2,64 @@
 
 __maintainer__ = ["baraline"]
 
+import importlib
 import warnings
 from collections.abc import Iterable
 from typing import Optional, final
 
 import numpy as np
-from numba import get_num_threads, set_num_threads
 from numba.core.registry import CPUDispatcher
 from numba.typed import List
 
-from aeon.distances import get_distance_function
 from aeon.similarity_search.base import BaseSimilaritySearch
-from aeon.similarity_search.distance_profiles import (
-    naive_distance_profile,
-    normalized_naive_distance_profile,
-)
-from aeon.similarity_search.distance_profiles.euclidean_distance_profile import (
-    euclidean_distance_profile,
-    normalized_euclidean_distance_profile,
-)
-from aeon.similarity_search.distance_profiles.squared_distance_profile import (
-    normalized_squared_distance_profile,
-    squared_distance_profile,
-)
-from aeon.utils.numba.general import sliding_mean_std_one_series
+
+# Dictionary mapping method names to their full import paths
+lazy_import_dict = {
+    "euclidean_distance_profile": "aeon.similarity_search.distance_profiles.euclidean_distance_profile.euclidean_distance_profile", # noqa: E501
+    "normalized_euclidean_distance_profile": "aeon.similarity_search.distance_profiles.euclidean_distance_profile.normalized_euclidean_distance_profile",  # noqa: E501
+    "squared_distance_profile": "aeon.similarity_search.distance_profiles.squared_distance_profile.squared_distance_profile", # noqa: E501
+    "normalized_squared_distance_profile": "aeon.similarity_search.distance_profiles.squared_distance_profile.normalized_squared_distance_profile",  # noqa: E501
+    "naive_distance_profile": "aeon.similarity_search.distance_profiles.naive_distance_profile", # noqa: E501
+    "normalized_naive_distance_profile": "aeon.similarity_search.distance_profiles.normalized_naive_distance_profile", # noqa: E501
+    "get_num_threads": "numba.get_num_threads",
+    "set_num_threads": "numba.set_num_threads",
+    "get_distance_function": "aeon.distances.get_distance_function",
+    "sliding_mean_std_one_series": "aeon.utils.numba.general.sliding_mean_std_one_series",  # noqa: E501
+    "_SIM_SEARCH_SPEED_UP_DICT": "aeon.similarity_search.query_search._SIM_SEARCH_SPEED_UP_DICT",  # noqa: E501
+}
+
+
+def lazy_import(class_name):
+    """
+    Dynamically import the specified class or function from its module.
+
+    This function uses a predefined dictionary (lazy_import_dict) that maps
+    the class or function name (as a string) to the full module path where
+    it is defined. It imports the module dynamically and retrieves the
+    requested class or function.
+
+    Parameters
+    ----------
+    class_name : str
+        The name of the class or function to be imported.
+
+    Returns
+    -------
+    class or function
+        The imported class or function based on the provided class_name.
+
+    Raises
+    ------
+    ImportError
+        If the class_name is not found in the lazy_import_dict.
+    """
+    if class_name in lazy_import_dict:
+        full_path = lazy_import_dict[class_name] # Get the full module path from the dictionary # noqa: E501
+        module_name, class_name = full_path.rsplit(".", 1)# Split the full path to get the module name and class or function name # noqa: E501
+        module = importlib.import_module(module_name)
+        return getattr(module, class_name)
+    else:
+        raise ImportError(f"{class_name} not found in lazy_import_dict")
 
 
 class QuerySearch(BaseSimilaritySearch):
@@ -208,6 +242,9 @@ class QuerySearch(BaseSimilaritySearch):
             id, the second is the timestamp id.
 
         """
+        get_num_threads = lazy_import("get_num_threads")
+        set_num_threads = lazy_import("set_num_threads")
+
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
 
@@ -481,6 +518,9 @@ class QuerySearch(BaseSimilaritySearch):
             The distance profile function matching the distance argument.
 
         """
+        # Lazily Importing get_distance_function
+        get_distance_function = lazy_import("get_distance_function")
+
         if isinstance(self.distance, str):
             distance_dict = _SIM_SEARCH_SPEED_UP_DICT.get(self.distance)
             if self.speed_up is None or distance_dict is None:
@@ -507,8 +547,12 @@ class QuerySearch(BaseSimilaritySearch):
                 )
         self.speed_up_ = None
         if self.normalize:
+            normalized_naive_distance_profile = lazy_import(
+                "normalized_naive_distance_profile"
+            )
             return normalized_naive_distance_profile
         else:
+            naive_distance_profile = lazy_import("naive_distance_profile")
             return naive_distance_profile
 
     def _call_distance_profile(self, X: np.ndarray, mask: np.ndarray) -> np.ndarray:
@@ -586,6 +630,8 @@ class QuerySearch(BaseSimilaritySearch):
         None
 
         """
+        sliding_mean_std_one_series = lazy_import("sliding_mean_std_one_series")
+
         means = []
         stds = []
 
@@ -613,6 +659,8 @@ class QuerySearch(BaseSimilaritySearch):
             similarity search classes.
 
         """
+        # Lazily import the distance profile functions and speedup dictionary
+        _SIM_SEARCH_SPEED_UP_DICT = lazy_import("_SIM_SEARCH_SPEED_UP_DICT")
         speedups = {}
         for dist_name in _SIM_SEARCH_SPEED_UP_DICT.keys():
             for normalize in _SIM_SEARCH_SPEED_UP_DICT[dist_name].keys():
@@ -629,22 +677,22 @@ class QuerySearch(BaseSimilaritySearch):
 _SIM_SEARCH_SPEED_UP_DICT = {
     "euclidean": {
         True: {
-            "fastest": normalized_euclidean_distance_profile,
-            "Mueen": normalized_euclidean_distance_profile,
+            "fastest": lazy_import("normalized_euclidean_distance_profile"),
+            "Mueen": lazy_import("normalized_euclidean_distance_profile"),
         },
         False: {
-            "fastest": euclidean_distance_profile,
-            "Mueen": euclidean_distance_profile,
+            "fastest": lazy_import("euclidean_distance_profile"),
+            "Mueen": lazy_import("euclidean_distance_profile"),
         },
     },
     "squared": {
         True: {
-            "fastest": normalized_squared_distance_profile,
-            "Mueen": normalized_squared_distance_profile,
+            "fastest": lazy_import("normalized_squared_distance_profile"),
+            "Mueen": lazy_import("normalized_squared_distance_profile"),
         },
         False: {
-            "fastest": squared_distance_profile,
-            "Mueen": squared_distance_profile,
+            "fastest": lazy_import("squared_distance_profile"),
+            "Mueen": lazy_import("squared_distance_profile"),
         },
     },
 }
