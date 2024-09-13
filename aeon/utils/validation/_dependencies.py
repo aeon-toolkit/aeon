@@ -78,6 +78,8 @@ def _check_soft_dependencies(
 
     if obj is None:
         class_name = "This functionality"
+    elif isinstance(obj, str):
+        class_name = obj
     elif not isclass(obj):
         class_name = type(obj).__name__
     elif isclass(obj):
