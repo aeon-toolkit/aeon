@@ -202,6 +202,14 @@ Filtering and denoising
 
     SGSeriesTransformer
 
+.. currentmodule:: aeon.transformations.series._siv
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SIVSeriesTransformer
+
 Slope
 ~~~~~~~~~~~~~~~~~~~~~~
 
