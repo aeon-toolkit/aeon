@@ -2454,7 +2454,8 @@
       "profile": "https://github.com/Cyril-Meyer",
       "contributions": [
         "test",
-        "doc"
+        "doc",
+        "code"
       ]
     },
     {
@@ -2491,6 +2492,42 @@
       "profile": "https://www.youtube.com/channel/UCLnEr7V_5BANojPKUjCjb4g",
       "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "Sharathchenna",
+      "name": "Sharathchenna",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50939688?v=4",
+      "profile": "https://github.com/Sharathchenna",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "neuron283",
+      "name": "neuron283",
+      "avatar_url": "https://avatars.githubusercontent.com/u/177816976?v=4",
+      "profile": "https://github.com/neuron283",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "wenig",
+      "name": "Phillip Wenig",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6967289?v=4",
+      "profile": "https://github.com/wenig",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "aryanpola",
+      "name": "Aryan Pola",
+      "avatar_url": "https://avatars.githubusercontent.com/u/98093778?v=4",
+      "profile": "https://github.com/aryanpola",
+      "contributions": [
+        "code"
       ]
     }
   ],
