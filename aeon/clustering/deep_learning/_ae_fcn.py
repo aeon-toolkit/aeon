@@ -229,9 +229,8 @@ class AEFCNClusterer(BaseDeepClusterer):
         input_layer = tf.keras.layers.Input(input_shape, name="input layer")
         encoder_output = encoder(input_layer)
         decoder_output = decoder(encoder_output)
-        # removed reshape function for output layer as it is already being tested in test_all_networks.py so no longer needed
-
-        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
+        # removed reshape function for output layer
+        model = tf.keras.models.Model(inputs=input_layer, outputs=decoder_output)
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
