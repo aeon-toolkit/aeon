@@ -16,6 +16,7 @@ __all__ = [
     "BoxCoxTransformer",
     "Dobin",
     "ScaledLogitSeriesTransformer",
+    "SIVSeriesTransformer",
     "PCASeriesTransformer",
 ]
 
