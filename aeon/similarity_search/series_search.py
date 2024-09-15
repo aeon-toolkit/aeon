@@ -141,7 +141,10 @@ class SeriesSearch(BaseSimilaritySearch):
         apply_exclusion_to_result=False,
     ):
         """
-        Predict function.
+        Predict method : Check the shape of X and call _predict to perform the search.
+
+        If the distance profile function is normalized, it stores the mean and stds
+        from X and X_, with X_ the training data.
 
         Parameters
         ----------
@@ -243,7 +246,12 @@ class SeriesSearch(BaseSimilaritySearch):
         apply_exclusion_to_result,
     ):
         """
-        Call the matrix profile function.
+        Private predict method for SeriesSearch.
+
+        This method calculates the matrix profile for a given time series dataset by
+        comparing all possible subsequences of a specified length against a reference
+        time series. It handles exclusion zones to prevent nearby matches from being
+        selected and supports normalization.
 
         Parameters
         ----------
