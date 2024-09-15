@@ -13,6 +13,12 @@ def fft_sliding_dot_product(X, q):
     """
     Use FFT convolution to calculate the sliding window dot product.
 
+    This function applies the Fast Fourier Transform (FFT) to efficiently compute 
+    the sliding dot product between the input time series `X` and the query `q`. 
+    The dot product is computed for each channel individually. The sliding window 
+    approach ensures that the dot product is calculated for every possible subsequence 
+    of `X` that matches the length of `q`
+
     Parameters
     ----------
     X : array, shape=(n_channels, n_timepoints)
@@ -135,6 +141,46 @@ def extract_top_k_and_threshold_from_distance_profiles_one_series(
     exclusion_size=None,
     inverse_distance=False,
 ):
+    """
+    Extract the top-k smallest values from distance profiles and apply an optional threshold.
+
+    This function processes a distance profile and extracts the top-k smallest distance values,
+    optionally applying a threshold to exclude distances above a given value. It also optionally
+    handles exclusion zones to avoid selecting neighboring timestamps.
+
+    Parameters
+    ----------
+    distance_profiles : np.ndarray, 2D array of shape (n_cases, n_candidates)
+        Precomputed distance profile. Can be a TypedList if n_candidates vary between
+        cases.
+    
+    id_x : int
+        Identifier of the series or subsequence from which the distance profile is computed.
+    
+    k : int
+        Number of matches to returns
+    
+    threshold : float
+        All matches below this threshold will be returned
+    
+    exclusion_size : int or None, optional, default=None
+        Size of the exclusion zone around the current subsequence. This prevents selecting
+        neighboring subsequences within the specified range, useful for avoiding trivial
+        matches in time series data. If set to `None`, no exclusion zone is applied.
+    
+    inverse_distance : bool, optional
+        Wheter to return the worst matches instead of the bests. The default is False.
+
+    Returns
+    -------
+    top_k_dist : np.ndarray
+        Array of the top-k smallest distance values, potentially excluding values above the
+        threshold or those within the exclusion zone.
+    
+    top_k : np.ndarray
+        Array of shape (k, 2) where each row contains the `id_x` identifier and the index of
+        the corresponding subsequence (or timestamp) with the top-k smallest distances.
+        """
     if inverse_distance:
         # To avoid div by 0 case
         distance_profiles += 1e-8
