@@ -115,13 +115,13 @@ def normalized_squared_distance_profile(
 @njit(cache=True, fastmath=True, parallel=True)
 def _squared_distance_profile(QX, X, q, mask):
     """
-    Compute the squared distance profile between a set of query subsequences and input time series.
+    Compute squared distance profiles between query subsequences and time series.
 
     Parameters
     ----------
     QX : List of np.ndarray
-        List of precomputed dot products between queries and time series, with each element
-        corresponding to a different time series. 
+        List of precomputed dot products between queries and time series, with each
+        element corresponding to a different time series.
         Shape of each array is (n_channels, n_timepoints - query_length + 1).
     X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
         The input samples. If X is an unquel length collection, expect a numba TypedList
@@ -164,12 +164,12 @@ def _squared_distance_profile(QX, X, q, mask):
 @njit(cache=True, fastmath=True)
 def _squared_dist_profile_one_series(QT, T, Q):
     """
-    Compute the squared distance profile between a query subsequence and a single time series.
+    Compute squared distance profile between query subsequence and a single time series.
 
-    This function calculates the squared distance profile for a single time series by leveraging
-    the dot product of the query and time series as well as precomputed sums of squares to efficiently
-    compute the squared distances.
-    
+    This function calculates the squared distance profile for a single time series by
+    leveraging the dot product of the query and time series as well as precomputed sums
+    of squares to efficiently compute the squared distances.
+
     Parameters
     ----------
     QT : np.ndarray, 2D array of shape (n_channels, n_timepoints - query_length + 1)
@@ -178,7 +178,7 @@ def _squared_dist_profile_one_series(QT, T, Q):
         The series used for similarity search. Note that series_length can be equal,
         superior or inferior to n_timepoints, it doesn't matter.
     Q : np.ndarray
-        2D array of shape (n_channels, query_length) representing the query subsequences.
+        2D array of shape (n_channels, query_length) representing query subsequences.
 
     Returns
     -------
@@ -229,7 +229,7 @@ def _normalized_squared_distance_profile(
     q_stds : np.ndarray, 1D array of shape (n_channels)
         Stds of the query q
     query_length : int
-        The length of the query subsequences used for the distance profile computation.  
+        The length of the query subsequences used for the distance profile computation.
 
     Returns
     -------
@@ -285,19 +285,19 @@ def _normalized_squared_dist_profile_one_series(
     Q_stds : np.ndarray, 1D array of shape (n_channels)
         Stds of the query q
     query_length : int
-        The length of the query subsequences used for the distance profile computation. 
+        The length of the query subsequences used for the distance profile computation.
     Q_is_constant : np.ndarray
-        1D array of shape (n_channels,) where each element is a Boolean indicating whether
-        the query standard deviation for that channel is less than or equal to a specified
-        threshold.
+        1D array of shape (n_channels,) where each element is a Boolean indicating
+        whether the query standard deviation for that channel is less than or equal
+        to a specified threshold.
 
     Returns
     -------
     np.ndarray
-        2D array of shape (n_channels, n_timepoints - query_length + 1) containing the z-normalized squared
-        distance profile between the query subsequence and the time series.
-        Entries are computed based on the z-normalized values, with special handling for
-        constant values.
+        2D array of shape (n_channels, n_timepoints - query_length + 1) containing the
+        z-normalized squared distance profile between the query subsequence and the time
+        series. Entries are computed based on the z-normalized values, with special
+        handling for constant values.
     """
     n_channels, profile_length = QT.shape
     distance_profile = np.full((n_channels, profile_length), np.inf)

@@ -562,11 +562,11 @@ def _sort_out_tops(top_dists, prev_top_dists, top_indexes, prev_to_indexes, k):
         Array of distances from previous computations. Shape should be (n,).
 
     top_indexes : np.ndarray
-        Array of indexes corresponding to the top distances from the current computation.
+        Array of indexes corresponding to the top distances from current computation.
         Shape should be (n,).
 
     prev_to_indexes : np.ndarray
-        Array of indexes corresponding to the top distances from previous computations. 
+        Array of indexes corresponding to the top distances from previous computations.
         Shape should be (n,).
 
     k : int, default=1
@@ -576,7 +576,8 @@ def _sort_out_tops(top_dists, prev_top_dists, top_indexes, prev_to_indexes, k):
     -------
     tuple
         A tuple containing two elements:
-        - A 1D numpy array of sorted distances, of length min(k, total number of distances).
+        - A 1D numpy array of sorted distances, of length min(k,
+          total number of distances).
         - A 1D numpy array of indexes corresponding to the sorted distances,
           of length min(k, total number of distances).
     """
