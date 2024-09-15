@@ -91,10 +91,10 @@ def normalized_squared_distance_profile(
 
     Returns
     -------
-    List of np.ndarray
-        List of 2D arrays, each of shape (n_channels, profile_length), where `profile_length` is the length of the distance profile for each time series.
-        Each array contains the normalized squared distance profile between the query subsequences and the corresponding time series.
-        Entries in the array are set to infinity where the mask is False.
+    distance_profiles : np.ndarray
+        3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
+        The distance profile between q and the input time series X independently
+        for each channel.
 
     """
     query_length = q.shape[1]
