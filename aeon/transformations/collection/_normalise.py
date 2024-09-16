@@ -4,8 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from aeon.transformations.collection import BaseCollectionTransformer
-
+from aeon.transformations.collection import BaseCollectionTransformer 
 
 class Normalise(BaseCollectionTransformer):
     """Normaliser transformer for collections.
@@ -31,7 +30,7 @@ class Normalise(BaseCollectionTransformer):
         making it dimensionless. This is useful when comparing datasets with different
         units.
 
-        standardize: Subtracts the mean along the specified axis. Used to center the data.
+        standardize: Subtracts the mean along the specified axis. Used to center data.
 
         min_max: Useful when you need to normalize data to a bounded range, which is
         important for algorithms that require or perform better with inputs within a
@@ -75,11 +74,11 @@ class Normalise(BaseCollectionTransformer):
             # Handle cases where std is 0
             std_nonzero = np.where(std == 0, 1, std)
             return (X - mean) / std_nonzero
-        
+
         if self.method in {"standardize"}:
             mean = np.mean(X, axis=-1, keepdims=True)
 
-            return (X - mean)
+            return X - mean
 
         elif self.method == "min_max":
             min_val = np.min(X, axis=-1, keepdims=True)
