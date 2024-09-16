@@ -75,11 +75,11 @@ class Normalise(BaseCollectionTransformer):
             # Handle cases where std is 0
             std_nonzero = np.where(std == 0, 1, std)
             return (X - mean) / std_nonzero
-        
+
         if self.method in {"standardize"}:
             mean = np.mean(X, axis=-1, keepdims=True)
 
-            return (X - mean)
+            return X - mean
 
         elif self.method == "min_max":
             min_val = np.min(X, axis=-1, keepdims=True)

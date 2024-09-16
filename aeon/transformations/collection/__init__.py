@@ -28,6 +28,7 @@ __all__ = [
 from aeon.transformations.collection._collection_wrapper import (
     CollectionToSeriesWrapper,
 )
+from aeon.transformations.collection._normalise import Normalise
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
@@ -39,7 +40,6 @@ from aeon.transformations.collection.dwt import DWTTransformer
 from aeon.transformations.collection.hog1d import HOG1DTransformer
 from aeon.transformations.collection.interpolate import TSInterpolator
 from aeon.transformations.collection.matrix_profile import MatrixProfile
-from aeon.transformations.collection._normalise import Normalise
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.collection.periodogram import PeriodogramTransformer
 from aeon.transformations.collection.reduce import Tabularizer
