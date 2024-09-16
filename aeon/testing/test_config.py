@@ -3,8 +3,6 @@
 __maintainer__ = []
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
-import os
-
 import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 from aeon.base import (
     BaseCollectionEstimator,
@@ -42,9 +40,6 @@ EXCLUDE_ESTIMATORS = [
     "WindowSummarizer",
 ]  # Exclude deprecated estimators to reduce warnings
 
-# the test currently fails when numba is disabled. See issue #622
-if os.environ.get("NUMBA_DISABLE_JIT") == "1":
-    EXCLUDE_ESTIMATORS.append("StatsForecastAutoARIMA")
 
 EXCLUDED_TESTS = {
     # Early classifiers (EC) intentionally retain information from previous predict
