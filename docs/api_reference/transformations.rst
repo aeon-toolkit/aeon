@@ -119,6 +119,7 @@ Dictionary-based features
     PAA
     SFA
     SAX
+    BORF
 
 Signature-based features
 ~~~~~~~~~~~~~~~~~~~~~~~~
