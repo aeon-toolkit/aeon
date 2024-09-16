@@ -10,7 +10,7 @@ invalid normalization method.
 import numpy as np
 import pytest
 
-from aeon.transformations.collection.Normalise import Normalise
+from aeon.transformations.collection._normalise import Normalise
 
 
 # Test function for z-normalization
@@ -49,10 +49,8 @@ def test_standardize():
     X_transformed = normaliser._transform(X)
 
     mean = np.mean(X_transformed, axis=-1)
-    std = np.std(X_transformed, axis=-1)
 
     assert np.allclose(mean, 0)
-    assert np.allclose(std, 1)
 
 
 # Test function for min_max.

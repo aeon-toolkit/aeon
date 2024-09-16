@@ -39,7 +39,7 @@ from aeon.transformations.collection.dwt import DWTTransformer
 from aeon.transformations.collection.hog1d import HOG1DTransformer
 from aeon.transformations.collection.interpolate import TSInterpolator
 from aeon.transformations.collection.matrix_profile import MatrixProfile
-from aeon.transformations.collection.Normalise import Normalise
+from aeon.transformations.collection._normalise import Normalise
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.collection.periodogram import PeriodogramTransformer
 from aeon.transformations.collection.reduce import Tabularizer
