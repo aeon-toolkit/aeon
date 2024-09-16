@@ -3,7 +3,7 @@
 multivariate dictionary based transformer based on Bag-Of-Receptive-Fields transform.
 """
 
-__maintainer__ = []
+__maintainer__ = ["fspinna"]
 __all__ = ["BORF"]
 
 import itertools
