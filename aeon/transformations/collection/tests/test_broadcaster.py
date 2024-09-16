@@ -7,7 +7,7 @@ from numpy.testing import assert_array_almost_equal
 
 from aeon.testing.data_generation import (
     make_example_3d_numpy,
-    make_example_unequal_length,
+    make_example_3d_numpy_list,
 )
 from aeon.testing.mock_estimators._mock_series_transformers import (
     MockMultivariateSeriesTransformer,
@@ -41,7 +41,7 @@ def test_broadcaster_tag_inheritance():
             assert post_constructor_tags[key] == mock_tags[key]
 
 
-df = [make_example_3d_numpy, make_example_unequal_length]
+df = [make_example_3d_numpy, make_example_3d_numpy_list]
 
 
 @pytest.mark.parametrize("data_gen", df)
