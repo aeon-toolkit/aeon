@@ -17,6 +17,7 @@ __all__ = [
     "BoxCoxTransformer",
     "Dobin",
     "ScaledLogitSeriesTransformer",
+    "SIVSeriesTransformer",
     "PCASeriesTransformer",
 ]
 
@@ -36,5 +37,6 @@ from aeon.transformations.series._pca import PCASeriesTransformer
 from aeon.transformations.series._pla import PLASeriesTransformer
 from aeon.transformations.series._scaled_logit import ScaledLogitSeriesTransformer
 from aeon.transformations.series._sg import SGSeriesTransformer
+from aeon.transformations.series._siv import SIVSeriesTransformer
 from aeon.transformations.series._theta import ThetaTransformer
 from aeon.transformations.series.base import BaseSeriesTransformer
