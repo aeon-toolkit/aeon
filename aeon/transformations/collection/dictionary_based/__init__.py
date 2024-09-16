@@ -1,7 +1,8 @@
 """Transformers."""
 
-__all__ = ["PAA", "SFA", "SFAFast", "SAX"]
+__all__ = ["PAA", "SFA", "SFAFast", "SAX", "BORF"]
 
+from aeon.transformations.collection.dictionary_based._borf import BORF
 from aeon.transformations.collection.dictionary_based._paa import PAA
 from aeon.transformations.collection.dictionary_based._sax import SAX
 from aeon.transformations.collection.dictionary_based._sfa import SFA
