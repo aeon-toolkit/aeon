@@ -2529,6 +2529,16 @@
       "contributions": [
         "code"
       ]
+    },
+    ,
+    {
+      "login": "fspinna",
+      "name": "Francesco Spinnato",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35352023?v=4",
+      "profile": "https://github.com/fspinna",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
