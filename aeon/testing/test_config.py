@@ -16,29 +16,8 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
-EXCLUDE_ESTIMATORS = [
-    "TabularToSeriesAdaptor",
-    "PandasTransformAdaptor",
-    "BKFilter",
-    "TransformerPipeline",
-    "FeatureUnion",
-    "FitInTransform",
-    "MultiplexTransformer",
-    "InvertTransform",
-    "Id",
-    "OptionalPassthrough",
-    "ColumnwiseTransformer",
-    "ColumnConcatenator",
-    "YtoX",
-    "DateTimeFeatures",
-    "ExponentTransformer",
-    "FeatureSelection",
-    "FourierFeatures",
-    "Imputer",
-    "Lag",
-    "HampelFilter",
-    "WindowSummarizer",
-]  # Exclude deprecated estimators to reduce warnings
+# Exclude estimators here for short term fixes
+EXCLUDE_ESTIMATORS = []
 
 
 EXCLUDED_TESTS = {
