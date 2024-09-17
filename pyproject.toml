@@ -47,11 +47,11 @@ requires-python = ">=3.9,<3.13"
 dependencies = [
     "deprecated>=1.2.13",
     "numba>=0.55,<0.61.0",
-    "numpy>=1.21.0,<1.27.0",
+    "numpy>=1.21.0,<2.2.0",
     "packaging>=20.0",
-    "pandas>=1.5.3,<2.1.0",
+    "pandas>=1.5.3,<2.3.0",
     "scikit-learn>=1.0.0,<1.6.0",
-    "scipy>=1.9.0,<1.13.0",
+    "scipy>=1.9.0,<1.15.0",
     "typing-extensions>=4.6.0",
 ]
 
@@ -61,7 +61,7 @@ all_extras = [
     "imbalanced-learn",
     "keras-self-attention",
     "kotsu>=0.3.1",
-    "matplotlib>=3.3.2,<3.9.0",
+    "matplotlib>=3.3.2,<3.10.0",
     "pydot>=2.0.0",
     "scikit_posthocs>=0.6.5",
     "seaborn>=0.11.0",
@@ -102,7 +102,7 @@ binder = [
     "jupyterlab",
 ]
 docs = [
-    "sphinx<7.4.0",
+    "sphinx<8.1.0",
     "sphinx-design",
     "sphinx-version-warning",
     "sphinx_issues",
