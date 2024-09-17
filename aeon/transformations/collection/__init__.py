@@ -22,8 +22,10 @@ __all__ = [
     "SlopeTransformer",
     "TimeSeriesScaler",
     "TruncationTransformer",
+    "Normalise",
 ]
 from aeon.transformations.collection._downsample import DownsampleTransformer
+from aeon.transformations.collection._normalise import Normalise
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
