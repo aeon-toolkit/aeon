@@ -13,7 +13,8 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
 
     The `ClassifierPipeline` compositor chains transformers and a single classifier.
     The pipeline is constructed with a list of aeon transformers, plus a classifier,
-        i.e., estimators following the BaseTransformer and BaseClassifier interface.
+        i.e., estimators following the BaseCollectionTransformer and BaseClassifier
+        interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
