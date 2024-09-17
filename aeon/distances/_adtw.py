@@ -2,7 +2,7 @@ r"""Amercing dynamic time warping (ADTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
@@ -197,8 +197,8 @@ def _adtw_cost_matrix(
 
 
 def adtw_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
     warp_penalty: float = 1.0,
@@ -349,7 +349,7 @@ def adtw_alignment_path(
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
     warp_penalty: float = 1.0,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the ADTW alignment path between two time series.
 
     Parameters

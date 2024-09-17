@@ -549,3 +549,49 @@ def is_pdmultiindex_hierarchical(y):
     if not time_is_monotonic:
         return False
     return True
+
+
+def check_y(
+    y,
+    allow_empty=False,
+    allow_constant=True,
+    enforce_index_type=None,
+    allow_index_names=False,
+):
+    """Validate input data.
+
+    Parameters
+    ----------
+    y : pd.Series
+    allow_empty : bool, default=False
+        If False, empty `y` raises an error.
+    allow_constant : bool, default=True
+        If True, constant `y` does not raise an error.
+    enforce_index_type : type, default=None
+        type of time index
+    allow_index_names : bool, default=None
+        If False, names of y.index will be set to None
+
+    Returns
+    -------
+    y : pd.Series
+
+    Raises
+    ------
+    ValueError, TypeError
+        If y is an invalid input
+    """
+    y = check_series(
+        y,
+        enforce_univariate=True,
+        allow_empty=allow_empty,
+        allow_numpy=False,
+        enforce_index_type=enforce_index_type,
+        allow_index_names=allow_index_names,
+    )
+
+    if not allow_constant:
+        if np.all(y == y.iloc[0]):
+            raise ValueError("All values of `y` are the same.")
+
+    return y

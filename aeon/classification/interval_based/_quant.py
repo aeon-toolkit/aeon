@@ -36,6 +36,18 @@ class QUANTClassifier(BaseClassifier):
     estimator : sklearn estimator, default=None
         The estimator to use for classification. If None, an ExtraTreesClassifier
         with 200 estimators is used.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        Only applies if estimator is None, and the default ExtraTreesClassifier is used.
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -75,13 +87,18 @@ class QUANTClassifier(BaseClassifier):
     }
 
     def __init__(
-        self, interval_depth=6, quantile_divisor=4, estimator=None, random_state=None
+        self,
+        interval_depth=6,
+        quantile_divisor=4,
+        estimator=None,
+        class_weight=None,
+        random_state=None,
     ):
         self.interval_depth = interval_depth
         self.quantile_divisor = quantile_divisor
         self.estimator = estimator
+        self.class_weight = class_weight
         self.random_state = random_state
-
         super().__init__()
 
     def _fit(self, X, y):
@@ -107,7 +124,11 @@ class QUANTClassifier(BaseClassifier):
         self._estimator = _clone_estimator(
             (
                 ExtraTreesClassifier(
-                    n_estimators=200, max_features=0.1, criterion="entropy"
+                    n_estimators=200,
+                    max_features=0.1,
+                    criterion="entropy",
+                    class_weight=self.class_weight,
+                    random_state=self.random_state,
                 )
                 if self.estimator is None
                 else self.estimator

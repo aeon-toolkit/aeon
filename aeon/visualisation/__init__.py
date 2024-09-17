@@ -14,7 +14,7 @@ __all__ = [
     # Results plotting
     "plot_critical_difference",
     "plot_significance",
-    "plot_boxplot_median",
+    "plot_boxplot",
     "plot_scatter_predictions",
     "plot_pairwise_scatter",
     "plot_score_vs_time_scatter",
@@ -22,10 +22,18 @@ __all__ = [
     "plot_series_with_profiles",
     "plot_cluster_algorithm",
     "plot_temporal_importance_curves",
+    "ShapeletVisualizer",
+    "ShapeletTransformerVisualizer",
+    "ShapeletClassifierVisualizer",
 ]
 
 from aeon.visualisation.estimator._clasp import plot_series_with_profiles
 from aeon.visualisation.estimator._clustering import plot_cluster_algorithm
+from aeon.visualisation.estimator._shapelets import (
+    ShapeletClassifierVisualizer,
+    ShapeletTransformerVisualizer,
+    ShapeletVisualizer,
+)
 from aeon.visualisation.estimator._temporal_importance_curves import (
     plot_temporal_importance_curves,
 )
@@ -33,7 +41,7 @@ from aeon.visualisation.learning_task._forecasting import plot_series_windows
 from aeon.visualisation.learning_task._segmentation import (
     plot_series_with_change_points,
 )
-from aeon.visualisation.results._boxplot import plot_boxplot_median
+from aeon.visualisation.results._boxplot import plot_boxplot
 from aeon.visualisation.results._critical_difference import plot_critical_difference
 from aeon.visualisation.results._scatter import (
     plot_pairwise_scatter,

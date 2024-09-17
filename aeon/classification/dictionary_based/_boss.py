@@ -14,7 +14,7 @@ from joblib import Parallel, effective_n_jobs
 from sklearn.metrics import pairwise
 from sklearn.utils import check_random_state, gen_even_slices
 from sklearn.utils.extmath import safe_sparse_dot
-from sklearn.utils.fixes import delayed
+from sklearn.utils.parallel import delayed
 from sklearn.utils.sparsefuncs_fast import csr_row_norms
 from sklearn.utils.validation import _num_samples
 
@@ -658,6 +658,7 @@ class IndividualBOSS(BaseClassifier):
         new_boss.n_classes_ = self.n_classes_
         new_boss.classes_ = self.classes_
         new_boss._class_dictionary = self._class_dictionary
+        new_boss.metadata_ = self.metadata_
         new_boss._is_fitted = True
 
         return new_boss

@@ -20,13 +20,6 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     accordingly. The transform is applied to all scalar elements of the input array
     individually.
 
-    Combined with an aeon.forecasting.compose.TransformedTargetForecaster, it ensures
-    that the forecast stays between the specified bounds (lower_bound, upper_bound).
-
-    Default is lower_bound = upper_bound = None, i.e., the identity transform.
-
-    The logarithm transform is obtained for lower_bound = 0, upper_bound = None.
-
     Parameters
     ----------
     lower_bound : float, optional, default=None
@@ -60,22 +53,6 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     .. [2] Hyndman, R.J., & Athanasopoulos, G. (2021) Forecasting: principles and
         practice, 3rd edition, OTexts: Melbourne, Australia. OTexts.com/fpp3.
         Accessed on January 24th 2022.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.datasets import load_airline
-    >>> import aeon.transformations.series._scaled_logit as sl
-    >>> from aeon.forecasting.trend import PolynomialTrendForecaster
-    >>> from aeon.forecasting.compose import TransformedTargetForecaster
-    >>> y = load_airline()
-    >>> fcaster = TransformedTargetForecaster([
-    ...     ("scaled_logit", sl.ScaledLogitSeriesTransformer(0, 650)),
-    ...     ("poly", PolynomialTrendForecaster(degree=2))
-    ... ])
-    >>> fcaster.fit(y)
-    TransformedTargetForecaster(...)
-    >>> y_pred = fcaster.predict(fh = np.arange(32))
     """
 
     _tags = {

@@ -123,5 +123,6 @@ These checkboxes will add labels to enable/disable CI functionality for this PR.
 - [ ] Run all notebook example tests
 - [ ] Run numba-disabled `codecov` tests
 - [ ] Stop automatic `pre-commit` fixes (always disabled for drafts)
+- [ ] Push an empty commit to re-run CI checks
     """  # noqa
 )
