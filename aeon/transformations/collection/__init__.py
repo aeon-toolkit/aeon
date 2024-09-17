@@ -3,7 +3,6 @@
 __all__ = [
     # base class and series wrapper
     "BaseCollectionTransformer",
-    "CollectionToSeriesWrapper",
     # transformers
     "AutocorrelationFunctionTransformer",
     "ARCoefficientTransformer",
@@ -26,9 +25,6 @@ __all__ = [
     "Normalise",
 ]
 
-from aeon.transformations.collection._collection_wrapper import (
-    CollectionToSeriesWrapper,
-)
 from aeon.transformations.collection._downsample import DownsampleTransformer
 from aeon.transformations.collection._normalise import Normalise
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer

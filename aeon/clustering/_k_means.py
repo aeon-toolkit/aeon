@@ -169,6 +169,8 @@ class TimeSeriesKMeans(BaseClusterer):
         average_params: dict = None,
         init_algorithm: Union[str, np.ndarray] = None,
     ):
+        self.init = init
+        self.init_algorithm = init_algorithm
         if init_algorithm is not None:
             import warnings
 
@@ -179,9 +181,6 @@ class TimeSeriesKMeans(BaseClusterer):
                 stacklevel=2,
             )
             self.init = self.init_algorithm
-        else:
-            self.init = init
-        self.init_algorithm = init_algorithm
         self.distance = distance
         self.n_init = n_init
         self.max_iter = max_iter
