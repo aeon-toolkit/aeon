@@ -4,7 +4,8 @@ from typing import Optional
 
 import numpy as np
 
-from aeon.transformations.collection import BaseCollectionTransformer 
+from aeon.transformations.collection import BaseCollectionTransformer
+
 
 class Normalise(BaseCollectionTransformer):
     """Normaliser transformer for collections.
