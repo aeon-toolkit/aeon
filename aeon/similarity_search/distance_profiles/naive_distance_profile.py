@@ -1,6 +1,6 @@
 """Naive distance profile computation."""
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 
 
 from typing import Optional, Union

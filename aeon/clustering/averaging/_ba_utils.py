@@ -1,6 +1,6 @@
 __maintainer__ = []
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
@@ -124,7 +124,7 @@ def _get_alignment_path(
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     if distance == "dtw":
         return dtw_alignment_path(ts, center, window)
     elif distance == "ddtw":

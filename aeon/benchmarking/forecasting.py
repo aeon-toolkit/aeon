@@ -1,7 +1,7 @@
 """Benchmarking for forecasting estimators."""
 
 import functools
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Optional, Union
 
 from aeon.benchmarking.benchmarks import BaseBenchmark
 from aeon.forecasting.base import BaseForecaster
@@ -12,10 +12,10 @@ from aeon.forecasting.model_selection._split import BaseSplitter
 def forecasting_validation(
     dataset_loader: Callable,
     cv_splitter: BaseSplitter,
-    scorers: List[Callable],
+    scorers: list[Callable],
     estimator: BaseForecaster,
     **kwargs,
-) -> Dict[str, Union[float, str]]:
+) -> dict[str, Union[float, str]]:
     """Run validation for a forecasting estimator.
 
     Parameters
@@ -48,7 +48,7 @@ def forecasting_validation(
 def _factory_forecasting_validation(
     dataset_loader: Callable,
     cv_splitter: BaseSplitter,
-    scorers: List[Callable],
+    scorers: list[Callable],
 ) -> Callable:
     """Build validation func which just takes a forecasting estimator."""
     return functools.partial(
@@ -71,7 +71,7 @@ class ForecastingBenchmark(BaseBenchmark):
         self,
         dataset_loader: Callable,
         cv_splitter: BaseSplitter,
-        scorers: List[Callable],
+        scorers: list[Callable],
         task_id: Optional[str] = None,
     ):
         """Register a forecasting task to the benchmark.
