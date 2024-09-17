@@ -32,39 +32,40 @@ class BORF(BaseCollectionTransformer):
 
     Parameters
     ----------
-    window_size_min : int, optional (default=4)
+    window_size_min_window_size : int, default=4
         The minimum window size for the sliding window.
-    window_size_max : int or None, optional (default=None)
+    window_size_max_window_size : int or None, default=None
         The maximum window size for the sliding window. If None, it is set
-        via the heuristic function, based on the time series length.
-    word_lengths : int, optional (default=4)
+        via a heuristic function based on the time series length.
+    word_lengths_n_word_lengths : int, default=4
         The length of the words used in the SAX representation.
-    alphabets_min : int, optional (default=3)
+    alphabets_min_symbols : int, default=3
         The minimum number of symbols in the alphabet.
-    alphabets_max : int, optional (default=4)
+    alphabets_max_symbols : int, default=4
         The maximum number of symbols in the alphabet.
-    alphabets_step : int, optional (default=1)
+    alphabets_step : int, default=1
         The step size when iterating over the number of symbols in the alphabet.
-    dilations_min : int, optional (default=1)
+    dilations_min_dilation : int, default=1
         The minimum dilation factor.
-    dilations_max : int or None, optional (default=None)
-        The maximum dilation factor. If None, it is set via the heuristic function,
+    dilations_max_dilation : int or None, default=None
+        The maximum dilation factor. If None, it is set via a heuristic function
         based on the time series length.
-    min_window_to_signal_std_ratio : float, optional (default=0.0)
+    min_window_to_signal_std_ratio : float, default=0.0
         Minimum ratio of the window size to the standard deviation of the signal.
-        If the window stardard deviation is lower than this ratio,
-        the window is considered "flat" and set to all zeros.
-        This avoids blowing up noise.
-    n_jobs : int, optional (default=1)
-        The number of IndividualBORF to run in parallel.
-    n_jobs_numba : int, optional (default=1)
-        The number of threads to used for parallelizing
-        each configurations inside each IndividualBORF.
-    transformer_weights : array-like or None, optional (default=None)
+        If the window standard deviation is lower than this ratio,
+        the window is considered "flat" and set to all zeros to avoid amplifying noise.
+    n_jobs : int, default=1
+        The number of `IndividualBORF` instances to run in parallel.
+    n_jobs_numba : int, default=1
+        The number of threads used for parallelizing each
+        configuration inside each `IndividualBORF`.
+    transformer_weights : array-like or None, default=None
         Weights applied to each transformer in the pipeline.
-    complexity : {'quadratic', 'linear'}, optional (default='quadratic')
-        The computational complexity mode. 'quadratic' for higher accuracy
-        with more computational cost, 'linear' for faster computations.
+    complexity : {'quadratic', 'linear'}, default='quadratic'
+        The computational complexity mode:
+        - `'quadratic'`: Higher accuracy with more computational cost.
+        - `'linear'`: Faster computations with potentially lower accuracy.
+
 
     Attributes
     ----------
