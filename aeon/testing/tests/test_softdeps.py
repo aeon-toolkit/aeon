@@ -35,6 +35,7 @@ def test_module_crawl():
     assert "aeon.classification" in modules
     assert "aeon.classification.shapelet_based" in modules
     assert "aeon.classification.base" in modules
+    assert "aeon.segmentation" in modules
 
 
 @pytest.mark.parametrize("module", modules)

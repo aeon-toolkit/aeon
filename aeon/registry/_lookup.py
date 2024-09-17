@@ -124,6 +124,18 @@ def all_estimators(
     References
     ----------
     Modified version from scikit-learn's `all_estimators()`.
+
+    Examples
+    --------
+    >>> from aeon.registry import all_estimators
+    >>> # return a complete list of estimators as pd.Dataframe
+    >>> all = all_estimators(as_dataframe=True)
+    >>> # return all classifiers by filtering for estimator type
+    >>> classifiers = all_estimators("classifier")
+    >>> # return all classifiers which handle unequal length data by tag filtering
+    >>> clf_ul = all_estimators(
+    ...     "classifier", filter_tags={"capability:unequal_length":True}
+    ... )
     """
     import io
     import sys
