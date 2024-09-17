@@ -28,6 +28,8 @@ from aeon.datasets._data_loaders import (
     _load_data,
     _load_header_info,
     _load_saved_dataset,
+    _load_tsc_dataset,
+    download_dataset,
 )
 from aeon.testing.test_config import PR_TESTING
 
@@ -525,3 +527,37 @@ def test__load_saved_dataset():
     assert np.array_equal(X, X3)
     assert np.array_equal(X4, X5)
     assert not np.array_equal(X, X4)
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
+def test_download_dataset():
+    """Test the private download_dataset function."""
+    name = "Chinatown"
+    with tempfile.TemporaryDirectory() as tmp:
+        path = download_dataset(name, save_path=tmp)
+        assert path == os.path.join(tmp, name)
+        path = download_dataset(name, save_path=tmp)
+        assert path == os.path.join(tmp, name)
+        with pytest.raises(ValueError, match="Invalid dataset name"):
+            download_dataset("FOO", save_path=tmp)
+        with pytest.raises(ValueError, match="Invalid dataset name"):
+            download_dataset("BAR")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
+def test_load_tsc_dataset():
+    """Test the private _load_tsc_dataset function."""
+    name = "Chinatown"
+    with tempfile.TemporaryDirectory() as tmp:
+        X, y = _load_tsc_dataset(name, split="TRAIN", extract_path=tmp)
+        assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
+        with pytest.raises(ValueError, match="Invalid dataset name"):
+            _load_tsc_dataset("FOO", split="TEST", extract_path=tmp)

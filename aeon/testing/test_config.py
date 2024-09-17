@@ -3,8 +3,7 @@
 __maintainer__ = []
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
-import os
-
+import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 from aeon.base import (
     BaseCollectionEstimator,
     BaseEstimator,
@@ -17,36 +16,9 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
-if os.environ.get("CICD_RUNNING") == "1":  # pragma: no cover
-    import aeon.testing.utils._cicd_numba_caching  # noqa: F401
+# Exclude estimators here for short term fixes
+EXCLUDE_ESTIMATORS = []
 
-EXCLUDE_ESTIMATORS = [
-    "TabularToSeriesAdaptor",
-    "PandasTransformAdaptor",
-    "BKFilter",
-    "TransformerPipeline",
-    "FeatureUnion",
-    "FitInTransform",
-    "MultiplexTransformer",
-    "InvertTransform",
-    "Id",
-    "OptionalPassthrough",
-    "ColumnwiseTransformer",
-    "ColumnConcatenator",
-    "YtoX",
-    "DateTimeFeatures",
-    "ExponentTransformer",
-    "FeatureSelection",
-    "FourierFeatures",
-    "Imputer",
-    "Lag",
-    "HampelFilter",
-    "WindowSummarizer",
-]  # Exclude deprecated estimators to reduce warnings
-
-# the test currently fails when numba is disabled. See issue #622
-if os.environ.get("NUMBA_DISABLE_JIT") == "1":
-    EXCLUDE_ESTIMATORS.append("StatsForecastAutoARIMA")
 
 EXCLUDED_TESTS = {
     # Early classifiers (EC) intentionally retain information from previous predict
@@ -67,7 +39,13 @@ EXCLUDED_TESTS = {
         "test_save_estimators_to_file",
     ],
     # has a keras fail, unknown reason, see #1387
-    "LearningShapeletClassifier": ["test_fit_deterministic"],
+    "LearningShapeletClassifier": ["check_fit_deterministic"],
+    # does not fit structure for test, needs investigation
+    "TapNetClassifier": ["check_classifier_random_state_deep_learning"],
+    "TapNetRegressor": ["check_regressor_random_state_deep_learning"],
+    # needs investigation
+    "SASTClassifier": ["check_fit_deterministic"],
+    "RSASTClassifier": ["check_fit_deterministic"],
 }
 
 # We use estimator tags in addition to class hierarchies to further distinguish

@@ -2,16 +2,13 @@
 
 __maintainer__ = []
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._alignment_paths import (
-    _add_inf_to_out_of_bounds_cost_matrix,
-    compute_min_return_path,
-)
+from aeon.distances._alignment_paths import compute_min_return_path
 from aeon.distances._bounding_matrix import create_bounding_matrix
 from aeon.distances._euclidean import _univariate_euclidean_distance
 from aeon.distances._utils import _convert_to_list, _is_multivariate
@@ -200,9 +197,8 @@ def _twe_cost_matrix(
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
-    cost_matrix = np.zeros((x_size, y_size))
-    cost_matrix[0, 1:] = np.inf
-    cost_matrix[1:, 0] = np.inf
+    cost_matrix = np.full((x_size, y_size), np.inf)
+    cost_matrix[0, 0] = 0.0
 
     del_add = nu + lmbda
 
@@ -247,8 +243,8 @@ def _pad_arrs(x: np.ndarray) -> np.ndarray:
 
 
 def twe_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
@@ -417,7 +413,7 @@ def twe_alignment_path(
     nu: float = 0.001,
     lmbda: float = 1.0,
     itakura_max_slope: Optional[float] = None,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the TWE alignment path between two time series.
 
     Parameters
@@ -461,12 +457,7 @@ def twe_alignment_path(
     >>> twe_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 2.0)
     """
-    bounding_matrix = create_bounding_matrix(
-        x.shape[-1], y.shape[-1], window, itakura_max_slope
-    )
     cost_matrix = twe_cost_matrix(x, y, window, nu, lmbda, itakura_max_slope)
-    # Need to do this because the cost matrix contains 0s and not inf in out of bounds
-    cost_matrix = _add_inf_to_out_of_bounds_cost_matrix(cost_matrix, bounding_matrix)
     return (
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],

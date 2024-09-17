@@ -2,7 +2,7 @@ r"""Longest common subsequence (LCSS) between two time series."""
 
 __maintainer__ = []
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
@@ -222,8 +222,8 @@ def _lcss_cost_matrix(
 
 
 def lcss_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     epsilon: float = 1.0,
     itakura_max_slope: Optional[float] = None,
@@ -370,7 +370,7 @@ def lcss_alignment_path(
     window: Optional[float] = None,
     epsilon: float = 1.0,
     itakura_max_slope: Optional[float] = None,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the LCSS alignment path between two time series.
 
     Parameters
