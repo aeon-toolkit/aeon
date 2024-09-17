@@ -24,6 +24,7 @@ __all__ = [
     "TruncationTransformer",
     "Normalise",
 ]
+
 from aeon.transformations.collection._downsample import DownsampleTransformer
 from aeon.transformations.collection._normalise import Normalise
 from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer

@@ -7,6 +7,7 @@ __maintainer__ = []
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+from aeon.utils.validation.series import check_y
 
 
 def plot_series_with_profiles(
@@ -52,6 +53,8 @@ def plot_series_with_profiles(
     # Checks availability of plotting libraries
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
+
+    ts = check_y(ts)
 
     fig, ax = plt.subplots(
         len(profiles) + 1,

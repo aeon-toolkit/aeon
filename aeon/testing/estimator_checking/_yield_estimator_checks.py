@@ -39,6 +39,7 @@ from aeon.testing.utils.estimator_checks import (
     _list_required_methods,
     _run_estimator_method,
 )
+from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
@@ -265,6 +266,11 @@ def check_inheritance(estimator_class):
     )
 
     assert 2 >= n_base_types >= 1
+
+    # If the estimator inherits from more than one base estimator type, we check if
+    # one of them is a transformer base type
+    if n_base_types > 1:
+        assert issubclass(estimator_class, BaseTransformer)
 
 
 def check_has_common_interface(estimator_class):
