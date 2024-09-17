@@ -1,4 +1,4 @@
-"""Tests for SeriesSearch."""
+"""Tests for SeriesSearch similarity search algorithm."""
 
 __maintainer__ = ["baraline"]
 
