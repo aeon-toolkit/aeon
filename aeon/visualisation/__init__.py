@@ -14,7 +14,7 @@ __all__ = [
     # Results plotting
     "plot_critical_difference",
     "plot_significance",
-    "plot_boxplot_median",
+    "plot_boxplot",
     "plot_scatter_predictions",
     "plot_pairwise_scatter",
     "plot_score_vs_time_scatter",
@@ -41,7 +41,7 @@ from aeon.visualisation.learning_task._forecasting import plot_series_windows
 from aeon.visualisation.learning_task._segmentation import (
     plot_series_with_change_points,
 )
-from aeon.visualisation.results._boxplot import plot_boxplot_median
+from aeon.visualisation.results._boxplot import plot_boxplot
 from aeon.visualisation.results._critical_difference import plot_critical_difference
 from aeon.visualisation.results._scatter import (
     plot_pairwise_scatter,

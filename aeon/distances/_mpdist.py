@@ -1,6 +1,6 @@
 """Matrix Profile Distances."""
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
@@ -283,8 +283,8 @@ def _stomp_ab(
 
 
 def mpdist_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     m: int = 0,
 ) -> np.ndarray:
     """Compute the mpdist pairwise distance between a set of time series.
