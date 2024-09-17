@@ -1,7 +1,8 @@
 import math
+from typing import Callable
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Union, Callable
+from typing import Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score, mean_squared_error
@@ -94,24 +95,40 @@ class ChannelScorer(BaseChannelSelector):
                 self.estimator_ = RocketClassifier(
                     rocket_transform="minirocket", num_kernels=5000
                 )
-                scoring_function = accuracy_score if self.scoring_function is None else self.scoring_function # noqa: E501
+                scoring_function = (
+                    accuracy_score
+                    if self.scoring_function is None
+                    else self.scoring_function
+                )  # noqa: E501
                 score_sign = 1  # Higher accuracy is better, hence positive sign
             elif np.issubdtype(np.array(y).dtype, np.float_):
                 # Default to a regressor if y is float
                 self.estimator_ = RocketRegressor(
                     rocket_transform="minirocket", num_kernels=5000
                 )
-                scoring_function = mean_squared_error if self.scoring_function is None else self.scoring_function # noqa: E501
+                scoring_function = (
+                    mean_squared_error
+                    if self.scoring_function is None
+                    else self.scoring_function
+                )  # noqa: E501
                 score_sign = -1  # Lower MSE is better, hence negative sign
             else:
                 raise ValueError("y must be of type int, float, or str.")
         elif isinstance(self.estimator, BaseClassifier):
             self.estimator_ = self.estimator.clone()
-            scoring_function = accuracy_score if self.scoring_function is None else self.scoring_function # noqa: E501
+            scoring_function = (
+                accuracy_score
+                if self.scoring_function is None
+                else self.scoring_function
+            )  # noqa: E501
             score_sign = 1  # Higher accuracy is better, hence positive sign
         elif isinstance(self.estimator, BaseRegressor):
             self.estimator_ = self.estimator.clone()
-            scoring_function = mean_squared_error if self.scoring_function is None else self.scoring_function # noqa: E501
+            scoring_function = (
+                mean_squared_error
+                if self.scoring_function is None
+                else self.scoring_function
+            )  # noqa: E501
             score_sign = -1  # Lower MSE is better, hence negative sign
         else:
             raise ValueError(
