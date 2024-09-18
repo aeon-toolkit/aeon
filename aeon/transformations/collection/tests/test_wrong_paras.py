@@ -8,8 +8,13 @@ from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
 )
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency statsmodels not available",
+)
 def test_ar_coefficient():
     """Test AR Coefficient Transformer exceptions."""
     X = np.random.random((2, 1, 10))
