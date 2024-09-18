@@ -25,18 +25,18 @@ __all__ = [
     "Normalise",
 ]
 
+from aeon.transformations.collection._acf import AutocorrelationFunctionTransformer
+from aeon.transformations.collection._ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection._downsample import DownsampleTransformer
+from aeon.transformations.collection._dwt import DWTTransformer
+from aeon.transformations.collection._hog1d import HOG1DTransformer
+from aeon.transformations.collection._interpolate import TSInterpolator
 from aeon.transformations.collection._normalise import Normalise
-from aeon.transformations.collection.acf import AutocorrelationFunctionTransformer
-from aeon.transformations.collection.ar_coefficient import ARCoefficientTransformer
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.collection.channel_selection import (
     ElbowClassPairwise,
     ElbowClassSum,
 )
-from aeon.transformations.collection.dwt import DWTTransformer
-from aeon.transformations.collection.hog1d import HOG1DTransformer
-from aeon.transformations.collection.interpolate import TSInterpolator
 from aeon.transformations.collection.matrix_profile import MatrixProfile
 from aeon.transformations.collection.pad import PaddingTransformer
 from aeon.transformations.collection.periodogram import PeriodogramTransformer

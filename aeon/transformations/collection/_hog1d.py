@@ -60,8 +60,6 @@ class HOG1DTransformer(BaseCollectionTransformer):
         """
         # Get information about the dataframe
         n_cases, n_channels, n_timepoints = X.shape
-        if n_channels > 1:
-            raise ValueError("HOG1D does not support multivariate time series.")
         # Check the parameters are appropriate
         self._check_parameters(n_timepoints)
         transX = []
