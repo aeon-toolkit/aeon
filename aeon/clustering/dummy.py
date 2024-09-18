@@ -1,6 +1,7 @@
 """Implements DummyClusterer to be used as Baseline."""
 
 import numpy as np
+from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer
 
@@ -22,10 +23,17 @@ class DummyClusterer(BaseClusterer):
         - "random": Assign clusters randomly.
         - "uniform": Distribute clusters uniformly among samples.
         - "single_cluster": Assign all samples to a single cluster.
-
     n_clusters : int, default=3
         The number of clusters to generate. This is relevant for "random"
         and "uniform" strategies.
+    random_state : int, np.random.RandomState instance or None, default=None
+        Determines random number generation for centroid initialization.
+        Only used when `strategy` is "random".
+        If `int`, random_state is the seed used by the random number generator;
+        If `np.random.RandomState` instance,
+        random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -38,19 +46,19 @@ class DummyClusterer(BaseClusterer):
     >>> import numpy as np
     >>> X = np.array([[1, 2], [3, 4], [5, 6]])
     >>> clusterer = DummyClusterer(strategy="uniform", n_clusters=2)
-    >>> clusterer._fit(X)
+    >>> clusterer.fit(X)
     DummyClusterer(n_clusters=2, strategy='uniform')
     >>> clusterer.labels_
     array([0, 1, 0])
-    >>> clusterer._predict(X)
+    >>> clusterer.predict(X)
     array([0, 1, 0])
     """
 
-    def __init__(self, strategy="random", n_clusters=3):
-        super().__init__()
+    def __init__(self, strategy="random", n_clusters=3, random_state=None):
         self.strategy = strategy
-        self.n_clusters = n_clusters
-        self.labels_ = None
+        self.random_state = random_state
+
+        super().__init__(n_clusters=n_clusters)
 
     def _fit(self, X, y=None):
         """
@@ -72,7 +80,8 @@ class DummyClusterer(BaseClusterer):
         n_samples = X.shape[0]
 
         if self.strategy == "random":
-            self.labels_ = np.random.randint(0, self.n_clusters, n_samples)
+            rng = check_random_state(self.random_state)
+            self.labels_ = rng.randint(self.n_clusters, size=n_samples)
         elif self.strategy == "uniform":
             self.labels_ = np.tile(
                 np.arange(self.n_clusters), n_samples // self.n_clusters + 1
@@ -103,7 +112,8 @@ class DummyClusterer(BaseClusterer):
         """
         n_samples = X.shape[0]
         if self.strategy == "random":
-            return np.random.randint(0, self.n_clusters, n_samples)
+            rng = check_random_state(self.random_state)
+            return rng.randint(self.n_clusters, size=n_samples)
         elif self.strategy == "uniform":
             return np.tile(
                 np.arange(self.n_clusters), n_samples // self.n_clusters + 1

@@ -200,7 +200,7 @@ class BaseFixtureGenerator:
             estimator_types=getattr(self, "estimator_type_filter", None),
             return_names=False,
             exclude_estimators=EXCLUDE_ESTIMATORS,
-            exclude_estimator_types=["classifier", "regressor"],
+            exclude_estimator_types=["classifier", "regressor", "clusterer"],
         )
 
         # subsample estimators by OS & python version

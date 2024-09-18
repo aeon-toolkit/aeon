@@ -81,6 +81,7 @@ dl = [
 ]
 unstable_extras = [
     "mrsqm>=0.0.7,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
+    "mrseql>=0.0.4,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",   # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
     "pycatch22",  # known to fail installation on some setups
     "pyfftw>=0.12.0; python_version < '3.12'",  # requires fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
 ]
