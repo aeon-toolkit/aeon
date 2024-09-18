@@ -9,7 +9,7 @@ from aeon.datasets import (
     load_plaid,
     load_unit_test,
 )
-from aeon.transformations.collection._pad import Padder
+from aeon.transformations.collection import Padder
 
 
 @pytest.mark.parametrize(
@@ -102,3 +102,22 @@ def test_fill_value_with_string_params(fill_value):
     X_padded = padding_transformer.fit_transform(X)
 
     assert X_padded.shape == (X.shape[0], X.shape[1], 120)
+
+
+def test_padder_incorrect_paras():
+    """Test Padder with incorrect parameters."""
+    X = np.random.rand(2, 2, 20)
+    padding_transformer = Padder(pad_length=22, fill_value="FOOBAR")
+    with pytest.raises(ValueError, match="Supported modes are mean, median, min, max"):
+        padding_transformer.fit_transform(X)
+    padding_transformer = Padder(pad_length=22, fill_value=np.array([1, 2, 3, 4]))
+    with pytest.raises(ValueError, match="The length of fill_value must match"):
+        padding_transformer.fit_transform(X)
+    padding_transformer = Padder(pad_length=22, fill_value=np.array([1, 2]))
+    with pytest.raises(ValueError, match="The fill_value argument must be"):
+        padding_transformer.fit_transform(X)
+    X2 = np.random.rand(2, 2, 50)
+    padding_transformer = Padder(pad_length=22)
+    with pytest.raises(ValueError, match="max_length of series"):
+        padding_transformer.fit(X)
+        padding_transformer.transform(X2)

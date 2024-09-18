@@ -59,7 +59,6 @@ class Padder(BaseCollectionTransformer):
     def __init__(self, pad_length=None, fill_value=0):
         self.pad_length = pad_length
         self.fill_value = fill_value
-        self.fill_value_ = fill_value
         super().__init__()
 
     def _fit(self, X, y=None):
@@ -79,6 +78,7 @@ class Padder(BaseCollectionTransformer):
         -------
         self : reference to self
         """
+        self.fill_value_ = self.fill_value
         max_length = _get_max_length(X)
         if self.pad_length is None:
             self.pad_length_ = max_length
@@ -151,8 +151,8 @@ class Padder(BaseCollectionTransformer):
 
         if max_length > self.pad_length_:
             raise ValueError(
-                "Error: max_length of series \
-                    is greater than the one found when fit or set."
+                "max_length of series in transform is greater than the one found in "
+                "fit or set in the constructor."
             )
         # Calculate padding amounts
 
