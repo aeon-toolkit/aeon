@@ -5,7 +5,7 @@ import numbers
 import numpy as np
 import pytest
 
-from aeon.transformations.collection.hog1d import HOG1DTransformer
+from aeon.transformations.collection._hog1d import HOG1DTransformer
 
 
 @pytest.mark.parametrize("num_bins,corr_n_timepoints", [(4, 8), (8, 16), (12, 24)])
