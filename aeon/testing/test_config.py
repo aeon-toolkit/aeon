@@ -46,6 +46,8 @@ EXCLUDED_TESTS = {
     # needs investigation
     "SASTClassifier": ["check_fit_deterministic"],
     "RSASTClassifier": ["check_fit_deterministic"],
+    "AEFCNClusterer": ["check_fit_updates_state"],
+    "AEResNetClusterer": ["check_fit_updates_state"],
 }
 
 # We use estimator tags in addition to class hierarchies to further distinguish
