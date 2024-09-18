@@ -15,11 +15,15 @@ from aeon.base import BaseEstimator, BaseObject
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
+from aeon.clustering import BaseClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.testing.estimator_checking._yield_classification_checks import (
     _yield_classification_checks,
+)
+from aeon.testing.estimator_checking._yield_clustering_checks import (
+    _yield_clustering_checks,
 )
 from aeon.testing.estimator_checking._yield_regression_checks import (
     _yield_regression_checks,
@@ -85,6 +89,11 @@ def _yield_all_aeon_checks(
 
     if issubclass(estimator_class, BaseRegressor):
         yield from _yield_regression_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseClusterer):
+        yield from _yield_clustering_checks(
             estimator_class, estimator_instances, datatypes
         )
 
