@@ -242,11 +242,10 @@ Segmentation
     RandomIntervalSegmenter
     SlidingWindowSegmenter
 
-Collection transformers
-~~~~~~~~~~~~~~~~~~~~~~~
+Window-based series transforms
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Collection transformers transform a collection of time series into a different
-collection of time series.
+These transformers create a series based on a sequence of sliding windows.
 
 .. currentmodule:: aeon.transformations.collection
 
@@ -255,21 +254,6 @@ collection of time series.
     :template: class.rst
 
     HOG1DTransformer
-    AutocorrelationFunctionTransformer
-    ARCoefficientTransformer
-    DownsampleTransformer
-    DWTTransformer
-    MatrixProfile
-    PeriodogramTransformer
-    SlopeTransformer
-    TimeSeriesScaler
-    Normalise
-
-Channel selection
-~~~~~~~~~~~~~~~~~
-
-Channel selection transformers select a subset of channels from a collection of
-multivariate time series.
 
 .. currentmodule:: aeon.transformations.collection.channel_selection
 
@@ -282,12 +266,17 @@ multivariate time series.
     ElbowClassPairwise
     RandomChannelSelector
 
+Panel transformers
+------------------
+
+Panel transformers transform a panel of time series into a panel of time series.
+
+A panel transformer is fitted on an entire panel, and not per series.
 
 Equal length transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-These transformations convert a collection of unequal length series into
-collections of equal length series.
+These transformations ensure all series in a panel have equal length
 
 .. currentmodule:: aeon.transformations.collection.pad
 
@@ -316,6 +305,11 @@ Dimension reduction
     :template: class.rst
 
     PCATransformer
+
+Series-to-Panel transformers
+----------------------------
+
+These transformers create a panel from a single series.
 
 
 Outlier detection, changepoint detection
