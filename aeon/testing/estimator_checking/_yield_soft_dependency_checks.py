@@ -1,4 +1,8 @@
-"""Tests for estimator soft dependencies."""
+"""Tests for estimator soft dependencies.
+
+Only tests with 'softdep' in the name will be run by `check_estimator` if any
+required package or version is missing. Other tests will be automatically skipped.
+"""
 
 from functools import partial
 
