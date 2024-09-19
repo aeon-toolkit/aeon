@@ -18,6 +18,7 @@ __all__ = [
     "Tabularizer",
     "IntervalSegmenter",
     "RandomIntervalSegmenter",
+    "Resizer",
     "SlidingWindowSegmenter",
     "SlopeTransformer",
     "TimeSeriesScaler",
