@@ -30,7 +30,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Assign issue
-        run: python build_tools/issue_assign.py
+        run: python .github/utilities/issue_assign.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

@@ -36,7 +36,7 @@ jobs:
 
       - name: Process comment edit
         id: label_out
-        run: python build_tools/pr_welcome_edited.py
+        run: python .github/utilities/pr_welcome_edited.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
