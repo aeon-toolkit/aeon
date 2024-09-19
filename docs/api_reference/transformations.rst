@@ -224,13 +224,13 @@ Slope
 Segmentation
 ~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.interpolate
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    TSInterpolator
+    Resizer
 
 .. currentmodule:: aeon.transformations.collection.segment
 
@@ -278,21 +278,21 @@ Equal length transforms
 
 These transformations ensure all series in a panel have equal length
 
-.. currentmodule:: aeon.transformations.collection.pad
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    PaddingTransformer
+    Padder
 
-.. currentmodule:: aeon.transformations.collection.truncate
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    TruncationTransformer
+    Truncater
 
 
 Dimension reduction
