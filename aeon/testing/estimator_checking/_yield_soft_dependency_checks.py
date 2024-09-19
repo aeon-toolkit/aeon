@@ -23,6 +23,11 @@ def _yield_soft_dependency_checks(estimator_class, estimator_instances, datatype
 
 def check_python_version_softdep(estimator_class):
     """Test that estimators raise error if python version is wrong."""
+    # if dependencies are incompatible skip
+    softdeps = estimator_class.get_class_tag("python_dependencies", None)
+    if softdeps is not None and not _check_soft_dependencies(softdeps, severity="none"):
+        return
+
     # should be compatible with python version and able to construct
     if _check_python_version(estimator_class, severity="none"):
         estimator_class.create_test_instance()
@@ -41,12 +46,17 @@ def check_python_version_softdep(estimator_class):
 
 def check_python_dependency_softdep(estimator_class):
     """Test that estimators raise error if required soft dependencies are missing."""
+    # if python version is incompatible skip
+    if not _check_python_version(estimator_class, severity="none"):
+        return
+
+    softdeps = estimator_class.get_class_tag("python_dependencies", None)
+
     # should be compatible with installed dependencies and able to construct
-    if _check_soft_dependencies(estimator_class, severity="none"):
+    if softdeps is None or _check_soft_dependencies(softdeps, severity="none"):
         estimator_class.create_test_instance()
     # should raise a specific error if any soft dependencies are missing
     else:
-        softdeps = estimator_class.get_class_tag("python_dependencies", None)
         with pytest.raises(ModuleNotFoundError) as ex_info:
             estimator_class.create_test_instance()
         assert (

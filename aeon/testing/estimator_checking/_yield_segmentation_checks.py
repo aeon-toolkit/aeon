@@ -11,30 +11,32 @@ from aeon.base._base_series import VALID_INNER_TYPES
 
 def _yield_segmentation_checks(estimator_class, estimator_instances, datatypes):
     """Yield all segmentation checks for an aeon segmenter."""
+    # only class required
+    yield partial(check_segmenter_base_functionality, estimator_class=estimator_class)
+
     # test class instances
     for _, estimator in enumerate(estimator_instances):
         # no data needed
         yield partial(check_segmenter_instance, estimator=estimator)
-        yield partial(check_segmenter_base_functionality, estimator=estimator)
 
 
-def check_segmenter_base_functionality(estimator):
+def check_segmenter_base_functionality(estimator_class):
     """Test compliance with the base class contract."""
     # Test they dont override final methods, because python does not enforce this
-    assert "fit" not in estimator.__dict__
-    assert "predict" not in estimator.__dict__
-    assert "fit_predict" not in estimator.__dict__
+    assert "fit" not in estimator_class.__dict__
+    assert "predict" not in estimator_class.__dict__
+    assert "fit_predict" not in estimator_class.__dict__
     # Test that all segmenters implement abstract predict.
-    assert "_predict" in estimator.__dict__
+    assert "_predict" in estimator_class.__dict__
     # Test that fit_is_empty is correctly set
-    fit_is_empty = estimator.get_class_tag(tag_name="fit_is_empty")
-    assert not fit_is_empty == "_fit" not in estimator.__dict__
+    fit_is_empty = estimator_class.get_class_tag(tag_name="fit_is_empty")
+    assert not fit_is_empty == "_fit" not in estimator_class.__dict__
     # Test valid tag for X_inner_type
-    X_inner_type = estimator.get_class_tag(tag_name="X_inner_type")
+    X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
     assert X_inner_type in VALID_INNER_TYPES
     # Must have at least one set to True
-    multi = estimator.get_class_tag(tag_name="capability:multivariate")
-    uni = estimator.get_class_tag(tag_name="capability:univariate")
+    multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
+    uni = estimator_class.get_class_tag(tag_name="capability:univariate")
     assert multi or uni
 
 

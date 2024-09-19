@@ -12,38 +12,42 @@ from aeon.testing.data_generation._legacy import make_series
 
 def _yield_anomaly_detection_checks(estimator_class, estimator_instances, datatypes):
     """Yield all anomaly detection checks for an aeon anomaly detector."""
+    # only class required
+    yield partial(
+        check_anomaly_detector_overrides_and_tags, estimator_class=estimator_class
+    )
+
     # test class instances
     for _, estimator in enumerate(estimator_instances):
         # no data needed
-        yield partial(check_anomaly_detector_overrides_and_tags, estimator=estimator)
         yield partial(check_anomaly_detector_univariate, estimator=estimator)
         yield partial(check_anomaly_detector_multivariate, estimator=estimator)
 
 
-def check_anomaly_detector_overrides_and_tags(estimator):
+def check_anomaly_detector_overrides_and_tags(estimator_class):
     """Test compliance with the anomaly detector base class contract."""
     # Test they don't override final methods, because Python does not enforce this
-    assert "fit" not in estimator.__dict__
-    assert "predict" not in estimator.__dict__
-    assert "fit_predict" not in estimator.__dict__
+    assert "fit" not in estimator_class.__dict__
+    assert "predict" not in estimator_class.__dict__
+    assert "fit_predict" not in estimator_class.__dict__
 
     # Test that all anomaly detectors implement abstract predict.
-    assert "_predict" in estimator.__dict__
+    assert "_predict" in estimator_class.__dict__
 
     # axis class parameter is for internal use only
-    assert "axis" not in estimator.__dict__
+    assert "axis" not in estimator_class.__dict__
 
     # Test that fit_is_empty is correctly set
-    fit_is_empty = estimator.get_class_tag(tag_name="fit_is_empty")
-    assert not fit_is_empty == "_fit" not in estimator.__dict__
+    fit_is_empty = estimator_class.get_class_tag(tag_name="fit_is_empty")
+    assert not fit_is_empty == "_fit" not in estimator_class.__dict__
 
     # Test valid tag for X_inner_type
-    X_inner_type = estimator.get_class_tag(tag_name="X_inner_type")
+    X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
     assert X_inner_type in VALID_INNER_TYPES
 
     # Must have at least one set to True
-    multi = estimator.get_class_tag(tag_name="capability:multivariate")
-    uni = estimator.get_class_tag(tag_name="capability:univariate")
+    multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
+    uni = estimator_class.get_class_tag(tag_name="capability:univariate")
     assert multi or uni
 
 

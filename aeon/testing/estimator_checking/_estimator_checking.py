@@ -344,6 +344,8 @@ def _get_check_estimator_ids(obj):
     elif hasattr(obj, "get_params"):
         with config_context(print_changed_only=True):
             s = re.sub(r"\s", "", str(obj))
-            return re.sub(r"<function[^)]*>", "func", s)
+            s = re.sub(r"<function[^)]*>", "func", s)
+            s = re.sub(r"<boundmethodrv[^)]*>", "boundmethod", s)
+            return s
     else:
         return obj
