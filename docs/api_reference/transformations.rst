@@ -88,7 +88,7 @@ Shapelets, wavelets and convolution
     MiniRocketMultivariateVariable
     MultiRocket
 
-.. currentmodule:: aeon.transformations.collection.dwt
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -266,17 +266,16 @@ These transformers create a series based on a sequence of sliding windows.
     ElbowClassPairwise
     RandomChannelSelector
 
-Panel transformers
+Collection transformers
 ------------------
 
-Panel transformers transform a panel of time series into a panel of time series.
-
-A panel transformer is fitted on an entire panel, and not per series.
+Collection transformers transform a collection of time series into a collection of time
+series.
 
 Equal length transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-These transformations ensure all series in a panel have equal length
+These transformations ensure all series in a collection have equal length
 
 .. currentmodule:: aeon.transformations.collection.pad
 
@@ -305,11 +304,6 @@ Dimension reduction
     :template: class.rst
 
     PCATransformer
-
-Series-to-Panel transformers
-----------------------------
-
-These transformers create a panel from a single series.
 
 
 Outlier detection, changepoint detection
