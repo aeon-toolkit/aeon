@@ -193,7 +193,7 @@ def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
 
         if not _get_tag(estimator, "cant-pickle", default=False):
             yield partial(
-                test_persistence_via_pickle,
+                check_persistence_via_pickle,
                 estimator=estimator,
                 datatype=datatypes[i][0],
             )
@@ -657,7 +657,7 @@ def check_raises_not_fitted_error(estimator, datatype):
                 _run_estimator_method(estimator, method, datatype, "test")
 
 
-def test_persistence_via_pickle(estimator, datatype):
+def check_persistence_via_pickle(estimator, datatype):
     """Check that we can pickle all estimators."""
     estimator = _clone_estimator(estimator, random_state=0)
     _run_estimator_method(estimator, "fit", datatype, "train")

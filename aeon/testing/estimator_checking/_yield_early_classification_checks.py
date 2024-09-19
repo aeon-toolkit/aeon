@@ -111,7 +111,9 @@ def check_classifier_output(estimator, datatype):
     assert isinstance(estimator.get_state_info(), np.ndarray)
 
     # check predict proba (all classifiers have predict_proba by default)
-    y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    y_proba, decisions = estimator.predict_proba(
+        FULL_TEST_DATA_DICT[datatype]["test"][0]
+    )
 
     assert isinstance(y_proba, np.ndarray)
     assert y_proba.shape == (
