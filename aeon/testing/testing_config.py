@@ -1,6 +1,6 @@
 """Test configuration."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
 import aeon.testing.utils._cicd_numba_caching  # noqa: F401
@@ -16,9 +16,8 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
-# Exclude estimators here for short term fixes
+# Exclude estimators here for short-term fixes
 EXCLUDE_ESTIMATORS = []
-
 
 EXCLUDED_TESTS = {
     # Early classifiers (EC) intentionally retain information from previous predict

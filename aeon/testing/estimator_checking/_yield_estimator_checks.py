@@ -11,24 +11,42 @@ import pytest
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_get_params_invariance
 
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseEstimator, BaseObject
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
+from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering import BaseClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+from aeon.segmentation import BaseSegmenter
+from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
+    _yield_anomaly_detection_checks,
+)
 from aeon.testing.estimator_checking._yield_classification_checks import (
     _yield_classification_checks,
 )
 from aeon.testing.estimator_checking._yield_clustering_checks import (
     _yield_clustering_checks,
 )
+from aeon.testing.estimator_checking._yield_early_classification_checks import (
+    _yield_early_classification_checks,
+)
 from aeon.testing.estimator_checking._yield_regression_checks import (
     _yield_regression_checks,
 )
-from aeon.testing.test_config import (
+from aeon.testing.estimator_checking._yield_segmentation_checks import (
+    _yield_segmentation_checks,
+)
+from aeon.testing.estimator_checking._yield_soft_dependency_checks import (
+    _yield_soft_dependency_checks,
+)
+from aeon.testing.estimator_checking._yield_transformation_checks import (
+    _yield_transformation_checks,
+)
+from aeon.testing.testing_config import (
     NON_STATE_CHANGING_METHODS,
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
     VALID_ESTIMATOR_BASE_TYPES,
@@ -51,6 +69,8 @@ def _yield_all_aeon_checks(
     estimator, use_first_parameter_set=False, has_dependencies=None
 ):
     """Yield all checks for an aeon estimator."""
+    # functions which use this will generally skip if dependencies are not met
+    # UNLESS the check name has "softdep" in it
     if has_dependencies is None:
         has_dependencies = _check_estimator_deps(estimator, severity="none")
 
@@ -75,6 +95,8 @@ def _yield_all_aeon_checks(
     else:
         # if input does not have all dependencies installed, all tests are going to be
         # skipped as we cannot instantiate the class
+        # we still need inputs for the checks to return them and show that they
+        # have been skipped
         estimator_class = estimator if isclass(estimator) else type(estimator)
         estimator_instances = [None]
         datatypes = [[None]]
@@ -82,8 +104,17 @@ def _yield_all_aeon_checks(
     # start yielding checks
     yield from _yield_estimator_checks(estimator_class, estimator_instances, datatypes)
 
+    yield from _yield_soft_dependency_checks(
+        estimator_class, estimator_instances, datatypes
+    )
+
     if issubclass(estimator_class, BaseClassifier):
         yield from _yield_classification_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseEarlyClassifier):
+        yield from _yield_early_classification_checks(
             estimator_class, estimator_instances, datatypes
         )
 
@@ -94,6 +125,21 @@ def _yield_all_aeon_checks(
 
     if issubclass(estimator_class, BaseClusterer):
         yield from _yield_clustering_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseSegmenter):
+        yield from _yield_segmentation_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseAnomalyDetector):
+        yield from _yield_anomaly_detection_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseTransformer):
+        yield from _yield_transformation_checks(
             estimator_class, estimator_instances, datatypes
         )
 
