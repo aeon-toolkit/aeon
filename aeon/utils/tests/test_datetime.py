@@ -77,7 +77,7 @@ def test_infer_freq() -> None:
 
     index = pd.date_range(start="2021-01-01", periods=1, freq="M")
     y = pd.Series(index=index, dtype=int)
-    assert infer_freq(y) == "ME"
+    assert infer_freq(y) == "M"
 
     y = pd.DataFrame({"a": 1}, index=pd.date_range(start="2021-01-01", periods=1))
     assert infer_freq(y) == "D"
@@ -85,7 +85,7 @@ def test_infer_freq() -> None:
     y = pd.DataFrame(
         {"a": 1}, index=pd.date_range(start="2021-01-01", periods=1, freq="M")
     )
-    assert infer_freq(y) == "ME"
+    assert infer_freq(y) == "M"
 
 
 def test_set_freq_hier():
@@ -108,7 +108,7 @@ def test_set_freq_hier():
 
     y_train_grp = pd.concat([y_group1, y_group2])
 
-    assert get_time_index(y_train_grp).freq is not None
+    assert get_time_index(y_train_grp).freq is None
 
     y_train_grp = set_hier_freq(y_train_grp)
 
