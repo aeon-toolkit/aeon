@@ -4,6 +4,7 @@ __maintainer__ = []
 
 import numpy as np
 import pytest
+from numba.typed import List
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from aeon.distances import get_distance_function
@@ -95,6 +96,66 @@ def test_normalized_euclidean_distance(dtype):
     )
 
     assert_array_almost_equal(dist_profile, expected)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalized_euclidean_distance_unequal_length(dtype):
+    """Test normalised Euclidean distance profile calculation."""
+    X = List(
+        [
+            np.array([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype),
+            np.array([[1, 2, 4, 4, 5, 6]], dtype=dtype),
+        ]
+    )
+    q = np.asarray([[3, 4, 5]], dtype=dtype)
+
+    X_means = List()
+    X_stds = List()
+
+    for i in range(len(X)):
+        _mean, _std = sliding_mean_std_one_series(X[i], q.shape[-1], 1)
+        X_stds.append(_std)
+        X_means.append(_mean)
+
+    q_means = q.mean(axis=-1)
+    q_stds = q.std(axis=-1)
+    mask = List(
+        [np.ones(X[i].shape[1] - q.shape[1] + 1, dtype=bool) for i in range(len(X))]
+    )
+
+    distance = get_distance_function("euclidean")
+
+    dist_profile = normalized_euclidean_distance_profile(
+        X, q, mask, X_means, X_stds, q_means, q_stds
+    )
+    expected = normalized_naive_distance_profile(
+        X, q, mask, X_means, X_stds, q_means, q_stds, distance
+    )
+    for i in range(len(X)):
+        assert_array_almost_equal(dist_profile[i], expected[i])
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_euclidean_distance_unequal_length(dtype):
+    """Test normalised Euclidean distance profile calculation."""
+    X = List(
+        [
+            np.array([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype),
+            np.array([[1, 2, 4, 4, 5, 6]], dtype=dtype),
+        ]
+    )
+    q = np.asarray([[3, 4, 5]], dtype=dtype)
+
+    mask = List(
+        [np.ones(X[i].shape[1] - q.shape[1] + 1, dtype=bool) for i in range(len(X))]
+    )
+
+    distance = get_distance_function("euclidean")
+
+    expected = naive_distance_profile(X, q, mask, distance)
+    dist_profile = euclidean_distance_profile(X, q, mask)
+    for i in range(len(X)):
+        assert_array_almost_equal(dist_profile[i], expected[i])
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

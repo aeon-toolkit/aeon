@@ -19,8 +19,8 @@ class TSInterpolator(BaseCollectionTransformer):
     ----------
     length : integer, the length of time series to resize to.
 
-    Example
-    -------
+    Examples
+    --------
     >>> import numpy as np
     >>> from aeon.transformations.collection.interpolate import TSInterpolator
     >>> # Unequal length collection of time series

@@ -117,7 +117,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
     >>> from aeon.classification.interval_based import (
     ...     RandomIntervalSpectralEnsembleClassifier
     ... )
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = RandomIntervalSpectralEnsembleClassifier(n_estimators=10, random_state=0)
@@ -152,10 +152,7 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
     ):
         self.acf_lag = acf_lag
         self.acf_min_values = acf_min_values
-
         self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
@@ -186,6 +183,9 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+        if use_pyfftw:
+            self.set_tags(**{"python_dependencies": "pyfftw"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)

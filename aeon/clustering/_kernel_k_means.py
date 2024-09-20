@@ -1,6 +1,6 @@
 """Time series kernel kmeans."""
 
-from typing import Dict, Union
+from typing import Union
 
 import numpy as np
 from numpy.random import RandomState
@@ -64,11 +64,11 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     n_iter_: int
         Number of iterations run.
 
-    Reference
-    ---------
-        .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
-        Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
-        .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
+    References
+    ----------
+    .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
+           Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
+    .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
 
     Examples
     --------
@@ -178,7 +178,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         return self._tslearn_kernel_k_means.predict(_X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default") -> Dict:
+    def get_test_params(cls, parameter_set="default") -> dict:
         """Return testing parameter settings for the estimator.
 
         Parameters

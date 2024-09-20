@@ -59,7 +59,7 @@ class SFAFast(BaseCollectionTransformer):
     Parameters
     ----------
     word_length : int, default = 8
-        Length of word to shorten window to (using PAA).
+        Length of word to shorten window to (using DFT).
     alphabet_size : int, default = 4
         Number of values to discretise each value to.
     window_size : int, default = 12
@@ -105,6 +105,8 @@ class SFAFast(BaseCollectionTransformer):
         Whether to create skip-grams of SFA words.
     remove_repeat_words : boolean, default = False
        Whether to use numerosity reduction.
+    lower_bounding_distances : boolean, default = None
+       If set to True, the FFT is normed to allow for ED lower bounding.
     return_sparse :  boolean, default=True
         If set to true, a scipy sparse matrix will be returned as BOP model.
         If set to false a dense array will be returned as BOP model. Sparse
@@ -132,7 +134,7 @@ class SFAFast(BaseCollectionTransformer):
     """
 
     _tags = {
-        "requires_y": True,
+        "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
         "algorithm_type": "dictionary",
     }
 
@@ -149,6 +151,7 @@ class SFAFast(BaseCollectionTransformer):
         skip_grams=False,
         remove_repeat_words=False,
         lower_bounding=True,
+        lower_bounding_distances=None,
         save_words=False,
         dilation=0,
         first_difference=False,
@@ -171,8 +174,12 @@ class SFAFast(BaseCollectionTransformer):
 
         self.norm = norm
         self.lower_bounding = lower_bounding
+        self.lower_bounding_distances = lower_bounding_distances
+
         self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size) if not lower_bounding else 1.0
+            1.0 / math.sqrt(window_size)
+            if (not lower_bounding or lower_bounding_distances)
+            else 1.0
         )
 
         self.remove_repeat_words = remove_repeat_words
@@ -235,6 +242,13 @@ class SFAFast(BaseCollectionTransformer):
 
         offset = 2 if self.norm else 0
         self.word_length_actual = min(self.window_size - offset, self.word_length)
+
+        if self.word_length > X.shape[-1] and self.word_length_actual > X.shape[-1]:
+            raise ValueError(
+                "Please set the word-length to a value smaller than or equal to "
+                "the time series length and window-length."
+            )
+
         self.dft_length = (
             self.window_size - offset
             if (self.anova or self.variance) is True
@@ -273,7 +287,7 @@ class SFAFast(BaseCollectionTransformer):
             self.bigrams,
             self.skip_grams,
             self.inverse_sqrt_win_size,
-            self.lower_bounding,
+            self.lower_bounding or self.lower_bounding_distances,
         )
 
         if self.remove_repeat_words:
@@ -334,7 +348,7 @@ class SFAFast(BaseCollectionTransformer):
             self.bigrams,
             self.skip_grams,
             self.inverse_sqrt_win_size,
-            self.lower_bounding,
+            self.lower_bounding or self.lower_bounding_distances,
         )
 
         # only save at fit
@@ -364,6 +378,36 @@ class SFAFast(BaseCollectionTransformer):
         elif self.return_sparse:
             bags = csr_matrix(bags, dtype=np.uint32)
         return bags
+
+    def transform_mft(self, X):
+        """Transform data using the Fourier transform.
+
+        Parameters
+        ----------
+        X : 3d numpy array, input time series.
+
+        Returns
+        -------
+        Array of Fourier coefficients
+        """
+        # X = X.squeeze(1)
+
+        if self.dilation >= 1 or self.first_difference:
+            X2, self.X_index = _dilation(X, self.dilation, self.first_difference)
+        else:
+            X2, self.X_index = X, np.arange(X.shape[-1])
+
+        return _mft(
+            X2,
+            self.window_size,
+            self.dft_length,
+            self.norm,
+            self.support,
+            self.anova,
+            self.variance,
+            self.inverse_sqrt_win_size,
+            self.lower_bounding or self.lower_bounding_distances,
+        )
 
     def transform_to_bag(self, words, word_len, y=None):
         """Transform words to bag-of-pattern and apply feature selection."""
@@ -468,13 +512,13 @@ class SFAFast(BaseCollectionTransformer):
             self.dft_length,
             self.norm,
             self.inverse_sqrt_win_size,
-            self.lower_bounding,
+            self.lower_bounding or self.lower_bounding_distances,
         )
 
         if y is not None:
             y = np.repeat(y, dft.shape[0] / len(y))
 
-        if self.variance and y is not None:
+        if self.variance:
             # determine variance
             dft_variance = np.var(dft, axis=0)
 
@@ -624,6 +668,47 @@ class SFAFast(BaseCollectionTransformer):
         # retrain feature selection-strategy
         return self.transform_to_bag(new_words, new_len, y)
 
+    def get_words(self):
+        """Return the words generated for each series.
+
+        Returns
+        -------
+        Array of words
+        """
+        words = np.squeeze(self.words)
+        return np.array(
+            [_get_chars(word, self.word_length, self.alphabet_size) for word in words]
+        )
+
+    def transform_words(self, X):
+        """Return the words generated for each series.
+
+        Parameters
+        ----------
+        X : 3d numpy array, all input time series.
+
+        Returns
+        -------
+        Array of words
+        """
+        if X.ndim == 3:
+            X = X.squeeze(1)
+
+        return _transform_words_case(
+            X,
+            self.window_size,
+            self.dft_length,
+            self.norm,
+            self.support,
+            self.anova,
+            self.variance,
+            self.inverse_sqrt_win_size,
+            self.lower_bounding or self.lower_bounding_distances,
+            self.word_length,
+            self.alphabet_size,
+            self.breakpoints,
+        )
+
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
@@ -673,6 +758,22 @@ class SFAFast(BaseCollectionTransformer):
             for key, value in self.relevant_features.items():
                 typed_dict[key] = value
             self.relevant_features = typed_dict
+
+
+@njit(cache=True, fastmath=True)
+def _get_chars(word, word_length, alphabet_size):
+    chars = np.zeros(word_length, dtype=np.uint32)
+    letter_bits = int(np.log2(alphabet_size))
+    mask = (1 << letter_bits) - 1
+    for i in range(word_length):
+        # Extract the last bits
+        char = word & mask
+        chars[-i - 1] = char
+
+        # Right shift by to move to the next group of bits
+        word >>= letter_bits
+
+    return chars
 
 
 @njit(fastmath=True, cache=True)
@@ -1133,3 +1234,43 @@ def shorten_words(words, amount, letter_bits):
     #         words[:, n_cases + a] = (first_word << word_bits) | second_word
 
     return new_words
+
+
+@njit(fastmath=True, cache=True, parallel=True)
+def _transform_words_case(
+    X,
+    window_size,
+    dft_length,
+    norm,
+    support,
+    anova,
+    variance,
+    inverse_sqrt_win_size,
+    lower_bounding,
+    word_length,
+    alphabet_size,
+    breakpoints,
+):
+    dfts = _mft(
+        X,
+        window_size,
+        dft_length,
+        norm,
+        support,
+        anova,
+        variance,
+        inverse_sqrt_win_size,
+        lower_bounding,
+    )
+
+    words = np.zeros((dfts.shape[0], dfts.shape[1], word_length), dtype=np.int32)
+
+    for x in prange(dfts.shape[0]):
+        for window in prange(dfts.shape[1]):
+            for i in prange(word_length):
+                for bp in range(alphabet_size):
+                    if dfts[x, window, i] <= breakpoints[i][bp]:
+                        words[x, window, i] = bp
+                        break
+
+    return words

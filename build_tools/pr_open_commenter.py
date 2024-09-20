@@ -12,7 +12,7 @@ from github import Github
 context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
 
 repo = context_dict["repository"]
-g = Github(sys.argv[1])
+g = Github(os.getenv("GITHUB_TOKEN"))
 repo = g.get_repo(repo)
 pr_number = context_dict["event"]["number"]
 pr = repo.get_pull(number=pr_number)
@@ -20,11 +20,10 @@ pr = repo.get_pull(number=pr_number)
 if "[bot]" in pr.user.login:
     sys.exit(0)
 
-print(sys.argv[2:])  # noqa
-title_labels = sys.argv[2][1:-1].split(",")
-title_labels_new = sys.argv[3][1:-1].split(",")
-content_labels = sys.argv[4][1:-1].split(",")
-content_labels_status = sys.argv[5]
+title_labels = os.getenv("TITLE_LABELS")[1:-1].replace("'", "").split(",")
+title_labels_new = os.getenv("TITLE_LABELS_NEW")[1:-1].replace("'", "").split(",")
+content_labels = os.getenv("CONTENT_LABELS")[1:-1].replace("'", "").split(",")
+content_labels_status = os.getenv("CONTENT_LABELS_STATUS")
 
 replacement_labels = [
     ("anomalydetection", "anomaly detection"),
@@ -113,7 +112,17 @@ The [Checks](https://github.com/aeon-toolkit/aeon/pull/{pr_number}/checks) tab w
 
 If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR unless it is a draft.
 
-Don't hesitate to ask questions on the `aeon` [Slack](
-https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) channel if you have any.
+Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) channel if you have any.
+
+### PR CI actions
+
+These checkboxes will add labels to enable/disable CI functionality for this PR. This may not take effect immediately, and a new commit may be required to run the new configuration.
+
+- [ ] Run `pre-commit` checks for all files
+- [ ] Run all `pytest` tests and configurations
+- [ ] Run all notebook example tests
+- [ ] Run numba-disabled `codecov` tests
+- [ ] Stop automatic `pre-commit` fixes (always disabled for drafts)
+- [ ] Push an empty commit to re-run CI checks
     """  # noqa
 )

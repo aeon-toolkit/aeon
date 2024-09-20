@@ -1,11 +1,12 @@
-"""LITE Network."""
+"""LITE Network (LITENetwork)."""
 
-__maintainer__ = []
-
-from aeon.networks.base import BaseDeepNetwork
+__maintainer__ = ["hadifawaz1999"]
 
 
-class LITENetwork(BaseDeepNetwork):
+from aeon.networks.base import BaseDeepLearningNetwork
+
+
+class LITENetwork(BaseDeepLearningNetwork):
     """LITE Network.
 
     LITE deep neural network architecture from [1]_.
@@ -35,8 +36,6 @@ class LITENetwork(BaseDeepNetwork):
 
     https://github.com/MSD-IRIMAS/LITE
     """
-
-    _tags = {"python_dependencies": "tensorflow"}
 
     def __init__(
         self,

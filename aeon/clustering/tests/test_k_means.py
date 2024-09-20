@@ -8,7 +8,7 @@ from sklearn.utils import check_random_state
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.datasets import load_basic_motions, load_gunpoint
 from aeon.distances import euclidean_distance
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 expected_results = {
@@ -124,7 +124,7 @@ def test_kmeans():
         random_state=1,
         n_init=2,
         n_clusters=2,
-        init_algorithm="kmeans++",
+        init="kmeans++",
         distance="euclidean",
     )
     train_predict = kmeans.fit_predict(X_train)
@@ -162,7 +162,7 @@ def test_kmeans_dba():
         random_state=1,
         n_init=2,
         n_clusters=2,
-        init_algorithm="kmeans++",
+        init="kmeans++",
         distance="dtw",
     )
     train_predict = kmeans.fit_predict(X_train[0:num_test_values])
@@ -191,7 +191,7 @@ def _get_model_centres(data, distance, average_params=None, distance_params=None
         random_state=1,
         n_init=2,
         n_clusters=2,
-        init_algorithm="random",
+        init="random",
         distance=distance,
         average_params=average_params,
         distance_params=distance_params,
@@ -292,7 +292,7 @@ def test_means_init():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         n_clusters=num_clusters,
     )
@@ -312,7 +312,7 @@ def test_means_init():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm=custom_init_centres,
+        init=custom_init_centres,
         distance="euclidean",
         n_clusters=num_clusters,
     )
@@ -359,7 +359,7 @@ def test_empty_cluster():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm=init_centres,
+        init=init_centres,
         distance="euclidean",
         averaging_method="mean",
         n_clusters=3,
@@ -377,7 +377,7 @@ def test_empty_cluster():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm=init_centres,
+        init=init_centres,
         distance="euclidean",
         averaging_method="mean",
         n_clusters=3,
@@ -394,7 +394,7 @@ def test_empty_cluster():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm=init_centres,
+        init=init_centres,
         distance="euclidean",
         averaging_method="mean",
         n_clusters=2,
@@ -411,7 +411,7 @@ def test_empty_cluster():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm=init_centres,
+        init=init_centres,
         distance="euclidean",
         averaging_method="mean",
         n_clusters=3,

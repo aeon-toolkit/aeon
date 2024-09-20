@@ -46,7 +46,7 @@ class SFA(BaseCollectionTransformer):
     Parameters
     ----------
     word_length:         int, default = 8
-        length of word to shorten window to (using PAA)
+        length of word to shorten window to (using DFT)
 
     alphabet_size:       int, default = 4
         number of values to discretise each value to
@@ -75,6 +75,9 @@ class SFA(BaseCollectionTransformer):
 
     remove_repeat_words: boolean, default = False
         whether to use numerosity reduction (default False)
+
+    lower_bounding_distances : boolean, default = None
+        If set to True, the FFT is normed to allow for ED lower bounding.
 
     levels:              int, default = 1
         Number of spatial pyramid levels
@@ -106,7 +109,7 @@ class SFA(BaseCollectionTransformer):
     """
 
     _tags = {
-        "requires_y": True,
+        "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
         "algorithm_type": "dictionary",
     }
 
@@ -123,6 +126,7 @@ class SFA(BaseCollectionTransformer):
         remove_repeat_words=False,
         levels=1,
         lower_bounding=True,
+        lower_bounding_distances=None,
         save_words=False,
         keep_binning_dft=False,
         use_fallback_dft=False,
@@ -147,8 +151,12 @@ class SFA(BaseCollectionTransformer):
 
         self.norm = norm
         self.lower_bounding = lower_bounding
+        self.lower_bounding_distances = lower_bounding_distances
+
         self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size) if not lower_bounding else 1.0
+            1.0 / math.sqrt(window_size)
+            if (not lower_bounding or lower_bounding_distances)
+            else 1.0
         )
 
         self.remove_repeat_words = remove_repeat_words
@@ -270,19 +278,19 @@ class SFA(BaseCollectionTransformer):
         """
         X = X.squeeze(1)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
-            transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
-                delayed(self._transform_case)(
-                    X[i, :],
-                    supplied_dft=self.binning_dft[i] if self.keep_binning_dft else None,
-                )
-                for i in range(X.shape[0])
+        # with warnings.catch_warnings():
+        # warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
+        transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            delayed(self._transform_case)(
+                X[i, :],
+                supplied_dft=self.binning_dft[i] if self.keep_binning_dft else None,
             )
+            for i in range(X.shape[0])
+        )
 
         dim, words = zip(*transform)
         if self.save_words:
-            self.words = list(words)
+            self.words = np.array(list(words))
 
         # cant pickle typed dict
         if self._typed_dict and self.n_jobs != 1:
@@ -304,6 +312,28 @@ class SFA(BaseCollectionTransformer):
         bags[0] = list(dim)
 
         return bags
+
+    def transform_mft(self, X):
+        """Transform data using the Fourier transform.
+
+        Parameters
+        ----------
+        X : 3d numpy array, input time series.
+
+        Returns
+        -------
+        Array of Fourier coefficients
+        """
+        # X = X.squeeze(1)
+
+        # with warnings.catch_warnings():
+        #    warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
+        transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            delayed(self._mft)(X[i, :]) for i in range(X.shape[0])
+        )
+
+        words = np.array(list(zip(*transform))[0])
+        return words
 
     def _transform_case(self, X, supplied_dft=None):
         if supplied_dft is None:
@@ -399,6 +429,54 @@ class SFA(BaseCollectionTransformer):
             bag,
             words if self.save_words else [],
         ]
+
+    def _transform_words_case(self, X):
+        dfts = self._mft(X)
+        words = np.zeros((dfts.shape[0], self.word_length), dtype=np.int32)
+
+        for window in range(dfts.shape[0]):
+            words[window] = SFA._create_word_full(
+                dfts[window],
+                self.word_length,
+                self.alphabet_size,
+                self.breakpoints,
+                self.letter_bits,
+            )
+
+        return words
+
+    def transform_words(self, X):
+        """Return the words generated for each series.
+
+        Parameters
+        ----------
+        X : 3d numpy array, all input time series.
+
+        Returns
+        -------
+        Array of words
+        """
+        if X.ndim == 3:
+            X = X.squeeze(1)
+
+        transform = Parallel(n_jobs=self.n_jobs, prefer="threads")(
+            delayed(self._transform_words_case)(X[i, :]) for i in range(X.shape[0])
+        )
+
+        words = zip(*transform)
+        return np.array(list(words))
+
+    def get_words(self):
+        """Return the words generated for each series.
+
+        Returns
+        -------
+        Array of words
+        """
+        words = np.squeeze(self.words)
+        return np.array(
+            [_get_chars(word, self.word_length, self.alphabet_size) for word in words]
+        )
 
     def _binning(self, X, y=None):
         num_windows_per_inst = math.ceil(self.n_timepoints / self.window_size)
@@ -548,7 +626,7 @@ class SFA(BaseCollectionTransformer):
                     self.dft_length,
                     self.norm,
                     self.inverse_sqrt_win_size,
-                    self.lower_bounding,
+                    self.lower_bounding or self.lower_bounding_distances,
                 )
                 if self._use_fallback_dft
                 else self._fast_fourier_transform(row)
@@ -586,7 +664,7 @@ class SFA(BaseCollectionTransformer):
         dft = np.empty((length,), dtype=reals.dtype)
         dft[0::2] = reals[: np.uint32(length / 2)]
         dft[1::2] = imags[: np.uint32(length / 2)]
-        if self.lower_bounding:
+        if self.lower_bounding or self.lower_bounding_distances:
             dft[1::2] = dft[1::2] * -1  # lower bounding
         dft *= self.inverse_sqrt_win_size / std
         return dft[start:]
@@ -663,7 +741,7 @@ class SFA(BaseCollectionTransformer):
                 self.dft_length,
                 self.norm,
                 self.inverse_sqrt_win_size,
-                self.lower_bounding,
+                self.lower_bounding or self.lower_bounding_distances,
                 apply_normalising_factor=False,
                 cut_start_if_norm=False,
             )
@@ -920,6 +998,18 @@ class SFA(BaseCollectionTransformer):
 
         return word
 
+    @staticmethod
+    @njit(fastmath=True, cache=True)
+    def _create_word_full(dft, word_length, alphabet_size, breakpoints, letter_bits):
+        word = np.zeros(word_length, dtype=np.int32)
+        for i in range(word_length):
+            for bp in range(alphabet_size):
+                if dft[i] <= breakpoints[i][bp]:
+                    word[i] = bp
+                    break
+
+        return word
+
     def _create_word_large(self, dft):
         word = 0
         for i in range(self.word_length):
@@ -1083,3 +1173,19 @@ class SFA(BaseCollectionTransformer):
         # small window size for testing
         params = {"window_size": 4}
         return params
+
+
+@njit(cache=True, fastmath=True)
+def _get_chars(word, word_length, alphabet_size):
+    chars = np.zeros(word_length, dtype=np.uint32)
+    letter_bits = int(np.log2(alphabet_size))
+    mask = (1 << letter_bits) - 1
+    for i in range(word_length):
+        # Extract the last bits
+        char = word & mask
+        chars[-i - 1] = char
+
+        # Right shift by to move to the next group of bits
+        word >>= letter_bits
+
+    return chars

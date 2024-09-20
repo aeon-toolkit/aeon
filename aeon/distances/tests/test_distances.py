@@ -5,7 +5,6 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import alignment_path, cost_matrix
-from aeon.distances import distance
 from aeon.distances import distance as compute_distance
 from aeon.distances import get_distance_function_names, pairwise_distance
 from aeon.distances._distance import (
@@ -14,10 +13,10 @@ from aeon.distances._distance import (
     _resolve_key_from_distance,
 )
 from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+from aeon.testing.data_generation._legacy import make_series
 from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results,
 )
-from aeon.testing.utils.data_gen import make_series
 
 
 def _validate_distance_result(
@@ -167,7 +166,7 @@ def test_incorrect_inputs():
     with pytest.raises(
         ValueError, match="Metric must be one of the supported strings or a " "callable"
     ):
-        distance(x, y, metric="FOO")
+        compute_distance(x, y, metric="FOO")
     with pytest.raises(
         ValueError, match="Metric must be one of the supported strings or a " "callable"
     ):

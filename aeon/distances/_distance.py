@@ -1,6 +1,6 @@
 __maintainer__ = []
 
-from typing import Any, Callable, List, Optional, Tuple, TypedDict, Union
+from typing import Any, Callable, Optional, TypedDict, Union
 
 import numpy as np
 from typing_extensions import Unpack
@@ -44,6 +44,7 @@ from aeon.distances._lcss import (
 )
 from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
 from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
+from aeon.distances._mpdist import mpdist
 from aeon.distances._msm import (
     msm_alignment_path,
     msm_cost_matrix,
@@ -77,7 +78,6 @@ from aeon.distances._wdtw import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
-from aeon.distances.mpdist import mpdist
 
 
 class DistanceKwargs(TypedDict, total=False):
@@ -101,7 +101,7 @@ class DistanceKwargs(TypedDict, total=False):
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
 AlignmentPathFunction = Callable[
-    [np.ndarray, np.ndarray, Any], Tuple[List[Tuple[int, int]], float]
+    [np.ndarray, np.ndarray, Any], tuple[list[tuple[int, int]], float]
 ]
 CostMatrixFunction = Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
 PairwiseFunction = Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
@@ -426,8 +426,8 @@ def pairwise_distance(
 
 
 def _custom_func_pairwise(
-    X: Optional[Union[np.ndarray, List[np.ndarray]]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Optional[Union[np.ndarray, list[np.ndarray]]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     dist_func: Union[DistanceFunction, None] = None,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
@@ -444,7 +444,7 @@ def _custom_func_pairwise(
 
 
 def _custom_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
+    X: Union[np.ndarray, list[np.ndarray]],
     dist_func: DistanceFunction,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
@@ -460,8 +460,8 @@ def _custom_pairwise_distance(
 
 
 def _custom_from_multiple_to_multiple_distance(
-    x: Union[np.ndarray, List[np.ndarray]],
-    y: Union[np.ndarray, List[np.ndarray]],
+    x: Union[np.ndarray, list[np.ndarray]],
+    y: Union[np.ndarray, list[np.ndarray]],
     dist_func: DistanceFunction,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
@@ -480,7 +480,7 @@ def alignment_path(
     y: np.ndarray,
     metric: str,
     **kwargs: Unpack[DistanceKwargs],
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the alignment path and distance between two time series.
 
     Parameters
@@ -756,7 +756,7 @@ def cost_matrix(
         raise ValueError("Metric must be one of the supported strings")
 
 
-def get_distance_function_names() -> List[str]:
+def get_distance_function_names() -> list[str]:
     """Get a list of distance function names in aeon.
 
     All distance function names have two associated functions:

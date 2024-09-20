@@ -1,11 +1,12 @@
-"""Multi Layer Perceptron (MLP) (minus the final output layer)."""
+"""Multi Layer Perceptron Network (MLPNetwork)."""
 
-__maintainer__ = []
-
-from aeon.networks.base import BaseDeepNetwork
+__maintainer__ = ["hadifawaz1999"]
 
 
-class MLPNetwork(BaseDeepNetwork):
+from aeon.networks.base import BaseDeepLearningNetwork
+
+
+class MLPNetwork(BaseDeepLearningNetwork):
     """Establish the network structure for a MLP.
 
     Adapted from the implementation used in [1]_
@@ -24,7 +25,6 @@ class MLPNetwork(BaseDeepNetwork):
     def __init__(
         self,
     ):
-
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):

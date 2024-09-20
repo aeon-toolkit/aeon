@@ -1,6 +1,6 @@
 """Test suite for numba distances with parameters."""
 
-from typing import Callable, Dict, List
+from typing import Callable
 
 import numpy as np
 import pytest
@@ -8,14 +8,14 @@ import pytest
 from aeon.distances import distance
 from aeon.distances._distance import DISTANCES
 from aeon.distances.tests.test_utils import _generate_shape_dtw_params
+from aeon.testing.data_generation._legacy import make_series
 from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results_params,
 )
-from aeon.testing.utils.data_gen import make_series
 
 
 def _test_distance_params(
-    param_list: List[Dict], distance_func: Callable, distance_str: str
+    param_list: list[dict], distance_func: Callable, distance_str: str
 ):
     """
     Test function to check the parameters of distance functions.

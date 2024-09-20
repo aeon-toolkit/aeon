@@ -9,7 +9,7 @@ on:
 
 jobs:
   generate-markdown-and-commit:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -31,7 +31,7 @@ jobs:
           app-id: ${{ vars.PR_APP_ID }}
           private-key: ${{ secrets.PR_APP_KEY }}
 
-      - uses: peter-evans/create-pull-request@v6
+      - uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "Automated `CONTRIBUTORS.md` update"

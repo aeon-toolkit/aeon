@@ -1,12 +1,10 @@
-# copyright: aeon developers, BSD-3-Clause License (see LICENSE file)
-
 """Random EnhanceD Co-eye for Multivariate Time Series (RED CoMETS).
 
 Ensemble of symbolically represented time series using random forests as the base
 classifier.
 """
 
-__maintainer__ = []
+__maintainer__ = ["zy18811"]
 __all__ = ["REDCOMETS"]
 
 from collections import Counter
@@ -16,10 +14,10 @@ from joblib import Parallel, delayed
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import NearestNeighbors
-from sklearn.preprocessing import scale
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
+from aeon.transformations.collection import TimeSeriesScaler
 from aeon.transformations.collection.dictionary_based import SAX, SFA
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -50,7 +48,7 @@ class REDCOMETS(BaseClassifier):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib for Catch22,
+        Specify the parallelisation backend implementation in joblib,
         if ``None`` a 'prefer' value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
@@ -119,13 +117,7 @@ class REDCOMETS(BaseClassifier):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        self._n_channels = 1
-
-        self.sfa_clfs = []
-        self.sfa_transforms = []
-
-        self.sax_clfs = []
-        self.sax_transforms = []
+        self._n_channels = None
 
         super().__init__()
 
@@ -146,7 +138,9 @@ class REDCOMETS(BaseClassifier):
         self :
             Reference to self.
         """
-        if (n_channels := X.shape[1]) == 1:  # Univariate
+        self._n_channels = X.shape[1]
+
+        if self._n_channels == 1:  # Univariate
             assert self.variant in [1, 2, 3]
             (
                 self.sfa_transforms,
@@ -155,7 +149,6 @@ class REDCOMETS(BaseClassifier):
                 self.sax_clfs,
             ) = self._build_univariate_ensemble(np.squeeze(X), y)
         else:  # Multivariate
-            self._n_channels = n_channels
 
             if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
@@ -208,7 +201,7 @@ class REDCOMETS(BaseClassifier):
 
         from imblearn.over_sampling import SMOTE, RandomOverSampler
 
-        X = scale(X, axis=1)  # Z-normalise
+        X = TimeSeriesScaler().fit_transform(X).squeeze()
 
         if self.variant in [1, 2, 3]:
             perc_length = self.perc_length / self._n_channels
@@ -242,8 +235,8 @@ class REDCOMETS(BaseClassifier):
                 ).fit_resample(X, y)
 
         lenses = self._get_random_lenses(X_smote, n_lenses)
-        sax_lenses = lenses[: n_lenses // 2]
-        sfa_lenses = lenses[n_lenses // 2 :]
+        sfa_lenses = lenses[: n_lenses // 2]
+        sax_lenses = lenses[n_lenses // 2 :]
 
         cv = np.min([5, len(y_smote) // len(list(set(y_smote)))])
 
@@ -253,7 +246,6 @@ class REDCOMETS(BaseClassifier):
                 alphabet_size=a,
                 window_size=X_smote.shape[1],
                 binning_method="equi-width",
-                save_words=True,
                 n_jobs=self.n_jobs,
                 random_state=self.random_state,
             )
@@ -262,10 +254,8 @@ class REDCOMETS(BaseClassifier):
 
         sfa_clfs = []
         for sfa in sfa_transforms:
-            sfa.fit_transform(X_smote, y_smote)
-            X_sfa = np.array(
-                [sfa.word_list(word) for word in np.array(sfa.words).ravel()]
-            )
+            sfa_dics = sfa.fit_transform(X_smote, y_smote)
+            X_sfa = np.array([sfa.word_list(list(d.keys())[0]) for d in sfa_dics[0]])
 
             rf = RandomForestClassifier(
                 n_estimators=self.n_trees,
@@ -280,6 +270,7 @@ class REDCOMETS(BaseClassifier):
                 weight = cross_val_score(
                     rf, X_sfa, y_smote, cv=cv, n_jobs=self.n_jobs
                 ).mean()
+
             else:
                 weight = None
 
@@ -420,15 +411,13 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = scale(X, axis=1)  # Z-normalise
+        X = TimeSeriesScaler().fit_transform(X).squeeze()
+
         pred_mat = np.zeros((X.shape[0], self.n_classes_))
 
-        placeholder_y = np.zeros(X.shape[0])
         for sfa, (rf, weight) in zip(self.sfa_transforms, self.sfa_clfs):
-            sfa.fit_transform(X, placeholder_y)
-            X_sfa = np.array(
-                [sfa.word_list(word) for word in np.array(sfa.words).ravel()]
-            )
+            sfa_dics = sfa.transform(X)
+            X_sfa = np.array([sfa.word_list(list(d.keys())[0]) for d in sfa_dics[0]])
 
             rf_pred_mat = rf.predict_proba(X_sfa)
 
@@ -466,8 +455,9 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
+        X = TimeSeriesScaler().fit_transform(X)
+
         ensemble_pred_mats = None
-        placeholder_y = np.zeros(X.shape[0])
 
         for d in range(self._n_channels):
             sfa_transforms = self.sfa_transforms[d]
@@ -477,14 +467,13 @@ class REDCOMETS(BaseClassifier):
             sax_clfs = self.sax_clfs[d]
 
             X_d = X[:, d, :]
-            X_d = scale(X_d, axis=1)  # Z-normalise
 
             if self.variant in [6, 7, 8, 9]:
                 dimension_pred_mats = None
             for sfa, (rf, _) in zip(sfa_transforms, sfa_clfs):
-                sfa.fit_transform(X_d, placeholder_y)
+                sfa_dics = sfa.transform(X_d)
                 X_sfa = np.array(
-                    [sfa.word_list(word) for word in np.array(sfa.words).ravel()]
+                    [sfa.word_list(list(d.keys())[0]) for d in sfa_dics[0]]
                 )
 
                 rf_pred_mat = rf.predict_proba(X_sfa)
@@ -571,26 +560,19 @@ class REDCOMETS(BaseClassifier):
             Randomly selected lenses.
         """
         maxCoof = 130
-
         if X.shape[1] < maxCoof:
             maxCoof = X.shape[1] - 1
-        if X.shape[1] < 100:
-            n_segments = range(5, maxCoof, 5)
-        else:
-            n_segments = range(10, maxCoof, 10)
+
+        n_segments = range(3, maxCoof)
 
         maxBin = 26
-        if X.shape[1] < maxBin:
-            maxBin = X.shape[1] - 2
-        if X.shape[0] < maxBin:
-            maxBin = X.shape[0] - 2
-
         alphas = range(3, maxBin)
 
         rng = check_random_state(self.random_state)
         lenses = np.transpose(
             [rng.choice(n_segments, size=n_lenses), rng.choice(alphas, size=n_lenses)]
         ).tolist()
+
         return lenses
 
     def _parallel_sax(self, sax_transforms, X):
@@ -633,6 +615,6 @@ class REDCOMETS(BaseClassifier):
             `params``.
         """
         return {
-            "variant": 1,
-            "n_trees": 1,
+            "variant": 3,
+            "n_trees": 3,
         }

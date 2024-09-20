@@ -9,7 +9,7 @@ __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
 import itertools
-from typing import List, Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -17,10 +17,10 @@ from scipy.stats import median_abs_deviation
 from sklearn.preprocessing import LabelEncoder
 
 from aeon.distances import distance as aeon_distance
-from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
 
-def _detect_knee_point(values: List[float], indices: List[int]) -> List[int]:
+def _detect_knee_point(values: list[float], indices: list[int]) -> list[int]:
     """Find elbow point."""
     n_points = len(values)
     all_coords = np.vstack((range(n_points), values)).T
@@ -188,7 +188,7 @@ class _ClassPrototype:
 
     def _create_prototype(
         self, X: np.ndarray, y: np.array
-    ) -> Union[Tuple[pd.DataFrame, np.array], Tuple[np.ndarray, np.array]]:
+    ) -> Union[tuple[pd.DataFrame, np.array], tuple[np.ndarray, np.array]]:
         """Create the class prototype for each class."""
         le = LabelEncoder()
         y_ind = le.fit_transform(y)
@@ -212,7 +212,7 @@ class _ClassPrototype:
         return (prototypes, le.classes_)
 
 
-class ElbowClassSum(BaseCollectionTransformer):
+class ElbowClassSum(BaseChannelSelector):
     """Elbow Class Sum (ECS) transformer to select a subset of channels/variables.
 
     Overview: From the input of multivariate time series data, create a distance
@@ -243,7 +243,7 @@ class ElbowClassSum(BaseCollectionTransformer):
     distance_frame : DataFrame
         Distance matrix for each class pair.
         ``shape = [n_channels, n_class_pairs]``
-    channels_selected_idx : list
+    channels_selected_ : list
         List of selected channels.
     rank: list
         Rank of channels based on the distance between class prototypes.
@@ -315,34 +315,18 @@ class ElbowClassSum(BaseCollectionTransformer):
         self.distance_frame = _create_distance_matrix(
             self.prototype.copy(), labels, distance=self.distance
         )
-        self.channels_selected_idx = []
+        self.channels_selected_ = []
         distance = self.distance_frame.sum(axis=1).sort_values(ascending=False).values
         indices = self.distance_frame.sum(axis=1).sort_values(ascending=False).index
 
-        self.channels_selected_idx.extend(_detect_knee_point(distance, indices))
-        self.rank = self.channels_selected_idx
+        self.channels_selected_.extend(_detect_knee_point(distance, indices))
+        self.rank = self.channels_selected_
         self._is_fitted = True
 
         return self
 
-    def _transform(self, X, y=None):
-        """
-        Transform X and return a transformed version.
 
-        Parameters
-        ----------
-        X : np.ndarray
-            The input data to transform.
-
-        Returns
-        -------
-        np.ndarray
-            X with a subset of channels
-        """
-        return X[:, self.channels_selected_idx]
-
-
-class ElbowClassPairwise(BaseCollectionTransformer):
+class ElbowClassPairwise(BaseChannelSelector):
     """Elbow Class Pairwise (ECP) transformer to select a subset of channels.
 
     Overview: From the input of multivariate time series data, create a distance
@@ -368,7 +352,7 @@ class ElbowClassPairwise(BaseCollectionTransformer):
     ----------
     distance_frame : DataFrame
         Distance matrix between class prototypes.
-    channels_selected_idx : list
+    channels_selected_ : list
         List of selected channels.
     rank: list
         Rank of channels based on the distance between class prototypes.
@@ -445,39 +429,23 @@ class ElbowClassPairwise(BaseCollectionTransformer):
             self.prototype.copy(), labels, self.distance
         )  # Distance matrix created here
 
-        self.channels_selected_idx = []
+        self.channels_selected_ = []
         for pairdistance in self.distance_frame.items():
             distances = pairdistance[1].sort_values(ascending=False).values
             indices = pairdistance[1].sort_values(ascending=False).index
             chs_dis = _detect_knee_point(distances, indices)
-            self.channels_selected_idx.extend(chs_dis)
+            self.channels_selected_.extend(chs_dis)
 
         self.rank = self._rank()
-        self.channels_selected_idx = list(set(self.channels_selected_idx))
+        self.channels_selected_ = list(set(self.channels_selected_))
         self._is_fitted = True
         return self
 
-    def _transform(self, X, y=None):
-        """
-        Transform X and return a transformed version.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            The input data to transform.
-
-        Returns
-        -------
-        np.ndarray
-            X with a subset of channels
-        """
-        return X[:, self.channels_selected_idx]
-
-    def _rank(self) -> List[int]:
+    def _rank(self) -> list[int]:
         """Return the rank of channels for ECP."""
         all_index = self.distance_frame.sum(axis=1).sort_values(ascending=False).index
         series = self.distance_frame.sum(axis=1)
         series.drop(
-            index=list(set(all_index) - set(self.channels_selected_idx)), inplace=True
+            index=list(set(all_index) - set(self.channels_selected_)), inplace=True
         )
         return series.sort_values(ascending=False).index.tolist()

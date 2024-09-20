@@ -28,6 +28,8 @@ from aeon.datasets._data_loaders import (
     _load_data,
     _load_header_info,
     _load_saved_dataset,
+    _load_tsc_dataset,
+    download_dataset,
 )
 from aeon.testing.test_config import PR_TESTING
 
@@ -96,8 +98,8 @@ def test_load_regression_from_repo():
     ):
         load_regression(name)
     name = "FloodModeling1"
-    name2 = "ParkingBirmingham"
-    name3 = "AcousticContaminationMadrid"
+    # name2 = "ParkingBirmingham"
+    # name3 = "AcousticContaminationMadrid"
     with tempfile.TemporaryDirectory() as tmp:
         X, y, meta = load_regression(name, extract_path=tmp, return_metadata=True)
         assert isinstance(X, np.ndarray)
@@ -113,24 +115,25 @@ def test_load_regression_from_repo():
         assert not meta["classlabel"]
         assert meta["targetlabel"]
         assert meta["class_values"] == []
-        # Test load equal length
-        X, y, meta = load_regression(
-            name2, extract_path=tmp, return_metadata=True, load_equal_length=True
-        )
-        assert meta["equallength"]
-        X, y, meta = load_regression(
-            name2, extract_path=tmp, return_metadata=True, load_equal_length=False
-        )
-        assert not meta["equallength"]
-        # Test load no missing values
-        X, y, meta = load_regression(
-            name3, extract_path=tmp, return_metadata=True, load_no_missing=True
-        )
-        assert not meta["missing"]
-        X, y, meta = load_regression(
-            name3, extract_path=tmp, return_metadata=True, load_no_missing=False
-        )
-        assert meta["missing"]
+        # TODO restore these tests once these data are on zenodo and or tsc.com works.
+        # # Test load equal length
+        # X, y, meta = load_regression(
+        #     name2, extract_path=tmp, return_metadata=True, load_equal_length=True
+        # )
+        # assert meta["equallength"]
+        # X, y, meta = load_regression(
+        #     name2, extract_path=tmp, return_metadata=True, load_equal_length=False
+        # )
+        # assert not meta["equallength"]
+        # # Test load no missing values
+        # X, y, meta = load_regression(
+        #     name3, extract_path=tmp, return_metadata=True, load_no_missing=True
+        # )
+        # assert not meta["missing"]
+        # X, y, meta = load_regression(
+        #     name3, extract_path=tmp, return_metadata=True, load_no_missing=False
+        # )
+        # assert meta["missing"]
 
 
 @pytest.mark.skipif(
@@ -524,3 +527,37 @@ def test__load_saved_dataset():
     assert np.array_equal(X, X3)
     assert np.array_equal(X4, X5)
     assert not np.array_equal(X, X4)
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
+def test_download_dataset():
+    """Test the private download_dataset function."""
+    name = "Chinatown"
+    with tempfile.TemporaryDirectory() as tmp:
+        path = download_dataset(name, save_path=tmp)
+        assert path == os.path.join(tmp, name)
+        path = download_dataset(name, save_path=tmp)
+        assert path == os.path.join(tmp, name)
+        with pytest.raises(ValueError, match="Invalid dataset name"):
+            download_dataset("FOO", save_path=tmp)
+        with pytest.raises(ValueError, match="Invalid dataset name"):
+            download_dataset("BAR")
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
+def test_load_tsc_dataset():
+    """Test the private _load_tsc_dataset function."""
+    name = "Chinatown"
+    with tempfile.TemporaryDirectory() as tmp:
+        X, y = _load_tsc_dataset(name, split="TRAIN", extract_path=tmp)
+        assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
+        with pytest.raises(ValueError, match="Invalid dataset name"):
+            _load_tsc_dataset("FOO", split="TEST", extract_path=tmp)

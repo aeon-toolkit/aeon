@@ -7,7 +7,6 @@ To read more about the algorithm, check out the `HMM wikipedia page
 """
 
 import warnings
-from typing import Tuple
 
 import numpy as np
 from scipy.stats import norm
@@ -144,7 +143,7 @@ class HMMSegmenter(BaseSegmenter):
         self.emission_funcs = emission_funcs
         self.transition_prob_mat = transition_prob_mat
         self._validate_init()
-        super().__init__()
+        super().__init__(axis=1)
 
     def _validate_init(self):
         """Verify the parameters passed to init.
@@ -200,7 +199,7 @@ class HMMSegmenter(BaseSegmenter):
         transition_prob_mat: np.ndarray,
         num_obs: int,
         num_states: int,
-    ) -> Tuple[np.array, np.array]:
+    ) -> tuple[np.array, np.array]:
         """Calculate the transition mats used in the Viterbi algorithm.
 
         Parameters

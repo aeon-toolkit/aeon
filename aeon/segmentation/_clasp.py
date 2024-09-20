@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.segmentation.base import BaseSegmenter
-from aeon.transformations.clasp import ClaSPTransformer
+from aeon.transformations.series import ClaSPTransformer
 
 
 def find_dominant_window_sizes(X, offset=0.05):
@@ -66,7 +66,7 @@ def _is_trivial_match(candidate, change_points, n_timepoints, exclusion_radius=0
         List of change points chosen so far
     n_timepoints : int
         Total length
-    exclusion_radius : int
+    exclusion_radius : float
         Exclusion Radius for change points to be non-trivial matches
 
     Returns
@@ -97,7 +97,7 @@ def _segmentation(X, clasp, n_change_points=None, exclusion_radius=0.05):
         the transformer
     n_change_points : int
         the number of change points to find
-    exclusion_radius :
+    exclusion_radius : float
         the exclusion zone
 
     Returns
@@ -171,7 +171,7 @@ def _segmentation(X, clasp, n_change_points=None, exclusion_radius=0.05):
 class ClaSPSegmenter(BaseSegmenter):
     """ClaSP (Classification Score Profile) Segmentation.
 
-    Using ClaSP [1]_ [2]_ for the CPD problem is straightforward: We first compute the
+    Using ClaSP [1]_, [2]_ for the CPD problem is straightforward: We first compute the
     profile and then choose its global maximum as the change point. The following CPDs
     are obtained using a bespoke recursive split segmentation algorithm.
 
@@ -183,10 +183,12 @@ class ClaSPSegmenter(BaseSegmenter):
         The number of change points to search.
     exclusion_radius : int
         Exclusion Radius for change points to be non-trivial matches.
+    n_jobs : int, default=1
+        Number of jobs to be used.
 
     References
     ----------
-    .. [1] Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf. "ClaSP - Time Series
+    .. [1] Schafer, Patrick and Ermshaus, Arik and Leser, Ulf. "ClaSP - Time Series
     Segmentation", CIKM, 2021.
     .. [2] Ermshaus, Arik, Sch"afer, Patrick and Leser, Ulf. ClaSP: parameter-free
     time series segmentation. Data Mining and Knowledge Discovery, 37, 2023.
@@ -206,11 +208,12 @@ class ClaSPSegmenter(BaseSegmenter):
 
     _tags = {"fit_is_empty": True}  # for unit test cases
 
-    def __init__(self, period_length=10, n_cps=1, exclusion_radius=0.05):
+    def __init__(self, period_length=10, n_cps=1, exclusion_radius=0.05, n_jobs=1):
         self.period_length = int(period_length)
         self.n_cps = n_cps
         self.exclusion_radius = exclusion_radius
-        super().__init__(n_segments=n_cps + 1, axis=1)
+        self.n_jobs = n_jobs
+        super().__init__(axis=1, n_segments=n_cps + 1)
 
     def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.
@@ -263,7 +266,9 @@ class ClaSPSegmenter(BaseSegmenter):
 
     def _run_clasp(self, X):
         clasp_transformer = ClaSPTransformer(
-            window_length=self.period_length, exclusion_radius=self.exclusion_radius
+            window_length=self.period_length,
+            exclusion_radius=self.exclusion_radius,
+            n_jobs=self.n_jobs,
         ).fit(X)
 
         self.found_cps, self.profiles, self.scores = _segmentation(

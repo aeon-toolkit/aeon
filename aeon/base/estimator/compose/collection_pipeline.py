@@ -7,8 +7,10 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
 from sklearn.base import BaseEstimator as SklearnBaseEstimator
+from sklearn.utils import check_random_state
 
 from aeon.base import BaseCollectionEstimator, BaseEstimator, _HeterogenousMetaEstimator
+from aeon.base._base import _clone_estimator
 
 
 class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator):
@@ -20,12 +22,17 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         A transform or list of transformers to use prior to fitting or predicting.
         List of tuples (str, transformer) of transformers can also be passed, where
         the str is used to name the transformer.
-        The objecst are cloned prior, as such the state of the input will not be
+        The objects are cloned prior, as such the state of the input will not be
         modified by fitting the pipeline.
     _estimator : aeon or sklearn estimator
         A estimator to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
+    random_state : int, RandomState instance or None, default=None
+        Random state used to fit the estimators. If None, no random state is set for
+        pipeline components (but they may still be seeded prior to input).
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -40,16 +47,18 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
     RegressorPipeline : A pipeline for regression tasks.
     """
 
-    def __init__(self, transformers, _estimator):
+    def __init__(self, transformers, _estimator, random_state=None):
         self.transformers = transformers
         self._estimator = _estimator
+        self.random_state = random_state
 
         self._steps = (
             [t for t in transformers]
             if isinstance(transformers, list)
             else [transformers]
         )
-        self._steps.append(_estimator)
+        if _estimator is not None:
+            self._steps.append(_estimator)
         self._steps = self._check_estimators(
             self._steps,
             attr_name="_steps",
@@ -59,7 +68,8 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
 
         super().__init__()
 
-        # can handle multivariate if: both estimator and all transformers can
+        # can handle multivariate if: both estimator and all transformers can,
+        #   *or* transformer chain removes multivariate
         multivariate_tags = [
             (
                 e[1].get_tag("capability:multivariate", False, raise_error=False)
@@ -165,14 +175,8 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         Returns
         -------
         self : reference to self.
-
-        State change
-        ------------
-        creates fitted model (attributes ending in "_")
         """
-        self.steps_ = self._check_estimators(
-            self._steps, attr_name="steps_", cls_type=SklearnBaseEstimator
-        )
+        self._clone_steps()
 
         # fit transforms sequentially
         Xt = X
@@ -222,3 +226,54 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
             Xt = self.steps_[i][1].transform(X=Xt)
         # predict
         return self.steps_[-1][1].predict_proba(X=Xt)
+
+    def _fit_transform(self, X, y=None) -> np.ndarray:
+        """Fit and transform sequences in X.
+
+        Parameters
+        ----------
+        X : data of type self.get_tag("X_inner_type")
+
+        Returns
+        -------
+        Xt : transformed data
+        """
+        self._clone_steps()
+
+        # transform
+        Xt = X
+        for i in range(len(self.steps_)):
+            Xt = self.steps_[i][1].fit_transform(X=Xt)
+        return Xt
+
+    def _transform(self, X, y=None) -> np.ndarray:
+        """Transform sequences in X.
+
+        Parameters
+        ----------
+        X : data of type self.get_tag("X_inner_type")
+
+        Returns
+        -------
+        Xt : transformed data
+        """
+        # transform
+        Xt = X
+        for i in range(len(self.steps_)):
+            Xt = self.steps_[i][1].transform(X=Xt)
+        return Xt
+
+    def _clone_steps(self):
+        if self.random_state is not None:
+            rng = check_random_state(self.random_state)
+            self.steps_ = [
+                (
+                    step[0],
+                    _clone_estimator(
+                        step[1], random_state=rng.randint(np.iinfo(np.int32).max)
+                    ),
+                )
+                for step in self._steps
+            ]
+        else:
+            self.steps_ = [(step[0], _clone_estimator(step[1])) for step in self._steps]

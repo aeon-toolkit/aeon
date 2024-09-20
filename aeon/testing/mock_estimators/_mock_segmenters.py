@@ -9,7 +9,7 @@ class MockSegmenter(BaseSegmenter):
     """Mock segmenter for testing."""
 
     def __init__(self):
-        super().__init__()
+        super().__init__(axis=1)
 
     _tags = {
         "capability:missing_values": True,

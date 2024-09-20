@@ -59,8 +59,7 @@ from copy import deepcopy
 from sklearn import clone
 from sklearn.base import BaseEstimator as _BaseEstimator
 from sklearn.ensemble._base import _set_random_states
-
-from aeon.exceptions import NotFittedError
+from sklearn.exceptions import NotFittedError
 
 
 class BaseObject(_BaseEstimator):
@@ -284,7 +283,7 @@ class BaseObject(_BaseEstimator):
         return deepcopy(collected_tags)
 
     @classmethod
-    def get_class_tag(cls, tag_name, tag_value_default=None):
+    def get_class_tag(cls, tag_name, tag_value_default=None, raise_error=False):
         """
         Get tag value from estimator class (only class tags).
 
@@ -294,12 +293,19 @@ class BaseObject(_BaseEstimator):
             Name of tag value.
         tag_value_default : any type
             Default/fallback value if tag is not found.
+        raise_error : bool
+            Whether a ValueError is raised when the tag is not found.
 
         Returns
         -------
         tag_value :
-            Value of the `tag_name` tag in self. If not found, returns
-            `tag_value_default`.
+            Value of the `tag_name` tag in self. If not found, returns an error if
+            raise_error is True, otherwise it returns `tag_value_default`.
+
+        Raises
+        ------
+        ValueError if raise_error is True i.e. if tag_name is not in self.get_tags(
+        ).keys()
 
         See Also
         --------
@@ -315,7 +321,12 @@ class BaseObject(_BaseEstimator):
         """
         collected_tags = cls.get_class_tags()
 
-        return collected_tags.get(tag_name, tag_value_default)
+        tag_value = collected_tags.get(tag_name, tag_value_default)
+
+        if raise_error and tag_name not in collected_tags.keys():
+            raise ValueError(f"Tag with name {tag_name} could not be found.")
+
+        return tag_value
 
     def get_tags(self):
         """
@@ -333,7 +344,7 @@ class BaseObject(_BaseEstimator):
         See Also
         --------
         get_tag : Get a single tag from an object.
-        get_clas_tags : Get all tags from a class.
+        get_class_tags : Get all tags from a class.
         get_class_tag : Get a single tag from a class.
 
         Examples
@@ -486,46 +497,44 @@ class BaseObject(_BaseEstimator):
         return {}
 
     @classmethod
-    def create_test_instance(cls, parameter_set="default"):
+    def create_test_instance(cls, parameter_set="default", return_first=True):
         """
         Construct Estimator instance if possible.
+
+        Calls the `get_test_params` method and returns an instance or list of instances
+        using the returned dict or list of dict.
 
         Parameters
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
+        return_first : bool, default=True
+            If True, return the first instance of the list of instances.
+            If False, return the list of instances.
 
         Returns
         -------
-        instance : instance of the class with default parameters.
-
-        Notes
-        -----
-        `get_test_params` can return dict or list of dict.
-        This function takes first or single dict that get_test_params returns, and
-        constructs the object with that.
+        instance : BaseEstimator or list of BaseEstimator
+            Instance of the class with default parameters. If return_first
+            is False, returns list of instances.
         """
+        # todo, update all methods to use parameter_set and remove when done
         if "parameter_set" in inspect.getfullargspec(cls.get_test_params).args:
             params = cls.get_test_params(parameter_set=parameter_set)
         else:
             params = cls.get_test_params()
 
         if isinstance(params, list):
-            if isinstance(params[0], dict):
-                params = params[0]
+            if return_first:
+                return cls(**params[0])
             else:
-                raise TypeError(
-                    "get_test_params should either return a dict or list of dict."
-                )
-        elif isinstance(params, dict):
-            pass
+                return [cls(**p) for p in params]
         else:
-            raise TypeError(
-                "get_test_params should either return a dict or list of dict."
-            )
-
-        return cls(**params)
+            if return_first:
+                return cls(**params)
+            else:
+                return [cls(**params)]
 
     @classmethod
     def create_test_instances_and_names(cls, parameter_set="default"):

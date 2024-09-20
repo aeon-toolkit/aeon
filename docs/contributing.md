@@ -21,7 +21,14 @@ for creating a fork of `aeon`.
 to complete i.e. improving an algorithm, docstring or test. The [good first issue](https://github.com/aeon-toolkit/aeon/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
 list may be a good place to start.
 4. Post on the issue which you want to work on, so that others know you are working on
-it. If it is a larger issue with multiple components, indicate which part you are
+it. To assign yourself an **Issue/Pull Request**, please post a comment in the issue
+including '@aeon-actions-bot', the username of people to assign and the word `assign`:
+
+    For example:
+    ```python
+    @aeon-actions-bot assign @MatthewMiddlehurst
+    ```
+    If it is a larger issue with multiple components, indicate which part you are
 working on. A Core Developer may suggest a different issue if the one you chose is
 complex or somebody is already working on it.
 5. Create a [pull request (PR)](https://github.com/aeon-toolkit/aeon/compare)

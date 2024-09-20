@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from pandas.api.types import is_integer_dtype
 
-from aeon.testing.utils.data_gen import _make_hierarchical
+from aeon.testing.data_generation import _make_hierarchical
 from aeon.utils.index_functions import (
     _get_cutoff_from_index,
     get_cutoff,

@@ -26,15 +26,15 @@ def is_tabular(X):
         return _is_pd_wide(X)
 
 
-def is_collection(X):
+def is_collection(X, include_2d=False):
     """Check X is a valid collection data structure.
-
-    Currently this is limited to 3D numpy, hierarchical pandas and nested pandas.
 
     Parameters
     ----------
     X : array-like
         Input data to be checked.
+    include_2d : bool, optional
+        If True, 2D numpy arrays and wide pandas DataFrames are also considered valid.
 
     Returns
     -------
@@ -44,15 +44,21 @@ def is_collection(X):
     if isinstance(X, np.ndarray):
         if X.ndim == 3:
             return True
+        if include_2d and X.ndim == 2:
+            return True
     if isinstance(X, pd.DataFrame):
         if X.index.nlevels == 2:
             return True
         if is_nested_univ_dataframe(X):
             return True
+        if include_2d and _is_pd_wide(X):
+            return True
     if isinstance(X, list):
         if isinstance(X[0], np.ndarray):
             if X[0].ndim == 2:
                 return True
+        if isinstance(X[0], pd.DataFrame):
+            return True
     return False
 
 
@@ -62,7 +68,7 @@ def is_nested_univ_dataframe(X):
     Parameters
     ----------
     X: collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details
         on aeon supported data structures.
 
     Returns
@@ -97,8 +103,8 @@ def _nested_univ_is_equal(X):
     bool
         True if all series in the DataFrame are of equal length, False otherwise.
 
-    Example
-    -------
+    Examples
+    --------
     >>> df = pd.DataFrame({
     ...     'A': [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
     ...     'B': [pd.Series([7, 8, 9]), pd.Series([10, 11, 12])]
@@ -134,7 +140,7 @@ def get_n_cases(X):
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -146,13 +152,88 @@ def get_n_cases(X):
     return len(X)
 
 
+def get_n_timepoints(X):
+    """Return the number of timepoints in the first element of a collection.
+
+    Handles the single exception of multi index DataFrames. If unequal length series,
+    returns the length of the first series.
+
+    Parameters
+    ----------
+    X : collection
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
+
+    Returns
+    -------
+    int
+        Number of time points in the first case.
+    """
+    t = get_type(X)
+    if t in ["numpy3D", "np-list"]:
+        return X[0].shape[1]
+    if t in ["numpy2D", "df-list"]:
+        return X[0].shape[0]
+    if t == "pd-multiindex":
+        return len(X.index.get_level_values(1).unique())
+    if t == "nested_univ":
+        return X.iloc[0, 0].size
+    if t == "pd-wide":
+        return len(X.iloc[0])
+
+
+def get_n_channels(X):
+    """Return the number of channels in the first element of a collectiom.
+
+    Handle the single exception of multi index DataFrame.
+
+    Parameters
+    ----------
+    X : collection
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
+
+    Returns
+    -------
+    int
+        Number of channels in the first case.
+
+    Raises
+    ------
+    ValueError
+        X is list of 2D numpy but number of channels is not consistent.
+        X is list of 2D pd.DataFrames but number of channels is not consistent.
+    """
+    t = get_type(X)
+    if t == "numpy3D":
+        return X[0].shape[0]
+    if t == "np-list":
+        if not all(arr.shape[0] == X[0].shape[0] for arr in X):
+            raise ValueError(
+                f"ERROR: number of channels is not consistent. "
+                f"Found values: {np.unique([arr.shape[0] for arr in X])}."
+            )
+        return X[0].shape[0]
+    if t in ["numpy2D", "pd-wide"]:
+        return 1
+    if t == "df-list":
+        if not all(arr.shape[1] == X[0].shape[1] for arr in X):
+            raise ValueError(
+                f"ERROR: number of channels is not consistent. "
+                f"Found values: {np.unique([arr.shape[1] for arr in X])}."
+            )
+        return X[0].shape[1]
+    if t == "pd-multiindex":
+        return len(X.columns)
+    if t == "nested_univ":
+        return X.shape[1]
+
+
 def get_type(X):
     """Get the string identifier associated with different data structures.
 
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -166,8 +247,8 @@ def get_type(X):
         X is list but not of np.ndarray or p.DataFrame.
         X is a pd.DataFrame of non float primitives.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.validation import get_type
     >>> get_type( np.zeros(shape=(10, 3, 20)))
     'numpy3D'
@@ -199,7 +280,7 @@ def get_type(X):
                 f"ERROR passed a list containing {type(X[0])}, "
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
-    elif isinstance(X, pd.DataFrame):  # Nested univariate, hierachical or pd-wide
+    elif isinstance(X, pd.DataFrame):  # Nested univariate, hierarchical or pd-wide
         if is_nested_univ_dataframe(X):
             return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
@@ -210,8 +291,6 @@ def get_type(X):
             "ERROR unknown pd.DataFrame, contains non float values, "
             "not hierarchical nor is it nested pd.Series"
         )
-    #    if isinstance(X, dask.dataframe.core.DataFrame):
-    #        return "dask_panel"
     raise TypeError(
         f"ERROR passed input of type {type(X)}, must be of type "
         f"np.ndarray, pd.DataFrame or list of np.ndarray/pd.DataFrame"
@@ -226,7 +305,7 @@ def is_equal_length(X):
     Parameters
     ----------
     X : collection
-        See aeon.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -238,8 +317,8 @@ def is_equal_length(X):
     ValueError
         input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.validation import is_equal_length
     >>> is_equal_length( np.zeros(shape=(10, 3, 20)))
     True
@@ -266,8 +345,8 @@ def has_missing(X):
     ValueError
         Input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.validation import has_missing
     >>> has_missing( np.zeros(shape=(10, 3, 20)))
     False
@@ -337,8 +416,8 @@ def _equal_length(X, input_type):
     ValueError
         input_type not in COLLECTIONS_DATA_TYPES.
 
-    Example
-    -------
+    Examples
+    --------
     >>> _equal_length( np.zeros(shape=(10, 3, 20)), "numpy3D")
     True
     """
@@ -359,9 +438,12 @@ def _equal_length(X, input_type):
             if X[i].shape[0] != first:
                 return False
         return True
-    if input_type == "nested_univ":  # Nested univariate or hierachical
+    if input_type == "nested_univ":  # Nested univariate
         return _nested_univ_is_equal(X)
-    if input_type == "pd-multiindex":  # multiindex will store unequal as NaN
-        return not X.isna().any().any()
+    if input_type == "pd-multiindex":  # multiindex dataframe
+        X = X.reset_index(-1).drop(X.columns, axis=1)
+        return (
+            X.groupby(level=0, group_keys=True, as_index=True).count().nunique()[0] == 1
+        )
     raise ValueError(f" unknown input type {input_type}")
     return False
