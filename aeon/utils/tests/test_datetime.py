@@ -77,7 +77,7 @@ def test_infer_freq() -> None:
 
     index = pd.date_range(start="2021-01-01", periods=1, freq="M")
     y = pd.Series(index=index, dtype=int)
-    assert infer_freq(y) == "M"
+    assert infer_freq(y) == "ME"
 
     y = pd.DataFrame({"a": 1}, index=pd.date_range(start="2021-01-01", periods=1))
     assert infer_freq(y) == "D"
@@ -85,7 +85,7 @@ def test_infer_freq() -> None:
     y = pd.DataFrame(
         {"a": 1}, index=pd.date_range(start="2021-01-01", periods=1, freq="M")
     )
-    assert infer_freq(y) == "M"
+    assert infer_freq(y) == "ME"
 
 
 def test_set_freq_hier():
