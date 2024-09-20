@@ -9,10 +9,6 @@ __all__ = [
     "make_forecasting_problem",
     "_make_index",
     "get_examples",
-    "_make_fh",
-    "_assert_correct_columns",
-    "_assert_correct_pred_time_index",
-    "_get_n_columns",
 ]
 
 from aeon.testing.data_generation._legacy._collection import (
@@ -20,12 +16,6 @@ from aeon.testing.data_generation._legacy._collection import (
     _make_collection,
     _make_collection_X,
     make_example_long_table,
-)
-from aeon.testing.data_generation._legacy._forecasting import (
-    _assert_correct_columns,
-    _assert_correct_pred_time_index,
-    _get_n_columns,
-    _make_fh,
 )
 from aeon.testing.data_generation._legacy._series import (
     _make_index,

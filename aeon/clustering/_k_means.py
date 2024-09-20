@@ -40,7 +40,7 @@ class TimeSeriesKMeans(BaseClusterer):
     ----------
     n_clusters : int, default=8
         The number of clusters to form as well as the number of centroids to generate.
-    init_algorithm : str or np.ndarray, default='random'
+    init : str or np.ndarray, default='random'
         Random is the default and simply chooses k time series at random as
         centroids. It is fast but sometimes yields sub-optimal clustering.
         Kmeans++ [2] and is slower but often more
@@ -151,12 +151,13 @@ class TimeSeriesKMeans(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
+        "algorithm_type": "distance",
     }
 
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, np.ndarray] = "random",
+        init: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
         n_init: int = 10,
         max_iter: int = 300,
@@ -166,8 +167,20 @@ class TimeSeriesKMeans(BaseClusterer):
         averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "ba",
         distance_params: dict = None,
         average_params: dict = None,
+        init_algorithm: Union[str, np.ndarray] = None,
     ):
+        self.init = init
         self.init_algorithm = init_algorithm
+        if init_algorithm is not None:
+            import warnings
+
+            warnings.warn(
+                "The 'init_algorithm' parameter is deprecated and will be "
+                "removed in a future. Version Use 'init' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.init = self.init_algorithm
         self.distance = distance
         self.n_init = n_init
         self.max_iter = max_iter
@@ -184,7 +197,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self.n_iter_ = 0
 
         self._random_state = None
-        self._init_algorithm = None
+        self._init = None
         self._averaging_method = None
         self._average_params = None
 
@@ -225,10 +238,10 @@ class TimeSeriesKMeans(BaseClusterer):
         self.n_iter_ = best_iters
 
     def _fit_one_init(self, X: np.ndarray) -> tuple:
-        if isinstance(self._init_algorithm, Callable):
-            cluster_centres = self._init_algorithm(X)
+        if isinstance(self._init, Callable):
+            cluster_centres = self._init(X)
         else:
-            cluster_centres = self._init_algorithm.copy()
+            cluster_centres = self._init.copy()
         prev_inertia = np.inf
         prev_labels = None
         for i in range(self.max_iter):
@@ -287,22 +300,19 @@ class TimeSeriesKMeans(BaseClusterer):
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
-        if isinstance(self.init_algorithm, str):
-            if self.init_algorithm == "random":
-                self._init_algorithm = self._random_center_initializer
-            elif self.init_algorithm == "kmeans++":
-                self._init_algorithm = self._kmeans_plus_plus_center_initializer
-            elif self.init_algorithm == "first":
-                self._init_algorithm = self._first_center_initializer
+        if isinstance(self.init, str):
+            if self.init == "random":
+                self._init = self._random_center_initializer
+            elif self.init == "kmeans++":
+                self._init = self._kmeans_plus_plus_center_initializer
+            elif self.init == "first":
+                self._init = self._first_center_initializer
         else:
-            if (
-                isinstance(self.init_algorithm, np.ndarray)
-                and len(self.init_algorithm) == self.n_clusters
-            ):
-                self._init_algorithm = self.init_algorithm.copy()
+            if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
+                self._init = self.init.copy()
             else:
                 raise ValueError(
-                    f"The value provided for init_algorithm: {self.init_algorithm} is "
+                    f"The value provided for init: {self.init} is "
                     f"invalid. The following are a list of valid init algorithms "
                     f"strings: random, kmedoids++, first. You can also pass a"
                     f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
@@ -325,6 +335,9 @@ class TimeSeriesKMeans(BaseClusterer):
             else:
                 # Invalid distance passed for ba so default to dba
                 self._average_params["distance"] = "dtw"
+
+        if "random_state" not in self._average_params:
+            self._average_params["random_state"] = self._random_state
 
         self._averaging_method = _resolve_average_callable(self.averaging_method)
 

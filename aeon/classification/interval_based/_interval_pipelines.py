@@ -94,7 +94,7 @@ class RandomIntervalClassifier(BaseClassifier):
     >>> clf.fit(X, y)
     RandomIntervalClassifier(...)
     >>> clf.predict(X)
-    array([0, 1, 0, 1, 0, 0, 0, 1, 1, 0])
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {
