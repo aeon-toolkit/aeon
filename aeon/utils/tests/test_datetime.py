@@ -15,6 +15,7 @@ from aeon.utils.datetime import (
     infer_freq,
     set_hier_freq,
 )
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def test_get_freq():
@@ -98,6 +99,9 @@ def test_set_freq_hier():
     y.index = y.index.to_timestamp()
 
     assert get_time_index(y).freq is not None
+
+    if _check_soft_dependencies("pandas>=2.1.0", severity="none"):
+        y.index.freq = None
 
     # Create MultiIndex
     mi = pd.MultiIndex.from_product([[0], y.index], names=["instances", "timepoints"])
