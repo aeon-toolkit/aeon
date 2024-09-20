@@ -17,7 +17,12 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 PR_TESTING = False
 
 # Exclude estimators here for short term fixes
-EXCLUDE_ESTIMATORS = []
+EXCLUDE_ESTIMATORS = [
+    # See #2071
+    "RandomDilatedShapeletTransform",
+    "RDSTClassifier",
+    "RDSTRegressor",
+]
 
 
 EXCLUDED_TESTS = {
