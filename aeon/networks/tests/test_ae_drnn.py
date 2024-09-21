@@ -100,7 +100,7 @@ def test_aedrnnnetwork_exceptions():
         dilation_rate_encoder=[1, 2],
     )
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         aedrnn.build_network((150, 5))
 
     aedrnn = AEDRNNNetwork(
@@ -110,5 +110,5 @@ def test_aedrnnnetwork_exceptions():
         dilation_rate_decoder=[1, 2],
     )
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         aedrnn.build_network((150, 5))

@@ -42,7 +42,6 @@ Forecasting
     mean_linex_error
     relative_loss
 
-
 Segmentation
 ------------
 

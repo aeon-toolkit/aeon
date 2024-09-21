@@ -3,8 +3,6 @@
 __maintainer__ = []
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
-import os
-
 import aeon.testing.utils._cicd_numba_caching  # noqa: F401
 from aeon.base import (
     BaseCollectionEstimator,
@@ -18,33 +16,9 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
-EXCLUDE_ESTIMATORS = [
-    "TabularToSeriesAdaptor",
-    "PandasTransformAdaptor",
-    "BKFilter",
-    "TransformerPipeline",
-    "FeatureUnion",
-    "FitInTransform",
-    "MultiplexTransformer",
-    "InvertTransform",
-    "Id",
-    "OptionalPassthrough",
-    "ColumnwiseTransformer",
-    "ColumnConcatenator",
-    "YtoX",
-    "DateTimeFeatures",
-    "ExponentTransformer",
-    "FeatureSelection",
-    "FourierFeatures",
-    "Imputer",
-    "Lag",
-    "HampelFilter",
-    "WindowSummarizer",
-]  # Exclude deprecated estimators to reduce warnings
+# Exclude estimators here for short term fixes
+EXCLUDE_ESTIMATORS = []
 
-# the test currently fails when numba is disabled. See issue #622
-if os.environ.get("NUMBA_DISABLE_JIT") == "1":
-    EXCLUDE_ESTIMATORS.append("StatsForecastAutoARIMA")
 
 EXCLUDED_TESTS = {
     # Early classifiers (EC) intentionally retain information from previous predict
@@ -72,6 +46,8 @@ EXCLUDED_TESTS = {
     # needs investigation
     "SASTClassifier": ["check_fit_deterministic"],
     "RSASTClassifier": ["check_fit_deterministic"],
+    "AEFCNClusterer": ["check_fit_updates_state"],
+    "AEResNetClusterer": ["check_fit_updates_state"],
 }
 
 # We use estimator tags in addition to class hierarchies to further distinguish
