@@ -61,7 +61,7 @@ def all_estimators(
         if str or list of str, string identifiers define types specified in search
                 only estimators that are of (at least) one of the types are returned
             possible str values are entries of registry.BASE_CLASS_REGISTER (first col)
-                for instance 'classifier', 'regressor', 'transformer', 'forecaster'
+                for instance 'classifier', 'regressor', 'transformer'
     return_names: bool, default=True
         if True, estimator class name is included in the all_estimators()
             return in the order: name, estimator class, optional tags, either as
@@ -121,19 +121,21 @@ def all_estimators(
             passed in return_tags will serve as column names for all columns of
             tags that were optionally requested.
 
+    References
+    ----------
+    Modified version from scikit-learn's `all_estimators()`.
+
     Examples
     --------
     >>> from aeon.registry import all_estimators
     >>> # return a complete list of estimators as pd.Dataframe
-    >>> all=all_estimators(as_dataframe=True)
-    >>> # return all forecasters by filtering for estimator type
-    >>> forecasters=all_estimators("forecaster")
-    >>> # return all forecasters which handle missing data in the input by tag filtering
-    >>> f2=all_estimators("forecaster", filter_tags={"capability:missing_values":True})
-
-    References
-    ----------
-    Modified version from scikit-learn's `all_estimators()`.
+    >>> all = all_estimators(as_dataframe=True)
+    >>> # return all classifiers by filtering for estimator type
+    >>> classifiers = all_estimators("classifier")
+    >>> # return all classifiers which handle unequal length data by tag filtering
+    >>> clf_ul = all_estimators(
+    ...     "classifier", filter_tags={"capability:unequal_length":True}
+    ... )
     """
     import io
     import sys
@@ -441,8 +443,8 @@ def all_tags(
     estimator_types: string, list of string, default=None
         Which kind of estimators should be returned.
         - If None, no filter is applied and all estimators are returned.
-        - Possible values are 'classifier', 'regressor', 'transformer' and
-        'forecaster' to get estimators only of these specific types, or a list of
+        - Possible values are 'classifier', 'regressor', 'transformer to get
+        estimators only of these specific types, or a list of
         these to get the estimators that fit at least one of the types.
     as_dataframe: bool, default=False
                 if False, return is as described below;

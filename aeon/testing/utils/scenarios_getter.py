@@ -12,13 +12,11 @@ from aeon.testing.utils.scenarios_classification import (
     scenarios_early_classification,
     scenarios_regression,
 )
-from aeon.testing.utils.scenarios_forecasting import scenarios_forecasting
 from aeon.testing.utils.scenarios_transformers import scenarios_transformers
 
 scenarios = dict()
 scenarios["classifier"] = scenarios_classification
 scenarios["early_classifier"] = scenarios_early_classification
-scenarios["forecaster"] = scenarios_forecasting
 scenarios["regressor"] = scenarios_regression
 scenarios["transformer"] = scenarios_transformers
 
