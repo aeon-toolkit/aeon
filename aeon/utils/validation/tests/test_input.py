@@ -2,25 +2,51 @@
 
 import pytest
 
-from aeon.testing.utils.data_gen import get_examples
-from aeon.testing.utils.data_gen._collection import EQUAL_LENGTH_UNIVARIATE
-from aeon.utils.validation._input import is_hierarchical, is_valid_input, validate_input
+from aeon.testing.data_generation._legacy import get_examples
+from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
+from aeon.utils.validation._input import (
+    COLLECTIONS,
+    HIERARCHICAL,
+    SERIES,
+    _abstract_type,
+    abstract_types,
+    is_hierarchical,
+    is_valid_input,
+    validate_input,
+)
 from aeon.utils.validation.collection import is_collection
 from aeon.utils.validation.series import is_single_series
 
-# Tests limited to these input, some  collection types are ambiguous
-COLLECTIONS = ["numpy3D", "nested_univ", "pd-multiindex"]
-SERIES = ["pd.Series", "pd.DataFrame", "np.ndarray"]
-HIERARCHICAL = ["pd_multiindex_hier"]
 PANDAS_TYPES = ["pd.Series", "pd.DataFrame", "pd-multiindex", "pd_multiindex_hier"]
+
+
+def test_abstract_types():
+    """Test abstract_types."""
+    for s in SERIES:
+        assert _abstract_type(s) == "Series"
+    for c in COLLECTIONS:
+        assert _abstract_type(c) == "Panel"
+    for h in HIERARCHICAL:
+        assert _abstract_type(h) == "Hierarchical"
+    assert _abstract_type("Arsenal") == "Unknown"
+    comb = ["pd.Series", "pd.DataFrame", "pd-multiindex", "pd_multiindex_hier", "Foo"]
+    assert abstract_types(comb) == [
+        "Series",
+        "Series",
+        "Panel",
+        "Hierarchical",
+        "Unknown",
+    ]
 
 
 @pytest.mark.parametrize("data", COLLECTIONS)
 def test_input_collections(data):
     """Test is_collection with correct input."""
-    assert is_collection(EQUAL_LENGTH_UNIVARIATE[data])
-    assert not is_single_series(EQUAL_LENGTH_UNIVARIATE[data])
-    assert not is_hierarchical(EQUAL_LENGTH_UNIVARIATE[data])
+    assert is_collection(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
+    assert not is_single_series(
+        EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+    )
+    assert not is_hierarchical(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
 
 
 @pytest.mark.parametrize("data_type", HIERARCHICAL)
@@ -57,7 +83,7 @@ def test_input_series(data_type):
 @pytest.mark.parametrize("data_type", COLLECTIONS)
 def test_input_collection(data_type):
     """Test is_collection with correct input."""
-    d = EQUAL_LENGTH_UNIVARIATE[data_type]
+    d = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data_type]["train"][0]
     assert is_collection(d)
     assert not is_single_series(d)
     assert not is_hierarchical(d)

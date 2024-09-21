@@ -4,7 +4,7 @@ __maintainer__ = []
 __all__ = []
 
 import warnings
-from typing import Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -107,7 +107,7 @@ def _coerce_duration_to_int(
         raise TypeError("`duration` type not understood.")
 
 
-def _get_intervals_count_and_unit(freq: str) -> Tuple[int, str]:
+def _get_intervals_count_and_unit(freq: str) -> tuple[int, str]:
     """Extract interval count and unit from frequency string.
 
     Supports eg: W, 3W, W-SUN, BQS, (B)Q(S)-MAR patterns, from which we
@@ -250,7 +250,7 @@ def _get_duration(x, y=None, coerce_to_int=False, unit=None):
     Parameters
     ----------
     x : pd.Index, pd.Timestamp, pd.Period, int
-    y : pd.Timestamp, pd.Period, int, optional (default=None)
+    y : pd.Timestamp, pd.Period, int, default=None
     coerce_to_int : bool
         If True, duration is returned as integer value for given unit
     unit : str

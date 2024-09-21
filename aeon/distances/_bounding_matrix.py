@@ -1,6 +1,7 @@
 __maintainer__ = []
 
 import math
+from typing import Optional
 
 import numpy as np
 from numba import njit
@@ -8,7 +9,10 @@ from numba import njit
 
 @njit(cache=True)
 def create_bounding_matrix(
-    x_size: int, y_size: int, window: float = None, itakura_max_slope: float = None
+    x_size: int,
+    y_size: int,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
 ):
     """Create a bounding matrix for an elastic distance.
 
@@ -48,7 +52,7 @@ def create_bounding_matrix(
         if itakura_max_slope < 0 or itakura_max_slope > 1:
             raise ValueError("itakura_max_slope must be between 0 and 1")
         return _itakura_parallelogram(x_size, y_size, itakura_max_slope)
-    if window is not None:
+    if window is not None and window != 1.0:
         if window < 0 or window > 1:
             raise ValueError("window must be between 0 and 1")
         return _sakoe_chiba_bounding(x_size, y_size, window)

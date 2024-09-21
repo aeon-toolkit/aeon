@@ -1,28 +1,4 @@
-import glob
-import os
-import re
-import shutil
-import tempfile
-import urllib
-import zipfile
-from datetime import datetime
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen, urlretrieve
-
-import numpy as np
-import pandas as pd
-
-import aeon
-from aeon.datasets.dataset_collections import (
-    get_downloaded_tsc_tsr_datasets,
-    get_downloaded_tsf_datasets,
-)
-from aeon.datasets.tser_datasets import tser_monash, tser_soton
-from aeon.utils.conversion import convert_collection
-
-DIRNAME = "data"
-MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
-
+"""Dataset loading functions."""
 
 __all__ = [  # Load functions
     "load_from_tsfile",
@@ -35,6 +11,45 @@ __all__ = [  # Load functions
     "download_all_regression",
     "get_dataset_meta_data",
 ]
+
+import glob
+import os
+import re
+import shutil
+import socket
+import tempfile
+import urllib
+import zipfile
+from datetime import datetime
+from http.client import IncompleteRead, RemoteDisconnected
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen, urlretrieve
+
+import numpy as np
+import pandas as pd
+
+import aeon
+from aeon.datasets.dataset_collections import (
+    get_downloaded_tsc_tsr_datasets,
+    get_downloaded_tsf_datasets,
+)
+from aeon.datasets.tsc_datasets import tsc_zenodo
+from aeon.datasets.tser_datasets import tser_monash, tser_soton
+from aeon.utils.conversion import convert_collection
+
+DIRNAME = "data"
+MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
+
+CONNECTION_ERRORS = (
+    HTTPError,
+    URLError,
+    RemoteDisconnected,
+    IncompleteRead,
+    ConnectionResetError,
+    TimeoutError,
+    socket.timeout,
+)
 
 
 # Return appropriate return_type in case an alias was used
@@ -237,12 +252,13 @@ def load_from_tsfile(
 
     Returns
     -------
-    data: Union[np.ndarray,list]
+    data: np.ndarray or list of np.ndarray
         time series data, np.ndarray (n_cases, n_channels, n_timepoints) if equal
         length time series, list of [n_cases] np.ndarray (n_channels, n_timepoints)
         if unequal length series.
-    y : target variable, np.ndarray of string or int
-    meta_data : dict (optional).
+    y : np.ndarray of string or int
+        target variable
+    meta_data : dict, optional.
         dictionary of characteristics, with keys
         "problemname" (string), booleans: "timestamps", "missing", "univariate",
         "equallength", "classlabel", "targetlabel" and "class_values": [],
@@ -251,9 +267,11 @@ def load_from_tsfile(
     ------
     IOError if the load fails.
     """
-    # Check file ends in .ts, if not, insert
-    if not full_file_path_and_name.endswith(".ts"):
-        full_file_path_and_name = full_file_path_and_name + ".ts"
+    # split the file path into the root and the extension
+    root, ext = os.path.splitext(full_file_path_and_name)
+    # Append .ts if no extension if found
+    if not ext:
+        full_file_path_and_name = root + ".ts"
     # Open file
     with open(full_file_path_and_name, encoding="utf-8") as file:
         # Read in headers
@@ -313,10 +331,6 @@ def _load_saved_dataset(
     dir_name: str, default = None
         Directory in local_dirname containing the problem file. If None, dir_name = name
 
-    Raises
-    ------
-    Raise ValueError if the requested return type is not supported
-
     Returns
     -------
     X: Data stored in specified `return_type`
@@ -325,6 +339,10 @@ def _load_saved_dataset(
         The class labels for each time series instance in X
         If return_X_y is False, y is appended to X instead.
     meta: meta data dictionary, only returned if return_meta is True
+
+    Raises
+    ------
+    Raise ValueError if the requested return type is not supported
     """
     if isinstance(split, str):
         split = split.upper()
@@ -333,18 +351,20 @@ def _load_saved_dataset(
     return_type = _alias_datatype_check(return_type)
     if dir_name is None:
         dir_name = name
+    if local_dirname is not None:
+        local_module = os.path.join(local_module, local_dirname)
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
 
         fname = name + "_TEST.ts"
-        abspath = os.path.join(local_module, local_dirname, dir_name, fname)
+        abspath = os.path.join(local_module, dir_name, fname)
         X_test, y_test, meta_data_test = load_from_tsfile(
             abspath, return_meta_data=True
         )
@@ -390,8 +410,9 @@ def download_dataset(name, save_path=None):
 
     Raises
     ------
-    ValueError if the dataset is not available on the website
-    or the extract path is invalid
+    Raise URLError or HTTPError if the website is not accessible,
+    ValueError if a dataset name that does not exist on the repo
+    is given.
     """
     if save_path is None:
         save_path = os.path.join(MODULE, "local_data")
@@ -442,8 +463,12 @@ def _download_and_extract(url, extract_path=None):
     file_name = os.path.basename(url)
     dl_dir = tempfile.mkdtemp()
     zip_file_name = os.path.join(dl_dir, file_name)
-    urlretrieve(url, zip_file_name)
+    #    urlretrieve(url, zip_file_name)
 
+    # Using urlopen instead of urlretrieve
+    with urlopen(url, timeout=60) as response:
+        with open(zip_file_name, "wb") as out_file:
+            out_file.write(response.read())
     if extract_path is None:
         extract_path = os.path.join(MODULE, "local_data/%s/" % file_name.split(".")[0])
     else:
@@ -472,10 +497,10 @@ def _load_tsc_dataset(
     Parameters
     ----------
     name : string, file name to load from
-    split: None or one of "TRAIN", "TEST", optional (default=None)
+    split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem.
         By default it loads both train and test instances (in a single container).
-    return_X_y: bool, optional (default=True)
+    return_X_y: bool, default=True
         If True, returns (features, target) separately instead of a single
         dataframe with columns for features and the target.
     return_data_type : str, optional, default = None
@@ -489,10 +514,6 @@ def _load_tsc_dataset(
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
 
-    Raises
-    ------
-    Raise ValueException if the requested return type is not supported
-
     Returns
     -------
     X: Data stored in specified `return_type`
@@ -500,6 +521,10 @@ def _load_tsc_dataset(
     y: 1D numpy array of length n, only returned if return_X_y if True
         The class labels for each time series instance in X
         If return_X_y is False, y is appended to X instead.
+
+    Raises
+    ------
+    Raise ValueException if the requested return type is not supported
     """
     # Allow user to have non standard extract path
     if extract_path is not None:
@@ -564,7 +589,8 @@ def load_from_arff_file(
     -------
     data: np.ndarray
         time series data, np.ndarray (n_cases, n_channels, n_timepoints)
-    y : target variable, np.ndarray of string or int
+    y : np.ndarray of string or int
+        target variable
     """
     instance_list = []
     class_val_list = []
@@ -639,7 +665,8 @@ def load_from_tsv_file(full_file_path_and_name):
     -------
     data: np.ndarray
         time series data, np.ndarray (n_cases, 1, n_timepoints)
-    y : target variable, np.ndarray of string or int
+    y : np.ndarray of string or int
+        target variable
 
     """
     df = pd.read_csv(full_file_path_and_name, sep="\t", header=None)
@@ -750,6 +777,14 @@ def load_from_tsf_file(
         The metadata for the forecasting problem. The dictionary keys are:
         "frequency", "forecast_horizon", "contain_missing_values",
         "contain_equal_length"
+
+    Raises
+    ------
+    URLError or HTTPError
+        If the website is not accessible.
+    ValueError
+        If a dataset name that does not exist on the repo is given or if a
+        webpage is requested that does not exist.
     """
     col_names = []
     col_types = []
@@ -929,22 +964,27 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
-    return_metadata : boolean, default = True
+    return_metadata : boolean, default = False
         If True, returns a tuple (data, metadata)
-
-    Raises
-    ------
-    Raise ValueException if the requested return type is not supported
 
     Returns
     -------
-    X: Data stored in a dataframe, each column a series
-    metadata: optional
-        returns the following meta data
+    X: pd.DataFrame
+        Data stored in a dataframe, each column a series
+    metadata: dict, optional
+        returns the following metadata
         frequency,forecast_horizon,contain_missing_values,contain_equal_length
 
-    Example
-    -------
+    Raises
+    ------
+    URLError or HTTPError
+        If the website is not accessible.
+    ValueError
+        If a dataset name that does not exist on the repo is given or if a
+        webpage is requested that does not exist.
+
+    Examples
+    --------
     >>> from aeon.datasets import load_forecasting
     >>> X=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
@@ -981,14 +1021,30 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
             url = f"https://zenodo.org/record/{id}/files/{name}.zip"
             file_save = f"{local_module}/{local_dirname}/{name}.zip"
             if not os.path.exists(file_save):
+                req = Request(url, method="HEAD")
                 try:
-                    urllib.request.urlretrieve(url, file_save)
-                except Exception:
-                    raise ValueError(
-                        f"Invalid dataset name ={name} is not available on extract path"
-                        f" {extract_path}.\n Nor is it available on "
-                        f"https://forecastingdata.org/ via path {url}",
+                    # Perform the request
+                    response = urlopen(req, timeout=60)
+                    # Check the status code of the response, if 200 incorrect input args
+                    if response.status != 200:
+                        raise ValueError(
+                            "The file does not exist on the server which "
+                            "returned a File Not Found (200)"
+                        )
+                except Exception as e:
+                    raise e
+                try:
+                    _download_and_extract(
+                        url,
+                        extract_path=extract_path,
                     )
+                except zipfile.BadZipFile:
+                    raise ValueError(
+                        f"Invalid dataset name ={name} is  available on extract path ="
+                        f"{extract_path} or https://zenodo.org/"
+                        f" but it is not correctly formatted.",
+                    )
+
             if not os.path.exists(
                 f"{local_module}/{local_dirname}/{name}/" f"{name}.tsf"
             ):
@@ -1074,22 +1130,18 @@ def load_regression(
         <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
         version.
 
-    Raises
-    ------
-    Raise ValueException if the requested return type is not supported.
-
     Returns
     -------
     X: np.ndarray or list of np.ndarray
-    y: numpy array
+    y: np.ndarray
         The target response variable for each case in X
-    metadata: optional
-        returns the following meta data
+    metadata: dict, optional
+        returns the following metadata
         'problemname',timestamps, missing,univariate,equallength.
         targetlabel should be true, and classlabel false
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.datasets import load_regression
     >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
@@ -1127,12 +1179,12 @@ def load_regression(
             req = Request(url, method="HEAD")
             try:
                 # Perform the request
-                response = urlopen(req)
+                response = urlopen(req, timeout=60)
                 # Check the status code of the response
                 if response.status != 200:
                     try_monash = True
-            except (HTTPError, URLError):
-                # If there is an HTTP URLError, it might mean the file does not exist
+            except (URLError, HTTPError):
+                # If there is an HTTP it might mean the file does not exist
                 try_monash = True
             else:
                 try:
@@ -1155,8 +1207,8 @@ def load_regression(
                     train_save = f"{full_path}/{name}_TRAIN.ts"
                     test_save = f"{full_path}/{name}_TEST.ts"
                     try:
-                        urllib.request.urlretrieve(url_train, train_save)
-                        urllib.request.urlretrieve(url_test, test_save)
+                        urlretrieve(url_train, train_save)
+                        urlretrieve(url_test, test_save)
                     except Exception:
                         raise ValueError(error_str)
                 else:
@@ -1232,7 +1284,7 @@ def load_classification(
         format <name>_TRAIN.ts or <name>_TEST.ts.
     extract_path : str, default=None
         the path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
+        looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
         e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
     return_metadata : boolean, default = True
         If True, returns a tuple (X, y, metadata)
@@ -1254,12 +1306,20 @@ def load_classification(
     Returns
     -------
     X: np.ndarray or list of np.ndarray
-    y: numpy array
+    y: np.ndarray
         The class labels for each case in X
-    metadata: optional
-        returns the following meta data
+    metadata: dict, optional
+        returns the following metadata
         'problemname',timestamps, missing,univariate,equallength, class_values
         targetlabel should be false, and classlabel true
+
+    Raises
+    ------
+    URLError or HTTPError
+        If the website is not accessible.
+    ValueError
+        If a dataset name that does not exist on the repo is given or if a
+        webpage is requested that does not exist.
 
     Examples
     --------
@@ -1272,46 +1332,67 @@ def load_classification(
     else:
         local_module = MODULE
         local_dirname = "data"
-    if not os.path.exists(os.path.join(local_module, local_dirname)):
-        os.makedirs(os.path.join(local_module, local_dirname))
-    path = os.path.join(local_module, local_dirname)
+    if local_dirname is None:
+        path = local_module
+    else:
+        path = os.path.join(local_module, local_dirname)
+    if not os.path.exists(path):
+        os.makedirs(path)
     if name not in get_downloaded_tsc_tsr_datasets(path):
         if extract_path is None:
             local_dirname = "local_data"
             path = os.path.join(local_module, local_dirname)
-        if not os.path.exists(os.path.join(local_module, local_dirname)):
-            os.makedirs(os.path.join(local_module, local_dirname))
-        if name not in get_downloaded_tsc_tsr_datasets(
-            os.path.join(local_module, local_dirname)
-        ):
+        else:
+            path = extract_path
+        if not os.path.exists(path):
+            os.makedirs(path)
+        if name not in get_downloaded_tsc_tsr_datasets(path):
             # Check if on timeseriesclassification.com
             url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
             # Test if file exists to generate more informative error
             req = Request(url, method="HEAD")
-            msg = (
-                f"Invalid dataset name ={name} is not available on extract path "
+            try_zenodo = False
+            error_str = (
+                f"Invalid dataset name ={name} that is not available on extract path "
                 f"={extract_path}. Nor is it available on "
-                f"https://timeseriesclassification.com/."
+                f"https://timeseriesclassification.com/ or zenodo."
             )
             try:
                 # Perform the request
-                response = urlopen(req)
-                # Check the status code of the response
+                response = urlopen(req, timeout=60)
+                # Check the status code of the response, if 200 incorrect input args
                 if response.status != 200:
-                    raise ValueError(msg)
-            except HTTPError:
-                raise ValueError(msg)
-            try:
-                _download_and_extract(
-                    url,
-                    extract_path=extract_path,
-                )
-            except zipfile.BadZipFile:
-                raise ValueError(
-                    f"Invalid dataset name ={name} is  available on extract path ="
-                    f"{extract_path} or https://timeseriesclassification.com/ but it "
-                    f"is not correctly formatted.",
-                )
+                    try_zenodo = True
+            except (URLError, HTTPError):
+                # If there is an HTTP it might mean the file does not exist
+                try_zenodo = True
+            else:
+                try:
+                    _download_and_extract(
+                        url,
+                        extract_path=extract_path,
+                    )
+                except zipfile.BadZipFile:
+                    try_zenodo = True
+            if try_zenodo:
+                # Try on ZENODO
+                if name in tsc_zenodo.keys():
+                    id = tsc_zenodo[name]
+                    url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
+                    url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
+                    full_path = os.path.join(path, name)
+                    if not os.path.exists(full_path):
+                        os.makedirs(full_path)
+                    train_save = f"{full_path}/{name}_TRAIN.ts"
+                    test_save = f"{full_path}/{name}_TEST.ts"
+                    try:
+                        urlretrieve(url_train, train_save)
+                        urlretrieve(url_test, test_save)
+                    except Exception:
+                        raise ValueError(error_str)
+                else:
+                    raise ValueError(error_str)
+
     # Test for discrete version (first suffix _disc), always use that if it exists
     dir_name = name
     # If there exists a version with _discr, load that
@@ -1361,6 +1442,10 @@ def download_all_regression(extract_path=None):
     ----------
     extract_path: str or None, default = None
         where to download the fip file. If none, it goes in
+
+    Raises
+    ------
+    URLError or HTTPError if the website is not accessible.
     """
     if extract_path is not None:
         local_module = extract_path
@@ -1445,9 +1530,20 @@ def get_dataset_meta_data(
     Returns
     -------
      Pandas dataframe containing meta data for each dataset.
+
+    Raises
+    ------
+    URLError or HTTPError if the website is not accessible.
     """
+    # Check string is either a valid local path or responding web page
+    if not os.path.isfile(url):
+        parsed_url = urlparse(url)
+        if not (bool(parsed_url.scheme) and bool(parsed_url.netloc)):
+            raise ValueError(f"Invalid URL or file path {url}")
+
     if isinstance(features, str):
         features = [features]
+
     try:
         if features is None:
             df = pd.read_csv(url)
@@ -1456,8 +1552,6 @@ def get_dataset_meta_data(
             df = pd.read_csv(url, usecols=features)
         if data_names is not None:
             df = df[df["Dataset"].isin(data_names)]
-        return df
     except Exception as e:
-        raise ValueError(
-            f"Unable to access website {url} to retrieve meta data",
-        ) from e
+        raise e
+    return df

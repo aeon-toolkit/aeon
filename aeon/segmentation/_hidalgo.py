@@ -78,7 +78,7 @@ class HidalgoSegmenter(BaseSegmenter):
     >>> X[:6, 1:] += 10
     >>> X[6:, 1:] = 0
     >>> model = HidalgoSegmenter(K=2, burn_in=0.8, n_iter=100, seed=10)
-    >>> seg = model.fit_predict(X)
+    >>> seg = model.fit_predict(X, axis=0)
     >>> seg.tolist()
     [1, 1, 1, 1, 1, 1, 0, 0, 0, 0]
     """

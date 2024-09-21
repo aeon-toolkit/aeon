@@ -5,19 +5,34 @@ from sklearn.ensemble import IsolationForest
 from sklearn.utils._testing import set_random_state
 
 from aeon.classification import BaseClassifier
-from aeon.classification.compose import ChannelEnsembleClassifier
-from aeon.classification.convolution_based import Arsenal, RocketClassifier
+from aeon.classification.compose import (
+    ChannelEnsembleClassifier,
+    ClassifierPipeline,
+    WeightedEnsembleClassifier,
+)
+from aeon.classification.convolution_based import (
+    Arsenal,
+    HydraClassifier,
+    MultiRocketHydraClassifier,
+    RocketClassifier,
+)
 from aeon.classification.dictionary_based import (
     MUSE,
+    REDCOMETS,
     WEASEL,
     WEASEL_V2,
     BOSSEnsemble,
     ContractableBOSS,
+    MrSQMClassifier,
     TemporalDictionaryEnsemble,
 )
-from aeon.classification.distance_based import ElasticEnsemble, ShapeDTW
+from aeon.classification.distance_based import (
+    ElasticEnsemble,
+    KNeighborsTimeSeriesClassifier,
+)
 from aeon.classification.early_classification import (
     TEASER,
+    BaseEarlyClassifier,
     ProbabilityThresholdEarlyClassifier,
 )
 from aeon.classification.feature_based import (
@@ -25,17 +40,27 @@ from aeon.classification.feature_based import (
     FreshPRINCEClassifier,
     SignatureClassifier,
     SummaryClassifier,
+    TSFreshClassifier,
 )
 from aeon.classification.hybrid import HIVECOTEV1, HIVECOTEV2
 from aeon.classification.interval_based import (
+    RSTSF,
     CanonicalIntervalForestClassifier,
     DrCIFClassifier,
+    IntervalForestClassifier,
+    QUANTClassifier,
     RandomIntervalClassifier,
     RandomIntervalSpectralEnsembleClassifier,
     SupervisedTimeSeriesForest,
     TimeSeriesForestClassifier,
 )
-from aeon.classification.shapelet_based import ShapeletTransformClassifier
+from aeon.classification.ordinal_classification import OrdinalTDE
+from aeon.classification.shapelet_based import (
+    LearningShapeletClassifier,
+    SASTClassifier,
+    ShapeletTransformClassifier,
+)
+from aeon.classification.sklearn import ContinuousIntervalTree, RotationForestClassifier
 from aeon.datasets import load_basic_motions, load_unit_test
 
 
@@ -94,6 +119,14 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = ChannelEnsembleClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "WeightedEnsembleClassifier":
+        classifier = WeightedEnsembleClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "ClassifierPipeline":
+        classifier = ClassifierPipeline.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "BOSSEnsemble":
         classifier = BOSSEnsemble.create_test_instance(
             parameter_set="results_comparison"
@@ -112,12 +145,16 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = WEASEL.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "WEASEL_V2":
         classifier = WEASEL_V2.create_test_instance(parameter_set="results_comparison")
+    elif classifier_name == "REDCOMETS":
+        classifier = REDCOMETS.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "ElasticEnsemble":
         classifier = ElasticEnsemble.create_test_instance(
             parameter_set="results_comparison"
         )
-    elif classifier_name == "ShapeDTW":
-        classifier = ShapeDTW.create_test_instance(parameter_set="results_comparison")
+    elif classifier_name == "KNeighborsTimeSeriesClassifier":
+        classifier = KNeighborsTimeSeriesClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "Catch22Classifier":
         classifier = Catch22Classifier.create_test_instance(
             parameter_set="results_comparison"
@@ -130,12 +167,20 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = RandomIntervalClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "QUANTClassifier":
+        classifier = QUANTClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "SignatureClassifier":
         classifier = SignatureClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "SummaryClassifier":
         classifier = SummaryClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "TSFreshClassifier":
+        classifier = TSFreshClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "HIVECOTEV1":
@@ -150,10 +195,16 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = DrCIFClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "IntervalForestClassifier":
+        classifier = IntervalForestClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "RandomIntervalSpectralEnsembleClassifier":
         classifier = RandomIntervalSpectralEnsembleClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "RSTSF":
+        classifier = RSTSF.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "SupervisedTimeSeriesForest":
         classifier = SupervisedTimeSeriesForest.create_test_instance(
             parameter_set="results_comparison"
@@ -168,12 +219,46 @@ def _print_results_for_classifier(classifier_name, dataset_name):
         classifier = RocketClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "HydraClassifier":
+        classifier = HydraClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "MultiRocketHydraClassifier":
+        classifier = MultiRocketHydraClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "OrdinalTDE":
+        classifier = OrdinalTDE.create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "ShapeletTransformClassifier":
         classifier = ShapeletTransformClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
+    elif classifier_name == "LearningShapeletClassifier":
+        classifier = LearningShapeletClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "MrSQMClassifier":
+        classifier = MrSQMClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "SASTClassifier":
+        classifier = SASTClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "ContinuousIntervalTree":
+        classifier = ContinuousIntervalTree.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "RotationForestClassifier":
+        classifier = RotationForestClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "ProbabilityThresholdEarlyClassifier":
         classifier = ProbabilityThresholdEarlyClassifier.create_test_instance(
+            parameter_set="results_comparison"
+        )
+    elif classifier_name == "BaseEarlyClassifier":
+        classifier = BaseEarlyClassifier.create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "TEASER":

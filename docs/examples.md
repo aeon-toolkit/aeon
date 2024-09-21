@@ -4,68 +4,6 @@ This webpage contains the notebook examples for the `aeon` library. The examples
 organised into categories based on module and functionality. The examples are designed
 to provide a comprehensive overview of a module, functionality or a specific algorithm.
 
-## Forecasting
-
-::::{grid} 2 3 4 4
-:gutter: 1
-
-:::{grid-item-card}
-:img-top: /examples/forecasting/img/forecasting.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/forecasting.ipynb
-:link-type: ref
-:text-align: center
-
-Overview of forecasting
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/proba.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/forecasting_proba.ipynb
-:link-type: ref
-:text-align: center
-
-Probabilistic forecasting
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/hierarchytree_grouped.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/forecasting_hierarchical_global.ipynb
-:link-type: ref
-:text-align: center
-
-Hierarchical, global, and panel forecasting
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/forecasting-to-regression-reduction.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/forecasting_sklearn.ipynb
-:link-type: ref
-:text-align: center
-
-Forecasting with aeon and scikit-learn
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/forecasting/img/splitter.png
-:class-img-top: aeon-card-image-m
-:link: /examples/forecasting/window_splitters.ipynb
-:link-type: ref
-:text-align: center
-
-Window splitters for forecasting
-
-:::
-
-::::
-
 ## Classification
 
 ::::{grid} 2 3 4 4
@@ -257,7 +195,7 @@ TSFresh transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/catch22.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/catch22.ipynb
 :link-type: ref
@@ -279,7 +217,7 @@ Rocket transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/mini_rocket.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/minirocket.ipynb
 :link-type: ref
@@ -290,7 +228,7 @@ MiniRocket transform
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/transformations/img/sast.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/sast.ipynb
 :link-type: ref
@@ -548,17 +486,6 @@ Unequal length series
 :text-align: center
 
 Benchmarking algorithms
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/forecasting.ipynb
-:link-type: ref
-:text-align: center
-
-Benchmarking forecasting algorithms
 
 :::
 

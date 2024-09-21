@@ -21,7 +21,7 @@ State:
 __all__ = [
     "BaseClassifier",
 ]
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 
 import time
 from abc import ABC, abstractmethod
@@ -29,7 +29,7 @@ from typing import final
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
 
@@ -53,13 +53,8 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         Class labels, either integers or strings.
     n_classes_ : int
         Number of classes (length of ``classes_``).
-    fit_time_ : int
-        Time (in milliseconds) for ``fit`` to run.
     _class_dictionary : dict
         Mapping of classes_ onto integers ``0 ... n_classes_-1``.
-    _n_jobs : int
-        Number of threads to use in estimator methods such as ``fit`` and ``predict``.
-        Determined by the ``n_jobs`` parameter if present.
     _estimator_type : string
         The type of estimator. Required by some ``sklearn`` tools, set to "classifier".
     """
@@ -70,17 +65,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
     }
 
     def __init__(self):
-        # reserved attributes written to in fit
         self.classes_ = []  # classes seen in y, unique labels
         self.n_classes_ = -1  # number of unique classes in y
         self._class_dictionary = {}
-        self.fit_time_ = -1
-        self._n_jobs = 1
-
-        # required for compatibility with some sklearn interfaces e.g.
-        # CalibratedClassifierCV
         self._estimator_type = "classifier"
-
         super().__init__()
         _check_estimator_deps(self)
 
@@ -101,7 +89,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -150,7 +138,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -171,7 +159,9 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             n_cases = get_n_cases(X)
             return np.repeat(list(self._class_dictionary.keys()), n_cases)
 
-        X = self._preprocess_collection(X)
+        X = self._preprocess_collection(X, store_metadata=False)
+        # Check if X is equal length but that is different to the length seen in fit
+        self._check_shape(X)
         return self._predict(X)
 
     @final
@@ -191,7 +181,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -214,11 +204,12 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             n_cases = get_n_cases(X)
             return np.repeat([[1]], n_cases, axis=0)
 
-        X = self._preprocess_collection(X)
+        X = self._preprocess_collection(X, store_metadata=False)
+        self._check_shape(X)
         return self._predict_proba(X)
 
     @final
-    def fit_predict(self, X, y) -> np.ndarray:
+    def fit_predict(self, X, y, **kwargs) -> np.ndarray:
         """Fits the classifier and predicts class labels for X.
 
         fit_predict produces prediction estimates using just the train data.
@@ -245,7 +236,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -255,6 +246,15 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         y : np.ndarray
             1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
+        kwargs : dict
+            key word arguments to configure the default cross validation if the base
+            class default fit_predict is used (i.e. if function ``_fit_predict`` is
+            not overridden. If ``_fit_predict`` is overridden, kwargs may not
+            function as expected. If ``_fit_predict`` is not overridden, valid input is
+            ``cv_size`` integer, which is the number of cross validation folds to use to
+            estimate train data. If ``cv_size`` is not passed, the default is 10.
+            If ``cv_size`` is greater than the minimum number of samples in any
+            class, it is set to this minimum.
 
         Returns
         -------
@@ -263,19 +263,18 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             instance indices in
         """
         X, y, single_class = self._fit_setup(X, y)
-
         if single_class:
             n_cases = get_n_cases(X)
             y_pred = np.repeat(list(self._class_dictionary.keys()), n_cases)
         else:
-            y_pred = self._fit_predict(X, y)
+            y_pred = self._fit_predict(X, y, **kwargs)
 
         # this should happen last
         self._is_fitted = True
         return y_pred
 
     @final
-    def fit_predict_proba(self, X, y) -> np.ndarray:
+    def fit_predict_proba(self, X, y, **kwargs) -> np.ndarray:
         """Fits the classifier and predicts class label probabilities for X.
 
         fit_predict_proba produces probability estimates using just the train data.
@@ -303,7 +302,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -313,6 +312,15 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         y : np.ndarray
             1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
+        kwargs : dict
+            key word arguments to configure the default cross validation if the base
+            class default fit_predict is used (i.e. if function ``_fit_predict`` is
+            not overridden. If ``_fit_predict`` is overridden, kwargs may not
+            function as expected. If ``_fit_predict`` is not overridden, valid input is
+            ``cv_size`` integer, which is the number of cross validation folds to use to
+            estimate train data. If ``cv_size`` is not passed, the default is 10.
+            If ``cv_size`` is greater than the minimum number of samples in any
+            class, it is set to this minimum.
 
         Returns
         -------
@@ -328,13 +336,15 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             n_cases = get_n_cases(X)
             y_proba = np.repeat([[1]], n_cases, axis=0)
         else:
-            y_proba = self._fit_predict_proba(X, y)
+            y_proba = self._fit_predict_proba(X, y, **kwargs)
 
         # this should happen last
         self._is_fitted = True
         return y_proba
 
-    def score(self, X, y) -> float:
+    def score(
+        self, X, y, metric="accuracy", use_proba=False, metric_params=None
+    ) -> float:
         """Scores predicted labels against ground truth labels on X.
 
         Parameters
@@ -350,7 +360,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -360,6 +370,14 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         y : np.ndarray
             1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
+        metric : Union[str, callable], default="accuracy",
+            Defines the scoring metric to test the fit of the model. For supported
+            strings arguments, check `sklearn.metrics.get_scorer_names`.
+        use_proba : bool, default=False,
+            Argument to check if scorer works on probability estimates or not.
+        metric_params : dict, default=None,
+            Contains parameters to be passed to the scoring function. If None, no
+            parameters are passed.
 
         Returns
         -------
@@ -368,7 +386,30 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         """
         self.check_is_fitted()
         self._check_y(y, len(X), update_classes=False)
-        return accuracy_score(y, self.predict(X), normalize=True)
+        _metric_params = metric_params
+        if metric_params is None:
+            _metric_params = {}
+        if isinstance(metric, str):
+            __names = get_scorer_names()
+            if metric not in __names:
+                raise ValueError(
+                    f"Metric {metric} is incompatible with `sklearn.metrics.get_scorer`"
+                    "function. Valid list of metrics can be obtained using "
+                    "the `sklearn.metrics.get_scorer_names` function."
+                )
+            scorer = get_scorer(metric)
+            if use_proba:
+                return scorer._score_func(y, self.predict_proba(X), **_metric_params)
+            return scorer._score_func(y, self.predict(X), **_metric_params)
+        elif callable(metric):
+            if use_proba:
+                return metric(y, self.predict_proba(X), **_metric_params)
+            return metric(y, self.predict(X), **_metric_params)
+        else:
+            raise ValueError(
+                "The metric parameter should be either a string or a callable"
+                f", but got {metric} of type {type(metric)}"
+            )
 
     @abstractmethod
     def _fit(self, X, y):
@@ -455,7 +496,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         return dists
 
-    def _fit_predict(self, X, y) -> np.ndarray:
+    def _fit_predict(self, X, y, **kwargs) -> np.ndarray:
         """Fits and predicts labels for sequences in X.
 
         Parameters
@@ -476,9 +517,10 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             shape ``[n_cases]`` - predicted class labels indices correspond to
             instance indices in
         """
-        return self._fit_predict_default(X, y, "predict")
+        cv_size = BaseClassifier._get_folds(kwargs)
+        return self._fit_predict_default(X, y, "predict", cv_size)
 
-    def _fit_predict_proba(self, X, y) -> np.ndarray:
+    def _fit_predict_proba(self, X, y, **kwargs) -> np.ndarray:
         """Fits and predicts labels probabilities for sequences in X.
 
         Parameters
@@ -501,7 +543,8 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
         """
-        return self._fit_predict_default(X, y, "predict_proba")
+        cv_size = BaseClassifier._get_folds(kwargs)
+        return self._fit_predict_default(X, y, "predict_proba", cv_size)
 
     def _fit_setup(self, X, y):
         # reset estimator at the start of fit
@@ -550,12 +593,11 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         return y
 
-    def _fit_predict_default(self, X, y, method):
-        # fit the classifier
+    def _fit_predict_default(self, X, y, method, cv_size=10):
+        # fit the classifier to all the data
         self._fit(X, y)
 
-        # predict using cross-validation
-        cv_size = 10
+        # predict on training data using cross-validation
         _, counts = np.unique(y, return_counts=True)
         min_class = np.min(counts)
         if min_class < cv_size:
@@ -577,3 +619,16 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             method=method,
             n_jobs=self._n_jobs,
         )
+
+    @staticmethod
+    def _get_folds(dict):
+        """Get the number of CV folds from kwargs dict."""
+        cv_size = 10
+        if "cv_size" in dict:
+            if not isinstance(dict["cv_size"], int) or dict["cv_size"] < 1:
+                raise ValueError(
+                    "cv_size must be an integer greater than 0, but found "
+                    f"{dict['cv_size']}"
+                )
+            cv_size = dict["cv_size"]
+        return cv_size

@@ -1,6 +1,6 @@
-"""Time Convolutional Neural Network (CNN) for classification."""
+"""Time series Attentional Prototype Network (TapNet) regressor."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = [
     "TapNetRegressor",
 ]
@@ -38,6 +38,8 @@ class TapNetRegressor(BaseDeepRegressor):
         number of epochs to train the model
     batch_size          : int, default = 16
         number of samples per update
+    callbacks           : list of str, default = None
+        list of callbacks to apply during training
     dropout             : float, default = 0.5
         dropout rate, in the range [0, 1)
     dilation            : int, default = 1
@@ -46,8 +48,15 @@ class TapNetRegressor(BaseDeepRegressor):
         activation function for the last output layer
     loss                : str, default = "mean_squared_error"
         loss function for the classifier
+    metrics: str or list of str, default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     optimizer           : str or None, default = "Adam(lr=0.01)"
         gradient updating function for the classifier
+    padding             : str, default = "same"
+        padding argument for the convolutional layers
     use_bias            : bool, default = True
         whether to use bias in the output dense layer
     use_rp              : bool, default = True
@@ -60,8 +69,15 @@ class TapNetRegressor(BaseDeepRegressor):
         whether to use a CNN layer
     verbose         : bool, default = False
         whether to output extra information
-    random_state    : int or None, default = None
-        seed for random
+    rp_params       : tuple, default = (-1, 3)
+        parameters for random projection
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
 
     References
     ----------
@@ -101,7 +117,7 @@ class TapNetRegressor(BaseDeepRegressor):
         padding="same",
         loss="mean_squared_error",
         optimizer=None,
-        metrics=None,
+        metrics="mean_squared_error",
         callbacks=None,
         verbose=False,
     ):
@@ -166,13 +182,13 @@ class TapNetRegressor(BaseDeepRegressor):
         -------
         output: a compiled Keras model
         """
+        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
 
-        tf.random.set_seed(self.random_state)
-
-        metrics = ["mean_squared_error"] if self.metrics is None else self.metrics
-
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
@@ -189,7 +205,7 @@ class TapNetRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -212,9 +228,12 @@ class TapNetRegressor(BaseDeepRegressor):
         # Transpose to conform to expectation format from keras
         X = X.transpose(0, 2, 1)
 
-        check_random_state(self.random_state)
         self.input_shape = X.shape[1:]
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
         self.model_ = self.build_model(self.input_shape)
         if self.verbose:
             self.model_.summary()

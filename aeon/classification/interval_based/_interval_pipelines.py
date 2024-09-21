@@ -83,7 +83,7 @@ class RandomIntervalClassifier(BaseClassifier):
     --------
     >>> from aeon.classification.interval_based import RandomIntervalClassifier
     >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = RandomIntervalClassifier(
@@ -94,7 +94,7 @@ class RandomIntervalClassifier(BaseClassifier):
     >>> clf.fit(X, y)
     RandomIntervalClassifier(...)
     >>> clf.predict(X)
-    array([0, 1, 0, 1, 0, 0, 0, 1, 1, 0])
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {
@@ -320,7 +320,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
     --------
     >>> from aeon.classification.interval_based import SupervisedIntervalClassifier
     >>> from sklearn.ensemble import RandomForestClassifier
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = SupervisedIntervalClassifier(

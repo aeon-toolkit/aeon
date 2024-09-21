@@ -15,9 +15,7 @@ from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.convolution_based import (
     MiniRocket,
-    MiniRocketMultivariate,
     MultiRocket,
-    MultiRocketMultivariate,
     Rocket,
 )
 
@@ -47,14 +45,26 @@ class RocketClassifier(BaseClassifier):
     estimator : sklearn compatible classifier or None, default=None
         The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
         is used.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        Only applies if estimator is None and the default is used.
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for both `fit` and `predict`.
+        ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
 
     Attributes
     ----------
@@ -107,16 +117,19 @@ class RocketClassifier(BaseClassifier):
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
         estimator=None,
-        random_state=None,
+        class_weight=None,
         n_jobs=1,
+        random_state=None,
     ):
         self.num_kernels = num_kernels
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
-        self.random_state = random_state
         self.estimator = estimator
+
+        self.class_weight = class_weight
         self.n_jobs = n_jobs
+        self.random_state = random_state
 
         super().__init__()
 
@@ -150,44 +163,29 @@ class RocketClassifier(BaseClassifier):
                 random_state=self.random_state,
             )
         elif rocket_transform == "minirocket":
-            if self.n_channels_ > 1:
-                self._transformer = MiniRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
-            else:
-                self._transformer = MiniRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
+            self._transformer = MiniRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+                n_jobs=self.n_jobs,
+                random_state=self.random_state,
+            )
         elif rocket_transform == "multirocket":
-            if self.n_channels_ > 1:
-                self._transformer = MultiRocketMultivariate(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
-            else:
-                self._transformer = MultiRocket(
-                    num_kernels=self.num_kernels,
-                    max_dilations_per_kernel=self.max_dilations_per_kernel,
-                    n_features_per_kernel=self.n_features_per_kernel,
-                    n_jobs=self.n_jobs,
-                    random_state=self.random_state,
-                )
+            self._transformer = MultiRocket(
+                num_kernels=self.num_kernels,
+                max_dilations_per_kernel=self.max_dilations_per_kernel,
+                n_features_per_kernel=self.n_features_per_kernel,
+                n_jobs=self.n_jobs,
+                random_state=self.random_state,
+            )
         else:
             raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
 
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
             (
-                RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
+                RidgeClassifierCV(
+                    alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
+                )
                 if self.estimator is None
                 else self.estimator
             ),

@@ -16,15 +16,15 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.base import BaseObject
-from aeon.datatypes import mtype_to_scitype
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import _make_hierarchical
+from aeon.testing.data_generation._legacy import (
     _make_classification_y,
     _make_collection_X,
-    _make_hierarchical,
     make_series,
 )
 from aeon.testing.utils.scenarios import TestScenario
 from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.utils.validation import abstract_types
 
 # random seed for generating data to keep scenarios exactly reproducible
 RAND_SEED = 42
@@ -109,9 +109,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
 
         # the case that we would need to vectorize with y, skip
         X_inner_type = get_tag(obj, "X_inner_type")
-        X_inner_abstract_types = mtype_to_scitype(
-            X_inner_type, return_unique=True, coerce_to_list=True
-        )
+        X_inner_abstract_types = abstract_types(X_inner_type)
         # we require vectorization from of a Series trafo to Panel data ...
         if X_type == "Panel" and "Panel" not in X_inner_abstract_types:
             # ... but y is passed and y is not ignored internally ...
@@ -122,9 +120,7 @@ class TransformerTestScenario(TestScenario, BaseObject):
         # ensure scenario y matches type of inner y
         y_inner_type = get_tag(obj, "y_inner_type")
         if y_inner_type not in [None, "None"]:
-            y_inner_abstract_types = mtype_to_scitype(
-                y_inner_type, return_unique=True, coerce_to_list=True
-            )
+            y_inner_abstract_types = abstract_types(y_inner_type)
             if y_type not in y_inner_abstract_types:
                 return False
 

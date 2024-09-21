@@ -1,6 +1,6 @@
 """Residual Network (ResNet) for clustering."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["AEResNetClusterer"]
 
 import gc
@@ -11,23 +11,28 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
+from aeon.clustering.dummy import DummyClusterer
 from aeon.networks import AEResNetNetwork
 
 
 class AEResNetClusterer(BaseDeepClusterer):
     """
-    Residual Neural Network (RNN).
+    Auto-Encoder with Residual Network backbone for clustering.
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
     n_clusters : int, default=None
-    Number of clusters for the deep learning model.
-    clustering_algorithm : str, default="kmeans"
-        The clustering algorithm used in the latent space.
+        Please use 'estimator' parameter.
+    estimator : aeon clusterer, default=None
+        An aeon estimator to be built using the transformed data.
+        Defaults to aeon TimeSeriesKMeans() with euclidean distance
+        and mean averaging method and n_clusters set to 2.
+    clustering_algorithm : str, default="deprecated"
+        Please use 'estimator' parameter.
     clustering_params : dict, default=None
-        Dictionary containing the parameters of the clustering algorithm chosen.
+        Please use 'estimator' parameter.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
@@ -40,7 +45,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         The number of convolution filters for all the convolution layers in the same
         residual block, if not a list, the same number of filters is used in all
         convolutions of all residual blocks.
-    kernel_sizes : int or list of int, default = [8, 5, 3]
+    kernel_size : int or list of int, default = [8, 5, 3]
         The kernel size of all the convolution layers in one residual block, if not
         a list, the same kernel size is used in all convolution layers.
     strides : int or list of int, default = 1
@@ -68,6 +73,13 @@ class AEResNetClusterer(BaseDeepClusterer):
         Condition on using the mini batch size formula Wang et al.
     callbacks : callable or None, default ReduceOnPlateau and ModelCheckpoint
         List of tf.keras.callbacks.Callback objects.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     file_path : str, default = './'
         file_path when saving model_Checkpoint callback.
     save_best_model : bool, default = False
@@ -89,7 +101,8 @@ class AEResNetClusterer(BaseDeepClusterer):
     loss : string, default = "mean_squared_error"
         fit parameter for the keras model.
     optimizer : keras.optimizer, default = keras.optimizers.Adam()
-    metrics : list of strings, default = ["accuracy"]
+    metrics : list of strings, default = ["mean_squared_error"]
+        will be set to mean_squared_error as default if None
 
     Notes
     -----
@@ -107,16 +120,17 @@ class AEResNetClusterer(BaseDeepClusterer):
     >>> from aeon.clustering.deep_learning import AEResNetClusterer
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> ae_resnet = AEResNetClusterer(n_clusters=2,n_epochs=20) # doctest: +SKIP
+    >>> ae_resnet = AEResNetClusterer(n_epochs=20) # doctest: +SKIP
     >>> ae_resnet.fit(X_train, y_train) # doctest: +SKIP
     AEResNetClusterer(...)
     """
 
     def __init__(
         self,
-        n_clusters,
+        n_clusters=None,
+        estimator=None,
         n_residual_blocks=3,
-        clustering_algorithm="kmeans",
+        clustering_algorithm="deprecated",
         clustering_params=None,
         n_conv_per_residual_block=3,
         n_filters=None,
@@ -168,6 +182,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         self.history = None
 
         super().__init__(
+            estimator=estimator,
             n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
@@ -205,9 +220,17 @@ class AEResNetClusterer(BaseDeepClusterer):
         -------
         output : a compiled Keras Model.
         """
+        import numpy as np
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
+        if self.metrics is None:
+            self._metrics = ["mean_squared_error"]
+        elif isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            raise ValueError("Metrics should be a list, string, or None.")
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam(learning_rate=0.01)
@@ -215,6 +238,9 @@ class AEResNetClusterer(BaseDeepClusterer):
             else self.optimizer
         )
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         encoder, decoder = self._network.build_network(input_shape, **kwargs)
 
         input_layer = tf.keras.layers.Input(input_shape, name="input layer")
@@ -229,6 +255,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
+            metrics=self._metrics,
         )
 
         return model
@@ -250,8 +277,6 @@ class AEResNetClusterer(BaseDeepClusterer):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
-        check_random_state(self.random_state)
-
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 
@@ -262,8 +287,8 @@ class AEResNetClusterer(BaseDeepClusterer):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
@@ -273,9 +298,12 @@ class AEResNetClusterer(BaseDeepClusterer):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         if self.use_mini_batch_size:
             mini_batch_size = min(self.batch_size, X.shape[0] // 10)
@@ -312,7 +340,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        return self.clusterer.score(latent_space)
+        return self._estimator.score(latent_space)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -337,17 +365,14 @@ class AEResNetClusterer(BaseDeepClusterer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param = {
-            "n_clusters": 2,
             "n_epochs": 1,
             "batch_size": 4,
             "n_residual_blocks": 1,
             "n_conv_per_residual_block": 1,
-            "clustering_params": {
-                "distance": "euclidean",
-                "averaging_method": "mean",
-                "n_init": 1,
-                "max_iter": 30,
-            },
+            "n_filters": 1,
+            "kernel_size": 2,
+            "use_bias": False,
+            "estimator": DummyClusterer(n_clusters=2),
         }
 
         test_params = [param]

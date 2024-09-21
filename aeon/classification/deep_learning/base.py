@@ -5,7 +5,7 @@ The reason for this class between BaseClassifier and deep_learning classifiers i
 because we can generalise tags, _predict and _predict_proba
 """
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["BaseDeepClassifier"]
 
 from abc import ABC, abstractmethod
@@ -45,7 +45,6 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         "non-deterministic": True,
         "cant-pickle": True,
         "python_dependencies": "tensorflow",
-        "python_version": "<3.12",
     }
 
     def __init__(
@@ -161,3 +160,45 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         None
         """
         self.model_.save(file_path + self.last_file_name + ".keras")
+
+    def load_model(self, model_path, classes):
+        """Load a pre-trained keras model instead of fitting.
+
+        When calling this function, all functionalities can be used
+        such as predict, predict_proba etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : str (path including model name and extension)
+            The directory where the model will be saved including the model
+            name with a ".keras" extension.
+            Example: model_path="path/to/file/best_model.keras"
+        classes : np.ndarray
+            The set of unique classes the pre-trained loaded model is trained
+            to predict during the classification task.
+
+        Returns
+        -------
+        None
+        """
+        import tensorflow as tf
+
+        self.model_ = tf.keras.models.load_model(model_path)
+        self._is_fitted = True
+
+        self.classes_ = classes
+        self.n_classes_ = len(self.classes_)
+
+    def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
+        import tensorflow as tf
+
+        model_checkpoint_ = tf.keras.callbacks.ModelCheckpoint(
+            filepath=file_path + file_name + ".keras",
+            monitor="loss",
+            save_best_only=True,
+        )
+
+        if isinstance(callbacks, list):
+            return callbacks + [model_checkpoint_]
+        else:
+            return [callbacks] + [model_checkpoint_]

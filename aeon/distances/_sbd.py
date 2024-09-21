@@ -2,14 +2,14 @@
 
 __maintainer__ = ["codelionx"]
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit, objmode
 from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
-from aeon.distances._utils import _convert_to_list
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -113,8 +113,8 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
 
 
 def sbd_pairwise_distance(
-    x: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     standardize: bool = True,
 ) -> np.ndarray:
     """
@@ -127,7 +127,7 @@ def sbd_pairwise_distance(
 
     Parameters
     ----------
-    x : np.ndarray or List of np.ndarray
+    X : np.ndarray or List of np.ndarray
         A collection of time series instances  of shape ``(n_cases, n_timepoints)``
         or ``(n_cases, n_channels, n_timepoints)``.
     y : np.ndarray or List of np.ndarray or None, default=None
@@ -174,11 +174,11 @@ def sbd_pairwise_distance(
            [0., 0., 0.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
+    >>> y_univariate = np.array([11, 12, 13])
     >>> sbd_pairwise_distance(X, y_univariate)
-    array([[0., 0., 0.],
-           [0., 0., 0.],
-           [0., 0., 0.]])
+    array([[0.],
+           [0.],
+           [0.]])
 
     >>> # Distance between each TS in a collection of unequal-length time series
     >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
@@ -187,14 +187,15 @@ def sbd_pairwise_distance(
            [0.36754447, 0.        , 0.29289322],
            [0.5527864 , 0.29289322, 0.        ]])
     """
-    _x = _convert_to_list(x, "x")
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, _ = _convert_to_list(X, "", multivariate_conversion)
 
     if y is None:
         # To self
-        return _sbd_pairwise_distance_single(_x, standardize)
+        return _sbd_pairwise_distance_single(_X, standardize)
 
-    _y = _convert_to_list(y, "y")
-    return _sbd_pairwise_distance(_x, _y, standardize)
+    _y, _ = _convert_to_list(y, "y", multivariate_conversion)
+    return _sbd_pairwise_distance(_X, _y, standardize)
 
 
 @njit(cache=True, fastmath=True)

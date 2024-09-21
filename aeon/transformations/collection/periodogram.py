@@ -36,7 +36,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection import PeriodogramTransformer
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=2, n_timepoints=20,
     ...                           random_state=0, return_y=False)
     >>> tnf = PeriodogramTransformer()
@@ -53,6 +53,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
 
     _tags = {
         "capability:multivariate": True,
+        "fit_is_empty": True,
     }
 
     def __init__(

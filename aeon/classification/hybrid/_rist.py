@@ -92,7 +92,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
     Examples
     --------
     >>> from aeon.classification.hybrid import RISTClassifier
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, random_state=0)
     >>> clf = RISTClassifier(random_state=0)  # doctest: +SKIP
@@ -121,8 +121,6 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         if use_pyfftw:
             d.append("pyfftw")
 
-        self.set_tags(**{"python_dependencies": d})
-
         super().__init__(
             n_intervals=n_intervals,
             n_shapelets=n_shapelets,
@@ -133,6 +131,8 @@ class RISTClassifier(BaseRIST, BaseClassifier):
             random_state=random_state,
             n_jobs=n_jobs,
         )
+
+        self.set_tags(**{"python_dependencies": d if len(d) > 1 else d[0]})
 
     _tags = {
         "capability:multivariate": True,
@@ -156,12 +156,29 @@ class RISTClassifier(BaseRIST, BaseClassifier):
         params : dict or list of dict
             Parameters to create testing instances of the class.
         """
-        return {
-            "series_transformers": [
-                None,
-                FunctionTransformer(func=first_order_differences_3d, validate=False),
-            ],
-            "n_intervals": 1,
-            "n_shapelets": 2,
-            "estimator": ExtraTreesClassifier(n_estimators=2, criterion="entropy"),
-        }
+        if parameter_set == "results_comparison":
+            return {
+                "n_intervals": 2,
+                "n_shapelets": 3,
+                "series_transformers": [
+                    None,
+                    FunctionTransformer(
+                        func=first_order_differences_3d, validate=False
+                    ),
+                ],
+                "estimator": ExtraTreesClassifier(n_estimators=3, criterion="entropy"),
+                "random_state": 0,
+                "n_jobs": 1,
+            }
+        else:
+            return {
+                "series_transformers": [
+                    None,
+                    FunctionTransformer(
+                        func=first_order_differences_3d, validate=False
+                    ),
+                ],
+                "n_intervals": 1,
+                "n_shapelets": 2,
+                "estimator": ExtraTreesClassifier(n_estimators=2, criterion="entropy"),
+            }

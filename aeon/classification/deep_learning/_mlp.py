@@ -1,6 +1,6 @@
-"""Multi Layer Perceptron Network (MLP) for classification."""
+"""Multi Layer Perceptron Network (MLP) classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["MLPClassifier"]
 
 import gc
@@ -28,8 +28,13 @@ class MLPClassifier(BaseDeepClassifier):
     use_mini_batch_size : boolean, default = False
         Condition on using the mini batch size formula
     callbacks : callable or None, default
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
     loss : string, default="mean_squared_error"
@@ -46,6 +51,8 @@ class MLPClassifier(BaseDeepClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -54,6 +61,9 @@ class MLPClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     optimizer : keras.optimizer, default=keras.optimizers.Adadelta(),
     metrics : list of strings, default=["accuracy"],
     activation : string or a tf callable, default="sigmoid"
@@ -96,8 +106,10 @@ class MLPClassifier(BaseDeepClassifier):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         random_state=None,
         activation="sigmoid",
         use_bias=True,
@@ -114,7 +126,9 @@ class MLPClassifier(BaseDeepClassifier):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.optimizer = optimizer
 
         self.history = None
@@ -146,19 +160,22 @@ class MLPClassifier(BaseDeepClassifier):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
-
-        tf.random.set_seed(self.random_state)
 
         if self.metrics is None:
             metrics = ["accuracy"]
         else:
             metrics = self.metrics
+
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+            units=n_classes, activation="softmax", use_bias=self.use_bias
         )(output_layer)
 
         self.optimizer_ = (
@@ -193,10 +210,11 @@ class MLPClassifier(BaseDeepClassifier):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
-        check_random_state(self.random_state)
-
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
 
         if self.verbose:
             self.training_model_.summary()
@@ -205,8 +223,8 @@ class MLPClassifier(BaseDeepClassifier):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=200, min_lr=0.1
                 ),
@@ -216,9 +234,12 @@ class MLPClassifier(BaseDeepClassifier):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         if self.use_mini_batch_size:
             mini_batch_size = min(self.batch_size, X.shape[0] // 10)

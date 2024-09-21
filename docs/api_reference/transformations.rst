@@ -43,34 +43,6 @@ Transformations are categorized as follows:
 Composition
 -----------
 
-Pipeline building
-~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TransformerPipeline
-    FeatureUnion
-    ColumnwiseTransformer
-    ColumnTransformer
-    FitInTransform
-    MultiplexTransformer
-    OptionalPassthrough
-    InvertTransform
-    Id
-    YtoX
-
-.. currentmodule:: aeon.transformations.func_transform
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FunctionTransformer
-
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -82,15 +54,6 @@ Sklearn and pandas adapters
 
     Tabularizer
 
-.. currentmodule:: aeon.transformations.adapt
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TabularToSeriesAdaptor
-    PandasTransformAdaptor
-
 Series-to-tabular transformers
 -------------------------------
 
@@ -99,21 +62,6 @@ features, usually a vector of floats, but can also be categorical.
 
 When applied to collections or hierarchical data, the transformation result is a table
 with as many rows as time series in the collection and a column for each feature.
-
-Summarization
-~~~~~~~~~~~~~
-
-These transformers extract simple summary features.
-
-.. currentmodule:: aeon.transformations.summarize
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    SummaryTransformer
-    WindowSummarizer
-    FittedParamExtractor
 
 
 Shapelets, wavelets and convolution
@@ -137,10 +85,8 @@ Shapelets, wavelets and convolution
 
     Rocket
     MiniRocket
-    MiniRocketMultivariate
     MiniRocketMultivariateVariable
     MultiRocket
-    MultiRocketMultivariate
 
 .. currentmodule:: aeon.transformations.collection.dwt
 
@@ -200,32 +146,15 @@ These transformers extract larger collections of features.
     TSFreshFeatureExtractor
     Catch22
 
-Series-to-series transformers
------------------------------
 
-Series-to-series transformers transform individual time series into another time series.
-When applied to collections or hierarchical data, individual series are transformed
-through broadcasting.
-
-Lagging
-~~~~~~~
-
-.. currentmodule:: aeon.transformations.lag
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Lag
-
-Element-wise transforms
+Series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 These transformations apply a function element-wise.
 
 Depending on the transformer, the transformation parameters can be fitted.
 
-.. currentmodule:: aeon.transformations.boxcox
+.. currentmodule:: aeon.transformations.series._boxcox
 
 .. autosummary::
     :toctree: auto_generated/
@@ -234,46 +163,10 @@ Depending on the transformer, the transformation parameters can be fitted.
     BoxCoxTransformer
     LogTransformer
 
-.. currentmodule:: aeon.transformations.scaledlogit
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ScaledLogitTransformer
-
-.. currentmodule:: aeon.transformations.cos
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    CosineTransformer
-
-.. currentmodule:: aeon.transformations.exponent
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ExponentTransformer
-    SqrtTransformer
-
 Detrending
 ~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.detrend
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Detrender
-    Deseasonalizer
-    ConditionalDeseasonalizer
-    STLTransformer
-
-.. currentmodule:: aeon.transformations.clear_sky
+.. currentmodule:: aeon.transformations.series._clear_sky
 
 .. autosummary::
     :toctree: auto_generated/
@@ -285,7 +178,7 @@ Detrending
 Filtering and denoising
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.bkfilter
+.. currentmodule:: aeon.transformations.series._bkfilter
 
 .. autosummary::
     :toctree: auto_generated/
@@ -293,32 +186,32 @@ Filtering and denoising
 
     BKFilter
 
-.. currentmodule:: aeon.transformations.kalman_filter
+.. currentmodule:: aeon.transformations.series._dft
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    KalmanFilterTransformer
+    DFTSeriesTransformer
 
-.. currentmodule:: aeon.transformations.theta
+.. currentmodule:: aeon.transformations.series._sg
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    ThetaLinesTransformer
+    SGSeriesTransformer
 
-Differencing and slope
+.. currentmodule:: aeon.transformations.series._siv
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SIVSeriesTransformer
+
+Slope
 ~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.difference
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Differencer
 
 .. currentmodule:: aeon.transformations.collection.slope
 
@@ -328,16 +221,8 @@ Differencing and slope
 
     SlopeTransformer
 
-Binning and segmentation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.binning
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeBinAggregate
+Segmentation
+~~~~~~~~~~~~
 
 .. currentmodule:: aeon.transformations.collection.interpolate
 
@@ -355,56 +240,7 @@ Binning and segmentation
 
     IntervalSegmenter
     RandomIntervalSegmenter
-
-Missing value imputation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.impute
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Imputer
-
-Seasonality and Date-Time Features
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.date
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DateTimeFeatures
-
-.. currentmodule:: aeon.transformations.time_since
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TimeSince
-
-.. currentmodule:: aeon.transformations.fourier
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FourierFeatures
-
-Auto-correlation series
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.acf
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    AutoCorrelationTransformer
-    PartialAutoCorrelationTransformer
+    SlidingWindowSegmenter
 
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -419,68 +255,16 @@ These transformers create a series based on a sequence of sliding windows.
 
     HOG1DTransformer
 
-Multivariate-to-univariate
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These transformers convert multivariate series to univariate.
-
-.. currentmodule:: aeon.transformations.compose
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ColumnConcatenator
-
-Augmentation
-~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.augmenter
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    InvertAugmenter
-    RandomSamplesAugmenter
-    ReverseAugmenter
-    WhiteNoiseAugmenter
-
-FeatureSelection
-~~~~~~~~~~~~~~~~
-
-These transformers select features in `X` based on `y`.
-
-.. currentmodule:: aeon.transformations.feature_selection
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    FeatureSelection
-
 .. currentmodule:: aeon.transformations.collection.channel_selection
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
+    ChannelScorer
     ElbowClassSum
     ElbowClassPairwise
-
-Subsetting time points and variables
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-These transformers subset `X` by time points (`pandas` index or index level) or variables (`pandas` columns).
-
-.. currentmodule:: aeon.transformations.subset
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    ColumnSelect
-    IndexSubset
+    RandomChannelSelector
 
 Panel transformers
 ------------------
@@ -514,7 +298,7 @@ These transformations ensure all series in a panel have equal length
 Dimension reduction
 ~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.pca
+.. currentmodule:: aeon.transformations.series._pca
 
 .. autosummary::
     :toctree: auto_generated/
@@ -527,56 +311,14 @@ Series-to-Panel transformers
 
 These transformers create a panel from a single series.
 
-Bootstrap transformations
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.bootstrap
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    STLBootstrapTransformer
-    MovingBlockBootstrapTransformer
 
 Outlier detection, changepoint detection
 ----------------------------------------
 
-.. currentmodule:: aeon.transformations.outlier_detection
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    HampelFilter
-
-.. currentmodule:: aeon.transformations.clasp
+.. currentmodule:: aeon.transformations.series._clasp
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
     ClaSPTransformer
-
-Hierarchical transformers
--------------------------
-
-These transformers are specifically for hierarchical data and panel data.
-
-The transformation depends on the specified hierarchy in a non-trivial way.
-
-.. currentmodule:: aeon.transformations.hierarchical.aggregate
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Aggregator
-
-.. currentmodule:: aeon.transformations.hierarchical.reconcile
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    Reconciler

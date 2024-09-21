@@ -2,6 +2,7 @@
 
 __maintainer__ = []
 
+import inspect
 from inspect import isclass, signature
 
 import numpy as np
@@ -12,11 +13,38 @@ from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
-from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.testing.test_config import VALID_ESTIMATOR_TYPES
+from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import is_nested_univ_dataframe
+
+
+def _run_estimator_method(estimator, method_name, datatype, split):
+    method = getattr(estimator, method_name)
+    args = inspect.getfullargspec(method)[0]
+    if "X" in args and "y" in args:
+        return method(
+            X=FULL_TEST_DATA_DICT[datatype][split][0],
+            y=FULL_TEST_DATA_DICT[datatype][split][1],
+        )
+    elif "X" in args:
+        return method(X=FULL_TEST_DATA_DICT[datatype][split][0])
+    else:
+        return method()
+
+
+def _get_tag(estimator, tag_name, default=None, raise_error=False):
+    if estimator is None:
+        return None
+    elif isclass(estimator):
+        return estimator.get_class_tag(
+            tag_name=tag_name, tag_value_default=default, raise_error=raise_error
+        )
+    else:
+        return estimator.get_tag(
+            tag_name=tag_name, tag_value_default=default, raise_error=raise_error
+        )
 
 
 def _get_err_msg(estimator):
@@ -41,7 +69,6 @@ def _list_required_methods(estimator):
     BASE_CLASSES_THAT_MUST_HAVE_PREDICT = (
         BaseClusterer,
         BaseRegressor,
-        BaseForecaster,
     )
     # transformation base classes that must have transform
     BASE_CLASSES_THAT_MUST_HAVE_TRANSFORM = (BaseTransformer,)
@@ -174,7 +201,4 @@ def _has_capability(est, method: str) -> bool:
         if method == "predict_proba" and isinstance(est, ALWAYS_HAVE_PREDICT_PROBA):
             return True
         return get_tag(est, "capability:pred_int", False)
-    # skip transform for forecasters that have it - pipelines
-    if method == "transform" and isinstance(est, BaseForecaster):
-        return False
     return True

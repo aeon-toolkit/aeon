@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  pull_request:
+  pull_request_target:
     branches:
       - main
 
@@ -14,11 +14,22 @@ concurrency:
 
 jobs:
   pre-commit:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout main
+      - name: Create app token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.head_ref }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
@@ -26,23 +37,29 @@ jobs:
           python-version: "3.10"
 
       - name: Get changed files
-        uses: tj-actions/changed-files@v43.0.1
+        uses: tj-actions/changed-files@v45
         id: changed-files
 
       - name: List changed files
         run: echo '${{ steps.changed-files.outputs.all_changed_files }}'
 
-      - if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
+      # only check the full repository if PR and correctly labelled
+      - if: ${{ github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
         name: Full pre-commit
         uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
-      - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
+      - if: ${{ github.event_name != 'pull_request_target' || !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
         name: Local pre-commit
         uses: pre-commit/action@v3.0.1
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
 
-      - if: ${{ failure() && github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+      # push fixes if pre-commit fails and PR is eligible
+      - if: ${{ failure() && github.event_name == 'pull_request_target' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'stop pre-commit fixes') }}
         name: Push pre-commit fixes
-        uses: pre-commit-ci/lite-action@v1.0.2
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Automatic `pre-commit` fixes
+          commit_user_name: aeon-actions-bot[bot]
+          create_branch: false

@@ -4,15 +4,15 @@ Pipeline regressor using the full set of TSFresh features and a RotationForestRe
 regressor.
 """
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["FreshPRINCERegressor"]
 
 import numpy as np
+from sklearn.tree import DecisionTreeRegressor
 
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
 from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
-from aeon.utils.validation.panel import check_X_y
 
 
 class FreshPRINCERegressor(BaseRegressor):
@@ -30,6 +30,12 @@ class FreshPRINCERegressor(BaseRegressor):
         "comprehensive".
     n_estimators : int, default=200
         Number of estimators for the RotationForestRegressor ensemble.
+    base_estimator : BaseEstimator or None, default="None"
+        Base estimator for the ensemble. By default, uses the sklearn
+        `DecisionTreeRegressor` using MSE as a splitting measure.
+    pca_solver : str, default="auto"
+        Solver to use for the PCA ``svd_solver`` parameter in rotation forest. See the
+        scikit-learn PCA implementation for options.
     verbose : int, default=0
         Level of output printed to the console (for information only)
     n_jobs : int, default=1
@@ -38,8 +44,11 @@ class FreshPRINCERegressor(BaseRegressor):
     chunksize : int or None, default=None
         Number of series processed in each parallel TSFresh job, should be optimised
         for efficient parallelisation.
-    random_state : int or None, default=None
-        Seed for random, integer.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     See Also
     --------
@@ -51,6 +60,12 @@ class FreshPRINCERegressor(BaseRegressor):
         scalable hypothesis tests (tsfresh-a python package)." Neurocomputing 307
         (2018): 72-77.
         https://www.sciencedirect.com/science/article/pii/S0925231218304843
+    .. [2] Middlehurst, M., Bagnall, A. "The FreshPRINCE: A Simple Transformation
+        Based Pipeline Time Series Classifier." In: El Yacoubi, M., Granger, E.,
+        Yuen, P.C., Pal, U., Vincent, N. (eds) Pattern Recognition and Artificial
+        Intelligence. ICPRAI 2022. Lecture Notes in Computer Science, vol 13364.
+        Springer, Cham. (2022).
+        https://link.springer.com/chapter/10.1007/978-3-031-09282-4_13
 
     Examples
     --------
@@ -75,7 +90,8 @@ class FreshPRINCERegressor(BaseRegressor):
         self,
         default_fc_parameters="comprehensive",
         n_estimators=200,
-        save_transformed_data=False,
+        base_estimator=None,
+        pca_solver="auto",
         verbose=0,
         n_jobs=1,
         chunksize=None,
@@ -83,8 +99,9 @@ class FreshPRINCERegressor(BaseRegressor):
     ):
         self.default_fc_parameters = default_fc_parameters
         self.n_estimators = n_estimators
+        self.base_estimator = base_estimator
+        self.pca_solver = pca_solver
 
-        self.save_transformed_data = save_transformed_data
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.chunksize = chunksize
@@ -93,7 +110,6 @@ class FreshPRINCERegressor(BaseRegressor):
         self.n_cases_ = 0
         self.n_channels_ = 0
         self.n_timepoints_ = 0
-        self.transformed_data_ = []
 
         self._rotf = None
         self._tsfresh = None
@@ -120,28 +136,8 @@ class FreshPRINCERegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
-
-        self._rotf = RotationForestRegressor(
-            n_estimators=self.n_estimators,
-            save_transformed_data=self.save_transformed_data,
-            n_jobs=self._n_jobs,
-            random_state=self.random_state,
-        )
-        self._tsfresh = TSFreshFeatureExtractor(
-            default_fc_parameters=self.default_fc_parameters,
-            n_jobs=self._n_jobs,
-            chunksize=self.chunksize,
-            show_warnings=self.verbose > 1,
-            disable_progressbar=self.verbose < 1,
-        )
-
-        X_t = self._tsfresh.fit_transform(X, y)
+        X_t = self._fit_fp_shared(X, y)
         self._rotf.fit(X_t, y)
-
-        if self.save_transformed_data:
-            self.transformed_data_ = X_t
-
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -159,27 +155,29 @@ class FreshPRINCERegressor(BaseRegressor):
         """
         return self._rotf.predict(self._tsfresh.transform(X))
 
-    def _get_train_preds(self, X, y) -> np.ndarray:
-        self.check_is_fitted()
-        X, y = check_X_y(X, y, coerce_to_numpy=True)
+    def _fit_predict(self, X, y):
+        X_t = self._fit_fp_shared(X, y)
+        return self._rotf.fit_predict(X_t, y)
 
-        n_cases, n_channels, n_timepoints = X.shape
+    def _fit_fp_shared(self, X, y):
+        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
-        if (
-            n_cases != self.n_cases_
-            or n_channels != self.n_channels_
-            or n_timepoints != self.n_timepoints_
-        ):
-            raise ValueError(
-                "n_cases, n_channels, n_timepoints mismatch. X should be "
-                "the same as the training data used in fit for generating train "
-                "probabilities."
-            )
+        self._rotf = RotationForestRegressor(
+            n_estimators=self.n_estimators,
+            base_estimator=self.base_estimator,
+            pca_solver=self.pca_solver,
+            n_jobs=self._n_jobs,
+            random_state=self.random_state,
+        )
+        self._tsfresh = TSFreshFeatureExtractor(
+            default_fc_parameters=self.default_fc_parameters,
+            n_jobs=self._n_jobs,
+            chunksize=self.chunksize,
+            show_warnings=self.verbose > 1,
+            disable_progressbar=self.verbose < 1,
+        )
 
-        if not self.save_transformed_data:
-            raise ValueError("Currently only works with saved transform data from fit.")
-
-        return self._rotf._get_train_preds(self.transformed_data_, y)
+        return self._tsfresh.fit_transform(X, y)
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -209,13 +207,9 @@ class FreshPRINCERegressor(BaseRegressor):
         if parameter_set == "results_comparison":
             return {
                 "n_estimators": 10,
+                "base_estimator": DecisionTreeRegressor(max_depth=3),
+                "pca_solver": "randomized",
                 "default_fc_parameters": "minimal",
-            }
-        elif parameter_set == "train_estimate":
-            return {
-                "n_estimators": 2,
-                "default_fc_parameters": "minimal",
-                "save_transformed_data": True,
             }
         else:
             return {

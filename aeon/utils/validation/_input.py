@@ -18,6 +18,52 @@ from aeon.utils.validation.collection import (
 )
 from aeon.utils.validation.series import is_hierarchical, is_single_series
 
+# String identifiers for the different types of time series data
+COLLECTIONS = ["numpy3D", "nested_univ", "pd-multiindex"]
+SERIES = ["pd.Series", "pd.DataFrame", "np.ndarray"]
+HIERARCHICAL = ["pd_multiindex_hier"]
+# not needed PROBA = ["pred_interval", "pred_quantiles", "pred_var"]
+
+
+def _abstract_type(input_type: str) -> str:
+    """Return the abstract type based on the string identifier of the input.
+
+    Parameters
+    ----------
+    input_type : str
+        String representation of the input type.
+
+    Returns
+    -------
+    str
+        Abstract type of the input, one of Series, Panel, Hierarchical or Unknown.
+    """
+    if input_type in SERIES:
+        return "Series"
+    if input_type in COLLECTIONS:
+        return "Panel"
+    if input_type in HIERARCHICAL:
+        return "Hierarchical"
+    return "Unknown"
+
+
+def abstract_types(input_types) -> list:
+    """Return the abstract types based on the string identifier of the input.
+
+    Parameters
+    ----------
+    input_types : str or list of str
+        String or list of string representations of the input types.
+
+    Returns
+    -------
+    list of str
+        Abstract type of the input, one of Series, Panel, Hierarchical or Unknown.
+    """
+    if isinstance(input_types, str):
+        input_types = [input_types]
+    return [_abstract_type(x) for x in input_types]
+
 
 def is_valid_input(X):
     """Test if input valid.
@@ -39,6 +85,12 @@ def is_valid_input(X):
 
 def validate_input(X):
     """Validate input.
+
+    This function checks if the input is a valid time series data structure for a
+    single series, collection of series or hierarchical series. If the input is valid
+    for one of these abstract types, it finds the metadata relating to the type,
+    whether series are univariate and whether it has nans or not, and returns this
+    information in a dictionary.
 
     Parameters
     ----------

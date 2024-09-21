@@ -82,7 +82,7 @@ class Catch22Regressor(BaseRegressor):
     --------
     >>> from aeon.regression.feature_based import Catch22Regressor
     >>> from sklearn.ensemble import RandomForestRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -94,8 +94,8 @@ class Catch22Regressor(BaseRegressor):
     >>> reg.fit(X, y)
     Catch22Regressor(...)
     >>> reg.predict(X)
-    array([0.66497445, 1.52167747, 0.73353397, 1.57550709, 0.46036267,
-           0.6494623 , 1.08156127, 1.09927538, 1.46025772, 0.37711294])
+    array([0.63821896, 1.0906666 , 0.58323551, 1.57550709, 0.48413489,
+           0.70976176, 1.33206165, 1.09927538, 1.51673405, 0.31683308])
     """
 
     _tags = {

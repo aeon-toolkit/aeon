@@ -1,6 +1,6 @@
-"""InceptionTime classifier."""
+"""InceptionTime and Inception classifiers."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
 import gc
@@ -103,6 +103,8 @@ class InceptionTimeClassifier(BaseClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name      : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -111,8 +113,16 @@ class InceptionTimeClassifier(BaseClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
-    random_state        : int, default = 0
-        seed to any needed random actions.
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose             : boolean, default = False
         whether to output extra information
     optimizer           : keras optimizer, default = Adam
@@ -176,8 +186,10 @@ class InceptionTimeClassifier(BaseClassifier):
         file_path="./",
         save_last_model=False,
         save_best_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -213,8 +225,10 @@ class InceptionTimeClassifier(BaseClassifier):
 
         self.save_last_model = save_last_model
         self.save_best_model = save_best_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -224,7 +238,7 @@ class InceptionTimeClassifier(BaseClassifier):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self.classifers_ = []
+        self.classifiers_ = []
 
         super().__init__()
 
@@ -242,7 +256,7 @@ class InceptionTimeClassifier(BaseClassifier):
         -------
         self : object
         """
-        self.classifers_ = []
+        self.classifiers_ = []
         rng = check_random_state(self.random_state)
 
         for n in range(0, self.n_classifiers):
@@ -264,8 +278,10 @@ class InceptionTimeClassifier(BaseClassifier):
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
+                save_init_model=self.save_init_model,
                 best_file_name=self.best_file_name + str(n),
                 last_file_name=self.last_file_name + str(n),
+                init_file_name=self.init_file_name + str(n),
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
                 n_epochs=self.n_epochs,
@@ -277,7 +293,7 @@ class InceptionTimeClassifier(BaseClassifier):
                 verbose=self.verbose,
             )
             cls.fit(X, y)
-            self.classifers_.append(cls)
+            self.classifiers_.append(cls)
             gc.collect()
 
         return self
@@ -318,7 +334,7 @@ class InceptionTimeClassifier(BaseClassifier):
         """
         probs = np.zeros((X.shape[0], self.n_classes_))
 
-        for cls in self.classifers_:
+        for cls in self.classifiers_:
             probs += cls._predict_proba(X)
 
         probs = probs / self.n_classifiers
@@ -432,16 +448,26 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             Whether or not to save the last model, last
             epoch trained, using the base class method
             save_last_model_to_file
+        save_init_model : bool, default = False
+            Whether to save the initialization of the  model.
         best_file_name      : str, default = "best_model"
             The name of the file of the best model, if
             save_best_model is set to False, this parameter
-            is discarded
+            is discarded.
         last_file_name      : str, default = "last_model"
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
-            is discarded
-        random_state        : int, default = 0
-            seed to any needed random actions.
+            is discarded.
+        init_file_name : str, default = "init_model"
+            The name of the file of the init model, if save_init_model is set to False,
+            this parameter is discarded.
+        random_state : int, RandomState instance or None, default=None
+            If `int`, random_state is the seed used by the random number generator;
+            If `RandomState` instance, random_state is the random number generator;
+            If `None`, the random number generator is the `RandomState` instance used
+            by `np.random`.
+            Seeded random number generation can only be guaranteed on CPU processing,
+            GPU processing will be non-deterministic.
         verbose             : boolean, default = False
             whether to output extra information
         optimizer           : keras optimizer, default = Adam
@@ -494,8 +520,10 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -528,7 +556,9 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.verbose = verbose
@@ -577,8 +607,12 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(n_classes, activation="softmax")(
@@ -586,8 +620,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-
-        tf.random.set_seed(self.random_state)
 
         if self.metrics is None:
             metrics = ["accuracy"]
@@ -640,6 +672,9 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             mini_batch_size = self.batch_size
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -647,8 +682,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
@@ -658,9 +693,12 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         self.history = self.training_model_.fit(
             X,

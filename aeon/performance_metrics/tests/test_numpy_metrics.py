@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from aeon.performance_metrics.forecasting import _functions
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation._legacy import make_series
 
 numpy_metrics = getmembers(_functions, isfunction)
 

@@ -1,6 +1,6 @@
 """Common timeseries plotting functionality."""
 
-__all__ = ["plot_series", "plot_lags", "plot_correlations"]
+__all__ = ["plot_series", "plot_lags", "plot_correlations", "plot_spectrogram"]
 __maintainer__ = []
 
 import math
@@ -8,10 +8,15 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+from scipy.fft import fftshift
+from scipy.signal import spectrogram
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.forecasting import check_interval_df, check_y
-from aeon.utils.validation.series import check_consistent_index_type
+from aeon.utils.validation.series import (
+    check_consistent_index_type,
+    check_y,
+    is_pred_interval_proba,
+)
 
 
 def plot_series(
@@ -41,8 +46,7 @@ def plot_series(
     title : str, default = None
         The text to use as the figure's suptitle.
     pred_interval : pd.DataFrame, default = None
-        Output of `forecaster.predict_interval()`. Contains columns for lower
-        and upper boundaries of confidence interval.
+        Contains columns for lower and upper boundaries of confidence interval.
 
     Returns
     -------
@@ -149,7 +153,7 @@ def plot_series(
     if legend:
         ax.legend()
     if pred_interval is not None:
-        check_interval_df(pred_interval, series[-1].index)
+        assert is_pred_interval_proba(pred_interval)
         ax = _plot_interval(ax, pred_interval)
 
     if _ax_kwarg_is_none:
@@ -220,7 +224,7 @@ def plot_lags(series, lags=1, suptitle=None):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    check_y(series)
+    series = check_y(series)
 
     if isinstance(lags, int):
         single_lag = True
@@ -356,3 +360,47 @@ def plot_correlations(
         fig.suptitle(suptitle, size="xx-large")
 
     return fig, np.array(fig.get_axes())
+
+
+def plot_spectrogram(series, fs=1, return_onesided=True):
+    """
+    Plot the spectrogram of a given time series.
+
+    Parameters
+    ----------
+    series : array_like
+        Input time series.
+    fs : float, Default is 1.
+        Sampling frequency of the input series (in Hz).
+    return_onesided : bool, Default is True.
+        Whether to return one-sided spectrum.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The created matplotlib figure.
+    ax : matplotlib.axes._axes.Axes
+        The axes of the plot.
+
+    Examples
+    --------
+    >>> from aeon.visualisation import plot_spectrogram
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> fig, ax = plot_spectrogram(y)  # doctest: +SKIP
+    """
+    _check_soft_dependencies("matplotlib")
+    import matplotlib.pyplot as plt
+
+    series = check_y(series)
+
+    fig, ax = plt.subplots()
+
+    _, _, _spectrogram = spectrogram(series, fs=fs, return_onesided=return_onesided)
+    if not return_onesided:
+        ax.pcolormesh(fftshift(_spectrogram, axes=0))
+    else:
+        ax.pcolormesh(_spectrogram)
+
+    ax.set_ylabel("Frequency [Hz]")
+    return fig, ax

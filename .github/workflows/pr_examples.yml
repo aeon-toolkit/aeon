@@ -19,10 +19,10 @@ concurrency:
 
 jobs:
   run-notebook-examples:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Python 3.10
@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Use numba cache to set env variables but not restore cache
+      - name: Restore numba cache
         uses: ./.github/actions/numba_cache
         with:
           cache_name: "run-notebook-examples"
@@ -45,5 +45,5 @@ jobs:
           command: python -m pip install .[all_extras,binder,dev]
 
       - name: Run example notebooks
-        run: build_tools/run_examples.sh
+        run: build_tools/run_examples.sh ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full examples run') }}
         shell: bash
