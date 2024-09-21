@@ -19,19 +19,26 @@ def test_channel_scorer_with_classifier():
     assert len(cs.channels_selected_) == 5
     X, _ = make_example_3d_numpy(n_cases=20, n_channels=9)
     assert len(cs.channels_selected_) == 5
+
+    # Test for proportion out of range
     with pytest.raises(ValueError, match="proportion must be in the range 0-1"):
         cs = ChannelScorer(estimator=MockClassifierFullTags(), proportion=1.1)
         cs.fit(X, y)
+
     with pytest.raises(ValueError, match="proportion must be in the range 0-1"):
         ChannelScorer(estimator=MockClassifierFullTags(), proportion=-1)
         cs.fit(X, y)
+
+    # Test for selecting all channels when proportion=1.0
     cs = ChannelScorer(estimator=MockClassifierFullTags(), proportion=1.0)
     cs.fit(X, y)
     assert len(cs.channels_selected_) == 9
+
+    # Test for invalid estimator
     with pytest.raises(
         ValueError,
         match="parameter estimator must be an instance of BaseClassifier, "
-        "BaseRegressor or None.",
+        "BaseRegressor",
     ):
         cs = ChannelScorer(estimator="FOOBAR", proportion=0.5)
         cs.fit(X, y)
@@ -50,6 +57,7 @@ def test_channel_scorer_with_regressor():
     cs.fit(X, y)
     assert len(cs.channels_selected_) == 5
 
+    # Test for proportion out of range
     with pytest.raises(ValueError, match="proportion must be in the range 0-1"):
         cs = ChannelScorer(estimator=DummyRegressor(), proportion=1.1)
         cs.fit(X, y)
@@ -58,14 +66,16 @@ def test_channel_scorer_with_regressor():
         cs = ChannelScorer(estimator=DummyRegressor(), proportion=-0.1)
         cs.fit(X, y)
 
+    # Test for selecting all channels when proportion=1.0
     cs = ChannelScorer(estimator=DummyRegressor(), proportion=1.0)
     cs.fit(X, y)
     assert len(cs.channels_selected_) == 9
 
+    # Test for invalid estimator
     with pytest.raises(
         ValueError,
         match="parameter estimator must be an instance of BaseClassifier, "
-        "BaseRegressor or None.",
+        "BaseRegressor",
     ):
         cs = ChannelScorer(estimator="FOOBAR", proportion=0.5)
         cs.fit(X, y)
