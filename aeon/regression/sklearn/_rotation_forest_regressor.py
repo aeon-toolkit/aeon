@@ -8,12 +8,13 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestRegressor"]
 
 import time
-import warnings
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from sklearn.base import BaseEstimator
+from scipy.sparse import issparse
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.decomposition import PCA
 from sklearn.exceptions import NotFittedError
 from sklearn.tree import DecisionTreeRegressor
@@ -23,7 +24,7 @@ from aeon.base._base import _clone_estimator
 from aeon.utils.validation import check_n_jobs
 
 
-class RotationForestRegressor(BaseEstimator):
+class RotationForestRegressor(RegressorMixin, BaseEstimator):
     """
     A Rotation Forest (RotF) vector regressor.
 
@@ -48,15 +49,14 @@ class RotationForestRegressor(BaseEstimator):
     base_estimator : BaseEstimator or None, default="None"
         Base estimator for the ensemble. By default, uses the sklearn
         `DecisionTreeRegressor` using MSE as a splitting measure.
+    pca_solver : str, default="auto"
+        Solver to use for the PCA ``svd_solver`` parameter. See the scikit-learn PCA
+        implementation for options.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
         Default of `0` means ``n_estimators`` is used.
     contract_max_n_estimators : int, default=500
         Max number of estimators to build when ``time_limit_in_minutes`` is set.
-    save_transformed_data : bool, default=False
-        Save the data transformed in fit.
-        Deprecated and will be removed in v0.10.0. Use fit_predict
-        to generate train estimates instead. transformed_data_ will also be removed.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
@@ -87,8 +87,8 @@ class RotationForestRegressor(BaseEstimator):
     Examples
     --------
     >>> from aeon.regression.sklearn import RotationForestRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_2d_numpy
-    >>> X, y = make_example_2d_numpy(n_cases=10, n_timepoints=12,
+    >>> from aeon.testing.data_generation import make_example_2d_numpy_collection
+    >>> X, y = make_example_2d_numpy_collection(n_cases=10, n_timepoints=12,
     ...                              regression_target=True, random_state=0)
     >>> reg = RotationForestRegressor(n_estimators=10)
     >>> reg.fit(X, y)
@@ -100,35 +100,27 @@ class RotationForestRegressor(BaseEstimator):
 
     def __init__(
         self,
-        n_estimators=200,
-        min_group=3,
-        max_group=3,
-        remove_proportion=0.5,
-        base_estimator=None,
-        time_limit_in_minutes=0.0,
-        contract_max_n_estimators=500,
-        save_transformed_data="deprecated",
-        n_jobs=1,
-        random_state=None,
+        n_estimators: int = 200,
+        min_group: int = 3,
+        max_group: int = 3,
+        remove_proportion: float = 0.5,
+        base_estimator: Optional[BaseEstimator] = None,
+        pca_solver: str = "auto",
+        time_limit_in_minutes: float = 0.0,
+        contract_max_n_estimators: int = 500,
+        n_jobs: int = 1,
+        random_state: Union[int, np.random.RandomState, None] = None,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
         self.max_group = max_group
         self.remove_proportion = remove_proportion
         self.base_estimator = base_estimator
+        self.pca_solver = pca_solver
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_estimators = contract_max_n_estimators
         self.n_jobs = n_jobs
         self.random_state = random_state
-
-        # TODO remove 'save_transformed_data' and 'transformed_data_' in v0.10.0
-        self.save_transformed_data = save_transformed_data
-        if save_transformed_data != "deprecated":
-            warnings.warn(
-                "the save_transformed_data parameter is deprecated and will be"
-                "removed in v0.10.0. transformed_data_ will also be removed.",
-                stacklevel=2,
-            )
 
         super().__init__()
 
@@ -168,23 +160,15 @@ class RotationForestRegressor(BaseEstimator):
         y : array-like, shape = [n_cases]
             Predicted output values.
         """
-        if not self._is_fitted:
+        if not hasattr(self, "_is_fitted") or not self._is_fitted:
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
                 f"been fitted yet; please call `fit` first."
             )
 
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
-            X = X.to_numpy()
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "RotationForestRegressor is not a time series regressor. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X = self._validate_data(X=X, reset=False)
+        # data processing
+        X = self._check_X(X)
+        X = self._validate_data(X=X, reset=False, accept_sparse=False)
 
         # replace missing values with 0 and remove useless attributes
         X = X[:, self._useful_atts]
@@ -235,18 +219,10 @@ class RotationForestRegressor(BaseEstimator):
 
         return results
 
-    def _fit_rotf(self, X, y, save_transformed_data=False):
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif isinstance(X, pd.DataFrame) and len(X.shape) == 2:
-            X = X.to_numpy()
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "RotationForestRegressor is not a time series regressor. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2)
+    def _fit_rotf(self, X, y, save_transformed_data: bool = False):
+        # data processing
+        X = self._check_X(X)
+        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2, accept_sparse=False)
 
         self._label_average = np.mean(y)
 
@@ -258,6 +234,7 @@ class RotationForestRegressor(BaseEstimator):
         start_time = time.time()
         train_time = 0
 
+        self._base_estimator = self.base_estimator
         if self.base_estimator is None:
             self._base_estimator = DecisionTreeRegressor(criterion="squared_error")
 
@@ -322,7 +299,13 @@ class RotationForestRegressor(BaseEstimator):
         self._is_fitted = True
         return X_t
 
-    def _fit_estimator(self, X, y, rng, save_transformed_data):
+    def _fit_estimator(
+        self,
+        X,
+        y,
+        rng: np.random.RandomState,
+        save_transformed_data: bool,
+    ):
         groups = self._generate_groups(rng)
         pcas = []
 
@@ -344,7 +327,7 @@ class RotationForestRegressor(BaseEstimator):
                 with np.errstate(divide="ignore", invalid="ignore"):
                     # differences between os occasionally. seems to happen when there
                     # are low amounts of cases in the fit
-                    pca = PCA(random_state=rng).fit(X_t)
+                    pca = PCA(random_state=rng, svd_solver=self.pca_solver).fit(X_t)
 
                 if not np.isnan(pca.explained_variance_ratio_).all():
                     break
@@ -369,7 +352,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return tree, pcas, groups, X_t if save_transformed_data else None
 
-    def _predict_for_estimator(self, X, clf, pcas, groups):
+    def _predict_for_estimator(self, X, clf: int, pcas: type[PCA], groups):
         X_t = np.concatenate(
             [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
         )
@@ -398,7 +381,7 @@ class RotationForestRegressor(BaseEstimator):
 
         return [results, oob]
 
-    def _generate_groups(self, rng):
+    def _generate_groups(self, rng: np.random.RandomState):
         permutation = rng.permutation(np.arange(0, self._n_atts))
 
         # select the size of each group.
@@ -429,3 +412,27 @@ class RotationForestRegressor(BaseEstimator):
                 current_attribute += 1
 
         return groups
+
+    def _check_X(self, X):
+        if issparse(X):
+            return X
+
+        msg = (
+            "RotationForestRegressor is not a time series regressor. "
+            "A valid sklearn input such as a 2d numpy array is required."
+            "Sparse input formats are currently not supported."
+        )
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+        else:
+            try:
+                X = np.array(X)
+            except Exception:
+                raise ValueError(msg)
+
+        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
+            X = np.reshape(X, (X.shape[0], -1))
+        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
+            raise ValueError(msg)
+
+        return X

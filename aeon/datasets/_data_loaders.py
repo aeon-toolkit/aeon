@@ -252,12 +252,13 @@ def load_from_tsfile(
 
     Returns
     -------
-    data: Union[np.ndarray,list]
+    data: np.ndarray or list of np.ndarray
         time series data, np.ndarray (n_cases, n_channels, n_timepoints) if equal
         length time series, list of [n_cases] np.ndarray (n_channels, n_timepoints)
         if unequal length series.
-    y : target variable, np.ndarray of string or int
-    meta_data : dict (optional).
+    y : np.ndarray of string or int
+        target variable
+    meta_data : dict, optional.
         dictionary of characteristics, with keys
         "problemname" (string), booleans: "timestamps", "missing", "univariate",
         "equallength", "classlabel", "targetlabel" and "class_values": [],
@@ -266,9 +267,11 @@ def load_from_tsfile(
     ------
     IOError if the load fails.
     """
-    # Check file ends in .ts, if not, insert
-    if not full_file_path_and_name.endswith(".ts"):
-        full_file_path_and_name = full_file_path_and_name + ".ts"
+    # split the file path into the root and the extension
+    root, ext = os.path.splitext(full_file_path_and_name)
+    # Append .ts if no extension if found
+    if not ext:
+        full_file_path_and_name = root + ".ts"
     # Open file
     with open(full_file_path_and_name, encoding="utf-8") as file:
         # Read in headers
@@ -586,7 +589,8 @@ def load_from_arff_file(
     -------
     data: np.ndarray
         time series data, np.ndarray (n_cases, n_channels, n_timepoints)
-    y : target variable, np.ndarray of string or int
+    y : np.ndarray of string or int
+        target variable
     """
     instance_list = []
     class_val_list = []
@@ -661,7 +665,8 @@ def load_from_tsv_file(full_file_path_and_name):
     -------
     data: np.ndarray
         time series data, np.ndarray (n_cases, 1, n_timepoints)
-    y : target variable, np.ndarray of string or int
+    y : np.ndarray of string or int
+        target variable
 
     """
     df = pd.read_csv(full_file_path_and_name, sep="\t", header=None)
@@ -959,14 +964,15 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     extract_path : optional (default = None)
         Path of the location for the data file. If none, data is written to
         os.path.dirname(__file__)/data/
-    return_metadata : boolean, default = True
+    return_metadata : boolean, default = False
         If True, returns a tuple (data, metadata)
 
     Returns
     -------
-    X: Data stored in a dataframe, each column a series
-    metadata: optional
-        returns the following meta data
+    X: pd.DataFrame
+        Data stored in a dataframe, each column a series
+    metadata: dict, optional
+        returns the following metadata
         frequency,forecast_horizon,contain_missing_values,contain_equal_length
 
     Raises
@@ -977,8 +983,8 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
         If a dataset name that does not exist on the repo is given or if a
         webpage is requested that does not exist.
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.datasets import load_forecasting
     >>> X=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
@@ -1127,15 +1133,15 @@ def load_regression(
     Returns
     -------
     X: np.ndarray or list of np.ndarray
-    y: numpy array
+    y: np.ndarray
         The target response variable for each case in X
-    metadata: optional
-        returns the following meta data
+    metadata: dict, optional
+        returns the following metadata
         'problemname',timestamps, missing,univariate,equallength.
         targetlabel should be true, and classlabel false
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.datasets import load_regression
     >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
@@ -1278,7 +1284,7 @@ def load_classification(
         format <name>_TRAIN.ts or <name>_TEST.ts.
     extract_path : str, default=None
         the path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/data/`. If a path is given, it can be absolute,
+        looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
         e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
     return_metadata : boolean, default = True
         If True, returns a tuple (X, y, metadata)
@@ -1300,10 +1306,10 @@ def load_classification(
     Returns
     -------
     X: np.ndarray or list of np.ndarray
-    y: numpy array
+    y: np.ndarray
         The class labels for each case in X
-    metadata: optional
-        returns the following meta data
+    metadata: dict, optional
+        returns the following metadata
         'problemname',timestamps, missing,univariate,equallength, class_values
         targetlabel should be false, and classlabel true
 

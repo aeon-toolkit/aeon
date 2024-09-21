@@ -1,6 +1,6 @@
 # Installation
 
-`aeon` currently supports Python versions 3.8, 3.9, 3.10, 3.11 and 3.12. Prior to these
+`aeon` currently supports Python versions 3.9, 3.10, 3.11 and 3.12. Prior to these
 instructions, please ensure you have a compatible version of Python installed
 (i.e. from https://www.python.org).
 
@@ -18,6 +18,11 @@ latest release.
 - Building the package from source. This is a requirement for users who wish to
 develop the `aeon` codebase and for most other contributions to the project. [Our
 developer installation guide is available here](../developer_guide/dev_installation).
+
+```{note}
+    While we try to keep output similar between OS and Python version, we cannot
+    guarantee estimators will output the same results for macOS ARM processors.
+```
 
 ## Optional Dependencies
 
@@ -61,9 +66,8 @@ pip install -U aeon[all_extras]
 ```
 
 ```{warning}
-    Some of the dependencies included in `all_extras` do not work on Mac ARM-based
-    processors, such as M1, M2, M1Pro, M1Max or M1Ultra. This may cause an error during
-    installation. Mode details can be found in the troubleshooting section below.
+    Some dependencies included in `all_extras` may have installation issues for macOS
+    with ARM processors. More details can be found in the troubleshooting section below.
 ```
 
 After installation, you can verify that `aeon` has been installed correctly by
@@ -115,7 +119,7 @@ pip uninstall aeon
 
 The latest developments and bugfixes for `aeon` are available on the [`aeon`
 GitHub](https://github.com/aeon-toolkit/aeon) `main` branch. The `main` branch can be
-installed directly from GitHub using `pip insall`:
+installed directly from GitHub using `pip install`:
 
 ```{code-block} powershell
 pip install -U git+https://github.com/aeon-toolkit/aeon.git@main
@@ -192,24 +196,16 @@ virtual environment as a new kernel for your notebook.
 
 If you are using a Mac with an ARM processor, you may encounter an error when installing
 `aeon[all_extras]`. This is due to the fact that some libraries included in `all_extras`
-are not compatible with ARM-based processors.
+are not compatible with ARM-based processors. If you encounter this issue, you can try
+installing soft dependencies separately.
 
-The workaround is not to install some of the packages in `all_extras` and install ARM
-compatible replacements for others:
+We would appreciate if you could report any issues you encounter with the `all_extras`
+installation on ARM-based processors to the [aeon GitHub issues page](https://github.com/aeon-toolkit/aeon/issues).
 
-- Do not install the following packages:
-    - `esig`
-    - `prophet`
-    - `tsfresh`
-    - `tslearn`
-- Replace `tensorflow` package with the following packages:
-    - `tensorflow-macos`
-    - `tensorflow-metal` (optional)
-
-Also, ARM-based processors have issues when installing packages distributed as source
-distributions instead of Python wheels. To avoid this issue when installing a package,
-you can try installing it through `conda` or use a prior version of the package that
-was distributed as a wheel.
+Also, ARM-based processors can have issues when installing packages distributed as
+source distributions instead of Python wheels. To avoid this issue when installing a
+package, you can try installing it through `conda` or use a prior version of the package
+that was distributed as a wheel.
 
 ### `no matches found` when installing `all_extras`
 

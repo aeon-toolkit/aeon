@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.registry import all_estimators
-from aeon.testing.utils.data_gen import make_example_3d_numpy
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 
 ALL_COLL_TRANS = all_estimators("collection-transformer", return_names=False)
@@ -24,7 +24,8 @@ def test_channel_selectors(trans):
     if issubclass(trans, BaseChannelSelector):
         # Need fit for channel selection
         # Must select at least one channel
-        X, y = make_example_3d_numpy(n_cases=10, n_channels=6, n_timepoints=30)
+        X, _ = make_example_3d_numpy(n_cases=20, n_channels=6, n_timepoints=30)
+        y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
         cs = trans()
         assert not cs.get_tag("fit_is_empty")
         cs.fit(X, y)

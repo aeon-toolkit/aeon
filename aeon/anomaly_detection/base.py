@@ -23,7 +23,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
     Input and internal data format (where m is the number of time points and d is the
     number of channels):
-        Univariate series:
+        Univariate series (default):
             np.ndarray, shape ``(m,)``, ``(m, 1)`` or ``(1, m)`` depending on axis.
             This is converted to a 2D np.ndarray internally.
             pd.DataFrame, shape ``(m, 1)`` or ``(1, m)`` depending on axis.
@@ -31,6 +31,38 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         Multivariate series:
             np.ndarray array, shape ``(m, d)`` or ``(d, m)`` depending on axis.
             pd.DataFrame ``(m, d)`` or ``(d, m)`` depending on axis.
+
+    Output data format (one of the following):
+        Anomaly scores (default):
+            np.ndarray, shape ``(m,)`` of type float. For each point of the input time
+            series, the anomaly score is a float value indicating the degree of
+            anomalousness. The higher the score, the more anomalous the point.
+        Binary classification:
+            np.ndarray, shape ``(m,)`` of type bool or int. For each point of the input
+            time series, the output is a boolean or integer value indicating whether the
+            point is anomalous (``True``/``1``) or not (``False``/``0``).
+
+    Detector learning types:
+        Unsupervised (default):
+            Unsupervised detectors do not require any training data and can directly be
+            used on the target time series. Their tags are set to ``fit_is_empty=True``
+            and ``requires_y=False``. You would usually call the ``fit_predict`` method
+            on these detectors.
+        Semi-supervised:
+            Semi-supervised detectors require a training step on a time series without
+            anomalies (normal behaving time series). The target value ``y`` would
+            consist of only zeros. Thus, these algorithms have logic in the ``fit``
+            method, but do not require the target values. Their tags are set to
+            ``fit_is_empty=False`` and ``requires_y=False``. You would usually first
+            call the ``fit`` method on the training data and then the ``predict``
+            method for your target time series.
+        Supervised:
+            Supervised detectors require a training step on a time series with known
+            anomalies (anomalies should be present and must be annotated). The detector
+            implements the ``fit`` method, and the target value ``y`` consists of zeros
+            and ones. Their tags are, thus, set to ``fit_is_empty=False`` and
+            ``requires_y=True``. You would usually first call the ``fit`` method on the
+            training data and then the ``predict`` method for your target time series.
 
     Parameters
     ----------
@@ -65,15 +97,15 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         Parameters
         ----------
-        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+        X : one of aeon.base._base_series.VALID_INPUT_TYPES
             The time series to fit the model to.
             A valid aeon time series data structure. See
             aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        y: one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
+        y : one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
             The target values for the time series.
             A valid aeon time series data structure. See
             aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        axis: int
+        axis : int
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
             shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
@@ -82,7 +114,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         Returns
         -------
-        self: BaseAnomalyDetector
+        BaseAnomalyDetector
             The fitted estimator, reference to self.
         """
         if self.get_class_tag("fit_is_empty"):
@@ -112,11 +144,11 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         Parameters
         ----------
-        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+        X : one of aeon.base._base_series.VALID_INPUT_TYPES
             The time series to fit the model to.
             A valid aeon time series data structure. See
             aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        axis: int, default=1
+        axis : int, default=1
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
             shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
@@ -125,7 +157,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         Returns
         -------
-        anomalies: np.ndarray
+        np.ndarray
             A boolean, int or float array of length len(X), where each element indicates
             whether the corresponding subsequence is anomalous or its anomaly score.
         """
@@ -133,7 +165,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         if not fit_empty:
             self.check_is_fitted()
 
-        X = self._preprocess_series(X, axis, fit_empty)
+        X = self._preprocess_series(X, axis, False)
 
         return self._predict(X)
 
@@ -143,15 +175,15 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         Parameters
         ----------
-        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+        X : one of aeon.base._base_series.VALID_INPUT_TYPES
             The time series to fit the model to.
             A valid aeon time series data structure. See
             aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        y: one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
+        y : one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
             The target values for the time series.
             A valid aeon time series data structure. See
             aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        axis: int, default=1
+        axis : int, default=1
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
             shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
@@ -160,7 +192,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         Returns
         -------
-        anomalies: np.ndarray
+        np.ndarray
             A boolean, int or float array of length len(X), where each element indicates
             whether the corresponding subsequence is anomalous or its anomaly score.
         """

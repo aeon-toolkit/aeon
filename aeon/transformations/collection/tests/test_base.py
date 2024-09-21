@@ -6,21 +6,22 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.testing.utils.data_gen import (
-    make_example_2d_numpy,
+from aeon.testing.data_generation import (
+    make_example_2d_numpy_collection,
     make_example_3d_numpy,
-    make_example_unequal_length,
-    make_series,
+    make_example_3d_numpy_list,
 )
-from aeon.transformations.collection import (
-    BaseCollectionTransformer,
-    CollectionToSeriesWrapper,
-)
+from aeon.testing.data_generation._legacy import make_series
+from aeon.transformations.collection import BaseCollectionTransformer
 
 
 @pytest.mark.parametrize(
     "data_gen",
-    [make_example_3d_numpy, make_example_2d_numpy, make_example_unequal_length],
+    [
+        make_example_3d_numpy,
+        make_example_2d_numpy_collection,
+        make_example_3d_numpy_list,
+    ],
 )
 def test_collection_transformer_valid_input(data_gen):
     """Test that BaseCollectionTransformer works with collection input."""
@@ -42,39 +43,6 @@ def test_collection_transformer_invalid_input(dtype):
     t = _Dummy()
     with pytest.raises(TypeError):
         t.fit_transform(y)
-
-
-@pytest.mark.parametrize("dtype", ["pd.Series", "pd.DataFrame", "np.ndarray"])
-def test_collection_transformer_wrapper_series(dtype):
-    """Test that the wrapper for regular transformers works with series input."""
-    if dtype == "np.ndarray":
-        y = make_series(return_numpy=True)
-    else:
-        y = make_series()
-        if dtype == "pd.DataFrame":
-            y = y.to_frame(name="series1")
-    wrap = CollectionToSeriesWrapper(transformer=_Dummy())
-    yt = wrap.fit_transform(y)
-
-    assert isinstance(yt, list)
-    assert isinstance(yt[0], np.ndarray)
-    assert len(yt) == 1
-    assert yt[0].ndim == 2
-
-
-@pytest.mark.parametrize(
-    "data_gen", [make_example_3d_numpy, make_example_unequal_length]
-)
-def test_collection_transformer_wrapper_collection(data_gen):
-    """Test that the wrapper for regular transformers works with collection input."""
-    X, y = data_gen()
-
-    wrap = CollectionToSeriesWrapper(transformer=_Dummy())
-    Xt = wrap.fit_transform(X, y)
-
-    assert isinstance(Xt, list)
-    assert isinstance(Xt[0], np.ndarray)
-    assert Xt[0].ndim == 2
 
 
 def test_inverse_transform():

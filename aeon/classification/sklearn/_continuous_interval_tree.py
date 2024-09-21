@@ -10,21 +10,24 @@ __all__ = ["ContinuousIntervalTree"]
 
 import math
 import sys
-from typing import List, Tuple, Type, Union
+from typing import Union
 
 import numpy as np
+import pandas as pd
 from numba import njit
+from scipy.sparse import issparse
 from sklearn import preprocessing
-from sklearn.base import BaseEstimator
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.exceptions import NotFittedError
 from sklearn.utils import check_random_state
+from sklearn.utils.multiclass import check_classification_targets
 
 
 class _TreeNode:
     """ContinuousIntervalTree tree node."""
 
     def __init__(
-        self, random_state: Union[int, Type[np.random.RandomState], None] = None
+        self, random_state: Union[int, np.random.RandomState, None] = None
     ) -> None:
         self.random_state = random_state
 
@@ -273,7 +276,7 @@ class _TreeNode:
         return remaining_classes > 1
 
 
-class ContinuousIntervalTree(BaseEstimator):
+class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
     """Continuous interval tree (CIT) vector classifier (aka Time Series Tree).
 
     The `Time Series Tree` described in the Time Series Forest (TSF) [1]_. A simple
@@ -338,7 +341,7 @@ class ContinuousIntervalTree(BaseEstimator):
         self,
         max_depth: int = sys.maxsize,
         thresholds: int = 20,
-        random_state: Union[int, Type[np.random.RandomState], None] = None,
+        random_state: Union[int, np.random.RandomState, None] = None,
     ) -> None:
         self.max_depth = max_depth
         self.thresholds = thresholds
@@ -369,17 +372,16 @@ class ContinuousIntervalTree(BaseEstimator):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "ContinuousIntervalTree is not a time series classifier. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
+        # data processing
+        X = self._check_X(X)
         X, y = self._validate_data(
-            X=X, y=y, ensure_min_samples=2, force_all_finite="allow-nan"
+            X=X,
+            y=y,
+            ensure_min_samples=2,
+            force_all_finite="allow-nan",
+            accept_sparse=False,
         )
+        check_classification_targets(y)
 
         self.n_cases_, self.n_atts_ = X.shape
         self.classes_ = np.unique(y)
@@ -435,12 +437,8 @@ class ContinuousIntervalTree(BaseEstimator):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        rng = check_random_state(self.random_state)
         return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self.predict_proba(X)
-            ]
+            [self.classes_[int(np.argmax(prob))] for prob in self.predict_proba(X)]
         )
 
     def predict_proba(self, X):
@@ -466,22 +464,18 @@ class ContinuousIntervalTree(BaseEstimator):
         if self.n_classes_ == 1:
             return np.repeat([[1]], X.shape[0], axis=0)
 
-        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
-            X = np.reshape(X, (X.shape[0], -1))
-        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
-            raise ValueError(
-                "ContinuousIntervalTree is not a time series classifier. "
-                "A valid sklearn input such as a 2d numpy array is required."
-                "Sparse input formats are currently not supported."
-            )
-        X = self._validate_data(X=X, reset=False, force_all_finite="allow-nan")
+        # data processing
+        X = self._check_X(X)
+        X = self._validate_data(
+            X=X, reset=False, force_all_finite="allow-nan", accept_sparse=False
+        )
 
         dists = np.zeros((X.shape[0], self.n_classes_))
         for i in range(X.shape[0]):
             dists[i] = self._root.predict_proba(X[i], self.n_classes_)
         return dists
 
-    def tree_node_splits_and_gain(self) -> Tuple[List[int], List[float]]:
+    def tree_node_splits_and_gain(self) -> tuple[list[int], list[float]]:
         """Recursively find the split and information gain for each tree node."""
         splits = []
         gains = []
@@ -491,7 +485,7 @@ class ContinuousIntervalTree(BaseEstimator):
 
         return splits, gains
 
-    def _find_splits_gain(self, node: Type[_TreeNode], splits: list, gains: list):
+    def _find_splits_gain(self, node: type[_TreeNode], splits: list, gains: list):
         """Recursively find the split and information gain for each tree node."""
         splits.append(node.best_split)
         gains.append(node.best_gain)
@@ -499,6 +493,30 @@ class ContinuousIntervalTree(BaseEstimator):
         for next_node in node.children:
             if next_node.best_split > -1:
                 self._find_splits_gain(next_node, splits, gains)
+
+    def _check_X(self, X):
+        if issparse(X):
+            return X
+
+        msg = (
+            "ContinuousIntervalTree is not a time series classifier. "
+            "A valid sklearn input such as a 2d numpy array is required."
+            "Sparse input formats are currently not supported."
+        )
+        if isinstance(X, pd.DataFrame):
+            X = X.to_numpy()
+        else:
+            try:
+                X = np.array(X)
+            except Exception:
+                raise ValueError(msg)
+
+        if isinstance(X, np.ndarray) and len(X.shape) == 3 and X.shape[1] == 1:
+            X = np.reshape(X, (X.shape[0], -1))
+        elif not isinstance(X, np.ndarray) or len(X.shape) > 2:
+            raise ValueError(msg)
+
+        return X
 
 
 @njit(fastmath=True, cache=True)

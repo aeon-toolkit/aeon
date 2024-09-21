@@ -36,7 +36,6 @@ References
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import List, Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -120,10 +119,10 @@ class _GGS:
     random_state: int = None
 
     change_points_: npt.ArrayLike = field(init=False, default_factory=list)
-    _intermediate_change_points: List[List[int]] = field(
+    _intermediate_change_points: list[list[int]] = field(
         init=False, default_factory=list
     )
-    _intermediate_ll: List[float] = field(init=False, default_factory=list)
+    _intermediate_ll: list[float] = field(init=False, default_factory=list)
 
     def initialize_intermediates(self) -> None:
         """Initialize the state fo the estimator."""
@@ -155,7 +154,7 @@ class _GGS:
         )
 
     def cumulative_log_likelihood(
-        self, data: npt.ArrayLike, change_points: List[int]
+        self, data: npt.ArrayLike, change_points: list[int]
     ) -> float:
         """
         Calculate cumulative GGS log-likelihood for all segments.
@@ -179,7 +178,7 @@ class _GGS:
             log_likelihood -= self.log_likelihood(segment)
         return log_likelihood
 
-    def add_new_change_point(self, data: npt.ArrayLike) -> Tuple[int, float]:
+    def add_new_change_point(self, data: npt.ArrayLike) -> tuple[int, float]:
         """
         Add change point.
 
@@ -244,8 +243,8 @@ class _GGS:
         return new_index, min_ll - orig_ll
 
     def adjust_change_points(
-        self, data: npt.ArrayLike, change_points: List[int], new_index: List[int]
-    ) -> List[int]:
+        self, data: npt.ArrayLike, change_points: list[int], new_index: list[int]
+    ) -> list[int]:
         """
         Adjust change points.
 
@@ -314,11 +313,11 @@ class _GGS:
                 return bp
         return bp
 
-    def identity_segmentation(self, data: npt.ArrayLike) -> List[int]:
+    def identity_segmentation(self, data: npt.ArrayLike) -> list[int]:
         """Initialize change points."""
         return [0, data.shape[0] + 1]
 
-    def find_change_points(self, data: npt.ArrayLike) -> List[int]:
+    def find_change_points(self, data: npt.ArrayLike) -> list[int]:
         """
         Search iteratively  for up to ``k_max`` change points.
 
@@ -435,17 +434,15 @@ class GreedyGaussianSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.utils.data_gen import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import GreedyGaussianSegmenter
-    >>> X = piecewise_normal_multivariate(
-    ... lengths=[10, 10, 10, 10],
-    ... means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ... variances=0.5,
-    ... )
+    >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
+    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
+    ...     variances=0.5)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> ggs = GreedyGaussianSegmenter(k_max=3, max_shuffles=5)
-    >>> y = ggs.fit_predict(X_scaled)
+    >>> y = ggs.fit_predict(X_scaled, axis=0)
     """
 
     _tags = {
@@ -474,7 +471,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             verbose=verbose,
             random_state=random_state,
         )
-        super().__init__(n_segments=k_max + 1, axis=0)
+        super().__init__(axis=0, n_segments=k_max + 1)
 
     def _fit(self, X: np.ndarray, y=None):
         """Fit method for compatibility with sklearn-type estimator interface.

@@ -69,6 +69,10 @@ __all__ = [
     "swale_pairwise_distance",
     "mpdist",
     "mpdist_pairwise_distance",
+    "paa_sax_mindist",
+    "sax_mindist",
+    "sfa_mindist",
+    "dft_sfa_mindist",
 ]
 
 
@@ -85,6 +89,7 @@ from aeon.distances._ddtw import (
     ddtw_distance,
     ddtw_pairwise_distance,
 )
+from aeon.distances._dft_sfa_mindist import dft_sfa_mindist
 from aeon.distances._distance import (
     alignment_path,
     cost_matrix,
@@ -130,7 +135,10 @@ from aeon.distances._msm import (
     msm_distance,
     msm_pairwise_distance,
 )
+from aeon.distances._paa_sax_mindist import paa_sax_mindist
+from aeon.distances._sax_mindist import sax_mindist
 from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
+from aeon.distances._sfa_mindist import sfa_mindist
 from aeon.distances._shape_dtw import (
     shape_dtw_alignment_path,
     shape_dtw_cost_matrix,

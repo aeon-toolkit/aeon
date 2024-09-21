@@ -7,6 +7,13 @@ Visualisation
     :no-members:
     :no-inherited-members:
 
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ShapeletVisualizer
+    ShapeletTransformerVisualizer
+    ShapeletClassifierVisualizer
 
 .. autosummary::
     :toctree: auto_generated/
@@ -18,9 +25,10 @@ Visualisation
     plot_interval
     plot_windows
     plot_critical_difference
-    plot_boxplot_median
+    plot_boxplot
     plot_scatter_predictions
     plot_scatter
     plot_time_series_with_change_points
     plot_time_series_with_profiles
     plot_cluster_algorithm
+    plot_network

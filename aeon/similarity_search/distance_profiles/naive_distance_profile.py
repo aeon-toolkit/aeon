@@ -1,12 +1,14 @@
 """Naive distance profile computation."""
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 
+
+from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
+from numba.typed import List
 
-from aeon.similarity_search.distance_profiles._commons import _get_input_sizes
 from aeon.utils.numba.general import (
     generate_new_default_njit_func,
     z_normalize_series_2d_with_mean_std,
@@ -14,7 +16,13 @@ from aeon.utils.numba.general import (
 )
 
 
-def naive_distance_profile(X, q, mask, distance_function, distance_args=None):
+def naive_distance_profile(
+    X: Union[np.ndarray, List],
+    q: np.ndarray,
+    mask: Union[np.ndarray, List],
+    distance_function,
+    distance_args: Optional[dict] = None,
+) -> Union[np.ndarray, List]:
     r"""
     Compute a distance profile in a brute force way.
 
@@ -30,13 +38,15 @@ def naive_distance_profile(X, q, mask, distance_function, distance_args=None):
 
     Parameters
     ----------
-    X: array shape (n_cases, n_channels, n_timepoints)
-        The input samples.
-    q : np.ndarray shape (n_channels, query_length)
+    X: np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a numba TypedList
+        of 2D arrays of shape (n_channels, n_timepoints)
+    q : np.ndarray, 2D array of shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    mask : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
         Boolean mask of the shape of the distance profile indicating for which part
-        of it the distance should be computed.
+        of it the distance should be computed. Should be a numba TypedList if X is
+        unequal length.
     distance_function : func
         A python function or a numba njit function used to compute the distance between
         two 1D vectors.
@@ -45,29 +55,34 @@ def naive_distance_profile(X, q, mask, distance_function, distance_args=None):
 
     Returns
     -------
-    distance_profile : np.ndarray
-        shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    distance_profiles : np.ndarray
+        3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
         The distance profile between q and the input time series X independently
-        for each channel.
+        for each channel. Returns a TypedList if X is unequal length.
 
     """
     dist_func = generate_new_default_njit_func(distance_function, distance_args)
     # This will compile the new function and check for errors outside the numba loops
-    dist_func(np.ones(3, dtype=X.dtype), np.zeros(3, dtype=X.dtype))
-    return _naive_distance_profile(X, q, mask, dist_func)
+    # Call dtype on X[0] to support unequal length inputs
+    dist_func(np.ones(3, dtype=X[0].dtype), np.zeros(3, dtype=X[0].dtype))
+    distance_profiles = _naive_distance_profile(X, q, mask, dist_func)
+    # If input was not unequal length, convert to 3D np array
+    if isinstance(X, np.ndarray):
+        distance_profiles = np.asarray(distance_profiles)
+    return distance_profiles
 
 
 def normalized_naive_distance_profile(
-    X,
-    q,
-    mask,
-    X_means,
-    X_stds,
-    q_means,
-    q_stds,
-    distance_function,
-    distance_args=None,
-):
+    X: Union[np.ndarray, List],
+    q: np.ndarray,
+    mask: Union[np.ndarray, List],
+    X_means: Union[np.ndarray, List],
+    X_stds: Union[np.ndarray, List],
+    q_means: np.ndarray,
+    q_stds: np.ndarray,
+    distance_function: np.ndarray,
+    distance_args: Optional[dict] = None,
+) -> Union[np.ndarray, List]:
     """
     Compute a distance profile in a brute force way.
 
@@ -83,20 +98,24 @@ def normalized_naive_distance_profile(
 
     Parameters
     ----------
-    X : array, shape (n_cases, n_channels, n_timepoints)
-        The input samples.
-    q : array, shape (n_channels, query_length)
+    X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a numba TypedList
+        2D array of shape (n_channels, n_timepoints)
+    q : np.ndarray, 2D array of shape (n_channels, query_length)
         The query used for similarity search.
-    mask : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
+    mask : np.ndarray, 3D shape (n_cases, n_channels, n_timepoints - query_length + 1)
         Boolean mask of the shape of the distance profile indicating for which part
-        of it the distance should be computed.
-    X_means : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
-        Means of each subsequences of X of size query_length
-    X_stds : array, shape (n_cases, n_channels, n_timepoints - query_length + 1)
-        Stds of each subsequences of X of size query_length
-    q_means : array, shape (n_channels)
+        of it the distance should be computed. Should be a numba TypedList if X is
+        unequal length.
+    X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
+        Means of each subsequences of X of size query_length. Should be a numba
+        TypedList if X is unequal length.
+    X_stds : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)  # noqa: E501
+        Stds of each subsequences of X of size query_length. Should be a numba
+        TypedList if X is unequal length.
+    q_means : np.ndarray, 1D array of shape (n_channels)
         Means of the query q
-    q_stds : array, shape (n_channels)
+    q_stds : np.ndarray, 1D array of shape (n_channels)
         Stds of the query q
     distance_function : func
         A python function or a numba njit function used to compute the distance between
@@ -106,55 +125,62 @@ def normalized_naive_distance_profile(
 
     Returns
     -------
-    distance_profile : np.ndarray
-        shape (n_cases, n_channels, n_timepoints - query_length + 1).
+    distance_profiles : np.ndarray
+        3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
         The distance profile between q and the input time series X independently
-        for each channel.
+        for each channel. Returns a numba TypedList if X is unequal length.
 
     """
     dist_func = generate_new_default_njit_func(distance_function, distance_args)
     # This will compile the new function and check for errors outside the numba loops
-    dist_func(np.ones(3, dtype=X.dtype), np.zeros(3, dtype=X.dtype))
-    return _normalized_naive_distance_profile(
+    # Call dtype on X[0] to support unequal length inputs
+    dist_func(np.ones(3, dtype=X[0].dtype), np.zeros(3, dtype=X[0].dtype))
+    distance_profiles = _normalized_naive_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds, dist_func
     )
+    # If input was not unequal length, convert to 3D np array
+    if isinstance(X, np.ndarray):
+        distance_profiles = np.asarray(distance_profiles)
+    return distance_profiles
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _naive_distance_profile(
     X,
     q,
     mask,
     numba_distance_function,
 ):
-    (
-        n_cases,
-        n_channels,
-        n_timepoints,
-        query_length,
-        profile_size,
-    ) = _get_input_sizes(X, q)
-    distance_profile = np.full((n_cases, n_channels, profile_size), np.inf)
+    distance_profiles = List()
+    query_length = q.shape[1]
+    n_channels = q.shape[0]
 
-    for i_instance in range(n_cases):
-        for i_candidate in range(profile_size):
-            if mask[i_instance, i_candidate]:
+    # Init distance profile array with unequal length support
+    for i_instance in range(len(X)):
+        profile_length = X[i_instance].shape[1] - query_length + 1
+        distance_profiles.append(np.full((n_channels, profile_length), np.inf))
+
+    # Compute distances in parallel
+    for _i_instance in prange(len(X)):
+        # prange cast iterator to unit64 with parallel=True
+        i_instance = np.int_(_i_instance)
+        for i_candidate in range(X[i_instance].shape[1] - query_length + 1):
+            # For each candidate subsequence, if it is valid compute distance
+            if mask[i_instance][i_candidate]:
                 for i_channel in range(n_channels):
-                    distance_profile[i_instance, i_channel, i_candidate] = (
+                    distance_profiles[i_instance][i_channel, i_candidate] = (
                         numba_distance_function(
                             q[i_channel],
-                            X[
-                                i_instance,
+                            X[i_instance][
                                 i_channel,
                                 i_candidate : i_candidate + query_length,
                             ],
                         )
                     )
+    return distance_profiles
 
-    return distance_profile
 
-
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _normalized_naive_distance_profile(
     X,
     q,
@@ -165,33 +191,37 @@ def _normalized_naive_distance_profile(
     q_stds,
     numba_distance_function,
 ):
-    (
-        n_cases,
-        n_channels,
-        n_timepoints,
-        query_length,
-        profile_size,
-    ) = _get_input_sizes(X, q)
-    q = z_normalize_series_2d_with_mean_std(q, q_means, q_stds)
-    distance_profile = np.full((n_cases, n_channels, profile_size), np.inf)
+    distance_profiles = List()
+    query_length = q.shape[1]
+    n_channels = q.shape[0]
 
-    # Compute euclidean distance for all candidate in a "brute force" way
-    for i_instance in range(n_cases):
-        for i_candidate in range(profile_size):
-            if mask[i_instance, i_candidate]:
+    # Init distance profile array with unequal length support
+    for i_instance in range(len(X)):
+        profile_length = X[i_instance].shape[1] - query_length + 1
+        distance_profiles.append(np.full((n_channels, profile_length), np.inf))
+
+    # Normalize query once
+    q_norm = z_normalize_series_2d_with_mean_std(q, q_means, q_stds)
+
+    # Compute distances in parallel
+    for _i_instance in prange(len(X)):
+        # prange cast iterator to unit64 with parallel=True
+        i_instance = np.int_(_i_instance)
+        for i_candidate in range(X[i_instance].shape[1] - query_length + 1):
+            # For each candidate subsequence, if it is valid compute distance
+            if mask[i_instance][i_candidate]:
                 for i_channel in range(n_channels):
                     # Extract and normalize the candidate
                     _C = z_normalize_series_with_mean_std(
-                        X[
-                            i_instance,
+                        X[i_instance][
                             i_channel,
                             i_candidate : i_candidate + query_length,
                         ],
-                        X_means[i_instance, i_channel, i_candidate],
-                        X_stds[i_instance, i_channel, i_candidate],
+                        X_means[i_instance][i_channel, i_candidate],
+                        X_stds[i_instance][i_channel, i_candidate],
                     )
-                    distance_profile[i_instance, i_channel, i_candidate] = (
-                        numba_distance_function(q[i_channel], _C)
+                    distance_profiles[i_instance][i_channel, i_candidate] = (
+                        numba_distance_function(q_norm[i_channel], _C)
                     )
 
-    return distance_profile
+    return distance_profiles

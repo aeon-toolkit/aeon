@@ -22,7 +22,6 @@ from sklearn.utils.estimator_checks import (
 
 from aeon.base import BaseEstimator, BaseObject
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.forecasting.base import BaseForecaster
 from aeon.registry import all_estimators
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.testing.test_config import (
@@ -46,12 +45,8 @@ from aeon.testing.utils.estimator_checks import (
     _list_required_methods,
 )
 from aeon.testing.utils.scenarios_getter import retrieve_scenarios
-from aeon.transformations.base import BaseTransformer
 from aeon.utils.sampling import random_partition
-from aeon.utils.validation._dependencies import (
-    _check_dl_dependencies,
-    _check_estimator_deps,
-)
+from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 def subsample_by_version_os(x):
@@ -60,16 +55,16 @@ def subsample_by_version_os(x):
     Ensures each estimator is tested at least once on every OS and python version,
     if combined with a matrix of OS/versions.
 
-    Currently assumes that matrix includes py3.8-3.12, and win/ubuntu/mac.
+    Currently assumes that matrix includes py3.9-3.12, and win/ubuntu/mac.
     """
     import platform
     import sys
 
     # only use 3 Python versions in PR
     ix = sys.version_info.minor
-    if ix == 8:
+    if ix == 9:
         ix = 0
-    elif ix == 10:
+    elif ix == 11:
         ix = 1
     elif ix == 12:
         ix = 2
@@ -107,7 +102,7 @@ class BaseFixtureGenerator:
 
     Descendants can override:
         estimator_type_filter: str, class variable; None or string of estimator type
-            e.g., "forecaster", "transformer", "classifier",
+            e.g., "classifier", "regressor", "segmenter".
             see BASE_CLASS_IDENTIFIER_LIST
             which estimators are being retrieved and tested
         fixture_sequence: list of str
@@ -205,6 +200,7 @@ class BaseFixtureGenerator:
             estimator_types=getattr(self, "estimator_type_filter", None),
             return_names=False,
             exclude_estimators=EXCLUDE_ESTIMATORS,
+            exclude_estimator_types=["classifier", "regressor", "clusterer"],
         )
 
         # subsample estimators by OS & python version
@@ -340,11 +336,6 @@ class BaseFixtureGenerator:
         -------
         bool, whether scenario should be skipped in test_name
         """
-        # for forecasters tested in test_non_state_changing_method_contract
-        #   if fh is not passed in fit, then this test would fail
-        #   since fh will be stored in predict through fh handling
-        #   as there are scenarios which pass it early and everything else is the same
-        #   we skip those scenarios
         if test_name == "test_non_state_changing_method_contract":
             if not scenario.get_tag("fh_passed_in_fit", True, raise_error=False):
                 return True
@@ -368,10 +359,8 @@ class BaseFixtureGenerator:
         # ensure cls is a class
         if "estimator_class" in kwargs.keys():
             obj = kwargs["estimator_class"]
-            cls = obj
         elif "estimator_instance" in kwargs.keys():
             obj = kwargs["estimator_instance"]
-            cls = type(obj)
         else:
             return []
 
@@ -380,12 +369,6 @@ class BaseFixtureGenerator:
 
         # subset to the methods that x has implemented
         nsc_list = [x for x in nsc_list if _has_capability(obj, x)]
-
-        # remove predict_proba for forecasters, if tensorflow-proba is not installed
-        # this ensures that predict_proba, which requires it, is not called in testing
-        if issubclass(cls, BaseForecaster):
-            if not _check_dl_dependencies(severity="none"):
-                nsc_list = list(set(nsc_list).difference(["predict_proba"]))
 
         return nsc_list
 
@@ -466,20 +449,6 @@ class QuickTester:
         ------
         if raise_exceptions=True,
         raises any exception produced by the tests directly
-
-        Examples
-        --------
-        >>> from aeon.forecasting.naive import NaiveForecaster
-        >>> from aeon.testing.test_all_estimators import TestAllObjects
-        >>> TestAllObjects().run_tests(
-        ...     NaiveForecaster,
-        ...     tests_to_run="test_constructor"
-        ... )
-        {'test_constructor[NaiveForecaster]': 'PASSED'}
-        >>> TestAllObjects().run_tests(
-        ...     NaiveForecaster, fixtures_to_run="test_repr[NaiveForecaster-2]"
-        ... )
-        {'test_repr[NaiveForecaster-2]': 'PASSED'}
         """
         tests_to_run = self._check_None_str_or_list_of_str(
             tests_to_run, var_name="tests_to_run"
@@ -817,11 +786,6 @@ class TestAllObjects(BaseFixtureGenerator, QuickTester):
         )
 
         assert 2 >= n_base_types >= 1
-
-        # If the estimator inherits from more than one base estimator type, we check if
-        # one of them is a transformer base type
-        if n_base_types > 1:
-            assert issubclass(estimator_class, BaseTransformer)
 
     def test_has_common_interface(self, estimator_class):
         """Check estimator implements the common interface."""
@@ -1202,14 +1166,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         ):
             return None
 
-        # for now, we have to skip predict_proba, since current output comparison
-        #   does not work for tensorflow Distribution
-        if (
-            isinstance(estimator_instance, BaseForecaster)
-            and method_nsc_arraylike == "predict_proba"
-        ):
-            return None
-
         # run fit plus method_nsc once, save results
         set_random_state(estimator_instance)
         results = scenario.run(
@@ -1249,13 +1205,6 @@ class TestAllEstimators(BaseFixtureGenerator, QuickTester):
         # this is not the case
         if estimator_instance.get_tag(
             "cant-pickle", tag_value_default=False, raise_error=False
-        ):
-            return None
-
-        # escape predict_proba for forecasters, tfp distributions cannot be pickled
-        if (
-            isinstance(estimator_instance, BaseForecaster)
-            and method_nsc == "predict_proba"
         ):
             return None
 

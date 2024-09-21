@@ -15,8 +15,6 @@ VALID_IDENTIFIERS_SET = set(BASE_CLASS_IDENTIFIER_LIST + ["estimator"])
 CLASSES_WITHOUT_TAGS = [
     "series-annotator",
     "object",
-    "splitter",
-    "network",
     "collection-transformer",
     "collection-estimator",
     "series-estimator",
