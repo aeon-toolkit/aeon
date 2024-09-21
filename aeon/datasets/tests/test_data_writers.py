@@ -22,7 +22,7 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy_list,
     make_example_nested_dataframe,
 )
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
 
 
 @pytest.mark.skipif(

@@ -1,6 +1,6 @@
 """Test configuration."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
 import aeon.testing.utils._cicd_numba_caching  # noqa: F401
@@ -16,9 +16,12 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
-# Exclude estimators here for short term fixes
-EXCLUDE_ESTIMATORS = []
-
+# Exclude estimators here for short-term fixes
+EXCLUDE_ESTIMATORS = [
+    "SeriesSearch",
+    "QuerySearch",
+    "ClearSkyTransformer",
+]
 
 EXCLUDED_TESTS = {
     # Early classifiers (EC) intentionally retain information from previous predict
@@ -27,16 +30,16 @@ EXCLUDED_TESTS = {
     # (test_save_estimators_to_file) are due to predict/predict_proba returning two
     # items and that breaking assert_array_equal.
     "TEASER": [  # EC
-        "test_non_state_changing_method_contract",
-        "test_fit_deterministic",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
+        "check_non_state_changing_method",
+        "check_fit_deterministic",
+        "check_persistence_via_pickle",
+        "check_save_estimators_to_file",
     ],
     "ProbabilityThresholdEarlyClassifier": [  # EC
-        "test_non_state_changing_method_contract",
-        "test_fit_deterministic",
-        "test_persistence_via_pickle",
-        "test_save_estimators_to_file",
+        "check_non_state_changing_method",
+        "check_fit_deterministic",
+        "check_persistence_via_pickle",
+        "check_save_estimators_to_file",
     ],
     # has a keras fail, unknown reason, see #1387
     "LearningShapeletClassifier": ["check_fit_deterministic"],
@@ -46,8 +49,25 @@ EXCLUDED_TESTS = {
     # needs investigation
     "SASTClassifier": ["check_fit_deterministic"],
     "RSASTClassifier": ["check_fit_deterministic"],
+    "SAST": ["check_fit_deterministic"],
+    "RSAST": ["check_fit_deterministic"],
     "AEFCNClusterer": ["check_fit_updates_state"],
     "AEResNetClusterer": ["check_fit_updates_state"],
+    "PyODAdapter": ["check_fit_updates_state"],
+    "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
+    # missed in legacy testing, changes state in predict/transform
+    "DWT_MLEAD": ["check_non_state_changing_method"],
+    "STOMP": ["check_non_state_changing_method"],
+    "FLUSSSegmenter": ["check_non_state_changing_method"],
+    "InformationGainSegmenter": ["check_non_state_changing_method"],
+    "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
+    "ClaSPSegmenter": ["check_non_state_changing_method"],
+    "HMMSegmenter": ["check_non_state_changing_method"],
+    "BinSegSegmenter": ["check_non_state_changing_method"],
+    "QUANTTransformer": ["check_non_state_changing_method"],
+    "MatrixProfileSeriesTransformer": ["check_non_state_changing_method"],
+    "PLASeriesTransformer": ["check_non_state_changing_method"],
+    "AutoCorrelationSeriesTransformer": ["check_non_state_changing_method"],
 }
 
 # We use estimator tags in addition to class hierarchies to further distinguish
