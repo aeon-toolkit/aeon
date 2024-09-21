@@ -76,9 +76,10 @@ class BORF(BaseCollectionTransformer):
 
     References
     ----------
-    .. [1] Spinnato, F., Guidotti, R., Monreale, A., & Nanni, M. (2023).
-    A Bag of Receptive Fields for Time Series Extrinsic Predictions.
-    arXiv preprint arXiv:2311.18029.
+    .. [1] F. Spinnato, R. Guidotti, A. Monreale and M. Nanni,
+    "Fast, Interpretable and Deterministic Time Series Classification
+    with a Bag-Of-Receptive-Fields," in IEEE Access,
+    doi: 10.1109/ACCESS.2024.3464743
 
     Examples
     --------
