@@ -16,7 +16,7 @@ from aeon.benchmarking.results_loaders import (
     get_estimator_results_as_array,
 )
 from aeon.datasets._data_loaders import CONNECTION_ERRORS
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
 
 cls = ["HC2", "FreshPRINCE", "InceptionT"]
 data = ["Chinatown", "Tools"]
