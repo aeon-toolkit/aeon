@@ -29,7 +29,7 @@ class ChannelScorer(BaseChannelSelector):
     Parameters
     ----------
     estimator : BaseEstimator
-    The time series estimator used to score each channel.
+        The time series estimator used to score each channel.
 
     scoring_function : Callable, optional (default=None)
         Scoring function used to evaluate the performance of each channel.
@@ -40,8 +40,8 @@ class ChannelScorer(BaseChannelSelector):
     score_sign : float, optional (default=None)
         The sign used to determine whether higher or lower scores are better.
         Defaults to:
-        - 1.0 for classifiers (higher scores are better).
-        - -1.0 for regressors (lower scores are better).
+        - 1.0 for accuracy_score (higher scores are better).
+        - -1.0 for mean_squared_error (lower scores are better).
 
     proportion : float, default = 0.4
         Proportion of channels to keep, rounded up to nearest integer.
@@ -89,7 +89,7 @@ class ChannelScorer(BaseChannelSelector):
         if self.proportion <= 0 or self.proportion > 1:
             raise ValueError("proportion must be in the range 0-1")
 
-        elif isinstance(self.estimator, BaseClassifier):
+        if isinstance(self.estimator, BaseClassifier):
             self.estimator_ = self.estimator.clone()
             scoring_function = (
                 accuracy_score
