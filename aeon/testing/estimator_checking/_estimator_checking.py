@@ -18,7 +18,7 @@ from aeon.base import BaseEstimator
 from aeon.testing.estimator_checking._yield_estimator_checks import (
     _yield_all_aeon_checks,
 )
-from aeon.testing.test_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
+from aeon.testing.testing_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
 from aeon.utils.validation._dependencies import (
     _check_estimator_deps,
     _check_soft_dependencies,
@@ -293,7 +293,7 @@ def _should_be_skipped(estimator, check, has_dependencies):
     check_name = check.func.__name__ if isinstance(check, partial) else check.__name__
 
     # check estimator dependencies
-    if not has_dependencies:
+    if not has_dependencies and "softdep" not in check_name:
         return True, "Incompatible dependencies or Python version", check_name
 
     # check aeon exclude lists
@@ -344,6 +344,8 @@ def _get_check_estimator_ids(obj):
     elif hasattr(obj, "get_params"):
         with config_context(print_changed_only=True):
             s = re.sub(r"\s", "", str(obj))
-            return re.sub(r"<function[^)]*>", "func", s)
+            s = re.sub(r"<function[^)]*>", "func", s)
+            s = re.sub(r"<boundmethodrv[^)]*>", "boundmethod", s)
+            return s
     else:
         return obj
