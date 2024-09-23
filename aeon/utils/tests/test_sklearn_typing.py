@@ -9,7 +9,7 @@ from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.feature_based import SummaryClassifier
-from aeon.forecasting.naive import NaiveForecaster
+from aeon.segmentation import RandomSegmenter
 from aeon.utils.sklearn import is_sklearn_estimator, sklearn_estimator_identifier
 
 CORRECT_IDENTIFIERS = {
@@ -20,7 +20,7 @@ CORRECT_IDENTIFIERS = {
 }
 
 sklearn_estimators = list(CORRECT_IDENTIFIERS.keys())
-aeon_estimators = [SummaryClassifier, NaiveForecaster]
+aeon_estimators = [SummaryClassifier, RandomSegmenter]
 
 
 @pytest.mark.parametrize("estimator", sklearn_estimators)

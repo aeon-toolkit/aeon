@@ -2,7 +2,7 @@
 
 __maintainer__ = ["codelionx"]
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit, objmode
@@ -113,8 +113,8 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
 
 
 def sbd_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     standardize: bool = True,
 ) -> np.ndarray:
     """
