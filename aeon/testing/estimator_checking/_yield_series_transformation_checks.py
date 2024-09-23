@@ -6,4 +6,4 @@ def _yield_series_transformation_checks(
 ):
     """Yield all series transformer checks for an aeon estimator."""
     # nothing currently!
-    pass
+    return []
