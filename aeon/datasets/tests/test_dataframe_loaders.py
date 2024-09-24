@@ -11,7 +11,7 @@ from aeon.datasets import (
     load_from_tsfile_to_dataframe,
     load_from_ucr_tsv_to_dataframe,
 )
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
 
 
 @pytest.mark.skipif(

@@ -31,7 +31,7 @@ from aeon.datasets._data_loaders import (
     _load_tsc_dataset,
     download_dataset,
 )
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
 
 
 @pytest.mark.skipif(
