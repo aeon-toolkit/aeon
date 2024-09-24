@@ -7,6 +7,8 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - "aeon/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
@@ -14,7 +16,7 @@ concurrency:
 
 jobs:
   typecheck:
-    # run the code coverage job if a PR has the 'run typecheck test' label
+    # run the code coverage job if a PR has the '' label
     if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'run typecheck test') }}
     runs-on: ubuntu-22.04
 
@@ -38,4 +40,4 @@ jobs:
         run: python -m pip list
 
       - name: Run mypy typecheck
-        run: mypy aeon/
+        run: mypy .

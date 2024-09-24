@@ -161,6 +161,9 @@ select = ["D"]
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
 
+[tool.mypy]
+mypy_path = "aeon/"
+
 [tool.pytest.ini_options]
 # ignore certain folders and pytest warnings
 testpaths = "aeon"
