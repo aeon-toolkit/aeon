@@ -57,8 +57,7 @@ class SlopeTransformer(BaseCollectionTransformer):
 
         Returns
         -------
-        3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-        collection of time series to transform
+        3D np.ndarray of shape = [n_cases, n_channels, n_intervals]
         """
         # Get information about the dataframe
         n_cases, n_channels, n_timepoints = X.shape
