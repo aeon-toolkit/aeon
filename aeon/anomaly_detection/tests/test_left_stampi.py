@@ -1,6 +1,6 @@
 """Tests for the LaftSTAMPi class."""
 
-__maintainer__ = ["FerdinandRewicki"]
+__maintainer__ = ["ferewi"]
 import numpy as np
 import pytest
 

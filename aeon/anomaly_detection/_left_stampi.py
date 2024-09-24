@@ -1,6 +1,6 @@
 """LeftSTAMPi anomaly detector."""
 
-__maintainer__ = ["FerdinandRewicki"]
+__maintainer__ = ["ferewi"]
 __all__ = ["LeftSTAMPi"]
 
 
