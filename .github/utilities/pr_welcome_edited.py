@@ -47,6 +47,7 @@ label_options = [
         "stop pre-commit fixes",
         "Stop automatic `pre-commit` fixes (always disabled for drafts)",
     ),
+    ("no numba cache", "Disable numba cache loading"),
 ]
 
 for option in label_options:
