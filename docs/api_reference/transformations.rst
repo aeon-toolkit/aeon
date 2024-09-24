@@ -88,7 +88,7 @@ Shapelets, wavelets and convolution
     MiniRocketMultivariateVariable
     MultiRocket
 
-.. currentmodule:: aeon.transformations.collection
+.. currentmodule:: aeon.transformations.collection.dwt
 
 .. autosummary::
     :toctree: auto_generated/
@@ -148,7 +148,7 @@ These transformers extract larger collections of features.
 
 
 Series transforms
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 These transformations apply a function element-wise.
 
@@ -210,6 +210,17 @@ Filtering and denoising
 
     SIVSeriesTransformer
 
+Distance Based
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.series._warping
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    WarpingSeriesTransformer
+
 Slope
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -223,14 +234,6 @@ Slope
 
 Segmentation
 ~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.collection.interpolate
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TSInterpolator
 
 .. currentmodule:: aeon.transformations.collection.segment
 
@@ -247,7 +250,7 @@ Window-based series transforms
 
 These transformers create a series based on a sequence of sliding windows.
 
-.. currentmodule:: aeon.transformations.collection
+.. currentmodule:: aeon.transformations.collection.hog1d
 
 .. autosummary::
     :toctree: auto_generated/
@@ -266,32 +269,27 @@ These transformers create a series based on a sequence of sliding windows.
     ElbowClassPairwise
     RandomChannelSelector
 
-Collection transformers
+Panel transformers
 ------------------
 
-Collection transformers transform a collection of time series into a collection of time
-series.
+Panel transformers transform a panel of time series into a panel of time series.
+
+A panel transformer is fitted on an entire panel, and not per series.
 
 Equal length transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-These transformations ensure all series in a collection have equal length
+These transformations convert collections of unequal length series to equal length
 
-.. currentmodule:: aeon.transformations.collection.pad
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    PaddingTransformer
-
-.. currentmodule:: aeon.transformations.collection.truncate
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    TruncationTransformer
+    Truncator
+    Padder
+    Resizer
 
 
 Dimension reduction
@@ -304,6 +302,11 @@ Dimension reduction
     :template: class.rst
 
     PCATransformer
+
+Series-to-Panel transformers
+----------------------------
+
+These transformers create a panel from a single series.
 
 
 Outlier detection, changepoint detection

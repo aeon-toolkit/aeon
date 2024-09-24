@@ -276,11 +276,11 @@ statistics for each series.
 ```
 
 There are also series-to-series transformations, such as the
-[PaddingTransformer](transformations.collection.pad.PaddingTransformer) to lengthen
+[Padder](transformations.collection) to lengthen
 series and process unequal length collections.
 
 ```{code-block} python
->>> from aeon.transformations.collection.pad import PaddingTransformer
+>>> from aeon.transformations.collection import Padder
 >>> from aeon.testing.data_generation import make_example_3d_numpy_list
 >>> X, _ = make_example_3d_numpy_list(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
@@ -294,7 +294,7 @@ series and process unequal length collections.
 >>> print(X[1])
 [[2.         0.28414423 0.3485172  0.08087359 3.33047938 3.112627
   3.48004859 3.91447337 3.19663426]]
->>> pad = PaddingTransformer(pad_length=12, fill_value=0)  # pad to length 12
+>>> pad = Padder(pad_length=12, fill_value=0)  # pad to length 12
 >>> pad.fit_transform(X)
 [[[0.         1.6885315  1.71589124 1.69450348 1.24712739 0.76876341
    0.59506921 0.11342595 0.54531259 0.95533023 1.62433746 0.95995434]]
