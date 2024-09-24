@@ -29,7 +29,7 @@ class SlopeTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.transformations.collection.slope import SlopeTransformer
+    >>> from aeon.transformations.collection import SlopeTransformer
     >>> X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]])
     >>> s = SlopeTransformer(n_intervals=2)
     >>> res = s.fit_transform(X)

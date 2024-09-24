@@ -43,7 +43,6 @@ __all__ = [
     "BaseTransformer",
 ]
 
-from itertools import product
 from typing import Union
 
 import numpy as np
@@ -86,9 +85,6 @@ class BaseTransformer(BaseEstimator):
         "transform_labels": "None",
         "instancewise": True,
         "capability:multivariate": True,  # can the transformer handle multivariate X?
-        "X_inner_type": "pd.DataFrame",
-        # this can be a Panel mtype even if transform-input is Series, vectorized
-        "y_inner_type": "None",
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
@@ -106,7 +102,7 @@ class BaseTransformer(BaseEstimator):
         "remember_data": False,  # whether all data seen is remembered as self._X
     }
 
-    # allowed types for transformers - Series and Panel
+    # allowed types for transformers - Series and Collections
     ALLOWED_INPUT_TYPES = [
         "pd.Series",
         "pd.DataFrame",
@@ -137,26 +133,21 @@ class BaseTransformer(BaseEstimator):
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-        possibly coerced to inner type or update_data compatible type
-        by reference, when possible
-        model attributes (ending in "_") : dependent on estimator
 
         Parameters
         ----------
-        X : Series or Panel, any supported type
+        X : Series or Collection, any supported type
             Data to fit transform to, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                nested pd.DataFrame, or pd.DataFrame in long/wide format.
-        y : Series or Panel, default=None
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
+        y : Series, default=None
             Additional data, e.g., labels for transformation.
 
         Returns
         -------
         self : a fitted instance of the estimator
         """
-        # input checks and datatype conversion
         self._fit(X=X, y=y)
         # this should happen last: fitted state is set to True
         self._is_fitted = True
@@ -171,48 +162,16 @@ class BaseTransformer(BaseEstimator):
 
         Accesses in self:
         _is_fitted : must be True
-        _X : optionally accessed, only available if remember_data tag is True
-        fitted model attributes (ending in "_") : must be set, accessed by _transform
 
         Parameters
         ----------
-        X : Series or Panel, any supported type
-            Data to be transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
-
-        Returns
-        -------
-        transformed version of X
-        type depends on type of X and output_data_type tag:
-            |          | `transform`  |                        |
-            |   `X`    |  `-output`   |     type of return     |
-            |__________|______________|________________________|
-            | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
-            | `Panel`  | `Primitives` | `pd.DataFrame`         |
-            | `Series` | `Series`     | `Series`               |
-            | `Panel`  | `Series`     | `Panel`                |
-            | `Series` | `Panel`      | `Panel`                |
-        instances in return correspond to instances in `X`
-        combinations not in the table are currently not supported
-
-        Explicitly, with examples:
-            if `X` is `Series` (e.g., `pd.DataFrame`) and `transform-output` is `Series`
-                then the return is a single `Series` of the same type
-                Example: detrending a single series
-            if `X` is `Panel` (e.g., `pd-multiindex`) and `transform-output` is `Series`
-                then the return is `Panel` with same number of instances as `X`
-                    (the transformer is applied to each input Series instance)
-                Example: all series in the panel are detrended individually
-            if `X` is `Series` or `Panel` and `transform-output` is `Primitives`
-                then the return is `pd.DataFrame` with as many rows as instances in `X`
-                Example: i-th row of the return has mean and variance of the i-th series
-            if `X` is `Series` and `transform-output` is `Panel`
-                then the return is a `Panel` object of type `pd-multiindex`
-                Example: i-th instance of the output is the i-th window running over `X`
+        X : Series or Collection, any supported type
+            Data to fit transform to, of python type as follows:
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
         """
         # check whether is fitted
         self.check_is_fitted()
@@ -225,53 +184,15 @@ class BaseTransformer(BaseEstimator):
 
         Fits the transformer to X and y and returns a transformed version of X.
 
-        State change: changes state to "fitted".
-
-        Writes to self:
-        _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
-        model attributes (ending in "_") : dependent on estimator
-
         Parameters
         ----------
-        X : Series or Panel, any supported type
-            Data to be transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
-
-        Returns
-        -------
-        transformed version of X
-        type depends on type of X and output_data_type tag:
-            |   `X`    | `tf-output`  |     type of return     |
-            |__________|______________|________________________|
-            | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
-            | `Panel`  | `Primitives` | `pd.DataFrame`         |
-            | `Series` | `Series`     | `Series`               |
-            | `Panel`  | `Series`     | `Panel`                |
-            | `Series` | `Panel`      | `Panel`                |
-        instances in return correspond to instances in `X`
-        combinations not in the table are currently not supported
-
-        Explicitly, with examples:
-            if `X` is `Series` (e.g., `pd.DataFrame`) and `transform-output` is `Series`
-                then the return is a single `Series` of the same mtype
-                Example: detrending a single series
-            if `X` is `Panel` (e.g., `pd-multiindex`) and `transform-output` is `Series`
-                then the return is `Panel` with same number of instances as `X`
-                    (the transformer is applied to each input Series instance)
-                Example: all series in the panel are detrended individually
-            if `X` is `Series` or `Panel` and `transform-output` is `Primitives`
-                then the return is `pd.DataFrame` with as many rows as instances in `X`
-                Example: i-th row of the return has mean and variance of the i-th series
-            if `X` is `Series` and `transform-output` is `Panel`
-                then the return is a `Panel` object of type `pd-multiindex`
-                Example: i-th instance of the output is the i-th window running over `X`
+        X : Series or Collection, any supported type
+            Data to fit transform to, of python type as follows:
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
         """
         Xt = self._fit_transform(X=X, y=y)
         return Xt
@@ -279,32 +200,26 @@ class BaseTransformer(BaseEstimator):
     def inverse_transform(self, X, y=None):
         """Inverse transform X and return an inverse transformed version.
 
-        Currently it is assumed that only transformers with tags
-            "input_data_type"="Series", "output_data_type"="Series",
-        have an inverse_transform.
-
         State required:
             Requires state to be "fitted".
 
         Accesses in self:
         _is_fitted : must be True
-        _X : optionally accessed, only available if remember_data tag is True
-        fitted model attributes (ending in "_") : accessed by _inverse_transform
 
         Parameters
         ----------
-        X : Series or Panel, any supported type
-            Data to be inverse transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
+        X : Series or Collection, any supported type
+            Data to fit transform to, of python type as follows:
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
         inverse transformed version of X
-            of the same type as X, and conforming to mtype format specifications
+            of the same type as X,
         """
         if self.get_tag("skip-inverse-transform"):
             return X
@@ -327,26 +242,16 @@ class BaseTransformer(BaseEstimator):
 
         Accesses in self:
         _is_fitted : must be True
-        _X : accessed by _update and by update_data, if remember_data tag is True
-        fitted model attributes (ending in "_") : must be set, accessed by _update
-
-        Writes to self:
-        _X : updated by values in X, via update_data, if remember_data tag is True
-        fitted model attributes (ending in "_") : only if update_params=True
-            type and nature of update are dependent on estimator
 
         Parameters
         ----------
-        X : Series or Panel, any supported type
+        X : Series or Collection, any supported type
             Data to fit transform to, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
-        update_params : bool, default=True
-            whether the model is updated. Yes if true, if false, simply skips call.
-            argument exists for compatibility with forecasting module.
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
@@ -385,44 +290,8 @@ class BaseTransformer(BaseEstimator):
         fitted_params : dict with str-valued keys
             Dictionary of fitted parameters, paramname : paramvalue
             keys-value pairs include:
-
-            * always: all fitted parameters of this object, as via `get_param_names`
-              values are fitted parameter value for that key, of this object
-            * if `deep=True`, also contains keys/value pairs of component parameters
-              parameters of components are indexed as `[componentname]__[paramname]`
-              all parameters of `componentname` appear as `paramname` with its value
-            * if `deep=True`, also contains arbitrary levels of component recursion,
-              e.g., `[componentname]__[componentcomponentname]__[paramname]`, etc
         """
-        # if self is not vectorized, run the default get_fitted_params
-        if not getattr(self, "_is_vectorized", False):
-            return super().get_fitted_params(deep=deep)
-
-        # otherwise, we delegate to the instances' get_fitted_params
-        # instances' parameters are returned at dataframe-slice-like keys
-        fitted_params = {}
-
-        # transformers contains a pd.DataFrame with the individual transformers
-        transformers = self.transformers_
-
-        # return transformers in the "transformers" param
-        fitted_params["transformers"] = transformers
-
-        def _to_str(x):
-            if isinstance(x, str):
-                x = f"'{x}'"
-            return str(x)
-
-        # populate fitted_params with transformers and their parameters
-        for ix, col in product(transformers.index, transformers.columns):
-            trafo = transformers.loc[ix, col]
-            trafo_key = f"transformers.loc[{_to_str(ix)},{_to_str(col)}]"
-            fitted_params[trafo_key] = trafo
-            trafo_params = trafo.get_fitted_params(deep=deep)
-            for key, val in trafo_params.items():
-                fitted_params[f"{trafo_key}__{key}"] = val
-
-        return fitted_params
+        return super().get_fitted_params(deep=deep)
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -434,14 +303,12 @@ class BaseTransformer(BaseEstimator):
         X: data structure of type X_inner_type
             if X_inner_type is list, _fit must support all types in it
             Data to fit transform to
-        y : Series or Panel of type y_inner_type, default=None
-            Additional data, e.g., labels for tarnsformation
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
         self: a fitted instance of the estimator
-
-        See extension_templates/transformer.py for implementation details.
         """
         # default fit is "no fitting happens"
         return self
@@ -454,27 +321,14 @@ class BaseTransformer(BaseEstimator):
         Parameters
         ----------
         X: data structure of type X_inner_type
-            if X_inner_type is list, _transform must support all types in it
-            Data to be transformed
-        y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
+            if X_inner_type is list, _fit must support all types in it
+            Data to fit transform to
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
         transformed version of X
-        type depends on type of X and output_data_type tag:
-            |          | `transform`  |                        |
-            |   `X`    |  `-output`   |     type of return     |
-            |__________|______________|________________________|
-            | `Series` | `Primitives` | `pd.DataFrame` (1-row) |
-            | `Panel`  | `Primitives` | `pd.DataFrame`         |
-            | `Series` | `Series`     | `Series`               |
-            | `Panel`  | `Series`     | `Panel`                |
-            | `Series` | `Panel`      | `Panel`                |
-        instances in return correspond to instances in `X`
-        combinations not in the table are currently not supported
-
-        See extension_templates/transformer.py for implementation details.
         """
         raise NotImplementedError("abstract method")
 
@@ -490,14 +344,12 @@ class BaseTransformer(BaseEstimator):
         X: data structure of type X_inner_type
             if X_inner_type is list, _fit_transform must support all types in it
             Data to fit transform to
-        y : Series or Panel of type y_inner_type, default=None
-            Additional data, e.g., labels for tarnsformation
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
 
         Returns
         -------
         self: a fitted instance of the estimator
-
-        See extension_templates/transformer.py for implementation details.
         """
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
@@ -514,8 +366,9 @@ class BaseTransformer(BaseEstimator):
         X: data structure of type X_inner_type
             if X_inner_type is list, _inverse_transform must support all types in it
             Data to be transformed
-        y : Series or Panel, default=None
-            Additional data, e.g., labels for transformation
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
+        `
 
         Returns
         -------
