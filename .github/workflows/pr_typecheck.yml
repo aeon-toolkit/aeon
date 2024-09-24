@@ -40,4 +40,4 @@ jobs:
         run: python -m pip list
 
       - name: Run mypy typecheck
-        run: mypy
+        run: mypy aeon/
