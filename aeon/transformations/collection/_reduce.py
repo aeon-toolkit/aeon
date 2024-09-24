@@ -3,7 +3,7 @@
 __maintainer__ = []
 __all__ = ["Tabularizer"]
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
 class Tabularizer(BaseCollectionTransformer):

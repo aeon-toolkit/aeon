@@ -7,7 +7,7 @@ import math
 
 import numpy as np
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
 
 

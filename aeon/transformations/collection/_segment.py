@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.datetime import get_time_index
 from aeon.utils.validation import check_window_length
 

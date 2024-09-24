@@ -4,7 +4,7 @@ __maintainer__ = []
 
 import numpy as np
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
 def _sliding_dot_products(q, t, q_len, t_len):
