@@ -15,7 +15,7 @@ from aeon.benchmarking.experiments import (
 from aeon.classification import DummyClassifier
 from aeon.clustering import TimeSeriesKMeans
 from aeon.datasets import load_unit_test
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
 
 
 @pytest.mark.skipif(

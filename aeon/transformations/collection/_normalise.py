@@ -44,7 +44,7 @@ class Normalise(BaseCollectionTransformer):
         "capability:multivariate": True,
     }
 
-    def __init__(self, method: str = "z-norm"):
+    def __init__(self, method: str = "z_norm"):
         self.method = method
         super().__init__()
 
