@@ -2450,9 +2450,7 @@ def relative_loss(
         Forecasted values from benchmark method.
 
     relative_loss_function : function, default=mean_absolute_error
-        Function to use in calculation relative loss. The function must comply
-        with API interface of aeon forecasting performance metrics. Metrics
-        requiring y_train or y_pred_benchmark are not supported.
+        Function to use in calculation relative loss.
 
     horizon_weight : array-like of shape (fh,), default=None
         Forecast horizon weights.

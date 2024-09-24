@@ -9,7 +9,7 @@ __all__ = [
 import re
 from functools import partial, wraps
 from inspect import isclass
-from typing import Callable, List, Type, Union
+from typing import Callable, Union
 
 from sklearn import config_context
 from sklearn.utils._testing import SkipTest
@@ -18,7 +18,7 @@ from aeon.base import BaseEstimator
 from aeon.testing.estimator_checking._yield_estimator_checks import (
     _yield_all_aeon_checks,
 )
-from aeon.testing.test_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
+from aeon.testing.testing_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
 from aeon.utils.validation._dependencies import (
     _check_estimator_deps,
     _check_soft_dependencies,
@@ -26,7 +26,7 @@ from aeon.utils.validation._dependencies import (
 
 
 def parametrize_with_checks(
-    estimators: List[Union[BaseEstimator, Type[BaseEstimator]]],
+    estimators: list[Union[BaseEstimator, type[BaseEstimator]]],
     use_first_parameter_set: bool = False,
 ) -> Callable:
     """Pytest specific decorator for parametrizing aeon estimator checks.
@@ -89,13 +89,13 @@ def parametrize_with_checks(
 
 
 def check_estimator(
-    estimator: Union[BaseEstimator, Type[BaseEstimator]],
+    estimator: Union[BaseEstimator, type[BaseEstimator]],
     raise_exceptions: bool = False,
     use_first_parameter_set: bool = False,
-    checks_to_run: Union[str, List[str]] = None,
-    checks_to_exclude: Union[str, List[str]] = None,
-    full_checks_to_run: Union[str, List[str]] = None,
-    full_checks_to_exclude: Union[str, List[str]] = None,
+    checks_to_run: Union[str, list[str]] = None,
+    checks_to_exclude: Union[str, list[str]] = None,
+    full_checks_to_run: Union[str, list[str]] = None,
+    full_checks_to_exclude: Union[str, list[str]] = None,
     verbose: bool = False,
 ):
     """Check if estimator adheres to `aeon` conventions.
@@ -293,7 +293,7 @@ def _should_be_skipped(estimator, check, has_dependencies):
     check_name = check.func.__name__ if isinstance(check, partial) else check.__name__
 
     # check estimator dependencies
-    if not has_dependencies:
+    if not has_dependencies and "softdep" not in check_name:
         return True, "Incompatible dependencies or Python version", check_name
 
     # check aeon exclude lists
@@ -344,6 +344,8 @@ def _get_check_estimator_ids(obj):
     elif hasattr(obj, "get_params"):
         with config_context(print_changed_only=True):
             s = re.sub(r"\s", "", str(obj))
-            return re.sub(r"<function[^)]*>", "func", s)
+            s = re.sub(r"<function[^)]*>", "func", s)
+            s = re.sub(r"<boundmethodrv[^)]*>", "boundmethod", s)
+            return s
     else:
         return obj
