@@ -115,7 +115,7 @@ def normalized_squared_distance_profile(
 @njit(cache=True, fastmath=True, parallel=True)
 def _squared_distance_profile(QX, X, q, mask):
     """
-    Compute squared distance profiles between query subsequences and time series.
+    Compute squared distance profiles between query subsequence and time series.
 
     Parameters
     ----------
@@ -178,7 +178,7 @@ def _squared_dist_profile_one_series(QT, T, Q):
         The series used for similarity search. Note that series_length can be equal,
         superior or inferior to n_timepoints, it doesn't matter.
     Q : np.ndarray
-        2D array of shape (n_channels, query_length) representing query subsequences.
+        2D array of shape (n_channels, query_length) representing query subsequence.
 
     Returns
     -------
@@ -209,7 +209,7 @@ def _normalized_squared_distance_profile(
     QX, mask, X_means, X_stds, q_means, q_stds, query_length
 ):
     """
-    Compute the normalized squared distance profiles between query subsequences and input time series.
+    Compute the normalized squared distance profiles between query subsequence and input time series.
 
     Parameters
     ----------
@@ -229,13 +229,13 @@ def _normalized_squared_distance_profile(
     q_stds : np.ndarray, 1D array of shape (n_channels)
         Stds of the query q
     query_length : int
-        The length of the query subsequences used for the distance profile computation.
+        The length of the query subsequence used for the distance profile computation.
 
     Returns
     -------
     List of np.ndarray
-        List of 2D arrays, each of shape (n_channels, n_timepoints - query_length + 1), where `profile_length` is the length of the distance profile for each time series.
-        Each array contains the normalized squared distance profile between the query subsequences and the corresponding time series.
+        List of 2D arrays, each of shape (n_channels, n_timepoints - query_length + 1).
+        Each array contains the normalized squared distance profile between the query subsequence and the corresponding time series.
         Entries in the array are set to infinity where the mask is False.
     """
     distance_profiles = List()
@@ -285,7 +285,7 @@ def _normalized_squared_dist_profile_one_series(
     Q_stds : np.ndarray, 1D array of shape (n_channels)
         Stds of the query q
     query_length : int
-        The length of the query subsequences used for the distance profile computation.
+        The length of the query subsequence used for the distance profile computation.
     Q_is_constant : np.ndarray
         1D array of shape (n_channels,) where each element is a Boolean indicating
         whether the query standard deviation for that channel is less than or equal

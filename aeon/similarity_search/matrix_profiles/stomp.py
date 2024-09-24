@@ -557,18 +557,14 @@ def _sort_out_tops(top_dists, prev_top_dists, top_indexes, prev_to_indexes, k):
     ----------
     top_dists : np.ndarray
         Array of distances from the current computation. Shape should be (n,).
-
     prev_top_dists : np.ndarray
         Array of distances from previous computations. Shape should be (n,).
-
     top_indexes : np.ndarray
         Array of indexes corresponding to the top distances from current computation.
         Shape should be (n,).
-
     prev_to_indexes : np.ndarray
         Array of indexes corresponding to the top distances from previous computations.
         Shape should be (n,).
-
     k : int, default=1
         The number of best matches to return during predict for each subsequence.
 

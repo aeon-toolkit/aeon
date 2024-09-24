@@ -154,23 +154,18 @@ def extract_top_k_and_threshold_from_distance_profiles_one_series(
     distance_profiles : np.ndarray, 2D array of shape (n_cases, n_candidates)
         Precomputed distance profile. Can be a TypedList if n_candidates vary between
         cases.
-
     id_x : int
         Identifier of the series or subsequence from which the distance profile
         is computed.
-
     k : int
         Number of matches to returns
-
     threshold : float
         All matches below this threshold will be returned
-
     exclusion_size : int or None, optional, default=None
         Size of the exclusion zone around the current subsequence. This prevents
         selecting neighboring subsequences within the specified range, useful for
         avoiding trivial matches in time series data. If set to `None`, no
         exclusion zone is applied.
-
     inverse_distance : bool, optional
         Wheter to return the worst matches instead of the bests. The default is False.
 
@@ -179,7 +174,6 @@ def extract_top_k_and_threshold_from_distance_profiles_one_series(
     top_k_dist : np.ndarray
         Array of the top-k smallest distance values, potentially excluding values above
         the threshold or those within the exclusion zone.
-
     top_k : np.ndarray
         Array of shape (k, 2) where each row contains the `id_x` identifier and the
         index of the corresponding subsequence (or timestamp) with the top-k smallest
