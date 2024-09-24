@@ -49,32 +49,32 @@ class LeftSTAMPi(BaseAnomalyDetector):
 
     Examples
     --------
-        Batch Processing
-    ----------------
-    Calculate the anomaly score for the complete time series at once.
-    Internally,this is applying the incremental approach outlined below.
-    >>> import numpy as np # doctest: +SKIP
-    >>> from aeon.anomaly_detection import LeftSTAMPi  # doctest: +SKIP
-    >>> X = np.random.default_rng(42).random((10), dtype=np.float_)  # doctest: +SKIP
-    >>> detector = LeftSTAMPi(window_size=3, n_init_train=3)  # doctest: +SKIP
-    >>> detector.fit_predict(X)  # doctest: +SKIP
-    array([0.        , 0.        , 0.        , 0.07042306, 0.15989868,
-           0.68912499, 0.75398303, 0.89696118, 0.5516023 , 0.69736132])
+    Batch Processing
+        Calculate the anomaly score for the complete time series at once.
+        Internally,this is applying the incremental approach outlined below.
+
+        >>> import numpy as np # doctest: +SKIP
+        >>> from aeon.anomaly_detection import LeftSTAMPi  # doctest: +SKIP
+        >>> X = np.random.default_rng(42).random((10))  # doctest: +SKIP
+        >>> detector = LeftSTAMPi(window_size=3, n_init_train=3)  # doctest: +SKIP
+        >>> detector.fit_predict(X)  # doctest: +SKIP
+        array([0.        , 0.        , 0.        , 0.07042306, 0.15989868,
+               0.68912499, 0.75398303, 0.89696118, 0.5516023 , 0.69736132])
 
     Stream Processing
-    ----------------
-    Calculate the anomaly score incrementally.
-    >>> import numpy as np # doctest: +SKIP
-    >>> from aeon.anomaly_detection import LeftSTAMPi  # doctest: +SKIP
-    >>> X = np.random.default_rng(42).random((10), dtype=np.float_)  # doctest: +SKIP
-    >>> X_train, X_stream = X[:3], X[3:]  # doctest: +SKIP
-    >>> detector = LeftSTAMPi(window_size=3)  # doctest: +SKIP
-    >>> detector.fit(X_train)  # doctest: +SKIP
-    >>> score = np.array([])
-    >>> for x in X_stream:
-    >>>     score = detector.predict(np.array([x]))  # doctest: +SKIP
-    array([0.        , 0.        , 0.        , 0.07042306, 0.15989868,
-           0.68912499, 0.75398303, 0.89696118, 0.5516023 , 0.69736132])
+        Calculate the anomaly score incrementally.
+
+        >>> import numpy as np # doctest: +SKIP
+        >>> from aeon.anomaly_detection import LeftSTAMPi  # doctest: +SKIP
+        >>> X = np.random.default_rng(42).random((10))  # doctest: +SKIP
+        >>> X_train, X_stream = X[:3], X[3:]  # doctest: +SKIP
+        >>> detector = LeftSTAMPi(window_size=3)  # doctest: +SKIP
+        >>> detector.fit(X_train)  # doctest: +SKIP
+        >>> score = np.array([])
+        >>> for x in X_stream:
+        >>>     score = detector.predict(np.array([x]))  # doctest: +SKIP
+        array([0.        , 0.        , 0.        , 0.07042306, 0.15989868,
+               0.68912499, 0.75398303, 0.89696118, 0.5516023 , 0.69736132])
 
     References
     ----------
