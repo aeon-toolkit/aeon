@@ -70,8 +70,8 @@ class LeftSTAMPi(BaseAnomalyDetector):
         >>> X_train, X_stream = X[:3], X[3:]  # doctest: +SKIP
         >>> detector = LeftSTAMPi(window_size=3)  # doctest: +SKIP
         >>> detector.fit(X_train)  # doctest: +SKIP
-        >>> score = np.array([])
-        >>> for x in X_stream:
+        >>> score = np.array([]) # doctest: +SKIP
+        >>> for x in X_stream: # doctest: +SKIP
         >>>     score = detector.predict(np.array([x]))  # doctest: +SKIP
         array([0.        , 0.        , 0.        , 0.07042306, 0.15989868,
                0.68912499, 0.75398303, 0.89696118, 0.5516023 , 0.69736132])
