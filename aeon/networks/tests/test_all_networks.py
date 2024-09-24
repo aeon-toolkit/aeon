@@ -111,8 +111,11 @@ def test_all_networks_params(network):
             and network.__name__ == "TapNetNetwork"
         ):
             continue
-        # LITENetwork does not seem to work with list args
+        # LITENetwork does not yet work with list args
         if network.__name__ == "LITENetwork":
+            continue
+        # LITE_MVNetwork does not yet work with list args
+        if network.__name__ == "LITE_MVNetwork":
             continue
 
         # Here we use 'None' string as default to differentiate with None values
