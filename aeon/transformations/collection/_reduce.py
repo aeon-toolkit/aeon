@@ -23,12 +23,12 @@ class Tabularizer(BaseCollectionTransformer):
     }
 
     def _transform(self, X, y=None):
-        """Transform nested pandas dataframe into tabular dataframe.
+        """Transform collection into tabular dataframe.
 
         Parameters
         ----------
-        X : pandas DataFrame or 3D np.ndarray
-            panel of time series to transform
+        X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
+            Collection of time series to transform.
         y : ignored argument for interface compatibility
 
         Returns

@@ -1,70 +1,11 @@
-"""
-Base class template for transformers.
+"""Base class for transformers."""
 
-    class name: BaseTransformer
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["BaseTransformer"]
 
-Covers all types of transformers.
-Type and behaviour of transformer is determined by the following tags:
-    "input_data_type" tag with values "Primitives" or "Series"
-        this determines expected type of input of transform
-        if "Primitives", expected inputs X are pd.DataFrame
-        if "Series", expected inputs X are Series or Panel
-        Note: placeholder tag for upwards compatibility currently only "Series" is
-        supported
-    "output_data_type" tag with values "Primitives", or "Series"
-        this determines type of output of transform
-        if "Primitives", output is pd.DataFrame with as many rows as X has instances
-        i-th instance of X is transformed into i-th row of output
-        if "Series", output is a Series or Panel, with as many instances as X i-th
-        instance of X is transformed into i-th instance of output
-        Series are treated as one-instance-Panels
-        if Series is input, output is a 1-row pd.DataFrame or a Series
-    "instancewise" tag which is boolean
-        if True, fit/transform is statistically independent by instance
-
-Class defining methods:
-    fitting         - fit(self, X, y=None)
-    transform       - transform(self, X, y=None)
-    fit&transform   - fit_transform(self, X, y=None)
-    updating        - update(self, X, y=None)
-
-Inspection methods:
-    hyper-parameter inspection  - get_params()
-    fitted parameter inspection - get_fitted_params()
-
-State:
-    fitted model/strategy   - by convention, any attributes ending in "_"
-    fitted state flag       - is_fitted (property)
-    fitted state inspection - check_is_fitted()
-"""
-
-__maintainer__ = []
-__all__ = [
-    "BaseTransformer",
-]
-
-from typing import Union
-
-import numpy as np
-import pandas as pd
 
 from aeon.base import BaseEstimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
-
-# single/multiple primitives
-Primitive = Union[np.integer, int, float, str]
-Primitives = np.ndarray
-
-# tabular/cross-sectional data
-Tabular = Union[pd.DataFrame, np.ndarray]  # 2d arrays
-
-# univariate/multivariate series
-UnivariateSeries = Union[pd.Series, np.ndarray]
-MultivariateSeries = Union[pd.DataFrame, np.ndarray]
-Series = Union[UnivariateSeries, MultivariateSeries]
-
-# panel/longitudinal/series-as-features data
-Panel = Union[pd.DataFrame, np.ndarray]  # 3d or nested array
 
 
 def _coerce_to_list(obj):
@@ -84,7 +25,6 @@ class BaseTransformer(BaseEstimator):
         "output_data_type": "Series",
         "transform_labels": "None",
         "instancewise": True,
-        "capability:multivariate": True,  # can the transformer handle multivariate X?
         "requires_y": False,  # does y need to be passed in fit?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
@@ -389,7 +329,7 @@ class BaseTransformer(BaseEstimator):
         X: data structure of type X_inner_type
             if X_inner_type is list, _update must support all types in it
             Data to update transformer with
-        y : Series or Panel of type y_inner_type, default=None
+        y : Series, default=None
             Additional data, e.g., labels for tarnsformation
 
         Returns
