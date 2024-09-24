@@ -148,7 +148,7 @@ These transformers extract larger collections of features.
 
 
 Series transforms
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 These transformations apply a function element-wise.
 
@@ -224,14 +224,6 @@ Slope
 Segmentation
 ~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.interpolate
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TSInterpolator
-
 .. currentmodule:: aeon.transformations.collection.segment
 
 .. autosummary::
@@ -276,23 +268,17 @@ A panel transformer is fitted on an entire panel, and not per series.
 Equal length transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-These transformations ensure all series in a panel have equal length
+These transformations convert collections of unequal length series to equal length
 
-.. currentmodule:: aeon.transformations.collection.pad
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    PaddingTransformer
-
-.. currentmodule:: aeon.transformations.collection.truncate
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    TruncationTransformer
+    Truncator
+    Padder
+    Resizer
 
 
 Dimension reduction
