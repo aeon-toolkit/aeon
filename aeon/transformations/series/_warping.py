@@ -48,7 +48,7 @@ class WarpingSeriesTransformer(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, series_index: int, warping_path: List[Tuple[int, int]]) -> None:
+    def __init__(self, series_index: int, warping_path: list[tuple[int, int]]) -> None:
 
         self.series_index = series_index
         self.warping_path = warping_path
