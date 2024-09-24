@@ -1,11 +1,11 @@
 """Padding transformer, pad unequal length time series to max length or fixed length."""
 
-__all__ = ["PaddingTransformer"]
+__all__ = ["Padder"]
 __maintainer__ = []
 
 import numpy as np
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
 def _get_max_length(X):
@@ -17,7 +17,7 @@ def _get_max_length(X):
     return max_length
 
 
-class PaddingTransformer(BaseCollectionTransformer):
+class Padder(BaseCollectionTransformer):
     """Pad unequal length time series to equal, fixed length.
 
     Pads the input dataset to either fixed length (at least as long as the longest
@@ -38,11 +38,11 @@ class PaddingTransformer(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import PaddingTransformer
+    >>> from aeon.transformations.collection import Padder
     >>> import numpy as np
     >>> X = []
     >>> for i in range(10): X.append(np.random.random((4, 75 + i)))
-    >>> padder = PaddingTransformer(pad_length=200, fill_value =42)
+    >>> padder = Padder(pad_length=200, fill_value =42)
     >>> X2 = padder.fit_transform(X)
     >>> X2.shape
     (10, 4, 200)
@@ -59,7 +59,6 @@ class PaddingTransformer(BaseCollectionTransformer):
     def __init__(self, pad_length=None, fill_value=0):
         self.pad_length = pad_length
         self.fill_value = fill_value
-        self.fill_value_ = fill_value
         super().__init__()
 
     def _fit(self, X, y=None):
@@ -79,6 +78,7 @@ class PaddingTransformer(BaseCollectionTransformer):
         -------
         self : reference to self
         """
+        self.fill_value_ = self.fill_value
         max_length = _get_max_length(X)
         if self.pad_length is None:
             self.pad_length_ = max_length
@@ -151,8 +151,8 @@ class PaddingTransformer(BaseCollectionTransformer):
 
         if max_length > self.pad_length_:
             raise ValueError(
-                "Error: max_length of series \
-                    is greater than the one found when fit or set."
+                "max_length of series in transform is greater than the one found in "
+                "fit or set in the constructor."
             )
         # Calculate padding amounts
 

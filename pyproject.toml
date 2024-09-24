@@ -60,7 +60,6 @@ all_extras = [
     "esig>=0.9.7; platform_system != 'Darwin' and python_version < '3.11'",
     "imbalanced-learn",
     "keras-self-attention",
-    "kotsu>=0.3.1",
     "matplotlib>=3.3.2,<3.9.0",
     "pydot>=2.0.0",
     "scikit_posthocs>=0.6.5",

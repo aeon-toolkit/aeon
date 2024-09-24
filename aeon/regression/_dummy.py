@@ -43,7 +43,7 @@ class DummyRegressor(BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.regression.dummy import DummyRegressor
+    >>> from aeon.regression._dummy import DummyRegressor
     >>> from aeon.datasets import load_covid_3month
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
