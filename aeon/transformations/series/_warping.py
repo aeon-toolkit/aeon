@@ -3,9 +3,9 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["WarpingSeriesTransformer"]
 
-from typing import List, Tuple
-
 import numpy as np
+from numba.typed import List as NumbaList
+from numba.typed import Tuple as NumbaTuple
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
@@ -48,7 +48,11 @@ class WarpingSeriesTransformer(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, series_index: int, warping_path: List[Tuple[int, int]]) -> None:
+    def __init__(
+        self,
+        series_index: int = 0,
+        warping_path: NumbaList[NumbaTuple[int, int]] = None,
+    ) -> None:
 
         self.series_index = series_index
         self.warping_path = warping_path
@@ -68,6 +72,9 @@ class WarpingSeriesTransformer(BaseSeriesTransformer):
         -------
         aligned_series : np.ndarray of shape n_channels, len(warping_path)
         """
+        if self.warping_path is None:
+            return X
+
         indices_0, indices_1 = zip(*self.warping_path)
 
         if self.series_index == 0:
