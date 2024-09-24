@@ -48,9 +48,7 @@ class WarpingSeriesTransformer(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(
-        self, series_index: int = 0, warping_path: List[Tuple[int, int]] = None
-    ) -> None:
+    def __init__(self, series_index: int, warping_path: List[Tuple[int, int]]) -> None:
 
         self.series_index = series_index
         self.warping_path = warping_path
@@ -63,7 +61,7 @@ class WarpingSeriesTransformer(BaseSeriesTransformer):
         Parameters
         ----------
         X : np.ndarray
-            time series in shape (n_channels, n_timepoints)
+            time series of shape (n_channels, n_timepoints)
         y : ignored argument for interface compatibility
 
         Returns
