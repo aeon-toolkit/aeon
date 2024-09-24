@@ -1,5 +1,7 @@
 """Interface compliance checkers for aeon estimators."""
 
+from typing import Optional
+
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = [
     "parametrize_with_checks",
@@ -92,10 +94,10 @@ def check_estimator(
     estimator: Union[BaseEstimator, type[BaseEstimator]],
     raise_exceptions: bool = False,
     use_first_parameter_set: bool = False,
-    checks_to_run: Union[str, list[str]] = None,
-    checks_to_exclude: Union[str, list[str]] = None,
-    full_checks_to_run: Union[str, list[str]] = None,
-    full_checks_to_exclude: Union[str, list[str]] = None,
+    checks_to_run: Optional[Union[str, list[str]]] = None,
+    checks_to_exclude: Optional[Union[str, list[str]]] = None,
+    full_checks_to_run: Optional[Union[str, list[str]]] = None,
+    full_checks_to_exclude: Optional[Union[str, list[str]]] = None,
     verbose: bool = False,
 ):
     """Check if estimator adheres to `aeon` conventions.

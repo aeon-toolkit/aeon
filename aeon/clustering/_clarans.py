@@ -1,5 +1,7 @@
 """Time series kmedoids."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 import math
@@ -104,11 +106,11 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         n_clusters: int = 8,
         init_algorithm: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
-        max_neighbours: int = None,
+        max_neighbours: Optional[int] = None,
         n_init: int = 10,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
-        distance_params: dict = None,
+        random_state: Optional[Union[int, RandomState]] = None,
+        distance_params: Optional[dict] = None,
     ):
         self.max_neighbours = max_neighbours
 

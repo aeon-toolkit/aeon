@@ -1,5 +1,7 @@
 """Time format related utilities."""
 
+from typing import Optional
+
 __maintainer__ = []
 __all__ = []
 
@@ -65,7 +67,7 @@ def get_time_index(X):
 
 def _coerce_duration_to_int(
     duration: Union[int, pd.Timedelta, pd.tseries.offsets.BaseOffset, pd.Index],
-    freq: str = None,
+    freq: Optional[str] = None,
 ) -> Union[int, pd.Index]:
     """Coerce durations into integer representations for a given unit of duration.
 

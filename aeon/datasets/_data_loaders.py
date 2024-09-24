@@ -1,5 +1,7 @@
 """Dataset loading functions."""
 
+from typing import Optional
+
 __all__ = [  # Load functions
     "load_from_tsfile",
     "load_from_tsf_file",
@@ -680,7 +682,7 @@ def load_from_tsv_file(full_file_path_and_name):
 def _convert_tsf_to_hierarchical(
     data: pd.DataFrame,
     metadata,
-    freq: str = None,
+    freq: Optional[str] = None,
     value_column_name: str = "series_value",
 ) -> pd.DataFrame:
     """Convert the data from default_tsf to pd_multiindex_hier.
