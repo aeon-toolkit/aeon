@@ -27,9 +27,6 @@ __all__ = [
 from abc import ABCMeta, abstractmethod
 from typing import final
 
-import numpy as np
-import pandas as pd
-
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
 
@@ -376,21 +373,3 @@ class BaseCollectionTransformer(
         """
         # standard behaviour: no update takes place, new data is ignored
         return self
-
-    def _check_y(self, y, n_cases):
-        if y is None:
-            return None
-        # Check y valid input for collection transformations
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise TypeError(
-                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
-        # Check matching number of labels
-        n_labels = y.shape[0]
-        if n_cases != n_labels:
-            raise ValueError(
-                f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
-                f"{n_labels}"
-            )
