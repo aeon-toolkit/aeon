@@ -21,6 +21,7 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
     Parameters
     ----------
     window_length : int
+        Length of the sliding winodw for the matrix profile calculation.
 
     Notes
     -----
