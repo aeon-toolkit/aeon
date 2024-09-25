@@ -77,6 +77,7 @@ class LeftSTAMPi(BaseAnomalyDetector):
         "capability:multivariate": False,
         "capability:missing_values": False,
         "fit_is_empty": False,
+        "cant-pickle": True,
         "python_dependencies": ["stumpy"],
     }
 
@@ -94,6 +95,8 @@ class LeftSTAMPi(BaseAnomalyDetector):
         self.normalize = normalize
         self.p = p
         self.k = k
+
+        self._is_stumpy_loaded = False
 
         super().__init__(axis=0)
 
@@ -148,7 +151,10 @@ class LeftSTAMPi(BaseAnomalyDetector):
         return self.predict(X[self.n_init_train :])
 
     def _call_stumpi(self, X):
-        import stumpy
+        if not self._is_stumpy_loaded:
+            import stumpy
+
+            self._is_stumpy_loaded = True
 
         self.mp_ = stumpy.stumpi(
             X,
