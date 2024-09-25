@@ -232,19 +232,6 @@ Slope
 
     SlopeTransformer
 
-Segmentation
-~~~~~~~~~~~~
-
-.. currentmodule:: aeon.transformations.collection
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    IntervalSegmenter
-    RandomIntervalSegmenter
-    SlidingWindowSegmenter
-
 Window-based series transforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
