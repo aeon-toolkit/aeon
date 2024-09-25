@@ -4,7 +4,7 @@ __maintainer__ = []
 
 import numpy as np
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
 def _sliding_dot_products(q, t, q_len, t_len):
@@ -217,8 +217,7 @@ class MatrixProfile(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            panel of time series to transform
+        X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
         y : ignored argument for interface compatibility
 
         Returns

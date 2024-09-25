@@ -12,21 +12,21 @@ from aeon.clustering import TimeSeriesKMeans
 from aeon.pipeline import make_pipeline
 from aeon.regression import DummyRegressor
 from aeon.testing.data_generation import make_example_3d_numpy
-from aeon.transformations.collection import PaddingTransformer, Tabularizer
+from aeon.transformations.collection import Padder, Tabularizer
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
 
 
 @pytest.mark.parametrize(
     "pipeline",
     [
-        [PaddingTransformer(pad_length=15), DummyClassifier()],
+        [Padder(pad_length=15), DummyClassifier()],
         [SevenNumberSummaryTransformer(), RandomForestClassifier(n_estimators=2)],
-        [PaddingTransformer(pad_length=15), DummyRegressor()],
+        [Padder(pad_length=15), DummyRegressor()],
         [SevenNumberSummaryTransformer(), RandomForestRegressor(n_estimators=2)],
-        [PaddingTransformer(pad_length=15), TimeSeriesKMeans.create_test_instance()],
+        [Padder(pad_length=15), TimeSeriesKMeans.create_test_instance()],
         [SevenNumberSummaryTransformer(), KMeans(n_clusters=2, max_iter=3)],
-        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
-        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
+        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
     ],
 )
 def test_make_pipeline(pipeline):
