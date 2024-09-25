@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from sklearn.utils import check_random_state
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.datetime import get_time_index
 from aeon.utils.validation import check_window_length
 
@@ -407,7 +407,7 @@ class SlidingWindowSegmenter(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.datasets import load_unit_test
-    >>> from aeon.transformations.collection.segment import SlidingWindowSegmenter
+    >>> from aeon.transformations.collection import SlidingWindowSegmenter
     >>> data = np.array([[[1, 2, 3, 4, 5, 6, 7, 8]], [[5, 5, 5, 5, 5, 5, 5, 5]]])
     >>> seggy = SlidingWindowSegmenter(window_length=4)
     >>> data2 = seggy.fit_transform(data)

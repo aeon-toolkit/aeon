@@ -550,19 +550,12 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
-        model attributes (ending in "_") : dependent on estimator
 
         Parameters
         ----------
-        X : Series or Panel, any supported type
-            Data to be transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
+        X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
+            collection of time series to transform
+        y : Series, default=None
             Additional data, e.g., labels for transformation
 
         Returns

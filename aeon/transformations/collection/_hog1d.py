@@ -5,7 +5,7 @@ import numbers
 
 import numpy as np
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils import split_series
 
 
@@ -48,7 +48,7 @@ class HOG1DTransformer(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, 1, n_timepoints]
+        X : 3D np.ndarray of shape (n_cases, 1, n_timepoints)
             collection of time series to transform
         y : ignored argument for interface compatibility
 
@@ -60,8 +60,6 @@ class HOG1DTransformer(BaseCollectionTransformer):
         """
         # Get information about the dataframe
         n_cases, n_channels, n_timepoints = X.shape
-        if n_channels > 1:
-            raise ValueError("HOG1D does not support multivariate time series.")
         # Check the parameters are appropriate
         self._check_parameters(n_timepoints)
         transX = []
