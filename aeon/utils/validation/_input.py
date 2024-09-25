@@ -36,12 +36,12 @@ def _abstract_type(input_type: str) -> str:
     Returns
     -------
     str
-        Abstract type of the input, one of Series, Panel, Hierarchical or Unknown.
+        Abstract type of the input, one of Series, Collection, Hierarchical or Unknown.
     """
     if input_type in SERIES:
         return "Series"
     if input_type in COLLECTIONS:
-        return "Panel"
+        return "Collection"
     if input_type in HIERARCHICAL:
         return "Hierarchical"
     return "Unknown"
@@ -58,7 +58,7 @@ def abstract_types(input_types) -> list:
     Returns
     -------
     list of str
-        Abstract type of the input, one of Series, Panel, Hierarchical or Unknown.
+        Abstract type of the input, one of Series, Collection, Hierarchical or Unknown.
     """
     if isinstance(input_types, str):
         input_types = [input_types]
