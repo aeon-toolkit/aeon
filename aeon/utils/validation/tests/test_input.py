@@ -25,7 +25,7 @@ def test_abstract_types():
     for s in SERIES:
         assert _abstract_type(s) == "Series"
     for c in COLLECTIONS:
-        assert _abstract_type(c) == "Panel"
+        assert _abstract_type(c) == "Collection"
     for h in HIERARCHICAL:
         assert _abstract_type(h) == "Hierarchical"
     assert _abstract_type("Arsenal") == "Unknown"
@@ -33,7 +33,7 @@ def test_abstract_types():
     assert abstract_types(comb) == [
         "Series",
         "Series",
-        "Panel",
+        "Collection",
         "Hierarchical",
         "Unknown",
     ]

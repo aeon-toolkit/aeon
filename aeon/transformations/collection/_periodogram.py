@@ -7,14 +7,15 @@ import math
 
 import numpy as np
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
 
 
 class PeriodogramTransformer(BaseCollectionTransformer):
     """Periodogram transformer.
 
-    This transformer converts a time series into its periodogram representation.
+    This transformer converts a collection of time series into its periodogram
+    representation.
 
     Parameters
     ----------
@@ -82,7 +83,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
             kwargs = {"mode": self.pad_with}
             if self.pad_with == "constant":
                 kwargs["constant_values"] = self.constant_value
-
+            len = int(math.pow(2, math.ceil(math.log(X.shape[2], 2))) - X.shape[2])
             X = np.pad(
                 X,
                 (
@@ -90,9 +91,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
                     (0, 0),
                     (
                         0,
-                        int(
-                            math.pow(2, math.ceil(math.log(X.shape[2], 2))) - X.shape[2]
-                        ),
+                        len,
                     ),
                 ),
                 **kwargs,

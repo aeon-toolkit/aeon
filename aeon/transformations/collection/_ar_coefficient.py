@@ -68,7 +68,7 @@ class ARCoefficientTransformer(BaseCollectionTransformer):
         order = self.order(X) if callable(self.order) else self.order
         if order > n_timepoints - self.min_values:
             order = n_timepoints - self.min_values
-        if order < 0:
+        if order <= 0:
             order = 1
 
         if order > n_timepoints - 1:

@@ -63,6 +63,17 @@ def test_inverse_transform():
     assert_almost_equal(x, x2)
 
 
+def test_raise_inverse_transform():
+    """Test that inverse transform raises NotImplementedError."""
+    d = _Dummy()
+    x, _ = make_example_3d_numpy()
+    d.fit(x)
+    with pytest.raises(
+        NotImplementedError, match="does not implement " "inverse_transform"
+    ):
+        d.inverse_transform(x)
+
+
 class _Dummy(BaseCollectionTransformer):
     """Dummy transformer for testing.
 
