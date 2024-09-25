@@ -46,7 +46,7 @@ Composition
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.reduce
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -88,7 +88,7 @@ Shapelets, wavelets and convolution
     MiniRocketMultivariateVariable
     MultiRocket
 
-.. currentmodule:: aeon.transformations.collection.dwt
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -99,7 +99,7 @@ Shapelets, wavelets and convolution
 Distance-based features
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.matrix_profile
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -210,10 +210,21 @@ Filtering and denoising
 
     SIVSeriesTransformer
 
+Distance Based
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.series._warping
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    WarpingSeriesTransformer
+
 Slope
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.slope
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -224,7 +235,7 @@ Slope
 Segmentation
 ~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.segment
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -239,7 +250,7 @@ Window-based series transforms
 
 These transformers create a series based on a sequence of sliding windows.
 
-.. currentmodule:: aeon.transformations.collection.hog1d
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/

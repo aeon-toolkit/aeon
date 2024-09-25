@@ -12,7 +12,6 @@ from aeon.utils.validation.series import (
     _check_pd_dataframe,
     _common_checks,
     check_consistent_index_type,
-    check_equal_time_index,
     check_is_univariate,
     check_series,
     check_time_index,
@@ -34,24 +33,6 @@ def test_is_univariate_series():
         pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [6, 7, 8, 9, 10]})
     )
     assert not is_univariate_series(np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]))
-
-
-def test_check_equal_time_index():
-    """Test check equal time index."""
-    assert check_equal_time_index(None) is None
-    x = (pd.Series([1, 2, 3, 4, 5]), pd.Series([2, 3, 4, 5, 6]))
-    with pytest.raises(ValueError, match="mode must be "):
-        check_equal_time_index(*x, mode="FOO")
-    index1 = pd.date_range(start="2023-01-01", end="2023-01-05")
-    index2 = pd.date_range(start="2023-01-06", end="2023-01-10")
-    ys = (
-        pd.Series([1, 2, 3, 4, 5], index=index1),
-        pd.Series([6, 7, 8, 9, 10], index=index2),
-    )
-    with pytest.raises(ValueError):
-        check_equal_time_index(*ys, mode="contains")
-    with pytest.raises(ValueError):
-        check_equal_time_index(*ys, mode="equal")
 
 
 def test__check_is_univariate():
