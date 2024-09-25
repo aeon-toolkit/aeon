@@ -33,7 +33,7 @@ if PR_TESTING:
 
     ix = ix % 3
 
-    ALL_ESTIMATORS = [
+    ALL_TEST_ESTIMATORS = [
         ALL_TEST_ESTIMATORS[i]
         for i in random_partition(len(ALL_TEST_ESTIMATORS), 3)[ix]
     ]
