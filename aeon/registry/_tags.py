@@ -146,20 +146,20 @@ ESTIMATOR_TAG_REGISTER = [
     (
         "input_data_type",
         "transformer",
-        ("list", ["Series", "Collection", "Panel"]),
+        ("list", ["Series", "Collection"]),
         "The input abstract data type of the transformer, input X. Series "
         "indicates a single series input, Collection indicates a collection of "
-        "time series. Panel is a legacy term and equivalent to Collection.",
+        "time series.",
     ),
     (
         "output_data_type",
         "transformer",
-        ("list", ["Tabular", "Series", "Collection", "Primitives", "Panel"]),
+        ("list", ["Tabular", "Series", "Collection", "Primitives"]),
         "The output abstract data type of the transformer output, the transformed X. "
         "Tabular indicates 2D output where rows are cases and unordered attributes are "
         "columns. Series indicates a single series output and collection indicates "
         "output is a collection of time series.  Primitives is a legacy term for "
-        "Tabular and Panel for Collection.",
+        "Tabular.",
     ),
     (
         "instancewise",
@@ -170,8 +170,8 @@ ESTIMATOR_TAG_REGISTER = [
     (
         "transform_labels",
         "transformer",
-        ("list", ["None", "Series", "Primitives", "Panel"]),
-        "What is the type of y: None (not needed), Primitives, Series, Panel?",
+        ("list", ["None", "Series", "Primitives"]),
+        "What is the type of y: None (not needed), Primitives, Series?",
     ),
     (
         "requires_y",
