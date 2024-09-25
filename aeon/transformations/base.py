@@ -308,7 +308,7 @@ class BaseTransformer(BaseEstimator):
             Data to be transformed
         y : Series, default=None
             Additional data, e.g., labels for transformation.
-        `
+
 
         Returns
         -------
