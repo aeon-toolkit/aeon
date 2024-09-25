@@ -76,7 +76,7 @@ class LeftSTAMPi(BaseAnomalyDetector):
         "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
-        "fit_is_empty": True,
+        "fit_is_empty": False,
         "python_dependencies": ["stumpy"],
     }
 
@@ -98,40 +98,54 @@ class LeftSTAMPi(BaseAnomalyDetector):
         super().__init__(axis=0)
 
     def _check_params(self, X):
-        if self.window_size < 3 or self.window_size > X.shape[0]:
+        if self.window_size < 3 or self.window_size > len(X):
             raise ValueError(
                 "The window size must be at least 3 and at most the length of the "
                 "time series."
             )
+
         if self.window_size > self.n_init_train:
             raise ValueError(
                 f"The window size must be less than or equal to "
                 f"n_init_train (is: {self.n_init_train})"
             )
 
-        if self.k < 1 or self.k > X.shape[0] - self.window_size:
+        if self.k < 1 or self.k > len(X) - self.window_size + 1:
             raise ValueError(
                 "The top `k` distances must be at least 1 and at most the length of "
                 "the time series minus the window size."
             )
 
-    def _predict(self, X: np.ndarray) -> np.ndarray:
-        self._check_params(X)
-
+    def _fit(self, X, y=None):
         if X.ndim > 1:
             X = X.squeeze()
+        self._check_params(X)
 
-        self._call_stumpi(X[: self.n_init_train])
+        self._call_stumpi(X)
 
-        for x in X[self.n_init_train :]:
+        return self
+
+    def _predict(self, X: np.ndarray) -> np.ndarray:
+        if X.ndim > 1:
+            X = X.squeeze()
+        self._check_params(X)
+
+        for x in X:
             self.mp_.update(x)
 
         lmp = self.mp_._left_P
         lmp[: self.n_init_train] = 0
-
         point_anomaly_scores = reverse_windowing(lmp, self.window_size)
 
         return point_anomaly_scores
+
+    def _fit_predict(self, X, y=None) -> np.ndarray:
+        if X.ndim > 1:
+            X = X.squeeze()
+
+        self.fit(X[: self.n_init_train])
+
+        return self.predict(X[self.n_init_train :])
 
     def _call_stumpi(self, X):
         import stumpy

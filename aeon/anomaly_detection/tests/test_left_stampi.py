@@ -18,7 +18,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 class TestLeftSTAMPi:
     """Unit Tests for the LeftSTAMPi class."""
 
-    def test_functional_it_allows_batch_processing(self):
+    def test_functional_it_allows_batch_processing_two_step(self):
         """Functional testing the batch mode without mocking stumpy."""
         # given
         series = make_example_1d_numpy(n_timepoints=20, random_state=42)
@@ -27,7 +27,24 @@ class TestLeftSTAMPi:
         model = LeftSTAMPi(window_size=4, n_init_train=5)
 
         # when
-        pred = model.predict(series)
+        model = model.fit(series[:5])
+        pred = model.predict(series[5:])
+
+        # then
+        assert pred.shape == (20,)
+        assert pred.dtype == np.float_
+        assert np.argmax(pred) == 8
+
+    def test_functional_it_allows_batch_processing_via_fit_predict(self):
+        """Functional testing the batch mode without mocking stumpy."""
+        # given
+        series = make_example_1d_numpy(n_timepoints=20, random_state=42)
+        series[7:10] += 3
+
+        model = LeftSTAMPi(window_size=4, n_init_train=5)
+
+        # when
+        pred = model.fit_predict(series)
 
         # then
         assert pred.shape == (20,)
@@ -68,7 +85,7 @@ class TestLeftSTAMPi:
         ad = LeftSTAMPi(window_size=4, n_init_train=5)
 
         # when
-        pred = ad.predict(series)
+        pred = ad.fit_predict(series)
 
         # then
         stumpi_mock.has_been_called_once_with(
@@ -104,7 +121,7 @@ class TestLeftSTAMPi:
             match="The window size must be at least 3 and "
             "at most the length of the time series.",
         ):
-            _ = ad.predict(series)
+            _ = ad.fit_predict(series)
 
         ad = LeftSTAMPi(window_size=81)
         # when
@@ -113,7 +130,7 @@ class TestLeftSTAMPi:
             match="The window size must be at least 3 and "
             "at most the length of the time series.",
         ):
-            _ = ad.predict(series)
+            _ = ad.fit_predict(series)
 
     def test_it_z_normalizes_the_subsequences_by_default(self, mocker):
         """Unit testing the normalization parameter."""
@@ -128,7 +145,7 @@ class TestLeftSTAMPi:
         )
 
         # when
-        _ = ad.predict(series)
+        _ = ad.fit_predict(series)
 
         # then
         assert stumpi_stub.call_count == 1
@@ -155,7 +172,7 @@ class TestLeftSTAMPi:
         ad = LeftSTAMPi(window_size=5, n_init_train=10, normalize=False)
 
         # when
-        _ = ad.predict(series)
+        _ = ad.fit_predict(series)
 
         # then
         assert stumpi_stub.call_count == 1
@@ -183,8 +200,8 @@ class TestLeftSTAMPi:
         ad2 = LeftSTAMPi(window_size=5, n_init_train=10, normalize=False, p=1)
 
         # when
-        _ = ad1.predict(series)
-        _ = ad2.predict(series)
+        _ = ad1.fit_predict(series)
+        _ = ad2.fit_predict(series)
 
         # then
         assert stumpi_stub.call_count == 2
@@ -225,8 +242,8 @@ class TestLeftSTAMPi:
         ad2 = LeftSTAMPi(window_size=5, n_init_train=10, k=2)
 
         # when
-        _ = ad1.predict(series)
-        _ = ad2.predict(series)
+        _ = ad1.fit_predict(series)
+        _ = ad2.fit_predict(series)
 
         # then
         assert stumpi_stub.call_count == 2
