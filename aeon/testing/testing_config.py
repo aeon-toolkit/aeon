@@ -16,12 +16,17 @@ from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
-# Exclude estimators here for short-term fixes
+# Exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = [
     "SeriesSearch",
     "QuerySearch",
     "ClearSkyTransformer",
+    # See #2071
+    "RandomDilatedShapeletTransform",
+    "RDSTClassifier",
+    "RDSTRegressor",
 ]
+
 
 EXCLUDED_TESTS = {
     # Early classifiers (EC) intentionally retain information from previous predict

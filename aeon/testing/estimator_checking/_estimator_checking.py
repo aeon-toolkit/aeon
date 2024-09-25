@@ -72,15 +72,20 @@ def parametrize_with_checks(
 
     checks = []
     for est in estimators:
+        # check if estimator has soft dependencies installed
         has_dependencies = _check_estimator_deps(est, severity="none")
 
+        # collect all relevant checks
         for check in _yield_all_aeon_checks(
             est,
             use_first_parameter_set=use_first_parameter_set,
             has_dependencies=has_dependencies,
         ):
+            # wrap check to skip if necessary (missing dependencies, on an exclude list
+            # etc.)
             checks.append(_check_if_xfail(est, check, has_dependencies))
 
+    # return a pytest parametrize decorator with custom ids
     return pytest.mark.parametrize(
         "check",
         checks,
@@ -182,16 +187,20 @@ def check_estimator(
     >>> check_estimator(MockClassifier, checks_to_run="check_clone")
     {'check_clone(estimator=MockClassifier())': 'PASSED'}
     """
+    # check if estimator has soft dependencies installed
     _check_estimator_deps(estimator)
 
     checks = []
+    # collect all relevant checks
     for check in _yield_all_aeon_checks(
         estimator,
         use_first_parameter_set=use_first_parameter_set,
         has_dependencies=True,
     ):
+        # wrap check to skip if necessary (on an exclude list etc.)
         checks.append(_check_if_skip(estimator, check, True))
 
+    # process run/exclude lists to filter checks
     if not isinstance(checks_to_run, (list, tuple)) and checks_to_run is not None:
         checks_to_run = [checks_to_run]
     if (
@@ -214,9 +223,11 @@ def check_estimator(
     skipped = 0
     failed = 0
     results = {}
+    # run all checks
     for check in checks:
         check_name = _get_check_estimator_ids(check)
 
+        # ignore check if filtered
         if checks_to_run is not None and check_name.split("(")[0] not in checks_to_run:
             continue
         if (
@@ -229,6 +240,7 @@ def check_estimator(
         if full_checks_to_exclude is not None and check_name in full_checks_to_exclude:
             continue
 
+        # run the check and process output/errors
         try:
             check()
             if verbose:
@@ -315,6 +327,10 @@ def _get_check_estimator_ids(obj):
     `_get_check_estimator_ids` is designed to be used as the `id` in
     `pytest.mark.parametrize` where `checks_generator` is yielding estimators and
     checks.
+
+    Some parameters which contain functions or methods will be obfuscated to
+    allow for compatability with `pytest-xdist`. This requires that IDs on each thread
+    be the same, and functions can generate different IDs.
 
     Based on the `scikit-learn` `_get_check_estimator_ids` function.
 
