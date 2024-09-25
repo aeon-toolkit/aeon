@@ -7,7 +7,7 @@ import math
 
 import numpy as np
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils import split_series
 
 
@@ -29,7 +29,7 @@ class SlopeTransformer(BaseCollectionTransformer):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.transformations.collection.slope import SlopeTransformer
+    >>> from aeon.transformations.collection import SlopeTransformer
     >>> X = np.array([[[4, 6, 10, 12, 8, 6, 5, 5]]])
     >>> s = SlopeTransformer(n_intervals=2)
     >>> res = s.fit_transform(X)
@@ -57,8 +57,7 @@ class SlopeTransformer(BaseCollectionTransformer):
 
         Returns
         -------
-        3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-        collection of time series to transform
+        3D np.ndarray of shape = [n_cases, n_channels, n_intervals]
         """
         # Get information about the dataframe
         n_cases, n_channels, n_timepoints = X.shape

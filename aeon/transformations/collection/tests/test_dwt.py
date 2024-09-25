@@ -5,7 +5,7 @@ import math
 import numpy as np
 import pytest
 
-from aeon.transformations.collection.dwt import DWTTransformer
+from aeon.transformations.collection import DWTTransformer
 
 
 @pytest.mark.parametrize("bad_num_levels", ["str", 1.2, -1.2, -1, {}])
