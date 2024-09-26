@@ -81,10 +81,7 @@ class PyODAdapter(BaseAnomalyDetector):
         "capability:univariate": True,
         "capability:missing_values": False,
         "fit_is_empty": False,
-        # Omit the version specification until PyOD has __version__
-        # (https://github.com/yzhao062/pyod/pull/584 in dev but not released yet)
-        # "python_dependencies": ["pyod>=1.1.3"]
-        "python_dependencies": ["pyod"],
+        "python_dependencies": ["pyod>=2.0.1"],
     }
 
     def __init__(
@@ -176,7 +173,7 @@ class PyODAdapter(BaseAnomalyDetector):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        _check_soft_dependencies("pyod")
+        _check_soft_dependencies(*cls._tags["python_dependencies"])
 
         from pyod.models.lof import LOF
 

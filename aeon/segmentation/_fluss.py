@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 
 from aeon.segmentation.base import BaseSegmenter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class FLUSSSegmenter(BaseSegmenter):
@@ -103,7 +102,6 @@ class FLUSSSegmenter(BaseSegmenter):
         return {"profile": self.profile}
 
     def _run_fluss(self, X):
-        _check_soft_dependencies("stumpy", severity="error")
         import stumpy
 
         mp = stumpy.stump(X, m=self.period_length)
