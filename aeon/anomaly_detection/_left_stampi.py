@@ -96,8 +96,6 @@ class LeftSTAMPi(BaseAnomalyDetector):
         self.p = p
         self.k = k
 
-        self._is_stumpy_loaded = False
-
         super().__init__(axis=0)
 
     def _check_params(self, X):
@@ -119,7 +117,7 @@ class LeftSTAMPi(BaseAnomalyDetector):
                 "the time series minus the window size."
             )
 
-    def _fit(self, X, y=None):
+    def _fit(self, X: np.ndarray, y=None) -> 'LeftSTAMPi':
         if X.ndim > 1:
             X = X.squeeze()
         self._check_params(X)
@@ -142,7 +140,7 @@ class LeftSTAMPi(BaseAnomalyDetector):
 
         return point_anomaly_scores
 
-    def _fit_predict(self, X, y=None) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if X.ndim > 1:
             X = X.squeeze()
 
@@ -150,11 +148,8 @@ class LeftSTAMPi(BaseAnomalyDetector):
 
         return self.predict(X[self.n_init_train :])
 
-    def _call_stumpi(self, X):
-        if not self._is_stumpy_loaded:
-            import stumpy
-
-            self._is_stumpy_loaded = True
+    def _call_stumpi(self, X: np.ndarray):
+        import stumpy
 
         self.mp_ = stumpy.stumpi(
             X,
