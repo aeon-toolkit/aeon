@@ -117,7 +117,7 @@ class LeftSTAMPi(BaseAnomalyDetector):
                 "the time series minus the window size."
             )
 
-    def _fit(self, X: np.ndarray, y=None) -> 'LeftSTAMPi':
+    def _fit(self, X: np.ndarray, y=None) -> "LeftSTAMPi":
         if X.ndim > 1:
             X = X.squeeze()
         self._check_params(X)
