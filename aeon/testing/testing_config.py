@@ -58,11 +58,8 @@ EXCLUDED_TESTS = {
     "RSAST": ["check_fit_deterministic"],
     "AEFCNClusterer": ["check_fit_updates_state"],
     "AEResNetClusterer": ["check_fit_updates_state"],
-    "PyODAdapter": ["check_fit_updates_state"],
     "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
     # missed in legacy testing, changes state in predict/transform
-    "DWT_MLEAD": ["check_non_state_changing_method"],
-    "STOMP": ["check_non_state_changing_method"],
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
     "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
@@ -84,9 +81,8 @@ VALID_ESTIMATOR_TAGS = tuple(ESTIMATOR_TAG_LIST)
 # methods that should not change the state of the estimator, that is, they should
 # not change fitted parameters or hyper-parameters. They are also the methods that
 # "apply" the fitted estimator to data and useful for checking results.
-# NON_STATE_CHANGING_METHODS_ARRAYLIK =
-# non-state-changing methods that return an array-like output
 
+# non-state-changing methods that return an array-like output
 NON_STATE_CHANGING_METHODS_ARRAYLIKE = (
     "predict",
     "predict_var",
