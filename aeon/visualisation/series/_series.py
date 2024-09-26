@@ -12,8 +12,11 @@ from scipy.fft import fftshift
 from scipy.signal import spectrogram
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.forecasting import check_interval_df, check_y
-from aeon.utils.validation.series import check_consistent_index_type
+from aeon.utils.validation.series import (
+    check_consistent_index_type,
+    check_y,
+    is_pred_interval_proba,
+)
 
 
 def plot_series(
@@ -43,8 +46,7 @@ def plot_series(
     title : str, default = None
         The text to use as the figure's suptitle.
     pred_interval : pd.DataFrame, default = None
-        Output of `forecaster.predict_interval()`. Contains columns for lower
-        and upper boundaries of confidence interval.
+        Contains columns for lower and upper boundaries of confidence interval.
 
     Returns
     -------
@@ -151,7 +153,7 @@ def plot_series(
     if legend:
         ax.legend()
     if pred_interval is not None:
-        check_interval_df(pred_interval, series[-1].index)
+        assert is_pred_interval_proba(pred_interval)
         ax = _plot_interval(ax, pred_interval)
 
     if _ax_kwarg_is_none:
@@ -222,7 +224,7 @@ def plot_lags(series, lags=1, suptitle=None):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    check_y(series)
+    series = check_y(series)
 
     if isinstance(lags, int):
         single_lag = True
@@ -391,6 +393,7 @@ def plot_spectrogram(series, fs=1, return_onesided=True):
     import matplotlib.pyplot as plt
 
     series = check_y(series)
+
     fig, ax = plt.subplots()
 
     _, _, _spectrogram = spectrogram(series, fs=fs, return_onesided=return_onesided)

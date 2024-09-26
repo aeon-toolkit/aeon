@@ -10,9 +10,9 @@ from aeon.clustering import BaseClusterer
 from aeon.clustering.compose import ClustererPipeline
 from aeon.regression import BaseRegressor
 from aeon.regression.compose import RegressorPipeline
-from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.compose import CollectionTransformerPipeline
+from aeon.transformations.series import BaseSeriesTransformer
 
 
 def make_pipeline(*steps):
@@ -79,7 +79,7 @@ def make_pipeline(*steps):
         or isinstance(steps[0], TransformerMixin)
         or getattr(steps[0], "_estimator_type", None) == "transformer"
     ) and (
-        isinstance(steps[-1], BaseTransformer)
+        isinstance(steps[-1], BaseSeriesTransformer)
         or isinstance(steps[-1], TransformerMixin)
         or getattr(steps[-1], "_estimator_type", None) == "transformer"
     ):

@@ -30,6 +30,11 @@ def naive_matrix_profile(
     """
     Compute a matrix profile in a naive way, by looping through a query search.
 
+    The matrix profile is computed by comparing each subsequence of the input series `T`
+    against the input samples `X`. The function uses a similarity search approach with
+    a variety of distance measures and can apply exclusion zones to avoid overlapping
+    matches. The result includes both the distances and the indices of the best matches.
+
     Parameters
     ----------
     X:  np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
