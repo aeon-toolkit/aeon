@@ -18,12 +18,11 @@ class SIVSeriesTransformer(BaseSeriesTransformer):
     window_length : list of int or int, default=[3, 5, 7]
         The filter windows lenths (recommended increasing value).
 
-    implementation of a median filter and therefore runs much faster.
-
     Notes
     -----
     Use scipy.ndimage.median_filter instead of scipy.signal.medfilt :
     The more general function scipy.ndimage.median_filter has a more efficient
+    implementation of a median filter and therefore runs much faster.
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.medfilt.html
 
     References
