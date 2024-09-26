@@ -148,9 +148,7 @@ def load_anomaly_detection(
     metadata = df_meta.loc[name]
     if split.lower() == "train":
         train_path = metadata["train_path"]
-        if train_path is None or (
-            isinstance(train_path, np.number) and np.isnan(train_path)
-        ):
+        if train_path is None or pd.isnull(train_path):
             raise ValueError(
                 f"Dataset {name} does not have a training partition. Only "
                 "`split='test'` is supported."
