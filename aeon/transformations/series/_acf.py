@@ -1,10 +1,7 @@
-"""Auto-correlation transformations.
-
-Module :mod:`aeon.transformations` implements auto-correlation
-transformers.
-"""
+"""Auto-correlation transformations."""
 
 __maintainer__ = ["TonyBagnall"]
+__all__ = ["AutoCorrelationSeriesTransformer", "StatsModelsACF", "StatsModelsPACF"]
 
 import numpy as np
 from numba import njit
