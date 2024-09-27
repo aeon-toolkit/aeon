@@ -180,10 +180,10 @@ class EAggloSegmenter(BaseSegmenter):
 
         Parameters
         ----------
-        X : Series of mtype X_inner_type
+        X : pd.Dataframe
             Data to be transformed
-        y : Series of type y_inner_type, default=None
-            Not required for this unsupervised transform.
+        y : default=None
+            Ignored, for interface compatibility
 
         Returns
         -------
