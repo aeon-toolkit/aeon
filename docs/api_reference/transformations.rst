@@ -46,7 +46,7 @@ Composition
 Sklearn and pandas adapters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.reduce
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -88,7 +88,7 @@ Shapelets, wavelets and convolution
     MiniRocketMultivariateVariable
     MultiRocket
 
-.. currentmodule:: aeon.transformations.collection.dwt
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -99,7 +99,7 @@ Shapelets, wavelets and convolution
 Distance-based features
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.matrix_profile
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -148,7 +148,7 @@ These transformers extract larger collections of features.
 
 
 Series transforms
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 These transformations apply a function element-wise.
 
@@ -194,10 +194,37 @@ Filtering and denoising
 
     DFTSeriesTransformer
 
+.. currentmodule:: aeon.transformations.series._sg
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SGSeriesTransformer
+
+.. currentmodule:: aeon.transformations.series._siv
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SIVSeriesTransformer
+
+Distance Based
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.series._warping
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    WarpingSeriesTransformer
+
 Slope
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.slope
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -208,15 +235,7 @@ Slope
 Segmentation
 ~~~~~~~~~~~~
 
-.. currentmodule:: aeon.transformations.collection.interpolate
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    TSInterpolator
-
-.. currentmodule:: aeon.transformations.collection.segment
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -231,7 +250,7 @@ Window-based series transforms
 
 These transformers create a series based on a sequence of sliding windows.
 
-.. currentmodule:: aeon.transformations.collection.hog1d
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -260,23 +279,17 @@ A panel transformer is fitted on an entire panel, and not per series.
 Equal length transforms
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-These transformations ensure all series in a panel have equal length
+These transformations convert collections of unequal length series to equal length
 
-.. currentmodule:: aeon.transformations.collection.pad
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    PaddingTransformer
-
-.. currentmodule:: aeon.transformations.collection.truncate
+.. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    TruncationTransformer
+    Truncator
+    Padder
+    Resizer
 
 
 Dimension reduction

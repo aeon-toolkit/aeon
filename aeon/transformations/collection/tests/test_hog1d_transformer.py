@@ -5,7 +5,21 @@ import numbers
 import numpy as np
 import pytest
 
-from aeon.transformations.collection.hog1d import HOG1DTransformer
+from aeon.transformations.collection._hog1d import HOG1DTransformer
+
+
+def test_hog1d():
+    """Test HOG1D Transformer exceptions."""
+    X = np.random.random((2, 1, 10))
+    hog = HOG1DTransformer(n_bins=0)
+    with pytest.raises(ValueError, match=r"num_bins must have the value of at least 1"):
+        hog.fit_transform(X)
+    hog = HOG1DTransformer(n_bins=0.5)
+    with pytest.raises(TypeError, match=r"must be an 'int'"):
+        hog.fit_transform(X)
+    hog = HOG1DTransformer(scaling_factor="Bob")
+    with pytest.raises(TypeError, match=r"scaling_factor must be a 'number'"):
+        hog.fit_transform(X)
 
 
 @pytest.mark.parametrize("num_bins,corr_n_timepoints", [(4, 8), (8, 16), (12, 24)])
