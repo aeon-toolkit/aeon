@@ -147,12 +147,13 @@ def load_anomaly_detection(
     df_meta = df_meta.set_index(["collection_name", "dataset_name"])
     metadata = df_meta.loc[name]
     if split.lower() == "train":
-        if metadata["train_path"] is None or np.isnan(metadata["train_path"]):
+        train_path = metadata["train_path"]
+        if train_path is None or pd.isnull(train_path):
             raise ValueError(
                 f"Dataset {name} does not have a training partition. Only "
                 "`split='test'` is supported."
             )
-        dataset_path = data_folder / metadata["train_path"]
+        dataset_path = data_folder / train_path
     else:
         dataset_path = data_folder / metadata["test_path"]
 

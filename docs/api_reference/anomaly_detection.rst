@@ -71,6 +71,7 @@ Detectors
 
     DWT_MLEAD
     KMeansAD
+    LeftSTAMPi
     MERLIN
     PyODAdapter
     STRAY
