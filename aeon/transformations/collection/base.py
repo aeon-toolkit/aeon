@@ -50,6 +50,7 @@ class BaseCollectionTransformer(
 
     def __init__(self):
         self._estimator_type = "transformer"
+        self._tags = {}
 
         super().__init__()
 
@@ -376,6 +377,53 @@ class BaseCollectionTransformer(
         """
         # standard behaviour: no update takes place, new data is ignored
         return self
+
+        # List of valid algorithm types
+
+    valid_algorithm_types = [
+        "distance",
+        "interval",
+        "shapelet ",
+        "signature",
+        "feature",
+        "dictionary",
+        "convolution",
+    ]
+
+    def check_algorithm_type(_tags, valid_algorithm_types):
+        """
+        Validate the 'algorithm_type' tag in the provided tags dictionary.
+
+        Parameters
+        ----------
+        - tags: dict
+            A dictionary that contains metadata or tags about the class.
+        - valid_algorithm_types: list
+            A list of valid algorithm types.
+
+        Returns
+        -------
+        - True if the 'algorithm_type' is valid.
+
+        Raises
+        ------
+        - ValueError if 'algorithm_type' is missing or invalid.
+        """
+        # Get algorithm type from tags
+        algorithm_type = _tags.get("algorithm_type")
+
+        # Raise error if algorithm type is missing
+        if algorithm_type is None:
+            raise ValueError("'algorithm_type' not defined in the tags dictionary.")
+
+        # Check if the algorithm_type is in the valid list
+        if algorithm_type not in valid_algorithm_types:
+            raise ValueError(
+                f"Invalid 'algorithm_type': {algorithm_type}. "
+                f"Must be one of {valid_algorithm_types}."
+            )
+
+        return True
 
 
 def _check_y(self, y, n_cases):

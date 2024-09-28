@@ -13,6 +13,7 @@ from aeon.testing.data_generation import (
 )
 from aeon.testing.data_generation._legacy import make_series
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.base import check_algorithm_type
 
 
 @pytest.mark.parametrize(
@@ -72,6 +73,45 @@ def test_raise_inverse_transform():
         NotImplementedError, match="does not implement " "inverse_transform"
     ):
         d.inverse_transform(x)
+
+
+# List of valid algorithm types
+valid_algorithm_types = [
+    "distance",
+    "interval",
+    "shapelet ",
+    "signature",
+    "feature",
+    "dictionary",
+    "convolution",
+]
+
+
+def test_check_algorithm_type():
+    """
+    Test check_algorithm_type function with valid, invalid, and missing algorithm_type.
+
+    The test performs the following:
+    - Test Case 1: Checks if a valid algorithm_type passes the validation.
+    - Test Case 2: Ensures that an invalid algorithm_type raises a ValueError.
+    """
+    # Test Case 1: Valid algorithm_type
+    tags_valid = {"algorithm_type": "distance"}
+    try:
+        result = check_algorithm_type(tags_valid, valid_algorithm_types)
+        assert result is True, "Test Case 1 Passed: Valid algorithm_type"
+    except ValueError as e:
+        raise AssertionError(f"Test Case 1 Failed: {e}")
+
+    # Test Case 2: Invalid algorithm_type
+    tags_invalid = {"algorithm_type": "invalid_type"}
+    try:
+        check_algorithm_type(tags_invalid, valid_algorithm_types)
+        raise AssertionError(
+            "Test Case 2 Failed: ValueError was not raised for invalid algorithm_type"
+        )
+    except ValueError as e:
+        assert str(e) == f"Test Case 2 Passed: {e}"
 
 
 class _Dummy(BaseCollectionTransformer):
