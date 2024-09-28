@@ -1,8 +1,14 @@
+"""Selects channels based on an estimate of performance."""
+
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["ChannelScorer"]
+
 import math
 from typing import Callable
 from typing import Dict as TypingDict
 from typing import List as TypingList
 from typing import Union
+from typing import Optional
 
 import numpy as np
 from sklearn.metrics import accuracy_score, mean_squared_error
@@ -11,9 +17,6 @@ from aeon.base import BaseEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
-
-__maintainer__ = ["TonyBagnall"]
-__all__ = ["ChannelScorer"]
 
 
 class ChannelScorer(BaseChannelSelector):
@@ -60,7 +63,7 @@ class ChannelScorer(BaseChannelSelector):
 
     def __init__(
         self,
-        estimator: BaseEstimator,
+        estimator: Optional[BaseEstimator],
         scoring_function: Callable = None,
         score_sign: float = None,
         proportion: float = 0.4,

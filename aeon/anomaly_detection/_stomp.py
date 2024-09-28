@@ -82,7 +82,6 @@ class STOMP(BaseAnomalyDetector):
         p: float = 2.0,
         k: int = 1,
     ):
-        self.mp: np.ndarray | None = None
         self.window_size = window_size
         self.ignore_trivial = ignore_trivial
         self.normalize = normalize
@@ -96,7 +95,7 @@ class STOMP(BaseAnomalyDetector):
         import stumpy
 
         self._check_params(X)
-        self.mp = stumpy.stump(
+        mp = stumpy.stump(
             X[:, 0],
             m=self.window_size,
             ignore_trivial=self.ignore_trivial,
@@ -104,7 +103,7 @@ class STOMP(BaseAnomalyDetector):
             p=self.p,
             k=self.k,
         )
-        point_anomaly_scores = reverse_windowing(self.mp[:, 0], self.window_size)
+        point_anomaly_scores = reverse_windowing(mp[:, 0], self.window_size)
         return point_anomaly_scores
 
     def _check_params(self, X: np.ndarray) -> None:

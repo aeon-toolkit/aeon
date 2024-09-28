@@ -1,5 +1,7 @@
 """Base class for clustering."""
 
+from typing import Optional
+
 __maintainer__ = []
 __all__ = ["BaseClusterer"]
 
@@ -22,7 +24,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         Number of clusters for model.
     """
 
-    def __init__(self, n_clusters: int = None):
+    def __init__(self, n_clusters: Optional[int] = None):
         self.n_clusters = n_clusters
         # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV

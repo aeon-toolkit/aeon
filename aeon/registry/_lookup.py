@@ -492,7 +492,7 @@ def all_tags(
 
     # convert to pd.DataFrame if as_dataframe=True
     if as_dataframe:
-        columns = ["name", "scitype", "type", "description"]
+        columns = ["name", "datatype", "type", "description"]
         all_tags = pd.DataFrame(all_tags, columns=columns)
 
     return all_tags
