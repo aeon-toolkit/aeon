@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from aeon.base import BaseEstimator, BaseObject
+from aeon.base import BaseEstimator
 from aeon.clustering.base import BaseClusterer
 from aeon.regression.base import BaseRegressor
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
@@ -56,7 +56,7 @@ def _get_tag(estimator, tag_name, default=None, raise_error=False):
 
 def _list_required_methods(estimator):
     """Return list of required method names (beyond BaseEstimator ones)."""
-    # all BaseObject children must implement these
+    # all BaseEstimator children must implement these
     MUST_HAVE_FOR_OBJECTS = ["set_params", "get_params"]
 
     # all BaseEstimator children must implement these
@@ -75,7 +75,7 @@ def _list_required_methods(estimator):
 
     required_methods = []
 
-    if isinstance(estimator, BaseObject):
+    if isinstance(estimator, BaseEstimator):
         required_methods += MUST_HAVE_FOR_OBJECTS
 
     if isinstance(estimator, BaseEstimator):
