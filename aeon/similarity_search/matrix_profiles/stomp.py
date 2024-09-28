@@ -1,5 +1,7 @@
 """Implementation of stomp for euclidean and squared euclidean distance profile."""
 
+from typing import Optional
+
 __maintainer__ = ["baraline"]
 
 
@@ -29,7 +31,7 @@ def stomp_euclidean_matrix_profile(
     k: int = 1,
     threshold: float = np.inf,
     inverse_distance: bool = False,
-    exclusion_size: int = None,
+    exclusion_size: Optional[int] = None,
 ):
     """
     Compute a euclidean euclidean matrix profile using STOMP [1]_.
@@ -109,7 +111,7 @@ def stomp_squared_matrix_profile(
     k: int = 1,
     threshold: float = np.inf,
     inverse_distance: bool = False,
-    exclusion_size: int = None,
+    exclusion_size: Optional[int] = None,
 ):
     """
     Compute a squared euclidean matrix profile using STOMP [1]_.
@@ -198,7 +200,7 @@ def stomp_normalized_euclidean_matrix_profile(
     k: int = 1,
     threshold: float = np.inf,
     inverse_distance: bool = False,
-    exclusion_size: int = None,
+    exclusion_size: Optional[int] = None,
 ):
     """
     Compute a euclidean matrix profile using STOMP [1]_.
@@ -296,7 +298,7 @@ def stomp_normalized_squared_matrix_profile(
     k: int = 1,
     threshold: float = np.inf,
     inverse_distance: bool = False,
-    exclusion_size: int = None,
+    exclusion_size: Optional[int] = None,
 ):
     """
     Compute a squared euclidean matrix profile using STOMP [1]_.
