@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -40,7 +41,7 @@ class ChannelScorer(BaseChannelSelector):
 
     def __init__(
         self,
-        classifier: BaseClassifier = None,
+        classifier: Optional[BaseClassifier] = None,
         proportion: float = 0.4,
     ):
         self.proportion = proportion

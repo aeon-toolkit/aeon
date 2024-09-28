@@ -315,7 +315,7 @@ def is_equal_length(X):
     Raises
     ------
     ValueError
-        input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
+        input_type not in COLLECTIONS_DATA_TYPES.
 
     Examples
     --------
@@ -343,7 +343,7 @@ def has_missing(X):
     Raises
     ------
     ValueError
-        Input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
+        Input_type not in COLLECTIONS_DATA_TYPES.
 
     Examples
     --------

@@ -1,6 +1,6 @@
 """Time series kernel kmeans."""
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 from numpy.random import RandomState
@@ -99,7 +99,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         kernel_params: Union[dict, None] = None,
         verbose: bool = False,
         n_jobs: Union[int, None] = None,
-        random_state: Union[int, RandomState] = None,
+        random_state: Optional[Union[int, RandomState]] = None,
     ):
         self.kernel = kernel
         self.n_init = n_init
