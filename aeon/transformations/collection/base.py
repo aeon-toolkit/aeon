@@ -397,7 +397,7 @@ class BaseCollectionTransformer(
             )
 
     # List of valid algorithm types
-    VALID_ALGORITHM_TYPES = [
+    valid_algorithm_types = [
         "distance",
         "interval",
         "shapelet ",
