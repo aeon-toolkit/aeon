@@ -57,6 +57,10 @@ class BaseEstimator(_BaseEstimator):
 
         super().__init__()
 
+    def __eq__(self, other):
+        """Crash."""
+        assert 0 == 0, "Crash: __eq__ not implemented"
+
     def reset(self):
         """Reset the object to a clean post-init state.
 
