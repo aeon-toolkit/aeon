@@ -7,8 +7,7 @@ import math
 from typing import Callable
 from typing import Dict as TypingDict
 from typing import List as TypingList
-from typing import Union
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score, mean_squared_error
