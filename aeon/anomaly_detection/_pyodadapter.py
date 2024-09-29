@@ -81,7 +81,7 @@ class PyODAdapter(BaseAnomalyDetector):
         "capability:univariate": True,
         "capability:missing_values": False,
         "fit_is_empty": False,
-        "python_dependencies": ["pyod>=2.0.1"],
+        "python_dependencies": ["pyod"],
     }
 
     def __init__(
