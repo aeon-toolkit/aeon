@@ -8,8 +8,6 @@ Interface specifications below.
 Parameter inspection and setter methods
     inspect parameter values      - get_params()
     setting parameter values      - set_params(**params)
-    list of parameter names       - get_param_names()
-    dict of parameter defaults    - get_param_defaults()
     fitted parameter inspection - get_fitted_params()
 
 Tag inspection and setter methods
@@ -640,8 +638,7 @@ class BaseEstimator(_BaseEstimator):
             Dictionary of fitted parameters, paramname : paramvalue
             keys-value pairs include:
 
-            * always: all fitted parameters of this object, as via ``get_param_names``
-              values are fitted parameter value for that key, of this object
+            * always: all fitted parameters of this object
             * if ``deep=True``, also contains keys/value pairs of component parameters
               parameters of components are indexed as ``[componentname]__[paramname]``
               all parameters of ``componentname`` appear as ``paramname`` with its value
