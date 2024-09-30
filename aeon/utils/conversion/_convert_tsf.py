@@ -1,5 +1,7 @@
 """Data generators."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 
@@ -9,7 +11,7 @@ import pandas as pd
 def _convert_tsf_to_hierarchical(
     data: pd.DataFrame,
     metadata: dict,
-    freq: str = None,
+    freq: Optional[str] = None,
     value_column_name: str = "series_value",
 ) -> pd.DataFrame:
     """Convert the data from default_tsf to pd_multiindex_hier.

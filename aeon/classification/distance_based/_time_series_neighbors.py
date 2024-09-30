@@ -5,6 +5,8 @@ The class can take callables or uses string references to utilise the numba base
 distances in aeon.distances.
 """
 
+from typing import Optional
+
 __maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
 
@@ -72,7 +74,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     def __init__(
         self,
         distance: Union[str, Callable] = "dtw",
-        distance_params: dict = None,
+        distance_params: Optional[dict] = None,
         n_neighbors: int = 1,
         weights: Union[str, Callable] = "uniform",
         n_jobs: int = 1,

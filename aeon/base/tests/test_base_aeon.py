@@ -1,4 +1,4 @@
-"""Tests for BaseObject universal base class that require aeon or sklearn imports."""
+"""Tests for universal base class that require aeon or sklearn imports."""
 
 __maintainer__ = []
 
