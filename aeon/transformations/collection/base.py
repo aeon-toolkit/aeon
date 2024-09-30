@@ -412,7 +412,7 @@ class BaseCollectionTransformer(
         # Get algorithm type from tags
         algorithm_type = _tags.get("algorithm_type")
 
-        # Raise error if algorithm type is missing
+        # Raise error if algorithm type  is missing
         if algorithm_type is None:
             raise ValueError("'algorithm_type' not defined in the tags dictionary.")
 
