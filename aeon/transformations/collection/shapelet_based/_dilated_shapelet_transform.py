@@ -15,6 +15,7 @@ from typing import Optional, Union
 import numpy as np
 from numba import njit, prange, set_num_threads
 from numba.typed import List
+from numpy.random._generator import Generator
 from sklearn.preprocessing import LabelEncoder
 
 from aeon.transformations.collection import BaseCollectionTransformer
@@ -24,7 +25,6 @@ from aeon.utils.numba.general import (
     combinations_1d,
     get_subsequence,
     get_subsequence_with_mean_std,
-    set_numba_random_seed,
     sliding_mean_std_one_series,
 )
 from aeon.utils.numba.stats import prime_up_to
@@ -85,9 +85,6 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         If True, restricts the value of the shapelet dilation parameter to be prime
         values. This can greatly speed up the algorithm for long time series and/or
         short shapelet lengths, possibly at the cost of some accuracy.
-    distance: str="manhattan"
-        Name of the distance function to be used. By default this is the
-        manhattan distance. Other distances from the aeon distance modules can be used.
     n_jobs : int, default=1
         The number of threads used for both `fit` and `transform`.
     random_state : int or None, default=None
@@ -191,9 +188,14 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             This estimator.
         """
         if isinstance(self.random_state, int):
-            self._random_state = np.int32(self.random_state)
+            self._random_generator = np.random.default_rng(self.random_state)
+        elif self.random_state is None:
+            self._random_generator = np.random.default_rng()
         else:
-            self._random_state = np.int32(np.random.randint(0, 2**31))
+            raise ValueError(
+                "Expected integer or None for random_state argument but got"
+                f"{type(self.random_state)}"
+            )
 
         n_cases_ = len(X)
         self.min_n_timepoints_ = min([X[i].shape[1] for i in range(n_cases_)])
@@ -223,7 +225,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self.threshold_percentiles_,
             self.alpha_similarity,
             self.use_prime_dilations,
-            self._random_state,
+            self._random_generator,
         )
         if len(self.shapelets_[0]) == 0:
             raise RuntimeError(
@@ -303,7 +305,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                     "an array (got {}).".format(self.shapelet_lengths_)
                 )
 
-            self.shapelet_lengths_ = np.array(self.shapelet_lengths_, dtype=np.int32)
+            self.shapelet_lengths_ = np.array(self.shapelet_lengths_, dtype=np.int_)
             if not np.all(self.shapelet_lengths_ >= 2):
                 warnings.warn(
                     "Some values in 'shapelet_lengths' are inferior to 2."
@@ -382,6 +384,7 @@ def _init_random_shapelet_params(
     use_prime_dilations: bool,
     n_channels: int,
     n_timepoints: int,
+    random_generator: Generator,
 ):
     """Randomly initialize the parameters of the shapelets.
 
@@ -407,6 +410,8 @@ def _init_random_shapelet_params(
         Number of channels of the input time series.
     n_timepoints : int
         Size of the input time series.
+    random_generator :
+        The random generator used for random operations.
 
     Returns
     -------
@@ -431,46 +436,52 @@ def _init_random_shapelet_params(
 
     """
     # Init startpoint array
-    startpoints = np.zeros(max_shapelets, dtype=np.int32)
+    startpoints = np.zeros(max_shapelets, dtype=np.int_)
     # Init class array
-    classes = np.zeros(max_shapelets, dtype=np.int32)
+    classes = np.zeros(max_shapelets, dtype=np.int_)
 
     # Lengths of the shapelets
     # test dtypes correctness
-    lengths = np.random.choice(shapelet_lengths, size=max_shapelets).astype(np.int32)
+    lengths = shapelet_lengths[
+        random_generator.integers(
+            0, high=len(shapelet_lengths), size=max_shapelets
+        ).astype(np.int_)
+    ]
     # Upper bound values for dilations
-    dilations = np.zeros(max_shapelets, dtype=np.int32)
+    dilations = np.zeros(max_shapelets, dtype=np.int_)
     upper_bounds = np.log2(np.floor_divide(n_timepoints - 1, lengths - 1))
 
     if use_prime_dilations:
-        _primes = prime_up_to(np.int32(2 ** upper_bounds.max()))
+        _primes = prime_up_to(np.int_(2 ** upper_bounds.max()))
         # 1 is not prime, but it is still a valid dilation for the "prime" scheme
-        primes = np.zeros((_primes.shape[0] + 1), dtype=np.int32)
+        primes = np.zeros((_primes.shape[0] + 1), dtype=np.int_)
         primes[0] = 1
         primes[1:] = _primes
         for i in prange(max_shapelets):
-            shp_primes = primes[primes <= np.int32(2 ** upper_bounds[i])]
-            dilations[i] = shp_primes[choice_log(shp_primes.shape[0], 1)[0]]
+            shp_primes = primes[primes <= np.int_(2 ** upper_bounds[i])]
+            dilations[i] = shp_primes[
+                choice_log(shp_primes.shape[0], 1, random_generator)[0]
+            ]
     else:
         for i in prange(max_shapelets):
-            dilations[i] = np.int32(2 ** np.random.uniform(0, upper_bounds[i]))
+            dilations[i] = np.int_(2 ** random_generator.uniform(0, upper_bounds[i]))
 
     # Init threshold array
-    threshold = np.zeros(max_shapelets, dtype=np.float64)
+    threshold = np.zeros(max_shapelets, dtype=np.float_)
 
     # Init values array
     values = np.full(
         (max_shapelets, n_channels, max(shapelet_lengths)),
         np.inf,
-        dtype=np.float64,
+        dtype=np.float_,
     )
 
     # Is shapelet using z-normalization ?
-    normalize = np.random.random(size=max_shapelets)
+    normalize = random_generator.uniform(0, 1, size=max_shapelets)
     normalize = normalize < proba_normalization
 
-    means = np.zeros((max_shapelets, n_channels), dtype=np.float64)
-    stds = np.zeros((max_shapelets, n_channels), dtype=np.float64)
+    means = np.zeros((max_shapelets, n_channels), dtype=np.float_)
+    stds = np.zeros((max_shapelets, n_channels), dtype=np.float_)
 
     return (
         values,
@@ -486,14 +497,14 @@ def _init_random_shapelet_params(
 
 
 @njit(cache=True)
-def _get_admissible_sampling_point(current_mask):
+def _get_admissible_sampling_point(current_mask, random_generator):
     n_cases = len(current_mask)
     # Count the number of admissible points per sample as cumsum
     n_admissible_points = 0
     for i in range(n_cases):
         n_admissible_points += current_mask[i].shape[0]
     if n_admissible_points > 0:
-        idx_choice = np.random.choice(n_admissible_points)
+        idx_choice = random_generator.integers(0, high=n_admissible_points)
         for i in range(n_cases):
             _new_val = idx_choice - current_mask[i].shape[0]
             if _new_val < 0 and current_mask[i].shape[0] > 0:
@@ -513,7 +524,7 @@ def random_dilated_shapelet_extraction(
     threshold_percentiles: np.ndarray,
     alpha_similarity: float,
     use_prime_dilations: bool,
-    seed: int,
+    random_generator: Generator,
 ):
     """Randomly generate a set of shapelets given the input parameters.
 
@@ -548,8 +559,8 @@ def random_dilated_shapelet_extraction(
         If True, restrict the value of the shapelet dilation parameter to be prime
         values. This can greatly speed up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
-    seed : int
-        Seed for random number generation.
+    random_generator : Generator
+        The random generator used for random operations.
 
     Returns
     -------
@@ -576,13 +587,11 @@ def random_dilated_shapelet_extraction(
     """
     n_cases = len(X)
     n_channels = X[0].shape[0]
-    n_timepointss = np.zeros(n_cases, dtype=np.int64)
+    n_timepointss = np.zeros(n_cases, dtype=np.int_)
     for i in range(n_cases):
         n_timepointss[i] = X[i].shape[1]
     min_n_timepoints = n_timepointss.min()
     max_n_timepoints = n_timepointss.max()
-    # Fix the random seed
-    set_numba_random_seed(seed)
 
     # Initialize shapelets
     (
@@ -602,6 +611,7 @@ def random_dilated_shapelet_extraction(
         use_prime_dilations,
         n_channels,
         min_n_timepoints,
+        random_generator,
     )
     # Get unique dilations to loop over
     unique_dil = np.unique(dilations)
@@ -635,7 +645,9 @@ def random_dilated_shapelet_extraction(
                     for _i in range(n_cases)
                 ]
             )
-            idx_sample, idx_timestamp = _get_admissible_sampling_point(current_mask)
+            idx_sample, idx_timestamp = _get_admissible_sampling_point(
+                current_mask, random_generator
+            )
             if idx_sample >= 0:
                 # Update the mask in two directions from the sampling point
                 alpha_size = length - int(max(1, (1 - alpha_similarity) * min_len))
@@ -667,7 +679,9 @@ def random_dilated_shapelet_extraction(
                 loc_others = np.where(y == y[idx_sample])[0]
                 if loc_others.shape[0] > 1:
                     loc_others = loc_others[loc_others != idx_sample]
-                    id_test = np.random.choice(loc_others)
+                    id_test = loc_others[
+                        random_generator.integers(0, high=loc_others.shape[0])
+                    ]
                 else:
                     id_test = idx_sample
 
@@ -684,7 +698,7 @@ def random_dilated_shapelet_extraction(
                 lower_bound = np.percentile(x_dist, threshold_percentiles[0])
                 upper_bound = np.percentile(x_dist, threshold_percentiles[1])
 
-                threshold[i_shp] = np.random.uniform(lower_bound, upper_bound)
+                threshold[i_shp] = random_generator.uniform(lower_bound, upper_bound)
                 values[i_shp, :, :length] = _val
 
                 # Extract the starting point index of the shapelet
@@ -812,9 +826,9 @@ def dilated_shapelet_transform(
 
 @njit(fastmath=True, cache=True)
 def normalize_subsequences(
-    X_subs: np.ndarray[np.float64],
-    X_means: np.ndarray[np.float64],
-    X_stds: np.ndarray[np.float64],
+    X_subs: np.ndarray[np.float_],
+    X_means: np.ndarray[np.float_],
+    X_stds: np.ndarray[np.float_],
 ):
     """
     Generate subsequences from a time series given the length and dilation parameters.
@@ -866,7 +880,7 @@ def get_all_subsequences(X: np.ndarray, length: int, dilation: int) -> np.ndarra
     """
     n_features, n_timestamps = X.shape
     s0, s1 = X.strides
-    out_shape = (n_timestamps - (length - 1) * dilation, n_features, length)
+    out_shape = (n_timestamps - (length - 1) * dilation, n_features, np.int64(length))
     strides = (s1, s0, s1 * dilation)
     return np.lib.stride_tricks.as_strided(X, shape=out_shape, strides=strides)
 
@@ -919,7 +933,7 @@ def compute_shapelet_features(
         if _dist < threshold:
             _SO += 1
 
-    return np.float64(_min), np.float64(_argmin), np.float64(_SO)
+    return np.float_(_min), np.float_(_argmin), np.float_(_SO)
 
 
 @njit(fastmath=True, cache=True)
