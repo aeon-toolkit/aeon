@@ -57,7 +57,7 @@ class BaseEstimator(_BaseEstimator):
 
         super().__init__()
 
-    def reset(self):
+    def reset(self, keep=None):
         """Reset the object to a clean post-init state.
 
         Equivalent to sklearn.clone but overwrites self.
@@ -82,8 +82,17 @@ class BaseEstimator(_BaseEstimator):
         cls_attrs = [attr for attr in dir(type(self))]
         self_attrs = set(attrs).difference(cls_attrs)
 
-        # keep a test flag if it exists
-        self_attrs.discard("_unit_test_flag")
+        # keep specific attributes if set
+        if keep is not None:
+            if isinstance(keep, str):
+                keep = [keep]
+            elif not isinstance(keep, list):
+                raise TypeError(
+                    "keep must be a string or list of strings containing attributes "
+                    "to keep after the reset."
+                )
+            for attr in keep:
+                self_attrs.discard(attr)
 
         for attr in self_attrs:
             delattr(self, attr)
@@ -93,7 +102,7 @@ class BaseEstimator(_BaseEstimator):
 
         return self
 
-    def clone(self):
+    def clone(self, random_state=None):
         """
         Obtain a clone of the object with same hyper-parameters.
 
@@ -105,7 +114,12 @@ class BaseEstimator(_BaseEstimator):
         -------
         instance of ``type(self)``, clone of self (see above)
         """
-        return clone(self)
+        estimator = clone(self)
+
+        if random_state is not None:
+            _set_random_states(estimator, random_state)
+
+        return estimator
 
     @classmethod
     def _get_init_signature(cls):
