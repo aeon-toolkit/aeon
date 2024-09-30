@@ -1,5 +1,7 @@
 """Time series kmedoids."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 from typing import Callable, Union
@@ -118,14 +120,14 @@ class TimeSeriesCLARA(BaseClusterer):
         n_clusters: int = 8,
         init_algorithm: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
-        n_samples: int = None,
+        n_samples: Optional[int] = None,
         n_sampling_iters: int = 10,
         n_init: int = 1,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
-        distance_params: dict = None,
+        random_state: Optional[Union[int, RandomState]] = None,
+        distance_params: Optional[dict] = None,
     ):
         self.init_algorithm = init_algorithm
         self.distance = distance
