@@ -5,7 +5,7 @@ __all__ = ["MiniRocketMultivariateVariable"]
 
 import multiprocessing
 import warnings
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -232,7 +232,7 @@ class MiniRocketMultivariateVariable(BaseCollectionTransformer):
 
 
 def _np_list_transposed2D_array_and_len_list(
-    X: List[pd.DataFrame], pad: Union[int, float, None] = 0
+    X: list[pd.DataFrame], pad: Union[int, float, None] = 0
 ):
     """Convert a list of 2D numpy to a 2D array and a list of lengths.
 

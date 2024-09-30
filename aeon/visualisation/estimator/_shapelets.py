@@ -5,6 +5,7 @@ __maintainer__ = ["baraline"]
 __all__ = ["ShapeletClassifierVisualizer", "ShapeletTransformerVisualizer"]
 
 import copy
+import warnings
 
 import numpy as np
 from sklearn.ensemble._forest import BaseForest
@@ -360,7 +361,6 @@ class ShapeletVisualizer:
             )
         else:
             _values = self.values
-
         c = compute_shapelet_dist_vector(
             X_subs, _values, self.length, self.distance_func
         )
@@ -400,11 +400,12 @@ class ShapeletTransformerVisualizer:
 
     def _get_shapelet(self, id_shapelet):
         if isinstance(self.estimator, RandomDilatedShapeletTransform):
-            length_ = self.estimator.shapelets_[1][id_shapelet]
             values_ = self.estimator.shapelets_[0][id_shapelet]
-            dilation_ = self.estimator.shapelets_[2][id_shapelet]
-            threshold_ = self.estimator.shapelets_[3][id_shapelet]
-            normalize_ = self.estimator.shapelets_[4][id_shapelet]
+            # startpos_ = self.estimator.shapelets_[1][id_shapelet]
+            length_ = self.estimator.shapelets_[2][id_shapelet]
+            dilation_ = self.estimator.shapelets_[3][id_shapelet]
+            threshold_ = self.estimator.shapelets_[4][id_shapelet]
+            normalize_ = self.estimator.shapelets_[5][id_shapelet]
             distance = self.estimator.distance
 
         elif isinstance(self.estimator, (RSAST, SAST)):
@@ -646,7 +647,7 @@ class ShapeletClassifierVisualizer:
 
     def _get_shp_importance(self, class_id):
         """
-        Return the shapelet importance for a speficied class.
+        Return the shapelet importance for a specified class.
 
         Parameters
         ----------
@@ -680,19 +681,53 @@ class ShapeletClassifierVisualizer:
         if isinstance(classifier, Pipeline):
             classifier = classifier[-1]
 
-        # This suppose that the higher the coef linked to each feature, the most
-        # impact this feature makes on classification for the given class_id
+        # This supposes that the higher (with the exception of distance features)
+        # the coef linked to each feature, the most impact this feature makes on
+        # classification for the given class_id
         if isinstance(classifier, LinearClassifierMixin):
             coefs = classifier.coef_
             n_classes = coefs.shape[0]
             if n_classes == 1:
-                coefs = np.append(-coefs, coefs, axis=0)
-            coefs = coefs[class_id]
-            idx = coefs.argsort()[::-1]
+                if isinstance(self.estimator, RDSTClassifier):
+                    class_0_coefs = np.copy(coefs)
+                    class_1_coefs = np.copy(coefs)
 
+                    mask = np.ones(class_0_coefs.shape[1], dtype=bool)
+                    mask[::3] = False
+                    class_0_coefs[:, mask] = -class_0_coefs[:, mask]
+                    class_1_coefs[:, ::3] = -class_1_coefs[:, ::3]
+
+                    coefs = np.append(class_0_coefs, class_1_coefs, axis=0)
+                    warnings.warn(
+                        "Shapelet importance ranking may be unreliable "
+                        "when using linear classifiers with RDST. "
+                        "This is due to the interaction between argmin "
+                        "and shapelet occurrence features, which can distort "
+                        "the rankings. Consider evaluating the results carefully "
+                        "or using an alternative method.",
+                        stacklevel=1,
+                    )
+                    coefs = coefs[class_id]
+                else:
+                    coefs = np.append(coefs, -coefs, axis=0)
+                    coefs = coefs[class_id]
+            elif isinstance(self.estimator, RDSTClassifier):
+                coefs = coefs[class_id]
+                coefs[::3] = -coefs[::3]
+                warnings.warn(
+                    "Shapelet importance ranking may be unreliable "
+                    "when using linear classifiers with RDST. "
+                    "This is due to the interaction between argmin "
+                    "and shapelet occurrence features, which can distort "
+                    "the rankings. Consider evaluating the results carefully "
+                    "or using an alternative method.",
+                    stacklevel=1,
+                )
+            else:
+                coefs = -coefs[class_id]
         elif isinstance(classifier, (BaseForest, BaseDecisionTree)):
             coefs = classifier.feature_importances_
-            idx = coefs.argsort()[::-1]
+
         else:
             raise NotImplementedError(
                 f"The classifier linked to the estimator is not supported. We expect a "
@@ -700,11 +735,15 @@ class ShapeletClassifierVisualizer:
                 f"BaseDecisionTree but got {type(classifier)}"
             )
 
-        coefs = coefs[idx]
         if isinstance(self.estimator, RDSTClassifier):
             # As each shapelet generate 3 features, divide feature id by 3 so all
             # features generated by one shapelet share the same ID
-            idx = idx // 3
+            grouped_features = coefs.reshape(-1, 3)
+            coefs = grouped_features.sum(axis=1)
+
+        idx = coefs.argsort()[::-1]
+        coefs = coefs[idx]
+
         return idx, coefs
 
     def _get_boxplot_data(self, X, mask_class_id, mask_other_class_id, id_shp):
@@ -740,11 +779,12 @@ class ShapeletClassifierVisualizer:
                 " supported. Is it a shapelet classifier ?"
             )
 
-    def visualize_best_shapelets_one_class(
+    def visualize_shapelets_one_class(
         self,
         X,
         y,
         class_id,
+        best=True,
         n_shp=1,
         id_example_other=None,
         id_example_class=None,
@@ -796,9 +836,9 @@ class ShapeletClassifierVisualizer:
         matplotlib_style="seaborn-v0_8",
     ):
         """
-        Plot the n_shp best candidates for the class_id.
+        Plot the n_shp best (or worst) candidates for the class_id.
 
-        Visualize best macth on two random samples and how the shapelet discriminate
+        Visualize best match on two random samples and how the shapelet discriminate
         (X,y) with boxplots.
 
         Parameters
@@ -813,14 +853,18 @@ class ShapeletClassifierVisualizer:
             this class will be selected based on the feature coefficients
             inside the ridge classifier. The original labels are given to a
             LabelEncoder, hence why we ask for an integer ID.
+        best : bool, optional
+            Specifies whether to return the best or the worst shapelet(s) for a class.
+            The default is True, returning the best shapelet(s)
         n_shp : int, optional
             Number of plots to output, one per shapelet (i.e. the n_shp best shapelets
             for class_id). The default is 1.
         id_example_other : int
-            Sample ID to use for sample of other class. If None, a random one is
-            selected.
+            Sample ID to use for sample of other class. If None, a random one from that
+            class is selected.
         id_example_class : int
-            Sample ID to use for sample of class_id. If None, a random one is selected.
+            Sample ID to use for sample of class_id.If None, a random one from that
+            class is selected.
         scatter_options : dict
             Dictionnary of options passed to the scatter plot of the shapelet values.
         x_plot_options : dict
@@ -856,7 +900,8 @@ class ShapeletClassifierVisualizer:
         plt.rcParams.update(**rc_Params_options)
 
         idx, _ = self._get_shp_importance(class_id)
-
+        if not best:
+            idx = idx[::-1]
         shp_ids = []
         i = 0
         while len(shp_ids) < n_shp and i < idx.shape[0]:
@@ -869,8 +914,12 @@ class ShapeletClassifierVisualizer:
         mask_other_class_id = np.where(y != class_id)[0]
         if id_example_class is None:
             id_example_class = np.random.choice(mask_class_id)
+        else:
+            id_example_class = mask_class_id[id_example_class]
         if id_example_other is None:
             id_example_other = np.random.choice(mask_other_class_id)
+        else:
+            id_example_other = mask_other_class_id[id_example_other]
         figures = []
         for i_shp in shp_ids:
             fig, ax = plt.subplots(**figure_options)

@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -6,6 +7,9 @@ from sklearn.metrics import accuracy_score
 from aeon.classification.base import BaseClassifier
 from aeon.classification.convolution_based._rocket_classifier import RocketClassifier
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
+
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["ChannelScorer"]
 
 
 class ChannelScorer(BaseChannelSelector):
@@ -37,7 +41,7 @@ class ChannelScorer(BaseChannelSelector):
 
     def __init__(
         self,
-        classifier: BaseClassifier = None,
+        classifier: Optional[BaseClassifier] = None,
         proportion: float = 0.4,
     ):
         self.proportion = proportion

@@ -15,13 +15,9 @@ aeon/clustering/ @chrisholder @TonyBagnall
 
 aeon/distances/ @chrisholder @TonyBagnall
 
-aeon/forecasting/ @aiwalter @guzalbulatova @ltsaprounis
-
 aeon/networks/ @hadifawaz1999
 
-aeon/performance_metrics/forecasting/ @aiwalter
-
-aeon/pipeline/ @aiwalter
+aeon/performance_metrics/anomaly_detection/ @codelionx @MatthewMiddlehurst
 
 aeon/regression/ @MatthewMiddlehurst @TonyBagnall @dguijo
 aeon/regression/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall @dguijo
@@ -33,21 +29,18 @@ aeon/similarity_search/ @baraline
 aeon/transformations/collection/ @MatthewMiddlehurst @TonyBagnall
 aeon/transformations/collection/dictionary_based/ @patrickzib @MatthewMiddlehurst
 aeon/transformations/collection/dictionary_based/_sax.py @patrickzib @MatthewMiddlehurst @hadifawaz1999
-aeon/transformations/collection/shapelet_based/dilated_shapelet_transform.py @baraline
+aeon/transformations/collection/shapelet_based/_dilated_shapelet_transform.py @baraline
 
 aeon/transformations/series/ @TonyBagnall
-
-aeon/transformations/ @aiwalter
-aeon/transformations/clasp.py @patrickzib
-aeon/transformations/scaledlogit.py @ltsaprounis
-aeon/transformations/theta.py @GuzalBulatova
+aeon/transformations/series/_clasp.py @patrickzib
+aeon/transformations/series/_scaled_logit.py @ltsaprounis
+aeon/transformations/series/_theta.py @GuzalBulatova
 
 aeon/utils/numba/ @baraline @MatthewMiddlehurst
 
-aeon/visualisation/ @baraline
+aeon/visualisation/ @baraline @MatthewMiddlehurst
 
 .github/ @aeon-toolkit/aeon-infrastructure-workgroup
-build_tools/ @aeon-toolkit/aeon-infrastructure-workgroup
 
 docs/get_involved/code_of_conduct.rst @aeon-toolkit/aeon-code-of-conduct-workgroup
 docs/get_involved/governance.rst @aeon-toolkit/aeon-core-developers

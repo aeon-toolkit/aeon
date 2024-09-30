@@ -2120,7 +2120,22 @@
         "bug",
         "doc",
         "test",
-        "maintenance"
+        "maintenance",
+        "review",
+        "talk",
+        "tutorial",
+        "mentoring",
+        "example"
+      ]
+    },
+    {
+      "login": "maxwell1503",
+      "name": " Maxime Devanne",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28450447",
+      "profile": "https://github.com/maxwell1503",
+      "contributions": [
+        "code",
+        "bug"
       ]
     },
     {
@@ -2454,7 +2469,8 @@
       "profile": "https://github.com/Cyril-Meyer",
       "contributions": [
         "test",
-        "doc"
+        "doc",
+        "code"
       ]
     },
     {
@@ -2480,6 +2496,60 @@
       "name": "Daniel L.",
       "avatar_url": "https://avatars.githubusercontent.com/u/30182852?v=4",
       "profile": "https://www.linkedin.com/in/dnylam/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "phershbe",
+      "name": "Philip",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25594870?v=4",
+      "profile": "https://www.youtube.com/channel/UCLnEr7V_5BANojPKUjCjb4g",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Sharathchenna",
+      "name": "Sharathchenna",
+      "avatar_url": "https://avatars.githubusercontent.com/u/50939688?v=4",
+      "profile": "https://github.com/Sharathchenna",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "neuron283",
+      "name": "neuron283",
+      "avatar_url": "https://avatars.githubusercontent.com/u/177816976?v=4",
+      "profile": "https://github.com/neuron283",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "wenig",
+      "name": "Phillip Wenig",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6967289?v=4",
+      "profile": "https://github.com/wenig",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "aryanpola",
+      "name": "Aryan Pola",
+      "avatar_url": "https://avatars.githubusercontent.com/u/98093778?v=4",
+      "profile": "https://github.com/aryanpola",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "danielroberts20",
+      "name": "Daniel Roberts",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29379642?v=4",
+      "profile": "https://github.com/danielroberts20",
       "contributions": [
         "doc"
       ]
