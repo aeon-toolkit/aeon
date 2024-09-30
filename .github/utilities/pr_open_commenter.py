@@ -119,10 +119,12 @@ Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/a
 These checkboxes will add labels to enable/disable CI functionality for this PR. This may not take effect immediately, and a new commit may be required to run the new configuration.
 
 - [ ] Run `pre-commit` checks for all files
+- [ ] Run `mypy` typecheck tests
 - [ ] Run all `pytest` tests and configurations
 - [ ] Run all notebook example tests
 - [ ] Run numba-disabled `codecov` tests
 - [ ] Stop automatic `pre-commit` fixes (always disabled for drafts)
+- [ ] Disable numba cache loading
 - [ ] Push an empty commit to re-run CI checks
     """  # noqa
 )

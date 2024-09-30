@@ -4,12 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
 import aeon.testing.utils._cicd_numba_caching  # noqa: F401
-from aeon.base import (
-    BaseCollectionEstimator,
-    BaseEstimator,
-    BaseObject,
-    BaseSeriesEstimator,
-)
+from aeon.base import BaseCollectionEstimator, BaseEstimator, BaseSeriesEstimator
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP, ESTIMATOR_TAG_LIST
 
 # whether to use smaller parameter matrices for test generation and subsample estimators
@@ -58,11 +53,8 @@ EXCLUDED_TESTS = {
     "RSAST": ["check_fit_deterministic"],
     "AEFCNClusterer": ["check_fit_updates_state"],
     "AEResNetClusterer": ["check_fit_updates_state"],
-    "PyODAdapter": ["check_fit_updates_state"],
     "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
     # missed in legacy testing, changes state in predict/transform
-    "DWT_MLEAD": ["check_non_state_changing_method"],
-    "STOMP": ["check_non_state_changing_method"],
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
     "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
@@ -84,9 +76,8 @@ VALID_ESTIMATOR_TAGS = tuple(ESTIMATOR_TAG_LIST)
 # methods that should not change the state of the estimator, that is, they should
 # not change fitted parameters or hyper-parameters. They are also the methods that
 # "apply" the fitted estimator to data and useful for checking results.
-# NON_STATE_CHANGING_METHODS_ARRAYLIK =
-# non-state-changing methods that return an array-like output
 
+# non-state-changing methods that return an array-like output
 NON_STATE_CHANGING_METHODS_ARRAYLIKE = (
     "predict",
     "predict_var",
@@ -102,7 +93,6 @@ NON_STATE_CHANGING_METHODS = NON_STATE_CHANGING_METHODS_ARRAYLIKE + (
 # The following gives a list of valid estimator base classes.
 CORE_BASE_TYPES = (
     BaseEstimator,
-    BaseObject,
     BaseCollectionEstimator,
     BaseSeriesEstimator,
 )

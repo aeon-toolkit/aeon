@@ -14,7 +14,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_get_params_invariance
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
-from aeon.base import BaseEstimator, BaseObject
+from aeon.base import BaseEstimator
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
@@ -329,13 +329,12 @@ def check_estimator_tags(estimator_class):
         )
 
 
-# todo consider removing the multiple base class allowance. Possibly deprecate
-#  BaseObject and roll it into BaseEstimator?
+# todo consider removing the multiple base class allowance.
 def check_inheritance(estimator_class):
-    """Check that estimator inherits from BaseObject and/or BaseEstimator."""
+    """Check that estimator inherits from BaseEstimator."""
     assert issubclass(
-        estimator_class, BaseObject
-    ), f"object {estimator_class} is not a sub-class of BaseObject."
+        estimator_class, BaseEstimator
+    ), f"object {estimator_class} is not a sub-class of BaseEstimator."
 
     if hasattr(estimator_class, "fit"):
         assert issubclass(estimator_class, BaseEstimator), (
