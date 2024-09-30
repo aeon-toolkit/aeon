@@ -54,12 +54,6 @@ ESTIMATOR_TAG_REGISTER = [
         "belongs to.",
     ),
     (
-        "ignores-exogeneous-X",
-        "forecaster",
-        "bool",
-        "does forecaster ignore exogeneous data (X)?",
-    ),
-    (
         "univariate-only",
         "transformer",
         "bool",
@@ -96,32 +90,20 @@ ESTIMATOR_TAG_REGISTER = [
         "behaviour flag: skips inverse_transform when called yes/no",
     ),
     (
-        "requires-fh-in-fit",
-        "forecaster",
-        "bool",
-        "does forecaster require fh passed already in fit? yes/no",
-    ),
-    (
         "X-y-must-have-same-index",
-        ["forecaster", "regressor"],
+        ["regressor"],
         "bool",
         "do X/y in fit/update and X/fh in predict have to be same indices?",
     ),
     (
         "enforce_index_type",
-        ["forecaster", "regressor"],
+        ["regressor"],
         "type",
         "passed to input checks, input conversion index type to enforce",
     ),
     (
-        "y_input_type",
-        "forecaster",
-        ("str", ["univariate", "multivariate", "both"]),
-        "which series type does the forecaster support? multivariate means >1 vars",
-    ),
-    (
         "y_inner_type",
-        ["forecaster", "transformer"],
+        ["transformer"],
         (
             "list",
             [
@@ -140,7 +122,6 @@ ESTIMATOR_TAG_REGISTER = [
     (
         "X_inner_type",
         [
-            "forecaster",
             "classifier",
             "regressor",
             "transformer",
@@ -165,20 +146,20 @@ ESTIMATOR_TAG_REGISTER = [
     (
         "input_data_type",
         "transformer",
-        ("list", ["Series", "Collection", "Panel"]),
+        ("list", ["Series", "Collection"]),
         "The input abstract data type of the transformer, input X. Series "
         "indicates a single series input, Collection indicates a collection of "
-        "time series. Panel is a legacy term and equivalent to Collection.",
+        "time series.",
     ),
     (
         "output_data_type",
         "transformer",
-        ("list", ["Tabular", "Series", "Collection", "Primitives", "Panel"]),
+        ("list", ["Tabular", "Series", "Collection", "Primitives"]),
         "The output abstract data type of the transformer output, the transformed X. "
         "Tabular indicates 2D output where rows are cases and unordered attributes are "
         "columns. Series indicates a single series output and collection indicates "
         "output is a collection of time series.  Primitives is a legacy term for "
-        "Tabular and Panel for Collection.",
+        "Tabular.",
     ),
     (
         "instancewise",
@@ -189,8 +170,8 @@ ESTIMATOR_TAG_REGISTER = [
     (
         "transform_labels",
         "transformer",
-        ("list", ["None", "Series", "Primitives", "Panel"]),
-        "What is the type of y: None (not needed), Primitives, Series, Panel?",
+        ("list", ["None", "Series", "Primitives"]),
+        "What is the type of y: None (not needed), Primitives, Series?",
     ),
     (
         "requires_y",
@@ -203,18 +184,6 @@ ESTIMATOR_TAG_REGISTER = [
         "transformer",
         "bool",
         "is the transformer capable of carrying out an inverse transform?",
-    ),
-    (
-        "capability:pred_int",
-        "forecaster",
-        "bool",
-        "does the forecaster implement predict_interval or predict_quantiles?",
-    ),
-    (
-        "capability:pred_var",
-        "forecaster",
-        "bool",
-        "does the forecaster implement predict_variance?",
     ),
     (
         "capability:multivariate",
@@ -321,7 +290,7 @@ ESTIMATOR_TAG_REGISTER = [
     ),
     (
         "remember_data",
-        ["forecaster", "transformer"],
+        ["transformer"],
         "bool",
         "whether estimator remembers all data seen as self._X, self._y, etc",
     ),

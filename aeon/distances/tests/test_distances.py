@@ -5,7 +5,6 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import alignment_path, cost_matrix
-from aeon.distances import distance
 from aeon.distances import distance as compute_distance
 from aeon.distances import get_distance_function_names, pairwise_distance
 from aeon.distances._distance import (
@@ -167,7 +166,7 @@ def test_incorrect_inputs():
     with pytest.raises(
         ValueError, match="Metric must be one of the supported strings or a " "callable"
     ):
-        distance(x, y, metric="FOO")
+        compute_distance(x, y, metric="FOO")
     with pytest.raises(
         ValueError, match="Metric must be one of the supported strings or a " "callable"
     ):

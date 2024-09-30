@@ -45,6 +45,11 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
         A clusterer to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
+    random_state : int, RandomState instance or None, default=None
+        Random state used to fit the estimators. If None, no random state is set for
+        pipeline components (but they may still be seeded prior to input).
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -55,14 +60,14 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection import Resizer
     >>> from aeon.clustering import TimeSeriesKMeans
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.clustering.compose import ClustererPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClustererPipeline(
-    ...     TSInterpolator(length=10), TimeSeriesKMeans.create_test_instance()
+    ...     Resizer(length=10), TimeSeriesKMeans.create_test_instance()
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClustererPipeline(...)
@@ -73,10 +78,12 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
         "X_inner_type": ["np-list", "numpy3D"],
     }
 
-    def __init__(self, transformers, clusterer):
+    def __init__(self, transformers, clusterer, random_state=None):
         self.clusterer = clusterer
 
-        super().__init__(transformers=transformers, _estimator=clusterer)
+        super().__init__(
+            transformers=transformers, _estimator=clusterer, random_state=random_state
+        )
 
     def _fit(self, X, y=None):
         return super()._fit(X, y)
@@ -103,14 +110,14 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.clustering import TimeSeriesKMeans
-        from aeon.transformations.collection import TruncationTransformer
+        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import (
             SevenNumberSummaryTransformer,
         )
 
         return {
             "transformers": [
-                TruncationTransformer(truncated_length=5),
+                Truncator(truncated_length=5),
                 SevenNumberSummaryTransformer(),
             ],
             "clusterer": TimeSeriesKMeans.create_test_instance(),

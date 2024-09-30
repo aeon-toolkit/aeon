@@ -1,10 +1,12 @@
 """Time format related utilities."""
 
+from typing import Optional
+
 __maintainer__ = []
 __all__ = []
 
 import warnings
-from typing import Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -65,7 +67,7 @@ def get_time_index(X):
 
 def _coerce_duration_to_int(
     duration: Union[int, pd.Timedelta, pd.tseries.offsets.BaseOffset, pd.Index],
-    freq: str = None,
+    freq: Optional[str] = None,
 ) -> Union[int, pd.Index]:
     """Coerce durations into integer representations for a given unit of duration.
 
@@ -107,7 +109,7 @@ def _coerce_duration_to_int(
         raise TypeError("`duration` type not understood.")
 
 
-def _get_intervals_count_and_unit(freq: str) -> Tuple[int, str]:
+def _get_intervals_count_and_unit(freq: str) -> tuple[int, str]:
     """Extract interval count and unit from frequency string.
 
     Supports eg: W, 3W, W-SUN, BQS, (B)Q(S)-MAR patterns, from which we

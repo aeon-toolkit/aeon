@@ -13,7 +13,8 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
 
     The `ClassifierPipeline` compositor chains transformers and a single classifier.
     The pipeline is constructed with a list of aeon transformers, plus a classifier,
-        i.e., estimators following the BaseTransformer and BaseClassifier interface.
+        i.e., estimators following the BaseCollectionTransformer and BaseClassifier
+        interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
@@ -45,6 +46,11 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         A classifier to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
+    random_state : int, RandomState instance or None, default=None
+        Random state used to fit the estimators. If None, no random state is set for
+        pipeline components (but they may still be seeded prior to input).
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -55,14 +61,14 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection import Resizer
     >>> from aeon.classification.convolution_based import RocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     TSInterpolator(length=10), RocketClassifier(num_kernels=50)
+    ...     Resizer(length=10), RocketClassifier(num_kernels=50)
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
@@ -73,10 +79,12 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         "X_inner_type": ["np-list", "numpy3D"],
     }
 
-    def __init__(self, transformers, classifier):
+    def __init__(self, transformers, classifier, random_state=None):
         self.classifier = classifier
 
-        super().__init__(transformers=transformers, _estimator=classifier)
+        super().__init__(
+            transformers=transformers, _estimator=classifier, random_state=random_state
+        )
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -97,14 +105,14 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.collection import TruncationTransformer
+        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import (
             SevenNumberSummaryTransformer,
         )
 
         return {
             "transformers": [
-                TruncationTransformer(truncated_length=5),
+                Truncator(truncated_length=5),
                 SevenNumberSummaryTransformer(),
             ],
             "classifier": KNeighborsTimeSeriesClassifier(distance="euclidean"),

@@ -7,9 +7,9 @@ from sklearn.base import ClassifierMixin, ClusterMixin, RegressorMixin, Transfor
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 
-from aeon.base import BaseObject
-
 __maintainer__ = []
+
+from aeon.base import BaseEstimator
 
 
 def is_sklearn_estimator(obj):
@@ -27,7 +27,7 @@ def is_sklearn_estimator(obj):
         obj = type(obj)
 
     is_in_sklearn = issubclass(obj, SklearnBaseEstimator)
-    is_in_aeon = issubclass(obj, BaseObject)
+    is_in_aeon = issubclass(obj, BaseEstimator)
 
     is_sklearn_est = is_in_sklearn and not is_in_aeon
     return is_sklearn_est

@@ -1,15 +1,42 @@
+from typing import Optional
+
 import numpy as np
 
+from aeon.clustering.base import BaseClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
+
+
+class MockCluster(BaseClusterer):
+    """Mock Cluster for testing base class fit/predict."""
+
+    def __init__(self, n_clusters: Optional[int] = None):
+        super().__init__(n_clusters)
+
+    def _fit(self, X):
+        """Mock fit."""
+        return self
+
+    def _predict(self, X):
+        """Mock predict."""
+        return np.zeros(len(X))
+
+    def _predict_proba(self, X):
+        """Mock predict proba."""
+        y = np.random.rand(len(X))
+        return y
+
+    def _score(self, X, y):
+        return np.random.randn(1)
 
 
 class MockDeepClusterer(BaseDeepClusterer):
     """Mock Deep Clusterer for testing empty base deep class save utilities."""
 
-    def __init__(self, last_file_name="last_file"):
+    def __init__(self, estimator=None, last_file_name="last_file"):
         self.last_file_name = last_file_name
         super().__init__(
-            n_clusters=2,
+            n_clusters=None,
+            estimator=estimator,
             last_file_name=last_file_name,
             clustering_params={"n_init": 1, "averaging_method": "mean"},
         )
@@ -60,11 +87,10 @@ class MockDeepClusterer(BaseDeepClusterer):
         )
         self._fit_clustering(X=X)
 
-        #        gc.collect()
         return self
 
     def _score(self, X, y=None):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
         latent_space = self.model_.layers[1].predict(X)
-        return self.clusterer.score(latent_space)
+        return self._estimator.score(latent_space)

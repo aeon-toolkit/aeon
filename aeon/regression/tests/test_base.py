@@ -6,9 +6,12 @@ import pytest
 from sklearn.metrics import r2_score
 
 from aeon.datasets import load_covid_3month
+from aeon.regression._dummy import DummyRegressor
 from aeon.regression.base import BaseRegressor
-from aeon.regression.dummy import DummyRegressor
-from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE, UNEQUAL_LENGTH_UNIVARIATE
+from aeon.testing.testing_data import (
+    EQUAL_LENGTH_UNIVARIATE_REGRESSION,
+    UNEQUAL_LENGTH_UNIVARIATE_REGRESSION,
+)
 from aeon.utils import COLLECTIONS_DATA_TYPES
 
 
@@ -107,9 +110,9 @@ def test__check_y():
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_unequal_length_input(data):
     """Test with unequal length failures and passes."""
-    if data in UNEQUAL_LENGTH_UNIVARIATE.keys():
+    if data in UNEQUAL_LENGTH_UNIVARIATE_REGRESSION.keys():
         dummy = _TestRegressor()
-        X = UNEQUAL_LENGTH_UNIVARIATE[data]
+        X = UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[data]["train"][0]
         y = np.random.random(size=10)
         with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
             dummy.fit(X, y)
@@ -121,7 +124,7 @@ def test_unequal_length_input(data):
 def test_equal_length_input(data):
     """Test with unequal length failures and passes."""
     dummy = _TestRegressor()
-    X = EQUAL_LENGTH_UNIVARIATE[data]
+    X = EQUAL_LENGTH_UNIVARIATE_REGRESSION[data]["train"][0]
     y = np.random.random(size=10)
     _assert_fit_predict(dummy, X, y)
     dummy = _TestHandlesAllInput()

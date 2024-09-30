@@ -4,7 +4,7 @@ __all__ = ["BaseSegmenter"]
 __maintainer__ = []
 
 from abc import ABC, abstractmethod
-from typing import List, final
+from typing import final
 
 import numpy as np
 import pandas as pd
@@ -212,7 +212,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
                 )
 
     @classmethod
-    def to_classification(cls, change_points: List[int], length: int):
+    def to_classification(cls, change_points: list[int], length: int):
         """Convert change point locations to a classification vector.
 
         Change point detection results can be treated as classification
@@ -228,7 +228,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         return labels
 
     @classmethod
-    def to_clusters(cls, change_points: List[int], length: int):
+    def to_clusters(cls, change_points: list[int], length: int):
         """Convert change point locations to a clustering vector.
 
         Change point detection results can be treated as clustering

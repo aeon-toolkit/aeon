@@ -1,22 +1,16 @@
 """
-Base class template for objects and fittable objects.
-
-templates in this module:
-
-    BaseObject - object with parameters and tags
-    BaseEstimator - BaseObject that can be fitted
+Base class template for estimators.
 
 Interface specifications below.
 
 ---
-
-    class name: BaseObject
 
 Parameter inspection and setter methods
     inspect parameter values      - get_params()
     setting parameter values      - set_params(**params)
     list of parameter names       - get_param_names()
     dict of parameter defaults    - get_param_defaults()
+    fitted parameter inspection - get_fitted_params()
 
 Tag inspection and setter methods
     inspect tags (all)            - get_tags()
@@ -34,14 +28,6 @@ Testing with default parameters methods
     getting default parameters (all sets)         - get_test_params()
     get one test instance with default parameters - create_test_instance()
     get list of all test instances plus name list - create_test_instances_and_names()
----
-
-    class name: BaseEstimator
-
-Provides all interface points of BaseObject, plus:
-
-Parameter inspection:
-    fitted parameter inspection - get_fitted_params()
 
 State:
     fitted model/strategy   - by convention, any attributes ending in "_"
@@ -49,8 +35,8 @@ State:
     fitted state check      - check_is_fitted (raises error if not is_fitted)
 """
 
-__maintainer__ = []
-__all__ = ["BaseEstimator", "BaseObject"]
+__maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
+__all__ = ["BaseEstimator"]
 
 import inspect
 from collections import defaultdict
@@ -62,33 +48,14 @@ from sklearn.ensemble._base import _set_random_states
 from sklearn.exceptions import NotFittedError
 
 
-class BaseObject(_BaseEstimator):
-    """Base class for parametric objects with tags aeon.
-
-    Extends scikit-learn's BaseEstimator to include aeon interface for tags.
-    """
+class BaseEstimator(_BaseEstimator):
+    """Base class for defining estimators in aeon."""
 
     def __init__(self):
+        self._is_fitted = False
         self._tags_dynamic = dict()
+
         super().__init__()
-
-    def __eq__(self, other):
-        """Equality dunder. Checks equal class and parameters.
-
-        Returns True iff result of get_params(deep=False)
-        results in equal parameter sets.
-
-        Nested BaseObject descendants from get_params are compared via __eq__ as well.
-        """
-        from aeon.testing.utils.deep_equals import deep_equals
-
-        if not isinstance(other, BaseObject):
-            return False
-
-        self_params = self.get_params(deep=False)
-        other_params = other.get_params(deep=False)
-
-        return deep_equals(self_params, other_params)
 
     def reset(self):
         """Reset the object to a clean post-init state.
@@ -221,7 +188,7 @@ class BaseObject(_BaseEstimator):
         Parameters
         ----------
         **params : dict
-            BaseObject parameters
+            BaseEstimator parameters
 
         Returns
         -------
@@ -283,7 +250,7 @@ class BaseObject(_BaseEstimator):
         return deepcopy(collected_tags)
 
     @classmethod
-    def get_class_tag(cls, tag_name, tag_value_default=None):
+    def get_class_tag(cls, tag_name, tag_value_default=None, raise_error=False):
         """
         Get tag value from estimator class (only class tags).
 
@@ -293,12 +260,19 @@ class BaseObject(_BaseEstimator):
             Name of tag value.
         tag_value_default : any type
             Default/fallback value if tag is not found.
+        raise_error : bool
+            Whether a ValueError is raised when the tag is not found.
 
         Returns
         -------
         tag_value :
-            Value of the `tag_name` tag in self. If not found, returns
-            `tag_value_default`.
+            Value of the `tag_name` tag in self. If not found, returns an error if
+            raise_error is True, otherwise it returns `tag_value_default`.
+
+        Raises
+        ------
+        ValueError if raise_error is True i.e. if tag_name is not in self.get_tags(
+        ).keys()
 
         See Also
         --------
@@ -314,7 +288,12 @@ class BaseObject(_BaseEstimator):
         """
         collected_tags = cls.get_class_tags()
 
-        return collected_tags.get(tag_name, tag_value_default)
+        tag_value = collected_tags.get(tag_name, tag_value_default)
+
+        if raise_error and tag_name not in collected_tags.keys():
+            raise ValueError(f"Tag with name {tag_name} could not be found.")
+
+        return tag_value
 
     def get_tags(self):
         """
@@ -622,18 +601,18 @@ class BaseObject(_BaseEstimator):
         Returns
         -------
         composite: bool
-            Whether self contains a parameter which is BaseObject.
+            Whether self contains a parameter which is BaseEstimator.
         """
         # walk through method resolution order and inspect methods
         #   of classes and direct parents, "adjacent" classes in mro
         params = self.get_params(deep=False)
-        composite = any(isinstance(x, BaseObject) for x in params.values())
+        composite = any(isinstance(x, BaseEstimator) for x in params.values())
 
         return composite
 
     def _components(self, base_class=None):
         """
-        Return references to all state changing BaseObject type attributes.
+        Return references to all state changing BaseEstimator type attributes.
 
         This *excludes* the blue-print-like components passed in the __init__.
 
@@ -642,8 +621,8 @@ class BaseObject(_BaseEstimator):
 
         Parameters
         ----------
-        base_class : class, optional, default=None, must be subclass of BaseObject
-            if None, behaves the same as `base_class=BaseObject`
+        base_class : class, optional, default=None, must be subclass of BaseEstimator
+            if None, behaves the same as `base_class=BaseEstimator`
             if not None, return dict collects descendants of `base_class`.
 
         Returns
@@ -654,16 +633,16 @@ class BaseObject(_BaseEstimator):
             are not class attributes, and are not hyper-parameters (`__init__` args).
         """
         if base_class is None:
-            base_class = BaseObject
+            base_class = BaseEstimator
         if base_class is not None and not inspect.isclass(base_class):
             raise TypeError(f"base_class must be a class, but found {type(base_class)}")
-        # if base_class is not None and not issubclass(base_class, BaseObject):
-        #     raise TypeError("base_class must be a subclass of BaseObject")
+        # if base_class is not None and not issubclass(base_class, BaseEstimator):
+        #     raise TypeError("base_class must be a subclass of BaseEstimator")
 
         # retrieve parameter names to exclude them later
         param_names = self.get_params(deep=False).keys()
 
-        # retrieve all attributes that are BaseObject descendants
+        # retrieve all attributes that are BaseEstimator descendants
         attrs = [attr for attr in dir(self) if "__" not in attr]
         cls_attrs = [attr for attr in dir(type(self))]
         self_attrs = set(attrs).difference(cls_attrs).difference(param_names)
@@ -760,17 +739,6 @@ class BaseObject(_BaseEstimator):
         with ZipFile(serial, "r") as file:
             return pickle.loads(file.open("_obj").read())
 
-
-class BaseEstimator(BaseObject):
-    """Base class for defining estimators in aeon.
-
-    Extends aeon's BaseObject to include basic functionality for fittable estimators.
-    """
-
-    def __init__(self):
-        self._is_fitted = False
-        super().__init__()
-
     @property
     def is_fitted(self):
         """Whether ``fit`` has been called."""
@@ -843,7 +811,7 @@ class BaseEstimator(BaseObject):
             else:
                 return x
 
-        # add all nested parameters from components that are aeon BaseObject
+        # add all nested parameters from components that are aeon BaseEstimator
         c_dict = self._components()
         for c, comp in c_dict.items():
             if isinstance(comp, BaseEstimator) and comp._is_fitted:
