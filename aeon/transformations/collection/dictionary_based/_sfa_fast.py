@@ -1089,7 +1089,7 @@ def _dilation(X, d, first_difference):
     # adding dilation
     X_dilated = _dilation2(X, d)
     X_index = _dilation2(
-        np.arange(X_dilated.shape[-1], dtype=np.float_).reshape(1, -1), d
+        np.arange(X_dilated.shape[-1], dtype=np.float64).reshape(1, -1), d
     )[0]
 
     return (
@@ -1103,7 +1103,7 @@ def _dilation2(X, d):
     # dilation on actual data
     if d > 1:
         start = 0
-        data = np.zeros(X.shape, dtype=np.float_)
+        data = np.zeros(X.shape, dtype=np.float64)
         for i in range(0, d):
             curr = X[:, i::d]
             end = curr.shape[1]
@@ -1111,7 +1111,7 @@ def _dilation2(X, d):
             start += end
         return data
     else:
-        return X.astype(np.float_)
+        return X.astype(np.float64)
 
 
 @njit(cache=True, fastmath=True)
