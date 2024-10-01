@@ -1,5 +1,7 @@
 """Hierarchical Data Generators."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 from itertools import product
@@ -20,8 +22,8 @@ def _make_hierarchical(
     same_cutoff: bool = True,
     n_columns: int = 1,
     all_positive: bool = True,
-    index_type: str = None,
-    random_state: Union[int, np.random.RandomState] = None,
+    index_type: Optional[str] = None,
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
     add_nan: bool = False,
 ) -> pd.DataFrame:
     """Generate hierarchical multiindex type for testing.

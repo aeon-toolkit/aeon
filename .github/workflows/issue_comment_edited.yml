@@ -24,7 +24,7 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
         with:
-          sparse-checkout: build_tools
+          sparse-checkout: .github/utilities
 
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
@@ -36,7 +36,7 @@ jobs:
 
       - name: Process comment edit
         id: label_out
-        run: python build_tools/pr_welcome_edited.py
+        run: python .github/utilities/pr_welcome_edited.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

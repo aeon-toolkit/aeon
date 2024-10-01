@@ -134,8 +134,8 @@ class DWT_MLEAD(BaseAnomalyDetector):
         if self.quantile_epsilon < 0 or self.quantile_epsilon > 1:
             raise ValueError("quantile_epsilon must be in [0, 1]")
 
-        X, self.N_, self.M_ = _pad_series(X)
-        max_level = int(np.log2(self.M_))
+        X, n, m = _pad_series(X)
+        max_level = int(np.log2(m))
 
         if self.start_level >= max_level:
             raise ValueError(
@@ -168,7 +168,7 @@ class DWT_MLEAD(BaseAnomalyDetector):
 
         # aggregate anomaly counts (leaf counters)
         point_anomaly_scores = self._push_anomaly_counts_down_to_points(
-            coef_anomaly_counts
+            coef_anomaly_counts, m, n
         )
         return point_anomaly_scores
 
@@ -220,19 +220,20 @@ class DWT_MLEAD(BaseAnomalyDetector):
 
         return np.sum(mapped, axis=1)
 
+    @staticmethod
     def _push_anomaly_counts_down_to_points(
-        self, coef_anomaly_counts: list[np.ndarray]
+        coef_anomaly_counts: list[np.ndarray], m: int, n: int
     ) -> np.ndarray:
         # sum up counters of detail coeffs (orig. D^l) and approx coeffs (orig. C^l)
         anomaly_counts = coef_anomaly_counts[0::2] + coef_anomaly_counts[1::2]
 
         # extrapolate anomaly counts to the original series' points
-        counter = np.zeros(self.M_)
+        counter = np.zeros(m)
         for ac in anomaly_counts:
-            counter += ac.repeat(self.M_ // ac.shape[0], axis=0)
+            counter += ac.repeat(m // ac.shape[0], axis=0)
         # set event counters with count < 2 to 0
         counter[counter < 2] = 0
-        return counter[: self.N_]
+        return counter[:n]
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

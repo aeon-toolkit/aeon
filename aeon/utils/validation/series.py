@@ -1,5 +1,7 @@
 """Functions for checking input data."""
 
+from typing import Optional
+
 __all__ = [
     "check_series",
     "check_time_index",
@@ -305,7 +307,7 @@ def check_series(
 def check_time_index(
     index: Union[pd.Index, np.array],
     allow_empty: bool = False,
-    enforce_index_type: bool = None,
+    enforce_index_type: Optional[bool] = None,
     var_name: str = "input",
 ) -> pd.Index:
     """Check time index.
