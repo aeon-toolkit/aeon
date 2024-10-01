@@ -16,6 +16,8 @@ EXCLUDE_ESTIMATORS = [
     "SeriesSearch",
     "QuerySearch",
     "ClearSkyTransformer",
+    "RDSTRegressor",
+    "RISTRegressor",
 ]
 
 
