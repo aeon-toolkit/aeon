@@ -29,10 +29,12 @@ def check_valid_tags(estimator, tags=None, error_on_missing=True):
         if tags is None:
             tags = estimator.get_tags()
         method = isinstance
+        est_name = estimator.__class__.__name__
     elif issubclass(estimator, BaseEstimator):
         if tags is None:
             tags = estimator.get_class_tags()
         method = issubclass
+        est_name = estimator.__name__
     else:
         raise ValueError("Estimator must be an instance or subclass of BaseEstimator.")
 
@@ -58,7 +60,7 @@ def check_valid_tags(estimator, tags=None, error_on_missing=True):
         if not compatible_class:
             raise ValueError(
                 f"Tag {tag_name} is not compatible with the estimator class "
-                f"{estimator.__name__}. It is only compatible with the following "
+                f"{est_name}. It is only compatible with the following "
                 f"classes: {tag_classes}."
             )
 
@@ -109,6 +111,5 @@ def check_valid_tags(estimator, tags=None, error_on_missing=True):
         missing_tags = set(tag_names) - set(tags.keys())
         if missing_tags:
             raise ValueError(
-                f"Tags {missing_tags} are missing from the estimator "
-                f"{estimator.__name__}."
+                f"Tags {missing_tags} are missing from the estimator " f"{est_name}."
             )

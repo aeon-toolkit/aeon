@@ -57,25 +57,31 @@ ESTIMATOR_TAGS = {
     },
     "X_inner_type": {
         "class": "estimator",
-        "type": ("list", ["pd.DataFrame", "np.ndarray", "numpy3D", "np-list"]),
+        "type": [
+            ("str", ["pd.DataFrame", "np.ndarray", "numpy3D", "np-list"]),
+            ("list", ["pd.DataFrame", "np.ndarray", "numpy3D", "np-list"]),
+        ],
         "description": "What data structure(s) the estimator uses internally for "
         "fit/predict.",
     },
     "algorithm_type": {
         "class": "estimator",
-        "type": (
-            "str",
-            [
-                "dictionary",
-                "distance",
-                "feature",
-                "hybrid",
-                "interval",
-                "convolution",
-                "shapelet",
-                "deeplearning",
-            ],
-        ),
+        "type": [
+            (
+                "str",
+                [
+                    "dictionary",
+                    "distance",
+                    "feature",
+                    "hybrid",
+                    "interval",
+                    "convolution",
+                    "shapelet",
+                    "deeplearning",
+                ],
+            ),
+            None,
+        ],
         "description": "Which type the estimator falls under in its relevant taxonomy"
         " of time series machine learning algorithms.",
     },
@@ -135,7 +141,7 @@ ESTIMATOR_TAGS = {
         "point belongs to.",
     },
     "requires_y": {
-        "class": "transformer",
+        "class": ["transformer", "anomaly-detector"],
         "type": "bool",
         "description": "Does this transformer require y to be passed in fit and "
         "transform?",

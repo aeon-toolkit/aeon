@@ -9,7 +9,7 @@ from aeon.registry import (
     BASE_CLASS_LIST,
     BASE_CLASS_REGISTER,
 )
-from aeon.utils.tags import ESTIMATOR_TAGS
+from aeon.utils.tags._tags import ESTIMATOR_TAGS
 
 
 def all_tags_for_estimator(
