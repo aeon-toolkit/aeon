@@ -34,7 +34,3 @@ def test_shift_scale_invariant_distance():
     assert univariate_shift[1].shape == (10,)
     assert isinstance(multivariate_shift[1], np.ndarray)
     assert multivariate_shift[1].shape == (3, 10)
-
-    # x = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [0, 1, 0, 2, 0]])
-    # y = np.array([[11, 12, 13, 14, 15], [3, 22, 5, 4, 11], [12, 3, 4, 5, 19]])
-    # assert shift_scale_invariant_distance(x, y) == 1.269141579294335
