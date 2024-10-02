@@ -245,7 +245,6 @@ def shift_scale_invariant_pairwise_distance(
     return _shift_invariant_pairwise_distance(_X, _y, max_shift)
 
 
-@njit(cache=True, fastmath=True)
 def shift_scale_invariant_best_shift(
     x: np.ndarray, y: np.ndarray, max_shift: int = None
 ) -> tuple[float, np.ndarray]:
