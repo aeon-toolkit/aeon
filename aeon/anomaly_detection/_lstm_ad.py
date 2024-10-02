@@ -86,7 +86,7 @@ class LSTM_AD(BaseAnomalyDetector):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.anomaly_detection import LSTMAD
+    >>> from aeon.anomaly_detection import LSTM_AD
     >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float_)
     >>> y = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0])
     >>> detector = LSTM_AD(window_size=4, n_epochs=10, batch_size = 4)
@@ -140,11 +140,6 @@ class LSTM_AD(BaseAnomalyDetector):
         """
         self._check_params(X)
 
-        if X.ndim == 1:
-            self.n_channels = 1
-        else:
-            self.n_channels = X.shape[1]
-
         # Create normal time series if not present
         if len(np.unique(y)) == 2:
             X_normal = X[y == 0]
@@ -166,12 +161,15 @@ class LSTM_AD(BaseAnomalyDetector):
         X_train_n, y_train_n = self._create_sequences(
             X_train, self.window_size, self.prediction_horizon
         )
+        y_train_n = y_train_n.reshape(-1, self.prediction_horizon * self.n_channels)
         X_val_1, y_val_1 = self._create_sequences(
             X_val1, self.window_size, self.prediction_horizon
         )
+        y_val_1 = y_val_1.reshape(-1, self.prediction_horizon * self.n_channels)
         X_val_2, y_val_2 = self._create_sequences(
             X_val2, self.window_size, self.prediction_horizon
         )
+        y_val_2 = y_val_2.reshape(-1, self.prediction_horizon * self.n_channels)
 
         # Create a stacked LSTM model and fit on the training data
         self.model = self.build_model(
@@ -213,6 +211,7 @@ class LSTM_AD(BaseAnomalyDetector):
         X_anomalies, y_anomalies = self._create_sequences(
             X_anomaly, self.window_size, self.prediction_horizon
         )
+        y_anomalies = y_anomalies.reshape(-1, self.prediction_horizon * self.n_channels)
 
         predicted_vN2 = self.model.predict(X_val_2)
         predicted_vA = self.model.predict(X_anomalies)
@@ -249,6 +248,7 @@ class LSTM_AD(BaseAnomalyDetector):
 
     def _predict(self, X):
         X_, y_ = self._create_sequences(X, self.window_size, self.prediction_horizon)
+        y_ = y_.reshape(-1, self.prediction_horizon * self.n_channels)
         predict_test = self.model.predict(X_)
         errors = y_ - predict_test
         likelihoods = multivariate_normal.pdf(errors)
@@ -292,6 +292,16 @@ class LSTM_AD(BaseAnomalyDetector):
         return model
 
     def _check_params(self, X: np.ndarray) -> None:
+        if X.ndim == 1:
+            self.n_channels = 1
+        elif X.ndim == 2:
+            self.n_channels = X.shape[1]
+        else:
+            raise ValueError(
+                "The training time series must be of shape (n_timepoints,) or "
+                "(n_timepoints, n_channels)."
+            )
+
         if self.window_size < 1 or self.window_size > X.shape[0]:
             raise ValueError(
                 "The window size must be at least 1 and at most the length of the "
