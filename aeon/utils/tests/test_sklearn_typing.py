@@ -6,6 +6,7 @@ __maintainer__ = []
 import pytest
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.feature_based import SummaryClassifier
@@ -53,3 +54,12 @@ def test_sklearn_identifiers(estimator):
         f" {expected_identifier}, but {identifier} was returned."
     )
     assert identifier == expected_identifier, msg
+
+
+def test_sklearn_identifiers_inputs():
+    """Test variant inputs for  sklearn_estimator_identifier."""
+    with pytest.raises(TypeError, match="not an sklearn estimator"):
+        sklearn_estimator_identifier("ARSENAL")
+    pipe = Pipeline([("scaler", StandardScaler()), ("kmeans", KMeans())])
+    id = sklearn_estimator_identifier(pipe)
+    assert id == "clusterer"
