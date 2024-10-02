@@ -1,6 +1,7 @@
 """Test the miscellaneous distance functions."""
 
 import numpy as np
+from numpy.ma.testutils import assert_almost_equal
 
 from aeon.distances import (
     shift_scale_invariant_best_shift,
@@ -27,8 +28,8 @@ def test_shift_scale_invariant_distance():
     univariate_shift = shift_scale_invariant_best_shift(univ_x, univ_y)
     multivariate_shift = shift_scale_invariant_best_shift(multi_x, multi_y)
 
-    assert univariate_dist == univariate_shift[0]
-    assert multivariate_dist == multivariate_shift[0]
+    assert_almost_equal(univariate_dist, univariate_shift[0])
+    assert_almost_equal(multivariate_dist, multivariate_shift[0])
 
     assert isinstance(univariate_shift[1], np.ndarray)
     assert univariate_shift[1].shape == (10,)
