@@ -65,6 +65,12 @@ def sklearn_estimator_identifier(obj, var_name="obj"):
     """
     if not is_sklearn_estimator(obj):
         raise TypeError(f"{var_name} is not an sklearn estimator, has type {type(obj)}")
+    # deal with sklearn pipelines: type is determined by the last element
+    if isinstance(obj, Pipeline) or hasattr(obj, "steps"):
+        obj = obj.steps[-1][1]
+    # deal with generic composites: type is type of wrapped "estimator"
+    if isinstance(obj, (GridSearchCV, RandomizedSearchCV)) or hasattr(obj, "estimator"):
+        obj = obj.estimator
 
     # first check whether obj class inherits from sklearn mixins
     sklearn_mixins = tuple(mixin_to_identifier.keys())
@@ -77,14 +83,6 @@ def sklearn_estimator_identifier(obj, var_name="obj"):
         for mx in sklearn_mixins:
             if issubclass(obj_class, mx):
                 return mixin_to_identifier[mx]
-
-    # deal with sklearn pipelines: type is determined by the last element
-    if isinstance(obj, Pipeline) or hasattr(obj, "steps"):
-        return sklearn_estimator_identifier(obj.steps[-1][1], var_name=var_name)
-
-    # deal with generic composites: type is type of wrapped "estimator"
-    if isinstance(obj, (GridSearchCV, RandomizedSearchCV)) or hasattr(obj, "estimator"):
-        return sklearn_estimator_identifier(obj.estimator, var_name=var_name)
 
     # fallback - estimator of indeterminate type
     return "estimator"

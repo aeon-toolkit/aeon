@@ -4,7 +4,9 @@ __maintainer__ = []
 
 
 import pytest
+from sklearn import svm
 from sklearn.cluster import KMeans
+from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -63,3 +65,8 @@ def test_sklearn_identifiers_inputs():
     pipe = Pipeline([("scaler", StandardScaler()), ("kmeans", KMeans())])
     id = sklearn_estimator_identifier(pipe)
     assert id == "clusterer"
+    parameters = {"kernel": ("linear", "rbf"), "C": [1, 10]}
+    svc = svm.SVC()
+    cls = GridSearchCV(svc, parameters)
+    id = sklearn_estimator_identifier(cls)
+    assert id == "classifier"
