@@ -1,17 +1,17 @@
 
 [//]: # (Try to put references in harvard style for consistency.)
 
-# Mentoring and Projects
+# aeon Projects
 
-`aeon` runs a range of short to medium duration projects interacting with the community
-and the code
+`aeon` runs a range of short to medium duration projects that involve
+developing or using aeon and interacting with the community and the code
 base. These projects are designed for internships, usage as part of
 undergraduate/postgraduate projects at academic institutions, and as options for
 programs such as [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com/).
 
 For those interested in undertaking a project outside these scenarios, we recommend
 joining the [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
-and discussing with the project mentors. We aim to run schemes to
+and discussing with the community. We aim to run schemes to
 help new contributors to become more familiar with `aeon`, time series machine learning
 research, and open-source software development.
 
