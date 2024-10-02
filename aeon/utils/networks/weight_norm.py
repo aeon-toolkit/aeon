@@ -25,12 +25,10 @@ if _check_soft_dependencies(["tensorflow"], severity="none"):
 
             This method initializes weights `v` and `g` for weight normalization.
             """
-            self.w = self.layer.add_weight(
-                name="weight",
-                shape=self.layer.kernel.shape,
-                initializer="random_normal",
-                trainable=True,
-            )
+            if not self.layer.built:
+                self.layer.build(input_shape)
+
+            self.w = self.layer.kernel
             self.v = self.add_weight(
                 shape=self.w.shape,
                 initializer="random_normal",
@@ -45,8 +43,11 @@ if _check_soft_dependencies(["tensorflow"], severity="none"):
         def call(self, inputs):
             """Apply the normalized weights to the inputs."""
             norm = tf.sqrt(tf.reduce_sum(tf.square(self.v), axis=0, keepdims=True))
-            self.layer.kernel = self.g * self.v / norm
-            return self.layer(inputs)
+            normalized_kernel = self.g * self.v / norm
+            output = tf.nn.conv1d(
+                inputs, filters=normalized_kernel, stride=1, padding="SAME"
+            )
+            return output
 
         def get_config(self):
             """Return the config of the layer for serialization."""
