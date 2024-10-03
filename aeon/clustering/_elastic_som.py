@@ -5,7 +5,7 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils.random import check_random_state
 
-from aeon.clustering import BaseClusterer
+from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_alignment_path_function, pairwise_distance
 
 
@@ -61,6 +61,11 @@ class ElasticSOM(BaseClusterer):
 
     def _gaussian(self, c, sigma):
         d = 2 * sigma * sigma
+        try:
+            ax = np.exp(-np.power(self._xx - self._xx.T[c], 2) / d)
+            ay = np.exp(-np.power(self._yy - self._yy.T[c], 2) / d)
+        except ValueError:
+            stop=""
         ax = np.exp(-np.power(self._xx - self._xx.T[c], 2) / d)
         ay = np.exp(-np.power(self._yy - self._yy.T[c], 2) / d)
         return (ax * ay).T
