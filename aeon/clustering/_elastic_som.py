@@ -65,7 +65,7 @@ class ElasticSOM(BaseClusterer):
             ax = np.exp(-np.power(self._xx - self._xx.T[c], 2) / d)
             ay = np.exp(-np.power(self._yy - self._yy.T[c], 2) / d)
         except ValueError:
-            stop=""
+            stop = ""
         ax = np.exp(-np.power(self._xx - self._xx.T[c], 2) / d)
         ay = np.exp(-np.power(self._yy - self._yy.T[c], 2) / d)
         return (ax * ay).T
