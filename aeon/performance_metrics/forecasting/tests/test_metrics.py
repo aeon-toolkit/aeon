@@ -1,5 +1,6 @@
 """Tests for some metrics."""
 
+__maintainer__ = []
 
 import numpy as np
 
