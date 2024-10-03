@@ -70,7 +70,7 @@ jobs:
         with:
           timeout_minutes: 30
           max_attempts: 3
-          command: python -m pip install .[all_extras,binder,dev]
+          command: python -m pip install .[binder,dev]
 
       - name: Run example notebooks
         run: .github/utilities/run_examples.sh false
