@@ -1,28 +1,17 @@
 """Register of estimator tags.
 
-Note for extenders: new tags should be entered in ESTIMATOR_TAG_REGISTER.
-No other place is necessary to add new tags.
-
-This module exports the following:
-
----
-ESTIMATOR_TAG_REGISTER - list of tuples
-
-each tuple corresponds to a tag, elements as follows:
-    0 : string - name of the tag as used in the _tags dictionary
-    1 : string - identifier for the base class of objects this tag applies to
-                 must be in _base_classes.BASE_CLASS_IDENTIFIER_LIST
-    2 : string - expected type of the tag value
-        should be one of:
-            "bool" - valid values are True/False
-            "int" - valid values are all integers
-            "str" - valid values are all strings
-            "list" - valid values are all lists of arbitrary elements
-            ("str", list_of_string) - any string in list_of_string is valid
-            ("list", list_of_string) - any individual string and sub-list is valid
-            ("list", "str") - any individual string or list of strings is valid
-        validity can be checked by check_tag_is_valid (see below)
-    3 : string - plain English description of the tag
+Each dictionary item corresponds to a tag with the key as its name, the contrained
+sub-dictionary has the following items:
+    class : identifier for the base class of objects this tag applies to
+    type : expected type of the tag value. Should be one or a list of:
+                "bool" - valid values are True/False
+                "str" - valid values are all strings
+                "list" - valid values are all lists of arbitrary elements
+                ("str", list_of_string) - any string in list_of_string is valid
+                ("list", list_of_string) - any sub-list is valid
+                ("list||str", list_of_string) - combination of the above
+                None - no value for the tag
+    description : plain English description of the tag
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]
@@ -58,8 +47,7 @@ ESTIMATOR_TAGS = {
     "X_inner_type": {
         "class": "estimator",
         "type": [
-            ("str", ["pd.DataFrame", "np.ndarray", "numpy3D", "np-list"]),
-            ("list", ["pd.DataFrame", "np.ndarray", "numpy3D", "np-list"]),
+            ("list||str", ["pd.DataFrame", "np.ndarray", "numpy3D", "np-list"]),
         ],
         "description": "What data structure(s) the estimator uses internally for "
         "fit/predict.",
@@ -141,10 +129,9 @@ ESTIMATOR_TAGS = {
         "point belongs to.",
     },
     "requires_y": {
-        "class": ["transformer", "anomaly-detector"],
+        "class": ["transformer", "anomaly-detector", "segmenter"],
         "type": "bool",
-        "description": "Does this transformer require y to be passed in fit and "
-        "transform?",
+        "description": "Does this estimator require y to be passed in its methods?",
     },
     "capability:unequal_length:removes": {
         "class": "transformer",
@@ -157,5 +144,20 @@ ESTIMATOR_TAGS = {
         "type": "bool",
         "description": "Is the transformer result guaranteed to have no missing "
         "values?",
+    },
+    "input_data_type": {
+        "class": "transformer",
+        "type": ("str", ["Series", "Collection"]),
+        "description": "The input abstract data type of the transformer, input X. "
+        "Series indicates a single series input, Collection indicates a collection of "
+        "time series.",
+    },
+    "output_data_type": {
+        "class": "transformer",
+        "type": ("str", ["Tabular", "Series", "Collection"]),
+        "The output abstract data type of the transformer output, the transformed X. "
+        "description": "Tabular indicates 2D output where rows are cases and unordered "
+        "attributes are columns. Series indicates a single series output and "
+        "collection indicates output is a collection of time series.",
     },
 }
