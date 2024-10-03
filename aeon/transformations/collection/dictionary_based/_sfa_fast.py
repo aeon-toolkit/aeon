@@ -1,25 +1,17 @@
 """Symbolic Fourier Approximation (SFA) Transformer.
 
-Configurable SFA transform for discretising time series into words.
-
+Efficient but rigid SFA transform for discretising time series into words.
 """
 
-__maintainer__ = []
+__maintainer__ = ["patrickzib", "MatthewMiddlehurst"]
 __all__ = ["SFAFast"]
 
 import math
 import sys
-from warnings import simplefilter
 
 import numpy as np
 import pandas as pd
-from numba import (
-    NumbaPendingDeprecationWarning,
-    NumbaTypeSafetyWarning,
-    njit,
-    objmode,
-    prange,
-)
+from numba import njit, objmode, prange
 from numba.core import types
 from numba.typed import Dict
 from scipy.sparse import csr_matrix
@@ -30,7 +22,7 @@ from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 
-# The binning methods to use: equi-depth, equi-width, information gain or kmeans
+# The binning methods to use
 binning_methods = {
     "equi-depth",
     "equi-width",
@@ -39,9 +31,6 @@ binning_methods = {
     "kmeans",
     "quantile",
 }
-
-simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
-simplefilter(action="ignore", category=NumbaTypeSafetyWarning)
 
 
 class SFAFast(BaseCollectionTransformer):
@@ -53,37 +42,44 @@ class SFAFast(BaseCollectionTransformer):
             shorten the series with DFT
             discretise the shortened series into bins set by MFC
             form a word from these discrete values
-    by default SFA produces a single word per series (window_size=0)
-    if a window is used, it forms a histogram of counts of words.
+    SFA returns an array of word counts for each series consisting of a column for
+    each word found in fit.
+
+    This is a faster but more rigid version of the SFA transform, which can only use
+    up to 64 bit words and does not store the actual words found in its transformed
+    array.
 
     Parameters
     ----------
-    word_length : int, default = 8
+    word_length : int, default=8
         Length of word to shorten window to (using DFT).
-    alphabet_size : int, default = 4
+    alphabet_size : int, default=4
         Number of values to discretise each value to.
-    window_size : int, default = 12
+    window_size : int, default=12
         Size of window for sliding. Input series length for whole series transform.
-    norm : boolean, default = False
+    norm : boolean, default=False
         Mean normalise words by dropping first fourier coefficient.
     binning_method : str, default="equi-depth"
         The binning method used to derive the breakpoints. One of {"equi-depth",
-        "equi-width", "information-gain", "information-gain-mae", "kmeans"},
-    anova : boolean, default = False
+        "equi-width", "information-gain", "information-gain-mae", "kmeans",
+        "quantile"}.
+    anova : boolean, default=False
         If True, the Fourier coefficient selection is done via a one-way ANOVA test.
         If False, the first Fourier coefficients are selected. Only applicable if
         labels are given.
-    variance : boolean, default = False
+    variance : boolean, default=False
         If True, the Fourier coefficient selection is done via the largest variance.
         If False, the first Fourier coefficients are selected. Only applicable if
         labels are given.
+    bigrams : boolean, default=False
+        Whether to create bigrams of SFA words.
+    skip_grams : boolean, default=False
+        Whether to create skip-grams of SFA words.
     dilation : int, default = 0
         When set to dilation > 1, adds dilation to the sliding window operation.
-    save_words : boolean, default = False
-        whether to save the words generated for each series (default False)
-    bigrams : boolean, default = False
-        Whether to create bigrams of SFA words.
-    feature_selection : {"chi2", "chi2_top_k", "none", "random"}, default: none
+    remove_repeat_words : boolean, default=False
+       Whether to use numerosity reduction.
+    feature_selection : {"chi2", "chi2_top_k", "random", None}, default=None
         Sets the feature selections strategy to be used. Large amounts of memory
         may be needed depending on the setting of bigrams (true is more) or
         alpha (larger is more).
@@ -92,19 +88,20 @@ class SFAFast(BaseCollectionTransformer):
         dropping values based on p-value.
         'random' reduces the number to at most 'max_feature_count',
         by randomly selecting features.
-        'none' does not apply any feature selection and yields large bag of words,
-    p_threshold :  int, default=0.05 (disabled by default)
+        None does not apply any feature selection and yields large bag of words,
+    p_threshold : float, default=0.05
         If feature_selection=chi2 is chosen, feature selection is applied based on
         the chi-squared test. This is the p-value threshold to use for chi-squared
         test on bag-of-words (lower means more strict). 1 indicates that the test
         should not be performed.
-    max_feature_count :  int, default=256
+    max_feature_count : int, default=256
         If feature_selection=random is chosen, this parameter defines the number of
         randomly chosen unique words used.
-    skip_grams : boolean, default = False
-        Whether to create skip-grams of SFA words.
-    remove_repeat_words : boolean, default = False
-       Whether to use numerosity reduction.
+
+
+
+    save_words : boolean, default = False
+        whether to save the words generated for each series (default False)
     lower_bounding_distances : boolean, default = None
        If set to True, the FFT is normed to allow for ED lower bounding.
     return_sparse :  boolean, default=True
@@ -151,7 +148,6 @@ class SFAFast(BaseCollectionTransformer):
         skip_grams=False,
         remove_repeat_words=False,
         lower_bounding=True,
-        lower_bounding_distances=None,
         save_words=False,
         dilation=0,
         first_difference=False,
@@ -174,13 +170,8 @@ class SFAFast(BaseCollectionTransformer):
 
         self.norm = norm
         self.lower_bounding = lower_bounding
-        self.lower_bounding_distances = lower_bounding_distances
 
-        self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size)
-            if (not lower_bounding or lower_bounding_distances)
-            else 1.0
-        )
+        self.inverse_sqrt_win_size = 1.0 / math.sqrt(window_size)
 
         self.remove_repeat_words = remove_repeat_words
 
@@ -287,7 +278,7 @@ class SFAFast(BaseCollectionTransformer):
             self.bigrams,
             self.skip_grams,
             self.inverse_sqrt_win_size,
-            self.lower_bounding or self.lower_bounding_distances,
+            self.lower_bounding,
         )
 
         if self.remove_repeat_words:
@@ -348,12 +339,12 @@ class SFAFast(BaseCollectionTransformer):
             self.bigrams,
             self.skip_grams,
             self.inverse_sqrt_win_size,
-            self.lower_bounding or self.lower_bounding_distances,
+            self.lower_bounding,
         )
 
-        # only save at fit
-        # if self.save_words:
-        #    self.words = words
+        # TODO only save at fit?
+        if self.save_words:
+            self.words = words
 
         # transform: applies the feature selection strategy
         empty_dict = Dict.empty(
@@ -406,7 +397,7 @@ class SFAFast(BaseCollectionTransformer):
             self.anova,
             self.variance,
             self.inverse_sqrt_win_size,
-            self.lower_bounding or self.lower_bounding_distances,
+            self.lower_bounding,
         )
 
     def transform_to_bag(self, words, word_len, y=None):
@@ -512,7 +503,7 @@ class SFAFast(BaseCollectionTransformer):
             self.dft_length,
             self.norm,
             self.inverse_sqrt_win_size,
-            self.lower_bounding or self.lower_bounding_distances,
+            self.lower_bounding,
         )
 
         if y is not None:
@@ -703,7 +694,7 @@ class SFAFast(BaseCollectionTransformer):
             self.anova,
             self.variance,
             self.inverse_sqrt_win_size,
-            self.lower_bounding or self.lower_bounding_distances,
+            self.lower_bounding,
             self.word_length,
             self.alphabet_size,
             self.breakpoints,
