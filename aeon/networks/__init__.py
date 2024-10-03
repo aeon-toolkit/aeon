@@ -15,6 +15,7 @@ __all__ = [
     "AEResNetNetwork",
     "LITENetwork",
     "AEAttentionBiGRUNetwork",
+    "AEBiGRUNetwork",
     "AEDRNNNetwork",
     "AEBiGRUNetwork",
 ]
