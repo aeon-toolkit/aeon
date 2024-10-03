@@ -16,7 +16,7 @@ from aeon.testing.data_generation._legacy import make_series
 
 SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
 
-UNEQUAL_LENGTH_NO_SUPPORTED_DISTANCES = ["shift_scale"]
+UNEQUAL_LENGTH_NOT_SUPPORTED_DISTANCES = ["shift_scale"]
 
 ASYMMETRIC_DISTANCES = ["shift_scale"]
 
