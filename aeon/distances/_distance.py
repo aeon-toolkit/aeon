@@ -58,6 +58,10 @@ from aeon.distances._shape_dtw import (
     shape_dtw_distance,
     shape_dtw_pairwise_distance,
 )
+from aeon.distances._shift_scale_invariant import (
+    shift_scale_invariant_distance,
+    shift_scale_invariant_pairwise_distance,
+)
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (
     twe_alignment_path,
@@ -97,6 +101,7 @@ class DistanceKwargs(TypedDict, total=False):
     warp_penalty: float
     standardize: bool
     m: int
+    max_shift: Optional[int]
 
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
@@ -249,6 +254,8 @@ def distance(
         )
     elif metric == "sbd":
         return sbd_distance(x, y, kwargs.get("standardize", True))
+    elif metric == "shift_scale":
+        return shift_scale_invariant_distance(x, y, kwargs.get("max_shift", None))
     else:
         if isinstance(metric, Callable):
             return metric(x, y, **kwargs)
@@ -259,6 +266,7 @@ def pairwise_distance(
     x: np.ndarray,
     y: Optional[np.ndarray] = None,
     metric: Union[str, DistanceFunction, None] = None,
+    symmetric: bool = True,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
@@ -276,6 +284,13 @@ def pairwise_distance(
         A list of valid distance metrics can be found in the documentation for
         :func:`aeon.distances.get_distance_function` or by calling  the function
         :func:`aeon.distances.get_distance_function_names`.
+    symmetric : bool, default=True
+        If True and a function is provided as the "metric" paramter, then it will
+        compute a symmetric distance matrix where d(x, y) = d(y, x). Only the lower
+        triangle is calculated, and the upper triangle is ignored. If False and a
+        function is provided as the "metric" parameter, then it will compute an
+        asymmetric distance matrix, and the entire matrix (including both upper and
+        lower triangles) is returned.
     kwargs : Any
         Extra arguments for metric. Refer to each metric documentation for a list of
         possible arguments.
@@ -419,8 +434,14 @@ def pairwise_distance(
         )
     elif metric == "sbd":
         return sbd_pairwise_distance(x, y, kwargs.get("standardize", True))
+    elif metric == "shift_scale":
+        return shift_scale_invariant_pairwise_distance(
+            x, y, kwargs.get("max_shift", None)
+        )
     else:
         if isinstance(metric, Callable):
+            if y is None and not symmetric:
+                return _custom_func_pairwise(x, x, metric, **kwargs)
             return _custom_func_pairwise(x, y, metric, **kwargs)
         raise ValueError("Metric must be one of the supported strings or a callable")
 
@@ -804,6 +825,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
     'manhattan'     distances.manhattan_distance
     'minkowski'     distances.minkowski_distance
     'sbd'           distances.sbd_distance
+    'shift_scale'   distances.shift_scale_invariant_distance
     =============== ========================================
 
     Parameters
@@ -861,6 +883,7 @@ def get_pairwise_distance_function(
     'manhattan'     distances.manhattan_pairwise_distance
     'minkowski'     distances.minkowski_pairwise_distance
     'sbd'           distances.sbd_pairwise_distance
+    'shift_scale'   distances.shift_scale_invariant_pairwise_distance
     =============== ========================================
 
     Parameters
@@ -919,7 +942,7 @@ def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
     Parameters
     ----------
     metric : str or Callable
-        The metric string to resolve to a alignment path function.
+        The metric string to resolve to an alignment path function.
 
     Returns
     -------
@@ -1113,6 +1136,11 @@ DISTANCES = [
         "name": "sbd",
         "distance": sbd_distance,
         "pairwise_distance": sbd_pairwise_distance,
+    },
+    {
+        "name": "shift_scale",
+        "distance": shift_scale_invariant_distance,
+        "pairwise_distance": shift_scale_invariant_pairwise_distance,
     },
 ]
 

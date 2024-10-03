@@ -8,8 +8,6 @@ Interface specifications below.
 Parameter inspection and setter methods
     inspect parameter values      - get_params()
     setting parameter values      - set_params(**params)
-    list of parameter names       - get_param_names()
-    dict of parameter defaults    - get_param_defaults()
     fitted parameter inspection - get_fitted_params()
 
 Tag inspection and setter methods
@@ -39,7 +37,6 @@ __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseEstimator"]
 
 import inspect
-from collections import defaultdict
 from copy import deepcopy
 
 from sklearn import clone
@@ -62,12 +59,12 @@ class BaseEstimator(_BaseEstimator):
     }
 
     def __init__(self):
-        self._is_fitted = False
-        self._tags_dynamic = dict()
+        self._is_fitted = False  # flag to indicate if fit has been called
+        self._tags_dynamic = dict()  # storage for dynamic tags
 
         super().__init__()
 
-    def reset(self):
+    def reset(self, keep=None):
         """Reset the object to a clean post-init state.
 
         Equivalent to sklearn.clone but overwrites self.
@@ -92,8 +89,17 @@ class BaseEstimator(_BaseEstimator):
         cls_attrs = [attr for attr in dir(type(self))]
         self_attrs = set(attrs).difference(cls_attrs)
 
-        # keep a test flag if it exists
-        self_attrs.discard("_unit_test_flag")
+        # keep specific attributes if set
+        if keep is not None:
+            if isinstance(keep, str):
+                keep = [keep]
+            elif not isinstance(keep, list):
+                raise TypeError(
+                    "keep must be a string or list of strings containing attributes "
+                    "to keep after the reset."
+                )
+            for attr in keep:
+                self_attrs.discard(attr)
 
         for attr in self_attrs:
             delattr(self, attr)
@@ -103,7 +109,7 @@ class BaseEstimator(_BaseEstimator):
 
         return self
 
-    def clone(self):
+    def clone(self, random_state=None):
         """
         Obtain a clone of the object with same hyper-parameters.
 
@@ -115,123 +121,12 @@ class BaseEstimator(_BaseEstimator):
         -------
         instance of ``type(self)``, clone of self (see above)
         """
-        return clone(self)
+        estimator = clone(self)
 
-    @classmethod
-    def _get_init_signature(cls):
-        """Get init sigature of cls, for use in parameter inspection.
+        if random_state is not None:
+            _set_random_states(estimator, random_state)
 
-        Returns
-        -------
-        list of inspect Parameter objects (including defaults)
-
-        Raises
-        ------
-        RuntimeError if cls has varargs in ``__init__``
-        """
-        # fetch the constructor or the original constructor before
-        # deprecation wrapping if any
-        init = getattr(cls.__init__, "deprecated_original", cls.__init__)
-        if init is object.__init__:
-            # No explicit constructor to introspect
-            return []
-
-        # introspect the constructor arguments to find the model parameters
-        # to represent
-        init_signature = inspect.signature(init)
-
-        # Consider the constructor parameters excluding 'self'
-        parameters = [
-            p
-            for p in init_signature.parameters.values()
-            if p.name != "self" and p.kind != p.VAR_KEYWORD
-        ]
-        for p in parameters:
-            if p.kind == p.VAR_POSITIONAL:
-                raise RuntimeError(
-                    "scikit-learn compatible estimators should always "
-                    "specify their parameters in the signature"
-                    " of their __init__ (no varargs)."
-                    " %s with constructor %s doesn't "
-                    " follow this convention." % (cls, init_signature)
-                )
-        return parameters
-
-    @classmethod
-    def get_param_names(cls):
-        """
-        Get parameter names for the object.
-
-        Returns
-        -------
-        param_names: list of str, alphabetically sorted list of parameter names of cls
-        """
-        parameters = cls._get_init_signature()
-        param_names = sorted([p.name for p in parameters])
-        return param_names
-
-    @classmethod
-    def get_param_defaults(cls):
-        """
-        Get parameter defaults for the object.
-
-        Returns
-        -------
-        default_dict: dict with str keys
-            keys are all parameters of cls that have a default defined in __init__
-            values are the defaults, as defined in __init__.
-        """
-        parameters = cls._get_init_signature()
-        default_dict = {
-            x.name: x.default for x in parameters if x.default != inspect._empty
-        }
-        return default_dict
-
-    def set_params(self, **params):
-        """
-        Set the parameters of this object.
-
-        The method works on simple estimators as well as on nested objects.
-        The latter have parameters of the form ``<component>__<parameter>`` so that it's
-        possible to update each component of a nested object.
-
-        Parameters
-        ----------
-        **params : dict
-            BaseEstimator parameters
-
-        Returns
-        -------
-        self : reference to self (after parameters have been set)
-        """
-        if not params:
-            # Simple optimization to gain speed (inspect is slow)
-            return self
-        valid_params = self.get_params(deep=True)
-
-        nested_params = defaultdict(dict)  # grouped by prefix
-        for key, value in params.items():
-            key, delim, sub_key = key.partition("__")
-            if key not in valid_params:
-                raise ValueError(
-                    "Invalid parameter %s for object %s. "
-                    "Check the list of available parameters "
-                    "with `object.get_params().keys()`." % (key, self)
-                )
-
-            if delim:
-                nested_params[key][sub_key] = value
-            else:
-                setattr(self, key, value)
-                valid_params[key] = value
-
-        self.reset()
-
-        # recurse in components
-        for key, sub_params in nested_params.items():
-            valid_params[key].set_params(**sub_params)
-
-        return self
+        return estimator
 
     @classmethod
     def get_class_tags(cls):
@@ -409,45 +304,6 @@ class BaseEstimator(_BaseEstimator):
             self._tags_dynamic.update(tag_update)
         else:
             self._tags_dynamic = tag_update
-
-        return self
-
-    def clone_tags(self, estimator, tag_names=None):
-        """
-        Clone/mirror tags from another estimator as dynamic override.
-
-        Parameters
-        ----------
-        estimator : object
-            Estimator inheriting from :class:BaseEstimator.
-        tag_names : str or list of str, default = None
-            Names of tags to clone. If None then all tags in estimator are used
-            as `tag_names`.
-
-        Returns
-        -------
-        Self :
-            Reference to self.
-
-        Notes
-        -----
-        Changes object state by setting tag values in tag_set from estimator as
-        dynamic tags in self.
-        """
-        tags_est = deepcopy(estimator.get_tags())
-
-        # if tag_set is not passed, default is all tags in estimator
-        if tag_names is None:
-            tag_names = tags_est.keys()
-        else:
-            # if tag_set is passed, intersect keys with tags in estimator
-            if not isinstance(tag_names, list):
-                tag_names = [tag_names]
-            tag_names = [key for key in tag_names if key in tags_est.keys()]
-
-        update_dict = {key: tags_est[key] for key in tag_names}
-
-        self.set_tags(**update_dict)
 
         return self
 
@@ -792,8 +648,7 @@ class BaseEstimator(_BaseEstimator):
             Dictionary of fitted parameters, paramname : paramvalue
             keys-value pairs include:
 
-            * always: all fitted parameters of this object, as via ``get_param_names``
-              values are fitted parameter value for that key, of this object
+            * always: all fitted parameters of this object
             * if ``deep=True``, also contains keys/value pairs of component parameters
               parameters of components are indexed as ``[componentname]__[paramname]``
               all parameters of ``componentname`` appear as ``paramname`` with its value
