@@ -132,7 +132,7 @@ class LeftSTAMPi(BaseAnomalyDetector):
         self._check_params(X)
 
         for x in X:
-            self.mp_.update(x)
+            self.mp_._update(x)
 
         lmp = self.mp_._left_P
         lmp[: self.n_init_train] = 0

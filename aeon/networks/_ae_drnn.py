@@ -20,7 +20,7 @@ if _check_soft_dependencies(["tensorflow"], severity="none"):
 
         def get_config(self):
             config = super().get_config()
-            config.update({"dilation_rate": self._dilation_rate})
+            config._update({"dilation_rate": self._dilation_rate})
             return config
 
 

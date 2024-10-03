@@ -75,7 +75,7 @@ class _HeterogenousMetaEstimator:
         steps = self._steps_fitted_attr
         steps_params = self._get_params(steps, fitted=True)
 
-        fitted_params.update(steps_params)
+        fitted_params._update(steps_params)
 
         return fitted_params
 
@@ -104,7 +104,7 @@ class _HeterogenousMetaEstimator:
         if deep and hasattr(self, attr):
             estimators = getattr(self, attr)
             estimators = [(x[0], x[1]) for x in estimators]
-            out.update(estimators)
+            out._update(estimators)
             for name, estimator in estimators:
                 if hasattr(estimator, "get_params"):
                     for key, value in getattr(estimator, method)(**deepkw).items():

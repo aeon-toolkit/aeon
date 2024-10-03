@@ -817,7 +817,7 @@ class BaseEstimator(_BaseEstimator):
             if isinstance(comp, BaseEstimator) and comp._is_fitted:
                 c_f_params = comp.get_fitted_params()
                 c_f_params = {f"{sh(c)}__{k}": v for k, v in c_f_params.items()}
-                fitted_params.update(c_f_params)
+                fitted_params._update(c_f_params)
 
         # add all nested parameters from components that are sklearn estimators
         # we do this recursively as we have to reach into nested sklearn estimators
@@ -830,7 +830,7 @@ class BaseEstimator(_BaseEstimator):
                     c_f_params = self._get_fitted_params_default(comp)
                     c_f_params = {f"{sh(c)}__{k}": v for k, v in c_f_params.items()}
                     new_params.update(c_f_params)
-            fitted_params.update(new_params)
+            fitted_params._update(new_params)
             old_new_params = new_params.copy()
             n_new_params = len(new_params)
 
