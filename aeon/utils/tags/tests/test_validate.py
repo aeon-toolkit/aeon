@@ -33,4 +33,36 @@ def test_check_valid_tags(estimator):
 
 def test_check_valid_tags_invalid():
     """Test the check_valid_tags function with invalid tags and input."""
-    pass
+    # invalid estimator
+    with pytest.raises(ValueError, match="Estimator must be an"):
+        check_valid_tags("estimator")
+
+    # invalid tag
+    tags = {
+        "python_version": ">3.8",
+        "python_dependencies": None,
+        "fake-tag": 6,
+    }
+
+    with pytest.raises(ValueError, match="Tag fake-tag is not a valid tag"):
+        check_valid_tags(MockClassifier, tags=tags)
+
+    # invalid tag type for classifier
+    tags = {
+        "python_version": ">3.8",
+        "python_dependencies": None,
+        "returns_dense": False,
+    }
+
+    with pytest.raises(ValueError, match="Tag returns_dense is not compatible"):
+        check_valid_tags(MockClassifier, tags=tags)
+
+    # invalid tag value in tag
+    tags = {
+        "python_version": ">3.8",
+        "python_dependencies": None,
+        "non-deterministic": 1,
+    }
+
+    with pytest.raises(ValueError, match="Tag non-deterministic has an invalid value"):
+        check_valid_tags(MockClassifier, tags=tags)

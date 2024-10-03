@@ -535,36 +535,23 @@ def check_repr(estimator):
 
 
 def check_estimator_tags(estimator):
-    """Check that Estimator tags are in VALID_ESTIMATOR_TAGS."""
-    pass
+    """Check conventions on estimator tags for test objects."""
+    # check get_tags method is retained from base
+    assert hasattr(estimator, "get_tags")
+    all_tags = estimator.get_tags()
+    assert isinstance(all_tags, dict)
+    assert all(isinstance(key, str) for key in all_tags.keys())
 
-    # """Check conventions on estimator tags for class."""
-    # # check get_class_tags method is retained from base
-    # assert hasattr(estimator_class, "get_class_tags")
-    # all_tags = estimator_class.get_class_tags()
-    # assert isinstance(all_tags, dict)
-    # assert all(isinstance(key, str) for key in all_tags.keys())
-    #
-    # # check _tags attribute for class
-    # if hasattr(estimator_class, "_tags"):
-    #     tags = estimator_class._tags
-    #     assert isinstance(tags, dict), (
-    #         f"_tags attribute of {estimator_class} must be dict, "
-    #         f"but found {type(tags)}"
-    #     )
-    #     assert len(tags) > 0, f"_tags dict of class {estimator_class} is empty"
-    #     assert all(isinstance(key, str) for key in tags.keys())
-    #
-    # # validate tags
-    # check_valid_tags(estimator_class, all_tags)
-    #
-    # # Avoid ambiguous class attributes
-    # ambiguous_attrs = ("tags", "tags_")
-    # for attr in ambiguous_attrs:
-    #     assert not hasattr(estimator_class, attr), (
-    #         f"The '{attr}' attribute name is disallowed to avoid confusion with "
-    #         f"estimator tags."
-    #     )
+    # check _tags attribute
+    if hasattr(estimator, "_tags"):
+        assert estimator._tags == estimator.__class__._tags
+
+    # check _tags_dynamic attribute still exists from base
+    assert hasattr(estimator, "_tags_dynamic")
+    assert isinstance(estimator._tags_dynamic, dict)
+
+    # validate tags
+    check_valid_tags(estimator, all_tags)
 
 
 def check_dl_constructor_initializes_deeply(estimator):

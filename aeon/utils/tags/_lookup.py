@@ -3,12 +3,10 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["all_tags_for_estimator"]
 
+from inspect import isclass
+
 from aeon.base import BaseEstimator
-from aeon.registry import (
-    BASE_CLASS_IDENTIFIER_LIST,
-    BASE_CLASS_LIST,
-    BASE_CLASS_REGISTER,
-)
+from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST
 from aeon.utils.tags._tags import ESTIMATOR_TAGS
 
 
@@ -37,9 +35,9 @@ def all_tags_for_estimator(
     """
     if isinstance(estimator, BaseEstimator):
         method = isinstance
-    elif issubclass(estimator, BaseEstimator):
+    elif isclass(estimator) and issubclass(estimator, BaseEstimator):
         method = issubclass
-    elif isinstance(estimator, str) and estimator in BASE_CLASS_REGISTER:
+    elif isinstance(estimator, str) and estimator in BASE_CLASS_IDENTIFIER_LIST:
         estimator = BASE_CLASS_LIST[BASE_CLASS_IDENTIFIER_LIST.index(estimator)]
         method = issubclass
     else:

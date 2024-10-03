@@ -3,6 +3,8 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["check_valid_tags"]
 
+from inspect import isclass
+
 from aeon.base import BaseEstimator
 from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST
 from aeon.utils.tags import ESTIMATOR_TAGS, all_tags_for_estimator
@@ -30,7 +32,7 @@ def check_valid_tags(estimator, tags=None, error_on_missing=True):
             tags = estimator.get_tags()
         method = isinstance
         est_name = estimator.__class__.__name__
-    elif issubclass(estimator, BaseEstimator):
+    elif isclass(estimator) and issubclass(estimator, BaseEstimator):
         if tags is None:
             tags = estimator.get_class_tags()
         method = issubclass
