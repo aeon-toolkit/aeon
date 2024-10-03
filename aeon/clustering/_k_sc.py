@@ -92,7 +92,6 @@ class KSpectralCentroid(TimeSeriesKMeans):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": "distance",
     }
 
     def __init__(
