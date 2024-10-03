@@ -2554,6 +2554,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "LinGinQiu",
+      "name": "Chuanhang Qiu ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80885865?v=4",
+      "profile": "https://github.com/LinGinQiu",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
