@@ -92,6 +92,7 @@ class KSpectralCentroid(TimeSeriesKMeans):
 
     _tags = {
         "capability:multivariate": True,
+        "algorithm_type": "distance",
     }
 
     def __init__(
@@ -127,3 +128,32 @@ class KSpectralCentroid(TimeSeriesKMeans):
             self._distance_params["max_shift"] = temp_max_shift
         if "max_shift" not in self._average_params:
             self._average_params["max_shift"] = temp_max_shift
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`
+        """
+        return {
+            "n_clusters": 2,
+            "n_init": 1,
+            "max_shift": 2,
+            "max_iter": 1,
+            "random_state": 0,
+            "averaging_method": "mean",
+            "init": "random",
+        }
