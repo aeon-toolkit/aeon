@@ -154,6 +154,5 @@ class KSpectralCentroid(TimeSeriesKMeans):
             "max_shift": 2,
             "max_iter": 1,
             "random_state": 0,
-            "averaging_method": "mean",
             "init": "random",
         }
