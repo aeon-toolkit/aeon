@@ -76,11 +76,11 @@ def shift_scale_invariant_distance(
     >>> from aeon.distances import shift_scale_invariant_distance
     >>> x = np.array([1., 2., 3., 4., 5., 6., 7., 8., 9., 10.])
     >>> y = np.array([11., 12., 13., 14., 15., 16., 17., 18., 19., 20.])
-    >>> shift_scale_invariant_distance(x, y) # 1D series
+    >>> univ_dist = shift_scale_invariant_distance(x, y)
 
     >>> x = np.array([[1., 2., 3., 4.], [6., 7., 8., 9.], [0., 1., 0., 2.]])
     >>> y = np.array([[11., 12., 13., 14.], [3., 22., 5., 4.], [12., 3., 4., 5.]])
-    >>> shift_scale_invariant_distance(x, y) # 2D series with 3 channels, unequal length
+    >>> multi_dist = shift_scale_invariant_distance(x, y)
     """
     if max_shift is None:
         max_shift = min(x.shape[-1], y.shape[-1])
@@ -211,16 +211,16 @@ def shift_scale_invariant_pairwise_distance(
     >>> from aeon.distances import shift_scale_invariant_pairwise_distance
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1., 2., 3.]],[[4., 5., 6.]], [[7., 8., 9.]]])
-    >>> shift_scale_invariant_pairwise_distance(X)
+    >>> pw_self = shift_scale_invariant_pairwise_distance(X)
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1., 2., 3.]],[[4., 5., 6.]], [[7., 8., 9.]]])
     >>> y = np.array([[[11., 12., 13.]],[[14., 15., 16.]], [[17., 18., 19.]]])
-    >>> shift_scale_invariant_pairwise_distance(X, y)
+    >>> pw = shift_scale_invariant_pairwise_distance(X, y)
 
     >>> X = np.array([[[1., 2., 3.]],[[4., 5., 6.]], [[7., 8., 9.]]])
     >>> y_univariate = np.array([11., 12., 13.])
-    >>> shift_scale_invariant_pairwise_distance(X, y_univariate)
+    >>> single_pw =shift_scale_invariant_pairwise_distance(X, y_univariate)
     """
     if max_shift is None:
         if y is None:
@@ -276,11 +276,11 @@ def shift_scale_invariant_best_shift(
     >>> from aeon.distances import shift_scale_invariant_best_shift
     >>> x = np.array([1., 2., 3., 4., 5., 6., 7., 8., 9., 10.])
     >>> y = np.array([11., 12., 13., 14., 15., 16., 17., 18., 19., 20.])
-    >>> shift_scale_invariant_best_shift(x, y) # 1D series
+    >>> univ_dist, univ_shift = shift_scale_invariant_best_shift(x, y)
 
     >>> x = np.array([[1., 2., 3., 4.], [6., 7., 8., 9.], [0., 1., 0., 2.]])
     >>> y = np.array([[11., 12., 13., 14.],[7., 8., 9., 20.],[1., 3., 4., 5.]])
-    >>> shift_scale_invariant_best_shift(x, y) # 2D series with 3 channels, unequal len
+    >>> multi_dist, multi_shift = shift_scale_invariant_best_shift(x, y)
     """
     if max_shift is None:
         max_shift = min(x.shape[-1], y.shape[-1])
