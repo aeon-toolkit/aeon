@@ -84,9 +84,9 @@ class KSpectralCentroid(TimeSeriesKMeans):
     >>> import numpy as np
     >>> from aeon.clustering import KSpectralCentroid
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst= KSpectralCentroid(n_clusters=2, max_shift=2)
+    >>> clst = KSpectralCentroid(n_clusters=2, max_shift=2)
     >>> clst.fit(X)
-    KSpectralCentroid(n_clusters=2, max_shift=2)
+    KSpectralCentroid(max_shift=2, n_clusters=2)
     >>> preds = clst.predict(X)
     """
 
