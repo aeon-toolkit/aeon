@@ -11,20 +11,12 @@ from aeon.base import BaseEstimator
 class BaseTransformer(BaseEstimator, ABC):
     """Transformer base class."""
 
-    # default tag values - these typically make the "safest" assumption
     _tags = {
-        "input_data_type": "Series",
-        "output_data_type": "Series",
         "requires_y": False,
-        "fit_is_empty": True,
-        "skip-inverse-transform": False,  # is inverse-transform skipped when called?
-        "capability:inverse_transform": False,  # can the transformer inverse transform?
-        "capability:unequal_length": True,
-        "capability:unequal_length:removes": False,
-        "capability:missing_values": False,  # can estimator handle missing data?
+        "fit_is_empty": False,
+        "capability:inverse_transform": False,
+        "capability:missing_values": False,
         "capability:missing_values:removes": False,
-        # is transform result always guaranteed to contain no missing values?
-        "remember_data": False,  # whether all data seen is remembered as self._X
     }
 
     def __init__(self):

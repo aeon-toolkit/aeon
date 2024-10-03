@@ -53,6 +53,12 @@ EXCLUDED_TESTS = {
     "AEFCNClusterer": ["check_fit_updates_state"],
     "AEResNetClusterer": ["check_fit_updates_state"],
     "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
+    "CollectionId": ["check_transform_inverse_transform_equivalent"],
+    "ScaledLogitSeriesTransformer": ["check_transform_inverse_transform_equivalent"],
+    # also uncomment in test_check_estimator.py
+    "MockMultivariateSeriesTransformer": [
+        "check_transform_inverse_transform_equivalent"
+    ],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
@@ -64,6 +70,7 @@ EXCLUDED_TESTS = {
     "MatrixProfileSeriesTransformer": ["check_non_state_changing_method"],
     "PLASeriesTransformer": ["check_non_state_changing_method"],
     "AutoCorrelationSeriesTransformer": ["check_non_state_changing_method"],
+    "SIVSeriesTransformer": ["check_non_state_changing_method"],
 }
 
 # NON_STATE_CHANGING_METHODS =

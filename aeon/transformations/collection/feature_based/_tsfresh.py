@@ -458,7 +458,6 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     _tags = {
         "requires_y": True,
         "X_inner_type": "nested_univ",
-        "y_inner_type": "pd_Series_Table",
         "fit_is_empty": False,
     }
 

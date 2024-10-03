@@ -49,13 +49,37 @@ class FixtureClassChild(FixtureClassParent):
 
 FIXTURE_CLASSCHILD = FixtureClassChild
 
-FIXTURE_CLASSCHILD_TAGS = {"A": 42, "B": 2, "C": 1234, 3: "E"}
+FIXTURE_CLASSCHILD_TAGS = {
+    "python_version": None,
+    "python_dependencies": None,
+    "cant-pickle": False,
+    "non-deterministic": False,
+    "algorithm_type": None,
+    "capability:missing_values": False,
+    "capability:multithreading": False,
+    "A": 42,
+    "B": 2,
+    "C": 1234,
+    3: "E",
+}
 
 # Fixture class for testing tag system, object overrides class tags
 FIXTURE_OBJECT = FixtureClassChild()
 FIXTURE_OBJECT._tags_dynamic = {"A": 42424241, "B": 3}
 
-FIXTURE_OBJECT_TAGS = {"A": 42424241, "B": 3, "C": 1234, 3: "E"}
+FIXTURE_OBJECT_TAGS = {
+    "python_version": None,
+    "python_dependencies": None,
+    "cant-pickle": False,
+    "non-deterministic": False,
+    "algorithm_type": None,
+    "capability:missing_values": False,
+    "capability:multithreading": False,
+    "A": 42424241,
+    "B": 3,
+    "C": 1234,
+    3: "E",
+}
 
 
 def test_get_class_tags():
@@ -155,7 +179,20 @@ def test_get_tag_raises():
 
 FIXTURE_TAG_SET = {"A": 42424243, "E": 3}
 FIXTURE_OBJECT_SET = deepcopy(FIXTURE_OBJECT).set_tags(**FIXTURE_TAG_SET)
-FIXTURE_OBJECT_SET_TAGS = {"A": 42424243, "B": 3, "C": 1234, 3: "E", "E": 3}
+FIXTURE_OBJECT_SET_TAGS = {
+    "python_version": None,
+    "python_dependencies": None,
+    "cant-pickle": False,
+    "non-deterministic": False,
+    "algorithm_type": None,
+    "capability:missing_values": False,
+    "capability:multithreading": False,
+    "A": 42424243,
+    "B": 3,
+    "C": 1234,
+    3: "E",
+    "E": 3,
+}
 FIXTURE_OBJECT_SET_DYN = {"A": 42424243, "B": 3, "E": 3}
 
 

@@ -71,14 +71,14 @@ def check_valid_tags(estimator, tags=None, error_on_missing=True):
             if isinstance(tag_type, tuple):
                 if (
                     isinstance(tag_value, list)
-                    and tag_type[0] == "list"
+                    and tag_type[0] in ["list", "list||str"]
                     and all(x in tag_type[1] for x in tag_value)
                 ):
                     compatible_value = True
                     break
                 elif (
                     isinstance(tag_value, str)
-                    and tag_type[0] == "str"
+                    and tag_type[0] in ["str", "list||str"]
                     and tag_value in tag_type[1]
                 ):
                     compatible_value = True

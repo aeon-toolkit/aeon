@@ -17,6 +17,7 @@ sub-dictionary has the following items:
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ESTIMATOR_TAGS"]
 
+from aeon.utils import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
 
 ESTIMATOR_TAGS = {
     # all estimators
@@ -47,7 +48,7 @@ ESTIMATOR_TAGS = {
     "X_inner_type": {
         "class": "estimator",
         "type": [
-            ("list||str", ["pd.DataFrame", "np.ndarray", "numpy3D", "np-list"]),
+            ("list||str", COLLECTIONS_DATA_TYPES + SERIES_DATA_TYPES),
         ],
         "description": "What data structure(s) the estimator uses internally for "
         "fit/predict.",
@@ -134,7 +135,7 @@ ESTIMATOR_TAGS = {
         "description": "Does this estimator require y to be passed in its methods?",
     },
     "capability:unequal_length:removes": {
-        "class": "transformer",
+        "class": "collection-transformer",
         "type": "bool",
         "description": "Is the transformer result guaranteed to be equal length series "
         "or tabular?",
@@ -155,9 +156,9 @@ ESTIMATOR_TAGS = {
     "output_data_type": {
         "class": "transformer",
         "type": ("str", ["Tabular", "Series", "Collection"]),
-        "The output abstract data type of the transformer output, the transformed X. "
-        "description": "Tabular indicates 2D output where rows are cases and unordered "
-        "attributes are columns. Series indicates a single series output and "
-        "collection indicates output is a collection of time series.",
+        "description": "The output abstract data type of the transformer output, the "
+        "transformed X. Tabular indicates 2D output where rows are cases and "
+        "unordered attributes are columns. Series indicates a single series output "
+        "and collection indicates output is a collection of time series.",
     },
 }
