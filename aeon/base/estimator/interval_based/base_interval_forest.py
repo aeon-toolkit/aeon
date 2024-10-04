@@ -218,7 +218,7 @@ class BaseIntervalForest(metaclass=ABCMeta):
     transformer_feature_skip = ["transform_features_", "_transform_features"]
 
     def _fit(self, X, y):
-        if getattr(self, "_unit_test_flag", False):
+        if getattr(self, "__unit_test_flag", False):
             self._transformed_data = self._fit_forest(X, y, save_transformed_data=True)
         else:
             self._fit_forest(X, y)

@@ -43,9 +43,7 @@ class BaseCollectionTransformer(
     _tags = {
         "input_data_type": "Collection",
         "output_data_type": "Collection",
-        "fit_is_empty": False,
-        "requires_y": False,
-        "capability:inverse_transform": False,
+        "capability:unequal_length:removes": False,
     }
 
     def __init__(self):
@@ -117,7 +115,6 @@ class BaseCollectionTransformer(
 
         Accesses in self:
         _is_fitted : must be True
-        _X : optionally accessed, only available if remember_data tag is True
         fitted model attributes (ending in "_") : must be set, accessed by _transform
 
         Parameters
@@ -172,9 +169,6 @@ class BaseCollectionTransformer(
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
         model attributes (ending in "_") : dependent on estimator.
 
         Parameters
@@ -226,7 +220,6 @@ class BaseCollectionTransformer(
 
         Accesses in self:
          _is_fitted : must be True
-         _X : optionally accessed, only available if remember_data tag is True
          fitted model attributes (ending in "_") : accessed by _inverse_transform
 
         Parameters
@@ -256,9 +249,6 @@ class BaseCollectionTransformer(
         inverse transformed version of X
             of the same type as X
         """
-        if self.get_tag("skip-inverse-transform"):
-            return X
-
         if not self.get_tag("capability:inverse_transform"):
             raise NotImplementedError(
                 f"{type(self)} does not implement inverse_transform"
