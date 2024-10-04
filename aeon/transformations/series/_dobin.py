@@ -102,7 +102,7 @@ class Dobin(BaseSeriesTransformer):
         ----------
         X : Series of type X_inner_type
             Data to be transformed
-        y : Series of type y_inner_type, default=None
+        y : Series, default=None
             Not required for this unsupervised transform.
 
         Returns
@@ -189,7 +189,7 @@ class Dobin(BaseSeriesTransformer):
         ----------
         X : Series of type X_inner_type
             Data to be transformed
-        y : Series of type y_inner_type, default=None
+        y : Series, default=None
             Not required for this unsupervised transform.
 
         Returns

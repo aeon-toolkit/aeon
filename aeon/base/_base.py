@@ -48,6 +48,16 @@ from sklearn.exceptions import NotFittedError
 class BaseEstimator(_BaseEstimator):
     """Base class for defining estimators in aeon."""
 
+    _tags = {
+        "python_version": None,
+        "python_dependencies": None,
+        "cant-pickle": False,
+        "non-deterministic": False,
+        "algorithm_type": None,
+        "capability:missing_values": False,
+        "capability:multithreading": False,
+    }
+
     def __init__(self):
         self._is_fitted = False  # flag to indicate if fit has been called
         self._tags_dynamic = dict()  # storage for dynamic tags

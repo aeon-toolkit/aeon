@@ -62,7 +62,6 @@ from aeon.testing.testing_config import (
     NON_STATE_CHANGING_METHODS,
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
     VALID_ESTIMATOR_BASE_TYPES,
-    VALID_ESTIMATOR_TAGS,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
@@ -76,6 +75,7 @@ from aeon.testing.utils.estimator_checks import (
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
+from aeon.utils.tags import check_valid_tags
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
@@ -180,12 +180,11 @@ def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
     yield partial(
         check_create_test_instances_and_names, estimator_class=estimator_class
     )
-    yield partial(check_estimator_tags, estimator_class=estimator_class)
     yield partial(check_inheritance, estimator_class=estimator_class)
     yield partial(check_has_common_interface, estimator_class=estimator_class)
     yield partial(check_set_params_sklearn, estimator_class=estimator_class)
     yield partial(check_constructor, estimator_class=estimator_class)
-    yield partial(check_valid_estimator_class_tags, estimator_class=estimator_class)
+    yield partial(check_estimator_class_tags, estimator_class=estimator_class)
 
     # test class instances
     for i, estimator in enumerate(estimator_instances):
@@ -194,7 +193,7 @@ def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
         yield partial(check_set_params, estimator=estimator)
         yield partial(check_clone, estimator=estimator)
         yield partial(check_repr, estimator=estimator)
-        yield partial(check_valid_estimator_tags, estimator=estimator)
+        yield partial(check_estimator_tags, estimator=estimator)
 
         if (
             isinstance(estimator, BaseDeepClassifier)
@@ -297,36 +296,6 @@ def check_create_test_instances_and_names(estimator_class):
         "the two lists returned by create_test_instances_and_names must have "
         "equal length"
     )
-
-
-# todo consider expanding to init and compare against registry classes
-def check_estimator_tags(estimator_class):
-    """Check conventions on estimator tags."""
-    assert hasattr(estimator_class, "get_class_tags")
-    all_tags = estimator_class.get_class_tags()
-    assert isinstance(all_tags, dict)
-    assert all(isinstance(key, str) for key in all_tags.keys())
-    if hasattr(estimator_class, "_tags"):
-        tags = estimator_class._tags
-        msg = (
-            f"_tags attribute of {estimator_class} must be dict, "
-            f"but found {type(tags)}"
-        )
-        assert isinstance(tags, dict), msg
-        assert len(tags) > 0, f"_tags dict of class {estimator_class} is empty"
-        invalid_tags = [tag for tag in tags.keys() if tag not in VALID_ESTIMATOR_TAGS]
-        assert len(invalid_tags) == 0, (
-            f"_tags of {estimator_class} contains invalid tags: {invalid_tags}. "
-            "For a list of valid tags, see registry.all_tags, or registry._tags. "
-        )
-
-    # Avoid ambiguous class attributes
-    ambiguous_attrs = ("tags", "tags_")
-    for attr in ambiguous_attrs:
-        assert not hasattr(estimator_class, attr), (
-            f"Please avoid using the {attr} attribute to disambiguate it from "
-            f"estimator tags."
-        )
 
 
 # todo consider removing the multiple base class allowance.
@@ -491,10 +460,34 @@ def check_constructor(estimator_class):
                 assert param_value == param.default, param.name
 
 
-def check_valid_estimator_class_tags(estimator_class):
-    """Check that Estimator class tags are in VALID_ESTIMATOR_TAGS."""
-    for tag in estimator_class.get_class_tags().keys():
-        assert tag in VALID_ESTIMATOR_TAGS
+def check_estimator_class_tags(estimator_class):
+    """Check conventions on estimator tags for class."""
+    # check get_class_tags method is retained from base
+    assert hasattr(estimator_class, "get_class_tags")
+    all_tags = estimator_class.get_class_tags()
+    assert isinstance(all_tags, dict)
+    assert all(isinstance(key, str) for key in all_tags.keys())
+
+    # check _tags attribute for class
+    if hasattr(estimator_class, "_tags"):
+        tags = estimator_class._tags
+        assert isinstance(tags, dict), (
+            f"_tags attribute of {estimator_class} must be dict, "
+            f"but found {type(tags)}"
+        )
+        assert len(tags) > 0, f"_tags dict of class {estimator_class} is empty"
+        assert all(isinstance(key, str) for key in tags.keys())
+
+    # validate tags
+    check_valid_tags(estimator_class, all_tags)
+
+    # Avoid ambiguous class attributes
+    ambiguous_attrs = ("tags", "tags_")
+    for attr in ambiguous_attrs:
+        assert not hasattr(estimator_class, attr), (
+            f"The '{attr}' attribute name is disallowed to avoid confusion with "
+            f"estimator tags."
+        )
 
 
 def check_get_params(estimator):
@@ -541,10 +534,24 @@ def check_repr(estimator):
     repr(estimator)
 
 
-def check_valid_estimator_tags(estimator):
-    """Check that Estimator tags are in VALID_ESTIMATOR_TAGS."""
-    for tag in estimator.get_tags().keys():
-        assert tag in VALID_ESTIMATOR_TAGS
+def check_estimator_tags(estimator):
+    """Check conventions on estimator tags for test objects."""
+    # check get_tags method is retained from base
+    assert hasattr(estimator, "get_tags")
+    all_tags = estimator.get_tags()
+    assert isinstance(all_tags, dict)
+    assert all(isinstance(key, str) for key in all_tags.keys())
+
+    # check _tags attribute
+    if hasattr(estimator, "_tags"):
+        assert estimator._tags == estimator.__class__._tags
+
+    # check _tags_dynamic attribute still exists from base
+    assert hasattr(estimator, "_tags_dynamic")
+    assert isinstance(estimator._tags_dynamic, dict)
+
+    # validate tags
+    check_valid_tags(estimator, all_tags)
 
 
 def check_dl_constructor_initializes_deeply(estimator):
