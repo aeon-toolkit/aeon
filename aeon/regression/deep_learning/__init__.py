@@ -13,6 +13,8 @@ __all__ = [
     "LITETimeRegressor",
     "EncoderRegressor",
     "MLPRegressor",
+    "IndividualLITE_MVRegressor",
+    "LITE_MVTimeRegressor",
 ]
 
 from aeon.regression.deep_learning._cnn import CNNRegressor, TimeCNNRegressor
@@ -21,6 +23,10 @@ from aeon.regression.deep_learning._fcn import FCNRegressor
 from aeon.regression.deep_learning._inception_time import (
     InceptionTimeRegressor,
     IndividualInceptionRegressor,
+)
+from aeon.regression.deep_learning._lite_mv_time import (
+    IndividualLITE_MVRegressor,
+    LITE_MVTimeRegressor,
 )
 from aeon.regression.deep_learning._lite_time import (
     IndividualLITERegressor,

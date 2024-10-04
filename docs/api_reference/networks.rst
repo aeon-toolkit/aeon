@@ -25,4 +25,5 @@ Deep learning networks
     AEFCNNetwork
     AEResNetNetwork
     LITENetwork
+    LITE_MVNetwork
     AEBiGRUNetwork

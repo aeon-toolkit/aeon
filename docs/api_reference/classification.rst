@@ -41,6 +41,8 @@ Deep learning
     IndividualInceptionClassifier
     IndividualLITEClassifier
     LITETimeClassifier
+    IndividualLITE_MVClassifier
+    LITE_MVTimeClassifier
     MLPClassifier
     ResNetClassifier
     TapNetClassifier

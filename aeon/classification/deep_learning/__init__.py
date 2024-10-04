@@ -13,6 +13,8 @@ __all__ = [
     "TapNetClassifier",
     "LITETimeClassifier",
     "IndividualLITEClassifier",
+    "IndividualLITE_MVClassifier",
+    "LITE_MVTimeClassifier",
 ]
 from aeon.classification.deep_learning._cnn import CNNClassifier, TimeCNNClassifier
 from aeon.classification.deep_learning._encoder import EncoderClassifier
@@ -20,6 +22,10 @@ from aeon.classification.deep_learning._fcn import FCNClassifier
 from aeon.classification.deep_learning._inception_time import (
     InceptionTimeClassifier,
     IndividualInceptionClassifier,
+)
+from aeon.classification.deep_learning._lite_mv_time import (
+    IndividualLITE_MVClassifier,
+    LITE_MVTimeClassifier,
 )
 from aeon.classification.deep_learning._lite_time import (
     IndividualLITEClassifier,
