@@ -2542,7 +2542,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/98093778?v=4",
       "profile": "https://github.com/aryanpola",
       "contributions": [
-        "code"
+        "code",
+        "doc"
       ]
     },
     {
@@ -2552,6 +2553,15 @@
       "profile": "https://github.com/danielroberts20",
       "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "LinGinQiu",
+      "name": "Chuanhang Qiu ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80885865?v=4",
+      "profile": "https://github.com/LinGinQiu",
+      "contributions": [
+        "code"
       ]
     }
   ],
