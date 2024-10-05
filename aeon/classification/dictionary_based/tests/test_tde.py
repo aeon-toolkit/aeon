@@ -1,11 +1,20 @@
 """TDE test code."""
 
+import pickle
+
 import numpy as np
 import pytest
-from aeon.classification.dictionary_based._tde import TemporalDictionaryEnsemble, IndividualTDE
+from numba import types
+from numba.typed import Dict
+
+from aeon.classification.dictionary_based._tde import (
+    IndividualTDE,
+    TemporalDictionaryEnsemble,
+    histogram_intersection,
+)
 from aeon.datasets import load_unit_test
 from aeon.testing.data_generation import make_example_3d_numpy
-import pickle
+
 
 def test_tde_oob_train_estimate():
     """Test of TDE oob train estimate on unit test data."""
@@ -37,10 +46,60 @@ def test_tde_incorrect_input():
         train_estimate_method="FOOBAR",
         random_state=0,
     )
-    X, y =make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=50)
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=50)
     with pytest.raises(ValueError, match="Invalid train_estimate_method"):
         tde.fit_predict_proba(X, y)
+    tde = TemporalDictionaryEnsemble(
+        n_parameter_samples=5,
+        max_ensemble_size=2,
+        randomly_selected_params=3,
+        min_window=100,
+        random_state=0,
+        bigrams=True,
+    )
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        tde.fit(X, y)
+        assert tde._min_window == 50
+
+
+def test_tde_multivariate():
+    """Test TDE with incorrect input."""
+    # train TDE
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=10, n_timepoints=50)
+    tde = IndividualTDE(max_dims=1)
+    tde._fit(X, y)
+    assert len(tde._dims) == 1
+
+
+def test_tde_pickle():
+    """Test the dict conversion work around for pickle."""
+    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=50)
     tde = IndividualTDE(typed_dict=True)
-    tde.fit(X,y)
-    pickled_data = pickle.dumps(tde)
-    unpickled_data = pickle.loads(pickled_data)
+    tde.fit(X, y)
+    pickled_tde = pickle.dumps(tde)
+    unpickled_tde = pickle.loads(pickled_tde)
+    assert isinstance(unpickled_tde, IndividualTDE)
+
+
+def test_histogram_intersection():
+    """Test the histogram intersection function used by TDE."""
+    first = np.array([1, 0, 0, 1, 0])
+    second = np.array([1, 2, 3, 5, 10])
+    res = histogram_intersection(first, second)
+    assert res == 2
+    first = {1: 1, 4: 1}
+    second = {1: 1, 2: 2, 3: 3, 4: 5, 5: 10}
+    res = histogram_intersection(first, second)
+    assert res == 2
+    numba_first = Dict.empty(key_type=types.int64, value_type=types.int64)
+    for key, value in first.items():
+        numba_first[key] = value
+    numba_second = Dict.empty(key_type=types.int64, value_type=types.int64)
+    for key, value in second.items():
+        numba_second[key] = value
+
+    res = histogram_intersection(numba_first, numba_second)
+    assert res == 2
