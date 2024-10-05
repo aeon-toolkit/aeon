@@ -184,7 +184,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         import tensorflow as tf
 
         self.model_ = tf.keras.models.load_model(model_path)
-        self._is_fitted = True
+        self.is_fitted = True
 
         self.classes_ = classes
         self.n_classes_ = len(self.classes_)
