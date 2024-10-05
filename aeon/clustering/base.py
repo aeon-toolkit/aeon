@@ -24,6 +24,10 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         Number of clusters for model.
     """
 
+    _tags = {
+        "fit_is_empty": False,
+    }
+
     def __init__(self, n_clusters: Optional[int] = None):
         self.n_clusters = n_clusters
         # required for compatibility with some sklearn interfaces e.g.

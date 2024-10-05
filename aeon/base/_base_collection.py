@@ -31,12 +31,10 @@ class BaseCollectionEstimator(BaseEstimator):
     """
 
     _tags = {
+        "capability:univariate": True,
         "capability:multivariate": False,
         "capability:unequal_length": False,
-        "capability:missing_values": False,
-        "capability:multithreading": False,
         "X_inner_type": "numpy3D",
-        "python_version": None,
     }
 
     def __init__(self):
