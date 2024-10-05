@@ -24,6 +24,12 @@ def test_k_spectral_centroid_univariate():
     assert clusterer.cluster_centers_.shape == (2, 1, 10)
     assert isinstance(clusterer.n_iter_, int)
 
+    expected_labels = np.array(
+        [1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0]
+    )
+    assert np.array_equal(clusterer.labels_, expected_labels)
+    assert np.array_equal(preds, expected_labels)
+
 
 def test_k_spectral_centroid_multivariate():
     """Test KSpectralCentroid with multivariate data."""
@@ -41,6 +47,12 @@ def test_k_spectral_centroid_multivariate():
 
     assert clusterer.cluster_centers_.shape == (2, 3, 10)
     assert isinstance(clusterer.n_iter_, int)
+
+    expected_labels = np.array(
+        [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1]
+    )
+    assert np.array_equal(clusterer.labels_, expected_labels)
+    assert np.array_equal(preds, expected_labels)
 
 
 def test_k_spectral_centroid_with_max_shift():

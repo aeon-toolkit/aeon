@@ -33,18 +33,17 @@ def shift_invariant_average(
     if optimal_shifts.shape[0] == 0:
         return np.zeros((n_dims, n_timepoints))
 
-    normalized_shifts = optimal_shifts / np.sqrt(
+    normalised_shifts = optimal_shifts / np.sqrt(
         np.sum(optimal_shifts**2, axis=2)
     ).reshape(n_instances, n_dims, 1)
 
     M = np.zeros((n_dims, n_timepoints, n_timepoints))
-    for d in range(n_dims):
-        M[d] = np.dot(
-            normalized_shifts[:, d, :].T, normalized_shifts[:, d, :]
-        ) - n_instances * np.eye(n_timepoints)
-
     new_center = np.zeros((n_dims, n_timepoints))
     for d in range(n_dims):
+        M[d] = np.dot(
+            normalised_shifts[:, d, :].T, normalised_shifts[:, d, :]
+        ) - n_instances * np.eye(n_timepoints)
+
         eigvals, eigvecs = np.linalg.eig(M[d])
         new_center[d] = np.real(eigvecs[:, np.argmax(eigvals)])
 
