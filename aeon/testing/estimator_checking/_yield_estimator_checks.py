@@ -391,7 +391,7 @@ def check_set_params_sklearn(estimator_class):
         # we construct the full parameter set for params
         # params may only have parameters that are deviating from defaults
         # in order to set non-default parameters back to defaults
-        params_full = estimator_class.get_param_defaults()
+        params_full = estimator.get_params(deep=False)
         params_full.update(params)
 
         msg = f"set_params of {estimator_class.__name__} does not return self"
