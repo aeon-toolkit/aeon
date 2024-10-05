@@ -56,7 +56,6 @@ class BaseSeriesEstimator(BaseEstimator):
     _tags = {
         "capability:univariate": True,
         "capability:multivariate": False,
-        "capability:missing_values": False,
         "X_inner_type": "np.ndarray",  # one of VALID_INNER_TYPES
     }
 

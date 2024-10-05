@@ -129,7 +129,7 @@ def deep_equals(x, y, return_msg=False):
         return ret(False, f" !=, {x} != {y}")
     # csr-matrix must not be compared using np.any(x!=y)
     elif type(x).__name__ == "csr_matrix":  # isinstance(x, csr_matrix):
-        if not np.allclose(x.A, y.A):
+        if not np.allclose(x.toarray(), y.toarray()):
             return ret(False, f" !=, {x} != {y}")
     elif np.any(x != y):
         return ret(False, f" !=, {x} != {y}")
