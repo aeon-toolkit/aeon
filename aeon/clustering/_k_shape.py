@@ -6,7 +6,6 @@ import numpy as np
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TimeSeriesKShape(BaseClusterer):
@@ -115,7 +114,6 @@ class TimeSeriesKShape(BaseClusterer):
         self:
             Fitted estimator.
         """
-        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KShape
 
         self._tslearn_k_shapes = KShape(

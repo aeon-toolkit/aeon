@@ -60,6 +60,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
     """
 
     _tags = {
+        "fit_is_empty": False,
         "capability:train_estimate": False,
         "capability:contractable": False,
     }
