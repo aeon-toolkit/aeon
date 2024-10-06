@@ -160,8 +160,8 @@ class InceptionTimeClassifier(BaseClassifier):
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "algorithm_type": "deeplearning",
     }
 

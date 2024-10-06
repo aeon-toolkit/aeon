@@ -219,14 +219,14 @@ def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
                 datatype=datatypes[i][0],
             )
 
-        if not _get_tag(estimator, "cant-pickle", default=False):
+        if not _get_tag(estimator, "cant_pickle", default=False):
             yield partial(
                 check_persistence_via_pickle,
                 estimator=estimator,
                 datatype=datatypes[i][0],
             )
 
-        if not _get_tag(estimator, "non-deterministic", default=False):
+        if not _get_tag(estimator, "non_deterministic", default=False):
             yield partial(
                 check_fit_deterministic, estimator=estimator, datatype=datatypes[i][0]
             )
