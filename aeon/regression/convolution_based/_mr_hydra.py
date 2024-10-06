@@ -61,7 +61,7 @@ class MultiRocketHydraRegressor(BaseRegressor):
         "capability:multithreading": True,
         "algorithm_type": "convolution",
         "python_dependencies": "torch",
-        "non-deterministic": True,  # todo, presumed issue with mutlirocket
+        "non_deterministic": True,  # see issue #2151, presumed issue with mutlirocket
     }
 
     def __init__(self, n_kernels=8, n_groups=64, n_jobs=1, random_state=None):

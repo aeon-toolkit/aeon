@@ -34,13 +34,13 @@ ESTIMATOR_TAGS = {
         "as str or list of str. e.g. 'tsfresh>=0.20.0', "
         "'[tsfresh>=0.20.0, pandas<2.0.0]'. If None, no restriction.",
     },
-    "non-deterministic": {
+    "non_deterministic": {
         "class": "estimator",
         "type": "bool",
         "description": "The estimator is non-deterministic, and multiple runs will "
         "not produce the same output even if a `random_state` is set.",
     },
-    "cant-pickle": {
+    "cant_pickle": {
         "class": "estimator",
         "type": "bool",
         "description": "The estimator cannot be pickled.",

@@ -35,8 +35,8 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "cant_pickle": True,
+        "non_deterministic": True,
         "python_dependencies": "tensorflow",
     }
 

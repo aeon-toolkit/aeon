@@ -16,7 +16,7 @@ def test_all_tags_for_estimator_classification():
 
     assert isinstance(tags, dict)
     assert "python_version" in tags
-    assert "non-deterministic" in tags
+    assert "non_deterministic" in tags
     assert "capability:unequal_length" in tags
     assert "capability:contractable" in tags
 
@@ -37,7 +37,7 @@ def test_all_tags_for_estimator_anomaly_detection():
 
     assert isinstance(tags, dict)
     assert "python_version" in tags
-    assert "non-deterministic" in tags
+    assert "non_deterministic" in tags
     assert "capability:unequal_length" not in tags
     assert "capability:contractable" not in tags
 

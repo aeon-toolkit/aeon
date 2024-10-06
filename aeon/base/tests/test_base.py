@@ -52,8 +52,8 @@ FIXTURE_CLASSCHILD = FixtureClassChild
 FIXTURE_CLASSCHILD_TAGS = {
     "python_version": None,
     "python_dependencies": None,
-    "cant-pickle": False,
-    "non-deterministic": False,
+    "cant_pickle": False,
+    "non_deterministic": False,
     "algorithm_type": None,
     "capability:missing_values": False,
     "capability:multithreading": False,
@@ -70,8 +70,8 @@ FIXTURE_OBJECT._tags_dynamic = {"A": 42424241, "B": 3}
 FIXTURE_OBJECT_TAGS = {
     "python_version": None,
     "python_dependencies": None,
-    "cant-pickle": False,
-    "non-deterministic": False,
+    "cant_pickle": False,
+    "non_deterministic": False,
     "algorithm_type": None,
     "capability:missing_values": False,
     "capability:multithreading": False,
@@ -182,8 +182,8 @@ FIXTURE_OBJECT_SET = deepcopy(FIXTURE_OBJECT).set_tags(**FIXTURE_TAG_SET)
 FIXTURE_OBJECT_SET_TAGS = {
     "python_version": None,
     "python_dependencies": None,
-    "cant-pickle": False,
-    "non-deterministic": False,
+    "cant_pickle": False,
+    "non_deterministic": False,
     "algorithm_type": None,
     "capability:missing_values": False,
     "capability:multithreading": False,
