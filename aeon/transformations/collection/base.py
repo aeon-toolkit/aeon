@@ -43,14 +43,11 @@ class BaseCollectionTransformer(
     _tags = {
         "input_data_type": "Collection",
         "output_data_type": "Collection",
-        "fit_is_empty": False,
-        "requires_y": False,
-        "capability:inverse_transform": False,
+        "capability:unequal_length:removes": False,
     }
 
     def __init__(self):
         self._estimator_type = "transformer"
-        self._tags = {}
 
         super().__init__()
 
@@ -118,7 +115,6 @@ class BaseCollectionTransformer(
 
         Accesses in self:
         _is_fitted : must be True
-        _X : optionally accessed, only available if remember_data tag is True
         fitted model attributes (ending in "_") : must be set, accessed by _transform
 
         Parameters
@@ -173,9 +169,6 @@ class BaseCollectionTransformer(
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
         model attributes (ending in "_") : dependent on estimator.
 
         Parameters
@@ -227,7 +220,6 @@ class BaseCollectionTransformer(
 
         Accesses in self:
          _is_fitted : must be True
-         _X : optionally accessed, only available if remember_data tag is True
          fitted model attributes (ending in "_") : accessed by _inverse_transform
 
         Parameters
@@ -257,9 +249,6 @@ class BaseCollectionTransformer(
         inverse transformed version of X
             of the same type as X
         """
-        if self.get_tag("skip-inverse-transform"):
-            return X
-
         if not self.get_tag("capability:inverse_transform"):
             raise NotImplementedError(
                 f"{type(self)} does not implement inverse_transform"
@@ -377,53 +366,6 @@ class BaseCollectionTransformer(
         """
         # standard behaviour: no update takes place, new data is ignored
         return self
-
-        # List of valid algorithm types
-
-    valid_algorithm_types = [
-        "distance",
-        "interval",
-        "shapelet ",
-        "signature",
-        "feature",
-        "dictionary",
-        "convolution",
-    ]
-
-    def check_algorithm_type(_tags, valid_algorithm_types):
-        """
-        Validate the 'algorithm_type' tag in the provided tags dictionary.
-
-        Parameters
-        ----------
-        - tags: dict
-            A dictionary that contains metadata or tags about the class.
-        - valid_algorithm_types: list
-            A list of valid algorithm types.
-
-        Returns
-        -------
-        - True if the 'algorithm_type' is valid.
-
-        Raises
-        ------
-        - ValueError if 'algorithm_type' is missing or invalid.
-        """
-        # Get algorithm type from tags
-        algorithm_type = _tags.get("algorithm_type")
-
-        # Raise error if algorithm type  is missing
-        if algorithm_type is None:
-            raise ValueError("'algorithm_type' not defined in the tags dictionary.")
-
-        # Check if the algorithm_type is in the valid list
-        if algorithm_type not in valid_algorithm_types:
-            raise ValueError(
-                f"Invalid 'algorithm_type': {algorithm_type}. "
-                f"Must be one of {valid_algorithm_types}."
-            )
-
-        return True
 
 
 def _check_y(self, y, n_cases):
