@@ -145,7 +145,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "y_inner_type": "numpy1D",
         "requires_y": True,
         "algorithm_type": "shapelet",
     }

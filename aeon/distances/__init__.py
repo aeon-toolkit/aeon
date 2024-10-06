@@ -71,6 +71,9 @@ __all__ = [
     "sax_mindist",
     "sfa_mindist",
     "dft_sfa_mindist",
+    "shift_scale_invariant_distance",
+    "shift_scale_invariant_pairwise_distance",
+    "shift_scale_invariant_best_shift",
 ]
 
 
@@ -142,6 +145,11 @@ from aeon.distances._shape_dtw import (
     shape_dtw_cost_matrix,
     shape_dtw_distance,
     shape_dtw_pairwise_distance,
+)
+from aeon.distances._shift_scale_invariant import (
+    shift_scale_invariant_best_shift,
+    shift_scale_invariant_distance,
+    shift_scale_invariant_pairwise_distance,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (

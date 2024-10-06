@@ -18,7 +18,6 @@ Base classes
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseObject
     BaseEstimator
     BaseCollectionEstimator
     BaseSeriesEstimator

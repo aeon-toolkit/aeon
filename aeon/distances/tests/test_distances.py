@@ -12,7 +12,10 @@ from aeon.distances._distance import (
     _custom_func_pairwise,
     _resolve_key_from_distance,
 )
-from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+from aeon.distances.tests.test_utils import (
+    SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
+    UNEQUAL_LENGTH_NOT_SUPPORTED_DISTANCES,
+)
 from aeon.testing.data_generation._legacy import make_series
 from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results,
@@ -93,32 +96,33 @@ def test_distances(dist):
     )
 
     # ================== Test unequal length ==================
-    # Test univariate unequal length of shape (n_timepoints,)
-    _validate_distance_result(
-        make_series(5, return_numpy=True, random_state=1),
-        make_series(10, return_numpy=True, random_state=2),
-        dist["name"],
-        dist["distance"],
-        _expected_distance_results[dist["name"]][3],
-    )
+    if dist["name"] not in UNEQUAL_LENGTH_NOT_SUPPORTED_DISTANCES:
+        # Test univariate unequal length of shape (n_timepoints,)
+        _validate_distance_result(
+            make_series(5, return_numpy=True, random_state=1),
+            make_series(10, return_numpy=True, random_state=2),
+            dist["name"],
+            dist["distance"],
+            _expected_distance_results[dist["name"]][3],
+        )
 
-    # Test univariate unequal length of shape (1, n_timepoints)
-    _validate_distance_result(
-        make_series(5, 1, return_numpy=True, random_state=1),
-        make_series(10, 1, return_numpy=True, random_state=2),
-        dist["name"],
-        dist["distance"],
-        _expected_distance_results[dist["name"]][3],
-    )
+        # Test univariate unequal length of shape (1, n_timepoints)
+        _validate_distance_result(
+            make_series(5, 1, return_numpy=True, random_state=1),
+            make_series(10, 1, return_numpy=True, random_state=2),
+            dist["name"],
+            dist["distance"],
+            _expected_distance_results[dist["name"]][3],
+        )
 
-    # Test multivariate unequal length of shape (n_channels, n_timepoints)
-    _validate_distance_result(
-        make_series(5, 10, return_numpy=True, random_state=1),
-        make_series(10, 10, return_numpy=True, random_state=2),
-        dist["name"],
-        dist["distance"],
-        _expected_distance_results[dist["name"]][4],
-    )
+        # Test multivariate unequal length of shape (n_channels, n_timepoints)
+        _validate_distance_result(
+            make_series(5, 10, return_numpy=True, random_state=1),
+            make_series(10, 10, return_numpy=True, random_state=2),
+            dist["name"],
+            dist["distance"],
+            _expected_distance_results[dist["name"]][4],
+        )
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:

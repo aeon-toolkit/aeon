@@ -16,7 +16,6 @@ __all__ = [
     "load_human_activity_segmentation_datasets",
     # Write functions
     "write_to_tsfile",
-    "write_to_tsf_file",
     "write_to_arff_file",
     "write_results_to_uea_format",
     # Single problem loaders
@@ -67,7 +66,6 @@ from aeon.datasets._data_loaders import (
 from aeon.datasets._data_writers import (
     write_results_to_uea_format,
     write_to_arff_file,
-    write_to_tsf_file,
     write_to_tsfile,
 )
 from aeon.datasets._dataframe_loaders import (

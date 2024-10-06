@@ -14,8 +14,8 @@ from sklearn.metrics._regression import _check_reg_targets
 from sklearn.utils.stats import _weighted_percentile
 from sklearn.utils.validation import check_consistent_length
 
+from aeon.utils import weighted_geometric_mean
 from aeon.utils.validation.series import check_series
-from aeon.utils.weighted_metrics import _weighted_geometric_mean
 
 __maintainer__ = []
 __all__ = [
@@ -1299,9 +1299,9 @@ def geometric_mean_absolute_error(
         output_errors = gmean(np.abs(errors), axis=0)
     else:
         check_consistent_length(y_true, horizon_weight)
-        output_errors = _weighted_geometric_mean(
+        output_errors = weighted_geometric_mean(
             np.abs(errors),
-            sample_weight=horizon_weight,
+            weights=horizon_weight,
             axis=0,
         )
 
@@ -1424,9 +1424,9 @@ def geometric_mean_squared_error(
         output_errors = gmean(np.square(errors), axis=0)
     else:
         check_consistent_length(y_true, horizon_weight)
-        output_errors = _weighted_geometric_mean(
+        output_errors = weighted_geometric_mean(
             np.square(errors),
-            sample_weight=horizon_weight,
+            weights=horizon_weight,
             axis=0,
         )
 
@@ -2258,7 +2258,7 @@ def geometric_mean_relative_absolute_error(
         )
     else:
         check_consistent_length(y_true, horizon_weight)
-        output_errors = _weighted_geometric_mean(
+        output_errors = weighted_geometric_mean(
             np.where(relative_errors == 0.0, EPS, relative_errors),
             weights=horizon_weight,
             axis=0,
@@ -2384,7 +2384,7 @@ def geometric_mean_relative_squared_error(
         )
     else:
         check_consistent_length(y_true, horizon_weight)
-        output_errors = _weighted_geometric_mean(
+        output_errors = weighted_geometric_mean(
             np.where(relative_errors == 0.0, EPS, relative_errors),
             weights=horizon_weight,
             axis=0,
