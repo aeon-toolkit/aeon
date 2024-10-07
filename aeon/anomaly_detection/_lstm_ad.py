@@ -88,9 +88,9 @@ class LSTM_AD(BaseAnomalyDetector):
     >>> X, y = load_anomaly_detection(
             name=("KDD-TSAD", "001_UCR_Anomaly_DISTORTED1sddb40")
         )
-    >>> detector = LSTM_AD(window_size=4, n_epochs=10, batch_size = 4)
-    >>> detector.fit(X)
-
+    >>> detector = LSTM_AD(n_layers=4, n_nodes=64, window_size=10, prediction_horizon=2)
+    >>> detector.fit(X, axis=0)
+    >>> anomaly_pred = detector.predict(X, axis=0)
     """
 
     _tags = {
@@ -248,7 +248,8 @@ class LSTM_AD(BaseAnomalyDetector):
         errors = y_ - predict_test
         likelihoods = self.distribution.pdf(errors)
         anomalies = (likelihoods < self.best_tau).astype(int)
-        prediction = np.concatenate([np.zeros(self.window_size + 1), anomalies])
+        padding = np.zeros(X.shape[0] - len(anomalies))
+        prediction = np.concatenate([padding, anomalies])
         return np.array(prediction, dtype=int)
 
     def _build_model(
