@@ -12,8 +12,6 @@ from tensorflow.keras.callbacks import EarlyStopping
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 
-# from aeon.utils.windowing import sliding_windows
-
 
 class LSTM_AD(BaseAnomalyDetector):
     """LSTM-AD anomaly detector.
@@ -86,15 +84,12 @@ class LSTM_AD(BaseAnomalyDetector):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.anomaly_detection import LSTM_AD
-    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float_)
-    >>> y = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0])
+    >>> from aeon.datasets import load_anomaly_detection
+    >>> X, y = load_anomaly_detection(
+            name=("KDD-TSAD", "001_UCR_Anomaly_DISTORTED1sddb40")
+        )
     >>> detector = LSTM_AD(window_size=4, n_epochs=10, batch_size = 4)
-    >>> detector.fit_predict(X)
-    array([1.97827709, 2.45374147, 2.51929879, 2.36979677, 2.34826601,
-           2.05075554, 2.57611912, 2.87642119, 3.18400743, 3.65060425,
-           3.36402514, 3.94053744, 3.65448197, 3.6707922 , 3.70341266,
-           1.97827709])
+    >>> detector.fit(X)
 
     """
 
@@ -158,26 +153,31 @@ class LSTM_AD(BaseAnomalyDetector):
         X_val1, X_val2, y_val1, y_val2 = train_test_split(
             X_val, y_val, test_size=0.5, shuffle=False
         )
-        X_train_n, y_train_n = self._create_sequences(
+        X_train_n, y_train_n = _create_sequences(
             X_train, self.window_size, self.prediction_horizon
         )
         y_train_n = y_train_n.reshape(-1, self.prediction_horizon * self.n_channels)
-        X_val_1, y_val_1 = self._create_sequences(
+        X_val_1, y_val_1 = _create_sequences(
             X_val1, self.window_size, self.prediction_horizon
         )
         y_val_1 = y_val_1.reshape(-1, self.prediction_horizon * self.n_channels)
-        X_val_2, y_val_2 = self._create_sequences(
+        X_val_2, y_val_2 = _create_sequences(
             X_val2, self.window_size, self.prediction_horizon
         )
         y_val_2 = y_val_2.reshape(-1, self.prediction_horizon * self.n_channels)
 
+        X_anomalies, y_anomalies = _create_sequences(
+            X_anomaly, self.window_size, self.prediction_horizon
+        )
+        y_anomalies = y_anomalies.reshape(-1, self.prediction_horizon * self.n_channels)
+
         # Create a stacked LSTM model and fit on the training data
-        self.model = self.build_model(
+        self.model = self._build_model(
             self.n_layers,
             self.n_nodes,
             self.n_channels,
-            self.prediction_horizon,
             self.window_size,
+            self.prediction_horizon,
         )
         self.model_summary_ = self.model.summary()
         early_stopping = EarlyStopping(
@@ -207,11 +207,6 @@ class LSTM_AD(BaseAnomalyDetector):
 
         # Create a Gaussian Normal Distribution
         self.distribution = multivariate_normal(mean=mu, cov=cov_matrix)
-
-        X_anomalies, y_anomalies = self._create_sequences(
-            X_anomaly, self.window_size, self.prediction_horizon
-        )
-        y_anomalies = y_anomalies.reshape(-1, self.prediction_horizon * self.n_channels)
 
         predicted_vN2 = self.model.predict(X_val_2)
         predicted_vA = self.model.predict(X_anomalies)
@@ -247,15 +242,16 @@ class LSTM_AD(BaseAnomalyDetector):
                 self.best_fbeta = fbeta
 
     def _predict(self, X):
-        X_, y_ = self._create_sequences(X, self.window_size, self.prediction_horizon)
+        X_, y_ = _create_sequences(X, self.window_size, self.prediction_horizon)
         y_ = y_.reshape(-1, self.prediction_horizon * self.n_channels)
         predict_test = self.model.predict(X_)
         errors = y_ - predict_test
-        likelihoods = multivariate_normal.pdf(errors)
+        likelihoods = self.distribution.pdf(errors)
         anomalies = (likelihoods < self.best_tau).astype(int)
-        return np.concatenate([np.zeros(self.window_size + 1), anomalies])
+        prediction = np.concatenate([np.zeros(self.window_size + 1), anomalies])
+        return np.array(prediction, dtype=int)
 
-    def build_model(
+    def _build_model(
         self, n_layers, n_nodes, n_channels, window_size, prediction_horizon
     ):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -285,8 +281,11 @@ class LSTM_AD(BaseAnomalyDetector):
         model = models.Sequential()
         model.add(layers.Input(shape=(window_size, n_channels)))
         model.add(layers.LSTM(n_nodes, return_sequences=True))  # First LSTM layer
-        for _ in range(n_layers - 1):
-            model.add(layers.LSTM(n_nodes))  # Stacked LSTM layers
+        if n_layers > 2:
+            for _ in range(1, n_layers - 1):
+                model.add(layers.LSTM(n_nodes, return_sequences=True))
+        # Last LSTM layer, return_sequences=False
+        model.add(layers.LSTM(n_nodes, return_sequences=False))
         model.add(layers.Dense(n_channels * prediction_horizon))
         model.compile(optimizer="adam", loss="mse")
         return model
@@ -313,30 +312,31 @@ class LSTM_AD(BaseAnomalyDetector):
                 "time series."
             )
 
-    # Create input and output sequences for lstm using sliding window
-    def _create_sequences(self, data, window_size, prediction_horizon):
-        """Create input and output sequences using sliding window to train LSTM.
 
-        Parameters
-        ----------
-        data: np.dnarray
-            The time series of shape (n_timepoints, n_channels).
-        window_size: int
-            The length of the sliding window.
-        prediction_horizon: int
-            The number of time steps in future that would be predicted by the model.
+# Create input and output sequences for lstm using sliding window
+def _create_sequences(data, window_size, prediction_horizon):
+    """Create input and output sequences using sliding window to train LSTM.
 
-        Returns
-        -------
-        X: np.ndarray
-            The array of input sequences of shape
-            (n_timepoints - window_size - 1, n_channels).
-        y: np.ndarray
-            The array of output sequences of shape
-            (n_timepoints - window_size - 1, window_size).
-        """
-        X, y = [], []
-        for i in range(len(data) - window_size - prediction_horizon + 1):
-            X.append(data[i : (i + window_size)])
-            y.append(data[(i + window_size) : (i + window_size + prediction_horizon)])
-        return np.array(X), np.array(y)
+    Parameters
+    ----------
+    data: np.dnarray
+        The time series of shape (n_timepoints, n_channels).
+    window_size: int
+        The length of the sliding window.
+    prediction_horizon: int
+        The number of time steps in future that would be predicted by the model.
+
+    Returns
+    -------
+    X: np.ndarray
+        The array of input sequences of shape
+        (n_timepoints - window_size - 1, n_channels).
+    y: np.ndarray
+        The array of output sequences of shape
+        (n_timepoints - window_size - 1, window_size).
+    """
+    X, y = [], []
+    for i in range(len(data) - window_size - prediction_horizon + 1):
+        X.append(data[i : (i + window_size)])
+        y.append(data[(i + window_size) : (i + window_size + prediction_horizon)])
+    return np.array(X), np.array(y)
