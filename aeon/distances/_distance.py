@@ -62,6 +62,12 @@ from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_distance,
     shift_scale_invariant_pairwise_distance,
 )
+from aeon.distances._soft_dtw import (
+    soft_dtw_alignment_path,
+    soft_dtw_cost_matrix,
+    soft_dtw_distance,
+    soft_dtw_pairwise_distance,
+)
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._twe import (
     twe_alignment_path,
@@ -1141,6 +1147,13 @@ DISTANCES = [
         "name": "shift_scale",
         "distance": shift_scale_invariant_distance,
         "pairwise_distance": shift_scale_invariant_pairwise_distance,
+    },
+    {
+        "name": "soft_dtw",
+        "distance": soft_dtw_distance,
+        "pairwise_distance": soft_dtw_pairwise_distance,
+        "cost_matrix": soft_dtw_cost_matrix,
+        "alignment_path": soft_dtw_alignment_path,
     },
 ]
 
