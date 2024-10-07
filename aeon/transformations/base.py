@@ -5,10 +5,10 @@ __all__ = ["BaseTransformer"]
 
 from abc import ABC, abstractmethod
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 
 
-class BaseTransformer(BaseEstimator, ABC):
+class BaseTransformer(BaseAeonEstimator, ABC):
     """Transformer base class."""
 
     _tags = {

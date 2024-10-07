@@ -34,18 +34,18 @@ State:
 """
 
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
-__all__ = ["BaseEstimator"]
+__all__ = ["BaseAeonEstimator"]
 
 import inspect
 from copy import deepcopy
 
 from sklearn import clone
-from sklearn.base import BaseEstimator as _BaseEstimator
+from sklearn.base import BaseEstimator
 from sklearn.ensemble._base import _set_random_states
 from sklearn.exceptions import NotFittedError
 
 
-class BaseEstimator(_BaseEstimator):
+class BaseAeonEstimator(BaseEstimator):
     """Base class for defining estimators in aeon."""
 
     _tags = {
@@ -145,10 +145,8 @@ class BaseEstimator(_BaseEstimator):
         # We exclude the last two parent classes: sklearn.base.BaseEstimator and
         # the basic Python object.
         for parent_class in reversed(inspect.getmro(cls)[:-2]):
+            # Need the if here because estimators might not have _tags
             if hasattr(parent_class, "_tags"):
-                # Need the if here because mixins might not have _more_tags
-                # but might do redundant work in estimators
-                # (i.e. calling more tags on BaseEstimator multiple times)
                 more_tags = parent_class._tags
                 collected_tags.update(more_tags)
 
@@ -348,7 +346,7 @@ class BaseEstimator(_BaseEstimator):
 
         Returns
         -------
-        instance : BaseEstimator or list of BaseEstimator
+        instance : BaseAeonEstimator or list of BaseAeonEstimator
             Instance of the class with default parameters. If return_first
             is False, returns list of instances.
         """
@@ -467,18 +465,18 @@ class BaseEstimator(_BaseEstimator):
         Returns
         -------
         composite: bool
-            Whether self contains a parameter which is BaseEstimator.
+            Whether self contains a parameter which is BaseAeonEstimator.
         """
         # walk through method resolution order and inspect methods
         #   of classes and direct parents, "adjacent" classes in mro
         params = self.get_params(deep=False)
-        composite = any(isinstance(x, BaseEstimator) for x in params.values())
+        composite = any(isinstance(x, BaseAeonEstimator) for x in params.values())
 
         return composite
 
     def _components(self, base_class=None):
         """
-        Return references to all state changing BaseEstimator type attributes.
+        Return references to all state changing BaseAeonEstimator type attributes.
 
         This *excludes* the blue-print-like components passed in the __init__.
 
@@ -487,8 +485,8 @@ class BaseEstimator(_BaseEstimator):
 
         Parameters
         ----------
-        base_class : class, optional, default=None, must be subclass of BaseEstimator
-            if None, behaves the same as `base_class=BaseEstimator`
+        base_class : subclass of BaseAeonEstimator, default=None
+            if None, behaves the same as `base_class=BaseAeonEstimator`
             if not None, return dict collects descendants of `base_class`.
 
         Returns
@@ -499,16 +497,16 @@ class BaseEstimator(_BaseEstimator):
             are not class attributes, and are not hyper-parameters (`__init__` args).
         """
         if base_class is None:
-            base_class = BaseEstimator
+            base_class = BaseAeonEstimator
         if base_class is not None and not inspect.isclass(base_class):
             raise TypeError(f"base_class must be a class, but found {type(base_class)}")
-        # if base_class is not None and not issubclass(base_class, BaseEstimator):
-        #     raise TypeError("base_class must be a subclass of BaseEstimator")
+        # if base_class is not None and not issubclass(base_class, BaseAeonEstimator):
+        #     raise TypeError("base_class must be a subclass of BaseAeonEstimator")
 
         # retrieve parameter names to exclude them later
         param_names = self.get_params(deep=False).keys()
 
-        # retrieve all attributes that are BaseEstimator descendants
+        # retrieve all attributes that are BaseAeonEstimator descendants
         attrs = [attr for attr in dir(self) if "__" not in attr]
         cls_attrs = [attr for attr in dir(type(self))]
         self_attrs = set(attrs).difference(cls_attrs).difference(param_names)
@@ -638,7 +636,7 @@ class BaseEstimator(_BaseEstimator):
 
             * If True, will return a dict of parameter name : value for this object,
               including fitted parameters of fittable components
-              (= BaseEstimator-valued parameters).
+              (= BaseAeonEstimator-valued parameters).
             * If False, will return a dict of parameter name : value for this object,
               but not include fitted parameters of components.
 
@@ -676,10 +674,10 @@ class BaseEstimator(_BaseEstimator):
             else:
                 return x
 
-        # add all nested parameters from components that are aeon BaseEstimator
+        # add all nested parameters from components that are aeon BaseAeonEstimator
         c_dict = self._components()
         for c, comp in c_dict.items():
-            if isinstance(comp, BaseEstimator) and comp._is_fitted:
+            if isinstance(comp, BaseAeonEstimator) and comp._is_fitted:
                 c_f_params = comp.get_fitted_params()
                 c_f_params = {f"{sh(c)}__{k}": v for k, v in c_f_params.items()}
                 fitted_params.update(c_f_params)
@@ -691,7 +689,7 @@ class BaseEstimator(_BaseEstimator):
         while n_new_params > 0:
             new_params = dict()
             for c, comp in old_new_params.items():
-                if isinstance(comp, _BaseEstimator):
+                if isinstance(comp, BaseEstimator):
                     c_f_params = self._get_fitted_params_default(comp)
                     c_f_params = {f"{sh(c)}__{k}": v for k, v in c_f_params.items()}
                     new_params.update(c_f_params)

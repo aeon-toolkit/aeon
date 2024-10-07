@@ -14,7 +14,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_get_params_invariance
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
@@ -89,17 +89,17 @@ def _yield_all_aeon_checks(
         has_dependencies = _check_estimator_deps(estimator, severity="none")
 
     if has_dependencies:
-        if isclass(estimator) and issubclass(estimator, BaseEstimator):
+        if isclass(estimator) and issubclass(estimator, BaseAeonEstimator):
             estimator_class = estimator
             estimator_instances = estimator.create_test_instance(
                 return_first=use_first_parameter_set
             )
-        elif isinstance(estimator, BaseEstimator):
+        elif isinstance(estimator, BaseAeonEstimator):
             estimator_class = type(estimator)
             estimator_instances = estimator
         else:
             raise TypeError(
-                "Passed estimator is not an instance or subclass of BaseEstimator."
+                "Passed estimator is not an instance or subclass of BaseAeonEstimator."
             )
 
         if not isinstance(estimator_instances, list):
@@ -300,18 +300,18 @@ def check_create_test_instances_and_names(estimator_class):
 
 # todo consider removing the multiple base class allowance.
 def check_inheritance(estimator_class):
-    """Check that estimator inherits from BaseEstimator."""
+    """Check that estimator inherits from BaseAeonEstimator."""
     assert issubclass(
-        estimator_class, BaseEstimator
-    ), f"object {estimator_class} is not a sub-class of BaseEstimator."
+        estimator_class, BaseAeonEstimator
+    ), f"object {estimator_class} is not a sub-class of BaseAeonEstimator."
 
     if hasattr(estimator_class, "fit"):
-        assert issubclass(estimator_class, BaseEstimator), (
+        assert issubclass(estimator_class, BaseAeonEstimator), (
             f"estimator: {estimator_class} has fit method, but"
-            f"is not a sub-class of BaseEstimator."
+            f"is not a sub-class of BaseAeonEstimator."
         )
 
-    # Usually estimators inherit only from one BaseEstimator type, but in some cases
+    # Usually estimators inherit only from one BaseAeonEstimator type, but in some cases
     # they may be predictor and transformer at the same time (e.g. pipelines)
     n_base_types = sum(
         issubclass(estimator_class, cls) for cls in VALID_ESTIMATOR_BASE_TYPES
@@ -328,7 +328,7 @@ def check_inheritance(estimator_class):
 def check_has_common_interface(estimator_class):
     """Check estimator implements the common interface."""
     # Check class for type of attribute
-    if isinstance(estimator_class, BaseEstimator):
+    if isinstance(estimator_class, BaseAeonEstimator):
         assert isinstance(estimator_class.is_fitted, property)
 
     required_methods = _list_required_methods(estimator_class)
@@ -571,8 +571,8 @@ def check_non_state_changing_method(estimator, datatype):
     1. do not change state of the estimator, i.e., any attributes
         (including hyper-parameters and fitted parameters)
     2. expected output type of the method matches actual output type
-        - only for abstract BaseEstimator methods, common to all estimators.
-        List of BaseEstimator methods tested: get_fitted_params
+        - only for abstract BaseAeonEstimator methods, common to all estimators.
+        List of BaseAeonEstimator methods tested: get_fitted_params
         Subclass specific method outputs are tested in TestAll[estimatortype] class
     3. the state of method arguments does not change
     """
