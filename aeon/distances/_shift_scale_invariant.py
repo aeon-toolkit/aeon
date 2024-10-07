@@ -132,7 +132,7 @@ def _univariate_shift_scale_invariant_distance(
     x: np.ndarray, y: np.ndarray, max_shift: int
 ) -> tuple[float, np.ndarray]:
     if np.array_equal(x, y):
-        return 0, y
+        return 0.0, y
     min_dist = _scale_d(x, y)
     best_shifted_y = y
 
