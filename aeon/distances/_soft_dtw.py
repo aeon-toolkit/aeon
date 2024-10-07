@@ -169,17 +169,20 @@ def soft_dtw_cost_matrix(
 def _soft_dtw_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
 ) -> float:
-    return _soft_dtw_cost_matrix(x, y, bounding_matrix, gamma)[
-        x.shape[1] - 1, y.shape[1] - 1
-    ]
+    return abs(
+        _soft_dtw_cost_matrix(x, y, bounding_matrix, gamma)[
+            x.shape[1] - 1, y.shape[1] - 1
+        ]
+    )
 
 
 @njit(cache=True, fastmath=True)
 def _soft_dtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
 ) -> np.ndarray:
-    if gamma == 0.0:
+    if gamma == 0.0 or np.array_equal(x, y):
         return _dtw_cost_matrix(x, y, bounding_matrix)
+
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
@@ -196,7 +199,6 @@ def _soft_dtw_cost_matrix(
                     cost_matrix[i, j - 1],
                     gamma,
                 )
-
     return cost_matrix[1:, 1:]
 
 
@@ -395,5 +397,5 @@ def soft_dtw_alignment_path(
     cost_matrix = soft_dtw_cost_matrix(x, y, gamma, window, itakura_max_slope)
     return (
         compute_min_return_path(cost_matrix),
-        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
+        abs(cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1]),
     )

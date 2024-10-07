@@ -108,6 +108,7 @@ class DistanceKwargs(TypedDict, total=False):
     standardize: bool
     m: int
     max_shift: Optional[int]
+    gamma: float
 
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
@@ -262,6 +263,14 @@ def distance(
         return sbd_distance(x, y, kwargs.get("standardize", True))
     elif metric == "shift_scale":
         return shift_scale_invariant_distance(x, y, kwargs.get("max_shift", None))
+    elif metric == "soft_dtw":
+        return soft_dtw_distance(
+            x,
+            y,
+            gamma=kwargs.get("gamma", 1.0),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            window=kwargs.get("window"),
+        )
     else:
         if isinstance(metric, Callable):
             return metric(x, y, **kwargs)
@@ -443,6 +452,14 @@ def pairwise_distance(
     elif metric == "shift_scale":
         return shift_scale_invariant_pairwise_distance(
             x, y, kwargs.get("max_shift", None)
+        )
+    elif metric == "soft_dtw":
+        return soft_dtw_pairwise_distance(
+            x,
+            y,
+            gamma=kwargs.get("gamma", 1.0),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            window=kwargs.get("window"),
         )
     else:
         if isinstance(metric, Callable):
@@ -636,6 +653,14 @@ def alignment_path(
             kwargs.get("itakura_max_slope"),
             kwargs.get("warp_penalty", 1.0),
         )
+    elif metric == "soft_dtw":
+        return soft_dtw_alignment_path(
+            x,
+            y,
+            gamma=kwargs.get("gamma", 1.0),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            window=kwargs.get("window"),
+        )
     else:
         raise ValueError("Metric must be one of the supported strings")
 
@@ -779,6 +804,14 @@ def cost_matrix(
             kwargs.get("itakura_max_slope"),
             kwargs.get("warp_penalty", 1.0),
         )
+    elif metric == "soft_dtw":
+        return soft_dtw_cost_matrix(
+            x,
+            y,
+            gamma=kwargs.get("gamma", 1.0),
+            itakura_max_slope=kwargs.get("itakura_max_slope"),
+            window=kwargs.get("window"),
+        )
     else:
         raise ValueError("Metric must be one of the supported strings")
 
@@ -832,6 +865,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
     'minkowski'     distances.minkowski_distance
     'sbd'           distances.sbd_distance
     'shift_scale'   distances.shift_scale_invariant_distance
+    'soft_dtw'      distances.soft_dtw_distance
     =============== ========================================
 
     Parameters
@@ -890,6 +924,7 @@ def get_pairwise_distance_function(
     'minkowski'     distances.minkowski_pairwise_distance
     'sbd'           distances.sbd_pairwise_distance
     'shift_scale'   distances.shift_scale_invariant_pairwise_distance
+    'soft_dtw'      distances.soft_dtw_pairwise_distance
     =============== ========================================
 
     Parameters
@@ -943,6 +978,7 @@ def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
     'msm'           distances.msm_alignment_path
     'twe'           distances.twe_alignment_path
     'lcss'          distances.lcss_alignment_path
+    'soft_dtw'      distances.soft_dtw_alignment_path
     =============== ========================================
 
     Parameters
@@ -991,6 +1027,7 @@ def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
     'msm'           distances.msm_cost_matrix
     'twe'           distances.twe_cost_matrix
     'lcss'          distances.lcss_cost_matrix
+    'soft_dtw'      distances.soft_dtw_cost_matrix
     =============== ========================================
 
     Parameters
@@ -1041,113 +1078,113 @@ def _resolve_key_from_distance(metric: Union[str, Callable], key: str) -> Any:
 
 
 DISTANCES = [
-    {
-        "name": "euclidean",
-        "distance": euclidean_distance,
-        "pairwise_distance": euclidean_pairwise_distance,
-    },
-    {
-        "name": "squared",
-        "distance": squared_distance,
-        "pairwise_distance": squared_pairwise_distance,
-    },
-    {
-        "name": "manhattan",
-        "distance": manhattan_distance,
-        "pairwise_distance": manhattan_pairwise_distance,
-    },
-    {
-        "name": "minkowski",
-        "distance": minkowski_distance,
-        "pairwise_distance": minkowski_pairwise_distance,
-    },
-    {
-        "name": "dtw",
-        "distance": dtw_distance,
-        "pairwise_distance": dtw_pairwise_distance,
-        "cost_matrix": dtw_cost_matrix,
-        "alignment_path": dtw_alignment_path,
-    },
-    {
-        "name": "ddtw",
-        "distance": ddtw_distance,
-        "pairwise_distance": ddtw_pairwise_distance,
-        "cost_matrix": ddtw_cost_matrix,
-        "alignment_path": ddtw_alignment_path,
-    },
-    {
-        "name": "wdtw",
-        "distance": wdtw_distance,
-        "pairwise_distance": wdtw_pairwise_distance,
-        "cost_matrix": wdtw_cost_matrix,
-        "alignment_path": wdtw_alignment_path,
-    },
-    {
-        "name": "wddtw",
-        "distance": wddtw_distance,
-        "pairwise_distance": wddtw_pairwise_distance,
-        "cost_matrix": wddtw_cost_matrix,
-        "alignment_path": wddtw_alignment_path,
-    },
-    {
-        "name": "lcss",
-        "distance": lcss_distance,
-        "pairwise_distance": lcss_pairwise_distance,
-        "cost_matrix": lcss_cost_matrix,
-        "alignment_path": lcss_alignment_path,
-    },
-    {
-        "name": "erp",
-        "distance": erp_distance,
-        "pairwise_distance": erp_pairwise_distance,
-        "cost_matrix": erp_cost_matrix,
-        "alignment_path": erp_alignment_path,
-    },
-    {
-        "name": "edr",
-        "distance": edr_distance,
-        "pairwise_distance": edr_pairwise_distance,
-        "cost_matrix": edr_cost_matrix,
-        "alignment_path": edr_alignment_path,
-    },
-    {
-        "name": "twe",
-        "distance": twe_distance,
-        "pairwise_distance": twe_pairwise_distance,
-        "cost_matrix": twe_cost_matrix,
-        "alignment_path": twe_alignment_path,
-    },
-    {
-        "name": "msm",
-        "distance": msm_distance,
-        "pairwise_distance": msm_pairwise_distance,
-        "cost_matrix": msm_cost_matrix,
-        "alignment_path": msm_alignment_path,
-    },
-    {
-        "name": "adtw",
-        "distance": adtw_distance,
-        "pairwise_distance": adtw_pairwise_distance,
-        "cost_matrix": adtw_cost_matrix,
-        "alignment_path": adtw_alignment_path,
-    },
-    {
-        "name": "shape_dtw",
-        "distance": shape_dtw_distance,
-        "pairwise_distance": shape_dtw_pairwise_distance,
-        "cost_matrix": shape_dtw_cost_matrix,
-        "alignment_path": shape_dtw_alignment_path,
-    },
-    {
-        "name": "sbd",
-        "distance": sbd_distance,
-        "pairwise_distance": sbd_pairwise_distance,
-    },
-    {
-        "name": "shift_scale",
-        "distance": shift_scale_invariant_distance,
-        "pairwise_distance": shift_scale_invariant_pairwise_distance,
-    },
+    # {
+    #     "name": "euclidean",
+    #     "distance": euclidean_distance,
+    #     "pairwise_distance": euclidean_pairwise_distance,
+    # },
+    # {
+    #     "name": "squared",
+    #     "distance": squared_distance,
+    #     "pairwise_distance": squared_pairwise_distance,
+    # },
+    # {
+    #     "name": "manhattan",
+    #     "distance": manhattan_distance,
+    #     "pairwise_distance": manhattan_pairwise_distance,
+    # },
+    # {
+    #     "name": "minkowski",
+    #     "distance": minkowski_distance,
+    #     "pairwise_distance": minkowski_pairwise_distance,
+    # },
+    # {
+    #     "name": "dtw",
+    #     "distance": dtw_distance,
+    #     "pairwise_distance": dtw_pairwise_distance,
+    #     "cost_matrix": dtw_cost_matrix,
+    #     "alignment_path": dtw_alignment_path,
+    # },
+    # {
+    #     "name": "ddtw",
+    #     "distance": ddtw_distance,
+    #     "pairwise_distance": ddtw_pairwise_distance,
+    #     "cost_matrix": ddtw_cost_matrix,
+    #     "alignment_path": ddtw_alignment_path,
+    # },
+    # {
+    #     "name": "wdtw",
+    #     "distance": wdtw_distance,
+    #     "pairwise_distance": wdtw_pairwise_distance,
+    #     "cost_matrix": wdtw_cost_matrix,
+    #     "alignment_path": wdtw_alignment_path,
+    # },
+    # {
+    #     "name": "wddtw",
+    #     "distance": wddtw_distance,
+    #     "pairwise_distance": wddtw_pairwise_distance,
+    #     "cost_matrix": wddtw_cost_matrix,
+    #     "alignment_path": wddtw_alignment_path,
+    # },
+    # {
+    #     "name": "lcss",
+    #     "distance": lcss_distance,
+    #     "pairwise_distance": lcss_pairwise_distance,
+    #     "cost_matrix": lcss_cost_matrix,
+    #     "alignment_path": lcss_alignment_path,
+    # },
+    # {
+    #     "name": "erp",
+    #     "distance": erp_distance,
+    #     "pairwise_distance": erp_pairwise_distance,
+    #     "cost_matrix": erp_cost_matrix,
+    #     "alignment_path": erp_alignment_path,
+    # },
+    # {
+    #     "name": "edr",
+    #     "distance": edr_distance,
+    #     "pairwise_distance": edr_pairwise_distance,
+    #     "cost_matrix": edr_cost_matrix,
+    #     "alignment_path": edr_alignment_path,
+    # },
+    # {
+    #     "name": "twe",
+    #     "distance": twe_distance,
+    #     "pairwise_distance": twe_pairwise_distance,
+    #     "cost_matrix": twe_cost_matrix,
+    #     "alignment_path": twe_alignment_path,
+    # },
+    # {
+    #     "name": "msm",
+    #     "distance": msm_distance,
+    #     "pairwise_distance": msm_pairwise_distance,
+    #     "cost_matrix": msm_cost_matrix,
+    #     "alignment_path": msm_alignment_path,
+    # },
+    # {
+    #     "name": "adtw",
+    #     "distance": adtw_distance,
+    #     "pairwise_distance": adtw_pairwise_distance,
+    #     "cost_matrix": adtw_cost_matrix,
+    #     "alignment_path": adtw_alignment_path,
+    # },
+    # {
+    #     "name": "shape_dtw",
+    #     "distance": shape_dtw_distance,
+    #     "pairwise_distance": shape_dtw_pairwise_distance,
+    #     "cost_matrix": shape_dtw_cost_matrix,
+    #     "alignment_path": shape_dtw_alignment_path,
+    # },
+    # {
+    #     "name": "sbd",
+    #     "distance": sbd_distance,
+    #     "pairwise_distance": sbd_pairwise_distance,
+    # },
+    # {
+    #     "name": "shift_scale",
+    #     "distance": shift_scale_invariant_distance,
+    #     "pairwise_distance": shift_scale_invariant_pairwise_distance,
+    # },
     {
         "name": "soft_dtw",
         "distance": soft_dtw_distance,
