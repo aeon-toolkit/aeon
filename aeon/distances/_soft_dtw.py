@@ -147,7 +147,7 @@ def soft_dtw_cost_matrix(
     >>> import numpy as np
     >>> from aeon.distances import soft_dtw_cost_matrix
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
+    >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> soft_dtw_cost_matrix(x, y)
     array([[  0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204., 285.],
        [  1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204.],
