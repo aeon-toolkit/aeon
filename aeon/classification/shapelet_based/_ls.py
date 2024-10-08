@@ -95,7 +95,7 @@ class LearningShapeletClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "shapelet",
-        "cant-pickle": True,
+        "cant_pickle": True,
         "python_dependencies": ["tslearn", "tensorflow"],
     }
 

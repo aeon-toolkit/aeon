@@ -60,9 +60,6 @@ class RDSTClassifier(BaseClassifier):
         If True, restricts the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
         short shapelet lengths, possibly at the cost of some accuracy.
-    distance: str="manhattan"
-        Name of the distance function to be used. By default this is the
-        manhattan distance. Other distances from the aeon distance modules can be used.
     estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
         `None` a default `RidgeClassifierCV` classifier is used with standard scaling.
@@ -135,7 +132,7 @@ class RDSTClassifier(BaseClassifier):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "non-deterministic": True,  # due to random_state bug in MacOS #324
+        "non_deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }
 
@@ -147,7 +144,6 @@ class RDSTClassifier(BaseClassifier):
         threshold_percentiles=None,
         alpha_similarity: float = 0.5,
         use_prime_dilations: bool = False,
-        distance: str = "manhattan",
         estimator=None,
         save_transformed_data: bool = False,
         class_weight=None,
@@ -160,7 +156,6 @@ class RDSTClassifier(BaseClassifier):
         self.threshold_percentiles = threshold_percentiles
         self.alpha_similarity = alpha_similarity
         self.use_prime_dilations = use_prime_dilations
-        self.distance = distance
         self.estimator = estimator
         self.save_transformed_data = save_transformed_data
         self.class_weight = class_weight
@@ -203,7 +198,6 @@ class RDSTClassifier(BaseClassifier):
             use_prime_dilations=self.use_prime_dilations,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
-            distance=self.distance,
         )
         if self.estimator is None:
             self._estimator = make_pipeline(

@@ -25,15 +25,24 @@ deps = [
 
 def show_versions():
     """Print useful debugging information."""
+    print(_show_versions())  # noqa: T001, T201
+
+
+def _show_versions():
+    """Print useful debugging information.
+
+    Returns
+    -------
+    str
+    """
     sys_info = {
         "python": sys.version.replace("\n", " "),
         "executable": sys.executable,
         "machine": platform.platform(),
     }
-
-    print("\nSystem:")  # noqa: T001, T201
+    str = "\nSystem:"
     for k, stat in sys_info.items():
-        print(f"{k:>10}: {stat}")  # noqa: T001, T201
+        str = f"{str}\n{k:>10}: {stat}"
 
     deps_info = {"aeon": __version__}
     for modname in deps:
@@ -41,7 +50,7 @@ def show_versions():
             deps_info[modname] = version(modname)
         except PackageNotFoundError:
             deps_info[modname] = None
-
-    print("\nPython dependencies:")  # noqa: T001, T201
+    str = f"{str}\nPython dependencies:"
     for k, stat in deps_info.items():
-        print(f"{k:>13}: {stat}")  # noqa: T001, T201
+        str = f"{str}\n{k:>13}: {stat}"  # noqa: T001, T201
+    return str

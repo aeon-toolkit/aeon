@@ -113,7 +113,7 @@ def check_estimator(
     general checks for all estimators, and module-specific tests for classifiers,
     anomaly detectors, transformer, etc.
     Some checks may be skipped if the estimator has certain tags i.e.
-    `non-deterministic`.
+    `non_deterministic`.
 
     Parameters
     ----------

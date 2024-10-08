@@ -43,7 +43,7 @@ class BaseCollectionTransformer(
     _tags = {
         "input_data_type": "Collection",
         "output_data_type": "Collection",
-        "capability:unequal_length:removes": False,
+        "removes_unequal_length": False,
     }
 
     def __init__(self):

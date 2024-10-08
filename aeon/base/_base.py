@@ -51,8 +51,8 @@ class BaseEstimator(_BaseEstimator):
     _tags = {
         "python_version": None,
         "python_dependencies": None,
-        "cant-pickle": False,
-        "non-deterministic": False,
+        "cant_pickle": False,
+        "non_deterministic": False,
         "algorithm_type": None,
         "capability:missing_values": False,
         "capability:multithreading": False,
