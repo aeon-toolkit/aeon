@@ -76,7 +76,7 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = YeoJohnsonTransformer()
-    >>> y_hat = transformer.fit_torm(y)
+    >>> y_hat = transformer.fit_transform(y)
     """
 
     # tag values specific to SeriesTransformers
