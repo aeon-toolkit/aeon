@@ -42,8 +42,8 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "python_dependencies": "tensorflow",
     }
 
