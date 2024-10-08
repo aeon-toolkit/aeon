@@ -4,8 +4,8 @@ __maintainer__ = []
 
 import pytest
 
-from aeon.base import BaseObject
-from aeon.registry import all_estimators, all_tags, get_identifiers
+from aeon.base import BaseEstimator
+from aeon.registry import all_estimators, get_identifiers
 from aeon.registry._base_classes import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LOOKUP
 from aeon.registry._lookup import _check_estimator_types
 from aeon.transformations.base import BaseTransformer
@@ -15,8 +15,6 @@ VALID_IDENTIFIERS_SET = set(BASE_CLASS_IDENTIFIER_LIST + ["estimator"])
 CLASSES_WITHOUT_TAGS = [
     "series-annotator",
     "object",
-    "splitter",
-    "network",
     "collection-transformer",
     "collection-estimator",
     "series-estimator",
@@ -59,7 +57,7 @@ def _get_type_tuple(estimator_identifiers):
             BASE_CLASS_LOOKUP[id] for id in _to_list(estimator_identifiers)
         )
     else:
-        estimator_classes = (BaseObject,)
+        estimator_classes = (BaseEstimator,)
 
     return estimator_classes
 
@@ -89,31 +87,6 @@ def test_all_estimators_by_identifier(estimator_id, return_names):
     else:
         for estimator in estimators:
             assert issubclass(estimator, estimator_classes)
-
-
-@pytest.mark.parametrize("estimator_id", estimator_fixture)
-def test_all_tags(estimator_id):
-    """Check that all_tags return argument has correct type."""
-    tags = all_tags(estimator_types=estimator_id)
-    assert isinstance(tags, list)
-
-    # there should be at least one tag returned
-    # exception: types which we know don't have tags associated
-    est_list = estimator_id if isinstance(estimator_id, list) else [estimator_id]
-    if not set(est_list).issubset(CLASSES_WITHOUT_TAGS):
-        assert len(tags) > 0
-
-    # checks return type specification (see docstring)
-    for tag in tags:
-        assert isinstance(tag, tuple)
-        assert isinstance(tag[0], str)
-        assert VALID_IDENTIFIERS_SET.issuperset(_to_list(tag[1]))
-        assert isinstance(tag[2], (str, tuple))
-        if isinstance(tag[2], tuple):
-            assert len(tag[2]) == 2
-            assert isinstance(tag[2][0], str)
-            assert isinstance(tag[2][1], (str, list))
-        assert isinstance(tag[3], str)
 
 
 @pytest.mark.parametrize("return_names", [True, False])

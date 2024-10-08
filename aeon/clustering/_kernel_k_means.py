@@ -1,12 +1,11 @@
 """Time series kernel kmeans."""
 
-from typing import Dict, Union
+from typing import Optional, Union
 
 import numpy as np
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TimeSeriesKernelKMeans(BaseClusterer):
@@ -44,7 +43,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         convergence.
     verbose: bool, default=False
         Verbosity mode.
-    n_jobs : int or None, optional (default=None)
+    n_jobs : int or None, default=None
         The number of jobs to run in parallel for GAK cross-similarity matrix
         computations.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
@@ -64,11 +63,11 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     n_iter_: int
         Number of iterations run.
 
-    Reference
-    ---------
-        .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
-        Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
-        .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
+    References
+    ----------
+    .. [1] Kernel k-means, Spectral Clustering and Normalized Cuts. Inderjit S.
+           Dhillon, Yuqiang Guan, Brian Kulis. KDD 2004.
+    .. [2] Fast Global Alignment Kernels. Marco Cuturi. ICML 2011.
 
     Examples
     --------
@@ -99,7 +98,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         kernel_params: Union[dict, None] = None,
         verbose: bool = False,
         n_jobs: Union[int, None] = None,
-        random_state: Union[int, RandomState] = None,
+        random_state: Optional[Union[int, RandomState]] = None,
     ):
         self.kernel = kernel
         self.n_init = n_init
@@ -134,7 +133,6 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self:
             Fitted estimator.
         """
-        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
         verbose = 0
@@ -178,7 +176,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         return self._tslearn_kernel_k_means.predict(_X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default") -> Dict:
+    def get_test_params(cls, parameter_set="default") -> dict:
         """Return testing parameter settings for the estimator.
 
         Parameters

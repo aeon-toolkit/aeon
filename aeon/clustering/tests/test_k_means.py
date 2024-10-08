@@ -8,6 +8,7 @@ from sklearn.utils import check_random_state
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.datasets import load_basic_motions, load_gunpoint
 from aeon.distances import euclidean_distance
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 expected_results = {
@@ -123,7 +124,7 @@ def test_kmeans():
         random_state=1,
         n_init=2,
         n_clusters=2,
-        init_algorithm="kmeans++",
+        init="kmeans++",
         distance="euclidean",
     )
     train_predict = kmeans.fit_predict(X_train)
@@ -161,7 +162,7 @@ def test_kmeans_dba():
         random_state=1,
         n_init=2,
         n_clusters=2,
-        init_algorithm="kmeans++",
+        init="kmeans++",
         distance="dtw",
     )
     train_predict = kmeans.fit_predict(X_train[0:num_test_values])
@@ -190,7 +191,7 @@ def _get_model_centres(data, distance, average_params=None, distance_params=None
         random_state=1,
         n_init=2,
         n_clusters=2,
-        init_algorithm="random",
+        init="random",
         distance=distance,
         average_params=average_params,
         distance_params=distance_params,
@@ -199,12 +200,9 @@ def _get_model_centres(data, distance, average_params=None, distance_params=None
     return model.cluster_centers_
 
 
-def test_different_ba():
-    """Test different ba methods."""
-    X_train, y_train = load_basic_motions(split="train")
-
-    num_test_values = 5
-    data = X_train[0:num_test_values]
+def test_petitjean_ba_params():
+    """Test different petitjean ba params."""
+    data = make_example_3d_numpy(5, 2, 10, random_state=1, return_y=False)
 
     # Test passing distance param
     default_dba = _get_model_centres(data, distance="dtw")
@@ -235,7 +233,7 @@ def test_different_ba():
 
     # Test passing multiple params
     mba_custom_params_window_and_indep = _get_model_centres(
-        data, distance="msm", average_params={"window": 0.2, "independent": False}
+        data, distance="msm", average_params={"window": 0.1, "independent": False}
     )
 
     # Check not equal to just when indep set
@@ -246,6 +244,26 @@ def test_different_ba():
     )
     # Check not equal to default
     assert not np.array_equal(default_mba, mba_custom_params_window_and_indep)
+
+
+def test_ssg_ba_params():
+    """Test different ssg-ba params."""
+    data = make_example_3d_numpy(5, 2, 10, random_state=1, return_y=False)
+
+    # Test subgradient ba
+    subgradient_dba_specified = _get_model_centres(
+        data,
+        distance="dtw",
+        average_params={"distance": "dtw", "method": "subgradient"},
+    )
+
+    # Test another distance and check passing custom distance param
+    subgradient_mba_specified = _get_model_centres(
+        data,
+        distance="msm",
+        average_params={"distance": "msm", "method": "subgradient"},
+    )
+    assert not np.array_equal(subgradient_dba_specified, subgradient_mba_specified)
 
 
 def check_value_in_every_cluster(num_clusters, initial_centres):
@@ -274,7 +292,7 @@ def test_means_init():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         n_clusters=num_clusters,
     )
@@ -294,11 +312,11 @@ def test_means_init():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm=custom_init_centres,
+        init=custom_init_centres,
         distance="euclidean",
         n_clusters=num_clusters,
     )
-    kmeans.fit(X_train)
+    kmeans.fit(custom_init_centres)
 
     assert np.array_equal(kmeans.cluster_centers_, custom_init_centres)
 
@@ -311,8 +329,93 @@ def test_custom_distance_params():
     data = X_train[0:num_test_values]
 
     # Test passing distance param
-    default_dist = _get_model_centres(data, distance="msm")
+    default_dist = _get_model_centres(
+        data,
+        distance="msm",
+        distance_params={"window": 0.2},
+        average_params={"init_barycenter": "medoids"},
+    )
     custom_params_dist = _get_model_centres(
-        data, distance="msm", distance_params={"window": 0.2}
+        data,
+        distance="msm",
+        distance_params={"window": 0.2},
+        average_params={"init_barycenter": "mean"},
     )
     assert not np.array_equal(default_dist, custom_params_dist)
+
+
+def test_empty_cluster():
+    """Test empty cluster handling."""
+    first = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    second = np.array([[4, 5, 6], [7, 8, 9], [11, 12, 13]])
+    third = np.array([[24, 25, 26], [27, 28, 29], [30, 31, 32]])
+    forth = np.array([[14, 15, 16], [17, 18, 19], [20, 21, 22]])
+
+    # Test where two swap must happen to avoid empty clusters
+    empty_cluster = np.array([[100, 100, 100], [100, 100, 100], [100, 100, 100]])
+    init_centres = np.array([first, empty_cluster, empty_cluster])
+
+    kmeans = TimeSeriesKMeans(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init=init_centres,
+        distance="euclidean",
+        averaging_method="mean",
+        n_clusters=3,
+    )
+
+    kmeans.fit(np.array([first, second, third, forth]))
+
+    assert not np.array_equal(kmeans.cluster_centers_, init_centres)
+    assert np.unique(kmeans.labels_).size == 3
+
+    # Test that if a duplicate centre would be created the algorithm
+    init_centres = np.array([first, first, first])
+
+    kmeans = TimeSeriesKMeans(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init=init_centres,
+        distance="euclidean",
+        averaging_method="mean",
+        n_clusters=3,
+    )
+
+    kmeans.fit(np.array([first, second, third]))
+
+    assert not np.array_equal(kmeans.cluster_centers_, init_centres)
+    assert np.unique(kmeans.labels_).size == 3
+
+    # Test duplicate data in dataset
+    init_centres = np.array([first, empty_cluster])
+    kmeans = TimeSeriesKMeans(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init=init_centres,
+        distance="euclidean",
+        averaging_method="mean",
+        n_clusters=2,
+    )
+
+    kmeans.fit(np.array([first, first, first, first, second]))
+
+    assert not np.array_equal(kmeans.cluster_centers_, init_centres)
+    assert np.unique(kmeans.labels_).size == 2
+
+    # Test impossible to have 3 different clusters
+    init_centres = np.array([first, empty_cluster, empty_cluster])
+    kmeans = TimeSeriesKMeans(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init=init_centres,
+        distance="euclidean",
+        averaging_method="mean",
+        n_clusters=3,
+    )
+
+    with pytest.raises(ValueError):
+        kmeans.fit(np.array([first, first, first, first, first]))

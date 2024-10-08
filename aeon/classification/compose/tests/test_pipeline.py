@@ -11,35 +11,32 @@ from aeon.classification import DummyClassifier
 from aeon.classification.compose import ClassifierPipeline
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.classification.dictionary_based import ContractableBOSS
-from aeon.testing.utils.data_gen import (
+from aeon.testing.data_generation import (
     make_example_3d_numpy,
-    make_example_unequal_length,
+    make_example_3d_numpy_list,
 )
+from aeon.testing.mock_estimators import MockCollectionTransformer
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
-from aeon.transformations.adapt import TabularToSeriesAdaptor
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
-    PaddingTransformer,
+    Padder,
     Tabularizer,
     TimeSeriesScaler,
 )
 from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
-from aeon.transformations.impute import Imputer
 
 
 @pytest.mark.parametrize(
     "transformers",
     [
-        PaddingTransformer(pad_length=15),
+        Padder(pad_length=15),
         SevenNumberSummaryTransformer(),
-        TabularToSeriesAdaptor(StandardScaler()),
-        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
+        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
         [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
         [
-            TabularToSeriesAdaptor(StandardScaler()),
-            PaddingTransformer(pad_length=15),
+            Padder(pad_length=15),
             SevenNumberSummaryTransformer(),
         ],
     ],
@@ -52,7 +49,6 @@ def test_classifier_pipeline(transformers):
     c = DummyClassifier()
     pipeline = ClassifierPipeline(transformers=transformers, classifier=c)
     pipeline.fit(X_train, y_train)
-    c.fit(X_train, y_train)
 
     y_pred = pipeline.predict(X_test)
     assert isinstance(y_pred, np.ndarray)
@@ -71,15 +67,14 @@ def test_classifier_pipeline(transformers):
 @pytest.mark.parametrize(
     "transformers",
     [
-        [PaddingTransformer(pad_length=15), Tabularizer()],
+        [Padder(pad_length=15), Tabularizer()],
         SevenNumberSummaryTransformer(),
         [Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
+        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
         [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
         [
-            TabularToSeriesAdaptor(StandardScaler()),
-            PaddingTransformer(pad_length=15),
+            Padder(pad_length=15),
             SevenNumberSummaryTransformer(),
         ],
     ],
@@ -109,12 +104,12 @@ def test_sklearn_classifier_pipeline(transformers):
 
 def test_unequal_tag_inference():
     """Test that ClassifierPipeline infers unequal length tag correctly."""
-    X, y = make_example_unequal_length(
+    X, y = make_example_3d_numpy_list(
         n_cases=10, min_n_timepoints=8, max_n_timepoints=12
     )
 
     t1 = SevenNumberSummaryTransformer()
-    t2 = PaddingTransformer()
+    t2 = Padder()
     t3 = TimeSeriesScaler()
     t4 = AutocorrelationFunctionTransformer(n_lags=5)
     t5 = StandardScaler()
@@ -179,8 +174,13 @@ def test_unequal_tag_inference():
 def test_missing_tag_inference():
     """Test that ClassifierPipeline infers missing data tag correctly."""
     X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    # tags are reset so this causes a crash due to t1
+    # X[5, 0, 4] = np.nan
 
-    t1 = Imputer()
+    t1 = MockCollectionTransformer()
+    t1 = t1.set_tags(
+        **{"capability:missing_values": True, "capability:missing_values:removes": True}
+    )
     t2 = TimeSeriesScaler()
     t3 = StandardScaler()
     t4 = Tabularizer()

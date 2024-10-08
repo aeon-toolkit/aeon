@@ -72,12 +72,12 @@ def plot_pairwise_scatter(
     fig : matplotlib.figure.Figure
     ax : matplotlib.axes.Axes
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.visualisation import plot_pairwise_scatter
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["InceptionTimeClassifier", "WEASEL-Dilation"]
-    >>> results = get_estimator_results_as_array(estimators=methods)
+    >>> results = get_estimator_results_as_array(estimators=methods)  # doctest: +SKIP
     >>> plot = plot_pairwise_scatter(  # doctest: +SKIP
     ...     results[0], methods[0], methods[1])  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
@@ -325,8 +325,8 @@ def plot_scatter_predictions(
     fig : matplotlib.figure.Figure
     ax : matplotlib.axes.Axes
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.visualisation import plot_scatter_predictions
     >>> from aeon.datasets import load_covid_3month
     >>> from aeon.regression.feature_based import FreshPRINCERegressor  # doctest: +SKIP

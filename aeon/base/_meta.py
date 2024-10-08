@@ -87,7 +87,7 @@ class _HeterogenousMetaEstimator:
 
         Returns
         -------
-        composite: bool, whether self contains a parameter which is BaseObject
+        composite: bool, whether self contains a parameter which is BaseEstimator
         """
         # children of this class are always composite
         return True
@@ -557,8 +557,8 @@ class _HeterogenousMetaEstimator:
         value : value of the tag to check for
         estimators : list of (str, estimator) pairs to query for the tag/value
 
-        Return
-        ------
+        Returns
+        -------
         bool : True iff at least one estimator in the list has value in tag tag_name
         """
         tagis = [est.get_tag(tag_name, value) == value for _, est in estimators]
@@ -591,8 +591,8 @@ class _HeterogenousMetaEstimator:
         tag_name : str, name of the tag
         estimators : list of (str, estimator) pairs to query for the tag/value
 
-        Return
-        ------
+        Returns
+        -------
         tag_val : first non-'None' value of tag `tag_name` in estimator list.
         """
         for _, est in estimators:
@@ -711,8 +711,8 @@ def flatten(obj):
     list or tuple, tuple if obj was tuple, list otherwise
         flat iterable, containing non-list/tuple elements in obj in same order as in obj
 
-    Example
-    -------
+    Examples
+    --------
     >>> flatten([1, 2, [3, (4, 5)], 6])
     [1, 2, 3, 4, 5, 6]
     """
@@ -737,8 +737,8 @@ def unflatten(obj, template):
         has element bracketing exactly as `template`
             and elements in sequence exactly as `obj`
 
-    Example
-    -------
+    Examples
+    --------
     >>> unflatten([1, 2, 3, 4, 5, 6], [6, 3, [5, (2, 4)], 1])
     [1, 2, [3, (4, 5)], 6]
     """

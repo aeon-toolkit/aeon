@@ -7,8 +7,8 @@ The :mod:`aeon.similarity_search` module contains algorithms and tools for simil
 search tasks.
 
 
-Similarity search with a known query
-------------------------------------
+Similarity search estimators
+----------------------------
 
 .. currentmodule:: aeon.similarity_search
 
@@ -16,7 +16,9 @@ Similarity search with a known query
     :toctree: auto_generated/
     :template: class.rst
 
-    TopKSimilaritySearch
+    QuerySearch
+    SeriesSearch
+    BaseSimiliaritySearch
 
 
 Distance profile functions
@@ -28,17 +30,24 @@ Distance profile functions
     :toctree: auto_generated/
     :template: function.rst
 
-    naive_euclidean_profile
-    normalized_naive_euclidean_profile
+    naive_distance_profile
+    normalized_naive_distance_profile
+    euclidean_distance_profile
+    normalized_euclidean_distance_profile
+    squared_distance_profile
+    normalized_squared_distance_profile
 
+Matrix profile functions
+--------------------------
 
-Base
-----
-
-.. currentmodule:: aeon.similarity_search
+.. currentmodule:: aeon.similarity_search.matrix_profiles
 
 .. autosummary::
     :toctree: auto_generated/
-    :template: class.rst
+    :template: function.rst
 
-    BaseSimiliaritySearch
+    naive_matrix_profile
+    stomp_normalized_euclidean_matrix_profile
+    stomp_euclidean_matrix_profile
+    stomp_normalized_squared_matrix_profile
+    stomp_squared_matrix_profile

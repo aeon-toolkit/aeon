@@ -1,11 +1,12 @@
 __maintainer__ = []
 
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
 
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.distances._utils import _convert_to_list, _is_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -124,10 +125,9 @@ def _multivariate_minkowski_distance(
     return dist ** (1.0 / p)
 
 
-@njit(cache=True, fastmath=True)
 def minkowski_pairwise_distance(
-    X: np.ndarray,
-    y: Optional[np.ndarray] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     p: float = 2.0,
     w: Optional[np.ndarray] = None,
 ) -> np.ndarray:
@@ -135,15 +135,14 @@ def minkowski_pairwise_distance(
 
     Parameters
     ----------
-    X : np.ndarray
-        A collection of time series instances, of shape
-        (n_cases, n_channels, n_timepoints) or
-        (n_cases, n_timepoints) or (n_timepoints,).
-    y : np.ndarray, default=None
-        A second collection of time series instances, of
-        shape (m_cases, m_channels, m_timepoints) or
-        (m_cases, m_timepoints) or (m_timepoints,).
-        If None, the pairwise distances are calculated within X.
+    X : np.ndarray or List of np.ndarray
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
+    y : np.ndarray or List of np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
+        If None, then the minkoski pairwise distance between the instances of X is
+        calculated.
     p : float, default=2.0
         The order of the norm of the difference
         (default is 2.0, which represents the Euclidean distance).
@@ -194,23 +193,28 @@ def minkowski_pairwise_distance(
     array([[30.],
            [21.],
            [12.]])
+
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> minkowski_pairwise_distance(X)
+    array([[ 0.        ,  5.19615242, 12.12435565],
+           [ 5.19615242,  0.        ,  8.        ],
+           [12.12435565,  8.        ,  0.        ]])
     """
+    multivariate_conversion = _is_multivariate(X, y)
+    _X, _ = _convert_to_list(X, "X", multivariate_conversion)
     if y is None:
-        if X.ndim == 3:
-            return _minkowski_pairwise_distance(X, p, w)
-        elif X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _minkowski_pairwise_distance(_X, p, w)
-        raise ValueError("X must be 2D or 3D array")
-    _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _minkowski_from_multiple_to_multiple_distance(_x, _y, p, w)
+        return _minkowski_pairwise_distance(_X, p, w)
+
+    _y, _ = _convert_to_list(y, "y", multivariate_conversion)
+    return _minkowski_from_multiple_to_multiple_distance(_X, _y, p, w)
 
 
 @njit(cache=True, fastmath=True)
 def _minkowski_pairwise_distance(
-    X: np.ndarray, p: float, w: Optional[np.ndarray] = None
+    X: NumbaList[np.ndarray], p: float, w: Optional[np.ndarray] = None
 ) -> np.ndarray:
-    n_cases = X.shape[0]
+    n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
     for i in range(n_cases):
@@ -229,10 +233,13 @@ def _minkowski_pairwise_distance(
 
 @njit(cache=True, fastmath=True)
 def _minkowski_from_multiple_to_multiple_distance(
-    x: np.ndarray, y: np.ndarray, p: float, w: Optional[np.ndarray] = None
+    x: NumbaList[np.ndarray],
+    y: NumbaList[np.ndarray],
+    p: float,
+    w: Optional[np.ndarray] = None,
 ) -> np.ndarray:
-    n_cases = x.shape[0]
-    m_cases = y.shape[0]
+    n_cases = len(x)
+    m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
     for i in range(n_cases):

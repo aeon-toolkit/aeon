@@ -8,7 +8,7 @@ on:
 
 jobs:
   pre-commit-auto-update:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +20,7 @@ jobs:
       - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
 
       - if: always()
+        name: Create app token
         uses: actions/create-github-app-token@v1
         id: app-token
         with:
@@ -27,7 +28,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - if: always()
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "Automated `pre-commit` hook update"

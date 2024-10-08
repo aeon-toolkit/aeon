@@ -21,17 +21,18 @@ __all__ = [
     "slope_derivative",
     "slope_derivative_2d",
     "slope_derivative_3d",
+    "generate_combinations",
 ]
 
 
 import inspect
 import types
 from copy import deepcopy
-from typing import Tuple
 
 import numpy as np
 from numba import njit, prange
 from numba.core.registry import CPUDispatcher
+from numpy.random._generator import Generator
 
 import aeon.utils.numba.stats as stats
 
@@ -95,7 +96,7 @@ def generate_new_default_njit_func(
         base_func_py = base_func
     else:
         raise TypeError(
-            "Expected base_func to be of callable or CPUDispatcher type (numba "
+            "Expected base_func to be of type callable or CPUDispatcher type (numba "
             f"function), but got {type(base_func)}"
         )
     signature = inspect.signature(base_func_py)
@@ -136,7 +137,7 @@ def generate_new_default_njit_func(
 
 
 @njit(fastmath=True, cache=True)
-def unique_count(X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def unique_count(X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Numba unique value count function for a 1d numpy array.
 
     np.unique() is supported by numba, but the return_counts parameter is not.
@@ -164,7 +165,7 @@ def unique_count(X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         X = np.sort(X)
         unique = np.zeros(X.shape[0])
         unique[0] = X[0]
-        counts = np.zeros(X.shape[0], dtype=np.int32)
+        counts = np.zeros(X.shape[0], dtype=np.int_)
         counts[0] = 1
         uc = 0
 
@@ -176,7 +177,7 @@ def unique_count(X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
             else:
                 counts[uc] += 1
         return unique[: uc + 1], counts[: uc + 1]
-    return np.zeros(0), np.zeros(0, dtype=np.int32)
+    return np.zeros(0), np.zeros(0, dtype=np.int_)
 
 
 @njit(fastmath=True, cache=True)
@@ -438,7 +439,7 @@ def set_numba_random_seed(seed: int) -> None:
 
 
 @njit(fastmath=True, cache=True)
-def choice_log(n_choice: int, n_sample: int) -> np.ndarray:
+def choice_log(n_choice: int, n_sample: int, random_generator: Generator) -> np.ndarray:
     """Random choice function with log probability rather than uniform.
 
     To seed the function the `np.random.seed` must be set in a numba function prior to
@@ -451,6 +452,7 @@ def choice_log(n_choice: int, n_sample: int) -> np.ndarray:
         n_choice-1.
     n_sample : int
         Number of choice to sample.
+    random_generator : random_generator
 
     Returns
     -------
@@ -462,12 +464,12 @@ def choice_log(n_choice: int, n_sample: int) -> np.ndarray:
         P = np.array([1 / 2 ** np.log(i) for i in range(1, n_choice + 1)])
         # Bring everything between 0 and 1 as a cumulative probability
         P = P.cumsum() / P.sum()
-        loc = np.zeros(n_sample, dtype=np.int32)
+        loc = np.zeros(n_sample, dtype=np.int_)
         for i in prange(n_sample):
-            loc[i] = np.where(P >= np.random.rand())[0][0]
+            loc[i] = np.where(P >= random_generator.random())[0][0]
         return loc
     else:
-        return np.zeros(n_sample, dtype=np.int32)
+        return np.zeros(n_sample, dtype=np.int_)
 
 
 @njit(fastmath=True, cache=True)
@@ -505,7 +507,7 @@ def get_subsequence(
 @njit(fastmath=True, cache=True)
 def get_subsequence_with_mean_std(
     X: np.ndarray, i_start: int, length: int, dilation: int
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Get a subsequence, its mean and std from a time series given a starting index.
 
     Parameters
@@ -529,9 +531,9 @@ def get_subsequence_with_mean_std(
         The std of each channel
     """
     n_channels, _ = X.shape
-    values = np.zeros((n_channels, length), dtype=np.float64)
-    means = np.zeros(n_channels, dtype=np.float64)
-    stds = np.zeros(n_channels, dtype=np.float64)
+    values = np.zeros((n_channels, length), dtype=np.float_)
+    means = np.zeros(n_channels, dtype=np.float_)
+    stds = np.zeros(n_channels, dtype=np.float_)
     for i_channel in prange(n_channels):
         _sum = 0
         _sum2 = 0
@@ -556,7 +558,7 @@ def get_subsequence_with_mean_std(
 @njit(fastmath=True, cache=True)
 def sliding_mean_std_one_series(
     X: np.ndarray, length: int, dilation: int
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """Return the mean and standard deviation for all subsequence (l,d) in X.
 
     Parameters
@@ -566,7 +568,7 @@ def sliding_mean_std_one_series(
     length : int
         Length of the subsequence
     dilation : int
-        Dilation of the subsequence
+        Dilation of the subsequence. A value of 1 correspond to no dilation.
 
     Returns
     -------
@@ -587,7 +589,7 @@ def sliding_mean_std_one_series(
 
     for i_mod_dil in prange(dilation):
         # Array mainting indexes of a dilated subsequence
-        _idx_sub = np.zeros(length, dtype=np.int32)
+        _idx_sub = np.zeros(length, dtype=np.int_)
         for i_length in prange(length):
             _idx_sub[i_length] = (i_length * dilation) + i_mod_dil
 
@@ -690,7 +692,7 @@ def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
     for i in range(x.shape[0]):
         u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]] = True
-    combinations = np.zeros((u_mask.sum(), 2), dtype=np.int32)
+    combinations = np.zeros((u_mask.sum(), 2), dtype=np.int_)
     i_comb = 0
     for i in range(x.shape[0]):
         if u_mask[np.where(u_x == x[i])[0][0], np.where(u_y == y[i])[0][0]]:
@@ -795,3 +797,61 @@ def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
     for i in range(X.shape[0]):
         arr[i] = slope_derivative_2d(X[i])
     return arr
+
+
+@njit(fastmath=True, cache=True)
+def _comb(n, k):
+    if k > n - k:  # Take advantage of symmetry
+        k = n - k
+    c = 1
+    for i in range(k):
+        c = c * (n - i) // (i + 1)
+    return c
+
+
+@njit(fastmath=True, cache=True)
+def _next_combination(comb, n, k):
+    for i in range(k - 1, -1, -1):
+        if comb[i] != i + n - k:
+            break
+    else:
+        return False
+    comb[i] += 1
+    for j in range(i + 1, k):
+        comb[j] = comb[j - 1] + 1
+    return True
+
+
+@njit(fastmath=True, cache=True)
+def generate_combinations(n, k):
+    """Generate combination for n rows of k.
+
+    numba alternative to
+    from itertools import combinations
+    indices = np.array([_ for _ in combinations(np.arange(9), 3)])
+
+    Parameters
+    ----------
+    n: number of integers
+    k: number of combinations
+
+    Returns
+    -------
+    array
+        where each row is a unique length k permutation from n.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.utils.numba.general import generate_combinations
+    >>> combos=generate_combinations(3,2)
+    """
+    comb_array = np.arange(k)
+    num_combinations = _comb(n, k)  # Using our efficient comb function
+    combinations = np.empty((num_combinations, k), dtype=np.int_)
+
+    for idx in range(num_combinations):
+        combinations[idx, :] = comb_array
+        _next_combination(comb_array, n, k)
+
+    return combinations

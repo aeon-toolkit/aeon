@@ -1,9 +1,11 @@
 """Time series kmedoids."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 import warnings
-from typing import Callable, Tuple, Union
+from typing import Callable, Union
 
 import numpy as np
 from numpy.random import RandomState
@@ -78,8 +80,13 @@ class TimeSeriesKMedoids(BaseClusterer):
         convergence.
     verbose : bool, default=False
         Verbosity mode.
-    random_state : int or np.random.RandomState instance or None, default=None
+    random_state : int, np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
+        If `int`, random_state is the seed used by the random number generator;
+        If `np.random.RandomState` instance,
+        random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     distance_params: dict, default=None
         Dictionary containing kwargs for the distance metric being used.
 
@@ -139,6 +146,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
+        "algorithm_type": "distance",
     }
 
     def __init__(
@@ -151,8 +159,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
-        distance_params: dict = None,
+        random_state: Optional[Union[int, RandomState]] = None,
+        distance_params: Optional[dict] = None,
     ):
         self.init_algorithm = init_algorithm
         self.distance = distance
@@ -381,7 +389,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         else:
             return None
 
-    def _alternate_fit(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
+    def _alternate_fit(self, X) -> tuple[np.ndarray, np.ndarray, float, int]:
         cluster_center_indexes = self._init_algorithm
         if isinstance(self._init_algorithm, Callable):
             cluster_center_indexes = self._init_algorithm(X)
@@ -414,7 +422,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     def _assign_clusters(
         self, X: np.ndarray, cluster_center_indexes: np.ndarray
-    ) -> Tuple[np.ndarray, float]:
+    ) -> tuple[np.ndarray, float]:
         X_indexes = np.arange(X.shape[0], dtype=int)
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_center_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()

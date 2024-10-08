@@ -4,20 +4,24 @@ __maintainer__ = []
 
 from abc import ABC, abstractmethod
 
-from aeon.base import BaseObject
-from aeon.utils.validation._dependencies import _check_estimator_deps
+from aeon.utils.validation._dependencies import (
+    _check_python_version,
+    _check_soft_dependencies,
+)
 
 
-class BaseDeepNetwork(BaseObject, ABC):
+class BaseDeepLearningNetwork(ABC):
     """Abstract base class for deep learning networks."""
 
-    def __init__(self):
+    def __init__(self, soft_dependencies="tensorflow", python_version="<3.12"):
+        _check_soft_dependencies(soft_dependencies)
+        _check_python_version(python_version)
         super().__init__()
-        _check_estimator_deps(self)
 
-    _tags = {
-        "python_dependencies": "tensorflow",
+    _config = {
+        "python_dependencies": ["tensorflow"],
         "python_version": "<3.12",
+        "structure": "encoder",
     }
 
     @abstractmethod

@@ -28,7 +28,6 @@ __maintainer__ = []
 
 import time
 from abc import ABC, abstractmethod
-from typing import Tuple
 
 import numpy as np
 
@@ -61,11 +60,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
-        "capability:missing_values": False,
-        "capability:multithreading": False,
+        "fit_is_empty": False,
     }
 
     def __init__(self):
@@ -128,7 +123,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         self._is_fitted = True
         return self
 
-    def predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Predicts labels for sequences in X.
 
         Early classifiers can predict at series lengths shorter than the train data
@@ -162,7 +157,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         X = self._preprocess_collection(X)
         return self._predict(X)
 
-    def update_predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def update_predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Update label prediction for sequences in X at a larger series length.
 
         Uses information stored in the classifiers state from previous predictions and
@@ -207,7 +202,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         else:
             return self._update_predict(X)
 
-    def predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Predicts labels probabilities for sequences in X.
 
         Early classifiers can predict at series lengths shorter than the train data
@@ -245,7 +240,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
 
         return self._predict_proba(X)
 
-    def update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def update_predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Update label probabilities for sequences in X at a larger series length.
 
         Uses information stored in the classifiers state from previous predictions and
@@ -289,7 +284,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         else:
             return self._update_predict_proba(X)
 
-    def score(self, X, y) -> Tuple[float, float, float]:
+    def score(self, X, y) -> tuple[float, float, float]:
         """Scores predicted labels against ground truth labels on X.
 
         Parameters
@@ -391,7 +386,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         ...
 
     @abstractmethod
-    def _predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Predicts labels for sequences in X.
 
         Abstract method, must be implemented.
@@ -425,7 +420,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         ...
 
     @abstractmethod
-    def _update_predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _update_predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Update label prediction for sequences in X at a larger series length.
 
         Abstract method, must be implemented.
@@ -459,7 +454,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         """
         ...
 
-    def _predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Predicts labels probabilities for sequences in X.
 
         This method should update state_info with any values necessary to make future
@@ -504,7 +499,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
 
         return dists, decisions
 
-    def _update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _update_predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         """Update label probabilities for sequences in X at a larger series length.
 
         Uses information from previous decisions stored in state_info. This method
@@ -551,7 +546,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         return dists, decisions
 
     @abstractmethod
-    def _score(self, X, y) -> Tuple[float, float, float]:
+    def _score(self, X, y) -> tuple[float, float, float]:
         """Scores predicted labels against ground truth labels on X.
 
         Abstract method, must be implemented.

@@ -32,7 +32,6 @@ import pandas as pd
 
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.index_functions import update_data
 
 
 class BaseCollectionTransformer(
@@ -44,12 +43,12 @@ class BaseCollectionTransformer(
     _tags = {
         "input_data_type": "Collection",
         "output_data_type": "Collection",
-        "fit_is_empty": False,
-        "requires_y": False,
-        "capability:inverse_transform": False,
+        "capability:unequal_length:removes": False,
     }
 
     def __init__(self):
+        self._estimator_type = "transformer"
+
         super().__init__()
 
     @final
@@ -65,10 +64,25 @@ class BaseCollectionTransformer(
 
         Parameters
         ----------
-        X : Input data
-            Data to fit transform to, of valid collection type.
-        y : Target variable, default=None
-            Additional data, e.g., labels for transformation
+        X : np.ndarray or list
+            Input data, any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
+
+            Different estimators have different capabilities to handle different
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability to handle.
+              Data to fit transform to, of valid collection type.
+        y : np.ndarray, default=None
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
+            (ground truth) for fitting indices corresponding to instance indices in X.
+            If None, no labels are used in fitting.
 
         Returns
         -------
@@ -101,15 +115,29 @@ class BaseCollectionTransformer(
 
         Accesses in self:
         _is_fitted : must be True
-        _X : optionally accessed, only available if remember_data tag is True
         fitted model attributes (ending in "_") : must be set, accessed by _transform
 
         Parameters
         ----------
-        X : Input data
-            Data to fit transform to, of valid collection type.
-        y : Target variable, default=None
-            Additional data, e.g., labels for transformation
+        X : np.ndarray or list
+            Input data, any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
+
+            Different estimators have different capabilities to handle different
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability to handle.
+              Data to fit transform to, of valid collection type.
+        y : np.ndarray, default=None
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
+            (ground truth) for fitting indices corresponding to instance indices in X.
+            If None, no labels are used in fitting.
 
         Returns
         -------
@@ -119,8 +147,11 @@ class BaseCollectionTransformer(
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner = self._preprocess_collection(X)
+        X_inner = self._preprocess_collection(X, store_metadata=False)
         y_inner = y
+
+        if not self.get_tag("fit_is_empty"):
+            self._check_shape(X)
 
         Xt = self._transform(X=X_inner, y=y_inner)
 
@@ -138,17 +169,29 @@ class BaseCollectionTransformer(
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
         model attributes (ending in "_") : dependent on estimator.
 
         Parameters
         ----------
-        X : Input data
-            Data to fit transform to, of valid collection type.
-        y : Target variable, default=None
-            Additional data, e.g., labels for transformation
+        X : np.ndarray or list
+            Input data, any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
+
+            Different estimators have different capabilities to handle different
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability to handle.
+              Data to fit transform to, of valid collection type.
+        y : np.ndarray, default=None
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
+            (ground truth) for fitting indices corresponding to instance indices in X.
+            If None, no labels are used in fitting.
 
         Returns
         -------
@@ -158,7 +201,6 @@ class BaseCollectionTransformer(
         self.reset()
         X_inner = self._preprocess_collection(X)
         y_inner = y
-
         Xt = self._fit_transform(X=X_inner, y=y_inner)
 
         self._is_fitted = True
@@ -178,24 +220,35 @@ class BaseCollectionTransformer(
 
         Accesses in self:
          _is_fitted : must be True
-         _X : optionally accessed, only available if remember_data tag is True
          fitted model attributes (ending in "_") : accessed by _inverse_transform
 
         Parameters
         ----------
-        X : Input data
-            Data to fit transform to, of valid collection type.
-        y : Target variable, default=None
-             Additional data, e.g., labels for transformation
+        X : np.ndarray or list
+            Input data, any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
+
+            Different estimators have different capabilities to handle different
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability to handle.
+              Data to fit transform to, of valid collection type.
+        y : np.ndarray, default=None
+            1D np.array of float or str, of shape ``(n_cases)`` - class labels
+            (ground truth) for fitting indices corresponding to instance indices in X.
+            If None, no labels are used in fitting.
 
         Returns
         -------
         inverse transformed version of X
             of the same type as X
         """
-        if self.get_tag("skip-inverse-transform"):
-            return X
-
         if not self.get_tag("capability:inverse_transform"):
             raise NotImplementedError(
                 f"{type(self)} does not implement inverse_transform"
@@ -205,66 +258,12 @@ class BaseCollectionTransformer(
         self.check_is_fitted()
 
         # input check and conversion for X/y
-        X_inner = self._preprocess_collection(X)
+        X_inner = self._preprocess_collection(X, store_metadata=False)
         y_inner = y
 
         Xt = self._inverse_transform(X=X_inner, y=y_inner)
 
         return Xt
-
-    @final
-    def update(self, X, y=None, update_params=True):
-        """Update transformer with X, optionally y.
-
-        State required:
-            Requires state to be "fitted".
-
-        Accesses in self:
-        _is_fitted : must be True
-        _X : accessed by _update and by update_data, if remember_data tag is True
-        fitted model attributes (ending in "_") : must be set, accessed by _update
-
-        Writes to self:
-        _X : updated by values in X, via update_data, if remember_data tag is True
-        fitted model attributes (ending in "_") : only if update_params=True
-            type and nature of update are dependent on estimator
-
-        Parameters
-        ----------
-        X : data to update of valid collection type.
-        y : Target variable, default=None
-            Additional data, e.g., labels for transformation
-        update_params : bool, default=True
-            whether the model is updated. Yes if true, if false, simply skips call.
-            argument exists for compatibility with forecasting module.
-
-        Returns
-        -------
-        self : a fitted instance of the estimator
-        """
-        # check whether is fitted
-        self.check_is_fitted()
-
-        # if requires_y is set, y is required in fit and update
-        if self.get_tag("requires_y") and y is None:
-            raise ValueError(f"{self.__class__.__name__} requires `y` in `update`.")
-
-        # check and convert X/y
-        X_inner = self._preprocess_collection(X)
-        y_inner = y
-
-        # update memory of X, if remember_data tag is set to True
-        if self.get_tag("remember_data", False):
-            self._X = update_data(None, X_new=X_inner)
-
-        # skip everything if update_params is False
-        # skip everything if fit_is_empty is True
-        if not update_params or self.get_tag("fit_is_empty", False):
-            return self
-
-        self._update(X=X_inner, y=y_inner)
-
-        return self
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -368,20 +367,21 @@ class BaseCollectionTransformer(
         # standard behaviour: no update takes place, new data is ignored
         return self
 
-    def _check_y(self, y, n_cases):
-        if y is None:
-            return None
-        # Check y valid input for collection transformations
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise TypeError(
-                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
-        # Check matching number of labels
-        n_labels = y.shape[0]
-        if n_cases != n_labels:
-            raise ValueError(
-                f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
-                f"{n_labels}"
-            )
+
+def _check_y(self, y, n_cases):
+    if y is None:
+        return None
+    # Check y valid input for collection transformations
+    if not isinstance(y, (pd.Series, np.ndarray)):
+        raise TypeError(
+            f"y must be a np.array or a pd.Series, but found type: {type(y)}"
+        )
+    if isinstance(y, np.ndarray) and y.ndim > 1:
+        raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+    # Check matching number of labels
+    n_labels = y.shape[0]
+    if n_cases != n_labels:
+        raise ValueError(
+            f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
+            f"{n_labels}"
+        )

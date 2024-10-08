@@ -14,7 +14,9 @@ contains algorithms and tools for time series segmentation.
     :template: class.rst
 
     BaseSegmenter
-    ClaSPSegmentater
+    BinSegmenter
+    ClaSPSegmenter
+    FLUSSSegmenter
     InformationGainSegmenter
     GreedyGaussianSegmenter
     DummySegmenter

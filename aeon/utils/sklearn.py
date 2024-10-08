@@ -7,9 +7,9 @@ from sklearn.base import ClassifierMixin, ClusterMixin, RegressorMixin, Transfor
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 
-from aeon.base import BaseObject
-
 __maintainer__ = []
+
+from aeon.base import BaseEstimator
 
 
 def is_sklearn_estimator(obj):
@@ -27,7 +27,7 @@ def is_sklearn_estimator(obj):
         obj = type(obj)
 
     is_in_sklearn = issubclass(obj, SklearnBaseEstimator)
-    is_in_aeon = issubclass(obj, BaseObject)
+    is_in_aeon = issubclass(obj, BaseEstimator)
 
     is_sklearn_est = is_in_sklearn and not is_in_aeon
     return is_sklearn_est
@@ -65,6 +65,12 @@ def sklearn_estimator_identifier(obj, var_name="obj"):
     """
     if not is_sklearn_estimator(obj):
         raise TypeError(f"{var_name} is not an sklearn estimator, has type {type(obj)}")
+    # deal with sklearn pipelines: type is determined by the last element
+    if isinstance(obj, Pipeline) or hasattr(obj, "steps"):
+        obj = obj.steps[-1][1]
+    # deal with generic composites: type is type of wrapped "estimator"
+    if isinstance(obj, (GridSearchCV, RandomizedSearchCV)) or hasattr(obj, "estimator"):
+        obj = obj.estimator
 
     # first check whether obj class inherits from sklearn mixins
     sklearn_mixins = tuple(mixin_to_identifier.keys())
@@ -77,14 +83,6 @@ def sklearn_estimator_identifier(obj, var_name="obj"):
         for mx in sklearn_mixins:
             if issubclass(obj_class, mx):
                 return mixin_to_identifier[mx]
-
-    # deal with sklearn pipelines: type is determined by the last element
-    if isinstance(obj, Pipeline) or hasattr(obj, "steps"):
-        return sklearn_estimator_identifier(obj.steps[-1][1], var_name=var_name)
-
-    # deal with generic composites: type is type of wrapped "estimator"
-    if isinstance(obj, (GridSearchCV, RandomizedSearchCV)) or hasattr(obj, "estimator"):
-        return sklearn_estimator_identifier(obj.estimator, var_name=var_name)
 
     # fallback - estimator of indeterminate type
     return "estimator"

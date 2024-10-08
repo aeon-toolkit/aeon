@@ -14,10 +14,9 @@ pd-multiindex : pd.DataFrame with multi-index,
 For the seven supported, this gives 42 different converters.
 Rather than using them directly, we recommend using the conversion function
 convert_collection.
-Legacy code supported "dask_panel" but it is not actually used anywhere; thus, removed.
 """
 
-from typing import Sequence
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
@@ -155,7 +154,7 @@ def _from_numpy3d_to_nested_univ(X):
     n_cases, n_channels, n_timepoints = X.shape
     array_type = X.dtype
     container = pd.Series
-    column_names = [f"var_{i}" for i in range(n_channels)]
+    column_names = [f"channel_{i}" for i in range(n_channels)]
     column_list = []
     for j, column in enumerate(column_names):
         nested_column = (
@@ -549,8 +548,8 @@ def convert_collection(X, output_type):
         X is list but not of np.ndarray or pd.DataFrame
         X is a pd.DataFrame of non float primitives
 
-    Example
-    -------
+    Examples
+    --------
     >>> from aeon.utils.conversion import convert_collection
     >>> from aeon.utils.validation import get_type
     >>> X=convert_collection(np.zeros(shape=(10, 3, 20)), "np-list")
@@ -573,8 +572,8 @@ def convert_collection(X, output_type):
 def resolve_equal_length_inner_type(inner_types: Sequence[str]) -> str:
     """Hierarchy of preference for internal supported types for equal length.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     inner_types: Sequence[str]
         The inner types to be resolved to a single type.
     """
@@ -601,8 +600,8 @@ def resolve_equal_length_inner_type(inner_types: Sequence[str]) -> str:
 def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
     """Hierarchy of preference for internal supported types for unequal length.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
     inner_types: Sequence[str]
         The inner types to be resolved to a single type.
     """

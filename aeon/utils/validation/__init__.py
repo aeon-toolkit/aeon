@@ -1,5 +1,7 @@
 """Validation and checking functions for time series."""
 
+from typing import Optional
+
 __all__ = [
     "is_int",
     "is_float",
@@ -23,8 +25,6 @@ __all__ = [
     "is_collection",
     "is_tabular",
     "is_hierarchical",
-    "is_valid_input",
-    "validate_input",
 ]
 
 import os
@@ -34,7 +34,6 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from aeon.utils.validation._input import is_valid_input, validate_input
 from aeon.utils.validation.collection import (
     get_n_cases,
     get_type,
@@ -193,7 +192,7 @@ def check_n_jobs(n_jobs: int) -> int:
 
 def check_window_length(
     window_length: ACCEPTED_WINDOW_LENGTH_TYPES,
-    n_timepoints: int = None,
+    n_timepoints: Optional[int] = None,
     name: str = "window_length",
 ) -> NON_FLOAT_WINDOW_LENGTH_TYPES:
     """Validate window length.
@@ -207,7 +206,7 @@ def check_window_length(
         - If float, the fraction of time points relative to `n_timepoints`.
         - If timedelta, length in corresponding time units
         - If pd.DateOffset, length in corresponding time units following calendar rules
-    n_timepoints: positive int, optional (default=None)
+    n_timepoints: positive int, default=None
         The number of time points to which to apply `window_length` when
         passed as a float (fraction). Will be ignored if `window_length` is
         an integer.

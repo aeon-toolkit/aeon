@@ -1,5 +1,7 @@
 """Base class for clustering."""
 
+from typing import Optional
+
 __maintainer__ = []
 __all__ = ["BaseClusterer"]
 
@@ -22,7 +24,11 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         Number of clusters for model.
     """
 
-    def __init__(self, n_clusters: int = None):
+    _tags = {
+        "fit_is_empty": False,
+    }
+
+    def __init__(self, n_clusters: Optional[int] = None):
         self.n_clusters = n_clusters
         # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV
@@ -84,29 +90,9 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             belongs to.
         """
         self.check_is_fitted()
-        X = self._preprocess_collection(X)
+        X = self._preprocess_collection(X, store_metadata=False)
+        self._check_shape(X)
         return self._predict(X)
-
-    def fit_predict(self, X, y=None) -> np.ndarray:
-        """Compute cluster centers and predict cluster index for each time series.
-
-        Convenience method; equivalent of calling fit(X) followed by predict(X)
-
-        Parameters
-        ----------
-        X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
-            (n_cases, n_channels, n_timepoints)).
-            Time series instances to train clusterer and then have indexes each belong
-            to return.
-        y: ignored, exists for API consistency reasons.
-
-        Returns
-        -------
-        np.ndarray (1d array of shape (n_cases,))
-            Index of the cluster each time series in X belongs to.
-        """
-        self.fit(X)
-        return self.predict(X)
 
     @final
     def predict_proba(self, X) -> np.ndarray:
@@ -136,8 +122,30 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
         self.check_is_fitted()
-        X = self._preprocess_collection(X)
+        X = self._preprocess_collection(X, store_metadata=False)
+        self._check_shape(X)
         return self._predict_proba(X)
+
+    def fit_predict(self, X, y=None) -> np.ndarray:
+        """Compute cluster centers and predict cluster index for each time series.
+
+        Convenience method; equivalent of calling fit(X) followed by predict(X)
+
+        Parameters
+        ----------
+        X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
+            (n_cases, n_channels, n_timepoints)).
+            Time series instances to train clusterer and then have indexes each belong
+            to return.
+        y: ignored, exists for API consistency reasons.
+
+        Returns
+        -------
+        np.ndarray (1d array of shape (n_cases,))
+            Index of the cluster each time series in X belongs to.
+        """
+        self.fit(X)
+        return self.predict(X)
 
     def score(self, X, y=None) -> float:
         """Score the quality of the clusterer.
@@ -156,7 +164,8 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             Score of the clusterer.
         """
         self.check_is_fitted()
-        X = self._preprocess_collection(X)
+        X = self._preprocess_collection(X, store_metadata=False)
+        self._check_shape(X)
         return self._score(X, y)
 
     def _predict_proba(self, X) -> np.ndarray:
@@ -186,6 +195,9 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
         preds = self._predict(X)
+        unique = np.unique(preds)
+        for i, u in enumerate(unique):
+            preds[preds == u] = i
         n_cases = len(preds)
         n_clusters = self.n_clusters
         if n_clusters is None:

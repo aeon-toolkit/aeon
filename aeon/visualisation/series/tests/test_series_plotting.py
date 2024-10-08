@@ -7,10 +7,15 @@ import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation._legacy import make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.validation.series import VALID_DATA_TYPES
-from aeon.visualisation import plot_correlations, plot_lags, plot_series
+from aeon.visualisation import (
+    plot_correlations,
+    plot_lags,
+    plot_series,
+    plot_spectrogram,
+)
 
 y_airline = load_airline()
 y_airline_true = y_airline.iloc[y_airline.index < "1960-01"]
@@ -102,19 +107,15 @@ def test_plot_series_multiple_series():
     reason="skip test if required soft dependency not available",
 )
 @pytest.mark.parametrize("series_to_plot", invalid_input_types)
-def test_plot_series_invalid_input_type_raises_error(series_to_plot, valid_data_types):
+def test_plot_series_invalid_input_type_raises_error(series_to_plot):
     """Tests whether plot_series raises error for invalid input types."""
     series_type = type(series_to_plot)
 
     if not isinstance(series_to_plot, (pd.Series, pd.DataFrame)):
-        match = (
-            rf"input must be a one of {valid_data_types}, but found type: {series_type}"
-        )
-        with pytest.raises((TypeError), match=re.escape(match)):
+        with pytest.raises((TypeError), match=f"found type: {series_type}"):
             _plot_series(series_to_plot)
     else:
-        match = "input must be univariate, but found 2 variables."
-        with pytest.raises(ValueError, match=match):
+        with pytest.raises(ValueError, match="input must be univariate"):
             _plot_series(series_to_plot)
 
 
@@ -316,3 +317,27 @@ def test_plot_correlations_arguments(series_to_plot, lags):
     )
     plt.gcf().canvas.draw_idle()
     plt.close()
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["matplotlib"], severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+def test_plot_spectrogram():
+    """Tests whether plot_spectrogram run with the given inputs or not."""
+    import matplotlib
+    import matplotlib.pyplot as plt
+
+    matplotlib.use("Agg")
+    fig, ax = plot_spectrogram(y_airline, fs=1)
+    plt.gcf().canvas.draw_idle()
+    plt.close()
+
+    assert fig is not None
+    assert ax is not None
+
+    fig, ax = plot_spectrogram(y_airline, fs=1, return_onesided=False)
+    plt.gcf().canvas.draw_idle()
+    plt.close()
+    assert fig is not None
+    assert ax is not None

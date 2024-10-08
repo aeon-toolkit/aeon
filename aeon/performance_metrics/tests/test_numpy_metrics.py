@@ -7,11 +7,11 @@ import pandas as pd
 import pytest
 
 from aeon.performance_metrics.forecasting import _functions
-from aeon.testing.utils.data_gen import make_series
+from aeon.testing.data_generation._legacy import make_series
 
 numpy_metrics = getmembers(_functions, isfunction)
 
-exclude_starts_with = ("_", "check", "gmean")
+exclude_starts_with = ("_", "check", "gmean", "weighted_geometric_mean")
 numpy_metrics = [x for x in numpy_metrics if not x[0].startswith(exclude_starts_with)]
 
 names, metrics = zip(*numpy_metrics)

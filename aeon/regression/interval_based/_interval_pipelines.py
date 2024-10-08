@@ -75,7 +75,7 @@ class RandomIntervalRegressor(BaseRegressor):
     --------
     >>> from aeon.regression.interval_based import RandomIntervalRegressor
     >>> from sklearn.ensemble import RandomForestRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -87,8 +87,8 @@ class RandomIntervalRegressor(BaseRegressor):
     >>> reg.fit(X, y)
     RandomIntervalRegressor(...)
     >>> reg.predict(X)
-    array([0.90900147, 1.22266619, 0.99984114, 1.57550709, 0.39709955,
-           0.67621779, 0.76843601, 1.37005789, 1.58521712, 0.31683308])
+    array([0.70148208, 1.22266619, 0.73353397, 1.57550709, 0.46036267,
+           0.67770987, 1.11890876, 1.37005789, 1.35438452, 0.31683308])
     """
 
     _tags = {

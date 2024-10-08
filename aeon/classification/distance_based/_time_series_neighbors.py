@@ -5,8 +5,12 @@ The class can take callables or uses string references to utilise the numba base
 distances in aeon.distances.
 """
 
+from typing import Optional
+
 __maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
+
+from typing import Callable, Union
 
 import numpy as np
 
@@ -26,8 +30,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     Parameters
     ----------
-    n_neighbors : int, default =1
-        k for knn.
+    n_neighbors : int, default = 1
+        Set k for knn.
     weights : str or callable, default = 'uniform'
         Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
         function.
@@ -69,12 +73,12 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     def __init__(
         self,
-        distance="dtw",
-        distance_params=None,
-        n_neighbors=1,
-        weights="uniform",
-        n_jobs=1,
-    ):
+        distance: Union[str, Callable] = "dtw",
+        distance_params: Optional[dict] = None,
+        n_neighbors: int = 1,
+        weights: Union[str, Callable] = "uniform",
+        n_jobs: int = 1,
+    ) -> None:
         self.distance = distance
         self.distance_params = distance_params
         self.n_neighbors = n_neighbors
@@ -94,7 +98,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
-        """Fit the model using X as training data and y as target values.
+        """
+        Fit the model using X as training data and y as target values.
 
         Parameters
         ----------
@@ -111,7 +116,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return self
 
     def _predict_proba(self, X):
-        """Return probability estimates for the provided data.
+        """
+        Return probability estimates for the provided data.
 
         Parameters
         ----------
@@ -141,15 +147,15 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return preds
 
     def _predict(self, X):
-        """Predict the class labels for the provided data.
+        """
+        Predict the class labels for the provided data.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
         shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-                If the series are all equal length, a numpy3D will be passed. If
-                unequal, a list of 2D numpy arrays is passed, which may have
-                different lengths.
+        If the series are all equal length, a numpy3D will be passed. If unequal, a list
+        of 2D numpy arrays is passed, which may have different lengths.
 
         Returns
         -------
@@ -171,7 +177,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return preds
 
     def _kneighbors(self, X):
-        """Find the K-neighbors of a point.
+        """
+        Find the K-neighbors of a point.
 
         Returns indices and weights of each point.
 
@@ -204,8 +211,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         if self.weights == "distance":
             ws = distances[closest_idx]
-            ws = ws**2
-
             # Using epsilon ~= 0 to avoid division by zero
             ws = 1 / (ws + np.finfo(float).eps)
         elif self.weights == "uniform":
@@ -216,7 +221,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

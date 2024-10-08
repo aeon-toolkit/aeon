@@ -1,3 +1,7 @@
+"""SAST Transformer."""
+
+from typing import Optional, Union
+
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
@@ -7,7 +11,7 @@ from aeon.utils.validation import check_n_jobs
 
 
 @njit(fastmath=False)
-def _apply_kernel(ts, arr):
+def _apply_kernel(ts: np.ndarray, arr: np.ndarray) -> float:
     d_best = np.inf  # sdist
     m = ts.shape[0]
     kernel = arr[~np.isnan(arr)]  # ignore nan
@@ -22,7 +26,7 @@ def _apply_kernel(ts, arr):
 
 
 @njit(parallel=True, fastmath=True)
-def _apply_kernels(X, kernels):
+def _apply_kernels(X: np.ndarray, kernels: np.ndarray) -> np.ndarray:
     nbk = len(kernels)
     out = np.zeros((X.shape[0], nbk), dtype=np.float32)
     for i in prange(nbk):
@@ -58,8 +62,8 @@ class SAST(BaseCollectionTransformer):
         Number of threads to use for the transform.
         The available cpu count is used if this value is less than 1
 
-    Reference
-    ---------
+    References
+    ----------
     .. [1] Mbouopda, Michael Franklin, and Engelbert Mephu Nguifo.
     "Scalable and accurate subsequence transform for time series classification."
     Pattern Recognition 147 (2023): 110121.
@@ -83,16 +87,16 @@ class SAST(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": False,
-        "algorithm_type": "subsequence",
+        "algorithm_type": "shapelet",
     }
 
     def __init__(
         self,
-        lengths=None,
-        stride=1,
-        nb_inst_per_class=1,
-        seed=None,
-        n_jobs=-1,
+        lengths: Optional[np.ndarray] = None,
+        stride: int = 1,
+        nb_inst_per_class: int = 1,
+        seed: Optional[int] = None,
+        n_jobs: int = 1,  # Parallel processing
     ):
         super().__init__()
         self.lengths = lengths
@@ -104,7 +108,7 @@ class SAST(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.seed = seed
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "SAST":
         """Select reference time series and generate subsequences from them.
 
         Parameters
@@ -114,8 +118,8 @@ class SAST(BaseCollectionTransformer):
         y: array-like or list
             The class values for X.
 
-        Return
-        ------
+        Returns
+        -------
         self : SAST
             This transformer
 
@@ -171,7 +175,9 @@ class SAST(BaseCollectionTransformer):
                     k += 1
         return self
 
-    def _transform(self, X, y=None):
+    def _transform(
+        self, X: np.ndarray, y: Optional[Union[np.ndarray, list]] = None
+    ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 
         Parameters
@@ -181,8 +187,8 @@ class SAST(BaseCollectionTransformer):
         y: array-like or list
             Ignored argument, interface compatibility
 
-        Return
-        ------
+        Returns
+        -------
         X_transformed: np.ndarray shape (n_cases, n_timepoints),
             The transformed data
         """

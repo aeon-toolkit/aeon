@@ -1,6 +1,6 @@
 """Encoder Regressor."""
 
-__author__ = ["AnonymousCodes911"]
+__author__ = ["AnonymousCodes911", "hadifawaz1999"]
 __all__ = ["EncoderRegressor"]
 
 import gc
@@ -54,6 +54,8 @@ class EncoderRegressor(BaseDeepRegressor):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file.
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -62,16 +64,27 @@ class EncoderRegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded.
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     n_epochs:
         The number of times the entire training dataset
         will be passed forward and backward
         through the neural network.
-    random_state : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     loss:
         The loss function to use for training.
-    metrics:
-        The evaluation metrics to use during training.
+    metrics: str or list of str, default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     use_bias:
         Whether to use bias in the dense layers.
     optimizer:
@@ -93,7 +106,7 @@ class EncoderRegressor(BaseDeepRegressor):
     """
 
     _tags = {
-        "python_dependencies": ["tensorflow", "tensorflow_addons"],
+        "python_dependencies": ["tensorflow"],
     }
 
     def __init__(
@@ -113,11 +126,13 @@ class EncoderRegressor(BaseDeepRegressor):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         verbose=False,
         loss="mean_squared_error",
-        metrics=None,
+        metrics="mean_squared_error",
         use_bias=True,
         optimizer=None,
         random_state=None,
@@ -136,7 +151,9 @@ class EncoderRegressor(BaseDeepRegressor):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.n_epochs = n_epochs
         self.verbose = verbose
         self.loss = loss
@@ -178,14 +195,12 @@ class EncoderRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
-
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
@@ -202,7 +217,7 @@ class EncoderRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -225,10 +240,16 @@ class EncoderRegressor(BaseDeepRegressor):
 
         # Transpose X to conform to Keras input style
         X = X.transpose(0, 2, 1)
-        check_random_state(self.random_state)
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
+
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
 
         if self.verbose:
             self.training_model_.summary()
@@ -237,17 +258,20 @@ class EncoderRegressor(BaseDeepRegressor):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         self.history = self.training_model_.fit(
             X,

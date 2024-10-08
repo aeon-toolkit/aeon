@@ -20,6 +20,7 @@ Deep learning
 
     BaseDeepClusterer
     AEFCNClusterer
+    AEResNetClusterer
 
 Clustering Algorithms
 ---------------------
@@ -33,6 +34,7 @@ Clustering Algorithms
     TimeSeriesKMeans
     TimeSeriesKMedoids
     TimeSeriesKShapes
+    TimeSeriesKShape
     TimeSeriesKernelKMeans
     TimeSeriesCLARA
     TimeSeriesCLARANS

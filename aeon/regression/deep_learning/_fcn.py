@@ -1,6 +1,6 @@
-"""Fully Convolutional Network (FCN) for regression."""
+"""Fully Convolutional Network (FCN) regressor."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["FCNRegressor"]
 
 import gc
@@ -43,15 +43,24 @@ class FCNRegressor(BaseDeepRegressor):
         the number of samples per gradient update.
     use_mini_batch_size : bool, default = False,
         whether or not to use the mini batch size formula
-    random_state    : int or None, default=None
-        Seed for random number generation.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     verbose         : boolean, default = False
         whether to output extra information
     output_activation   : str, default = "linear",
         the output activation of the regressor
     loss            : string, default="mean_squared_error"
         fit parameter for the keras model
-    metrics         : list of strings, default=["accuracy"],
+    metrics         : list of strings, default="mean_squared_error",
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     optimizer       : keras.optimizers object, default = Adam(lr=0.01)
         specify the optimizer and the learning rate to be used.
     file_path       : str, default = "./"
@@ -66,6 +75,8 @@ class FCNRegressor(BaseDeepRegressor):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name      : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -74,6 +85,9 @@ class FCNRegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     callbacks       : keras.callbacks, default = None
 
     Notes
@@ -89,7 +103,7 @@ class FCNRegressor(BaseDeepRegressor):
     Examples
     --------
     >>> from aeon.regression.deep_learning import FCNRegressor
-    >>> from aeon.testing.utils.data_gen import make_example_3d_numpy
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
@@ -110,8 +124,10 @@ class FCNRegressor(BaseDeepRegressor):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         n_epochs=2000,
         batch_size=16,
         use_mini_batch_size=False,
@@ -119,7 +135,7 @@ class FCNRegressor(BaseDeepRegressor):
         verbose=False,
         output_activation="linear",
         loss="mse",
-        metrics=None,
+        metrics="mean_squared_error",
         random_state=None,
         use_bias=True,
         optimizer=None,
@@ -144,7 +160,9 @@ class FCNRegressor(BaseDeepRegressor):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
 
         self.history = None
 
@@ -178,14 +196,12 @@ class FCNRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
-
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
@@ -201,7 +217,7 @@ class FCNRegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -224,11 +240,16 @@ class FCNRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        check_random_state(self.random_state)
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
+
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
 
         if self.verbose:
             self.training_model_.summary()
@@ -242,8 +263,8 @@ class FCNRegressor(BaseDeepRegressor):
             self.best_file_name if self.save_best_model else str(time.time_ns())
         )
 
-        self.callbacks_ = (
-            [
+        if self.callbacks is None:
+            self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
@@ -253,9 +274,12 @@ class FCNRegressor(BaseDeepRegressor):
                     save_best_only=True,
                 ),
             ]
-            if self.callbacks is None
-            else self.callbacks
-        )
+        else:
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         self.history = self.training_model_.fit(
             X,
