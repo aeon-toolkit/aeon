@@ -1,6 +1,6 @@
 """Implemenents Yeo-Johnson Transformation."""
 
-__maintainer__ = [Alex Banwell]
+__maintainer__ = ["Alex Banwell"]
 __all__ = ["YeoJohnsonTransformer"]
 
 from scipy.stats import yeojohnson, yeojohnson_normmax
