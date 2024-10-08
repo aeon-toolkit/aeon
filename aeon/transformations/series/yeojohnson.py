@@ -3,7 +3,9 @@
 __maintainer__ = []
 __all__ = ["YeoJohnsonTransformer"]
 
-from scipy.stats import yeojohnson, yeojohnson_normmax
+import numpy as np
+from numba import njit
+from scipy.stats import yeojohnson_normmax
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
@@ -24,6 +26,9 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
     bounds : tuple
         Lower and upper bounds used to restrict the feasible range
         when solving for the value of lambda.
+    lambda_ : float
+        The Yeo-Johnson lambda parameter. If not supplied, it is solved for based
+        on the data provided in `fit`.
 
     Attributes
     ----------
@@ -73,7 +78,7 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = YeoJohnsonTransformer()
-    >>> y_hat = transformer.fit_transform(y)
+    >>> y_hat = transformer.fit_torm(y)
     """
 
     # tag values specific to SeriesTransformers
@@ -90,9 +95,10 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
         "capability:inverse_transform": False,
     }
 
-    def __init__(self, bounds=None):
+    def __init__(self, lambda_=None, bounds=None):
         self.bounds = bounds
-        super().__init__()
+        self.lambda_ = lambda_
+        super().__init__(axis=1)
 
     def _fit(self, X, y=None):
         """
@@ -111,8 +117,9 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
         -------
         self: a fitted instance of the estimator
         """
-        X = X.flatten()
-        self.lambda_ = yeojohnson_normmax(X, brack=self.bounds)
+        if self.lambda_ is None:
+            X = X.flatten()
+            self.lambda_ = yeojohnson_normmax(X, brack=self.bounds)
         return self
 
     def _transform(self, X, y=None):
@@ -132,7 +139,22 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
         Xt : 2D np.ndarray
             transformed version of X
         """
-        X_shape = X.shape
-        Xt = yeojohnson(X.flatten(), self.lambda_)
-        Xt = Xt.reshape(X_shape)
-        return Xt
+        return _yeo_johnson_transform(X, self.lambda_)
+
+
+@njit
+def _yeo_johnson_transform(X, lambda_):
+    X_shape = X.shape
+    Xt = X.flatten()
+    X_gte_0 = Xt >= 0
+    X_lt_0 = Xt < 0
+    if lambda_ != 0:
+        Xt[X_gte_0] = (np.power(Xt[X_gte_0] + 1, lambda_) - 1) / lambda_
+    elif lambda_ == 0:
+        Xt[X_gte_0] = np.log(Xt[X_gte_0] + 1)
+    if lambda_ != 2:
+        Xt[X_lt_0] = -(np.power(-Xt[X_lt_0] + 1, 2 - lambda_) - 1) / (2 - lambda_)
+    elif lambda_ == 2:
+        Xt[X_lt_0] = -np.log(-Xt[X_lt_0] + 1)
+    Xt = Xt.reshape(X_shape)
+    return Xt

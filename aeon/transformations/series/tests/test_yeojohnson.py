@@ -17,6 +17,5 @@ def test_yeojohnson_against_scipy():
     actual = t.fit_transform(y)
 
     excepted, expected_lambda = yeojohnson(y.values)
-
-    np.testing.assert_array_equal(actual, excepted)
+    np.testing.assert_almost_equal(actual, excepted, decimal=12)
     assert t.lambda_ == expected_lambda
