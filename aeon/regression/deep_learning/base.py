@@ -129,7 +129,7 @@ class BaseDeepRegressor(BaseRegressor, ABC):
         import tensorflow as tf
 
         self.model_ = tf.keras.models.load_model(model_path)
-        self._is_fitted = True
+        self.is_fitted = True
 
     def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
         import tensorflow as tf

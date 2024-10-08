@@ -72,7 +72,6 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
 
     def __init__(self, axis, n_segments=2):
         self.n_segments = n_segments
-        self._is_fitted = False
 
         super().__init__(axis=axis)
 
@@ -107,7 +106,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
             Fitted estimator
         """
         if self.get_class_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self
         if self.get_class_tag("requires_y"):
             if y is None:
@@ -120,7 +119,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         if y is not None:
             y = self._check_y(y)
         self._fit(X=X, y=y)
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final

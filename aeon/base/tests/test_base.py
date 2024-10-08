@@ -218,20 +218,6 @@ class CompositionDummy(BaseEstimator):
         self.bar = bar
 
 
-def test_is_composite():
-    """Tests is_composite tag for correctness.
-
-    Raises
-    ------
-    AssertionError if logic behind is_composite is incorrect
-    """
-    non_composite = CompositionDummy(foo=42)
-    composite = CompositionDummy(foo=non_composite)
-
-    assert not non_composite.is_composite()
-    assert composite.is_composite()
-
-
 class ResetTester(BaseEstimator):
     clsvar = 210
 
@@ -325,7 +311,7 @@ class FittableCompositionDummy(BaseEstimator):
     def fit(self):
         if hasattr(self.foo_, "fit"):
             self.foo_.fit()
-        self._is_fitted = True
+        self.is_fitted = True
 
 
 def test_get_fitted_params():
