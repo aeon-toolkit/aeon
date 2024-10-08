@@ -83,6 +83,9 @@ class BoxCoxTransformer(BaseTransformer):
     LogTransformer :
         Transformer input data using natural log. Can help normalize data and
         compress variance of the series.
+    aeon.transformations.series.yeojohnson.YeoJohnsonTransformer :
+        Yeo-Johnson is a power transformation that is used to make data more
+        normally distributed and stabilize its variance.
     aeon.transformations.exponent.ExponentTransformer :
         Transform input data by raising it to an exponent. Can help compress
         variance of series if a fractional exponent is supplied.
