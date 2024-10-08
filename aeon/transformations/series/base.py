@@ -59,7 +59,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self
         if self.get_tag("requires_y"):
             if y is None:
@@ -70,7 +70,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         if y is not None:
             self._check_y(y)
         self._fit(X=X, y=y)
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -140,7 +140,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         self.reset()
         X = self._preprocess_series(X, axis=axis, store_metadata=True)
         Xt = self._fit_transform(X=X, y=y)
-        self._is_fitted = True
+        self.is_fitted = True
         return self._postprocess_series(Xt, axis=axis)
 
     @final

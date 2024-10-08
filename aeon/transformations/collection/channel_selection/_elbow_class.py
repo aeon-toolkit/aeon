@@ -288,7 +288,6 @@ class ElbowClassSum(BaseChannelSelector):
         self.distance = distance
         self.mean_center = mean_center
         self.prototype_type = prototype_type
-        self._is_fitted = False
 
         super().__init__()
 
@@ -321,7 +320,6 @@ class ElbowClassSum(BaseChannelSelector):
 
         self.channels_selected_.extend(_detect_knee_point(distance, indices))
         self.rank = self.channels_selected_
-        self._is_fitted = True
 
         return self
 
@@ -400,7 +398,6 @@ class ElbowClassPairwise(BaseChannelSelector):
         self.distance = distance
         self.prototype_type = prototype_type
         self.mean_center = mean_center
-        self._is_fitted = False
 
         super().__init__()
 
@@ -438,7 +435,7 @@ class ElbowClassPairwise(BaseChannelSelector):
 
         self.rank = self._rank()
         self.channels_selected_ = list(set(self.channels_selected_))
-        self._is_fitted = True
+
         return self
 
     def _rank(self) -> list[int]:

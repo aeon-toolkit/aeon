@@ -120,7 +120,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         self._fit(X, y)
         self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     def predict(self, X) -> tuple[np.ndarray, np.ndarray]:
