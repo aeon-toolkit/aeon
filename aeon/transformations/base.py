@@ -16,7 +16,7 @@ class BaseTransformer(BaseAeonEstimator, ABC):
         "fit_is_empty": False,
         "capability:inverse_transform": False,
         "capability:missing_values": False,
-        "capability:missing_values:removes": False,
+        "removes_missing_values": False,
     }
 
     def __init__(self):
