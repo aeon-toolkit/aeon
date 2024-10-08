@@ -15,7 +15,6 @@ from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_pairwise_distance,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
-from aeon.distances._utils import _convert_to_list, _is_multivariate
 from aeon.distances.elastic import (
     adtw_alignment_path,
     adtw_cost_matrix,
@@ -62,6 +61,8 @@ from aeon.distances.elastic import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
+from aeon.utils.conversion._convert_collection import convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 class DistanceKwargs(TypedDict, total=False):
@@ -435,12 +436,12 @@ def _custom_func_pairwise(
     if dist_func is None:
         raise ValueError("dist_func must be a callable")
 
-    multivariate_conversion = _is_multivariate(X, y)
-    X, _ = _convert_to_list(X, "X", multivariate_conversion)
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    X, _ = convert_collection_to_numba_list(X, "X", multivariate_conversion)
     if y is None:
         # To self
         return _custom_pairwise_distance(X, dist_func, **kwargs)
-    y, _ = _convert_to_list(y, "y", multivariate_conversion)
+    y, _ = convert_collection_to_numba_list(y, "y", multivariate_conversion)
     return _custom_from_multiple_to_multiple_distance(X, y, dist_func, **kwargs)
 
 

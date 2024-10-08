@@ -3,9 +3,8 @@
 import itertools
 
 import numpy as np
-import pytest
 
-from aeon.distances._utils import _is_multivariate, reshape_pairwise_to_multiple
+from aeon.distances._utils import _is_numpy_list_multivariate
 from aeon.distances.elastic._shape_dtw import _pad_ts_edges, _transform_subsequences
 from aeon.testing.data_generation import (
     make_example_2d_numpy_list,
@@ -19,34 +18,6 @@ SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
 UNEQUAL_LENGTH_NOT_SUPPORTED_DISTANCES = ["shift_scale"]
 
 ASYMMETRIC_DISTANCES = ["shift_scale"]
-
-
-def test_incorrect_input():
-    """Test util function incorrect input."""
-    x = np.random.rand(10, 2, 2, 10)
-    y = np.random.rand(10, 2, 10)
-    with pytest.raises(
-        ValueError, match="The matrix provided has more than 3 " "dimensions"
-    ):
-        _make_3d_series(x)
-    with pytest.raises(ValueError, match="x and y must be 1D, 2D, or 3D arrays"):
-        reshape_pairwise_to_multiple(x, x)
-    with pytest.raises(ValueError, match="x and y must be 1D, 2D, or 3D arrays"):
-        reshape_pairwise_to_multiple(x, y)
-
-
-def test_reshape_pairwise_to_multiple():
-    """Test function to reshape pairwise distance to multiple distance."""
-    x = np.random.rand(5, 2, 10)
-    y = np.random.rand(5, 2, 10)
-    x2, y2 = reshape_pairwise_to_multiple(x, y)
-    assert x2.shape == y2.shape == (5, 2, 10)
-    x = np.random.rand(5, 10)
-    y = np.random.rand(5, 10)
-    x2, y2 = reshape_pairwise_to_multiple(x, y)
-    assert x2.shape == y2.shape == (5, 1, 10)
-    y = np.random.rand(5)
-    assert x2.shape == y2.shape == (5, 1, 10)
 
 
 def _make_3d_series(x: np.ndarray) -> np.ndarray:
@@ -154,11 +125,11 @@ def test_is_multvariate():
         x_unequal_multi_2d,
     ]
     for x, y in itertools.product(valid_univariate_formats, repeat=2):
-        assert _is_multivariate(x, y) is False
+        assert _is_numpy_list_multivariate(x, y) is False
 
     for x, y in itertools.product(valid_multivariate_formats, repeat=2):
         try:
-            assert _is_multivariate(x, y) is True
+            assert _is_numpy_list_multivariate(x, y) is True
         except AssertionError as e:
             # If two 2d arrays passed as this function is used for pairwise we assume
             # it isnt two multivariate time series but two collections of univariate.

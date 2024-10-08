@@ -7,7 +7,8 @@ from numba import njit
 from numba.typed import List as NumbaList
 
 from aeon.distances._squared import _univariate_squared_distance, squared_distance
-from aeon.distances._utils import _convert_to_list, _is_multivariate
+from aeon.utils.conversion._convert_collection import convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -124,13 +125,13 @@ def euclidean_pairwise_distance(
            [ 5.19615242,  0.        ,  8.        ],
            [12.12435565,  8.        ,  0.        ]])
     """
-    multivariate_conversion = _is_multivariate(X, y)
-    _X, _ = _convert_to_list(X, "X", multivariate_conversion)
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, _ = convert_collection_to_numba_list(X, "X", multivariate_conversion)
     if y is None:
         # To self
         return _euclidean_pairwise_distance(_X)
 
-    _y, _ = _convert_to_list(y, "y", multivariate_conversion)
+    _y, _ = convert_collection_to_numba_list(y, "y", multivariate_conversion)
     return _euclidean_from_multiple_to_multiple_distance(_X, _y)
 
 

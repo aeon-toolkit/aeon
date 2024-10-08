@@ -1,77 +1,10 @@
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit
 from numba.typed import List as NumbaList
 
 
-@njit(cache=True, fastmath=True)
-def reshape_pairwise_to_multiple(
-    x: np.ndarray, y: np.ndarray
-) -> tuple[np.ndarray, np.ndarray]:
-    """Reshape two collections of time series for pairwise distance computation.
-
-    Parameters
-    ----------
-    x : np.ndarray
-        One or more time series of shape (n_cases, n_channels,
-        n_timepoints) or
-            (n_cases, n_timepoints) or (n_timepoints,).
-    y : np.ndarray
-        One or more time series of shape (m_cases, m_channels, m_timepoints) or
-            (m_cases, m_timepoints) or (m_timepoints,)
-
-    Returns
-    -------
-    np.ndarray,
-        Reshaped x.
-    np.ndarray
-        Reshaped y.
-
-    Raises
-    ------
-    ValueError
-        If x and y are not 1D, 2D or 3D arrays.
-    """
-    if x.ndim == y.ndim:
-        if y.ndim == 3 and x.ndim == 3:
-            return x, y
-        if y.ndim == 2 and x.ndim == 2:
-            _x = x.reshape((x.shape[0], 1, x.shape[1]))
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _x, _y
-        if y.ndim == 1 and x.ndim == 1:
-            _x = x.reshape((1, 1, x.shape[0]))
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _x, _y
-        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-    else:
-        if x.ndim == 3 and y.ndim == 2:
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return x, _y
-        if y.ndim == 3 and x.ndim == 2:
-            _x = x.reshape((x.shape[0], 1, x.shape[1]))
-            return _x, y
-        if x.ndim == 3 and y.ndim == 1:
-            _x = x
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _x, _y
-        if x.ndim == 1 and y.ndim == 3:
-            _x = x.reshape((1, 1, x.shape[0]))
-            _y = y
-            return _x, _y
-        if x.ndim == 2 and y.ndim == 1:
-            _x = x.reshape((x.shape[0], 1, x.shape[1]))
-            _y = y.reshape((1, 1, y.shape[0]))
-            return _x, _y
-        if y.ndim == 2 and x.ndim == 1:
-            _x = x.reshape((1, 1, x.shape[0]))
-            _y = y.reshape((y.shape[0], 1, y.shape[1]))
-            return _x, _y
-        raise ValueError("x and y must be 1D, 2D, or 3D arrays")
-
-
-def _is_multivariate(
+def _is_numpy_list_multivariate(
     x: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
 ) -> bool:
@@ -102,7 +35,7 @@ def _is_multivariate(
             x_dims = x.ndim
             y_dims = y.ndim
             if x_dims < y_dims:
-                return _is_multivariate(y, x)
+                return _is_numpy_list_multivariate(y, x)
 
             if x_dims == 3 and y_dims == 3:
                 if x.shape[1] == 1 and y.shape[1] == 1:
@@ -129,7 +62,7 @@ def _is_multivariate(
             y_dims = y[0].ndim
 
             if x_dims < y_dims:
-                return _is_multivariate(y, x)
+                return _is_numpy_list_multivariate(y, x)
 
             if x_dims == 1 or y_dims == 1:
                 return False
@@ -154,12 +87,12 @@ def _is_multivariate(
                     list_y.append(ndarray_y[i])
             else:
                 list_y = [ndarray_y]
-            return _is_multivariate(list_x, list_y)
+            return _is_numpy_list_multivariate(list_x, list_y)
 
     raise ValueError("The format of you input is not supported.")
 
 
-def _convert_to_list(
+def convert_collection_to_numba_list(
     x: Union[np.ndarray, list[np.ndarray]],
     name: str = "X",
     multivariate_conversion: bool = False,
