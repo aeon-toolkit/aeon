@@ -8,11 +8,11 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._alignment_paths import compute_min_return_path
-from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._ddtw import average_of_slope
 from aeon.distances._utils import _convert_to_list, _is_multivariate
-from aeon.distances._wdtw import _wdtw_cost_matrix, _wdtw_distance
+from aeon.distances.elastic._alignment_paths import compute_min_return_path
+from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
+from aeon.distances.elastic._ddtw import average_of_slope
+from aeon.distances.elastic._wdtw import _wdtw_cost_matrix, _wdtw_distance
 
 
 @njit(cache=True, fastmath=True)

@@ -17,9 +17,11 @@ convert_collection.
 """
 
 from collections.abc import Sequence
+from typing import Union
 
 import numpy as np
 import pandas as pd
+from numba.typed import List as NumbaList
 
 from aeon.utils._data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.collection import (
@@ -617,3 +619,73 @@ def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
         f"Error, no valid inner types for unequal series in {inner_types} "
         f"must be one of np-list, df-list, pd-multiindex or nested_univ"
     )
+
+
+def convert_collection_to_numba_list(
+    x: Union[np.ndarray, list[np.ndarray]],
+    name: str = "X",
+    multivariate_conversion: bool = False,
+) -> NumbaList[np.ndarray]:
+    """Convert input collections to NumbaList format.
+
+    Takes a single or multiple time series and converts them to a list of 2D arrays. If
+    the input is a single time series, it is reshaped to a 2D array as the sole element
+    of a list. If the input is a 2D array of shape (n_cases, n_timepoints), it is
+    reshaped to a list of n_cases 1D arrays with n_timepoints points. A 3D array is
+    converted to a list with n_cases 2D arrays of shape (n_channels, n_timepoints).
+    Lists of 1D arrays are converted to lists of 2D arrays.
+
+    Parameters
+    ----------
+    x : Union[np.ndarray, List[np.ndarray]]
+        One or more time series of shape (n_cases, n_channels, n_timepoints) or
+        (n_cases, n_timepoints) or (n_timepoints,).
+    name : str, optional
+        Name of the variable to be converted for error handling, by default "X".
+    multivariate_conversion : bool, optional
+        Boolean indicating if the conversion should be multivariate, by default False.
+        If True, the input is assumed to be multivariate and reshaped accordingly.
+        If False, the input is reshaped to univariate.
+
+    Returns
+    -------
+    NumbaList[np.ndarray]
+        Numba typedList of 2D arrays with shape (n_channels, n_timepoints) of length
+        n_cases.
+    bool
+        Boolean indicating if the time series is of unequal length. True if the time
+        series are of unequal length, False otherwise.
+
+    Raises
+    ------
+    ValueError
+        If x is not a 1D, 2D or 3D array or a list of 1D or 2D arrays.
+    """
+    if isinstance(x, np.ndarray):
+        if x.ndim == 3:
+            return NumbaList(x), False
+        elif x.ndim == 2:
+            if multivariate_conversion:
+                return NumbaList(x.reshape(1, x.shape[0], x.shape[1])), False
+            return NumbaList(x.reshape(x.shape[0], 1, x.shape[1])), False
+        elif x.ndim == 1:
+            return NumbaList(x.reshape(1, 1, x.shape[0])), False
+        else:
+            raise ValueError(f"{name} must be 1D, 2D or 3D")
+    elif isinstance(x, (list, NumbaList)):
+        x_new = NumbaList()
+        expected_n_timepoints = x[0].shape[-1]
+        unequal_timepoints = False
+        for i in range(len(x)):
+            curr_x = x[i]
+            if curr_x.shape[-1] != expected_n_timepoints:
+                unequal_timepoints = True
+            if x[i].ndim == 2:
+                x_new.append(curr_x)
+            elif x[i].ndim == 1:
+                x_new.append(curr_x.reshape((1, curr_x.shape[0])))
+            else:
+                raise ValueError(f"{name} must include only 1D or 2D arrays")
+        return x_new, unequal_timepoints
+    else:
+        raise ValueError(f"{name} must be either np.ndarray or List[np.ndarray]")

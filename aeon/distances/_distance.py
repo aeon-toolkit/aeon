@@ -5,78 +5,58 @@ from typing import Any, Callable, Optional, TypedDict, Union
 import numpy as np
 from typing_extensions import Unpack
 
-from aeon.distances._adtw import (
-    adtw_alignment_path,
-    adtw_cost_matrix,
-    adtw_distance,
-    adtw_pairwise_distance,
-)
-from aeon.distances._ddtw import (
-    ddtw_alignment_path,
-    ddtw_cost_matrix,
-    ddtw_distance,
-    ddtw_pairwise_distance,
-)
-from aeon.distances._dtw import (
-    dtw_alignment_path,
-    dtw_cost_matrix,
-    dtw_distance,
-    dtw_pairwise_distance,
-)
-from aeon.distances._edr import (
-    edr_alignment_path,
-    edr_cost_matrix,
-    edr_distance,
-    edr_pairwise_distance,
-)
-from aeon.distances._erp import (
-    erp_alignment_path,
-    erp_cost_matrix,
-    erp_distance,
-    erp_pairwise_distance,
-)
 from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
-from aeon.distances._lcss import (
-    lcss_alignment_path,
-    lcss_cost_matrix,
-    lcss_distance,
-    lcss_pairwise_distance,
-)
 from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
 from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
 from aeon.distances._mpdist import mpdist
-from aeon.distances._msm import (
-    msm_alignment_path,
-    msm_cost_matrix,
-    msm_distance,
-    msm_pairwise_distance,
-)
 from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
-from aeon.distances._shape_dtw import (
-    shape_dtw_alignment_path,
-    shape_dtw_cost_matrix,
-    shape_dtw_distance,
-    shape_dtw_pairwise_distance,
-)
 from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_distance,
     shift_scale_invariant_pairwise_distance,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
-from aeon.distances._twe import (
+from aeon.distances._utils import _convert_to_list, _is_multivariate
+from aeon.distances.elastic import (
+    adtw_alignment_path,
+    adtw_cost_matrix,
+    adtw_distance,
+    adtw_pairwise_distance,
+    ddtw_alignment_path,
+    ddtw_cost_matrix,
+    ddtw_distance,
+    ddtw_pairwise_distance,
+    dtw_alignment_path,
+    dtw_cost_matrix,
+    dtw_distance,
+    dtw_pairwise_distance,
+    edr_alignment_path,
+    edr_cost_matrix,
+    edr_distance,
+    edr_pairwise_distance,
+    erp_alignment_path,
+    erp_cost_matrix,
+    erp_distance,
+    erp_pairwise_distance,
+    lcss_alignment_path,
+    lcss_cost_matrix,
+    lcss_distance,
+    lcss_pairwise_distance,
+    msm_alignment_path,
+    msm_cost_matrix,
+    msm_distance,
+    msm_pairwise_distance,
+    shape_dtw_alignment_path,
+    shape_dtw_cost_matrix,
+    shape_dtw_distance,
+    shape_dtw_pairwise_distance,
     twe_alignment_path,
     twe_cost_matrix,
     twe_distance,
     twe_pairwise_distance,
-)
-from aeon.distances._utils import _convert_to_list, _is_multivariate
-from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_cost_matrix,
     wddtw_distance,
     wddtw_pairwise_distance,
-)
-from aeon.distances._wdtw import (
     wdtw_alignment_path,
     wdtw_cost_matrix,
     wdtw_distance,
