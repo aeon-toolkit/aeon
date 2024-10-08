@@ -1,37 +1,4 @@
-"""
-Base class template for estimators.
-
-Interface specifications below.
-
----
-
-Parameter inspection and setter methods
-    inspect parameter values      - get_params()
-    setting parameter values      - set_params(**params)
-    fitted parameter inspection - get_fitted_params()
-
-Tag inspection and setter methods
-    inspect tags (all)            - get_tags()
-    inspect tags (one tag)        - get_tag(tag_name: str, tag_value_default=None)
-    inspect tags (class method)   - get_class_tags()
-    inspect tags (one tag, class) - get_class_tag(tag_name:str, tag_value_default=None)
-    setting dynamic tags          - set_tags(**tag_dict: dict)
-    set/clone dynamic tags        - clone_tags(estimator, tag_names=None)
-
-Blueprinting: resetting and cloning, post-init state with same hyper-parameters
-    reset estimator to post-init  - reset()
-    cloneestimator (copy&reset)   - clone()
-
-Testing with default parameters methods
-    getting default parameters (all sets)         - get_test_params()
-    get one test instance with default parameters - create_test_instance()
-    get list of all test instances plus name list - create_test_instances_and_names()
-
-State:
-    fitted model/strategy   - by convention, any attributes ending in "_"
-    fitted state flag       - is_fitted (property)
-    fitted state check      - check_is_fitted (raises error if not is_fitted)
-"""
+"""Base class template for aeon estimators."""
 
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseEstimator"]
@@ -46,40 +13,72 @@ from sklearn.exceptions import NotFittedError
 
 
 class BaseEstimator(_BaseEstimator):
-    """Base class for defining estimators in aeon."""
+    """
+    Base class for defining estimators in aeon.
+
+    Contains the following methods:
+
+    reset estimator to post-init  - reset(keep)
+    clonee stimator (copy)        - clone(random_state)
+    inspect tags (class method)   - get_class_tags()
+    inspect tags (one tag, class) - get_class_tag(tag_name, tag_value_default,
+                                                                    raise_error)
+    inspect tags (all)            - get_tags()
+    inspect tags (one tag)        - get_tag(tag_name, tag_value_default, raise_error)
+    setting dynamic tags          - set_tags(**tag_dict)
+
+    All estimators have the attribute:
+
+    fitted state flag             - is_fitted
+    """
 
     _tags = {
         "python_version": None,
         "python_dependencies": None,
-        "cant-pickle": False,
-        "non-deterministic": False,
+        "cant_pickle": False,
+        "non_deterministic": False,
         "algorithm_type": None,
         "capability:missing_values": False,
         "capability:multithreading": False,
     }
 
     def __init__(self):
-        self._is_fitted = False  # flag to indicate if fit has been called
+        self.is_fitted = False  # flag to indicate if fit has been called
         self._tags_dynamic = dict()  # storage for dynamic tags
 
         super().__init__()
 
     def reset(self, keep=None):
-        """Reset the object to a clean post-init state.
+        """
+        Reset the object to a clean post-init state.
 
-        Equivalent to sklearn.clone but overwrites self.
-        After ``self.reset()`` call, self is equal in value to
-        ``type(self)(**self.get_params(deep=False))``
+        After a ``self.reset()`` call, self is equal or similar in value to
+        ``type(self)(**self.get_params(deep=False))``, assuming no other attributes
+        were kept using ``keep``.
 
-        Detail behaviour:
-        removes any object attributes, except:
-            hyper-parameters = arguments of ``__init__``
-            object attributes containing double-underscores, i.e., the string "__"
-        runs ``__init__`` with current values of hyper-parameters (result of get_params)
+        Detailed behaviour:
+            removes any object attributes, except:
+                hyper-parameters (arguments of ``__init__``)
+                object attributes containing double-underscores, i.e., the string "__"
+            runs ``__init__`` with current values of hyperparameters (result of
+            get_params)
 
         Not affected by the reset are:
-        object attributes containing double-underscores
-        class and object methods, class attributes
+            object attributes containing double-underscores
+            class and object methods, class attributes
+            any attributes specified in the ``keep`` argument
+
+        Parameters
+        ----------
+        keep : None, str, or list of str, default=None
+            If None, all attributes are removed except hyper-parameters.
+            If str, only the attribute with this name is kept.
+            If list of str, only the attributes with these names are kept.
+
+        Returns
+        -------
+        self
+            Reference to self.
         """
         # retrieve parameters to copy them later
         params = self.get_params(deep=False)
@@ -111,15 +110,23 @@ class BaseEstimator(_BaseEstimator):
 
     def clone(self, random_state=None):
         """
-        Obtain a clone of the object with same hyper-parameters.
+        Obtain a clone of the object with the same hyperparameters.
 
         A clone is a different object without shared references, in post-init state.
-        This function is equivalent to returning sklearn.clone of self.
+        This function is equivalent to returning ``sklearn.clone`` of self.
         Equal in value to ``type(self)(**self.get_params(deep=False))``.
+
+        Parameters
+        ----------
+        random_state : int, RandomState instance, or None, default=None
+            Sets the random state of the clone. If None, the random state is not set.
+            If int, random_state is the seed used by the random number generator.
+            If RandomState instance, random_state is the random number generator.
 
         Returns
         -------
-        instance of ``type(self)``, clone of self (see above)
+        estimator : object
+            Instance of ``type(self)``, clone of self (see above)
         """
         estimator = clone(self)
 
@@ -136,19 +143,18 @@ class BaseEstimator(_BaseEstimator):
         Returns
         -------
         collected_tags : dict
-            Dictionary of tag name : tag value pairs. Collected from _tags
-            class attribute via nested inheritance. NOT overridden by dynamic
-            tags set by set_tags or mirror_tags.
+            Dictionary of tag name and tag value pairs.
+            Collected from ``_tags`` class attribute via nested inheritance.
+            These are not overridden by dynamic tags set by ``set_tags`` or class
+            ``__init__`` calls.
         """
         collected_tags = dict()
 
         # We exclude the last two parent classes: sklearn.base.BaseEstimator and
         # the basic Python object.
         for parent_class in reversed(inspect.getmro(cls)[:-2]):
+            # Need the if here because classes might not have non-default tags
             if hasattr(parent_class, "_tags"):
-                # Need the if here because mixins might not have _more_tags
-                # but might do redundant work in estimators
-                # (i.e. calling more tags on BaseEstimator multiple times)
                 more_tags = parent_class._tags
                 collected_tags.update(more_tags)
 
@@ -170,20 +176,16 @@ class BaseEstimator(_BaseEstimator):
 
         Returns
         -------
-        tag_value :
-            Value of the `tag_name` tag in self. If not found, returns an error if
-            raise_error is True, otherwise it returns `tag_value_default`.
+        tag_value
+            Value of the ``tag_name`` tag in self.
+            If not found, returns an error if raise_error is True, otherwise it
+            returns `tag_value_default`.
 
         Raises
         ------
-        ValueError if raise_error is True i.e. if tag_name is not in self.get_tags(
-        ).keys()
-
-        See Also
-        --------
-        get_tag : Get a single tag from an object.
-        get_tags : Get all tags from an object.
-        get_class_tag : Get a single tag from a class.
+        ValueError
+            if raise_error is ``True`` and ``tag_name`` is not in
+            ``self.get_tags().keys()``
 
         Examples
         --------
@@ -202,41 +204,26 @@ class BaseEstimator(_BaseEstimator):
 
     def get_tags(self):
         """
-        Get tags from estimator class.
+        Get tags from estimator.
 
-        Includes the dynamic tag overrides.
+        Includes dynamic and overridden tags.
 
         Returns
         -------
-        dict
-            Dictionary of tag name : tag value pairs. Collected from _tags
-            class attribute via nested inheritance and then any overrides
-            and new tags from _tags_dynamic object attribute.
-
-        See Also
-        --------
-        get_tag : Get a single tag from an object.
-        get_class_tags : Get all tags from a class.
-        get_class_tag : Get a single tag from a class.
-
-        Examples
-        --------
-        >>> from aeon.classification import DummyClassifier
-        >>> d = DummyClassifier()
-        >>> tags = d.get_tags()
+        collected_tags : dict
+            Dictionary of tag name and tag value pairs.
+            Collected from ``_tags`` class attribute via nested inheritance and
+            then any overridden and new tags from ``__init__`` or ``set_tags``.
         """
         collected_tags = self.get_class_tags()
-
-        if hasattr(self, "_tags_dynamic"):
-            collected_tags.update(self._tags_dynamic)
-
+        collected_tags.update(self._tags_dynamic)
         return deepcopy(collected_tags)
 
     def get_tag(self, tag_name, tag_value_default=None, raise_error=True):
         """
         Get tag value from estimator class.
 
-        Uses dynamic tag overrides.
+        Includes dynamic and overridden tags.
 
         Parameters
         ----------
@@ -249,20 +236,16 @@ class BaseEstimator(_BaseEstimator):
 
         Returns
         -------
-        tag_value :
-            Value of the `tag_name` tag in self. If not found, returns an error if
-            raise_error is True, otherwise it returns `tag_value_default`.
+        tag_value
+            Value of the ``tag_name`` tag in self.
+            If not found, returns an error if raise_error is True, otherwise it
+            returns `tag_value_default`.
 
         Raises
         ------
-        ValueError if raise_error is True i.e. if tag_name is not in self.get_tags(
-        ).keys()
-
-        See Also
-        --------
-        get_tags : Get all tags from an object.
-        get_clas_tags : Get all tags from a class.
-        get_class_tag : Get a single tag from a class.
+        ValueError
+            if raise_error is ``True`` and ``tag_name`` is not in
+            ``self.get_tags().keys()``
 
         Examples
         --------
@@ -287,24 +270,15 @@ class BaseEstimator(_BaseEstimator):
         Parameters
         ----------
         **tag_dict : dict
-            Dictionary of tag name : tag value pairs.
+            Dictionary of tag name and tag value pairs.
 
         Returns
         -------
-        Self :
+        self
             Reference to self.
-
-        Notes
-        -----
-        Changes object state by setting tag values in tag_dict as dynamic tags
-        in self.
         """
         tag_update = deepcopy(tag_dict)
-        if hasattr(self, "_tags_dynamic"):
-            self._tags_dynamic.update(tag_update)
-        else:
-            self._tags_dynamic = tag_update
-
+        self._tags_dynamic.update(tag_update)
         return self
 
     @classmethod
@@ -352,11 +326,7 @@ class BaseEstimator(_BaseEstimator):
             Instance of the class with default parameters. If return_first
             is False, returns list of instances.
         """
-        # todo, update all methods to use parameter_set and remove when done
-        if "parameter_set" in inspect.getfullargspec(cls.get_test_params).args:
-            params = cls.get_test_params(parameter_set=parameter_set)
-        else:
-            params = cls.get_test_params()
+        params = cls.get_test_params(parameter_set=parameter_set)
 
         if isinstance(params, list):
             if return_first:
@@ -368,113 +338,6 @@ class BaseEstimator(_BaseEstimator):
                 return cls(**params)
             else:
                 return [cls(**params)]
-
-    @classmethod
-    def create_test_instances_and_names(cls, parameter_set="default"):
-        """
-        Create list of all test instances and a list of names for them.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-        Returns
-        -------
-        objs : list of instances of cls
-            i-th instance is cls(**cls.get_test_params()[i]).
-        names : list of str, same length as objs
-            i-th element is name of i-th instance of obj in tests
-            convention is {cls.__name__}-{i} if more than one instance
-            otherwise {cls.__name__}.
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-        """
-        if "parameter_set" in inspect.getfullargspec(cls.get_test_params).args:
-            param_list = cls.get_test_params(parameter_set=parameter_set)
-        else:
-            param_list = cls.get_test_params()
-
-        objs = []
-        if not isinstance(param_list, (dict, list)):
-            raise RuntimeError(
-                f"Error in {cls.__name__}.get_test_params, "
-                "return must be param dict for class, or list thereof"
-            )
-        if isinstance(param_list, dict):
-            param_list = [param_list]
-        for params in param_list:
-            if not isinstance(params, dict):
-                raise RuntimeError(
-                    f"Error in {cls.__name__}.get_test_params, "
-                    "return must be param dict for class, or list thereof"
-                )
-            objs += [cls(**params)]
-
-        n_cases = len(param_list)
-        if n_cases > 1:
-            names = [cls.__name__ + "-" + str(i) for i in range(n_cases)]
-        else:
-            names = [cls.__name__]
-
-        return objs, names
-
-    @classmethod
-    def _has_implementation_of(cls, method):
-        """
-        Check if method has a concrete implementation in this class.
-
-        This assumes that having an implementation is equivalent to
-            one or more overrides of `method` in the method resolution order.
-
-        Parameters
-        ----------
-        method : str
-            name of method to check implementation of.
-
-        Returns
-        -------
-        bool, whether method has implementation in cls
-            True if cls.method has been overridden at least once in
-                the inheritance tree (according to method resolution order).
-        """
-        # walk through method resolution order and inspect methods
-        #   of classes and direct parents, "adjacent" classes in mro
-        mro = inspect.getmro(cls)
-        # collect all methods that are not none
-        methods = [getattr(c, method, None) for c in mro]
-        methods = [m for m in methods if m is not None]
-
-        for i in range(len(methods) - 1):
-            # the method has been overridden once iff
-            #  at least two of the methods collected are not equal
-            #  equivalently: some two adjacent methods are not equal
-            overridden = methods[i] != methods[i + 1]
-            if overridden:
-                return True
-
-        return False
-
-    def is_composite(self):
-        """
-        Check if the object is composite.
-
-        A composite object is an object which contains objects, as parameters.
-        Called on an instance, since this may differ by instance.
-
-        Returns
-        -------
-        composite: bool
-            Whether self contains a parameter which is BaseEstimator.
-        """
-        # walk through method resolution order and inspect methods
-        #   of classes and direct parents, "adjacent" classes in mro
-        params = self.get_params(deep=False)
-        composite = any(isinstance(x, BaseEstimator) for x in params.values())
-
-        return composite
 
     def _components(self, base_class=None):
         """
@@ -605,11 +468,6 @@ class BaseEstimator(_BaseEstimator):
         with ZipFile(serial, "r") as file:
             return pickle.loads(file.open("_obj").read())
 
-    @property
-    def is_fitted(self):
-        """Whether ``fit`` has been called."""
-        return self._is_fitted
-
     def check_is_fitted(self):
         """
         Check if the estimator has been fitted.
@@ -679,7 +537,7 @@ class BaseEstimator(_BaseEstimator):
         # add all nested parameters from components that are aeon BaseEstimator
         c_dict = self._components()
         for c, comp in c_dict.items():
-            if isinstance(comp, BaseEstimator) and comp._is_fitted:
+            if isinstance(comp, BaseEstimator) and comp.is_fitted:
                 c_f_params = comp.get_fitted_params()
                 c_f_params = {f"{sh(c)}__{k}": v for k, v in c_f_params.items()}
                 fitted_params.update(c_f_params)
@@ -745,8 +603,21 @@ class BaseEstimator(_BaseEstimator):
         """
         return self._get_fitted_params_default()
 
+    # override some sklearn private methods
+
+    def __sklearn_is_fitted__(self):
+        """Check fitted status and return a Boolean value."""
+        return self.is_fitted
+
+    def _validate_data(self, **kwargs):
+        """Sklearn data validation."""
+        raise NotImplementedError(
+            "aeon estimators do not have a _validate_data method."
+        )
+
 
 def _clone_estimator(base_estimator, random_state=None):
+    """Clone an estimator."""
     estimator = clone(base_estimator)
 
     if random_state is not None:

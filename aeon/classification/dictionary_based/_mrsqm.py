@@ -73,7 +73,7 @@ class MrSQMClassifier(BaseClassifier):
     _tags = {
         "X_inner_type": "numpy3D",
         "algorithm_type": "dictionary",
-        "cant-pickle": True,
+        "cant_pickle": True,
         "python_dependencies": "mrsqm",
     }
 

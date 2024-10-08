@@ -270,7 +270,6 @@ class SFAFast(BaseCollectionTransformer):
 
         self.n_cases, self.n_timepoints = X2.shape
         self.breakpoints = self._binning(X2, y)
-        self._is_fitted = True
 
         words, dfts = _transform_case(
             X2,
@@ -737,10 +736,6 @@ class SFAFast(BaseCollectionTransformer):
             "alphabet_size": 2,
         }
         return params
-
-    def set_fitted(self):
-        """Whether `fit` has been called."""
-        self._is_fitted = True
 
     def __getstate__(self):
         """Return state as dictionary for pickling, required for typed Dict objects."""
