@@ -81,8 +81,8 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
 
     # tag values specific to SeriesTransformers
     _tags = {
-        cabability:univariate: True
-        capability:multivariate: False
+        "capability:univariate": True,
+        "capability:multivariate": False,
     }
 
     def __init__(self, lambda_=None, bounds=None):
