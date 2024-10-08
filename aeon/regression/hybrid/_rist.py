@@ -134,7 +134,7 @@ class RISTRegressor(BaseRIST, BaseRegressor):
     }
 
     @classmethod
-    def get_test_params(cls, parameter_set=None):
+    def get_test_params(cls, parameter_set="default"):
         """Return unit test parameter settings for the estimator.
 
         Parameters

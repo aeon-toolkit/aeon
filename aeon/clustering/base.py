@@ -63,7 +63,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         X = self._preprocess_collection(X)
         self._fit(X)
         self.fit_time_ = int(round(time.time() * 1000)) - _start_time
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final

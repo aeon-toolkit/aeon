@@ -120,7 +120,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
         self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -209,7 +209,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         y_pred = self._fit_predict(X, y)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return y_pred
 
     def score(self, X, y, metric="r2", metric_params=None) -> float:
