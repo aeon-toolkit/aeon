@@ -1,5 +1,6 @@
 """Isolation Forest Adapter for Anomaly Detection."""
 
+__maintainer__ = []
 __all__ = ["IsolationForest"]
 
 from typing import Optional, Union
@@ -14,14 +15,18 @@ class IsolationForest(PyODAdapter):
     """IForest adapter for anomaly detection.
 
     This class implements the Isolation Forest algorithm for anomaly detection
-    using PyODAdadpter to be used in the Aeon framework.
+    using PyODAdadpter to be used in the aeon framework. All parameters are passed to
+    IForest except for `window_size` and `stride`.
+
+    The documentation for parameters has been adapted from the
+    [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id405).
 
     Parameters
     ----------
-    n_estimators : int, optional (default=100)
+    n_estimators : int, default=100
         The number of base estimators in the ensemble.
 
-    max_samples : int or float, optional (default="auto")
+    max_samples : int, float or "auto", default="auto"
         The number of samples to draw from X to train each base estimator.
 
             - If int, then draw `max_samples` samples.
@@ -31,23 +36,23 @@ class IsolationForest(PyODAdapter):
         If max_samples is larger than the number of samples provided,
         all samples will be used for all trees (no sampling).
 
-    contamination : float in (0., 0.5), optional (default=0.1)
+    contamination : float in (0., 0.5), default=0.1
         The amount of contamination of the data set, i.e. the proportion
         of outliers in the data set. Used when fitting to define the threshold
         on the decision function.
 
-    max_features : int or float, optional (default=1.0)
+    max_features : int or float, default=1.0
         The number of features to draw from X to train each base estimator.
 
             - If int, then draw `max_features` features.
             - If float, then draw `max_features * X.shape[1]` features.
 
-    bootstrap : bool, optional (default=False)
+    bootstrap : bool, default=False
         If True, individual trees are fit on random subsets of the training
         data sampled with replacement. If False, sampling without replacement
         is performed.
 
-    n_jobs : integer, optional (default=1)
+    n_jobs : integer, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         If -1, then the number of jobs is set to the number of cores.
 
@@ -60,27 +65,13 @@ class IsolationForest(PyODAdapter):
         dependent on the contamination parameter, in such a way that 0 becomes
         its natural threshold to detect outliers.
 
-        .. versionadded:: 0.7.0
-           ``behaviour`` is added in 0.7.0 for back-compatibility purpose.
-
-        .. deprecated:: 0.20
-           ``behaviour='old'`` is deprecated in sklearn 0.20 and will not be
-           possible in 0.22.
-
-        .. deprecated:: 0.22
-           ``behaviour`` parameter will be deprecated in sklearn 0.22 and
-           removed in 0.24.
-
-        .. warning::
-            Only applicable for sklearn 0.20 above.
-
-    random_state : int, RandomState instance or None, optional (default=None)
+    random_state : int, np.RandomState or None, default=None
         If int, random_state is the seed used by the random number generator;
         If RandomState instance, random_state is the random number generator;
         If None, the random number generator is the RandomState instance used
         by `np.random`.
 
-    verbose : int, optional (default=0)
+    verbose : int, default=0
         Controls the verbosity of the tree building process.
 
     window_size : int, default=10
@@ -105,11 +96,7 @@ class IsolationForest(PyODAdapter):
         window_size: int = 10,
         stride: int = 1,
     ):
-        if not _check_soft_dependencies("pyod", severity="none"):
-            raise ModuleNotFoundError(
-                "pyod is a soft dependency and not included"
-                " in the base aeon installation."
-            )
+        _check_soft_dependencies("pyod")
         from pyod.models.iforest import IForest
 
         model = IForest(
@@ -164,7 +151,7 @@ class IsolationForest(PyODAdapter):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
-            "n_estimators": 100,
+            "n_estimators": 10,
             "max_samples": "auto",
             "contamination": 0.1,
             "max_features": 1.0,

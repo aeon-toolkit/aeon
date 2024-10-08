@@ -143,29 +143,3 @@ def test_iforest_semi_supervised_multivariate():
     assert pred.dtype == np.float_
     assert 50 <= np.argmax(pred) <= 60
     assert hasattr(iforest, "pyod_model")
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("pyod", severity="none"),
-    reason="required soft dependency PyOD not available",
-)
-def test_get_test_params():
-    """Test IsolationForest get_test_params method."""
-    params = IsolationForest.get_test_params()
-    assert isinstance(params, dict)
-
-    expected_dict = {
-        "n_estimators": 100,
-        "max_samples": "auto",
-        "contamination": 0.1,
-        "max_features": 1.0,
-        "bootstrap": False,
-        "n_jobs": 1,
-        "behaviour": "old",
-        "random_state": None,
-        "verbose": 0,
-        "window_size": 10,
-        "stride": 1,
-    }
-
-    assert params == expected_dict
