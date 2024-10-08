@@ -21,6 +21,16 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
     Yeo-Johnson transformation using maximum likelihood estimation,
     on input data provided to `fit`.
 
+    The Yeo-Johnson transformation is defined as :math:`\[
+        \phi(\lambda,y) =
+        \begin{cases}
+        log(y+1) & \text{if $\lambda=0, y\geq0$} \\
+        \frac{(y+1)^\lambda - 1}{\lambda} & \text{if $\lambda\neq0, y\geq0$} \\
+        -log(1-y) & \text{if $\lambda=2, y<0$} \\
+        -\frac{(1-y)^{2-\lambda}-1)}{2-\lambda} & \text{if $\lambda\neq2, y<0$}
+        \end{cases}
+    \]`.
+
     Parameters
     ----------
     bounds : tuple
@@ -55,18 +65,6 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
         Transform input data by taking its square root. Can help compress
         variance of input series.
 
-    Notes
-    -----
-    The Yeo-Johnson transformation is defined as :math:`\[
-    \phi(\lambda,y) =
-    \begin{cases}
-    log(y+1) & \text{if $\lambda=0, y\geq0$} \\
-    \frac{(y+1)^\lambda - 1}{\lambda} & \text{if $\lambda\neq0, y\geq0$} \\
-    -log(1-y) & \text{if $\lambda=2, y<0$} \\
-    -\frac{(1-y)^{2-\lambda}-1)}{2-\lambda} & \text{if $\lambda\neq2, y<0$}
-    \end{cases}
-    \]`.
-
     References
     ----------
     .. [1] Yeo and R.A. Johnson, “A New Family of Power Transformations to
@@ -74,7 +72,7 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.yeojohnson import YeoJohnsonTransformer
+    >>> from aeon.transformations.series._yeojohnson import YeoJohnsonTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = YeoJohnsonTransformer()
@@ -83,16 +81,8 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
 
     # tag values specific to SeriesTransformers
     _tags = {
-        "input_data_type": "Series",
-        "output_data_type": "Series",
-        "instancewise": True,  # is this an instance-wise transform?
-        "X_inner_type": "ndarray",
-        "y_inner_type": "None",
-        "transform-returns-same-time-index": True,
-        "fit_is_empty": False,
-        "univariate-only": True,
-        "requires_y": False,
-        "capability:inverse_transform": False,
+        cabability:univariate: True
+        capability:multivariate: False
     }
 
     def __init__(self, lambda_=None, bounds=None):
@@ -129,7 +119,7 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
 
         Parameters
         ----------
-        X : 2D np.ndarray (n x 1)
+        X : 2D np.ndarray (1 x n_timepoints)
             Data to be transformed
         y : ignored argument for interface compatibility
             Additional data, e.g., labels for transformation

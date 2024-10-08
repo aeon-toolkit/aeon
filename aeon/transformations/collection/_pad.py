@@ -53,7 +53,7 @@ class Padder(BaseCollectionTransformer):
         "fit_is_empty": False,
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "capability:unequal_length:removes": True,
+        "removes_unequal_length": True,
     }
 
     def __init__(self, pad_length=None, fill_value=0):

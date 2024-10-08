@@ -39,7 +39,7 @@ class Truncator(BaseCollectionTransformer):
         "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "capability:unequal_length:removes": True,
+        "removes_unequal_length": True,
     }
 
     def __init__(self, truncated_length=None):

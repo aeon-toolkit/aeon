@@ -52,8 +52,8 @@ FIXTURE_CLASSCHILD = FixtureClassChild
 FIXTURE_CLASSCHILD_TAGS = {
     "python_version": None,
     "python_dependencies": None,
-    "cant-pickle": False,
-    "non-deterministic": False,
+    "cant_pickle": False,
+    "non_deterministic": False,
     "algorithm_type": None,
     "capability:missing_values": False,
     "capability:multithreading": False,
@@ -70,8 +70,8 @@ FIXTURE_OBJECT._tags_dynamic = {"A": 42424241, "B": 3}
 FIXTURE_OBJECT_TAGS = {
     "python_version": None,
     "python_dependencies": None,
-    "cant-pickle": False,
-    "non-deterministic": False,
+    "cant_pickle": False,
+    "non_deterministic": False,
     "algorithm_type": None,
     "capability:missing_values": False,
     "capability:multithreading": False,
@@ -182,8 +182,8 @@ FIXTURE_OBJECT_SET = deepcopy(FIXTURE_OBJECT).set_tags(**FIXTURE_TAG_SET)
 FIXTURE_OBJECT_SET_TAGS = {
     "python_version": None,
     "python_dependencies": None,
-    "cant-pickle": False,
-    "non-deterministic": False,
+    "cant_pickle": False,
+    "non_deterministic": False,
     "algorithm_type": None,
     "capability:missing_values": False,
     "capability:multithreading": False,
@@ -216,20 +216,6 @@ class CompositionDummy(BaseEstimator):
         self.foo = foo
         self.foo_ = deepcopy(foo)
         self.bar = bar
-
-
-def test_is_composite():
-    """Tests is_composite tag for correctness.
-
-    Raises
-    ------
-    AssertionError if logic behind is_composite is incorrect
-    """
-    non_composite = CompositionDummy(foo=42)
-    composite = CompositionDummy(foo=non_composite)
-
-    assert not non_composite.is_composite()
-    assert composite.is_composite()
 
 
 class ResetTester(BaseEstimator):
@@ -325,7 +311,7 @@ class FittableCompositionDummy(BaseEstimator):
     def fit(self):
         if hasattr(self.foo_, "fit"):
             self.foo_.fit()
-        self._is_fitted = True
+        self.is_fitted = True
 
 
 def test_get_fitted_params():
