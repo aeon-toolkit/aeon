@@ -399,13 +399,6 @@ class OrdinalTDE(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        _, _, n_timepoints = X.shape
-        if n_timepoints != self.n_timepoints_:
-            raise TypeError(
-                "ERROR number of attributes in the train does not match "
-                "that in the test data"
-            )
-
         sums = np.zeros((X.shape[0], self.n_classes_))
 
         for n, clf in enumerate(self.estimators_):
