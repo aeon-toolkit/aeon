@@ -69,7 +69,7 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.series.yeojohnson import YeoJohnsonTransformer
+    >>> from aeon.transformations.series._yeojohnson import YeoJohnsonTransformer
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> transformer = YeoJohnsonTransformer()
