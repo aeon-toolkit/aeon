@@ -16,7 +16,7 @@ from typing import Callable, Union
 from sklearn import config_context
 from sklearn.utils._testing import SkipTest
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.testing.estimator_checking._yield_estimator_checks import (
     _yield_all_aeon_checks,
 )
@@ -28,7 +28,7 @@ from aeon.utils.validation._dependencies import (
 
 
 def parametrize_with_checks(
-    estimators: list[Union[BaseEstimator, type[BaseEstimator]]],
+    estimators: list[Union[BaseAeonEstimator, type[BaseAeonEstimator]]],
     use_first_parameter_set: bool = False,
 ) -> Callable:
     """Pytest specific decorator for parametrizing aeon estimator checks.
@@ -43,9 +43,9 @@ def parametrize_with_checks(
 
     Parameters
     ----------
-    estimators : list of aeon BaseEstimator instances or classes
+    estimators : list of aeon BaseAeonEstimator instances or classes
         Estimators to generate checks for. If an item is a class, an instance will
-        be created using BaseEstimator.create_test_instance().
+        be created using BaseAeonEstimator.create_test_instance().
     use_first_parameter_set : bool, default=False
         If True, only the first parameter set from get_test_params will be used if a
         class is passed.
@@ -96,7 +96,7 @@ def parametrize_with_checks(
 
 
 def check_estimator(
-    estimator: Union[BaseEstimator, type[BaseEstimator]],
+    estimator: Union[BaseAeonEstimator, type[BaseAeonEstimator]],
     raise_exceptions: bool = False,
     use_first_parameter_set: bool = False,
     checks_to_run: Optional[Union[str, list[str]]] = None,
@@ -117,9 +117,9 @@ def check_estimator(
 
     Parameters
     ----------
-    estimator : aeon BaseEstimator instance or class
+    estimator : aeon BaseAeonEstimator instance or class
         Estimator to run checks on. If estimator is a class, an instance will
-        be created using BaseEstimator.create_test_instance().
+        be created using BaseAeonEstimator.create_test_instance().
     raise_exceptions : bool, optional, default=False
         Whether to return exceptions/failures in the results dict, or raise them
             if False: returns exceptions in returned `results` dict

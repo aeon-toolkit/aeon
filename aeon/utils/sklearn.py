@@ -2,14 +2,19 @@
 
 from inspect import isclass
 
-from sklearn.base import BaseEstimator as SklearnBaseEstimator
-from sklearn.base import ClassifierMixin, ClusterMixin, RegressorMixin, TransformerMixin
+from sklearn.base import (
+    BaseEstimator,
+    ClassifierMixin,
+    ClusterMixin,
+    RegressorMixin,
+    TransformerMixin,
+)
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
 
 __maintainer__ = []
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 
 
 def is_sklearn_estimator(obj):
@@ -26,8 +31,8 @@ def is_sklearn_estimator(obj):
     if not isclass(obj):
         obj = type(obj)
 
-    is_in_sklearn = issubclass(obj, SklearnBaseEstimator)
-    is_in_aeon = issubclass(obj, BaseEstimator)
+    is_in_sklearn = issubclass(obj, BaseEstimator)
+    is_in_aeon = issubclass(obj, BaseAeonEstimator)
 
     is_sklearn_est = is_in_sklearn and not is_in_aeon
     return is_sklearn_est

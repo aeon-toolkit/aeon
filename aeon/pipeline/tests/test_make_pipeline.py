@@ -6,7 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.classification import DummyClassifier
 from aeon.clustering import TimeSeriesKMeans
 from aeon.pipeline import make_pipeline
@@ -41,5 +41,5 @@ def test_make_pipeline(pipeline):
     else:
         o = est.transform(X)
 
-    assert isinstance(est, BaseEstimator)
+    assert isinstance(est, BaseAeonEstimator)
     assert isinstance(o, np.ndarray)
