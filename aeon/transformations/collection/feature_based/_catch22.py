@@ -192,10 +192,10 @@ class Catch22(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
+        super().__init__()
+
         if use_pycatch22:
             self.set_tags(**{"python_dependencies": "pycatch22"})
-
-        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X into the catch22 features.

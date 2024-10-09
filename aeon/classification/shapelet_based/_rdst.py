@@ -132,7 +132,7 @@ class RDSTClassifier(BaseClassifier):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "non-deterministic": True,  # due to random_state bug in MacOS #324
+        "non_deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }
 
