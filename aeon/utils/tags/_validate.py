@@ -5,7 +5,7 @@ __all__ = ["check_valid_tags"]
 
 from inspect import isclass
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST
 from aeon.utils.tags import ESTIMATOR_TAGS, all_tags_for_estimator
 
@@ -27,18 +27,20 @@ def check_valid_tags(estimator, tags=None, error_on_missing=True):
     ValueError
         If a tag is not valid for the estimator.
     """
-    if isinstance(estimator, BaseEstimator):
+    if isinstance(estimator, BaseAeonEstimator):
         if tags is None:
             tags = estimator.get_tags()
         method = isinstance
         est_name = estimator.__class__.__name__
-    elif isclass(estimator) and issubclass(estimator, BaseEstimator):
+    elif isclass(estimator) and issubclass(estimator, BaseAeonEstimator):
         if tags is None:
             tags = estimator.get_class_tags()
         method = issubclass
         est_name = estimator.__name__
     else:
-        raise ValueError("Estimator must be an instance or subclass of BaseEstimator.")
+        raise ValueError(
+            "Estimator must be an instance or subclass of BaseAeonEstimator."
+        )
 
     for tag_name, tag_value in tags.items():
         # check if the tag exists

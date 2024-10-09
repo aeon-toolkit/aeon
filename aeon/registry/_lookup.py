@@ -21,13 +21,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.registry._base_classes import BASE_CLASS_LIST, BASE_CLASS_LOOKUP
 
 VALID_ESTIMATOR_BASE_TYPES = tuple(BASE_CLASS_LIST)
 
 VALID_ESTIMATOR_TYPES = (
-    BaseEstimator,
+    BaseAeonEstimator,
     *VALID_ESTIMATOR_BASE_TYPES,
 )
 
@@ -374,7 +374,7 @@ def _get_return_tags(estimator, return_tags):
 
     Parameters
     ----------
-    estimator:  BaseEstimator, an aeon estimator
+    estimator:  BaseAeonEstimator, an aeon estimator
     return_tags: list of str,
         names of tags to get values for the estimator
 
@@ -392,7 +392,7 @@ def _check_tag_cond(estimator, filter_tags=None, as_dataframe=True):
 
     Parameters
     ----------
-    estimator: BaseEstimator, an aeon estimator
+    estimator: BaseAeonEstimator, an aeon estimator
     filter_tags: dict of (str or list of str), default=None
         subsets the returned estimators as follows:
             each key/value pair is statement in "and"/conjunction
