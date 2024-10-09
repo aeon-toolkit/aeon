@@ -144,7 +144,7 @@ class BaseCollectionTransformer(
         transformed version of X
         """
         # check whether is fitted
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # input check and conversion for X/y
         X_inner = self._preprocess_collection(X, store_metadata=False)
@@ -255,7 +255,7 @@ class BaseCollectionTransformer(
             )
 
         # check whether is fitted
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # input check and conversion for X/y
         X_inner = self._preprocess_collection(X, store_metadata=False)
