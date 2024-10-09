@@ -18,7 +18,7 @@ def test_dwt_mlead_output():
     pred = ad.predict(series)
 
     assert pred.shape == (100,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 58
 
 

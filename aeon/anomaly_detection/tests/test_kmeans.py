@@ -17,7 +17,7 @@ def test_kmeansad_univariate():
     pred = ad.fit_predict(series, axis=0)
 
     assert pred.shape == (100,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 58
 
 
@@ -33,5 +33,5 @@ def test_kmeansad_multivariate():
     pred = ad.fit_predict(series, axis=0)
 
     assert pred.shape == (100,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 58

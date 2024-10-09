@@ -76,7 +76,7 @@ class KMeansAD(BaseAnomalyDetector):
     --------
     >>> import numpy as np
     >>> from aeon.anomaly_detection import KMeansAD
-    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float_)
+    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float64)
     >>> detector = KMeansAD(n_clusters=3, window_size=4, stride=1, random_state=0)
     >>> detector.fit_predict(X)
     array([1.97827709, 2.45374147, 2.51929879, 2.36979677, 2.34826601,

@@ -95,7 +95,7 @@ class TestLeftSTAMPi:
 
         # then
         assert pred.shape == (20,)
-        assert pred.dtype == np.float_
+        assert pred.dtype == np.float64
         assert np.argmax(pred) == 8
 
     @pytest.mark.skipif(
@@ -115,7 +115,7 @@ class TestLeftSTAMPi:
 
         # then
         assert pred.shape == (20,)
-        assert pred.dtype == np.float_
+        assert pred.dtype == np.float64
         assert np.argmax(pred) == 8
 
     def test_it_allows_batch_processing(self, mock_stumpy_pkg):
@@ -135,7 +135,7 @@ class TestLeftSTAMPi:
         )
         assert ad.mp_._update_count == 15
         assert pred.shape == (20,)
-        assert pred.dtype == np.float_
+        assert pred.dtype == np.float64
         assert np.argmax(pred) == 8
 
     def test_window_size_defaults_to_3(self, mock_stumpy_pkg):

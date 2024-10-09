@@ -284,7 +284,7 @@ def _reverse_windowing_vectorized(
 def _reverse_windowing_iterative(
     y: np.ndarray, window_size: int, reduction: Callable[..., np.ndarray]
 ) -> np.ndarray:
-    y = np.array(y, dtype=np.float_)
+    y = np.array(y, dtype=np.float64)
     unwindowed_length = len(y) + window_size - 1
     pad_n = (window_size - 1, window_size - 1)
     y = np.pad(y, pad_n, "constant", constant_values=(np.nan, np.nan))

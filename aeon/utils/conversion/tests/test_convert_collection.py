@@ -168,7 +168,7 @@ def test_has_missing(data):
     """Test if missing values are correctly identified."""
     assert not has_missing(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
     X = np.random.random(size=(10, 2, 20))
-    X[5][1][12] = np.NAN
+    X[5][1][12] = np.nan
     assert has_missing(X)
 
 

@@ -207,7 +207,7 @@ def extract_top_k_and_threshold_from_distance_profiles_one_series(
     else:
         # Apply exclusion zone to avoid neighboring matches
         top_k = np.zeros((_k, 2), dtype=np.int_) - exclusion_size
-        top_k_dist = np.zeros((_k), dtype=np.float_)
+        top_k_dist = np.zeros((_k), dtype=np.float64)
 
         top_k[0, 0] = id_x
         top_k[0, 1] = _argsort[0]

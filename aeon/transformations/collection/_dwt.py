@@ -51,7 +51,7 @@ class DWTTransformer(BaseCollectionTransformer):
         Xt : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
             collection of transformed time series
         """
-        _X = np.array(X, dtype=np.float_)
+        _X = np.array(X, dtype=np.float64)
         n_cases, n_channels, n_timepoints = _X.shape
         _X = np.swapaxes(_X, 0, 1)
         self._check_parameters()

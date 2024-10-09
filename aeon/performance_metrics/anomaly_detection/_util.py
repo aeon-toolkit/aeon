@@ -56,7 +56,7 @@ def check_y(
     # check labels
     if (
         force_y_pred_continuous
-        and y_true.dtype == np.float_
+        and y_true.dtype == np.float64
         and y_pred.dtype == np.int_
     ):
         warnings.warn(
@@ -88,7 +88,7 @@ def check_y(
             "be integers and should only contain the values {0, 1}. Please "
             "consider applying a threshold to the scores!"
         )
-    elif force_y_pred_continuous and y_pred.dtype != np.float_:
+    elif force_y_pred_continuous and y_pred.dtype != np.float64:
         raise ValueError(
             "When using continuous scoring metrics, the scores must be floats!"
         )

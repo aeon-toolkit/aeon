@@ -95,7 +95,7 @@ def test_continuous_metric_requires_scores(metric):
         metric(y_true, y_scores)
     assert "scores must be floats" in str(ex.value)
 
-    y_scores = y_scores.astype(np.float_)
+    y_scores = y_scores.astype(np.float64)
     metric(y_true, y_scores)
     assert True, "Metric should accept float, so no error should be raised"
 
@@ -105,7 +105,7 @@ def test_continuous_metric_requires_scores(metric):
 )
 def test_binary_metric_requires_predictions(metric):
     """Test that binary metrics require integer or boolean predictions."""
-    y_scores = np.array([0.8, 0.1, 0.9, 0.3, 0.3], dtype=np.float_)
+    y_scores = np.array([0.8, 0.1, 0.9, 0.3, 0.3], dtype=np.float64)
     y_true = np.array([0, 0, 1, 0, 0], dtype=np.bool_)
 
     with pytest.raises(ValueError) as ex:
@@ -126,9 +126,9 @@ def test_edge_cases(metric):
     y_true = np.zeros(10, dtype=np.int_)
     y_true[2:4] = 1
     y_true[6:8] = 1
-    y_zeros = np.zeros_like(y_true, dtype=np.float_)
-    y_flat = np.full_like(y_true, fill_value=0.5, dtype=np.float_)
-    y_ones = np.ones_like(y_true, dtype=np.float_)
+    y_zeros = np.zeros_like(y_true, dtype=np.float64)
+    y_flat = np.full_like(y_true, fill_value=0.5, dtype=np.float64)
+    y_ones = np.ones_like(y_true, dtype=np.float64)
 
     for y_pred in [y_zeros, y_flat, y_ones]:
         if metric in binary_metrics:
@@ -144,7 +144,7 @@ def test_edge_cases_pr_metrics(metric):
     y_true = np.zeros(10, dtype=np.int_)
     y_true[2:4] = 1
     y_true[6:8] = 1
-    y_inverted = (y_true * -1 + 1).astype(np.float_)
+    y_inverted = (y_true * -1 + 1).astype(np.float64)
 
     score = metric(y_true, y_inverted)
     assert score <= 0.2, f"{metric.__name__}(y_true, y_inverted)={score} is not <= 0.2"
