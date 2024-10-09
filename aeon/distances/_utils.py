@@ -227,3 +227,33 @@ def _convert_to_list(
         return x_new, unequal_timepoints
     else:
         raise ValueError(f"{name} must be either np.ndarray or List[np.ndarray]")
+
+
+@njit(fastmath=True, cache=True)
+def _softmin3(a, b, c, gamma):
+    r"""Compute softmin of 3 input variables with parameter gamma.
+
+    This code is adapted from tslearn.
+
+    Parameters
+    ----------
+    a : float
+        First input variable.
+    b : float
+        Second input variable.
+    c : float
+        Third input variable.
+    gamma : float
+        Softmin parameter.
+
+    Returns
+    -------
+    float
+        Softmin of a, b, c.
+    """
+    a /= -gamma
+    b /= -gamma
+    c /= -gamma
+    max_val = max(a, b, c)
+    tmp = np.exp(a - max_val) + np.exp(b - max_val) + np.exp(c - max_val)
+    return -gamma * (np.log(tmp) + max_val)
