@@ -133,8 +133,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
-        self._check_is_fitted()
-
         preds = np.zeros((len(X), len(self.classes_)))
         for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
