@@ -153,7 +153,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
         return self._predict(X)
 
@@ -192,7 +192,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # boilerplate input checks for predict-like methods
         X = self._preprocess_collection(X)
@@ -235,7 +235,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
 
         return self._predict_proba(X)
@@ -277,7 +277,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
         if self.state_info is None:
             return self._predict_proba(X)
@@ -305,7 +305,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         -------
         Tuple of floats, harmonic mean, accuracy and earliness scores of predict(X) vs y
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
 
         return self._score(X, y)

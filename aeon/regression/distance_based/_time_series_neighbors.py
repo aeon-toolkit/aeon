@@ -131,7 +131,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         y : array of shape (n_cases)
             Output values for each data sample.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         preds = np.empty(len(X))
         for i in range(len(X)):

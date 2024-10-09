@@ -154,7 +154,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             1D np.array of float, of shape (n_cases) - predicted regression labels
             indices correspond to instance indices in X
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._predict(X)
@@ -250,7 +250,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         score : float
             MSE score of predict(X) vs y
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         y = self._check_y(y, len(X))
         _metric_params = metric_params
         if metric_params is None:
