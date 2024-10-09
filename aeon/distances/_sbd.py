@@ -9,7 +9,7 @@ from numba import njit, objmode
 from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
-from aeon.utils.conversion._convert_collection import convert_collection_to_numba_list
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -189,13 +189,13 @@ def sbd_pairwise_distance(
            [0.5527864 , 0.29289322, 0.        ]])
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, _ = convert_collection_to_numba_list(X, "", multivariate_conversion)
+    _X, _ = _convert_collection_to_numba_list(X, "", multivariate_conversion)
 
     if y is None:
         # To self
         return _sbd_pairwise_distance_single(_X, standardize)
 
-    _y, _ = convert_collection_to_numba_list(y, "y", multivariate_conversion)
+    _y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
     return _sbd_pairwise_distance(_X, _y, standardize)
 
 

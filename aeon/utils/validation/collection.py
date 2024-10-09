@@ -451,6 +451,9 @@ def _equal_length(X, input_type):
     raise ValueError(f" unknown input type {input_type}")
 
 
+# TODO: Test this function
+
+
 def _is_numpy_list_multivariate(
     x: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -488,6 +491,8 @@ def _is_numpy_list_multivariate(
                 return False
 
         if isinstance(x, (list, NumbaList)):
+            if not isinstance(x[0], np.ndarray):
+                return False
             x_dims = x[0].ndim
             if x_dims == 2:
                 if x[0].shape[0] == 1:
@@ -523,19 +528,29 @@ def _is_numpy_list_multivariate(
             if x_dims == 1 and y_dims == 1:
                 return False
         if isinstance(x, (list, NumbaList)) and isinstance(y, (list, NumbaList)):
-            x_dims = x[0].ndim
-            y_dims = y[0].ndim
+            if not isinstance(x[0], np.ndarray):
+                x_dims = 1
+            else:
+                x_dims = x[0].ndim
+            if not isinstance(y[0], np.ndarray):
+                y_dims = 1
+            else:
+                y_dims = y[0].ndim
 
             if x_dims < y_dims:
                 return _is_numpy_list_multivariate(y, x)
 
-            if x_dims == 1 or y_dims == 1:
+            if x_dims == 2 and y_dims == 2:
+                if x[0].shape[0] > 1:
+                    return True
                 return False
 
-            if x_dims == 2 and y_dims == 2:
-                if x[0].shape[0] == 1 or y[0].shape[0] == 1:
-                    return False
-                return True
+            if x_dims == 2 and y_dims == 1:
+                if x[0].shape[0] > 1:
+                    return True
+                return False
+            return False
+
         list_x = None
         ndarray_y: Optional[np.ndarray] = None
         if isinstance(x, (list, NumbaList)):

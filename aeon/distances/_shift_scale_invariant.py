@@ -6,7 +6,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.utils.conversion._convert_collection import convert_collection_to_numba_list
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -229,12 +229,12 @@ def shift_scale_invariant_pairwise_distance(
         else:
             max_shift = min(X.shape[-1], y.shape[-1])
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, _ = convert_collection_to_numba_list(X, "", multivariate_conversion)
+    _X, _ = _convert_collection_to_numba_list(X, "", multivariate_conversion)
 
     if y is None:
         return _shift_invariant_pairwise_distance(_X, _X, max_shift)
 
-    _y, _ = convert_collection_to_numba_list(y, "y", multivariate_conversion)
+    _y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
     return _shift_invariant_pairwise_distance(_X, _y, max_shift)
 
 

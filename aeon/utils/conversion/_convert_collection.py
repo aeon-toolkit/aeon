@@ -621,7 +621,7 @@ def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
     )
 
 
-def convert_collection_to_numba_list(
+def _convert_collection_to_numba_list(
     x: Union[np.ndarray, list[np.ndarray]],
     name: str = "X",
     multivariate_conversion: bool = False,
@@ -673,6 +673,8 @@ def convert_collection_to_numba_list(
         else:
             raise ValueError(f"{name} must be 1D, 2D or 3D")
     elif isinstance(x, (list, NumbaList)):
+        if not isinstance(x[0], np.ndarray):
+            return x, False
         x_new = NumbaList()
         expected_n_timepoints = x[0].shape[-1]
         unequal_timepoints = False
@@ -688,4 +690,7 @@ def convert_collection_to_numba_list(
                 raise ValueError(f"{name} must include only 1D or 2D arrays")
         return x_new, unequal_timepoints
     else:
-        raise ValueError(f"{name} must be either np.ndarray or List[np.ndarray]")
+        raise ValueError(
+            f"{name} must be either np.ndarray or List[np.ndarray] or "
+            f"NumbaList[np.ndarray]"
+        )

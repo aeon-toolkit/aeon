@@ -14,7 +14,7 @@ from aeon.distances.elastic._dtw import (
     _dtw_distance,
     create_bounding_matrix,
 )
-from aeon.utils.conversion._convert_collection import convert_collection_to_numba_list
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -238,7 +238,7 @@ def ddtw_pairwise_distance(
            [0., 0., 0.]])
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, unequal_length = convert_collection_to_numba_list(
+    _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
     )
 
@@ -246,7 +246,7 @@ def ddtw_pairwise_distance(
         # To self
         return _ddtw_pairwise_distance(_X, window, itakura_max_slope, unequal_length)
 
-    _y, unequal_length = convert_collection_to_numba_list(
+    _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
     return _ddtw_from_multiple_to_multiple_distance(

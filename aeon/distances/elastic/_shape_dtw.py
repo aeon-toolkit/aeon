@@ -12,7 +12,7 @@ from aeon.distances._squared import _univariate_squared_distance
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic._dtw import _dtw_cost_matrix
-from aeon.utils.conversion._convert_collection import convert_collection_to_numba_list
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -610,7 +610,7 @@ def shape_dtw_pairwise_distance(
            [292.,  89.,   0.]])
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, unequal_length = convert_collection_to_numba_list(
+    _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
     )
 
@@ -626,7 +626,7 @@ def shape_dtw_pairwise_distance(
             transformed_x=transformed_x,
             unequal_length=unequal_length,
         )
-    _y, unequal_length = convert_collection_to_numba_list(
+    _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
 

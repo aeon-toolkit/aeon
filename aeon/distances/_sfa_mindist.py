@@ -5,7 +5,7 @@ from typing import Union
 import numpy as np
 from numba import njit, prange
 
-from aeon.utils.conversion._convert_collection import convert_collection_to_numba_list
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -106,13 +106,13 @@ def sfa_pairwise_distance(
 
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, unequal_length = convert_collection_to_numba_list(
+    _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
     )
     if y is None:
         return _sfa_from_multiple_to_multiple_distance(_X, None, breakpoints)
 
-    _y, unequal_length = convert_collection_to_numba_list(
+    _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
     return _sfa_from_multiple_to_multiple_distance(_X, _y, breakpoints)

@@ -11,7 +11,7 @@ from numba.typed import List as NumbaList
 from aeon.distances._euclidean import _univariate_euclidean_distance
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
-from aeon.utils.conversion._convert_collection import convert_collection_to_numba_list
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -328,14 +328,14 @@ def erp_pairwise_distance(
            [44., 28.,  0.]])
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, unequal_length = convert_collection_to_numba_list(
+    _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
     )
     if y is None:
         return _erp_pairwise_distance(
             _X, window, g, g_arr, itakura_max_slope, unequal_length
         )
-    _y, unequal_length = convert_collection_to_numba_list(
+    _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
     return _erp_from_multiple_to_multiple_distance(

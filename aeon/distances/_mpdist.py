@@ -6,7 +6,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.utils.conversion._convert_collection import convert_collection_to_numba_list
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -340,7 +340,7 @@ def mpdist_pairwise_distance(
            [2.82842712]])
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, unequal_length = convert_collection_to_numba_list(
+    _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
     )
 
@@ -350,7 +350,7 @@ def mpdist_pairwise_distance(
     if y is None:
         return _mpdist_pairwise_distance_single(_X, m)
 
-    _y, unequal_length = convert_collection_to_numba_list(
+    _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
 
