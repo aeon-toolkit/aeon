@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.utils._weighted_metrics import weighted_geometric_mean
+from aeon.utils.weighted_metrics import weighted_geometric_mean
 
 
 def test_weighted_geometric_mean():
