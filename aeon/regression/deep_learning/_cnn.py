@@ -8,10 +8,9 @@ import os
 import time
 from copy import deepcopy
 
-from deprecated.sphinx import deprecated
 from sklearn.utils import check_random_state
 
-from aeon.networks import CNNNetwork, TimeCNNNetwork
+from aeon.networks import TimeCNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 class TimeCNNRegressor(BaseDeepRegressor):

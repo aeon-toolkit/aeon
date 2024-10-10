@@ -1,5 +1,4 @@
 """Test DrCIF regressor."""
-import pytest
 from aeon.regression.interval_based import DrCIFRegressor
 
 def test_dr_cif():
