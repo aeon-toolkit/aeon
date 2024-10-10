@@ -3,8 +3,16 @@
 import numpy as np
 import pandas as pd
 import pytest
+from numba.typed import List as NumbaList
 
-from aeon.testing.data_generation import make_example_nested_dataframe
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_collection,
+    make_example_2d_numpy_list,
+    make_example_3d_numpy,
+    make_example_3d_numpy_list,
+    make_example_nested_dataframe,
+)
 from aeon.testing.testing_data import (
     EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
     EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
@@ -12,6 +20,7 @@ from aeon.testing.testing_data import (
 )
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.conversion._convert_collection import (
+    _convert_collection_to_numba_list,
     _from_nested_univ_to_numpy2d,
     _from_nested_univ_to_pd_multiindex,
     _from_numpy2d_to_df_list,
@@ -270,3 +279,157 @@ def test_from_nested():
         TypeError, match="Cannot convert multivariate nested into numpy2D"
     ):
         _from_nested_univ_to_numpy2d(X)
+
+
+def test_collection_to_numba_list_univariate():
+    """Test collection of univariate numba list."""
+    # 3d format tests
+    # Equal (n_cases, n_channels, n_timepoints)
+    x_univ = make_example_3d_numpy(10, 1, 20, return_y=False)
+    convert_x_univ, unequal = _convert_collection_to_numba_list(x_univ)
+    assert isinstance(convert_x_univ, NumbaList)
+    assert unequal is False
+
+    # Unequal List[(n_channels, n_timepoints)]
+    x_univ_unequal = make_example_3d_numpy_list(10, 1, return_y=False)
+    convert_x_unequal_univ, unequal = _convert_collection_to_numba_list(x_univ_unequal)
+    assert isinstance(convert_x_unequal_univ, NumbaList)
+    assert unequal is True
+
+    # Equal numba list NumbaList[(n_channels, n_timepoints)]
+    x_univ_numba_list = NumbaList(x_univ)
+    convert_x_univ_numba_list, unequal = _convert_collection_to_numba_list(
+        x_univ_numba_list
+    )
+    assert isinstance(convert_x_univ_numba_list, NumbaList)
+    assert unequal is False
+
+    # Unequal numba list NumbaList[(n_channels, n_timepoints)]
+    x_univ_unequal_numba_list = NumbaList(x_univ_unequal)
+    convert_x_unequal_univ_numba_list, unequal = _convert_collection_to_numba_list(
+        x_univ_unequal_numba_list
+    )
+    assert isinstance(convert_x_unequal_univ_numba_list, NumbaList)
+    assert unequal is True
+
+    # 2d format tests
+    # Equal (n_cases, n_timepoints)
+    x_univ_2d = make_example_2d_numpy_collection(10, 20, return_y=False)
+    convert_x_univ_2d, unequal = _convert_collection_to_numba_list(x_univ_2d)
+    assert isinstance(convert_x_univ_2d, NumbaList)
+    assert unequal is False
+
+    # Unequal List[(n_timepoints)]
+    x_univ_2d_unequal = make_example_2d_numpy_list(10, return_y=False)
+    convert_x_unequal_univ_2d, unequal = _convert_collection_to_numba_list(
+        x_univ_2d_unequal
+    )
+    assert isinstance(convert_x_unequal_univ_2d, NumbaList)
+    assert unequal is True
+
+    # Equal numba list NumbaList[(n_timepoints)]
+    x_univ_2d_numba_list = NumbaList(x_univ_2d)
+    convert_x_univ_2d_numba_list, unequal = _convert_collection_to_numba_list(
+        x_univ_2d_numba_list
+    )
+    assert isinstance(convert_x_univ_2d_numba_list, NumbaList)
+    assert unequal is False
+
+    # Unequal numba list NumbaList[(n_timepoints)]
+    x_univ_2d_unequal_numba_list = NumbaList(x_univ_2d_unequal)
+    convert_x_unequal_univ_2d_numba_list, unequal = _convert_collection_to_numba_list(
+        x_univ_2d_unequal_numba_list
+    )
+    assert isinstance(convert_x_unequal_univ_2d_numba_list, NumbaList)
+    assert unequal is True
+
+    # 1d format tests
+    # Equal (n_timepoints)
+    x_univ_1d = make_example_1d_numpy(10)
+    convert_x_univ_1d, unequal = _convert_collection_to_numba_list(x_univ_1d)
+    assert isinstance(convert_x_univ_1d, NumbaList)
+    assert unequal is False
+
+    # Equal NumbaList[n_timepoints]
+    x_univ_numba_list_1d = NumbaList(x_univ_1d)
+    convert_x_univ_numba_list_1d, unequal = _convert_collection_to_numba_list(
+        x_univ_numba_list_1d
+    )
+    assert isinstance(convert_x_univ_numba_list_1d, NumbaList)
+    assert unequal is False
+
+
+def test_collection_to_numba_list_multivariate():
+    """Test collection of multivariate numba list."""
+    # 3d format tests
+    # Equal (n_cases, n_channels, n_timepoints)
+    x_multi = make_example_3d_numpy(10, 5, 20, return_y=False)
+    convert_x_multi, unequal = _convert_collection_to_numba_list(
+        x_multi, multivariate_conversion=True
+    )
+    assert isinstance(convert_x_multi, NumbaList)
+    assert unequal is False
+
+    # Unequal List[(n_channels, n_timepoints)]
+    x_multi_unequal = make_example_3d_numpy_list(10, 5, return_y=False)
+    convert_x_unequal_multi, unequal = _convert_collection_to_numba_list(
+        x_multi_unequal, multivariate_conversion=True
+    )
+    assert isinstance(convert_x_unequal_multi, NumbaList)
+    assert unequal is True
+
+    # Equal numba list NumbaList[(n_channels, n_timepoints)]
+    x_multi_numba_list = NumbaList(x_multi)
+    convert_x_multi_numba_list, unequal = _convert_collection_to_numba_list(
+        x_multi_numba_list
+    )
+    assert isinstance(convert_x_multi_numba_list, NumbaList)
+    assert unequal is False
+
+    # Unequal numba list NumbaList[(n_channels, n_timepoints)]
+    x_multi_unequal_numba_list = NumbaList(x_multi_unequal)
+    convert_x_unequal_multi_numba_list, unequal = _convert_collection_to_numba_list(
+        x_multi_unequal_numba_list
+    )
+    assert isinstance(convert_x_unequal_multi_numba_list, NumbaList)
+    assert unequal is True
+
+    # 2d format tests
+    # Equal (n_channels, n_timepoints)
+    x_multi_2d = make_example_2d_numpy_collection(10, 20, return_y=False)
+    convert_x_multi_2d, unequal = _convert_collection_to_numba_list(
+        x_multi_2d, multivariate_conversion=True
+    )
+    assert isinstance(convert_x_multi_2d, NumbaList)
+    assert unequal is False
+
+    # NumbaList(n_channels,
+    x_multi_2d_numba_list = NumbaList(x_multi_2d)
+    convert_x_multi_2d_numba_list, unequal = _convert_collection_to_numba_list(
+        x_multi_2d_numba_list
+    )
+    assert isinstance(convert_x_multi_2d_numba_list, NumbaList)
+    assert unequal is False
+
+    with pytest.raises(ValueError, match="example must be 1D, 2D or 3D"):
+        # make 4d array
+        x_multi_4d = np.zeros((10, 5, 20, 3))
+        _convert_collection_to_numba_list(
+            x_multi_4d, multivariate_conversion=True, name="example"
+        )
+
+    with pytest.raises(ValueError, match="example must include only 1D or 2D arrays"):
+        x_multi_4d_list = list(np.zeros((10, 5, 20, 3)))
+        _convert_collection_to_numba_list(
+            x_multi_4d_list, multivariate_conversion=True, name="example"
+        )
+
+    with pytest.raises(
+        ValueError,
+        match="example must be either np.ndarray or "
+        r"List\[np.ndarray\] or "
+        r"NumbaList\[np.ndarray\]",
+    ):
+        _convert_collection_to_numba_list(
+            10, multivariate_conversion=True, name="example"
+        )

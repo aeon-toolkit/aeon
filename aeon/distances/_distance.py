@@ -1,87 +1,69 @@
 __maintainer__ = []
 
+from enum import Enum
 from typing import Any, Callable, Optional, TypedDict, Union
 
 import numpy as np
 from typing_extensions import Unpack
 
-from aeon.distances._adtw import (
-    adtw_alignment_path,
-    adtw_cost_matrix,
-    adtw_distance,
-    adtw_pairwise_distance,
-)
-from aeon.distances._ddtw import (
-    ddtw_alignment_path,
-    ddtw_cost_matrix,
-    ddtw_distance,
-    ddtw_pairwise_distance,
-)
-from aeon.distances._dtw import (
-    dtw_alignment_path,
-    dtw_cost_matrix,
-    dtw_distance,
-    dtw_pairwise_distance,
-)
-from aeon.distances._edr import (
-    edr_alignment_path,
-    edr_cost_matrix,
-    edr_distance,
-    edr_pairwise_distance,
-)
-from aeon.distances._erp import (
-    erp_alignment_path,
-    erp_cost_matrix,
-    erp_distance,
-    erp_pairwise_distance,
-)
 from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
-from aeon.distances._lcss import (
-    lcss_alignment_path,
-    lcss_cost_matrix,
-    lcss_distance,
-    lcss_pairwise_distance,
-)
 from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
 from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
 from aeon.distances._mpdist import mpdist
-from aeon.distances._msm import (
-    msm_alignment_path,
-    msm_cost_matrix,
-    msm_distance,
-    msm_pairwise_distance,
-)
 from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
-from aeon.distances._shape_dtw import (
-    shape_dtw_alignment_path,
-    shape_dtw_cost_matrix,
-    shape_dtw_distance,
-    shape_dtw_pairwise_distance,
-)
 from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_distance,
     shift_scale_invariant_pairwise_distance,
 )
 from aeon.distances._squared import squared_distance, squared_pairwise_distance
-from aeon.distances._twe import (
+from aeon.distances.elastic import (
+    adtw_alignment_path,
+    adtw_cost_matrix,
+    adtw_distance,
+    adtw_pairwise_distance,
+    ddtw_alignment_path,
+    ddtw_cost_matrix,
+    ddtw_distance,
+    ddtw_pairwise_distance,
+    dtw_alignment_path,
+    dtw_cost_matrix,
+    dtw_distance,
+    dtw_pairwise_distance,
+    edr_alignment_path,
+    edr_cost_matrix,
+    edr_distance,
+    edr_pairwise_distance,
+    erp_alignment_path,
+    erp_cost_matrix,
+    erp_distance,
+    erp_pairwise_distance,
+    lcss_alignment_path,
+    lcss_cost_matrix,
+    lcss_distance,
+    lcss_pairwise_distance,
+    msm_alignment_path,
+    msm_cost_matrix,
+    msm_distance,
+    msm_pairwise_distance,
+    shape_dtw_alignment_path,
+    shape_dtw_cost_matrix,
+    shape_dtw_distance,
+    shape_dtw_pairwise_distance,
     twe_alignment_path,
     twe_cost_matrix,
     twe_distance,
     twe_pairwise_distance,
-)
-from aeon.distances._utils import _convert_to_list, _is_multivariate
-from aeon.distances._wddtw import (
     wddtw_alignment_path,
     wddtw_cost_matrix,
     wddtw_distance,
     wddtw_pairwise_distance,
-)
-from aeon.distances._wdtw import (
     wdtw_alignment_path,
     wdtw_cost_matrix,
     wdtw_distance,
     wdtw_pairwise_distance,
 )
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 class DistanceKwargs(TypedDict, total=False):
@@ -455,12 +437,12 @@ def _custom_func_pairwise(
     if dist_func is None:
         raise ValueError("dist_func must be a callable")
 
-    multivariate_conversion = _is_multivariate(X, y)
-    X, _ = _convert_to_list(X, "X", multivariate_conversion)
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
     if y is None:
         # To self
         return _custom_pairwise_distance(X, dist_func, **kwargs)
-    y, _ = _convert_to_list(y, "y", multivariate_conversion)
+    y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
     return _custom_from_multiple_to_multiple_distance(X, y, dist_func, **kwargs)
 
 
@@ -1034,26 +1016,46 @@ def _resolve_key_from_distance(metric: Union[str, Callable], key: str) -> Any:
     return dist_callable
 
 
+class DistanceType(Enum):
+    """Enum for distance types."""
+
+    POINTWISE = "pointwise"
+    ELASTIC = "elastic"
+    CROSS_CORRELATION = "cross-correlation"
+
+
 DISTANCES = [
     {
         "name": "euclidean",
         "distance": euclidean_distance,
         "pairwise_distance": euclidean_pairwise_distance,
+        "type": DistanceType.POINTWISE,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "squared",
         "distance": squared_distance,
         "pairwise_distance": squared_pairwise_distance,
+        "type": DistanceType.POINTWISE,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "manhattan",
         "distance": manhattan_distance,
         "pairwise_distance": manhattan_pairwise_distance,
+        "type": DistanceType.POINTWISE,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "minkowski",
         "distance": minkowski_distance,
         "pairwise_distance": minkowski_pairwise_distance,
+        "type": DistanceType.POINTWISE,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "dtw",
@@ -1061,6 +1063,9 @@ DISTANCES = [
         "pairwise_distance": dtw_pairwise_distance,
         "cost_matrix": dtw_cost_matrix,
         "alignment_path": dtw_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "ddtw",
@@ -1068,6 +1073,9 @@ DISTANCES = [
         "pairwise_distance": ddtw_pairwise_distance,
         "cost_matrix": ddtw_cost_matrix,
         "alignment_path": ddtw_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "wdtw",
@@ -1075,6 +1083,9 @@ DISTANCES = [
         "pairwise_distance": wdtw_pairwise_distance,
         "cost_matrix": wdtw_cost_matrix,
         "alignment_path": wdtw_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "wddtw",
@@ -1082,6 +1093,9 @@ DISTANCES = [
         "pairwise_distance": wddtw_pairwise_distance,
         "cost_matrix": wddtw_cost_matrix,
         "alignment_path": wddtw_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "lcss",
@@ -1089,6 +1103,9 @@ DISTANCES = [
         "pairwise_distance": lcss_pairwise_distance,
         "cost_matrix": lcss_cost_matrix,
         "alignment_path": lcss_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "erp",
@@ -1096,6 +1113,9 @@ DISTANCES = [
         "pairwise_distance": erp_pairwise_distance,
         "cost_matrix": erp_cost_matrix,
         "alignment_path": erp_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "edr",
@@ -1103,6 +1123,9 @@ DISTANCES = [
         "pairwise_distance": edr_pairwise_distance,
         "cost_matrix": edr_cost_matrix,
         "alignment_path": edr_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "twe",
@@ -1110,6 +1133,9 @@ DISTANCES = [
         "pairwise_distance": twe_pairwise_distance,
         "cost_matrix": twe_cost_matrix,
         "alignment_path": twe_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "msm",
@@ -1117,6 +1143,9 @@ DISTANCES = [
         "pairwise_distance": msm_pairwise_distance,
         "cost_matrix": msm_cost_matrix,
         "alignment_path": msm_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "adtw",
@@ -1124,6 +1153,9 @@ DISTANCES = [
         "pairwise_distance": adtw_pairwise_distance,
         "cost_matrix": adtw_cost_matrix,
         "alignment_path": adtw_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "shape_dtw",
@@ -1131,17 +1163,39 @@ DISTANCES = [
         "pairwise_distance": shape_dtw_pairwise_distance,
         "cost_matrix": shape_dtw_cost_matrix,
         "alignment_path": shape_dtw_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "sbd",
         "distance": sbd_distance,
         "pairwise_distance": sbd_pairwise_distance,
+        "type": DistanceType.CROSS_CORRELATION,
+        "symmetric": True,
+        "unequal_support": True,
     },
     {
         "name": "shift_scale",
         "distance": shift_scale_invariant_distance,
         "pairwise_distance": shift_scale_invariant_pairwise_distance,
+        "type": DistanceType.CROSS_CORRELATION,
+        "symmetric": False,
+        "unequal_support": False,
     },
 ]
 
 DISTANCES_DICT = {d["name"]: d for d in DISTANCES}
+SYMMETRIC_DISTANCES = [d["name"] for d in DISTANCES if d["symmetric"]]
+ASYMMETRIC_DISTANCES = [d["name"] for d in DISTANCES if not d["symmetric"]]
+ELASTIC_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.ELASTIC]
+POINTWISE_DISTANCES = [
+    d["name"] for d in DISTANCES if d["type"] == DistanceType.POINTWISE
+]
+UNEQUAL_LENGTH_SUPPORT_DISTANCES = [
+    d["name"] for d in DISTANCES if d["unequal_support"]
+]
+
+# This is a very specific list for testing where a time series of length 1 is not
+# supported
+SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
