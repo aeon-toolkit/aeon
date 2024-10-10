@@ -2554,6 +2554,24 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "LinGinQiu",
+      "name": "Chuanhang Qiu ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80885865?v=4",
+      "profile": "https://github.com/LinGinQiu",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "georgejl7",
+      "name": "George Langley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/134635414?v=4",
+      "profile": "https://github.com/georgejl7",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"

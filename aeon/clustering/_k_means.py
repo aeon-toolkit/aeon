@@ -226,7 +226,6 @@ class TimeSeriesKMeans(BaseClusterer):
                     print("Resumed because of empty cluster")  # noqa: T001, T201
 
         if best_labels is None:
-            self._is_fitted = False
             raise ValueError(
                 "Unable to find a valid cluster configuration "
                 "with parameters specified (empty clusters kept "

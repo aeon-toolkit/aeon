@@ -350,7 +350,7 @@ class EAggloSegmenter(BaseSegmenter):
         )
 
     @classmethod
-    def get_test_params(cls) -> list[dict]:
+    def get_test_params(cls, parameter_set: str = "default") -> list[dict]:
         """Test parameters."""
         return [
             {"alpha": 1.0, "penalty": None},
