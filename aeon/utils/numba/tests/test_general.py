@@ -11,9 +11,10 @@ from numpy.testing import assert_array_almost_equal, assert_array_equal
 from aeon.utils.numba.general import (
     combinations_1d,
     generate_new_default_njit_func,
+    get_all_subsequences,
     get_subsequence,
     get_subsequence_with_mean_std,
-    sliding_dot_product,
+    normalize_subsequences,
     sliding_mean_std_one_series,
     z_normalise_series,
     z_normalize_series_with_mean_std,
@@ -126,21 +127,6 @@ def test_sliding_mean_std_one_series(dtype):
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
-def test_sliding_dot_product(dtype):
-    """Test sliding dot product computation."""
-    X = np.random.rand(3, 150).astype(dtype)
-    for length in [3, 5, 11]:
-        for dilation in [1, 3, 5, 6]:
-            values = np.random.rand(3, length).astype(dtype)
-            dots = sliding_dot_product(X, values, length, dilation)
-            for i_sub in range(X.shape[1] - (length - 1) * dilation):
-                _idx = [i_sub + j * dilation for j in range(length)]
-                assert_array_almost_equal(
-                    (X[:, _idx] * values).sum(axis=1), dots[:, i_sub]
-                )
-
-
-@pytest.mark.parametrize("dtype", DATATYPES)
 def test_combinations_1d(dtype):
     """Test combinations of elements from two 1D arrays."""
     x = np.array([1, 1, 2, 2, 3, 3, 9, 4, 7, 9, 9], dtype=dtype)
@@ -151,3 +137,47 @@ def test_combinations_1d(dtype):
         dtype=dtype,
     )
     assert_array_equal(combs, true_combs)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_normalize_subsequences(dtype):
+    """Test 3d z-normalization."""
+    X = np.asarray([[[1, 1, 1]], [[1, 1, 1]]], dtype=dtype)
+    X_norm = normalize_subsequences(X, X.mean(axis=2), X.std(axis=2))
+    assert np.all(X_norm == 0)
+    assert np.all(X.shape == X_norm.shape)
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_get_all_subsequences(dtype):
+    """Test generation of all subsequences."""
+    X = np.asarray([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype)
+    length = 3
+    dilation = 1
+    X_subs = get_all_subsequences(X, length, dilation)
+    X_true = np.asarray(
+        [
+            [[1, 2, 3]],
+            [[2, 3, 4]],
+            [[3, 4, 5]],
+            [[4, 5, 6]],
+            [[5, 6, 7]],
+            [[6, 7, 8]],
+        ],
+        dtype=dtype,
+    )
+    assert_array_equal(X_subs, X_true)
+
+    length = 3
+    dilation = 2
+    X_subs = get_all_subsequences(X, length, dilation)
+    X_true = np.asarray(
+        [
+            [[1, 3, 5]],
+            [[2, 4, 6]],
+            [[3, 5, 7]],
+            [[4, 6, 8]],
+        ],
+        dtype=dtype,
+    )
+    assert_array_equal(X_subs, X_true)
