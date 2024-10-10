@@ -14,6 +14,7 @@ from sklearn.utils import check_random_state
 from aeon.networks import CNNNetwork, TimeCNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
+
 class TimeCNNRegressor(BaseDeepRegressor):
     """Time Series Convolutional Neural Network (CNN).
 

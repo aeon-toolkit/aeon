@@ -1,5 +1,7 @@
 """Test Inter regressor."""
+
 from aeon.regression.interval_based import IntervalForestRegressor
+
 
 def test_cif():
     """Test with IntervalForestRegressor contracting."""
