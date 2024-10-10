@@ -75,7 +75,6 @@ class PeriodogramTransformer(BaseCollectionTransformer):
         if use_pyfftw:
             self.set_tags(**{"python_dependencies": "pyfftw"})
 
-
     def _transform(self, X, y=None):
         threads_to_use = check_n_jobs(self.n_jobs)
 
