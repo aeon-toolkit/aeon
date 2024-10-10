@@ -1,7 +1,7 @@
 """Time Convolutional Neural Network (TimeCNN) regressor."""
 
 __maintainer__ = ["hadifawaz1999"]
-__all__ = ["CNNRegressor", "TimeCNNRegressor"]
+__all__ = ["TimeCNNRegressor"]
 
 import gc
 import os
