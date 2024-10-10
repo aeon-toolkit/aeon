@@ -46,7 +46,7 @@ def test_tde_incorrect_input():
         train_estimate_method="FOOBAR",
         random_state=0,
     )
-    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=50)
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
     with pytest.raises(ValueError, match="Invalid train_estimate_method"):
         tde.fit_predict_proba(X, y)
     tde = TemporalDictionaryEnsemble(
@@ -68,7 +68,7 @@ def test_tde_incorrect_input():
 def test_tde_multivariate():
     """Test TDE with incorrect input."""
     # train TDE
-    X, y = make_example_3d_numpy(n_cases=10, n_channels=10, n_timepoints=50)
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=10, n_timepoints=50)
     tde = IndividualTDE(max_dims=1)
     tde._fit(X, y)
     assert len(tde._dims) == 1
@@ -76,7 +76,7 @@ def test_tde_multivariate():
 
 def test_tde_pickle():
     """Test the dict conversion work around for pickle."""
-    X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=50)
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=50)
     tde = IndividualTDE(typed_dict=True)
     tde.fit(X, y)
     pickled_tde = pickle.dumps(tde)
