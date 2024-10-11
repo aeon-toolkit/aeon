@@ -18,4 +18,4 @@ def test_yeojohnson_against_scipy():
 
     excepted, expected_lambda = yeojohnson(y.values)
     np.testing.assert_almost_equal(actual, excepted, decimal=12)
-    assert t.lambda_ == expected_lambda
+    assert t._lambda == expected_lambda
