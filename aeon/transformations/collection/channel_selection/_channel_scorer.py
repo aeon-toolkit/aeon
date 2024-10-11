@@ -12,7 +12,7 @@ from typing import Optional, Union
 import numpy as np
 from sklearn.metrics import accuracy_score, mean_squared_error
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
@@ -62,7 +62,7 @@ class ChannelScorer(BaseChannelSelector):
 
     def __init__(
         self,
-        estimator: Optional[BaseEstimator],
+        estimator: Optional[BaseAeonEstimator],
         scoring_function: Callable = None,
         score_sign: float = None,
         proportion: float = 0.4,

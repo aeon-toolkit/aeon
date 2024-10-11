@@ -5,7 +5,7 @@ __all__ = ["all_tags_for_estimator"]
 
 from inspect import isclass
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.registry import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST
 from aeon.utils.tags._tags import ESTIMATOR_TAGS
 
@@ -33,16 +33,16 @@ def all_tags_for_estimator(
     tags: dictionary of tags,
         filtered version of ``aeon.utils.tags.ESTIMATOR_TAGS``.
     """
-    if isinstance(estimator, BaseEstimator):
+    if isinstance(estimator, BaseAeonEstimator):
         method = isinstance
-    elif isclass(estimator) and issubclass(estimator, BaseEstimator):
+    elif isclass(estimator) and issubclass(estimator, BaseAeonEstimator):
         method = issubclass
     elif isinstance(estimator, str) and estimator in BASE_CLASS_IDENTIFIER_LIST:
         estimator = BASE_CLASS_LIST[BASE_CLASS_IDENTIFIER_LIST.index(estimator)]
         method = issubclass
     else:
         raise ValueError(
-            "Estimator must be an instance or subclass of BaseEstimator, "
+            "Estimator must be an instance or subclass of BaseAeonEstimator, "
             "or a valid string from BASE_CLASS_REGISTER."
         )
 

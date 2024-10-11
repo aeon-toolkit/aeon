@@ -14,7 +14,7 @@ from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_get_params_invariance
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier
@@ -89,17 +89,17 @@ def _yield_all_aeon_checks(
         has_dependencies = _check_estimator_deps(estimator, severity="none")
 
     if has_dependencies:
-        if isclass(estimator) and issubclass(estimator, BaseEstimator):
+        if isclass(estimator) and issubclass(estimator, BaseAeonEstimator):
             estimator_class = estimator
             estimator_instances = estimator.create_test_instance(
                 return_first=use_first_parameter_set
             )
-        elif isinstance(estimator, BaseEstimator):
+        elif isinstance(estimator, BaseAeonEstimator):
             estimator_class = type(estimator)
             estimator_instances = estimator
         else:
             raise TypeError(
-                "Passed estimator is not an instance or subclass of BaseEstimator."
+                "Passed estimator is not an instance or subclass of BaseAeonEstimator."
             )
 
         if not isinstance(estimator_instances, list):
@@ -177,9 +177,6 @@ def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
     """Yield all general checks for an aeon estimator."""
     # only class required
     yield partial(check_create_test_instance, estimator_class=estimator_class)
-    yield partial(
-        check_create_test_instances_and_names, estimator_class=estimator_class
-    )
     yield partial(check_inheritance, estimator_class=estimator_class)
     yield partial(check_has_common_interface, estimator_class=estimator_class)
     yield partial(check_set_params_sklearn, estimator_class=estimator_class)
@@ -219,14 +216,14 @@ def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
                 datatype=datatypes[i][0],
             )
 
-        if not _get_tag(estimator, "cant-pickle", default=False):
+        if not _get_tag(estimator, "cant_pickle", default=False):
             yield partial(
                 check_persistence_via_pickle,
                 estimator=estimator,
                 datatype=datatypes[i][0],
             )
 
-        if not _get_tag(estimator, "non-deterministic", default=False):
+        if not _get_tag(estimator, "non_deterministic", default=False):
             yield partial(
                 check_fit_deterministic, estimator=estimator, datatype=datatypes[i][0]
             )
@@ -261,57 +258,20 @@ def check_create_test_instance(estimator_class):
     assert hasattr(estimator, "_tags_dynamic"), msg
 
 
-# todo consider deprecation
-def check_create_test_instances_and_names(estimator_class):
-    """Check that create_test_instances_and_names works.
-
-    create_test_instance and create_test_instances_and_names are the
-    key methods used to create test instances in testing.
-    If this test does not pass, validity of the other tests cannot be guaranteed.
-
-    Tests expected function signature of create_test_instances_and_names.
-    """
-    estimators, names = estimator_class.create_test_instances_and_names()
-
-    assert isinstance(estimators, list), (
-        "first return of create_test_instances_and_names must be a list, "
-        f"found {type(estimators)}"
-    )
-    assert isinstance(names, list), (
-        "second return of create_test_instances_and_names must be a list, "
-        f"found {type(names)}"
-    )
-
-    assert np.all([isinstance(est, estimator_class) for est in estimators]), (
-        "list elements of first return returned by create_test_instances_and_names "
-        "all must be an instance of the class"
-    )
-
-    assert np.all([isinstance(name, str) for name in names]), (
-        "list elements of second return returned by create_test_instances_and_names"
-        " all must be strings"
-    )
-
-    assert len(estimators) == len(names), (
-        "the two lists returned by create_test_instances_and_names must have "
-        "equal length"
-    )
-
-
 # todo consider removing the multiple base class allowance.
 def check_inheritance(estimator_class):
-    """Check that estimator inherits from BaseEstimator."""
+    """Check that estimator inherits from BaseAeonEstimator."""
     assert issubclass(
-        estimator_class, BaseEstimator
-    ), f"object {estimator_class} is not a sub-class of BaseEstimator."
+        estimator_class, BaseAeonEstimator
+    ), f"object {estimator_class} is not a sub-class of BaseAeonEstimator."
 
     if hasattr(estimator_class, "fit"):
-        assert issubclass(estimator_class, BaseEstimator), (
+        assert issubclass(estimator_class, BaseAeonEstimator), (
             f"estimator: {estimator_class} has fit method, but"
-            f"is not a sub-class of BaseEstimator."
+            f"is not a sub-class of BaseAeonEstimator."
         )
 
-    # Usually estimators inherit only from one BaseEstimator type, but in some cases
+    # Usually estimators inherit only from one BaseAeonEstimator type, but in some cases
     # they may be predictor and transformer at the same time (e.g. pipelines)
     n_base_types = sum(
         issubclass(estimator_class, cls) for cls in VALID_ESTIMATOR_BASE_TYPES
@@ -328,7 +288,7 @@ def check_inheritance(estimator_class):
 def check_has_common_interface(estimator_class):
     """Check estimator implements the common interface."""
     # Check class for type of attribute
-    if isinstance(estimator_class, BaseEstimator):
+    if isinstance(estimator_class, BaseAeonEstimator):
         assert isinstance(estimator_class.is_fitted, property)
 
     required_methods = _list_required_methods(estimator_class)
@@ -571,8 +531,8 @@ def check_non_state_changing_method(estimator, datatype):
     1. do not change state of the estimator, i.e., any attributes
         (including hyper-parameters and fitted parameters)
     2. expected output type of the method matches actual output type
-        - only for abstract BaseEstimator methods, common to all estimators.
-        List of BaseEstimator methods tested: get_fitted_params
+        - only for abstract BaseAeonEstimator methods, common to all estimators.
+        List of BaseAeonEstimator methods tested: get_fitted_params
         Subclass specific method outputs are tested in TestAll[estimatortype] class
     3. the state of method arguments does not change
     """
@@ -620,8 +580,6 @@ def check_fit_updates_state(estimator, datatype):
     5. Check estimator hyper parameters are not changed in fit
     """
     # Check that fit updates the is-fitted states
-    attrs = ["_is_fitted", "is_fitted"]
-
     estimator = _clone_estimator(estimator)
 
     msg = (
@@ -630,13 +588,12 @@ def check_fit_updates_state(estimator, datatype):
         "but that does not seem to be the case. Please ensure to call the "
         f"parent class's constructor in {type(estimator).__name__}.__init__"
     )
-    assert hasattr(estimator, "_is_fitted"), msg
+    assert hasattr(estimator, "is_fitted"), msg
 
     # Check is_fitted attribute is set correctly to False before fit, at init
-    for attr in attrs:
-        assert not getattr(
-            estimator, attr
-        ), f"Estimator: {estimator} does not initiate attribute: {attr} to False"
+    assert (
+        not estimator.is_fitted
+    ), f"Estimator: {estimator} does not initiate attribute: is_fitted to False"
 
     # Make a physical copy of the original estimator parameters before fitting.
     original_params = deepcopy(estimator.get_params())
@@ -649,10 +606,9 @@ def check_fit_updates_state(estimator, datatype):
     ), f"Estimator: {estimator} does not return self when calling fit"
 
     # Check is_fitted attribute is updated correctly to True after calling fit
-    for attr in attrs:
-        assert getattr(
-            fitted_estimator, attr
-        ), f"Estimator: {estimator} does not update attribute: {attr} during fit"
+    assert (
+        fitted_estimator.is_fitted
+    ), f"Estimator: {estimator} does not update attribute: is_fitted during fit"
 
     # Compare the state of the model parameters with the original parameters
     new_params = fitted_estimator.get_params()
