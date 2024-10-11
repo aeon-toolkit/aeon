@@ -4,7 +4,7 @@ __maintainer__ = []
 
 import pytest
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.registry import all_estimators, get_identifiers
 from aeon.registry._base_classes import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LOOKUP
 from aeon.registry._lookup import _check_estimator_types
@@ -57,7 +57,7 @@ def _get_type_tuple(estimator_identifiers):
             BASE_CLASS_LOOKUP[id] for id in _to_list(estimator_identifiers)
         )
     else:
-        estimator_classes = (BaseEstimator,)
+        estimator_classes = (BaseAeonEstimator,)
 
     return estimator_classes
 

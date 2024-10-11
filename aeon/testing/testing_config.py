@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
 import aeon.testing.utils._cicd_numba_caching  # noqa: F401
-from aeon.base import BaseCollectionEstimator, BaseEstimator, BaseSeriesEstimator
+from aeon.base import BaseAeonEstimator, BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.registry import BASE_CLASS_LIST, BASE_CLASS_LOOKUP
 
 # whether to use smaller parameter matrices for test generation and subsample estimators
@@ -95,14 +95,14 @@ NON_STATE_CHANGING_METHODS = NON_STATE_CHANGING_METHODS_ARRAYLIKE + (
 
 # The following gives a list of valid estimator base classes.
 CORE_BASE_TYPES = (
-    BaseEstimator,
+    BaseAeonEstimator,
     BaseCollectionEstimator,
     BaseSeriesEstimator,
 )
 VALID_ESTIMATOR_BASE_TYPES = tuple(set(BASE_CLASS_LIST).difference(CORE_BASE_TYPES))
 
 VALID_ESTIMATOR_TYPES = (
-    BaseEstimator,
+    BaseAeonEstimator,
     *VALID_ESTIMATOR_BASE_TYPES,
 )
 

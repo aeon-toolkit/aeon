@@ -1,6 +1,6 @@
 """Base class for estimators that fit collections of time series."""
 
-from aeon.base._base import BaseEstimator
+from aeon.base._base import BaseAeonEstimator
 from aeon.utils.conversion import (
     convert_collection,
     resolve_equal_length_inner_type,
@@ -19,7 +19,7 @@ from aeon.utils.validation.collection import (
 )
 
 
-class BaseCollectionEstimator(BaseEstimator):
+class BaseCollectionEstimator(BaseAeonEstimator):
     """Base class for estimators that use collections of time series for method fit.
 
     Provides functions that are common to BaseClassifier, BaseRegressor,
