@@ -4,10 +4,10 @@ import numpy as np
 from scipy.stats import zscore
 
 from aeon.datasets import load_unit_test
-from aeon.distances._dft_sfa_mindist import dft_sfa_mindist
-from aeon.distances._paa_sax_mindist import paa_sax_mindist
-from aeon.distances._sax_mindist import sax_mindist
-from aeon.distances._sfa_mindist import sfa_mindist
+from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
+from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
+from aeon.distances.mindist._sax import mindist_sax_distance
+from aeon.distances.mindist._sfa import mindist_sfa_distance
 from aeon.transformations.collection.dictionary_based import SAX, SFA, SFAFast
 
 
@@ -32,12 +32,12 @@ def test_sax_mindist():
         Y = X_test[i].reshape(1, -1)
 
         # SAX Min-Distance
-        mindist_sax = sax_mindist(
+        mindist_sax = mindist_sax_distance(
             SAX_train[i], SAX_test[i], SAX_transform.breakpoints, X_train.shape[-1]
         )
 
         # SAX-PAA Min-Distance
-        mindist_paa_sax = paa_sax_mindist(
+        mindist_paa_sax = mindist_paa_sax_distance(
             PAA_train[i], SAX_test[i], SAX_transform.breakpoints, X_train.shape[-1]
         )
 
@@ -95,12 +95,12 @@ def test_sfa_mindist():
             Y = X_test[i].reshape(1, -1)
 
             # SFA Min-Distance
-            mindist_sfa = sfa_mindist(
+            mindist_sfa = mindist_sfa_distance(
                 X_train_words[i], Y_train_words[i], sfa.breakpoints
             )
 
             # DFT-SFA Min-Distance
-            mindist_dft_sfa = dft_sfa_mindist(
+            mindist_dft_sfa = mindist_dft_sfa_distance(
                 SFA_train_dfts[i], Y_train_words[i], sfa.breakpoints
             )
 

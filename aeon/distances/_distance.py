@@ -6,7 +6,7 @@ from typing import Any, Callable, Optional, TypedDict, Union
 import numpy as np
 from typing_extensions import Unpack
 
-from aeon.distances._mpdist import mpdist
+from aeon.distances._mpdist import mp_distance, mp_pairwise_distance
 from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
 from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_distance,
@@ -58,19 +58,23 @@ from aeon.distances.elastic import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
-from aeon.distances.pointwise._euclidean import (
+from aeon.distances.mindist import (
+    mindist_dft_sfa_distance,
+    mindist_dft_sfa_pairwise_distance,
+    mindist_paa_sax_distance,
+    mindist_paa_sax_pairwise_distance,
+    mindist_sax_distance,
+    mindist_sax_pairwise_distance,
+    mindist_sfa_distance,
+    mindist_sfa_pairwise_distance,
+)
+from aeon.distances.pointwise import (
     euclidean_distance,
     euclidean_pairwise_distance,
-)
-from aeon.distances.pointwise._manhattan import (
     manhattan_distance,
     manhattan_pairwise_distance,
-)
-from aeon.distances.pointwise._minkowski import (
     minkowski_distance,
     minkowski_pairwise_distance,
-)
-from aeon.distances.pointwise._squared import (
     squared_distance,
     squared_pairwise_distance,
 )
@@ -652,7 +656,7 @@ def _resolve_key_from_distance(metric: Union[str, Callable], key: str) -> Any:
     if isinstance(metric, Callable):
         return metric
     if metric == "mpdist":
-        return mpdist
+        return mp_distance
     dist = DISTANCES_DICT.get(metric)
     if dist is None:
         raise ValueError(f"Unknown metric {metric}")
@@ -668,6 +672,8 @@ class DistanceType(Enum):
     POINTWISE = "pointwise"
     ELASTIC = "elastic"
     CROSS_CORRELATION = "cross-correlation"
+    MIN_DISTANCE = "min-dist"
+    MATRIX_PROFILE = "matrix-profile"
 
 
 DISTANCES = [
@@ -829,6 +835,46 @@ DISTANCES = [
         "symmetric": False,
         "unequal_support": False,
     },
+    {
+        "name": "dft_sfa",
+        "distance": mindist_dft_sfa_distance,
+        "pairwise_distance": mindist_dft_sfa_pairwise_distance,
+        "type": DistanceType.MIN_DISTANCE,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "paa_sax",
+        "distance": mindist_paa_sax_distance,
+        "pairwise_distance": mindist_paa_sax_pairwise_distance,
+        "type": DistanceType.MIN_DISTANCE,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "sax",
+        "distance": mindist_sax_distance,
+        "pairwise_distance": mindist_sax_pairwise_distance,
+        "type": DistanceType.MIN_DISTANCE,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "sfa",
+        "distance": mindist_sfa_distance,
+        "pairwise_distance": mindist_sfa_pairwise_distance,
+        "type": DistanceType.MIN_DISTANCE,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "mpdist",
+        "distance": mp_distance,
+        "pairwise_distance": mp_pairwise_distance,
+        "type": DistanceType.MATRIX_PROFILE,
+        "symmetric": True,
+        "unequal_support": True,
+    },
 ]
 
 DISTANCES_DICT = {d["name"]: d for d in DISTANCES}
@@ -837,14 +883,18 @@ ALIGNMENT_PATH = [d["name"] for d in DISTANCES if "alignment_path" in d]
 PAIRWISE_DISTANCE = [d["name"] for d in DISTANCES if "pairwise_distance" in d]
 SYMMETRIC_DISTANCES = [d["name"] for d in DISTANCES if d["symmetric"]]
 ASYMMETRIC_DISTANCES = [d["name"] for d in DISTANCES if not d["symmetric"]]
-ELASTIC_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.ELASTIC]
-POINTWISE_DISTANCES = [
-    d["name"] for d in DISTANCES if d["type"] == DistanceType.POINTWISE
-]
 UNEQUAL_LENGTH_SUPPORT_DISTANCES = [
     d["name"] for d in DISTANCES if d["unequal_support"]
 ]
 
+ELASTIC_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.ELASTIC]
+POINTWISE_DISTANCES = [
+    d["name"] for d in DISTANCES if d["type"] == DistanceType.POINTWISE
+]
+MP_DISTANCES = [
+    d["name"] for d in DISTANCES if d["type"] == DistanceType.MATRIX_PROFILE
+]
+MIN_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.MIN_DISTANCE]
 # This is a very specific list for testing where a time series of length 1 is not
 # supported
 SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
