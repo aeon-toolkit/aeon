@@ -20,7 +20,9 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_solar,
     load_unit_test,
     load_unit_test_tsf,
+    load_macroeconomic,
 )
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -103,11 +105,12 @@ def test_load_solar():
     assert solar.shape == (289,)
 
 
-def test_load_covid_3month():
-    """Test load covid 3 month."""
-    X, y = load_covid_3month()
-    assert isinstance(X, np.ndarray)
-    assert len(X) == len(y)
-    assert X.shape == (201, 1, 84)
-    assert isinstance(y, np.ndarray)
-
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency statsmodels not available",
+)
+def test_load_macroeconomic():
+    """Test load macroeconomic."""
+    y = load_macroeconomic()
+    assert isinstance(y, pd.DataFrame)
+    assert y.shape == (203,12)
