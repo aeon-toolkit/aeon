@@ -457,7 +457,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
     _tags = {
         "requires_y": True,
-        "X_inner_type": "nested_univ",
+        "X_inner_type": "numpy3D",
         "fit_is_empty": False,
     }
 
@@ -584,8 +584,6 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Xt = self.extractor_.fit_transform(X)
         Xt = self.selector_.fit_transform(Xt, y)
-        #       Xt = Xt.reindex(X.index)
-
         return Xt
 
     def _fit(self, X, y=None):

@@ -233,7 +233,7 @@ def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
     return _load_saved_dataset("UnitTest", split, return_X_y, return_type)
 
 
-def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
+def load_arrow_head(split=None, return_type="numpy3d"):
     """
     Load the ArrowHead univariate time series classification problem.
 
@@ -379,7 +379,7 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
     )
 
 
-def load_plaid(split=None, return_X_y=True, return_type="np-list"):
+def load_plaid(split=None, return_X_y=True):
     """Load the PLAID univariate time series classification problem.
 
     Example of a univariate problem with unequal length time series.
@@ -392,12 +392,9 @@ def load_plaid(split=None, return_X_y=True, return_type="np-list"):
     return_X_y: bool, default=True
         If True, returns (features, target) separately instead of as single data
         structure.
-    return_type: string, default="np-list"
-        Data structure to use for time series, should be "nested_univ" or "np-list".
-
     Raises
     ------
-    ValueError is raised if the data cannot be stored in the requested return_type.
+    ValueError is raised if the data cannot be stored in np-list.
 
     Returns
     -------
@@ -420,10 +417,10 @@ def load_plaid(split=None, return_X_y=True, return_type="np-list"):
     >>> from aeon.datasets import load_plaid
     >>> X, y = load_plaid()
     """
-    return _load_tsc_dataset("PLAID", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("PLAID", split, return_X_y, return_type="np-list")
 
 
-def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
+def load_japanese_vowels(split=None, return_X_y=True):
     """Load the JapaneseVowels time series classification problem.
 
     Example of a multivariate problem with unequal length series.
@@ -436,8 +433,6 @@ def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
     return_X_y: bool, default=True
         If True, returns (features, target) separately instead of a single
         dataframe with columns for features and the target.
-    return_type: string, default="np-list"
-        Data structure to use for time series, should be "nested_univ" or "np-list".
 
     Returns
     -------
@@ -461,7 +456,7 @@ def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
     Details: https://timeseriesclassification.com/description.php?Dataset=JapaneseVowels
     """
     return _load_tsc_dataset(
-        "JapaneseVowels", split, return_X_y, return_type=return_type
+        "JapaneseVowels", split, return_X_y, return_type="np-list"
     )
 
 

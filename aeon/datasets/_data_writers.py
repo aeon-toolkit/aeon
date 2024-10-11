@@ -18,7 +18,7 @@ def write_to_tsfile(
     Parameters
     ----------
     X : np.ndarray (n_cases, n_channels, n_timepoints) or list of np.ndarray[
-    n_cases] or pd.DataFrame with (n_cases,n_channels), each cell a pd.Series
+    n_cases]
         Collection of time series: univariate, multivariate, equal or unequal length.
     path : string.
         Location of the directory to write file
@@ -33,9 +33,7 @@ def write_to_tsfile(
         Indicate if this is a regression problem, so it is correcty specified in
         the header since there is no definite way of inferring this from y
     """
-    if not (
-        isinstance(X, np.ndarray) or isinstance(X, list) or isinstance(X, pd.DataFrame)
-    ):
+    if not (isinstance(X, np.ndarray) or isinstance(X, list)):
         raise TypeError(
             f" Wrong input data type {type(X)} convert to np.ndarray ("
             f"n_cases, n_channels,n_timepoints) if equal length or list "
@@ -46,20 +44,9 @@ def write_to_tsfile(
     split = problem_name.split(".")
     if split[-1] != "ts":
         problem_name = problem_name + ".ts"
-
-    if isinstance(X, np.ndarray) or isinstance(X, list):
-        _write_data_to_tsfile(
+    _write_data_to_tsfile(
             X, path, problem_name, y=y, comment=header, regression=regression
-        )
-    else:
-        _write_dataframe_to_tsfile(
-            X,
-            path,
-            problem_name=problem_name,
-            y=y,
-            comment=header,
-            regression=regression,
-        )
+    )
 
 
 def _write_data_to_tsfile(
@@ -153,46 +140,6 @@ def _write_data_to_tsfile(
             file.write(str(y[i]))
         file.write("\n")
     file.close()
-
-
-def _write_dataframe_to_tsfile(
-    X, path, problem_name="sample_data", y=None, comment=None, regression=False
-):
-    # ensure data provided is a dataframe
-    if not isinstance(X, pd.DataFrame):
-        raise ValueError(f"Data provided must be a DataFrame, passed a {type(X)}")
-    # See if passed file name contains .ts extension or not
-    split = problem_name.split(".")
-    if split[-1] != "ts":
-        problem_name = problem_name + ".ts"
-    class_labels = None
-    if y is not None:
-        class_labels = np.unique(y)
-    univariate = X.shape[1] == 1
-    # dataframes are always equal length
-    equal_length = True
-    n_timepoints = X.shape[0]
-    file = _write_header(
-        path,
-        problem_name,
-        univariate=univariate,
-        equal_length=equal_length,
-        n_timepoints=n_timepoints,
-        class_labels=class_labels,
-        comment=comment,
-        regression=regression,
-        extension=None,
-    )
-    n_cases, n_channels = X.shape
-    for i in range(0, n_cases):
-        for j in range(0, n_channels):
-            series = X.iloc[i, j]
-            for k in range(0, series.size - 1):
-                file.write(f"{series[k]},")
-            file.write(f"{series[series.size-1]}:")
-        file.write(f"{y[i]}\n")
-    file.close()
-
 
 def _write_header(
     path,

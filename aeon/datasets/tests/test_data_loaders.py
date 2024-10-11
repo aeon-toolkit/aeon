@@ -294,7 +294,7 @@ def test__load_data():
     reason="Only run on overnights because of intermittent fail for read/write",
 )
 @pytest.mark.parametrize("return_X_y", [True, False])
-@pytest.mark.parametrize("return_type", ["nested_univ", "numpy3D", "numpy2D"])
+@pytest.mark.parametrize("return_type", ["numpy3D", "numpy2D"])
 def test_load_provided_dataset(return_X_y, return_type):
     """Test function to check for proper loading.
 
@@ -308,8 +308,6 @@ def test_load_provided_dataset(return_X_y, return_type):
     if not return_X_y:
         assert isinstance(X, tuple)
         X = X[0]
-    if return_type == "nested_univ":
-        assert isinstance(X, pd.DataFrame)
     elif return_type == "numpy3D":
         assert isinstance(X, np.ndarray) and X.ndim == 3
     elif return_type == "numpy2D":

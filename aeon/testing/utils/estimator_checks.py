@@ -14,7 +14,6 @@ from aeon.clustering.base import BaseClusterer
 from aeon.regression.base import BaseRegressor
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation import is_nested_univ_dataframe
 
 
 def _run_estimator_method(estimator, method_name, datatype, split):
@@ -90,56 +89,8 @@ def _list_required_methods(estimator):
     return required_methods
 
 
-def _compare_nested_frame(func, x, y, **kwargs):
-    """Compare two nested pd.DataFrames.
-
-    Parameters
-    ----------
-    func : function
-        Function from np.testing for comparing arrays.
-    x : pd.DataFrame
-    y : pd.DataFrame
-    kwargs : dict
-        Keyword argument for function
-
-    Raises
-    ------
-    AssertionError
-        If x and y are not equal
-    """
-    # We iterate over columns and rows to make cell-wise comparisons.
-    # Tabularizing the data first would simplify this, but does not
-    # work for unequal length data.
-
-    # In rare cases, x and y may be empty (e.g. TSFreshRelevantFeatureExtractor) and
-    # we cannot compare individual cells, so we simply check if everything else is
-    # equal here.
-    assert isinstance(x, pd.DataFrame)
-    if x.empty:
-        assert_frame_equal(x, y)
-
-    elif is_nested_univ_dataframe(x):
-        # Check if both inputs have the same shape
-        if not x.shape == y.shape:
-            raise ValueError("Found inputs with different shapes")
-
-        # Iterate over columns
-        n_columns = x.shape[1]
-        for i in range(n_columns):
-            xc = x.iloc[:, i].tolist()
-            yc = y.iloc[:, i].tolist()
-
-            # Iterate over rows, checking if individual cells are equal
-            for xci, yci in zip(xc, yc):
-                func(xci, yci, **kwargs)
-
-
 def _assert_array_almost_equal(x, y, decimal=6, err_msg=""):
-    func = np.testing.assert_array_almost_equal
-    if isinstance(x, pd.DataFrame):
-        _compare_nested_frame(func, x, y, decimal=decimal, err_msg=err_msg)
-    else:
-        func(x, y, decimal=decimal, err_msg=err_msg)
+    np.testing.assert_array_almost_equal(x, y, decimal=decimal, err_msg=err_msg)
 
 
 def _get_args(function, varargs=False):
