@@ -3,11 +3,12 @@ __maintainer__ = []
 import numpy as np
 from numba import njit, prange
 
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
-def paa_sax_mindist(
+def mindist_paa_sax_distance(
     x_paa: np.ndarray, y_sax: np.ndarray, breakpoints: np.ndarray, n: int
 ) -> float:
     r"""Compute the PAA-SAX lower bounding distance between PAA and SAX representation.
@@ -41,7 +42,7 @@ def paa_sax_mindist(
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import paa_sax_mindist
+    >>> from aeon.distances import mindist_paa_sax_distance
     >>> from aeon.transformations.collection.dictionary_based import SAX
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
@@ -49,15 +50,17 @@ def paa_sax_mindist(
     >>> x_sax = transform.fit_transform(x).squeeze()
     >>> x_paa = transform._get_paa(x).squeeze()
     >>> y_sax = transform.transform(y).squeeze()
-    >>> dist = paa_sax_mindist(x_paa, y_sax, transform.breakpoints, x.shape[-1])
+    >>> dist = mindist_paa_sax_distance(
+    ... x_paa, y_sax, transform.breakpoints, x.shape[-1]
+    ... )
     """
     if x_paa.ndim == 1 and y_sax.ndim == 1:
-        return _univariate_PAA_SAX_distance(x_paa, y_sax, breakpoints, n)
+        return _univariate_paa_sax_distance(x_paa, y_sax, breakpoints, n)
     raise ValueError("x and y must be 1D")
 
 
 @njit(cache=True, fastmath=True)
-def _univariate_PAA_SAX_distance(
+def _univariate_paa_sax_distance(
     x_paa: np.ndarray, y_sax: np.ndarray, breakpoints: np.ndarray, n: int
 ) -> float:
     dist = 0.0
@@ -81,11 +84,10 @@ def _univariate_PAA_SAX_distance(
     return np.sqrt(n / m) * np.sqrt(dist)
 
 
-@njit(cache=True, fastmath=True)
-def sax_pairwise_distance(
+def mindist_paa_sax_pairwise_distance(
     X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int
 ) -> np.ndarray:
-    """Compute the SAX pairwise distance between a set of SAX representations.
+    """Compute the PAA SAX pairwise distance between a set of SAX representations.
 
     Parameters
     ----------
@@ -110,14 +112,16 @@ def sax_pairwise_distance(
         If X and y are not 1D, 2D arrays when passing both X and y.
 
     """
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, unequal_length = _convert_collection_to_numba_list(
+        X, "X", multivariate_conversion
+    )
     if y is None:
-        # To self
-        if X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _paa_sax_from_multiple_to_multiple_distance(_X, breakpoints, n)
-        raise ValueError("X must be a 2D array")
-    _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _paa_sax_from_multiple_to_multiple_distance(_x, _y, breakpoints, n)
+        return _paa_sax_from_multiple_to_multiple_distance(_X, breakpoints, n)
+    _y, unequal_length = _convert_collection_to_numba_list(
+        y, "y", multivariate_conversion
+    )
+    return _paa_sax_from_multiple_to_multiple_distance(_X, _y, breakpoints, n)
 
 
 @njit(cache=True, fastmath=True, parallel=True)
@@ -130,7 +134,7 @@ def _paa_sax_from_multiple_to_multiple_distance(
 
         for i in prange(n_instances):
             for j in prange(i + 1, n_instances):
-                distances[i, j] = _univariate_PAA_SAX_distance(
+                distances[i, j] = _univariate_paa_sax_distance(
                     X[i], X[j], breakpoints, n
                 )
                 distances[j, i] = distances[i, j]
@@ -141,7 +145,7 @@ def _paa_sax_from_multiple_to_multiple_distance(
 
         for i in prange(n_instances):
             for j in prange(m_instances):
-                distances[i, j] = _univariate_PAA_SAX_distance(
+                distances[i, j] = _univariate_paa_sax_distance(
                     X[i], y[j], breakpoints, n
                 )
 
