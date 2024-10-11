@@ -110,8 +110,8 @@ class ShapeletTransformClassifier(BaseClassifier):
     >>> from aeon.classification.shapelet_based import ShapeletTransformClassifier
     >>> from aeon.classification.sklearn import RotationForestClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = ShapeletTransformClassifier(
     ...     estimator=RotationForestClassifier(n_estimators=3),
     ...     n_shapelet_samples=100,
