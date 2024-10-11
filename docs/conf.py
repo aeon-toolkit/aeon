@@ -333,7 +333,7 @@ def _make_estimator_overview(app):
     """Make estimator overview table."""
     import pandas as pd
 
-    from aeon.registry import all_estimators
+    from aeon.utils.discovery import all_estimators
 
     def _does_not_start_with_underscore(input_string):
         return not input_string.startswith("_")

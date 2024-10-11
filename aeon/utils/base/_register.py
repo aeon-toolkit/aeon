@@ -28,9 +28,12 @@ BASE_CLASS_LOOKUP - dictionary
 
 """
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = [
+    "BASE_CLASS_REGISTER",
+    "VALID_ESTIMATOR_BASES",
+]
 
-import pandas as pd
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseAeonEstimator, BaseCollectionEstimator, BaseSeriesEstimator
@@ -44,25 +47,28 @@ from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
 
-BASE_CLASS_REGISTER = [
-    ("anomaly-detector", BaseAnomalyDetector, "anomaly detector"),
-    ("estimator", BaseAeonEstimator, "estimator = object with fit"),
-    ("classifier", BaseClassifier, "classifier"),
-    ("collection-estimator", BaseCollectionEstimator, "collection estimator"),
-    ("collection-transformer", BaseCollectionTransformer, "collection transformer"),
-    ("clusterer", BaseClusterer, "clusterer"),
-    ("early_classifier", BaseEarlyClassifier, "early time series classifier"),
-    ("regressor", BaseRegressor, "regressor"),
-    ("segmenter", BaseSegmenter, "segmenter"),
-    ("series-estimator", BaseSeriesEstimator, "single series estimator"),
-    ("series-transformer", BaseSeriesTransformer, "single series transformer"),
-    ("similarity-search", BaseSimilaritySearch, "similarity search"),
-    ("transformer", BaseTransformer, "transformer"),
-]
+# all base classes
+BASE_CLASS_REGISTER = {
+    # abstract - no estimator directly inherits from these
+    "collection-estimator": BaseCollectionEstimator,
+    "estimator": BaseAeonEstimator,
+    "series-estimator": BaseSeriesEstimator,
+    "transformer": BaseTransformer,
+    # estimator types
+    "anomaly-detector": BaseAnomalyDetector,
+    "collection-transformer": BaseCollectionTransformer,
+    "classifier": BaseClassifier,
+    "clusterer": BaseClusterer,
+    "early_classifier": BaseEarlyClassifier,
+    "regressor": BaseRegressor,
+    "segmenter": BaseSegmenter,
+    "similarity_searcher": BaseSimilaritySearch,
+    "series-transformer": BaseSeriesTransformer,
+}
 
-
-BASE_CLASS_IDENTIFIER_LIST = pd.DataFrame(BASE_CLASS_REGISTER)[0].tolist()
-
-BASE_CLASS_LIST = pd.DataFrame(BASE_CLASS_REGISTER)[1].tolist()
-
-BASE_CLASS_LOOKUP = dict(zip(BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LIST))
+# base classes which are valid for estimator to directly inherit from
+VALID_ESTIMATOR_BASES = {
+    k: BASE_CLASS_REGISTER[k]
+    for k in BASE_CLASS_REGISTER.keys()
+    - {"estimator", "collection-estimator", "series-estimator", "transformer"}
+}

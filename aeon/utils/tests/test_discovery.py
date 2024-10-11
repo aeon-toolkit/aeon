@@ -5,10 +5,9 @@ __maintainer__ = []
 import pytest
 
 from aeon.base import BaseAeonEstimator
-from aeon.registry import all_estimators, get_identifiers
-from aeon.registry._base_classes import BASE_CLASS_IDENTIFIER_LIST, BASE_CLASS_LOOKUP
-from aeon.registry._lookup import _check_estimator_types
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.base._base_classes import BASE_CLASS_REGISTER
+from aeon.utils.discovery import all_estimators
 
 VALID_IDENTIFIERS_SET = set(BASE_CLASS_IDENTIFIER_LIST + ["estimator"])
 
@@ -19,7 +18,7 @@ CLASSES_WITHOUT_TAGS = [
     "collection-estimator",
     "series-estimator",
     "series-transformer",
-    "similarity-search",
+    "similarity_searcher",
 ]
 
 # shorthands for easy reading
@@ -54,7 +53,7 @@ def _get_type_tuple(estimator_identifiers):
     """
     if estimator_identifiers is not None:
         estimator_classes = tuple(
-            BASE_CLASS_LOOKUP[id] for id in _to_list(estimator_identifiers)
+            BASE_CLASS_REGISTER[id] for id in _to_list(estimator_identifiers)
         )
     else:
         estimator_classes = (BaseAeonEstimator,)
@@ -67,7 +66,7 @@ def _get_type_tuple(estimator_identifiers):
 def test_all_estimators_by_identifier(estimator_id, return_names):
     """Check that all_estimators return argument has correct type."""
     estimators = all_estimators(
-        estimator_types=estimator_id,
+        type_filter=estimator_id,
         return_names=return_names,
     )
 
@@ -109,9 +108,7 @@ def test_all_estimators_return_names(return_names):
 
 def test_all_estimators_exclude_type():
     """Test exclude_estimator_types argument in all_estimators."""
-    estimators = all_estimators(
-        return_names=True, exclude_estimator_types="transformer"
-    )
+    estimators = all_estimators(return_names=True, exclude_types="transformer")
     assert isinstance(estimators, list)
     assert len(estimators) > 0
     names, estimators = list(zip(*estimators))
@@ -206,17 +203,6 @@ def test_all_estimators_return_tags_bad_arg(return_tags):
         _ = all_estimators(return_tags=return_tags)
 
 
-@pytest.mark.parametrize("estimator_id", BASE_CLASS_IDENTIFIER_LIST)
-def test_type_inference(estimator_id):
-    """Check that identifier inverts _check_estimator_types."""
-    base_class = _check_estimator_types(estimator_id)[0]
-    inferred_type = get_identifiers(base_class)
-
-    assert (
-        inferred_type == estimator_id
-    ), "one of types _check_estimator_types is incorrect, these should be inverses"
-
-
 def test_list_tag_lookup():
     """Check that all estimators can handle tags lists rather than single strings.
 
@@ -224,12 +210,12 @@ def test_list_tag_lookup():
     checks that DummyClassifier is returned with either of these argument.s
     """
     matches = all_estimators(
-        estimator_types="classifier", filter_tags={"X_inner_type": "np-list"}
+        type_filter="classifier", tag_filter={"X_inner_type": "np-list"}
     )
     names = [t[0] for t in matches]
     assert "DummyClassifier" in names
     matches = all_estimators(
-        estimator_types="classifier", filter_tags={"X_inner_type": "numpy3D"}
+        type_filter="classifier", tag_filter={"X_inner_type": "numpy3D"}
     )
     names = [t[0] for t in matches]
     assert "DummyClassifier" in names

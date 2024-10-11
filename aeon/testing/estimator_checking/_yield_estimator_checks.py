@@ -61,7 +61,6 @@ from aeon.testing.estimator_checking._yield_transformation_checks import (
 from aeon.testing.testing_config import (
     NON_STATE_CHANGING_METHODS,
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
-    VALID_ESTIMATOR_BASE_TYPES,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
@@ -75,6 +74,7 @@ from aeon.testing.utils.estimator_checks import (
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
+from aeon.utils.base._base_classes import VALID_ESTIMATOR_BASES
 from aeon.utils.tags import check_valid_tags
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
@@ -274,7 +274,7 @@ def check_inheritance(estimator_class):
     # Usually estimators inherit only from one BaseAeonEstimator type, but in some cases
     # they may be predictor and transformer at the same time (e.g. pipelines)
     n_base_types = sum(
-        issubclass(estimator_class, cls) for cls in VALID_ESTIMATOR_BASE_TYPES
+        issubclass(estimator_class, cls) for cls in VALID_ESTIMATOR_BASES.values()
     )
 
     assert 2 >= n_base_types >= 1
