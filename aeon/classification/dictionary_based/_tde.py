@@ -410,13 +410,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             n_cases, n_classes_).
 
         """
-        _, _, n_timepoints = X.shape
-        if n_timepoints != self.n_timepoints_:
-            raise TypeError(
-                "ERROR number of attributes in the train does not match "
-                "that in the test data"
-            )
-
         sums = np.zeros((X.shape[0], self.n_classes_))
 
         for n, clf in enumerate(self.estimators_):
@@ -1003,14 +996,14 @@ def histogram_intersection(first, second):
     """Find the distance between two histograms using the histogram intersection.
 
     This distance function is designed for sparse matrix, represented as a
-    dictionary or numba Dict, but can accept arrays.
+    dictionary or numba Dict, but can accept arrays in dense format.
 
     Parameters
     ----------
-    first : dict, numba.Dict or array
-        First dictionary used in distance measurement.
-    second : dict, numba.Dict or array
-        Second dictionary that will be used to measure distance from `first`.
+    first : dict, numba.Dict or 1 D array of integers
+        First histogram used in distance measurement.
+    second : dict, numba.Dict or 1 D array of integers
+        Second histogram that will be used to measure distance from `first`.
 
     Returns
     -------
@@ -1028,7 +1021,7 @@ def histogram_intersection(first, second):
     else:
         return np.sum(
             [
-                0 if first[n] == 0 else np.min(first[n], second[n])
+                0 if first[n] == 0 else np.minimum(first[n], second[n])
                 for n in range(len(first))
             ]
         )

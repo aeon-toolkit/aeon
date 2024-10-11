@@ -107,7 +107,7 @@ class MUSE(BaseClassifier):
     References
     ----------
     .. [1] Patrick Schäfer and Ulf Leser, "Multivariate time series classification
-        with WEASEL+MUSE", in proc 3rd ECML/PKDD Workshop on AALTD}, 2018
+        with WEASEL+MUSE", in proc 3rd ECML/PKDD Workshop on AALTD, 2018
         https://arxiv.org/abs/1711.11343
 
     Notes
@@ -131,6 +131,7 @@ class MUSE(BaseClassifier):
     """
 
     _tags = {
+        "capability:univariate": False,
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",

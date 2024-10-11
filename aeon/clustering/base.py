@@ -24,6 +24,10 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         Number of clusters for model.
     """
 
+    _tags = {
+        "fit_is_empty": False,
+    }
+
     def __init__(self, n_clusters: Optional[int] = None):
         self.n_clusters = n_clusters
         # required for compatibility with some sklearn interfaces e.g.
@@ -59,7 +63,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         X = self._preprocess_collection(X)
         self._fit(X)
         self.fit_time_ = int(round(time.time() * 1000)) - _start_time
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
