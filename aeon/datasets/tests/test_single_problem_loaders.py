@@ -98,16 +98,9 @@ def test_basic_load_tsf_to_dataframe():
 
 def test_load_solar():
     """Test function to load solar data."""
-    solar = load_solar(api_version=None)
+    solar=load_solar()
     assert type(solar) is pd.Series
     assert solar.shape == (289,)
-    solar = load_solar(api_version="WRONG")
-    assert type(solar) is pd.Series
-    assert solar.shape == (289,)
-    solar = load_solar(api_version=None, return_full_df=True)
-    assert solar.name == "solar_gen"
-    solar = load_solar(api_version=None, normalise=False)
-    assert solar.name == "solar_gen"
 
 
 def test_load_covid_3month():
@@ -117,3 +110,4 @@ def test_load_covid_3month():
     assert len(X) == len(y)
     assert X.shape == (201, 1, 84)
     assert isinstance(y, np.ndarray)
+

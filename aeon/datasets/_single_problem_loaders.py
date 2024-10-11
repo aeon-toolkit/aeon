@@ -966,13 +966,7 @@ def load_unit_test_tsf(return_type="tsf_default"):
     )
 
 
-def load_solar(
-    start="2021-05-01",
-    end="2021-09-01",
-    normalise=True,
-    return_full_df=False,
-    api_version="v4",
-):
+def load_solar():
     """Get national solar estimates for GB from Sheffield Solar PV_Live API.
 
     This function calls the Sheffield Solar PV_Live API to extract national solar data
@@ -982,19 +976,6 @@ def load_solar(
 
     The returned time series is half hourly. For more information please refer
     to [1, 2]_.
-
-    Parameters
-    ----------
-    start : string, default="2021-05-01"
-        The start date of the time-series in "YYYY-MM-DD" format
-    end : string, default="2021-09-01"
-        The end date of the time-series in "YYYY-MM-DD" format
-    normalise : boolean, default=True
-        Normalise the returned time-series by installed capacity?
-    return_full_df : boolean, default=False
-        Return a pd.DataFrame with power, capacity, and normalised estimates?
-    api_version : string or None, default="v4"
-        API version to call. If None then a stored sample of the data is loaded.
 
     Returns
     -------
@@ -1016,55 +997,4 @@ def load_solar(
     y = pd.read_csv(path, index_col=0, parse_dates=["datetime_gmt"], dtype={1: float})
     y = y.asfreq("30T")
     y = y.squeeze("columns")
-    if api_version is None:
-        return y
-
-    def _load_solar(
-        start="2021-05-01",
-        end="2021-09-01",
-        normalise=True,
-        return_full_df=False,
-        api_version="v4",
-    ):
-        """Private loader, for decoration with backoff."""
-        url = (
-            f"https://api0.solar.sheffield.ac.uk/pvlive/api/"
-            f"{api_version}/gsp/0?start={start}T00:00:00&end={end}"
-            f"extra_fields=capacity_mwp&data_format=csv"
-        )
-        df = (
-            pd.read_csv(
-                url, index_col=["gsp_id", "datetime_gmt"], parse_dates=["datetime_gmt"]
-            )
-            .droplevel(0)
-            .sort_index()
-        )
-        df = df.asfreq("30T")
-        df["generation_pu"] = df["generation_mw"] / df["capacity_mwp"]
-
-        if return_full_df:
-            df["generation_pu"] = df["generation_mw"] / df["capacity_mwp"]
-            return df
-        else:
-            if normalise:
-                return df["generation_pu"].rename("solar_gen")
-            else:
-                return df["generation_mw"].rename("solar_gen")
-
-    try:
-        return _load_solar(
-            start=start,
-            end=end,
-            normalise=normalise,
-            return_full_df=return_full_df,
-            api_version=api_version,
-        )
-    except (URLError, HTTPError):
-        warn(
-            """
-                    Error detected using API. Check connection, input arguments, and
-                    API status here https://www.solar.sheffield.ac.uk/pvlive/api/.
-                    Loading stored sample data instead.
-                    """
-        )
-        return y
+    return y
