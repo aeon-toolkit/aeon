@@ -299,7 +299,7 @@ def test_load_provided_dataset(return_type):
 
     Check all possibilities of  return_type.
     """
-    X = _load_saved_dataset("UnitTest", "TRAIN", return_type)
+    X,y = _load_saved_dataset("UnitTest", "TRAIN", return_type)
     if return_type == "numpy3D":
         assert isinstance(X, np.ndarray) and X.ndim == 3
     elif return_type == "numpy2D":
