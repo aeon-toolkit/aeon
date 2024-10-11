@@ -121,7 +121,7 @@ def load_osuleaf(split=None, return_type="numpy3d"):
     Number of classes:  6
     Details: https://www.timeseriesclassification.com/description.php?Dataset=OSULeaf
     """
-    return _load_tsc_dataset("OSULeaf", split,  return_type=return_type)
+    return _load_tsc_dataset("OSULeaf", split, return_type=return_type)
 
 
 def load_italy_power_demand(split=None, return_type="numpy3d"):
@@ -256,9 +256,7 @@ def load_arrow_head(split=None, return_type="numpy3d"):
     Number of classes:  3
     Details: https://timeseriesclassification.com/description.php?Dataset=ArrowHead
     """
-    return _load_saved_dataset(
-        name="ArrowHead", split=split, return_type=return_type
-    )
+    return _load_saved_dataset(name="ArrowHead", split=split, return_type=return_type)
 
 
 def load_acsf1(split=None, return_type="numpy3d"):
@@ -346,7 +344,7 @@ def load_basic_motions(split=None, return_type="numpy3d"):
             f"numpy3d instead"
         )
     return _load_saved_dataset(
-        name="BasicMotions", split=split,return_type=return_type
+        name="BasicMotions", split=split, return_type=return_type
     )
 
 
@@ -418,8 +416,6 @@ def load_japanese_vowels(split=None):
     return _load_tsc_dataset("JapaneseVowels", split, return_type="np-list")
 
 
-
-
 def load_covid_3month(split=None, return_type="numpy3d"):
     """Load dataset of last three months confirmed covid cases.
 
@@ -467,7 +463,7 @@ def load_covid_3month(split=None, return_type="numpy3d"):
     return X, y
 
 
-def load_cardano_sentiment(split=None,return_type="numpy3d"):
+def load_cardano_sentiment(split=None, return_type="numpy3d"):
     """Load dataset of historical sentiment data for Cardano cryptocurrency.
 
     Parameters
