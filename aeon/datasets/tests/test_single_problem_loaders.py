@@ -15,12 +15,12 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_from_tsf_file,
     load_italy_power_demand,
     load_japanese_vowels,
+    load_macroeconomic,
     load_osuleaf,
     load_plaid,
     load_solar,
     load_unit_test,
     load_unit_test_tsf,
-    load_macroeconomic,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -100,7 +100,7 @@ def test_basic_load_tsf_to_dataframe():
 
 def test_load_solar():
     """Test function to load solar data."""
-    solar=load_solar()
+    solar = load_solar()
     assert type(solar) is pd.Series
     assert solar.shape == (289,)
 
@@ -113,4 +113,4 @@ def test_load_macroeconomic():
     """Test load macroeconomic."""
     y = load_macroeconomic()
     assert isinstance(y, pd.DataFrame)
-    assert y.shape == (203,12)
+    assert y.shape == (203, 12)
