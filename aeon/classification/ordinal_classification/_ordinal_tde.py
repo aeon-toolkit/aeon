@@ -133,8 +133,8 @@ class OrdinalTDE(BaseClassifier):
     --------
     >>> from aeon.classification.ordinal_classification import OrdinalTDE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = OrdinalTDE(
     ...     n_parameter_samples=10,
     ...     max_ensemble_size=3,
@@ -643,8 +643,8 @@ class IndividualOrdinalTDE(BaseClassifier):
     --------
     >>> from aeon.classification.ordinal_classification import IndividualOrdinalTDE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = IndividualOrdinalTDE()
     >>> clf.fit(X_train, y_train)
     IndividualOrdinalTDE(...)
