@@ -14,7 +14,6 @@ from aeon.datasets import (
 from aeon.testing.testing_config import PR_TESTING
 
 
-
 @pytest.mark.skipif(
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",

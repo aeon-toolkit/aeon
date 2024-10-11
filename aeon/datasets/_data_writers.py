@@ -45,7 +45,7 @@ def write_to_tsfile(
     if split[-1] != "ts":
         problem_name = problem_name + ".ts"
     _write_data_to_tsfile(
-            X, path, problem_name, y=y, comment=header, regression=regression
+        X, path, problem_name, y=y, comment=header, regression=regression
     )
 
 
@@ -140,6 +140,7 @@ def _write_data_to_tsfile(
             file.write(str(y[i]))
         file.write("\n")
     file.close()
+
 
 def _write_header(
     path,

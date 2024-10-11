@@ -517,6 +517,7 @@ def make_example_2d_dataframe_collection(
         return X, y
     return X
 
+
 def make_example_multi_index_dataframe(
     n_cases: int = 10,
     n_channels: int = 1,

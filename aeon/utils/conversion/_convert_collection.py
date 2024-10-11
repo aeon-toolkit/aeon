@@ -21,10 +21,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.utils._data_types import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation.collection import (
-    _equal_length,
-    get_type,
-)
+from aeon.utils.validation.collection import _equal_length, get_type
 
 
 def convert_identity(X):
@@ -144,6 +141,7 @@ def _from_numpy3d_to_pd_multiindex(X):
     X_mi.columns = [f"var_{i}" for i in range(n_channels)]
     return X_mi
 
+
 def _from_np_list_to_numpy3d(X):
     """Convert from a list of 2D numpy to 3d numpy."""
     if not isinstance(X, list):
@@ -163,7 +161,6 @@ def _from_np_list_to_df_list(X):
     for i in range(n_cases):
         df_list.append(pd.DataFrame(np.transpose(X[i])))
     return df_list
-
 
 
 def _from_np_list_to_numpy2d(X):
@@ -220,6 +217,7 @@ def _from_df_list_to_pd_wide(X):
         )
     np_list = _from_df_list_to_np_list(X)
     return _from_np_list_to_pd_wide(np_list)
+
 
 def _from_df_list_to_pd_multiindex(X):
     n = len(X)
@@ -280,10 +278,10 @@ def _from_pd_wide_to_numpy2d(X):
     return X.to_numpy()
 
 
-
 def _pd_wide_to_pd_multiindex(X):
     X_3d = _from_pd_wide_to_numpy3d(X)
     return _from_numpy3d_to_pd_multiindex(X_3d)
+
 
 def _from_pd_multiindex_to_df_list(X):
     instance_index = X.index.levels[0]

@@ -112,13 +112,12 @@ def test_write_data_to_tsfile_invalid():
         _write_data_to_tsfile(X, "temp", "temp", y=y)
 
 
-
 def test_write_inputs():
     """Tests whether error thrown if wrong input."""
     # load an example dataset
     problem_name = "Testy.ts"
     with tempfile.TemporaryDirectory() as tmp:
-        X="A string"
+        X = "A string"
         y = "another string"
         X2, y2 = make_example_3d_numpy()
         X3, y3 = make_example_3d_numpy_list()
