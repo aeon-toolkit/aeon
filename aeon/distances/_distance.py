@@ -6,16 +6,12 @@ from typing import Any, Callable, Optional, TypedDict, Union
 import numpy as np
 from typing_extensions import Unpack
 
-from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
-from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
-from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
 from aeon.distances._mpdist import mpdist
 from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
 from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_distance,
     shift_scale_invariant_pairwise_distance,
 )
-from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances.elastic import (
     adtw_alignment_path,
     adtw_cost_matrix,
@@ -61,6 +57,22 @@ from aeon.distances.elastic import (
     wdtw_cost_matrix,
     wdtw_distance,
     wdtw_pairwise_distance,
+)
+from aeon.distances.pointwise._euclidean import (
+    euclidean_distance,
+    euclidean_pairwise_distance,
+)
+from aeon.distances.pointwise._manhattan import (
+    manhattan_distance,
+    manhattan_pairwise_distance,
+)
+from aeon.distances.pointwise._minkowski import (
+    minkowski_distance,
+    minkowski_pairwise_distance,
+)
+from aeon.distances.pointwise._squared import (
+    squared_distance,
+    squared_pairwise_distance,
 )
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate

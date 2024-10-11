@@ -88,9 +88,6 @@ from aeon.distances._distance import (
     get_pairwise_distance_function,
     pairwise_distance,
 )
-from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
-from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
-from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
 from aeon.distances._mpdist import mpdist, mpdist_pairwise_distance
 from aeon.distances._paa_sax_mindist import paa_sax_mindist
 from aeon.distances._sax_mindist import sax_mindist
@@ -101,7 +98,6 @@ from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_distance,
     shift_scale_invariant_pairwise_distance,
 )
-from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances.elastic import (
     adtw_alignment_path,
     adtw_cost_matrix,
@@ -148,4 +144,16 @@ from aeon.distances.elastic import (
     wdtw_cost_matrix,
     wdtw_distance,
     wdtw_pairwise_distance,
+)
+from aeon.distances.pointwise._euclidean import (
+    euclidean_distance,
+    euclidean_pairwise_distance,
+)
+from aeon.distances.pointwise._manhattan import (
+    manhattan_distance,
+    manhattan_pairwise_distance,
+)
+from aeon.distances.pointwise._squared import (
+    squared_distance,
+    squared_pairwise_distance,
 )
