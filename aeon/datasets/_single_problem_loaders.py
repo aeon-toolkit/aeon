@@ -26,8 +26,6 @@ __all__ = [
 ]
 
 import os
-from urllib.error import HTTPError, URLError
-from warnings import warn
 
 import numpy as np
 import pandas as pd
