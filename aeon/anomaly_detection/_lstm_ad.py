@@ -7,8 +7,6 @@ from scipy.stats import multivariate_normal
 from sklearn.covariance import EmpiricalCovariance
 from sklearn.metrics import fbeta_score
 from sklearn.model_selection import train_test_split
-from tensorflow.keras import layers, models
-from tensorflow.keras.callbacks import EarlyStopping
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 
@@ -133,6 +131,8 @@ class LSTM_AD(BaseAnomalyDetector):
         y: np.ndarray of shape (n_timepoints,) or (n_timepoints, 1)
             Anomaly annotations for the training time series with values 0 or 1.
         """
+        import tensorflow as tf
+
         self._check_params(X)
 
         # Create normal time series if not present
@@ -179,8 +179,8 @@ class LSTM_AD(BaseAnomalyDetector):
             self.window_size,
             self.prediction_horizon,
         )
-        self.model_summary_ = self.model.summary()
-        early_stopping = EarlyStopping(
+        # self.model_summary_ = self.model.summary()
+        early_stopping = tf.keras.callbacks.EarlyStopping(
             monitor="val_loss", patience=self.patience, restore_best_weights=True
         )
         self.history = self.model.fit(
@@ -279,15 +279,19 @@ class LSTM_AD(BaseAnomalyDetector):
         -------
         output : a compiled Keras Model
         """
-        model = models.Sequential()
-        model.add(layers.Input(shape=(window_size, n_channels)))
-        model.add(layers.LSTM(n_nodes, return_sequences=True))  # First LSTM layer
+        import tensorflow as tf
+
+        model = tf.keras.models.Sequential()
+        model.add(tf.keras.layers.Input(shape=(window_size, n_channels)))
+        model.add(
+            tf.keras.layers.LSTM(n_nodes, return_sequences=True)
+        )  # First LSTM layer
         if n_layers > 2:
             for _ in range(1, n_layers - 1):
-                model.add(layers.LSTM(n_nodes, return_sequences=True))
+                model.add(tf.keras.layers.LSTM(n_nodes, return_sequences=True))
         # Last LSTM layer, return_sequences=False
-        model.add(layers.LSTM(n_nodes, return_sequences=False))
-        model.add(layers.Dense(n_channels * prediction_horizon))
+        model.add(tf.keras.layers.LSTM(n_nodes, return_sequences=False))
+        model.add(tf.keras.layers.Dense(n_channels * prediction_horizon))
         model.compile(optimizer="adam", loss="mse")
         return model
 
