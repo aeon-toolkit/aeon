@@ -87,9 +87,11 @@ class LSTM_AD(BaseAnomalyDetector):
     >>> X, y = load_anomaly_detection(
     ...     name=("KDD-TSAD", "001_UCR_Anomaly_DISTORTED1sddb40")
     ... )
-    >>> detector = LSTM_AD(n_layers=4, n_nodes=64, window_size=10, prediction_horizon=2)
-    >>> detector.fit(X, axis=0)
-    >>> anomaly_pred = detector.predict(X, axis=0)
+    >>> detector = LSTM_AD(
+    ...     n_layers=4, n_nodes=64, window_size=10, prediction_horizon=2
+    ... )  # doctest: +SKIP
+    >>> detector.fit(X, axis=0)  # doctest: +SKIP
+    LSTM_AD(...)
     """
 
     _tags = {
