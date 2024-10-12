@@ -196,8 +196,7 @@ Composition
 
     ClassifierPipeline
     ChannelEnsembleClassifier
-    WeightedEnsembleClassifier
-
+    ClassifierEnsemble
 
 Base
 ----
