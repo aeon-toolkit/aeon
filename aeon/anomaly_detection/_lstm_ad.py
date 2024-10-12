@@ -83,9 +83,10 @@ class LSTM_AD(BaseAnomalyDetector):
     --------
     >>> import numpy as np
     >>> from aeon.datasets import load_anomaly_detection
+    >>> from aeon.anomaly_detection import LSTM_AD
     >>> X, y = load_anomaly_detection(
-            name=("KDD-TSAD", "001_UCR_Anomaly_DISTORTED1sddb40")
-        )
+    ...     name=("KDD-TSAD", "001_UCR_Anomaly_DISTORTED1sddb40")
+    ... )
     >>> detector = LSTM_AD(n_layers=4, n_nodes=64, window_size=10, prediction_horizon=2)
     >>> detector.fit(X, axis=0)
     >>> anomaly_pred = detector.predict(X, axis=0)

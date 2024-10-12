@@ -1,11 +1,17 @@
 """Tests for the LSTM_AD class."""
 
 import numpy as np
+import pytest
 
 from aeon.anomaly_detection import LSTM_AD
 from aeon.testing.data_generation._legacy import make_series
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_lstmad_univariate():
     """Test LSTM_AD univariate output."""
     series = make_series(n_timepoints=1000, return_numpy=True, random_state=42)
@@ -26,6 +32,10 @@ def test_lstmad_univariate():
     assert pred.dtype == np.int_
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_lstmad_multivariate():
     """Test LSTM_AD multivariate output."""
     series = make_series(
