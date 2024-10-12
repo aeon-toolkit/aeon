@@ -12,7 +12,7 @@ def get_identifiers(obj, force_single_identifier=True, coerce_to_list=False):
 
     Parameters
     ----------
-    obj : class or object inheriting from aeon BaseObject
+    obj : class or object inheriting from aeon BaseAeonEstimator
     force_single_identifier : bool, optional, default = True
         whether only a single identifier is returned
         if True, only the *first* identifier found will be returned

@@ -1,29 +1,51 @@
-import math
-
-import numpy as np
-from sklearn.metrics import accuracy_score
-
-from aeon.classification.base import BaseClassifier
-from aeon.classification.convolution_based._rocket_classifier import RocketClassifier
-from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
+"""Selects channels based on an estimate of performance."""
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["ChannelScorer"]
 
+import math
+from typing import Callable
+from typing import Dict as TypingDict
+from typing import List as TypingList
+from typing import Optional, Union
+
+import numpy as np
+from sklearn.metrics import accuracy_score, mean_squared_error
+
+from aeon.base import BaseAeonEstimator
+from aeon.classification.base import BaseClassifier
+from aeon.regression.base import BaseRegressor
+from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
+
 
 class ChannelScorer(BaseChannelSelector):
-    """Channel scorer performs channel selection using a single channel classifier.
+    """Performs channel selection using a single channel classifier or regressor.
 
-    ChannelScorer uses a time series classifier to score each channel using an
-    estimate of accuracy on the training data, then selects a proportion of the top
+    ChannelScorer uses a time series classifier or a regressor to score each channel
+    using an estimate of accuracy on the training data fro classifier or mean
+    squared error for regressor, then selects a proportion of the top
     channels to keep. Can be configured through the constructor to use any time
-    series classifier and could easily be adapted to use forward selection or elbow
+    series estimator and could easily be adapted to use forward selection or elbow
     class methods. Approximately as described in [1]_.
 
     Parameters
     ----------
-    classifier, BaseClassifier, default = MiniROCKET
-    proportion : float, default = 0.2
+    estimator : BaseEstimator
+        The time series estimator used to score each channel.
+
+    scoring_function : Callable, optional (default=None)
+        Scoring function used to evaluate the performance of each channel.
+        Defaults to:
+        - `accuracy_score` if using a classifier.
+        - `mean_squared_error` if using a regressor.
+
+    score_sign : float, optional (default=None)
+        The sign used to determine whether higher or lower scores are better.
+        Defaults to:
+        - 1.0 for accuracy_score (higher scores are better).
+        - -1.0 for mean_squared_error (lower scores are better).
+
+    proportion : float, default = 0.4
         Proportion of channels to keep, rounded up to nearest integer.
 
     References
@@ -40,16 +62,20 @@ class ChannelScorer(BaseChannelSelector):
 
     def __init__(
         self,
-        classifier: BaseClassifier = None,
+        estimator: Optional[BaseAeonEstimator],
+        scoring_function: Callable = None,
+        score_sign: float = None,
         proportion: float = 0.4,
     ):
         self.proportion = proportion
-        self.classifier = classifier
+        self.estimator = estimator
+        self.scoring_function = scoring_function
+        self.score_sign = score_sign
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, TypingList]):
         """
-        Fit ECP to a specified X and y.
+        Fit to a specified X and y.
 
         Parameters
         ----------
@@ -65,23 +91,37 @@ class ChannelScorer(BaseChannelSelector):
         if self.proportion <= 0 or self.proportion > 1:
             raise ValueError("proportion must be in the range 0-1")
 
-        if self.classifier is None:
-            self.classifier_ = RocketClassifier(
-                rocket_transform="minirocket", num_kernels=5000
+        if isinstance(self.estimator, BaseClassifier):
+            self.estimator_ = self.estimator.clone()
+            scoring_function = (
+                accuracy_score
+                if self.scoring_function is None
+                else self.scoring_function
             )
-        elif not isinstance(self.classifier, BaseClassifier):
-            raise ValueError(
-                "parameter classifier must be None or an instance of a  "
-                "BaseClassifier."
+            score_sign = 1.0 if self.score_sign is None else self.score_sign
+        elif isinstance(self.estimator, BaseRegressor):
+            self.estimator_ = self.estimator.clone()
+            scoring_function = (
+                mean_squared_error
+                if self.scoring_function is None
+                else self.scoring_function
             )
+            score_sign = -1.0 if self.score_sign is None else self.score_sign
         else:
-            self.classifier_ = self.classifier.clone()
+            raise ValueError(
+                "parameter estimator must be an instance of BaseClassifier, "
+                "BaseRegressor."
+            )
+
         n_channels = X.shape[1]
         scores = np.zeros(n_channels)
         # Evaluate each channel with the classifier
         for i in range(n_channels):
-            preds = self.classifier_.fit_predict(X[:, i, :], y)
-            scores[i] = accuracy_score(y, preds)
+            preds = self.estimator_.fit_predict(X[:, i, :], y)
+            scores[i] = score_sign * scoring_function(
+                y, preds
+            )  # Applying the proper scoring function
+
         # Select the top n_keep channels
         sorted_indices = np.argsort(-scores)
         n_keep = math.ceil(n_channels * self.proportion)
@@ -89,7 +129,7 @@ class ChannelScorer(BaseChannelSelector):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default") -> TypingDict[str, any]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -105,4 +145,4 @@ class ChannelScorer(BaseChannelSelector):
         """
         from aeon.classification import DummyClassifier
 
-        return {"classifier": DummyClassifier(), "proportion": 0.4}
+        return {"estimator": DummyClassifier(), "proportion": 0.4}

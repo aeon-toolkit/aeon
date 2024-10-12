@@ -41,7 +41,6 @@ aeon/utils/numba/ @baraline @MatthewMiddlehurst
 aeon/visualisation/ @baraline @MatthewMiddlehurst
 
 .github/ @aeon-toolkit/aeon-infrastructure-workgroup
-build_tools/ @aeon-toolkit/aeon-infrastructure-workgroup
 
 docs/get_involved/code_of_conduct.rst @aeon-toolkit/aeon-code-of-conduct-workgroup
 docs/get_involved/governance.rst @aeon-toolkit/aeon-core-developers

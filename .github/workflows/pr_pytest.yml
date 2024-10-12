@@ -29,7 +29,8 @@ jobs:
         with:
           python-version: "3.10"
 
-      - name: Restore numba cache
+      - if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
+        name: Restore numba cache
         uses: ./.github/actions/numba_cache
         with:
           cache_name: "test-no-soft-deps"
@@ -73,7 +74,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Restore numba cache
+      - if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
+        name: Restore numba cache
         uses: ./.github/actions/numba_cache
         with:
           cache_name: "pytest"

@@ -36,6 +36,7 @@ References
 import logging
 import math
 from dataclasses import dataclass, field
+from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -457,7 +458,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         lamb: float = 1.0,
         max_shuffles: int = 250,
         verbose: bool = False,
-        random_state: int = None,
+        random_state: Optional[int] = None,
     ):
         self.k_max = k_max
         self.lamb = lamb

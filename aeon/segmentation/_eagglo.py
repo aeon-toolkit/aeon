@@ -180,10 +180,10 @@ class EAggloSegmenter(BaseSegmenter):
 
         Parameters
         ----------
-        X : Series of mtype X_inner_type
+        X : pd.Dataframe
             Data to be transformed
-        y : Series of type y_inner_type, default=None
-            Not required for this unsupervised transform.
+        y : default=None
+            Ignored, for interface compatibility
 
         Returns
         -------
@@ -350,7 +350,7 @@ class EAggloSegmenter(BaseSegmenter):
         )
 
     @classmethod
-    def get_test_params(cls) -> list[dict]:
+    def get_test_params(cls, parameter_set: str = "default") -> list[dict]:
         """Test parameters."""
         return [
             {"alpha": 1.0, "penalty": None},

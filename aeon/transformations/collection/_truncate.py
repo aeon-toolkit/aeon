@@ -1,4 +1,4 @@
-"""Truncation transformer - truncate unequal length panels to lower/upper bounds."""
+"""Truncation transformer - truncate unequal length collections."""
 
 __all__ = ["Truncator"]
 __maintainer__ = []
@@ -11,9 +11,9 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 class Truncator(BaseCollectionTransformer):
     """Truncate unequal length time series to a lower bounds.
 
-    Truncates all series in panel between lower/upper range bounds. This transformer
-    assumes that all series have the same number of channels (dimensions) and
-    that all channels in a single series are the same length.
+    Truncates all series in collection between lower/upper range bounds. This
+    transformer assumes that all series have the same number of channels (dimensions)
+    and that all channels in a single series are the same length.
 
     Parameters
     ----------
@@ -39,7 +39,7 @@ class Truncator(BaseCollectionTransformer):
         "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "capability:unequal_length:removes": True,
+        "removes_unequal_length": True,
     }
 
     def __init__(self, truncated_length=None):

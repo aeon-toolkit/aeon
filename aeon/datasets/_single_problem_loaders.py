@@ -81,7 +81,7 @@ def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        50
     Test cases:         150
     Number of classes:  2
-    Details: http://timeseriesclassification.com/description.php?Dataset=GunPoint
+    Details: https://timeseriesclassification.com/description.php?Dataset=GunPoint
     """
     return _load_tsc_dataset("GunPoint", split, return_X_y, return_type=return_type)
 
@@ -127,7 +127,7 @@ def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        200
     Test cases:         242
     Number of classes:  6
-    Details: http://www.timeseriesclassification.com/description.php?Dataset=OSULeaf
+    Details: https://www.timeseriesclassification.com/description.php?Dataset=OSULeaf
     """
     return _load_tsc_dataset("OSULeaf", split, return_X_y, return_type=return_type)
 
@@ -174,7 +174,7 @@ def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        67
     Test cases:         1029
     Number of classes:  2
-    Details:http://timeseriesclassification.com/description.php?Dataset=ItalyPowerDemand
+    Details:https://timeseriesclassification.com/description.php?Dataset=ItalyPowerDemand
     """
     name = "ItalyPowerDemand"
     return _load_tsc_dataset(name, split, return_X_y, return_type=return_type)
@@ -227,7 +227,7 @@ def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        20
     Test cases:         22 (full dataset has 345)
     Number of classes:  2
-    Details: http://timeseriesclassification.com/description.php?Dataset=Chinatown
+    Details: https://timeseriesclassification.com/description.php?Dataset=Chinatown
     for the full dataset
     """
     return _load_saved_dataset("UnitTest", split, return_X_y, return_type)
@@ -275,7 +275,7 @@ def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        36
     Test cases:         175
     Number of classes:  3
-    Details: http://timeseriesclassification.com/description.php?Dataset=ArrowHead
+    Details: https://timeseriesclassification.com/description.php?Dataset=ArrowHead
     """
     return _load_saved_dataset(
         name="ArrowHead", split=split, return_X_y=return_X_y, return_type=return_type
@@ -323,7 +323,7 @@ def load_acsf1(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        100
     Test cases:         100
     Number of classes:  10
-    Details: http://www.timeseriesclassification.com/description.php?Dataset=ACSF1
+    Details: https://www.timeseriesclassification.com/description.php?Dataset=ACSF1
     """
     return _load_tsc_dataset("ACSF1", split, return_X_y, return_type=return_type)
 
@@ -366,7 +366,7 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        40
     Test cases:         40
     Number of classes:  4
-    Details:http://www.timeseriesclassification.com/description.php?Dataset=BasicMotions
+    Details:https://www.timeseriesclassification.com/description.php?Dataset=BasicMotions
     """
     if return_type == "numpy2d" or return_type == "numpy2D":
         raise ValueError(
@@ -413,7 +413,7 @@ def load_plaid(split=None, return_X_y=True, return_type="np-list"):
     Train cases:        537
     Test cases:         537
     Number of classes:  2
-    Details: http://timeseriesclassification.com/description.php?Dataset=PLAID
+    Details: https://timeseriesclassification.com/description.php?Dataset=PLAID
 
     Examples
     --------
@@ -458,7 +458,7 @@ def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
     Train cases:        270
     Test cases:         370
     Number of classes:  9
-    Details: http://timeseriesclassification.com/description.php?Dataset=JapaneseVowels
+    Details: https://timeseriesclassification.com/description.php?Dataset=JapaneseVowels
     """
     return _load_tsc_dataset(
         "JapaneseVowels", split, return_X_y, return_type=return_type

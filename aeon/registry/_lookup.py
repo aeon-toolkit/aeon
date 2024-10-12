@@ -21,14 +21,13 @@ from pathlib import Path
 
 import pandas as pd
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.registry._base_classes import BASE_CLASS_LIST, BASE_CLASS_LOOKUP
-from aeon.registry._tags import ESTIMATOR_TAG_REGISTER
 
 VALID_ESTIMATOR_BASE_TYPES = tuple(BASE_CLASS_LIST)
 
 VALID_ESTIMATOR_TYPES = (
-    BaseEstimator,
+    BaseAeonEstimator,
     *VALID_ESTIMATOR_BASE_TYPES,
 )
 
@@ -375,7 +374,7 @@ def _get_return_tags(estimator, return_tags):
 
     Parameters
     ----------
-    estimator:  BaseEstimator, an aeon estimator
+    estimator:  BaseAeonEstimator, an aeon estimator
     return_tags: list of str,
         names of tags to get values for the estimator
 
@@ -393,7 +392,7 @@ def _check_tag_cond(estimator, filter_tags=None, as_dataframe=True):
 
     Parameters
     ----------
-    estimator: BaseEstimator, an aeon estimator
+    estimator: BaseAeonEstimator, an aeon estimator
     filter_tags: dict of (str or list of str), default=None
         subsets the returned estimators as follows:
             each key/value pair is statement in "and"/conjunction
@@ -428,74 +427,6 @@ def _check_tag_cond(estimator, filter_tags=None, as_dataframe=True):
             cond_sat = cond_sat and tags in value
 
     return cond_sat
-
-
-def all_tags(
-    estimator_types=None,
-    as_dataframe=False,
-):
-    """Get a list of all tags from aeon.
-
-    Retrieves tags directly from `_tags`, offers filtering functionality.
-
-    Parameters
-    ----------
-    estimator_types: string, list of string, default=None
-        Which kind of estimators should be returned.
-        - If None, no filter is applied and all estimators are returned.
-        - Possible values are 'classifier', 'regressor', 'transformer to get
-        estimators only of these specific types, or a list of
-        these to get the estimators that fit at least one of the types.
-    as_dataframe: bool, default=False
-                if False, return is as described below;
-                if True, return is converted into a pandas.DataFrame for pretty
-                display
-
-    Returns
-    -------
-    tags: list of tuples (a, b, c, d),
-        in alphabetical order by a
-        a : string - name of the tag as used in the _tags dictionary
-        b : string - name of the type this tag applies to
-                    must be in _base_classes.BASE_CLASS_IDENTIFIER_LIST
-        c : string - expected type of the tag value
-            should be one of:
-                "bool" - valid values are True/False
-                "int" - valid values are all integers
-                "str" - valid values are all strings
-                ("str", list_of_string) - any string in list_of_string is valid
-                ("list", list_of_string) - any individual string and sub-list is valid
-        d : string - plain English description of the tag
-    """
-
-    def is_tag_for_type(tag, estimator_types):
-        tag_types = tag[1]
-        tag_types = _check_list_of_str_or_error(tag_types, "tag_types")
-
-        if isinstance(estimator_types, str):
-            estimator_types = [estimator_types]
-
-        tag_types = set(tag_types)
-        estimator_types = set(estimator_types)
-        is_valid_tag_for_type = len(tag_types.intersection(estimator_types)) > 0
-
-        return is_valid_tag_for_type
-
-    all_tags = ESTIMATOR_TAG_REGISTER
-
-    if estimator_types:
-        # checking, but not using the return since that is classes, not strings
-        _check_estimator_types(estimator_types)
-        all_tags = [tag for tag in all_tags if is_tag_for_type(tag, estimator_types)]
-
-    all_tags = sorted(all_tags, key=itemgetter(0))
-
-    # convert to pd.DataFrame if as_dataframe=True
-    if as_dataframe:
-        columns = ["name", "scitype", "type", "description"]
-        all_tags = pd.DataFrame(all_tags, columns=columns)
-
-    return all_tags
 
 
 def _check_estimator_types(estimator_types, var_name="estimator_identifiers"):

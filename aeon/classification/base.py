@@ -60,6 +60,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
     """
 
     _tags = {
+        "fit_is_empty": False,
         "capability:train_estimate": False,
         "capability:contractable": False,
     }
@@ -118,7 +119,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -270,7 +271,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             y_pred = self._fit_predict(X, y, **kwargs)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return y_pred
 
     @final
@@ -339,7 +340,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             y_proba = self._fit_predict_proba(X, y, **kwargs)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return y_proba
 
     def score(
