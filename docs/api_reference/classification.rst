@@ -33,7 +33,6 @@ Deep learning
     :template: class.rst
 
     BaseDeepClassifier
-    CNNClassifier
     TimeCNNClassifier
     EncoderClassifier
     FCNClassifier
